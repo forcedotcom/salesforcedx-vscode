@@ -75,40 +75,43 @@ const run = (testsRoot: any, clb: any): any => {
   require('source-map-support').install();
 
   // Glob test files
-  glob(testGlobPath ? testGlobPath : '**/**.test.js', { cwd: testsRoot }, (error, files): any => {
-    if (error) {
-      const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
-      console.error(msg);
-      return clb(error);
-    }
-    try {
-      // Fill into Mocha
-      files.forEach((f): Mocha => {
-        return mocha.addFile(paths.join(testsRoot, f));
-      });
-      // Run the tests
-      let failureCount = 0;
-
-      mocha
-        .run((failures: any) => {
-          process.on('exit', () => {
-            console.log(`Existing test process, code should be ${failureCount}`);
-            process.exit(failures); // exit with non-zero status if there were failures
-          });
-        })
-        .on('fail', (test: any, err: any): void => {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          console.log(`Failure in test '${test}': ${err}`);
-          failureCount++;
-        })
-        .on('end', (): void => {
-          console.log(`Tests ended with ${failureCount} failure(s)`);
-          clb(undefined, failureCount);
+  void glob(
+    testGlobPath ? testGlobPath : '**/**.test.js',
+    { cwd: testsRoot },
+    (error: Error | null, files: string[]): any => {
+      if (error) {
+        const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+        console.error(msg);
+        return clb(error);
+      }
+      try {
+        // Fill into Mocha
+        files.forEach((f: string): Mocha => {
+          return mocha.addFile(paths.join(testsRoot, f));
         });
-    } catch (err) {
-      console.error('An error occured: ' + err);
-      return clb(err);
+        // Run the tests
+        let failureCount = 0;
+
+        mocha
+          .run((failures: number) => {
+            process.on('exit', () => {
+              console.log(`Existing test process, code should be ${failureCount}`);
+              process.exit(failures); // exit with non-zero status if there were failures
+            });
+          })
+          .on('fail', (test: Mocha.ITest, err: Error): void => {
+            console.log(`Failure in test '${test.title}': ${err.message}`);
+            failureCount++;
+          })
+          .on('end', (): void => {
+            console.log(`Tests ended with ${failureCount} failure(s)`);
+            clb(undefined, failureCount);
+          });
+      } catch (err) {
+        console.error(`An error occured: ${err}`);
+        return clb(err);
+      }
     }
-  });
+  );
 };
 exports.run = run;

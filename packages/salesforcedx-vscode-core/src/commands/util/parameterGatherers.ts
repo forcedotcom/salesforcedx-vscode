@@ -263,7 +263,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
 
   public getCustomOptions(packageDirs: string[], rootPath: string): string[] {
     const packages = packageDirs.length > 1 ? `{${packageDirs.join(',')}}` : packageDirs[0];
-    return new glob.GlobSync(path.join(rootPath, packages, '**', path.sep)).found.map(value => {
+    return glob.globSync(path.join(rootPath, packages, '**', path.sep)).map(value => {
       let relativePath = path.relative(rootPath, path.join(value, '/'));
       relativePath = path.join(
         relativePath,
