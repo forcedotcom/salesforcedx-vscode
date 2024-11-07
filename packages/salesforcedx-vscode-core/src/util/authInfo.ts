@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core-bundle';
 import {
   ConfigSource,
   ConfigUtil
@@ -102,6 +102,25 @@ export class OrgAuthInfo {
     return Promise.resolve(
       typeof authInfoFields.devHubUsername !== 'undefined'
     );
+  }
+
+  public static async isASandboxOrg(username: string): Promise<boolean> {
+    const authInfo = await AuthInfo.create({ username });
+
+    const authInfoFields = authInfo.getFields();
+    return authInfoFields.instanceUrl?.includes('sandbox') || false;
+  }
+
+  public static async getDevHubIdFromScratchOrg(username: string): Promise<string | undefined> {
+    if (await this.isAScratchOrg(username)) {
+      const scratchOrg: Org = await Org.create({
+        connection: await Connection.create({
+          authInfo: await AuthInfo.create({ username })
+        })
+      });
+      const devHubOrg = await scratchOrg.getDevHubOrg();
+      return devHubOrg?.getOrgId();
+    } else return undefined;
   }
 
   public static async getConnection(

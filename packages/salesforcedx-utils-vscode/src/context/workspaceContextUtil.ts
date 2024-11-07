@@ -29,6 +29,8 @@ export class WorkspaceContextUtil {
   protected _username?: string;
   protected _alias?: string;
   protected _orgId?: string;
+  protected _orgShape?: string;
+  protected _devHubId?: string;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -131,4 +133,21 @@ export class WorkspaceContextUtil {
   get orgId(): string | undefined {
     return this._orgId;
   }
+
+  get orgShape(): string | undefined {
+    return this._orgShape;
+  }
+
+  set orgShape(shape: string) {
+    this._orgShape = shape;
+  }
+
+  get devHubId(): string | undefined {
+    return this.devHubId;
+  }
+
+  set devHubId(id: string | undefined) {
+    this._devHubId = id;
+  }
+
 }

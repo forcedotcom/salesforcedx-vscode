@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  OrgShape,
+  getOrgShape
+} from './workspaceOrgShape';
+import {
   getTargetOrgOrAlias,
   getWorkspaceOrgType,
   OrgType,
@@ -18,6 +22,8 @@ export const workspaceContextUtils = {
   getTargetOrgOrAlias,
   getWorkspaceOrgType,
   OrgType,
-  setupWorkspaceOrgType
+  setupWorkspaceOrgType,
+  OrgShape,
+  getOrgShape
 };
 export { OrgType } from './workspaceOrgType';
