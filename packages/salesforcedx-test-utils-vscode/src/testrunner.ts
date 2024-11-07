@@ -34,14 +34,8 @@ const configure = (mochaOpts: any, xmlOutputDirectory: string): void => {
     mochaOpts.reporter = 'mocha-multi-reporters';
   }
   if (!mochaOpts.reporterOptions) {
-    const junitOutputFileLocation = paths.join(
-      xmlOutputDirectory,
-      'junit-custom-vscodeIntegrationTests.xml'
-    );
-    const xunitOutputFileLocation = paths.join(
-      xmlOutputDirectory,
-      'xunit-vscodeIntegrationTests.xml'
-    );
+    const junitOutputFileLocation = paths.join(xmlOutputDirectory, 'junit-custom-vscodeIntegrationTests.xml');
+    const xunitOutputFileLocation = paths.join(xmlOutputDirectory, 'xunit-vscodeIntegrationTests.xml');
 
     console.log('Output locations for reporters: ', {
       junitOutputFileLocation,
@@ -68,13 +62,8 @@ const run = (testsRoot: any, clb: any): any => {
   if (testFilePath) {
     const { name: testFileBasenameNoExtension } = paths.parse(testFilePath);
     const testFilePathSegments = testFilePath.split(paths.sep);
-    const packagesDirIndex = testFilePathSegments.findIndex(
-      s => s === 'packages'
-    );
-    testsRoot = paths.join(
-      ...testFilePathSegments.slice(0, packagesDirIndex + 2),
-      'out/test'
-    );
+    const packagesDirIndex = testFilePathSegments.findIndex(s => s === 'packages');
+    testsRoot = paths.join(...testFilePathSegments.slice(0, packagesDirIndex + 2), 'out/test');
     if (!/^win32/.test(process.platform)) {
       testsRoot = paths.join('/', testsRoot);
     }
@@ -86,48 +75,40 @@ const run = (testsRoot: any, clb: any): any => {
   require('source-map-support').install();
 
   // Glob test files
-  glob(
-    testGlobPath ? testGlobPath : '**/**.test.js',
-    { cwd: testsRoot },
-    (error, files): any => {
-      if (error) {
-        const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
-        console.error(msg);
-        return clb(error);
-      }
-      try {
-        // Fill into Mocha
-        files.forEach(
-          (f): Mocha => {
-            return mocha.addFile(paths.join(testsRoot, f));
-          }
-        );
-        // Run the tests
-        let failureCount = 0;
-
-        mocha
-          .run((failures: any) => {
-            process.on('exit', () => {
-              console.log(
-                `Existing test process, code should be ${failureCount}`
-              );
-              process.exit(failures); // exit with non-zero status if there were failures
-            });
-          })
-          .on('fail', (test: any, err: any): void => {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            console.log(`Failure in test '${test}': ${err}`);
-            failureCount++;
-          })
-          .on('end', (): void => {
-            console.log(`Tests ended with ${failureCount} failure(s)`);
-            clb(undefined, failureCount);
-          });
-      } catch (err) {
-        console.error('An error occured: ' + err);
-        return clb(err);
-      }
+  glob(testGlobPath ? testGlobPath : '**/**.test.js', { cwd: testsRoot }, (error, files): any => {
+    if (error) {
+      const msg = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+      console.error(msg);
+      return clb(error);
     }
-  );
+    try {
+      // Fill into Mocha
+      files.forEach((f): Mocha => {
+        return mocha.addFile(paths.join(testsRoot, f));
+      });
+      // Run the tests
+      let failureCount = 0;
+
+      mocha
+        .run((failures: any) => {
+          process.on('exit', () => {
+            console.log(`Existing test process, code should be ${failureCount}`);
+            process.exit(failures); // exit with non-zero status if there were failures
+          });
+        })
+        .on('fail', (test: any, err: any): void => {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          console.log(`Failure in test '${test}': ${err}`);
+          failureCount++;
+        })
+        .on('end', (): void => {
+          console.log(`Tests ended with ${failureCount} failure(s)`);
+          clb(undefined, failureCount);
+        });
+    } catch (err) {
+      console.error('An error occured: ' + err);
+      return clb(err);
+    }
+  });
 };
 exports.run = run;

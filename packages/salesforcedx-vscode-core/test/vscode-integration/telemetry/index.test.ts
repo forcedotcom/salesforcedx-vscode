@@ -5,7 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AppInsights, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import { ActivationInfo, Measurements, Properties, TelemetryData, TelemetryReporter, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import {
+  ActivationInfo,
+  Measurements,
+  Properties,
+  TelemetryData,
+  TelemetryReporter,
+  TelemetryServiceInterface
+} from '@salesforce/vscode-service-provider';
 import { expect } from 'chai';
 import { assert, SinonStub, stub } from 'sinon';
 import { ExtensionContext, ExtensionMode, window } from 'vscode';
@@ -17,7 +24,12 @@ class MockTelemetryService extends TelemetryService implements TelemetryServiceI
   public initializeService(extensionContext: ExtensionContext): Promise<void> {
     return Promise.resolve();
   }
-  public initializeServiceWithAttributes(name: string, apiKey?: string, version?: string, extensionMode?: ExtensionMode): Promise<void> {
+  public initializeServiceWithAttributes(
+    name: string,
+    apiKey?: string,
+    version?: string,
+    extensionMode?: ExtensionMode
+  ): Promise<void> {
     return Promise.resolve();
   }
   public getReporters(): TelemetryReporter[] {
@@ -38,25 +50,38 @@ class MockTelemetryService extends TelemetryService implements TelemetryServiceI
   public sendActivationEventInfo(activationInfo: ActivationInfo): void {
     // No-op implementation
   }
-  public sendExtensionActivationEvent(hrstart: [number, number], markEndTime?: number, telemetryData?: TelemetryData): void {
+  public sendExtensionActivationEvent(
+    hrstart: [number, number],
+    markEndTime?: number,
+    telemetryData?: TelemetryData
+  ): void {
     // No-op implementation
   }
   public sendExtensionDeactivationEvent(): void {
     // No-op implementation
   }
-  public sendCommandEvent(commandName?: string, hrstart?: [number, number], properties?: Properties, measurements?: Measurements): void {
+  public sendCommandEvent(
+    commandName?: string,
+    hrstart?: [number, number],
+    properties?: Properties,
+    measurements?: Measurements
+  ): void {
     // No-op implementation
   }
   public sendException(name: string, message: string): void {
     // No-op implementation
   }
-  public sendEventData(eventName: string, properties?: { [key: string]: string }, measures?: { [key: string]: number }): void {
+  public sendEventData(
+    eventName: string,
+    properties?: { [key: string]: string },
+    measures?: { [key: string]: number }
+  ): void {
     // No-op implementation
   }
   public dispose(): void {
     // No-op implementation
   }
-};
+}
 
 // Mock the ServiceProvider module
 jest.mock('@salesforce/vscode-service-provider', () => ({
@@ -67,8 +92,6 @@ jest.mock('@salesforce/vscode-service-provider', () => ({
     Telemetry: 'Telemetry'
   }
 }));
-
-
 
 describe('Telemetry', () => {
   const machineId = '45678903';
@@ -82,13 +105,8 @@ describe('Telemetry', () => {
 
   describe('in dev mode', () => {
     beforeEach(() => {
-      mShowInformation = stub(window, 'showInformationMessage').returns(
-        Promise.resolve(null)
-      );
-      settings = stub(
-        SalesforceCoreSettings.prototype,
-        'getTelemetryEnabled'
-      ).returns(true);
+      mShowInformation = stub(window, 'showInformationMessage').returns(Promise.resolve(null));
+      settings = stub(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').returns(true);
       teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
       cliStub = stub(telemetryService, 'checkCliTelemetry');
       cliStub.returns(Promise.resolve(true));
@@ -153,13 +171,8 @@ describe('Telemetry', () => {
 
   describe('production mode', () => {
     beforeEach(() => {
-      mShowInformation = stub(window, 'showInformationMessage').returns(
-        Promise.resolve(null)
-      );
-      settings = stub(
-        SalesforceCoreSettings.prototype,
-        'getTelemetryEnabled'
-      ).returns(true);
+      mShowInformation = stub(window, 'showInformationMessage').returns(Promise.resolve(null));
+      settings = stub(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').returns(true);
       reporter = stub(AppInsights.prototype, 'sendTelemetryEvent');
       exceptionEvent = stub(AppInsights.prototype, 'sendExceptionEvent');
       teleStub = stub(telemetryService, 'setCliTelemetryEnabled');

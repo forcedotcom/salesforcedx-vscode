@@ -86,9 +86,7 @@ export class StreamingClientInfoBuilder {
     return this;
   }
 
-  public withErrorHandler(
-    handler: (reason: string) => void
-  ): StreamingClientInfoBuilder {
+  public withErrorHandler(handler: (reason: string) => void): StreamingClientInfoBuilder {
     this.errorHandler = handler;
     return this;
   }
@@ -98,16 +96,12 @@ export class StreamingClientInfoBuilder {
     return this;
   }
 
-  public withDisconnectedHandler(
-    handler: () => void
-  ): StreamingClientInfoBuilder {
+  public withDisconnectedHandler(handler: () => void): StreamingClientInfoBuilder {
     this.disconnectedHandler = handler;
     return this;
   }
 
-  public withMsgHandler(
-    handler: (message: any) => void
-  ): StreamingClientInfoBuilder {
+  public withMsgHandler(handler: (message: any) => void): StreamingClientInfoBuilder {
     this.messageHandler = handler;
     return this;
   }
@@ -128,11 +122,7 @@ export class StreamingClient {
   private replayId = -1;
   private clientInfo: StreamingClientInfo;
 
-  public constructor(
-    url: string,
-    requestService: RequestService,
-    clientInfo: StreamingClientInfo
-  ) {
+  public constructor(url: string, requestService: RequestService, clientInfo: StreamingClientInfo) {
     this.clientInfo = clientInfo;
     this.client = new Client(url, {
       timeout: this.clientInfo.timeout,
@@ -141,28 +131,21 @@ export class StreamingClient {
         auth: requestService.proxyAuthorization
       }
     });
-    this.client.setHeader(
-      'Authorization',
-      `OAuth ${requestService.accessToken}`
-    );
+    this.client.setHeader('Authorization', `OAuth ${requestService.accessToken}`);
     this.client.setHeader('Content-Type', 'application/json');
   }
 
   public async subscribe(): Promise<void> {
     let subscribeAccept: () => void;
     let subscribeReject: () => void;
-    const returnPromise = new Promise<void>(
-      (resolve: () => void, reject: () => void) => {
-        subscribeAccept = resolve;
-        subscribeReject = reject;
-      }
-    );
+    const returnPromise = new Promise<void>((resolve: () => void, reject: () => void) => {
+      subscribeAccept = resolve;
+      subscribeReject = reject;
+    });
 
     this.client.on('transport:down', async () => {
       if (!this.connected) {
-        this.clientInfo.errorHandler(
-          nls.localize('streaming_handshake_timeout_text')
-        );
+        this.clientInfo.errorHandler(nls.localize('streaming_handshake_timeout_text'));
         subscribeReject();
       }
     });
@@ -177,16 +160,11 @@ export class StreamingClient {
           } else {
             this.connected = false;
             this.clientInfo.errorHandler(
-              `${nls.localize('streaming_handshake_error_text')}:${
-                os.EOL
-              }${JSON.stringify(message)}${os.EOL}`
+              `${nls.localize('streaming_handshake_error_text')}:${os.EOL}${JSON.stringify(message)}${os.EOL}`
             );
             subscribeReject();
           }
-        } else if (
-          message.channel === '/meta/connect' &&
-          !this.shouldDisconnect
-        ) {
+        } else if (message.channel === '/meta/connect' && !this.shouldDisconnect) {
           const wasConnected = this.connected;
           this.connected = message.successful;
           if (!wasConnected && this.connected) {
@@ -243,9 +221,6 @@ export class StreamingClient {
   }
 
   private sendSubscribeRequest(): void {
-    this.client.subscribe(
-      this.clientInfo.channel,
-      this.clientInfo.messageHandler
-    );
+    this.client.subscribe(this.clientInfo.channel, this.clientInfo.messageHandler);
   }
 }

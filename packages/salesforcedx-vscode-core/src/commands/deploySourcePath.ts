@@ -23,11 +23,8 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_sourcepath');
   }
 
-  public async getComponents(
-    response: ContinueResponse<string[]>
-  ): Promise<ComponentSet> {
-    const paths =
-      typeof response.data === 'string' ? [response.data] : response.data;
+  public async getComponents(response: ContinueResponse<string[]>): Promise<ComponentSet> {
+    const paths = typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
 
     return componentSet;
@@ -74,10 +71,7 @@ export const deploySourcePaths = async (
       new SfWorkspaceChecker(),
       new LibraryPathsGatherer(uris),
       new LibraryDeploySourcePathExecutor(),
-      new CompositePostconditionChecker(
-        new SourcePathChecker(),
-        new TimestampConflictChecker(false, messages)
-      )
+      new CompositePostconditionChecker(new SourcePathChecker(), new TimestampConflictChecker(false, messages))
     );
 
     await commandlet.run();

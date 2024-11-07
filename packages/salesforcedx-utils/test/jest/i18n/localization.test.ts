@@ -12,9 +12,7 @@ describe('Localization Unit Tests.', () => {
   let delegateLocalizeSpy: jest.SpyInstance<string, [label: string, ...args: any[]]>;
 
   beforeEach(() => {
-    delegateLocalizeSpy = jest
-      .spyOn(Message.prototype, 'localize')
-      .mockReturnValue(localizaedValue);
+    delegateLocalizeSpy = jest.spyOn(Message.prototype, 'localize').mockReturnValue(localizaedValue);
   });
   it('Should be able to create an instance.', () => {
     const fakeMessage = new Message(fakeMessages, undefined);
@@ -28,11 +26,6 @@ describe('Localization Unit Tests.', () => {
     const localization = new Localization(fakeMessage);
     const result = localization.localize('fakeLabel', 1, true, 'fake');
     expect(result).toEqual(localizaedValue);
-    expect(delegateLocalizeSpy).toHaveBeenCalledWith(
-      'fakeLabel',
-      1,
-      true,
-      'fake'
-    );
+    expect(delegateLocalizeSpy).toHaveBeenCalledWith('fakeLabel', 1, true, 'fake');
   });
 });

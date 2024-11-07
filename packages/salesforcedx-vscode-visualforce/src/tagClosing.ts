@@ -40,23 +40,17 @@ export const activateTagClosing = (
     if (!supportedLanguages[document.languageId]) {
       return;
     }
-    if (
-      !workspace.getConfiguration(void 0, document.uri).get<boolean>(configName)
-    ) {
+    if (!workspace.getConfiguration(void 0, document.uri).get<boolean>(configName)) {
       return;
     }
     isEnabled = true;
   };
 
-  const onDidChangeTextDocument = (
-    document: TextDocument,
-    changes: readonly TextDocumentContentChangeEvent[]
-  ) => {
+  const onDidChangeTextDocument = (document: TextDocument, changes: readonly TextDocumentContentChangeEvent[]) => {
     if (!isEnabled) {
       return;
     }
-    const activeDocument =
-      window.activeTextEditor && window.activeTextEditor.document;
+    const activeDocument = window.activeTextEditor && window.activeTextEditor.document;
     if (document !== activeDocument || changes.length === 0) {
       return;
     }
@@ -65,32 +59,20 @@ export const activateTagClosing = (
     }
     const lastChange = changes[changes.length - 1];
     const lastCharacter = lastChange.text[lastChange.text.length - 1];
-    if (
-      lastChange.rangeLength > 0 ||
-      (lastCharacter !== '>' && lastCharacter !== '/')
-    ) {
+    if (lastChange.rangeLength > 0 || (lastCharacter !== '>' && lastCharacter !== '/')) {
       return;
     }
     const rangeStart = lastChange.range.start;
     const version = document.version;
     timeout = setTimeout(() => {
-      const position = new Position(
-        rangeStart.line,
-        rangeStart.character + lastChange.text.length
-      );
+      const position = new Position(rangeStart.line, rangeStart.character + lastChange.text.length);
       tagProvider(document, position).then(text => {
         if (text && isEnabled) {
           const activeEditor = window.activeTextEditor!;
           const currentDocument = activeEditor && activeEditor.document;
-          if (
-            document === currentDocument &&
-            currentDocument.version === version
-          ) {
+          if (document === currentDocument && currentDocument.version === version) {
             const selections = activeEditor.selections;
-            if (
-              selections.length &&
-              selections.some(s => s.active.isEqual(position))
-            ) {
+            if (selections.length && selections.some(s => s.active.isEqual(position))) {
               activeEditor.insertSnippet(
                 new SnippetString(text),
                 selections.map(s => s.active)

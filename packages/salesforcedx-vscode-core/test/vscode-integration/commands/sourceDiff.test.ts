@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  MetadataType,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve-bundle';
+import { MetadataType, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
@@ -18,10 +15,7 @@ import { commands, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { sourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
-import {
-  FilePathGatherer,
-  SfWorkspaceChecker
-} from '../../../src/commands/util';
+import { FilePathGatherer, SfWorkspaceChecker } from '../../../src/commands/util';
 import * as differ from '../../../src/conflict/directoryDiffer';
 import {
   MetadataCacheResult,
@@ -40,9 +34,7 @@ describe('Diff', () => {
   describe('File Diff', () => {
     const mockAlias = 'vscodeOrg';
     const mockUsername = 'admin@ut-sandbox.org';
-    const mockFilePath = path.join(
-      '/projects/trailheadapps/lwc-recipes/force-app/main/default/classes/mockFile.cls'
-    );
+    const mockFilePath = path.join('/projects/trailheadapps/lwc-recipes/force-app/main/default/classes/mockFile.cls');
     let vscodeExecuteCommandStub: SinonStub;
     let workspaceContextAliasStub: SinonStub;
     let workspaceContextUsernameStub: SinonStub;
@@ -58,49 +50,24 @@ describe('Diff', () => {
     let telemetryServiceSendExceptionStub: SinonStub;
 
     beforeEach(() => {
-      workspaceContextUsernameStub = sandbox
-        .stub(WorkspaceContext.prototype, 'username')
-        .get(() => {
-          return mockUsername;
-        });
-      workspaceContextAliasStub = sandbox
-        .stub(WorkspaceContext.prototype, 'alias')
-        .get(() => {
-          return mockAlias;
-        });
-      workspaceCheckerStub = sandbox.stub(
-        SfWorkspaceChecker.prototype,
-        'check'
-      );
+      workspaceContextUsernameStub = sandbox.stub(WorkspaceContext.prototype, 'username').get(() => {
+        return mockUsername;
+      });
+      workspaceContextAliasStub = sandbox.stub(WorkspaceContext.prototype, 'alias').get(() => {
+        return mockAlias;
+      });
+      workspaceCheckerStub = sandbox.stub(SfWorkspaceChecker.prototype, 'check');
       workspaceCheckerStub.returns(true);
       filePathGathererStub = sandbox.stub(FilePathGatherer.prototype, 'gather');
       filePathGathererStub.returns({ type: 'CONTINUE', data: mockFilePath });
-      operationStub = sandbox.stub(
-        MetadataCacheService.prototype,
-        'createRetrieveOperation'
-      );
-      componentStub = sandbox.stub(
-        MetadataCacheService.prototype,
-        'getSourceComponents'
-      );
-      processStub = sandbox.stub(
-        MetadataCacheService.prototype,
-        'processResults'
-      );
-      mockComponentWalkContentStub = sandbox.stub(
-        SourceComponent.prototype,
-        'walkContent'
-      );
+      operationStub = sandbox.stub(MetadataCacheService.prototype, 'createRetrieveOperation');
+      componentStub = sandbox.stub(MetadataCacheService.prototype, 'getSourceComponents');
+      processStub = sandbox.stub(MetadataCacheService.prototype, 'processResults');
+      mockComponentWalkContentStub = sandbox.stub(SourceComponent.prototype, 'walkContent');
       notificationStub = sandbox.stub(notificationService, 'showErrorMessage');
       channelAppendLineStub = sandbox.stub(channelService, 'appendLine');
-      channelShowChannelOutputStub = sandbox.stub(
-        channelService,
-        'showChannelOutput'
-      );
-      telemetryServiceSendExceptionStub = sandbox.stub(
-        telemetryService,
-        'sendException'
-      );
+      channelShowChannelOutputStub = sandbox.stub(channelService, 'showChannelOutput');
+      telemetryServiceSendExceptionStub = sandbox.stub(telemetryService, 'sendException');
       vscodeExecuteCommandStub = sandbox.stub(commands, 'executeCommand');
     });
 
@@ -131,11 +98,7 @@ describe('Diff', () => {
         },
         properties: []
       };
-      const remoteFsPath = path.join(
-        mockResult.cache.baseDirectory,
-        mockResult.cache.commonRoot,
-        'mockFile.cls'
-      );
+      const remoteFsPath = path.join(mockResult.cache.baseDirectory, mockResult.cache.commonRoot, 'mockFile.cls');
       const localFsPath = mockFilePath;
       mockComponentWalkContentStub.returns([remoteFsPath]);
       processStub.returns(mockResult);
@@ -148,12 +111,7 @@ describe('Diff', () => {
         'vscode.diff',
         match.has('fsPath', remoteFsPath),
         match.has('fsPath', localFsPath),
-        nls.localize(
-          'source_diff_title',
-          mockUsername,
-          'mockFile.cls',
-          'mockFile.cls'
-        )
+        nls.localize('source_diff_title', mockUsername, 'mockFile.cls', 'mockFile.cls')
       );
     });
 
@@ -177,15 +135,9 @@ describe('Diff', () => {
         nls.localize('source_diff_unsupported_type')
       );
       assert.calledOnce(notificationStub);
-      assert.calledWith(
-        notificationStub,
-        nls.localize('source_diff_unsupported_type')
-      );
+      assert.calledWith(notificationStub, nls.localize('source_diff_unsupported_type'));
       assert.calledOnce(channelAppendLineStub);
-      assert.calledWith(
-        channelAppendLineStub,
-        nls.localize('source_diff_unsupported_type')
-      );
+      assert.calledWith(channelAppendLineStub, nls.localize('source_diff_unsupported_type'));
       assert.calledOnce(channelShowChannelOutputStub);
     });
   });
@@ -214,14 +166,9 @@ describe('Diff', () => {
       } catch (error) {
         expectedError = error;
       }
-      expect(expectedError.message).to.equal(
-        nls.localize('source_diff_components_not_in_org')
-      );
+      expect(expectedError.message).to.equal(nls.localize('source_diff_components_not_in_org'));
       assert.calledOnce(notificationStub);
-      assert.calledWith(
-        notificationStub,
-        nls.localize('source_diff_components_not_in_org')
-      );
+      assert.calledWith(notificationStub, nls.localize('source_diff_components_not_in_org'));
     });
 
     it('Should diff one file', async () => {

@@ -6,8 +6,11 @@
  **/
 
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import eslintPluginHeader from 'eslint-plugin-header';
-import eslintPluginImport from 'eslint-plugin-import';
+import stylistic from '@stylistic/eslint-plugin-ts';
+import tsParser from '@typescript-eslint/parser';
+import globals from 'globals';
+import header from '@tony.ganchev/eslint-plugin-header';
+import eslintPluginImport, { __esModule } from 'eslint-plugin-import';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
@@ -16,29 +19,48 @@ import eslintPluginJest from 'eslint-plugin-jest';
 
 export default [
   {
-    files: ['packages/**/*'],
-    ignores: ['out', 'dist', '**/packages/**/coverage', '**/*.d.ts', '**/jest.config.js', 'jest.integration.config.js'],
+    ignores: [
+      '**/out/**',
+      '**/dist/**',
+      '**/packages/**/coverage',
+      '**/*.d.ts',
+      '**/jest.config.js',
+      '**/jest.integration.config.js',
+      'packages/salesforcedx-visualforce-markup-language-server/src/**',
+      'packages/salesforcedx-apex-replay-debugger/src/**',
+      'packages/system-tests/assets/**',
+      'packages/system-tests/scenarios/**',
+      'packages/system-tests/src/**',
+      'packages/salesforcedx-sobjects-faux-generator/scripts/**',
+      'packages/salesforcedx-sobjects-faux-generator/coverage/**',
+      'packages/salesforcedx-vscode-soql/test/vscode-integration',
+      'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
+      'packages/salesforcedx-vscode-lwc/test/vscode-integration',
+      'packages/salesforcedx-vscode-core/test/vscode-integration/**'
+    ]
+  },
+  eslintPluginPrettierRecommended,
+  {
+    files: ['**/*.ts'],
     languageOptions: {
-      parser: '@typescript-eslint/parser',
+      parser: tsParser,
       parserOptions: {
         project: './tsconfig.json',
         sourceType: 'module',
         ecmaVersion: 2020,
         globals: {
-          // For Browser environment
-          window: 'readonly',
-          document: 'readonly',
-          fetch: 'readonly'
+          ...globals.browser
         }
       }
     },
     plugins: {
       '@typescript-eslint': typescriptEslint,
-      header: eslintPluginHeader,
+      header: header,
       import: eslintPluginImport,
       jsdoc: eslintPluginJsdoc,
       'jest-formatting': eslintPluginJestFormatting,
-      'prefer-arrow': eslintPluginPreferArrow
+      'prefer-arrow': eslintPluginPreferArrow,
+      '@stylistic/eslint-plugin-ts': stylistic
     },
     rules: {
       'header/header': [
@@ -58,8 +80,7 @@ export default [
       ],
       '@typescript-eslint/adjacent-overload-signatures': 'error',
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
-      '@typescript-eslint/await-thenable': 'warn',
-      '@typescript-eslint/ban-types': [
+      '@typescript-eslint/no-restricted-types': [
         'warn',
         {
           types: {
@@ -90,7 +111,7 @@ export default [
       '@typescript-eslint/dot-notation': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/member-delimiter-style': [
+      '@stylistic/eslint-plugin-ts/member-delimiter-style': [
         'error',
         {
           multiline: {
@@ -125,19 +146,19 @@ export default [
           hoist: 'all'
         }
       ],
-      '@typescript-eslint/no-unused-expressions': 'error',
+      '@typescript-eslint/no-unused-expressions': 'warn',
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-var-requires': 'error',
       '@typescript-eslint/prefer-function-type': 'error',
       '@typescript-eslint/prefer-namespace-keyword': 'error',
-      '@typescript-eslint/quotes': [
+      '@stylistic/eslint-plugin-ts/quotes': [
         'error',
         'single',
         {
           avoidEscape: true
         }
       ],
-      '@typescript-eslint/semi': ['error', 'always'],
+      '@stylistic/eslint-plugin-ts/semi': ['error', 'always'],
       '@typescript-eslint/triple-slash-reference': [
         'error',
         {
@@ -267,34 +288,10 @@ export default [
   },
   {
     rules: {
-      // '@typescript-eslint/no-duplicate-type-constituents': 'warn',
-      // '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
       'guard-for-in': 'warn',
       'no-prototype-builtins': 'warn',
       'no-useless-escape': 'warn'
     }
-  },
-  eslintPluginPrettierRecommended,
-  {
-    root: true,
-    languageOptions: {
-      globals: {
-        // For Node environment
-        process: 'readonly',
-        __dirname: 'readonly',
-        module: 'readonly',
-
-        // For Browser environment
-        window: 'readonly',
-        document: 'readonly',
-        fetch: 'readonly'
-      }
-    },
-    files: ['packages/salesforcedx-vscode-**/src/**/*.ts', 'packages/salesforcedx-vscode-**/test/**/*.ts']
-  },
-  {
-    root: true,
-    files: ['packages/salesforcedx-(?!vscode)**/*']
   },
   {
     files: ['packages/salesforcedx**/test/jest/**/*'],
@@ -316,19 +313,13 @@ export default [
     }
   },
   {
-    files: ['packages/salesforcedx-vscode-soql/', 'packages/salesforcedx-vscode-lwc/'],
-    ignores: ['test/vscode-integration']
-  },
-  {
-    files: ['packages/salesforcedx-apex-replay-debugger/', 'packages/salesforcedx-visualforce-markup-language-server/'],
-    ignores: ['src/**']
-  },
-  {
-    files: ['packages/system-tests/'],
-    ignores: ['assets', 'scenarios', 'src']
-  },
-  {
-    files: ['packages/salesforcedx-sobjects-faux-generator/'],
-    ignores: ['scripts/**', 'coverage/**']
+    // Override header rules
+    files: [
+      'packages/salesforcedx-visualforce-markup-language-server/**/*.ts',
+      'packages/salesforcedx-visualforce-language-server/**/*.ts'
+    ],
+    rules: {
+      'header/header': 'off'
+    }
   }
 ];

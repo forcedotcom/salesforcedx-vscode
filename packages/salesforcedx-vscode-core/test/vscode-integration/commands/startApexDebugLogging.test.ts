@@ -17,10 +17,7 @@ import {
   UpdateDebugLevelsExecutor,
   UpdateTraceFlagsExecutor
 } from '../../../src/commands';
-import {
-  APEX_CODE_DEBUG_LEVEL,
-  VISUALFORCE_DEBUG_LEVEL
-} from '../../../src/constants';
+import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
@@ -35,18 +32,10 @@ describe('Start Apex Debug Logging', () => {
   const endDate = new Date(startDate.getTime() + 1000);
 
   beforeEach(() => {
-    getTraceFlagIdStub = sinon
-      .stub(developerLogTraceFlag, 'getTraceFlagId')
-      .returns(fakeTraceFlagId);
-    getDebugLevelIdStub = sinon
-      .stub(developerLogTraceFlag, 'getDebugLevelId')
-      .returns(fakeDebugLevelId);
-    startDateStub = sinon
-      .stub(developerLogTraceFlag, 'getStartDate')
-      .returns(startDate);
-    expDateStub = sinon
-      .stub(developerLogTraceFlag, 'getExpirationDate')
-      .returns(endDate);
+    getTraceFlagIdStub = sinon.stub(developerLogTraceFlag, 'getTraceFlagId').returns(fakeTraceFlagId);
+    getDebugLevelIdStub = sinon.stub(developerLogTraceFlag, 'getDebugLevelId').returns(fakeDebugLevelId);
+    startDateStub = sinon.stub(developerLogTraceFlag, 'getStartDate').returns(startDate);
+    expDateStub = sinon.stub(developerLogTraceFlag, 'getExpirationDate').returns(endDate);
   });
 
   afterEach(() => {
@@ -59,9 +48,7 @@ describe('Start Apex Debug Logging', () => {
   it('Should build the start logging command and only have description set', async () => {
     const startLoggingExecutor = new StartApexDebugLoggingExecutor();
     const startLoggingCmd = startLoggingExecutor.build();
-    expect(startLoggingCmd.toCommand().trim()).to.equal(
-      nls.localize('start_apex_debug_logging')
-    );
+    expect(startLoggingCmd.toCommand().trim()).to.equal(nls.localize('start_apex_debug_logging'));
   });
 
   it('Should build the traceflag query command for logging', async () => {

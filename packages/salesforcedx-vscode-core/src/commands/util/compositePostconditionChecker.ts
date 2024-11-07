@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 
 export class CompositePostconditionChecker<T> implements PostconditionChecker<T> {
   private readonly postCheckers: PostconditionChecker<any>[];
@@ -17,9 +13,7 @@ export class CompositePostconditionChecker<T> implements PostconditionChecker<T>
     this.postCheckers = postCheckers;
   }
 
-  public async check(
-    inputs: CancelResponse | ContinueResponse<T>
-  ): Promise<CancelResponse | ContinueResponse<T>> {
+  public async check(inputs: CancelResponse | ContinueResponse<T>): Promise<CancelResponse | ContinueResponse<T>> {
     if (inputs.type === 'CONTINUE') {
       for (const postChecker of this.postCheckers) {
         inputs = await postChecker.check(inputs);

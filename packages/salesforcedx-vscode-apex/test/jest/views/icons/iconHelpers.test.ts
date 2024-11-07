@@ -14,23 +14,14 @@ describe('iconHelpers Unit Tests.', () => {
     const fakeUri = { filePath: '/some/place/apexy' };
     const fakeIconUri = { filePath: '/all/the/way/to/the/icon.svg' };
     beforeEach(() => {
-      jest
-        .spyOn(extensionUris, 'extensionUri')
-        .mockReturnValue((fakeUri as unknown) as vscode.Uri);
-      jest
-        .spyOn(extensionUris, 'join')
-        .mockReturnValue((fakeIconUri as unknown) as vscode.Uri);
+      jest.spyOn(extensionUris, 'extensionUri').mockReturnValue(fakeUri as unknown as vscode.Uri);
+      jest.spyOn(extensionUris, 'join').mockReturnValue(fakeIconUri as unknown as vscode.Uri);
     });
 
     it('Should return the path for enum value.', () => {
       const iconUri = iconHelpers.getIconPath(IconsEnum.LIGHT_BLUE_BUTTON);
-      expect(extensionUris.extensionUri).toHaveBeenCalledWith(
-        VSCODE_APEX_EXTENSION_NAME
-      );
-      expect(extensionUris.join).toHaveBeenCalledWith(
-        fakeUri,
-        ICONS[IconsEnum.LIGHT_BLUE_BUTTON]
-      );
+      expect(extensionUris.extensionUri).toHaveBeenCalledWith(VSCODE_APEX_EXTENSION_NAME);
+      expect(extensionUris.join).toHaveBeenCalledWith(fakeUri, ICONS[IconsEnum.LIGHT_BLUE_BUTTON]);
       expect(iconUri).toEqual(fakeIconUri);
     });
   });

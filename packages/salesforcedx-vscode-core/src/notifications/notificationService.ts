@@ -29,38 +29,23 @@ export class NotificationService {
   // Prefer these over directly calling the vscode.show* functions
   // We can expand these to be facades that gather analytics of failures.
 
-  public showErrorMessage(
-    message: string,
-    ...items: string[]
-  ): Thenable<string | undefined> {
+  public showErrorMessage(message: string, ...items: string[]): Thenable<string | undefined> {
     return vscode.window.showErrorMessage(message, ...items);
   }
 
-  public showInformationMessage(
-    message: string,
-    ...items: string[]
-  ): Thenable<string | undefined> {
+  public showInformationMessage(message: string, ...items: string[]): Thenable<string | undefined> {
     return vscode.window.showInformationMessage(message, ...items);
   }
 
-  public showWarningMessage(
-    message: string,
-    ...items: string[]
-  ): Thenable<string | undefined> {
+  public showWarningMessage(message: string, ...items: string[]): Thenable<string | undefined> {
     return vscode.window.showWarningMessage(message, ...items);
   }
 
-  public showWarningModal(
-    message: string,
-    ...items: string[]
-  ): Thenable<string | undefined> {
+  public showWarningModal(message: string, ...items: string[]): Thenable<string | undefined> {
     return vscode.window.showWarningMessage(message, { modal: true }, ...items);
   }
 
-  public reportCommandExecutionStatus(
-    execution: CommandExecution,
-    cancellationToken?: vscode.CancellationToken
-  ) {
+  public reportCommandExecutionStatus(execution: CommandExecution, cancellationToken?: vscode.CancellationToken) {
     // https://stackoverflow.com/questions/38168581/observablet-is-not-a-class-derived-from-observablet
     this.reportExecutionStatus(
       execution.command.toString(),
@@ -93,34 +78,21 @@ export class NotificationService {
   }
 
   public showFailedExecution(executionName: string) {
-    this.showErrorMessage(
-      nls.localize('notification_unsuccessful_execution_text', executionName)
-    );
+    this.showErrorMessage(nls.localize('notification_unsuccessful_execution_text', executionName));
     channelService.showChannelOutput();
   }
 
   private showCanceledExecution(executionName: string) {
-    this.showWarningMessage(
-      nls.localize('notification_canceled_execution_text', executionName)
-    );
+    this.showWarningMessage(nls.localize('notification_canceled_execution_text', executionName));
     channelService.showChannelOutput();
   }
 
   public async showSuccessfulExecution(executionName: string) {
-    const message = nls.localize(
-      'notification_successful_execution_text',
-      executionName
-    );
+    const message = nls.localize('notification_successful_execution_text', executionName);
     if (salesforceCoreSettings.getShowCLISuccessMsg()) {
       const showButtonText = nls.localize('notification_show_button_text');
-      const showOnlyStatusBarButtonText = nls.localize(
-        'notification_show_in_status_bar_button_text'
-      );
-      const selection = await this.showInformationMessage(
-        message,
-        showButtonText,
-        showOnlyStatusBarButtonText
-      );
+      const showOnlyStatusBarButtonText = nls.localize('notification_show_in_status_bar_button_text');
+      const selection = await this.showInformationMessage(message, showButtonText, showOnlyStatusBarButtonText);
       if (selection && selection === showButtonText) {
         channelService.showChannelOutput();
       }
@@ -132,14 +104,9 @@ export class NotificationService {
     }
   }
 
-  public reportExecutionError(
-    executionName: string,
-    observable: Observable<Error | undefined>
-  ) {
+  public reportExecutionError(executionName: string, observable: Observable<Error | undefined>) {
     observable.subscribe(async () => {
-      this.showErrorMessage(
-        nls.localize('notification_unsuccessful_execution_text', executionName)
-      );
+      this.showErrorMessage(nls.localize('notification_unsuccessful_execution_text', executionName));
       channelService.showChannelOutput();
     });
   }

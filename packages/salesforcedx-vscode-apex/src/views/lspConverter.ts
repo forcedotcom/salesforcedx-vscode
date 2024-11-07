@@ -29,9 +29,7 @@ export type ApexTestMethod = {
 };
 
 export class ApexLSPConverter {
-  public static toApexTestMethod(
-    requestInfo: LSPApexTestMethod
-  ): ApexTestMethod {
+  public static toApexTestMethod(requestInfo: LSPApexTestMethod): ApexTestMethod {
     const testLocation = ApexLSPConverter.toLocation(requestInfo.location);
     const retInfo = {
       methodName: requestInfo.methodName,

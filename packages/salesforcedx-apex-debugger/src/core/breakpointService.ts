@@ -5,26 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  CommandOutput,
-  RequestService,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils';
+import { CliCommandExecutor, CommandOutput, RequestService, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
-import {
-  ApexBreakpointLocation,
-  LineBreakpointsInTyperef
-} from '../breakpoints/lineBreakpoint';
+import { ApexBreakpointLocation, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 
 export const DEBUGGER_BREAKPOINT_ID_PREFIX = '07b';
 
 export class BreakpointService {
-  private lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> =
-    new Map();
+  private lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> = new Map();
   private typerefMapping: Map<string, string> = new Map();
-  private lineBreakpointCache: Map<string, ApexBreakpointLocation[]> =
-    new Map();
+  private lineBreakpointCache: Map<string, ApexBreakpointLocation[]> = new Map();
   private exceptionBreakpointCache: Map<string, string> = new Map();
   private readonly requestService: RequestService;
 
@@ -63,9 +53,7 @@ export class BreakpointService {
     return this.typerefMapping.get(typeref);
   }
 
-  public getSourcePathFromPartialTyperef(
-    partialTyperef: string
-  ): string | undefined {
+  public getSourcePathFromPartialTyperef(partialTyperef: string): string | undefined {
     for (const typeref of this.typerefMapping.keys()) {
       if (typeref.endsWith(partialTyperef)) {
         return this.typerefMapping.get(typeref);
@@ -73,11 +61,7 @@ export class BreakpointService {
     }
   }
 
-  public cacheLineBreakpoint(
-    uriArg: string,
-    lineArg: number,
-    breakpointIdArg: string
-  ) {
+  public cacheLineBreakpoint(uriArg: string, lineArg: number, breakpointIdArg: string) {
     if (!this.lineBreakpointCache.has(uriArg)) {
       this.lineBreakpointCache.set(uriArg, []);
     }
@@ -140,10 +124,7 @@ export class BreakpointService {
     }
   }
 
-  public async deleteBreakpoint(
-    projectPath: string,
-    breakpointId: string
-  ): Promise<string | undefined> {
+  public async deleteBreakpoint(projectPath: string, breakpointId: string): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
       new SfCommandBuilder()
         .withArg('data:delete:record')
@@ -176,18 +157,11 @@ export class BreakpointService {
   ): Promise<Set<number>> {
     const knownBreakpoints = this.lineBreakpointCache.get(uri);
     if (knownBreakpoints) {
-      for (
-        let knownBpIdx = knownBreakpoints.length - 1;
-        knownBpIdx >= 0;
-        knownBpIdx--
-      ) {
+      for (let knownBpIdx = knownBreakpoints.length - 1; knownBpIdx >= 0; knownBpIdx--) {
         const knownBp = knownBreakpoints[knownBpIdx];
         if (clientLines.indexOf(knownBp.line) === -1) {
           try {
-            const breakpointId = await this.deleteBreakpoint(
-              projectPath,
-              knownBp.breakpointId
-            );
+            const breakpointId = await this.deleteBreakpoint(projectPath, knownBp.breakpointId);
             if (breakpointId) {
               knownBreakpoints.splice(knownBpIdx, 1);
             }
@@ -197,21 +171,11 @@ export class BreakpointService {
       }
     }
     for (const clientLine of clientLines) {
-      if (
-        !knownBreakpoints ||
-        !knownBreakpoints.find(
-          knownBreakpoint => knownBreakpoint.line === clientLine
-        )
-      ) {
+      if (!knownBreakpoints || !knownBreakpoints.find(knownBreakpoint => knownBreakpoint.line === clientLine)) {
         const typeref = this.getTyperefFor(uri, clientLine);
         if (typeref) {
           try {
-            const breakpointId = await this.createLineBreakpoint(
-              projectPath,
-              sessionId,
-              typeref,
-              clientLine
-            );
+            const breakpointId = await this.createLineBreakpoint(projectPath, sessionId, typeref, clientLine);
             if (breakpointId) {
               this.cacheLineBreakpoint(uri, clientLine, breakpointId);
             }
@@ -232,10 +196,7 @@ export class BreakpointService {
       new SfCommandBuilder()
         .withArg('data:create:record')
         .withFlag('--sobject', 'ApexDebuggerBreakpoint')
-        .withFlag(
-          '--values',
-          `SessionId='${sessionId}' FileName='${typeref}' IsEnabled='true' Type='Exception'`
-        )
+        .withFlag('--values', `SessionId='${sessionId}' FileName='${typeref}' IsEnabled='true' Type='Exception'`)
         .withArg('--use-tooling-api')
         .withJson()
         .build(),
@@ -266,11 +227,7 @@ export class BreakpointService {
       await this.deleteBreakpoint(projectPath, knownBreakpointId);
       this.exceptionBreakpointCache.delete(info.typeref);
     } else if (!knownBreakpointId && info.breakMode === 'always') {
-      const createdBreakpointId = await this.createExceptionBreakpoint(
-        projectPath,
-        sessionId,
-        info.typeref
-      );
+      const createdBreakpointId = await this.createExceptionBreakpoint(projectPath, sessionId, info.typeref);
       if (createdBreakpointId) {
         this.exceptionBreakpointCache.set(info.typeref, createdBreakpointId);
       }

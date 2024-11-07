@@ -7,42 +7,33 @@
 
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import {
-  ComponentName,
-  getComponentName,
-  getComponentPath,
-  isLwcComponent,
-  TEST_FOLDER
-} from '../util';
+import { ComponentName, getComponentName, getComponentPath, isLwcComponent, TEST_FOLDER } from '../util';
 import { SfCommandlet, SfWorkspaceChecker } from './util';
-import {  LwcAuraDuplicateComponentCheckerForRename } from './util';
-import { isNameMatch, RENAME_ERROR, RENAME_INPUT_PLACEHOLDER, RENAME_INPUT_PROMPT, RENAME_LIGHTNING_COMPONENT_EXECUTOR, RENAME_WARNING } from './util/lwcAuraDuplicateDetectionUtils';
+import { LwcAuraDuplicateComponentCheckerForRename } from './util';
+import {
+  isNameMatch,
+  RENAME_ERROR,
+  RENAME_INPUT_PLACEHOLDER,
+  RENAME_INPUT_PROMPT,
+  RENAME_LIGHTNING_COMPONENT_EXECUTOR,
+  RENAME_WARNING
+} from './util/lwcAuraDuplicateDetectionUtils';
 
 export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {
-    super(
-      nls.localize(RENAME_LIGHTNING_COMPONENT_EXECUTOR),
-      RENAME_LIGHTNING_COMPONENT_EXECUTOR,
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize(RENAME_LIGHTNING_COMPONENT_EXECUTOR), RENAME_LIGHTNING_COMPONENT_EXECUTOR, OUTPUT_CHANNEL);
     this.sourceFsPath = sourceFsPath;
   }
 
-  public async run(
-    response: ContinueResponse<ComponentName>
-  ): Promise<boolean> {
+  public async run(response: ContinueResponse<ComponentName>): Promise<boolean> {
     let newComponentName = response.data.name?.trim();
     if (newComponentName && this.sourceFsPath) {
       newComponentName = await inputGuard(this.sourceFsPath, newComponentName);
@@ -77,25 +68,18 @@ export class GetComponentName implements ParametersGatherer<ComponentName> {
   constructor(sourceFsPath: string) {
     this.sourceFsPath = sourceFsPath;
   }
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<ComponentName>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<ComponentName>> {
     const inputOptions = {
       value: getComponentName(await getComponentPath(this.sourceFsPath)),
       placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
       promopt: nls.localize(RENAME_INPUT_PROMPT)
     } as vscode.InputBoxOptions;
     const inputResult = await vscode.window.showInputBox(inputOptions);
-    return inputResult
-      ? { type: 'CONTINUE', data: { name: inputResult } }
-      : { type: 'CANCEL' };
+    return inputResult ? { type: 'CONTINUE', data: { name: inputResult } } : { type: 'CANCEL' };
   }
 }
 
-export const inputGuard = async (
-  sourceFsPath: string,
-  newName: string
-): Promise<string> => {
+export const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
   const componentPath = await getComponentPath(sourceFsPath);
   if (isLwcComponent(componentPath)) {
     newName = newName.charAt(0).toLowerCase() + newName.slice(1);
@@ -104,10 +88,7 @@ export const inputGuard = async (
   return newName;
 };
 
-const renameComponent = async (
-  sourceFsPath: string,
-  newName: string
-): Promise<void> => {
+const renameComponent = async (sourceFsPath: string, newName: string): Promise<void> => {
   const componentPath = await getComponentPath(sourceFsPath);
   const componentName = getComponentName(componentPath);
   const items = await fs.promises.readdir(componentPath);
@@ -115,10 +96,7 @@ const renameComponent = async (
     // only rename the file that has same name with component
     if (isNameMatch(item, componentName, componentPath)) {
       const newItem = item.replace(componentName, newName);
-      await fs.promises.rename(
-        path.join(componentPath, item),
-        path.join(componentPath, newItem)
-      );
+      await fs.promises.rename(path.join(componentPath, item), path.join(componentPath, newItem));
     }
     if (item === TEST_FOLDER) {
       const testFolderPath = path.join(componentPath, TEST_FOLDER);
@@ -126,10 +104,7 @@ const renameComponent = async (
       for (const file of testFiles) {
         if (isNameMatch(file, componentName, componentPath)) {
           const newFile = file.replace(componentName, newName);
-          await fs.promises.rename(
-            path.join(testFolderPath, file),
-            path.join(testFolderPath, newFile)
-          );
+          await fs.promises.rename(path.join(testFolderPath, file), path.join(testFolderPath, newFile));
         }
       }
     }

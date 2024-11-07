@@ -63,8 +63,7 @@ class MockMemento implements Memento {
   }
 }
 
-class MockEnvironmentVariableCollection
-  implements EnvironmentVariableCollection {
+class MockEnvironmentVariableCollection implements EnvironmentVariableCollection {
   public [Symbol.iterator](): Iterator<[variable: string, mutator: EnvironmentVariableMutator], any, undefined> {
     throw new Error('Method not implemented.');
   }
@@ -83,11 +82,7 @@ class MockEnvironmentVariableCollection
     throw new Error('Method not implemented.');
   }
   public forEach(
-    callback: (
-      variable: string,
-      mutator: EnvironmentVariableMutator,
-      collection: EnvironmentVariableCollection
-    ) => any,
+    callback: (variable: string, mutator: EnvironmentVariableMutator, collection: EnvironmentVariableCollection) => any,
     thisArg?: any
   ): void {
     throw new Error('Method not implemented.');

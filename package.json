@@ -23,6 +23,8 @@
     "@octokit/core": "4.2.4",
     "@octokit/webhooks-definitions": "^3.67.3",
     "@salesforce/dev-config": "^3.1.0",
+    "@stylistic/eslint-plugin-ts": "2.10.1",
+    "@tony.ganchev/eslint-plugin-header": "3.1.2",
     "@tsconfig/node20": "20.1.4",
     "@types/cross-spawn": "6.0.2",
     "@types/jest": "^29.5.5",

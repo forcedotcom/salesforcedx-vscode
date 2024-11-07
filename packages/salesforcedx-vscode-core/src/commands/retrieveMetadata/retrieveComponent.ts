@@ -11,10 +11,7 @@ import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { LibraryRetrieveSourcePathExecutor } from './libraryRetrieveSourcePathExecutor';
 import { RetrieveMetadataTrigger } from './retrieveMetadataTrigger';
 
-export const retrieveComponent = (
-  trigger: RetrieveMetadataTrigger,
-  openAfterRetrieve: boolean = false
-): void => {
+export const retrieveComponent = (trigger: RetrieveMetadataTrigger, openAfterRetrieve: boolean = false): void => {
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),

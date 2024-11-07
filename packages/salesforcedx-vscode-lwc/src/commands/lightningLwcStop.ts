@@ -22,17 +22,10 @@ export const lightningLwcStop = async () => {
     if (DevServerService.instance.isServerHandlerRegistered()) {
       channelService.appendLine(nls.localize('lightning_lwc_stop_in_progress'));
       await DevServerService.instance.stopServer();
-      notificationService
-        .showSuccessfulExecution(
-          nls.localize('lightning_lwc_stop_text'),
-          channelService
-        )
-        .catch();
+      notificationService.showSuccessfulExecution(nls.localize('lightning_lwc_stop_text'), channelService).catch();
       telemetryService.sendCommandEvent(logName, startTime);
     } else {
-      notificationService.showWarningMessage(
-        nls.localize('lightning_lwc_stop_not_running')
-      );
+      notificationService.showWarningMessage(nls.localize('lightning_lwc_stop_not_running'));
     }
   } catch (e) {
     showError(e, logName, commandName);

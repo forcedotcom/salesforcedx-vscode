@@ -1,4 +1,10 @@
 /*
+ * Copyright (c) 2024, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+PageTransitionEvent; /*
  * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
@@ -7,13 +13,7 @@
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
-import {
-  FieldDeclaration,
-  SObject,
-  SObjectDefinition,
-  SObjectGenerator,
-  SObjectRefreshOutput
-} from '../types';
+import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { DeclarationGenerator } from './declarationGenerator';
 
 export const TYPESCRIPT_TYPE_EXT = '.d.ts';
@@ -28,10 +28,7 @@ export class TypingGenerator implements SObjectGenerator {
 
   public generate(output: SObjectRefreshOutput): void {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
-    this.generateTypes(
-      [...output.getStandard(), ...output.getCustom()],
-      typingsFolderPath
-    );
+    this.generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
   }
 
   public generateTypes(sobjects: SObject[], targetFolder: string): void {
@@ -41,22 +38,14 @@ export class TypingGenerator implements SObjectGenerator {
 
     for (const sobj of sobjects) {
       if (sobj.name) {
-        const sobjDefinition = this.declGenerator.generateSObjectDefinition(
-          sobj
-        );
+        const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
         this.generateType(targetFolder, sobjDefinition);
       }
     }
   }
 
-  public generateType(
-    folderPath: string,
-    definition: SObjectDefinition
-  ): string {
-    const typingPath = path.join(
-      folderPath,
-      `${definition.name}${TYPESCRIPT_TYPE_EXT}`
-    );
+  public generateType(folderPath: string, definition: SObjectDefinition): string {
+    const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
     if (fs.existsSync(typingPath)) {
       fs.unlinkSync(typingPath);
     }
@@ -91,11 +80,7 @@ export class TypingGenerator implements SObjectGenerator {
   }
 
   private isCollectionType(fieldType: string): boolean {
-    return (
-      fieldType.startsWith('List<') ||
-      fieldType.startsWith('Set<') ||
-      fieldType.startsWith('Map<')
-    );
+    return fieldType.startsWith('List<') || fieldType.startsWith('Set<') || fieldType.startsWith('Map<');
   }
 
   private convertDeclaration(objName: string, decl: FieldDeclaration): string {

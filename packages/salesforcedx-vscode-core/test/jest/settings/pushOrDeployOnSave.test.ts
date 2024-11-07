@@ -17,26 +17,11 @@ describe('DeployQueue', () => {
     let executePushCommandSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      getPushOrDeployOnSaveEnabledMock = jest.spyOn(
-        salesforceCoreSettings,
-        'getPushOrDeployOnSaveEnabled'
-      );
-      getPreferDeployOnSaveEnabledMock = jest.spyOn(
-        salesforceCoreSettings,
-        'getPreferDeployOnSaveEnabled'
-      );
-      getWorkspaceOrgTypeMock = jest.spyOn(
-        workspaceContextUtils,
-        'getWorkspaceOrgType'
-      );
-      executeDeployCommandSpy = jest.spyOn(
-        (DeployQueue as any).prototype,
-        'executeDeployCommand'
-      );
-      executePushCommandSpy = jest.spyOn(
-        (DeployQueue as any).prototype,
-        'executePushCommand'
-      );
+      getPushOrDeployOnSaveEnabledMock = jest.spyOn(salesforceCoreSettings, 'getPushOrDeployOnSaveEnabled');
+      getPreferDeployOnSaveEnabledMock = jest.spyOn(salesforceCoreSettings, 'getPreferDeployOnSaveEnabled');
+      getWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'getWorkspaceOrgType');
+      executeDeployCommandSpy = jest.spyOn((DeployQueue as any).prototype, 'executeDeployCommand');
+      executePushCommandSpy = jest.spyOn((DeployQueue as any).prototype, 'executePushCommand');
     });
 
     afterEach(() => {

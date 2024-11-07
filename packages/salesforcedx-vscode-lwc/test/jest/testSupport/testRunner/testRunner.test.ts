@@ -27,6 +27,5 @@ describe('testRunner Unit Tests.', () => {
       const testPatternArgs = getTestNamePatternArgs(testName);
       expect(testPatternArgs).toMatchSnapshot();
     });
-
   });
 });

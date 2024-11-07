@@ -32,9 +32,7 @@ describe('SObject Javacript type declaration generator', () => {
     const closeHeader = ' ], "childRelationships": [] }';
 
     const sobject1 = `${fieldsHeader}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -69,9 +67,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -118,9 +114,7 @@ describe('SObject Javacript type declaration generator', () => {
     expect(typeText).to.include('const PicklistField:string;');
     expect(typeText).to.include('export default PicklistField;');
 
-    expect(typeText).to.include(
-      '@salesforce/schema/Custom__c.MultipicklistField'
-    );
+    expect(typeText).to.include('@salesforce/schema/Custom__c.MultipicklistField');
     expect(typeText).to.include('const MultipicklistField:string;');
     expect(typeText).to.include('export default MultipicklistField;');
 
@@ -155,9 +149,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -172,19 +164,11 @@ describe('SObject Javacript type declaration generator', () => {
   });
 
   it('Should create a declaration file with a field and relationship', async () => {
-    const field1 =
-      '{"name": "StringField", "type": "string", "referenceTo": []}';
-    const relation1 =
-      '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
+    const field1 = '{"name": "StringField", "type": "string", "referenceTo": []}';
+    const relation1 = '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
     const sobject1: string =
-      '{ "name": "Custom__c", "fields": [ ' +
-      field1 +
-      ',' +
-      relation1 +
-      ' ], "childRelationships": [] }';
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+      '{ "name": "Custom__c", "fields": [ ' + field1 + ',' + relation1 + ' ], "childRelationships": [] }';
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -210,9 +194,7 @@ describe('SObject Javacript type declaration generator', () => {
     const header = '{ "name": "Custom__c",  "childRelationships": []';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header},${fieldHeader}${field1}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -225,16 +207,12 @@ describe('SObject Javacript type declaration generator', () => {
   });
 
   it('Should create a valid declaration file for a metadata object with EntityDefinition relationship target', async () => {
-    const header =
-      '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
+    const header = '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
       '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
-    const field2 =
-      '{"name": "StringField", "type": "string", "referenceTo": []}';
+    const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
     typePath = gen.generateType(sobjectFolder, objDef);
@@ -246,16 +224,11 @@ describe('SObject Javacript type declaration generator', () => {
   });
 
   it('Should create a valid declaration file for a metadata object with a __mdt target', async () => {
-    const header =
-      '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
-    const field1 =
-      '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
-    const field2 =
-      '{"name": "StringField", "type": "string", "referenceTo": []}';
+    const header = '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
+    const field1 = '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
+    const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
     typePath = gen.generateType(sobjectFolder, objDef);
@@ -277,24 +250,18 @@ describe('SObject Javacript type declaration generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
     typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const typeText = fs.readFileSync(typePath, 'utf8');
-    expect(typeText).to.include(
-      'declare module "@salesforce/schema/PE1__e.StringField" '
-    );
+    expect(typeText).to.include('declare module "@salesforce/schema/PE1__e.StringField" ');
     expect(typeText).to.include('const StringField:string;');
     expect(typeText).to.include('export default StringField;');
 
-    expect(typeText).to.include(
-      'declare module "@salesforce/schema/PE1__e.DoubleField"'
-    );
+    expect(typeText).to.include('declare module "@salesforce/schema/PE1__e.DoubleField"');
     expect(typeText).to.include('const DoubleField:number;');
     expect(typeText).to.include('export default DoubleField;');
   });

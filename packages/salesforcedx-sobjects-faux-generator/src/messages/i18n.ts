@@ -17,16 +17,12 @@
  */
 export const messages = {
   faux_generation_cancelled_text: 'Faux class generation canceled',
-  failure_fetching_sobjects_list_text:
-    'Failure fetching list of sObjects from org %s',
+  failure_fetching_sobjects_list_text: 'Failure fetching list of sObjects from org %s',
   failure_in_sobject_describe_text: 'Failure performing sObject describe %s',
-  no_sobject_output_folder_text:
-    'No output folder available %s.  Please create this folder and refresh again',
+  no_sobject_output_folder_text: 'No output folder available %s.  Please create this folder and refresh again',
   processed_sobjects_length_text: 'Processed %s %s sObjects\n',
-  unsupported_sobject_category:
-    'SObject category cannot be used to generate metadata %s',
-  no_generate_if_not_in_project:
-    'Unable to process sObjects when not in a SFDX Project %s',
+  unsupported_sobject_category: 'SObject category cannot be used to generate metadata %s',
+  no_generate_if_not_in_project: 'Unable to process sObjects when not in a SFDX Project %s',
   class_header_generated_comment: `// This file is generated as an Apex representation of the
 //     corresponding sObject and its fields.
 // This read-only file is used by the Apex Language Server to

@@ -36,10 +36,7 @@ class LwcTestCodeLensProvider implements CodeLensProvider {
    * @param document text document
    * @param token cancellation token
    */
-  public async provideCodeLenses(
-    document: TextDocument,
-    token: CancellationToken
-  ): Promise<CodeLens[]> {
+  public async provideCodeLenses(document: TextDocument, token: CancellationToken): Promise<CodeLens[]> {
     return provideLwcTestCodeLens(document, token);
   }
 }
@@ -52,9 +49,6 @@ export const lwcTestCodeLensProvider = new LwcTestCodeLensProvider();
  */
 export const registerLwcTestCodeLensProvider = (extensionContext: ExtensionContext) => {
   extensionContext.subscriptions.push(
-    languages.registerCodeLensProvider(
-      LWC_TEST_DOCUMENT_SELECTOR,
-      lwcTestCodeLensProvider
-    )
+    languages.registerCodeLensProvider(LWC_TEST_DOCUMENT_SELECTOR, lwcTestCodeLensProvider)
   );
 };

@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import {
-  RetrieveDescriber,
-  RetrieveDescriberFactory,
-  RetrieveMetadataTrigger
-} from '../commands/retrieveMetadata';
+import { RetrieveDescriber, RetrieveDescriberFactory, RetrieveMetadataTrigger } from '../commands/retrieveMetadata';
 import { nls } from '../messages';
 import { MetadataObject } from './metadataType';
 
@@ -22,10 +18,7 @@ export enum NodeType {
   Folder = 'folder'
 }
 
-export class BrowserNode
-  extends vscode.TreeItem
-  implements RetrieveMetadataTrigger
-{
+export class BrowserNode extends vscode.TreeItem implements RetrieveMetadataTrigger {
   public toRefresh: boolean = false;
   public readonly fullName: string;
   public suffix?: string;
@@ -72,9 +65,7 @@ export class BrowserNode
   public setComponents(fullNames: string[], type: NodeType) {
     this._children = [];
     if (fullNames.length === 0) {
-      this._children.push(
-        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
-      );
+      this._children.push(new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode));
     }
 
     fullNames.forEach(fullName => {
@@ -84,8 +75,8 @@ export class BrowserNode
         this.type === NodeType.Folder
           ? fullName.substring(fullName.indexOf('/') + 1)
           : hasNamespacePrefix
-          ? fullName.substring(fullName.indexOf('_') + 2)
-          : fullName;
+            ? fullName.substring(fullName.indexOf('_') + 2)
+            : fullName;
       const child = new BrowserNode(label, type, fullName);
       child._parent = this;
       this._children!.push(child);
@@ -95,17 +86,10 @@ export class BrowserNode
   public setTypes(metadataObjects: MetadataObject[], type: NodeType) {
     this._children = [];
     if (metadataObjects.length === 0) {
-      this._children.push(
-        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
-      );
+      this._children.push(new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode));
     }
     metadataObjects.forEach(metadataObject => {
-      const child = new BrowserNode(
-        metadataObject.label,
-        type,
-        metadataObject.xmlName,
-        metadataObject
-      );
+      const child = new BrowserNode(metadataObject.label, type, metadataObject.xmlName, metadataObject);
       child._parent = this;
       this._children!.push(child);
     });
@@ -131,9 +115,7 @@ export class BrowserNode
           return this;
       }
     }
-    throw new Error(
-      `Node of type ${this.type} does not have a parent metadata type node`
-    );
+    throw new Error(`Node of type ${this.type} does not have a parent metadata type node`);
   }
 
   public describer(): RetrieveDescriber {
@@ -144,8 +126,6 @@ export class BrowserNode
       case NodeType.MetadataComponent:
         return RetrieveDescriberFactory.createComponentNodeDescriber(this);
     }
-    throw new Error(
-      `Org Browser node type '${this.type}' does not support metadata retrieve`
-    );
+    throw new Error(`Org Browser node type '${this.type}' does not support metadata retrieve`);
   }
 }

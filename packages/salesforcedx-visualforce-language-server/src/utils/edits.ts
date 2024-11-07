@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -19,10 +18,7 @@ export const applyEdits = (document: TextDocument, edits: TextEdit[]): string =>
   sortedEdits.forEach(e => {
     const startOffset = document.offsetAt(e.range.start);
     const endOffset = document.offsetAt(e.range.end);
-    text =
-      text.substring(0, startOffset) +
-      e.newText +
-      text.substring(endOffset, text.length);
+    text = text.substring(0, startOffset) + e.newText + text.substring(endOffset, text.length);
   });
   return text;
 };

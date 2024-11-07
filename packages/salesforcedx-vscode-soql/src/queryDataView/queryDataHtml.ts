@@ -11,18 +11,8 @@ import { Uri, Webview } from 'vscode';
 import { DATA_VIEW_UI_PATH, HTML_FILE } from '../constants';
 import { HtmlUtils } from '../editor/htmlUtils';
 
-export const getHtml = (
-  assets: { [index: string]: Uri },
-  extensionPath: string,
-  webview: Webview
-): string => {
-  const {
-    baseStyleUri,
-    tabulatorStyleUri,
-    viewControllerUri,
-    tabulatorUri,
-    saveIconUri
-  } = assets;
+export const getHtml = (assets: { [index: string]: Uri }, extensionPath: string, webview: Webview): string => {
+  const { baseStyleUri, tabulatorStyleUri, viewControllerUri, tabulatorUri, saveIconUri } = assets;
 
   const pathToDataViewDist = path.join(extensionPath, DATA_VIEW_UI_PATH);
   const pathToHtml = path.join(pathToDataViewDist, HTML_FILE);

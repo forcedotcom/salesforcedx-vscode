@@ -4,12 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ChildRelationship,
-  FieldDeclaration,
-  SObject,
-  SObjectDefinition
-} from '../types';
+import { ChildRelationship, FieldDeclaration, SObject, SObjectDefinition } from '../types';
 import { SObjectField } from '../types/describe';
 
 export const MODIFIER = 'global';
@@ -109,16 +104,11 @@ export class DeclarationGenerator {
   }
 
   private getTargetType(describeType: string): string {
-    const gentype = DeclarationGenerator.typeMapping.get(
-      describeType
-    ) as string;
+    const gentype = DeclarationGenerator.typeMapping.get(describeType) as string;
     return gentype ? gentype : this.capitalize(describeType);
   }
 
-  private getReferenceName(
-    name: string,
-    relationshipName?: string | null
-  ): string {
+  private getReferenceName(name: string, relationshipName?: string | null): string {
     return relationshipName ? relationshipName : this.stripId(name);
   }
 
@@ -162,10 +152,7 @@ export class DeclarationGenerator {
           {
             modifier: MODIFIER,
             name,
-            type:
-              field.referenceTo && field.referenceTo.length > 1
-                ? 'SObject'
-                : `${field.referenceTo.join()}`
+            type: field.referenceTo && field.referenceTo.length > 1 ? 'SObject' : `${field.referenceTo.join()}`
           },
           comment ? { comment } : {}
         )

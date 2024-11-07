@@ -28,14 +28,9 @@ const SOBJECTS_DESCRIBE_SAMPLE = {
 
 describe('Select sObjects', () => {
   it('Should return only custom sobjects for MANUAL', () => {
-    const selector = new GeneralSObjectSelector(
-      SObjectCategory.CUSTOM,
-      SObjectRefreshSource.Manual
-    );
+    const selector = new GeneralSObjectSelector(SObjectCategory.CUSTOM, SObjectRefreshSource.Manual);
 
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s =>
-      selector.select(s)
-    );
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
     expect(results.length).to.eql(3);
     expect(results).to.deep.equal([
@@ -46,14 +41,9 @@ describe('Select sObjects', () => {
   });
 
   it('Should return only standard sobjects for MANUAL', () => {
-    const selector = new GeneralSObjectSelector(
-      SObjectCategory.STANDARD,
-      SObjectRefreshSource.Manual
-    );
+    const selector = new GeneralSObjectSelector(SObjectCategory.STANDARD, SObjectRefreshSource.Manual);
 
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s =>
-      selector.select(s)
-    );
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
     expect(results.length).to.eql(4);
     expect(results).to.deep.equal([
@@ -65,14 +55,9 @@ describe('Select sObjects', () => {
   });
 
   it('Should filter out sobjects if category is CUSTOM & source MANUAL', () => {
-    const selector = new GeneralSObjectSelector(
-      SObjectCategory.CUSTOM,
-      SObjectRefreshSource.Manual
-    );
+    const selector = new GeneralSObjectSelector(SObjectCategory.CUSTOM, SObjectRefreshSource.Manual);
 
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s =>
-      selector.select(s)
-    );
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
     expect(results.length).to.eql(3);
     expect(results).to.deep.equal([
@@ -83,14 +68,9 @@ describe('Select sObjects', () => {
   });
 
   it('Should filter out sobjects if category is STANDARD & source MANUAL', () => {
-    const selector = new GeneralSObjectSelector(
-      SObjectCategory.STANDARD,
-      SObjectRefreshSource.Manual
-    );
+    const selector = new GeneralSObjectSelector(SObjectCategory.STANDARD, SObjectRefreshSource.Manual);
 
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s =>
-      selector.select(s)
-    );
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
     expect(results.length).to.eql(4);
     expect(results).to.deep.equal([
@@ -102,14 +82,9 @@ describe('Select sObjects', () => {
   });
 
   it('Should filter out associated sobjects if category is ALL & source is Startup', () => {
-    const selector = new GeneralSObjectSelector(
-      SObjectCategory.ALL,
-      SObjectRefreshSource.Startup
-    );
+    const selector = new GeneralSObjectSelector(SObjectCategory.ALL, SObjectRefreshSource.Startup);
 
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s =>
-      selector.select(s)
-    );
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
     expect(results.length).to.eql(7);
     expect(results).to.deep.equal([
@@ -124,14 +99,9 @@ describe('Select sObjects', () => {
   });
 
   it('Should filter out sobjects if category is ALL & source is StartupMin', () => {
-    const selector = new GeneralSObjectSelector(
-      SObjectCategory.ALL,
-      SObjectRefreshSource.Startup
-    );
+    const selector = new GeneralSObjectSelector(SObjectCategory.ALL, SObjectRefreshSource.Startup);
 
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s =>
-      selector.select(s)
-    );
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
     expect(results.length).to.eql(7);
     expect(results).to.deep.equal([

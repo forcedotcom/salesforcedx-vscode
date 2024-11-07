@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -10,20 +9,11 @@ import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Highlighting', () => {
-  const assertHighlights = (
-    value: string,
-    expectedMatches: number[],
-    elementName: string
-  ): void => {
+  const assertHighlights = (value: string, expectedMatches: number[], elementName: string): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
-    const document = TextDocument.create(
-      'test://test/test.html',
-      'html',
-      0,
-      value
-    );
+    const document = TextDocument.create('test://test/test.html', 'html', 0, value);
 
     const position = document.positionAt(offset);
     const ls = htmlLanguageService.getLanguageService();
@@ -37,13 +27,7 @@ describe('HTML Highlighting', () => {
       const actualEndOffset = document.offsetAt(highlights[i].range.end);
       assert.equal(actualEndOffset, expectedMatches[i] + elementName.length);
 
-      assert.equal(
-        document
-          .getText()
-          .substring(actualStartOffset, actualEndOffset)
-          .toLowerCase(),
-        elementName
-      );
+      assert.equal(document.getText().substring(actualStartOffset, actualEndOffset).toLowerCase(), elementName);
     }
   };
 

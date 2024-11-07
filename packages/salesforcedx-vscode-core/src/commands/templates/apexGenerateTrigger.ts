@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  LocalComponent,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+import { LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -19,11 +16,7 @@ import {
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryApexGenerateTriggerExecutor } from './executors/LibraryApexGenerateTriggerExecutor';
-import {
-  APEX_TRIGGER_DIRECTORY,
-  APEX_TRIGGER_NAME_MAX_LENGTH,
-  APEX_TRIGGER_TYPE
-} from './metadataTypeConstants';
+import { APEX_TRIGGER_DIRECTORY, APEX_TRIGGER_NAME_MAX_LENGTH, APEX_TRIGGER_TYPE } from './metadataTypeConstants';
 
 let initialized = false;
 let fileNameGatherer: ParametersGatherer<any>;

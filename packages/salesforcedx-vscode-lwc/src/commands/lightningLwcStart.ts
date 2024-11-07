@@ -105,20 +105,14 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
       if (!serverStarted && data && data.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
-        notificationService
-          .showSuccessfulExecution(executionName, channelService)
-          .catch();
+        notificationService.showSuccessfulExecution(executionName, channelService).catch();
 
-        DevServerService.instance.setBaseUrlFromDevServerUpMessage(
-          data.toString()
-        );
+        DevServerService.instance.setBaseUrlFromDevServerUpMessage(data.toString());
 
         if (this.options.openBrowser) {
           await openBrowser(
             this.options.componentName
-              ? DevServerService.instance.getComponentPreviewUrl(
-                  this.options.componentName
-                )
+              ? DevServerService.instance.getComponentPreviewUrl(this.options.componentName)
               : DevServerService.instance.getBaseUrl()
           );
         }
@@ -140,12 +134,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
           this.errorHint = errorHints.INACTIVE_SCRATCH_ORG;
         }
         if (errorCode !== -1) {
-          this.handleErrors(
-            cancellationToken,
-            serverHandler,
-            serverStarted,
-            errorCode
-          );
+          this.handleErrors(cancellationToken, serverHandler, serverStarted, errorCode);
           progress.complete();
           printedError = true;
         }
@@ -154,25 +143,15 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
 
     execution.processExitSubject.subscribe(async exitCode => {
       if (!printedError) {
-        this.handleErrors(
-          cancellationToken,
-          serverHandler,
-          serverStarted,
-          exitCode
-        );
+        this.handleErrors(cancellationToken, serverHandler, serverStarted, exitCode);
         printedError = true;
       }
     });
 
-    notificationService.reportExecutionError(
-      executionName,
-      execution.processErrorSubject
-    );
+    notificationService.reportExecutionError(executionName, execution.processErrorSubject);
 
     cancellationToken.onCancellationRequested(() => {
-      notificationService.showWarningMessage(
-        nls.localize('command_canceled', executionName)
-      );
+      notificationService.showWarningMessage(nls.localize('command_canceled', executionName));
       channelService.showChannelOutput();
     });
   }
@@ -187,10 +166,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     if (!serverStarted && !cancellationToken.isCancellationRequested) {
       let message = nls.localize('lightning_lwc_start_failed');
 
-      if (
-        exitCode === 1 &&
-        this.errorHint === errorHints.INACTIVE_SCRATCH_ORG
-      ) {
+      if (exitCode === 1 && this.errorHint === errorHints.INACTIVE_SCRATCH_ORG) {
         message = nls.localize('lightning_lwc_inactive_scratch_org');
       }
       if (exitCode === 127) {
@@ -213,11 +189,7 @@ export const lightningLwcStart = async () => {
     const warningMessage = nls.localize('lightning_lwc_start_already_running');
     const openBrowserOption = nls.localize('prompt_option_open_browser');
     const restartOption = nls.localize('prompt_option_restart');
-    const response = await notificationService.showWarningMessage(
-      warningMessage,
-      openBrowserOption,
-      restartOption
-    );
+    const response = await notificationService.showWarningMessage(warningMessage, openBrowserOption, restartOption);
     if (response === openBrowserOption) {
       await openBrowser(DevServerService.instance.getBaseUrl());
       return;
@@ -234,11 +206,7 @@ export const lightningLwcStart = async () => {
   const parameterGatherer = new EmptyParametersGatherer();
   const executor = new LightningLwcStartExecutor();
 
-  const commandlet = new SfCommandlet(
-    preconditionChecker,
-    parameterGatherer,
-    executor
-  );
+  const commandlet = new SfCommandlet(preconditionChecker, parameterGatherer, executor);
 
   await commandlet.run();
 };

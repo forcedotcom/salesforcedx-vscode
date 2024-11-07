@@ -6,13 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { TestRunner, TestRunType } from '../testRunner';
-import {
-  TestDirectoryInfo,
-  TestExecutionInfo,
-  TestFileInfo,
-  TestInfoKind,
-  TestType
-} from '../types';
+import { TestDirectoryInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 import { workspace } from '../workspace';
@@ -22,11 +16,7 @@ import { workspace } from '../workspace';
  * @param testExecutionInfo test execution info
  */
 export const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
-  const testRunner = new TestRunner(
-    testExecutionInfo,
-    TestRunType.RUN,
-    LWC_TEST_RUN_LOG_NAME
-  );
+  const testRunner = new TestRunner(testExecutionInfo, TestRunType.RUN, LWC_TEST_RUN_LOG_NAME);
   try {
     return await testRunner.executeAsSfTask();
   } catch (error) {
@@ -38,9 +28,7 @@ export const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
  * Run an individual test case
  * @param data a test explorer node or information provided by code lens
  */
-export const lwcTestCaseRun = (data: {
-  testExecutionInfo: TestExecutionInfo;
-}) => {
+export const lwcTestCaseRun = (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   return lwcTestRun(testExecutionInfo);
 };
@@ -49,9 +37,7 @@ export const lwcTestCaseRun = (data: {
  * Run a test file
  * @param data a test explorer node
  */
-export const lwcTestFileRun = (data: {
-  testExecutionInfo: TestExecutionInfo;
-}) => {
+export const lwcTestFileRun = (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   return lwcTestRun(testExecutionInfo);
 };
