@@ -33,7 +33,7 @@ jest.mock('@salesforce/core-bundle', () => {
       };
     }),
 
-    SfError: class{},
+    SfError: class { },
 
     StateAggregator: {
       clearInstance: jest.fn()
@@ -131,6 +131,17 @@ describe('WorkspaceContextUtil', () => {
     expect(WorkspaceContextUtil.getInstance(false)).toEqual(
       workspaceContextUtil
     );
+  });
+
+  it('should return the value of devHubId and orgShape as is set', async () => {
+    workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
+    await workspaceContextUtil.initialize(context);
+    const orgShape = 'Scratch';
+    const devHubId = '000devHubOrgId';
+    workspaceContextUtil.orgShape = orgShape;
+    workspaceContextUtil.devHubId = devHubId;
+    expect(workspaceContextUtil.orgShape).toEqual(orgShape);
+    expect(workspaceContextUtil.devHubId).toEqual(devHubId);
   });
 
   it('should load the target org, alias, and orgId and clear the cache of the core types upon initialization', async () => {
