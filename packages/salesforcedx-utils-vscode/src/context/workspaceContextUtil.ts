@@ -143,7 +143,7 @@ export class WorkspaceContextUtil {
   }
 
   get devHubId(): string | undefined {
-    return this.devHubId;
+    return this._devHubId;
   }
 
   set devHubId(id: string | undefined) {
