@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  getOrgShape,
-  OrgShape
+  getOrgShape
 } from '../../../src/context/workspaceOrgShape';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
@@ -33,7 +32,7 @@ describe('getOrgShape', () => {
 
     const result = await getOrgShape(username);
 
-    expect(result).toBe(OrgShape.Sandbox);
+    expect(result).toBe('Sandbox');
     expect(workspaceUtils.hasRootWorkspace).toHaveBeenCalled();
     expect(OrgAuthInfo.isASandboxOrg).toHaveBeenCalledWith(username);
   });
@@ -45,7 +44,7 @@ describe('getOrgShape', () => {
 
     const result = await getOrgShape(username);
 
-    expect(result).toBe(OrgShape.Scratch);
+    expect(result).toBe('Scratch');
     expect(workspaceUtils.hasRootWorkspace).toHaveBeenCalled();
     expect(OrgAuthInfo.isAScratchOrg).toHaveBeenCalledWith(username);
   });
@@ -58,7 +57,7 @@ describe('getOrgShape', () => {
 
     const result = await getOrgShape(username);
 
-    expect(result).toBe(OrgShape.Production);
+    expect(result).toBe('Production');
     expect(workspaceUtils.hasRootWorkspace).toHaveBeenCalled();
     expect(OrgAuthInfo.getTargetOrgOrAlias).toHaveBeenCalledWith(false);
   });
@@ -71,7 +70,7 @@ describe('getOrgShape', () => {
 
     const result = await getOrgShape(username);
 
-    expect(result).toBe(OrgShape.Undefined);
+    expect(result).toBe('Undefined');
     expect(workspaceUtils.hasRootWorkspace).toHaveBeenCalled();
   });
 
@@ -80,7 +79,7 @@ describe('getOrgShape', () => {
 
     const result = await getOrgShape(username);
 
-    expect(result).toBe(OrgShape.Undefined);
+    expect(result).toBe('Undefined');
     expect(workspaceUtils.hasRootWorkspace).toHaveBeenCalled();
   });
 });

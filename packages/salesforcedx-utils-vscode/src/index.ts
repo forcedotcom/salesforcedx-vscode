@@ -30,6 +30,7 @@ export {
 } from './constants';
 export {
   OrgUserInfo,
+  OrgShape,
   WorkspaceContextUtil
 } from './context/workspaceContextUtil';
 export {
