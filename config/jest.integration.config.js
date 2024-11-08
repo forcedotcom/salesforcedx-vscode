@@ -4,10 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/integration/**/?(*.)+(spec|test).[t]s?(x)'],
   setupFilesAfterEnv: ['../../scripts/setup-jest.ts'],
-  reporters: [
-    'default',
-    ['jest-junit', { outputName: 'junit-custom-integrationTests.xml' }]
-  ],
-  coverageReporters: ['lcov', 'text'],
+  reporters: ['default', ['jest-junit', { outputName: 'junit-custom-integrationTests.xml' }]],
+  coverageReporters: ['lcov', 'text', 'json'],
   resetMocks: true
 };
