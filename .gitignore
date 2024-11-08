@@ -121,3 +121,4 @@ tsconfig.tsbuildinfo
 
 #Extensions folder for local E2E Testing
 extensions/
+/test-results
