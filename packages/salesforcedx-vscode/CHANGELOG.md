@@ -1,3 +1,5 @@
+# 62.5.0 - November 13, 2024
+
 # 62.3.1 - November 1, 2024
 
 ## Fixed
