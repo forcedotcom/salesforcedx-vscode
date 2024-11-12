@@ -4,19 +4,18 @@
 
 #### salesforcedx-vscode-apex
 
-- Signed jar for updated range for Class, Enum, Interface + improved symbol hierarchy ([PR #5945](https://github.com/forcedotcom/salesforcedx-vscode/pull/5945))
+- We improved the accuracy of the range for Class, Enum, and Interface symbols in the Apex LSP `.jar` file. ([PR #5945](https://github.com/forcedotcom/salesforcedx-vscode/pull/5945))
 
 #### salesforcedx-vscode-core
 
+- When you push or deploy on save, you’ll no longer automatically switch to the output panel view by default. You can toggle this setting with the `salesforcedx-vscode-core.push-or-deploy-on-save.showOutputPanel` setting. Thank you [Jason Venable](https://github.com/tehnrd) for this contribution. ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
 - We made some changes under the hood. ([PR #5939](https://github.com/forcedotcom/salesforcedx-vscode/pull/5939))
-
-- Output panel will not be switched by default after push or deploy on save. You can toggle the setting with salesforcedx-vscode-core.push-or-deploy-on-save.showOutputPanel. Thank you @[tehnrd](https://github.com/tehnrd) for your contributions. ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Bump min vscode version to 1.90.0 for node 20 ([PR #5937](https://github.com/forcedotcom/salesforcedx-vscode/pull/5937))
+- To ensure smooth operation the Salesforce Extension Pack needs to run with a minimum supported Visual Studio Code version. We support only Visual Studio Code 1.90.0 or higher. ([PR #5937](https://github.com/forcedotcom/salesforcedx-vscode/pull/5937))
 
 # 62.3.1 - November 1, 2024
 
@@ -45,7 +44,7 @@
 #### salesforcedx-vscode-apex
 
 - We updated the Java Home Setting description to include Java 21. ([PR #5878](https://github.com/forcedotcom/salesforcedx-vscode/pull/5878))
-- We updated the Apex Language Server to support the latest features and improvements of the language. When you activate the new version of the Apex extension for the first time, you could experience some lag while your workspace is upgraded to 252 Apex artifacts and your project is fully indexed. ([PR #5887](https://github.com/forcedotcom/salesforcedx-vscode/pull/5887))
+- We updated the Apex Language Server to support the latest features and improvements of the language. When you activate the new  of the Apex extension for the first time, you could experience some lag while your workspace is upgraded to 252 Apex artifacts and your project is fully indexed. ([PR #5887](https://github.com/forcedotcom/salesforcedx-vscode/pull/5887))
 
 #### salesforcedx-vscode-core
 
