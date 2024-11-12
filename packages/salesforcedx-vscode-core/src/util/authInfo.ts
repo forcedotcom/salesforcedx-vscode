@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator, Org, ConfigAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core-bundle';
 import { ConfigSource, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -107,10 +107,11 @@ export class OrgAuthInfo {
     if (await org.isSandbox()) {
       return true;
     }
+    // scratch org also makes IsSandbox true
     const result = await org
       .getConnection()
-      .singleRecordQuery<{ isSandbox: boolean }>('select isSandbox from organization');
-    return result?.isSandbox;
+      .singleRecordQuery<{ IsSandbox: boolean }>('select IsSandbox from organization');
+    return result?.IsSandbox;
   }
 
   public static async getDevHubIdFromScratchOrg(username: string): Promise<string | undefined> {
