@@ -30,11 +30,7 @@ describe('AppInsights', () => {
       // Arrange
       getInstanceMock = jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue({
-          devHubId: '',
-          orgId: dummyOrgId,
-          orgShape: ''
-        } as any);
+        .mockReturnValue({ devHubId: '', orgId: dummyOrgId, orgShape: '' } as any);
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
       jest.spyOn(AppInsights.prototype as any, 'updateUserOptIn').mockReturnValue('');

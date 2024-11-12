@@ -9,9 +9,7 @@ import { Connection } from '@salesforce/core-bundle';
 import { OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { decorators } from '../decorators';
-import {
-  OrgAuthInfo
-} from '../util/authInfo';
+import { OrgAuthInfo } from '../util/authInfo';
 import { workspaceContextUtils } from '.';
 
 /**

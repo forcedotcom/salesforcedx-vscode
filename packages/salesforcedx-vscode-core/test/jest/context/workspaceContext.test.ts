@@ -94,14 +94,9 @@ describe('workspaceContext', () => {
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
 
-      getOrgShapeMock = jest
-        .spyOn(workspaceContextUtils, 'getOrgShape')
-        .mockResolvedValue('Undefined');
+      getOrgShapeMock = jest.spyOn(workspaceContextUtils, 'getOrgShape').mockResolvedValue('Undefined');
 
-      getDevHubIdFromScratchOrgMock = jest.spyOn(
-        OrgAuthInfo,
-        'getDevHubIdFromScratchOrg'
-      );
+      getDevHubIdFromScratchOrgMock = jest.spyOn(OrgAuthInfo, 'getDevHubIdFromScratchOrg');
     });
 
     it('should set orgShape and devHubId to undefined if orgShape is Undefined', async () => {
@@ -140,7 +135,6 @@ describe('workspaceContext', () => {
       expect(getDevHubIdFromScratchOrgMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
       expect(mockWorkspaceContextUtil.devHubId).toBe('test-dev-hub-id');
     });
-
   });
 
   describe('orgId', () => {

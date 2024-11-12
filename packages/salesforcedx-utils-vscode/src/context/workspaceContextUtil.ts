@@ -142,5 +142,4 @@ export class WorkspaceContextUtil {
   set devHubId(id: string | undefined) {
     this._devHubId = id;
   }
-
 }

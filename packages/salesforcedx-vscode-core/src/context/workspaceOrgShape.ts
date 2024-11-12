@@ -8,14 +8,13 @@
 import { OrgShape } from '@salesforce/salesforcedx-utils-vscode';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
-
 export const getOrgShape = async (username: string): Promise<OrgShape> => {
   if (workspaceUtils.hasRootWorkspace()) {
     if (await OrgAuthInfo.isAScratchOrg(username)) {
       return 'Scratch';
     } else if (await OrgAuthInfo.isASandboxOrg(username)) {
       return 'Sandbox';
-    } else if (await OrgAuthInfo.getTargetOrgOrAlias(false) !== undefined) {
+    } else if ((await OrgAuthInfo.getTargetOrgOrAlias(false)) !== undefined) {
       return 'Production';
     } else {
       return 'Undefined';
