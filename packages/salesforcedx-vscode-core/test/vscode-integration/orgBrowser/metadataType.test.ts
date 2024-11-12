@@ -4,10 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  CommandOutput,
-  projectPaths
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CommandOutput, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -23,15 +20,12 @@ describe('get metadata types folder', () => {
   let getUsernameStub: SinonStub;
   let metadataFolderStub: SinonStub;
   const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
-  const metadataDirectoryPath =
-    'test/path/.sfdx/orgs/test-username1@example.com/metadata';
+  const metadataDirectoryPath = 'test/path/.sfdx/orgs/test-username1@example.com/metadata';
   const typeUtil = new TypeUtils();
   beforeEach(() => {
     getTargetOrgStub = stub(OrgAuthInfo, 'getTargetOrgOrAlias');
     getUsernameStub = stub(OrgAuthInfo, 'getUsername');
-    metadataFolderStub = stub(projectPaths, 'metadataFolder').returns(
-      metadataDirectoryPath
-    );
+    metadataFolderStub = stub(projectPaths, 'metadataFolder').returns(metadataDirectoryPath);
   });
   afterEach(() => {
     getTargetOrgStub.restore();
@@ -87,9 +81,7 @@ describe('build metadata types list', () => {
     const data = JSON.stringify({
       status: 0,
       result: {
-        metadataObjects: Array.from(TypeUtils.UNSUPPORTED_TYPES).map(
-          xmlName => ({ xmlName })
-        )
+        metadataObjects: Array.from(TypeUtils.UNSUPPORTED_TYPES).map(xmlName => ({ xmlName }))
       }
     });
     const types = await typeUtil.buildTypesList(data, undefined);
@@ -116,9 +108,7 @@ describe('load metadata types data', () => {
     execStub = stub(DescribeMetadataExecutor.prototype, 'execute');
     cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
     writeFileStub = stub(fs, 'writeFileSync');
-    getTypesFolderStub = stub(TypeUtils.prototype, 'getTypesFolder').returns(
-      filePath
-    );
+    getTypesFolderStub = stub(TypeUtils.prototype, 'getTypesFolder').returns(filePath);
   });
   afterEach(() => {
     readFileStub.restore();

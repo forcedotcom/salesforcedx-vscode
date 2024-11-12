@@ -6,15 +6,9 @@
  */
 import * as path from 'path';
 import { ExtensionContext, workspace } from 'vscode';
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  TransportKind
-} from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
 import * as codeCompletion from './codeCompletion';
 import * as queryValidation from './queryValidation';
-
 
 let client: LanguageClient;
 
@@ -22,14 +16,10 @@ export const clearDiagnostics = (): void => {
   client?.diagnostics?.clear();
 };
 
-export const startLanguageClient = async (
-  extensionContext: ExtensionContext
-): Promise<void> => {
+export const startLanguageClient = async (extensionContext: ExtensionContext): Promise<void> => {
   // path to language server module
   const serverPath = extensionContext.extension.packageJSON.serverPath;
-  const serverModule = extensionContext.asAbsolutePath(
-    path.join(...serverPath)
-  );
+  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
   // provide for different run/debug modes
@@ -52,12 +42,7 @@ export const startLanguageClient = async (
   };
 
   // Create the language client and start the client.
-  client = new LanguageClient(
-    'soql-language-server',
-    'SOQL Language Server',
-    serverOptions,
-    clientOptions
-  );
+  client = new LanguageClient('soql-language-server', 'SOQL Language Server', serverOptions, clientOptions);
 
   client = queryValidation.init(client);
 

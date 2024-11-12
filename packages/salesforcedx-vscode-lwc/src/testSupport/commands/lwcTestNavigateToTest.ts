@@ -19,10 +19,7 @@ const updateSelection = (index: vscode.Range | number) => {
       editor.revealRange(index); // Show selection
     } else {
       const line = editor.document.lineAt(index);
-      const startPos = new vscode.Position(
-        line.lineNumber,
-        line.firstNonWhitespaceCharacterIndex
-      );
+      const startPos = new vscode.Position(line.lineNumber, line.firstNonWhitespaceCharacterIndex);
       editor.selection = new vscode.Selection(startPos, line.range.end);
       editor.revealRange(line.range); // Show selection
     }

@@ -53,9 +53,7 @@ export class ConflictView {
     diffsOnly: boolean = false
   ) {
     this.diffsOnly = diffsOnly;
-    const conflicts = diffResults
-      ? this.createConflictEntries(diffResults, remoteLabel)
-      : [];
+    const conflicts = diffResults ? this.createConflictEntries(diffResults, remoteLabel) : [];
     const emptyLabel = diffsOnly
       ? nls.localize('conflict_detect_no_differences')
       : nls.localize('conflict_detect_no_conflicts');
@@ -68,10 +66,7 @@ export class ConflictView {
     this.dataProvider.onViewChange();
   }
 
-  public createConflictEntries(
-    diffResults: DirectoryDiffResults,
-    remoteLabel: string
-  ): ConflictFile[] {
+  public createConflictEntries(diffResults: DirectoryDiffResults, remoteLabel: string): ConflictFile[] {
     const conflicts: ConflictFile[] = [];
 
     diffResults.different.forEach(p => {
@@ -119,10 +114,7 @@ export class ConflictView {
       Promise.resolve(this.treeView.reveal(node, { expand: true })).catch(e => {
         const errorMessage = e.toString();
         channelService.appendLine('Error during reveal: ' + errorMessage);
-        telemetryService.sendException(
-          'ConflictDetectionException',
-          errorMessage
-        );
+        telemetryService.sendException('ConflictDetectionException', errorMessage);
       });
     }
   }

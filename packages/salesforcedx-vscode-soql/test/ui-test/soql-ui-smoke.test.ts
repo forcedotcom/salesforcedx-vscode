@@ -19,21 +19,12 @@ import {
 } from 'vscode-extension-tester';
 
 // tslint:disable-next-line:only-arrow-functions
-describe('In project folder, SOQL files should', function() {
+describe('In project folder, SOQL files should', function () {
   this.timeout(55000);
   let browser: VSBrowser;
   let driver: WebDriver;
   const folderPath =
-    path.resolve(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      'test',
-      'ui-test',
-      'resources',
-      'sfdx-test-project'
-    ) + path.sep;
+    path.resolve(__dirname, '..', '..', '..', 'test', 'ui-test', 'resources', 'sfdx-test-project') + path.sep;
   const filename = 'example.soql';
 
   const openFolder = async (folder: string) => {
@@ -64,17 +55,12 @@ describe('In project folder, SOQL files should', function() {
     await editorView.openEditor(editorTitle);
 
     // find toggle action and click
-    const actionToolbar = await editorView.findElement(
-      By.className('editor-actions')
-    );
+    const actionToolbar = await editorView.findElement(By.className('editor-actions'));
     const actions = await actionToolbar.findElements(By.className('codicon'));
     let toggle;
 
     for (const action of actions) {
-      if (
-        (await action.getAttribute('aria-label')) ===
-        'Switch Between SOQL Builder and Text Editor'
-      ) {
+      if ((await action.getAttribute('aria-label')) === 'Switch Between SOQL Builder and Text Editor') {
         toggle = action;
         break;
       }

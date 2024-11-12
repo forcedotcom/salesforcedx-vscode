@@ -26,9 +26,7 @@ describe('CommandBuild unit tests', () => {
   });
 
   it('Should be able to set description.', () => {
-    const testCommand = commandBuilderInst
-      .withDescription(testDescription)
-      .build();
+    const testCommand = commandBuilderInst.withDescription(testDescription).build();
     expect(testCommand.description).toEqual(testDescription);
   });
 
@@ -69,9 +67,7 @@ describe('CommandBuild unit tests', () => {
       .build();
     expect(testCommand.description).toEqual(testDescription);
     expect(testCommand.args).toContain(testArg);
-    expect(testCommand.args).toEqual(
-      expect.arrayContaining([testFlag, testFlagValue])
-    );
+    expect(testCommand.args).toEqual(expect.arrayContaining([testFlag, testFlagValue]));
     expect(testCommand.args).toEqual(expect.arrayContaining([JSON_FLAG]));
     expect(testCommand.logName).toEqual(testLogName);
   });

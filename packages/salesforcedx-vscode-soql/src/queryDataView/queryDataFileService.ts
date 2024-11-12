@@ -12,11 +12,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
 import { nls } from '../messages';
-import {
-  CsvDataProvider,
-  DataProvider,
-  JsonDataProvider
-} from './dataProviders';
+import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 
 export enum FileFormat {
   JSON = 'json',
@@ -50,10 +46,7 @@ export class QueryDataFileService {
 
   public async save(): Promise<string> {
     let selectedFileSavePath = '';
-    const fileContentString = this.dataProvider.getFileContent(
-      this.queryText,
-      this.queryData.records
-    );
+    const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
     const fileContent = new TextEncoder().encode(fileContentString);
     const defaultFileName = this.dataProvider.getFileName();
     /*
@@ -68,11 +61,9 @@ export class QueryDataFileService {
     }
     const queryDataDefaultFilePath = path.join(saveDir, defaultFileName);
 
-    const fileInfo: vscode.Uri | undefined = await vscode.window.showSaveDialog(
-      {
-        defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
-      }
-    );
+    const fileInfo: vscode.Uri | undefined = await vscode.window.showSaveDialog({
+      defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
+    });
 
     if (fileInfo && fileInfo.fsPath) {
       // use .fsPath, not .path to account for OS.
@@ -88,16 +79,11 @@ export class QueryDataFileService {
   private showFileInExplorer(targetPath: string) {
     // Only reveal saved file if its inside current workspace
     if (targetPath.startsWith(getRootWorkspacePath())) {
-      vscode.commands.executeCommand(
-        'revealInExplorer',
-        vscode.Uri.file(targetPath)
-      );
+      vscode.commands.executeCommand('revealInExplorer', vscode.Uri.file(targetPath));
     }
   }
 
   private showSaveSuccessMessage(savedFileName: string) {
-    vscode.window.showInformationMessage(
-      nls.localize('info_file_save_success', savedFileName)
-    );
+    vscode.window.showInformationMessage(nls.localize('info_file_save_success', savedFileName));
   }
 }

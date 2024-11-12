@@ -9,33 +9,15 @@ export { analyticsGenerateTemplate } from './analyticsGenerateTemplate';
 export { apexGenerateClass } from './apexGenerateClass';
 export { apexGenerateTrigger } from './apexGenerateTrigger';
 export * from './apexGenerateUnitTestClass';
-export {
-  ForceLightningLwcTestCreateExecutor,
-  forceLightningLwcTestCreate
-} from './forceLightningLwcTestCreate';
-export {
-  FileInternalPathGatherer,
-  InternalDevWorkspaceChecker
-} from './internalCommandUtils';
-export {
-  internalLightningGenerateApp,
-  lightningGenerateApp
-} from './lightningGenerateApp';
+export { ForceLightningLwcTestCreateExecutor, forceLightningLwcTestCreate } from './forceLightningLwcTestCreate';
+export { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './internalCommandUtils';
+export { internalLightningGenerateApp, lightningGenerateApp } from './lightningGenerateApp';
 export {
   internalLightningGenerateAuraComponent,
   lightningGenerateAuraComponent
 } from './lightningGenerateAuraComponent';
-export {
-  internalLightningGenerateEvent,
-  lightningGenerateEvent
-} from './lightningGenerateEvent';
-export {
-  internalLightningGenerateInterface,
-  lightningGenerateInterface
-} from './lightningGenerateInterface';
-export {
-  internalLightningGenerateLwc,
-  lightningGenerateLwc
-} from './lightningGenerateLwc';
+export { internalLightningGenerateEvent, lightningGenerateEvent } from './lightningGenerateEvent';
+export { internalLightningGenerateInterface, lightningGenerateInterface } from './lightningGenerateInterface';
+export { internalLightningGenerateLwc, lightningGenerateLwc } from './lightningGenerateLwc';
 export { visualforceGenerateComponent } from './visualforceGenerateComponent';
 export { visualforceGeneratePage } from './visualforceGeneratePage';

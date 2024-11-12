@@ -18,26 +18,11 @@ describe('DeployQueue', () => {
     let vscodeExecuteCommandSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      getPushOrDeployOnSaveEnabledMock = jest.spyOn(
-        salesforceCoreSettings,
-        'getPushOrDeployOnSaveEnabled'
-      );
-      getPreferDeployOnSaveEnabledMock = jest.spyOn(
-        salesforceCoreSettings,
-        'getPreferDeployOnSaveEnabled'
-      );
-      getWorkspaceOrgTypeMock = jest.spyOn(
-        workspaceContextUtils,
-        'getWorkspaceOrgType'
-      );
-      executeDeployCommandSpy = jest.spyOn(
-        (DeployQueue as any).prototype,
-        'executeDeployCommand'
-      );
-      executePushCommandSpy = jest.spyOn(
-        (DeployQueue as any).prototype,
-        'executePushCommand'
-      );
+      getPushOrDeployOnSaveEnabledMock = jest.spyOn(salesforceCoreSettings, 'getPushOrDeployOnSaveEnabled');
+      getPreferDeployOnSaveEnabledMock = jest.spyOn(salesforceCoreSettings, 'getPreferDeployOnSaveEnabled');
+      getWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'getWorkspaceOrgType');
+      executeDeployCommandSpy = jest.spyOn((DeployQueue as any).prototype, 'executeDeployCommand');
+      executePushCommandSpy = jest.spyOn((DeployQueue as any).prototype, 'executePushCommand');
       vscodeExecuteCommandSpy = jest.spyOn(vscode.commands, 'executeCommand');
     });
 
@@ -56,10 +41,7 @@ describe('DeployQueue', () => {
       expect(getPreferDeployOnSaveEnabledMock).toHaveBeenCalled();
       expect(executePushCommandSpy).toHaveBeenCalled();
       expect(executeDeployCommandSpy).not.toHaveBeenCalled();
-      expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith(
-        'sf.project.deploy.start.ignore.conflicts',
-        true
-      );
+      expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith('sf.project.deploy.start.ignore.conflicts', true);
     });
 
     it('should execute a deploy command when "Push or deploy on save" and "Prefer deploy on save" are enabled', async () => {
@@ -71,12 +53,7 @@ describe('DeployQueue', () => {
       expect(getPreferDeployOnSaveEnabledMock).toHaveBeenCalled();
       expect(executePushCommandSpy).not.toHaveBeenCalled();
       expect(executeDeployCommandSpy).toHaveBeenCalled();
-      expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith(
-        'sf.deploy.multiple.source.paths',
-        [undefined],
-        null,
-        true
-      );
+      expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith('sf.deploy.multiple.source.paths', [undefined], null, true);
     });
   });
 });

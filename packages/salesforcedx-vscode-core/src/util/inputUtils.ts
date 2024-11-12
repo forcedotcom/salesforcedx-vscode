@@ -7,14 +7,11 @@
 
 import * as vscode from 'vscode';
 export class InputUtils {
-
   public static async getFormattedString(prompt: string, value?: string) {
-    const input = await vscode.window.showInputBox(
-      {
-        prompt,
-        value
-      }
-    );
+    const input = await vscode.window.showInputBox({
+      prompt,
+      value
+    });
     return input ? input.trim() : input;
   }
 }

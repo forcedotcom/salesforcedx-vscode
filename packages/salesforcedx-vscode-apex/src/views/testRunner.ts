@@ -19,12 +19,7 @@ import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService } from '../testRunCache';
-import {
-  ApexTestGroupNode,
-  ApexTestNode,
-  ApexTestOutlineProvider,
-  TestNode
-} from './testOutlineProvider';
+import { ApexTestGroupNode, ApexTestNode, ApexTestOutlineProvider, TestNode } from './testOutlineProvider';
 
 export enum TestRunType {
   All,
@@ -35,10 +30,7 @@ export enum TestRunType {
 export class ApexTestRunner {
   private testOutline: ApexTestOutlineProvider;
   private eventsEmitter: events.EventEmitter;
-  constructor(
-    testOutline: ApexTestOutlineProvider,
-    eventsEmitter?: events.EventEmitter
-  ) {
+  constructor(testOutline: ApexTestOutlineProvider, eventsEmitter?: events.EventEmitter) {
     this.testOutline = testOutline;
     this.eventsEmitter = eventsEmitter || new events.EventEmitter();
     this.eventsEmitter.on('sf:update_selection', this.updateSelection);
@@ -49,9 +41,7 @@ export class ApexTestRunner {
     let position: vscode.Range | number = test.location!.range;
     if (testNode instanceof ApexTestGroupNode) {
       if (test.contextValue === 'apexTestGroup_Fail') {
-        const failedTest = test.children.find(
-          testCase => testCase.contextValue === 'apexTest_Fail'
-        );
+        const failedTest = test.children.find(testCase => testCase.contextValue === 'apexTest_Fail');
         if (failedTest) {
           testNode = failedTest;
         }
@@ -61,14 +51,7 @@ export class ApexTestRunner {
       const errorMessage = testNode.errorMessage;
       if (errorMessage && errorMessage !== '') {
         const stackTrace = testNode.stackTrace;
-        position =
-          parseInt(
-            stackTrace.substring(
-              stackTrace.indexOf('line') + 4,
-              stackTrace.indexOf(',')
-            ),
-            10
-          ) - 1; // Remove one because vscode location is zero based
+        position = parseInt(stackTrace.substring(stackTrace.indexOf('line') + 4, stackTrace.indexOf(',')), 10) - 1; // Remove one because vscode location is zero based
         channelService.appendLine('-----------------------------------------');
         channelService.appendLine(stackTrace);
         channelService.appendLine(errorMessage);
@@ -92,10 +75,7 @@ export class ApexTestRunner {
         editor.revealRange(index); // Show selection
       } else {
         const line = editor.document.lineAt(index);
-        const startPos = new vscode.Position(
-          line.lineNumber,
-          line.firstNonWhitespaceCharacterIndex
-        );
+        const startPos = new vscode.Position(line.lineNumber, line.firstNonWhitespaceCharacterIndex);
         editor.selection = new vscode.Selection(startPos, line.range.end);
         editor.revealRange(line.range); // Show selection
       }
@@ -104,10 +84,7 @@ export class ApexTestRunner {
 
   public getTempFolder(): string {
     if (vscode.workspace && vscode.workspace.workspaceFolders) {
-      const apexDir = getTestResultsFolder(
-        vscode.workspace.workspaceFolders[0].uri.fsPath,
-        'apex'
-      );
+      const apexDir = getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
       return apexDir;
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));

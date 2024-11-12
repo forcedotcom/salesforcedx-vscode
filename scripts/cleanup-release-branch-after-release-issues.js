@@ -21,12 +21,8 @@ logger.header('\nRemove all local untracked file changes in the project');
 shell.exec(`git clean -xfd`);
 
 const releaseTag = `v${nextVersion}`;
-const isReleaseTagPresent = shell
-  .exec(`git tag -l "${releaseTag}"`)
-  .stdout.trim();
-const isReleaseTagInRemote = shell
-  .exec(`git ls-remote --tags ${REPO_ORIGIN} ${releaseTag}`)
-  .stdout.trim();
+const isReleaseTagPresent = shell.exec(`git tag -l "${releaseTag}"`).stdout.trim();
+const isReleaseTagInRemote = shell.exec(`git ls-remote --tags ${REPO_ORIGIN} ${releaseTag}`).stdout.trim();
 
 if (isReleaseTagPresent) {
   logger.header(`Deleting tag ${releaseTag} in local`);

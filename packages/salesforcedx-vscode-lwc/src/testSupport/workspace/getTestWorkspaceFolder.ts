@@ -23,14 +23,9 @@ export const getTestWorkspaceFolder = (testUri?: vscode.Uri) => {
   if (workspaceFolder) {
     return workspaceFolder;
   } else {
-    const errorMessage = nls.localize(
-      'no_workspace_folder_found_for_test_text'
-    );
+    const errorMessage = nls.localize('no_workspace_folder_found_for_test_text');
     console.error(errorMessage);
     vscode.window.showErrorMessage(errorMessage);
-    telemetryService.sendException(
-      'lwc_test_no_workspace_folder_found_for_test',
-      errorMessage
-    );
+    telemetryService.sendException('lwc_test_no_workspace_folder_found_for_test', errorMessage);
   }
 };

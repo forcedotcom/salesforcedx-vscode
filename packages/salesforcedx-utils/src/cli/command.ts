@@ -20,9 +20,7 @@ export class Command {
   }
 
   public toString(): string {
-    return this.description
-      ? this.description
-      : `${this.command} ${this.args.join(' ')}`;
+    return this.description ? this.description : `${this.command} ${this.args.join(' ')}`;
   }
 
   public toCommand(): string {

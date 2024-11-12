@@ -5,16 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Command,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  isSFContainerMode
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, isSFContainerMode } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -23,19 +17,11 @@ import { channelService } from '../../channels/index';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
-import {
-  notificationService,
-  ProgressNotification
-} from '../../notifications/index';
+import { notificationService, ProgressNotification } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
 import { workspaceUtils } from '../../util';
-import {
-  DemoModePromptGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from '../util';
+import { DemoModePromptGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from '../util';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';
 
@@ -52,9 +38,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   protected stdOut = '';
 
   public build(data: AuthParams): Command {
-    const command = new SfCommandBuilder().withDescription(
-      nls.localize('org_login_web_authorize_org_text')
-    );
+    const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_org_text'));
 
     command
       .withArg(CLI.ORG_LOGIN_DEVICE)
@@ -87,10 +71,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
       this.logMetric(execution.command.logName, startTime);
     });
 
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
-    );
+    notificationService.reportCommandExecutionStatus(execution, cancellationToken);
 
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
@@ -123,9 +104,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
         this.logToOutputChannel(userCode, verificationUrl);
       }
     } catch (error) {
-      channelService.appendLine(
-        nls.localize('org_login_device_code_parse_error')
-      );
+      channelService.appendLine(nls.localize('org_login_device_code_parse_error'));
       telemetryService.sendException(
         'org_login_web_container',
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -139,9 +118,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   private logToOutputChannel(code: string, url: string) {
     channelService.appendLine(`${EOL}`);
     channelService.appendLine(nls.localize('action_required'));
-    channelService.appendLine(
-      nls.localize('org_login_device_enter_code', code, url)
-    );
+    channelService.appendLine(nls.localize('org_login_device_enter_code', code, url));
     channelService.appendLine(`${EOL}`);
   }
 }
@@ -150,9 +127,7 @@ export class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
-    const command = new SfCommandBuilder().withDescription(
-      nls.localize('org_login_web_authorize_org_text')
-    );
+    const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_org_text'));
 
     command
       .withArg(CLI.ORG_LOGIN_WEB)
@@ -193,9 +168,7 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
       if (isProdOrg(JSON.parse(result))) {
         await promptLogOutForProdOrg();
       } else {
-        await notificationService.showSuccessfulExecution(
-          execution.command.toString()
-        );
+        await notificationService.showSuccessfulExecution(execution.command.toString());
       }
       return Promise.resolve();
     } catch (err) {
@@ -242,10 +215,6 @@ export const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
 };
 
 export const orgLoginWeb = async (): Promise<void> => {
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    createOrgLoginWebExecutor()
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, createOrgLoginWebExecutor());
   await commandlet.run();
 };

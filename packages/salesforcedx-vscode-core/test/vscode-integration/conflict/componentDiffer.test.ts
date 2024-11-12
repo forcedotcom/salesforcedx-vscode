@@ -26,11 +26,11 @@ describe('Component Differ', () => {
   const xmlPathLocal = path.join(dir, 'local', 'dirOne', 'AccountController.cls-meta.xml');
   const xmlPathRemote = path.join(dir, 'remote', 'AccountController.cls-meta.xml');
   if (!fs.existsSync(path.join(dir, 'local'))) {
-    fs.mkdirSync(path.join(dir, 'local', 'dirOne'), {recursive: true});
+    fs.mkdirSync(path.join(dir, 'local', 'dirOne'), { recursive: true });
     fs.mkdirSync(path.join(dir, 'local', 'dirTwo'));
   }
   if (!fs.existsSync(path.join(dir, 'remote'))) {
-    fs.mkdirSync(path.join(dir, 'remote'), {recursive: true});
+    fs.mkdirSync(path.join(dir, 'remote'), { recursive: true });
   }
 
   const sampleComponentOne = {
@@ -68,13 +68,15 @@ describe('Component Differ', () => {
 
     expect(walkContentStubOne.callCount).to.equal(1);
     expect(walkContentStubTwo.callCount).to.equal(1);
-    expect(results).to.have.deep.members([{
-      projectPath: diffPathLocal,
-      cachePath: diffPathRemote
-    },
-    {
-      projectPath: xmlPathLocal,
-      cachePath: xmlPathRemote
-    }]);
+    expect(results).to.have.deep.members([
+      {
+        projectPath: diffPathLocal,
+        cachePath: diffPathRemote
+      },
+      {
+        projectPath: xmlPathLocal,
+        cachePath: xmlPathRemote
+      }
+    ]);
   });
 });

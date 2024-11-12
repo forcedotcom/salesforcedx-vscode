@@ -40,13 +40,9 @@ describe('ApexExecutionOverlayAction basic class tests', () => {
   });
 
   it('Should should create requestUrl with actionId on the API Path ', async () => {
-    overlayActionCommand = new ApexExecutionOverlayActionCommand(
-      requestString,
-      actionObjectId
-    );
+    overlayActionCommand = new ApexExecutionOverlayActionCommand(requestString, actionObjectId);
     expect(overlayActionCommand.getCommandUrl()).to.equal(
-      'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' +
-        actionObjectId
+      'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' + actionObjectId
     );
     expect(overlayActionCommand.getQueryString()).to.equal(undefined);
     expect(overlayActionCommand.getRequest()).to.equal(requestString);
@@ -59,18 +55,15 @@ describe('ApexExecutionOverlayAction command', () => {
   let overlayActionCommand: ApexExecutionOverlayActionCommand;
 
   const actionObjectId = '1doxx000000FAKE';
-  const expectedPostUrl =
-    'https://www.salesforce.com/services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction';
+  const expectedPostUrl = 'https://www.salesforce.com/services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction';
   const expectedDeleteUrl =
-    'https://www.salesforce.com/services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' +
-    actionObjectId;
+    'https://www.salesforce.com/services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' + actionObjectId;
   const requestService = new RequestService();
   const requestString =
     '{"ActionScript":"","ActionScriptType":"None","ExecutableEntityName":"MyFakeClassOrTrigger","IsDumpingHeap":true,"Iteration":1,"Line":25}';
   const reseponseFieldIntegrityError =
     '[{"message":"Some error message, does not really matter, only the error code matters","errorCode":"FIELD_INTEGRITY_EXCEPTION","fields":[]}]';
-  const responseSuccess =
-    '{"id":"1doxx000000FAKE","success":true,"errors":[],"warnings":[]}';
+  const responseSuccess = '{"id":"1doxx000000FAKE","success":true,"errors":[],"warnings":[]}';
 
   beforeEach(() => {
     requestService.instanceUrl = 'https://www.salesforce.com';
@@ -83,14 +76,12 @@ describe('ApexExecutionOverlayAction command', () => {
 
   it('ApexExecutionOverlayActionCommand POST REST call with parse-able success result', async () => {
     overlayActionCommand = new ApexExecutionOverlayActionCommand(requestString);
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({
-          status: 200,
-          responseText: responseSuccess
-        } as XHRResponse)
-      );
+    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
+      Promise.resolve({
+        status: 200,
+        responseText: responseSuccess
+      } as XHRResponse)
+    );
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Post
     const expectedOptions: XHROptions = createExpectedXHROptions(
@@ -105,23 +96,19 @@ describe('ApexExecutionOverlayAction command', () => {
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
 
     // parse the returnString and verify the ID and success boolean
-    const response = JSON.parse(
-      returnString
-    ) as ApexExecutionOverlaySuccessResult;
+    const response = JSON.parse(returnString) as ApexExecutionOverlaySuccessResult;
     expect(response.id).to.equal(actionObjectId);
     expect(response.success).to.equal(true);
   });
 
   it('ApexExecutionOverlayActionCommand POST REST call with parse-able FIELD_INTEGRITY_EXCEPTION result', async () => {
     overlayActionCommand = new ApexExecutionOverlayActionCommand(requestString);
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({
-          status: 200,
-          responseText: reseponseFieldIntegrityError
-        } as XHRResponse)
-      );
+    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
+      Promise.resolve({
+        status: 200,
+        responseText: reseponseFieldIntegrityError
+      } as XHRResponse)
+    );
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Post
     const expectedOptions: XHROptions = createExpectedXHROptions(
       requestString,
@@ -136,26 +123,19 @@ describe('ApexExecutionOverlayAction command', () => {
 
     // parse the returnString and verify the ID and success boolean
     // note: the return value is an array of ApexExecutionOverlayFailureResult
-    const result = JSON.parse(
-      returnString
-    ) as ApexExecutionOverlayFailureResult[];
+    const result = JSON.parse(returnString) as ApexExecutionOverlayFailureResult[];
     // Verify that the error code can be parses out
     expect(result[0].errorCode).to.equal(FIELD_INTEGRITY_EXCEPTION);
   });
 
   it('ApexExecutionOverlayActionCommand DELETE REST call', async () => {
-    overlayActionCommand = new ApexExecutionOverlayActionCommand(
-      requestString,
-      actionObjectId
+    overlayActionCommand = new ApexExecutionOverlayActionCommand(requestString, actionObjectId);
+    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
+      Promise.resolve({
+        status: 200,
+        responseText: '' // Upon a successful delete, nothing is returned
+      } as XHRResponse)
     );
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({
-          status: 200,
-          responseText: '' // Upon a successful delete, nothing is returned
-        } as XHRResponse)
-      );
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Post
     const expectedOptions: XHROptions = createExpectedXHROptions(
       requestString,
@@ -163,10 +143,7 @@ describe('ApexExecutionOverlayAction command', () => {
       RestHttpMethodEnum.Delete
     );
 
-    await requestService.execute(
-      overlayActionCommand,
-      RestHttpMethodEnum.Delete
-    );
+    await requestService.execute(overlayActionCommand, RestHttpMethodEnum.Delete);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
@@ -187,9 +164,7 @@ export const createExpectedXHROptions = (
       'Content-Type': 'application/json;charset=utf-8',
       Accept: 'application/json',
       Authorization: 'OAuth 123',
-      'Content-Length': requestBody
-        ? String(Buffer.byteLength(requestBody, 'utf-8'))
-        : '0',
+      'Content-Length': requestBody ? String(Buffer.byteLength(requestBody, 'utf-8')) : '0',
       'Sforce-Call-Options': `client=${CLIENT_ID}`
     },
     data: requestBody

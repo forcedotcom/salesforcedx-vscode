@@ -56,10 +56,7 @@ export class ProjectRetrieveStartResultParser {
         name: this.response.name ?? 'RetrieveFailed',
         status: this.response.status,
         ...(files && {
-          files: files.filter(
-            (file: { state: string }) =>
-              file.state === 'Failed' || file.state === 'Conflict'
-          )
+          files: files.filter((file: { state: string }) => file.state === 'Failed' || file.state === 'Conflict')
         })
       } as ProjectRetrieveStartErrorResponse;
     }
@@ -80,8 +77,6 @@ export class ProjectRetrieveStartResultParser {
   }
 
   public hasConflicts(): boolean {
-    return (
-      this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
-    );
+    return this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME;
   }
 }

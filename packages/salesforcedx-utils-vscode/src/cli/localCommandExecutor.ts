@@ -31,21 +31,9 @@ export class LocalCommandExecution implements CommandExecution {
 
   constructor(command: Command) {
     this.command = command;
-    this.processExitSubject = Observable.fromEvent(
-      this.cmdEmitter,
-      LocalCommandExecution.EXIT_EVENT
-    ) ;
-    this.processErrorSubject = Observable.fromEvent(
-      this.cmdEmitter,
-      LocalCommandExecution.ERROR_EVENT
-    ) ;
-    this.stdoutSubject = Observable.fromEvent(
-      this.cmdEmitter,
-      LocalCommandExecution.STDOUT_EVENT
-    ) ;
-    this.stderrSubject = Observable.fromEvent(
-      this.cmdEmitter,
-      LocalCommandExecution.STDERR_EVENT
-    ) ;
+    this.processExitSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.EXIT_EVENT);
+    this.processErrorSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.ERROR_EVENT);
+    this.stdoutSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.STDOUT_EVENT);
+    this.stderrSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.STDERR_EVENT);
   }
 }

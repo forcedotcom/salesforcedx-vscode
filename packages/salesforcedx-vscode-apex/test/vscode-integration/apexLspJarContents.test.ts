@@ -12,7 +12,6 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 
 describe('Apex LSP Jar Contents', () => {
-
   it('should not contain perm-guarded apex classes', () => {
     shell.config.execPath = process.execPath;
     const apexJarPath = path.join(__dirname, '..', '..', 'apex-jorje-lsp.jar');

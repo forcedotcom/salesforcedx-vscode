@@ -17,19 +17,9 @@ import {
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
-import {
-  BreakpointUtil,
-  LineBreakpointInfo,
-  breakpointUtil
-} from '../../../src/breakpoints';
-import {
-  SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT
-} from '../../../src/constants';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { BreakpointUtil, LineBreakpointInfo, breakpointUtil } from '../../../src/breakpoints';
+import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
 import { nls } from '../../../src/messages';
@@ -113,20 +103,10 @@ describe('Replay debugger adapter - unit', () => {
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
       sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
-      readLogFileStub = sinon
-        .stub(LogContextUtil.prototype, 'readLogFile')
-        .returns(['line1', 'line2']);
-      getLogSizeStub = sinon
-        .stub(LogContext.prototype, 'getLogSize')
-        .returns(123);
-      printToDebugConsoleStub = sinon.stub(
-        ApexReplayDebug.prototype,
-        'printToDebugConsole'
-      );
-      errorToDebugConsoleStub = sinon.stub(
-        ApexReplayDebug.prototype,
-        'errorToDebugConsole'
-      );
+      readLogFileStub = sinon.stub(LogContextUtil.prototype, 'readLogFile').returns(['line1', 'line2']);
+      getLogSizeStub = sinon.stub(LogContext.prototype, 'getLogSize').returns(123);
+      printToDebugConsoleStub = sinon.stub(ApexReplayDebug.prototype, 'printToDebugConsole');
+      errorToDebugConsoleStub = sinon.stub(ApexReplayDebug.prototype, 'errorToDebugConsole');
     });
 
     afterEach(() => {
@@ -147,12 +127,8 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return error when there are no log lines', async () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .returns(false);
-      meetsLogLevelRequirementsStub = sinon
-        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
-        .returns(false);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(false);
+      meetsLogLevelRequirementsStub = sinon.stub(LogContext.prototype, 'meetsLogLevelRequirements').returns(false);
 
       await adapter.launchRequest(response, args);
 
@@ -160,17 +136,12 @@ describe('Replay debugger adapter - unit', () => {
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.false;
       expect(sendResponseSpy.calledOnce).to.be.true;
       expect(sendEventSpy.callCount).to.equal(4);
-      const actualResponse: DebugProtocol.LaunchResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.false;
       expect(actualResponse.message).to.equal(nls.localize('no_log_file_text'));
       expect(sendEventSpy.getCall(1).args[0]).to.be.instanceof(Event);
-      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal(
-        'No log lines found'
-      );
-      expect(sendEventSpy.getCall(2).args[0]).to.be.instanceof(
-        InitializedEvent
-      );
+      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal('No log lines found');
+      expect(sendEventSpy.getCall(2).args[0]).to.be.instanceof(InitializedEvent);
       const eventObj = sendEventSpy.getCall(3).args[0] as DebugProtocol.Event;
       expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
       expect(eventObj.body).to.deep.equal({
@@ -180,12 +151,8 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return error when log levels are incorrect', async () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .returns(true);
-      meetsLogLevelRequirementsStub = sinon
-        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
-        .returns(false);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(true);
+      meetsLogLevelRequirementsStub = sinon.stub(LogContext.prototype, 'meetsLogLevelRequirements').returns(false);
 
       await adapter.launchRequest(response, args);
 
@@ -193,19 +160,12 @@ describe('Replay debugger adapter - unit', () => {
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
       expect(sendResponseSpy.calledOnce).to.be.true;
       expect(sendEventSpy.callCount).to.equal(4);
-      const actualResponse: DebugProtocol.LaunchResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.false;
-      expect(actualResponse.message).to.equal(
-        nls.localize('incorrect_log_levels_text')
-      );
+      expect(actualResponse.message).to.equal(nls.localize('incorrect_log_levels_text'));
       expect(sendEventSpy.getCall(1).args[0]).to.be.instanceof(Event);
-      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal(
-        'Incorrect log levels'
-      );
-      expect(sendEventSpy.getCall(2).args[0]).to.be.instanceof(
-        InitializedEvent
-      );
+      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal('Incorrect log levels');
+      expect(sendEventSpy.getCall(2).args[0]).to.be.instanceof(InitializedEvent);
       const eventObj = sendEventSpy.getCall(3).args[0] as DebugProtocol.Event;
       expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
       expect(eventObj.body).to.deep.equal({
@@ -215,12 +175,8 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should send response', async () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .returns(true);
-      meetsLogLevelRequirementsStub = sinon
-        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
-        .returns(true);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(true);
+      meetsLogLevelRequirementsStub = sinon.stub(LogContext.prototype, 'meetsLogLevelRequirements').returns(true);
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
@@ -229,25 +185,16 @@ describe('Replay debugger adapter - unit', () => {
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
       expect(printToDebugConsoleStub.calledOnce).to.be.true;
       const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
-      expect(consoleMessage).to.equal(
-        nls.localize('session_started_text', logFileName)
-      );
+      expect(consoleMessage).to.equal(nls.localize('session_started_text', logFileName));
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.LaunchResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
     });
 
     it('Should not scan for log lines if projectPath is undefined', async () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .returns(true);
-      meetsLogLevelRequirementsStub = sinon
-        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
-        .returns(true);
-      scanLogForHeapDumpLinesStub = sinon
-        .stub(LogContext.prototype, 'scanLogForHeapDumpLines')
-        .returns(false);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(true);
+      meetsLogLevelRequirementsStub = sinon.stub(LogContext.prototype, 'meetsLogLevelRequirements').returns(true);
+      scanLogForHeapDumpLinesStub = sinon.stub(LogContext.prototype, 'scanLogForHeapDumpLines').returns(false);
 
       adapter.setProjectPath(undefined);
       await adapter.launchRequest(response, args);
@@ -258,15 +205,9 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should scan log lines for heap dumps if projectPath is set', async () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .returns(true);
-      meetsLogLevelRequirementsStub = sinon
-        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
-        .returns(true);
-      scanLogForHeapDumpLinesStub = sinon
-        .stub(LogContext.prototype, 'scanLogForHeapDumpLines')
-        .returns(false);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(true);
+      meetsLogLevelRequirementsStub = sinon.stub(LogContext.prototype, 'meetsLogLevelRequirements').returns(true);
+      scanLogForHeapDumpLinesStub = sinon.stub(LogContext.prototype, 'scanLogForHeapDumpLines').returns(false);
       fetchOverlayResultsForApexHeapDumpsStub = sinon
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(true);
@@ -282,15 +223,9 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should call to fetch overlay results if heap dumps are found in the logs', async () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .returns(true);
-      meetsLogLevelRequirementsStub = sinon
-        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
-        .returns(true);
-      scanLogForHeapDumpLinesStub = sinon
-        .stub(LogContext.prototype, 'scanLogForHeapDumpLines')
-        .returns(true);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(true);
+      meetsLogLevelRequirementsStub = sinon.stub(LogContext.prototype, 'meetsLogLevelRequirements').returns(true);
+      scanLogForHeapDumpLinesStub = sinon.stub(LogContext.prototype, 'scanLogForHeapDumpLines').returns(true);
       fetchOverlayResultsForApexHeapDumpsStub = sinon
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(true);
@@ -305,15 +240,9 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should report a wrap up error if fetching heap dumps has a failure', async () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .returns(true);
-      meetsLogLevelRequirementsStub = sinon
-        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
-        .returns(true);
-      scanLogForHeapDumpLinesStub = sinon
-        .stub(LogContext.prototype, 'scanLogForHeapDumpLines')
-        .returns(true);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(true);
+      meetsLogLevelRequirementsStub = sinon.stub(LogContext.prototype, 'meetsLogLevelRequirements').returns(true);
+      scanLogForHeapDumpLinesStub = sinon.stub(LogContext.prototype, 'scanLogForHeapDumpLines').returns(true);
       fetchOverlayResultsForApexHeapDumpsStub = sinon
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(false);
@@ -328,16 +257,10 @@ describe('Replay debugger adapter - unit', () => {
       expect(errorToDebugConsoleStub.calledOnce).to.be.true;
       expect(sendEventSpy.callCount).to.equal(4);
       const errorMessage = errorToDebugConsoleStub.getCall(0).args[0];
-      expect(errorMessage).to.equal(
-        nls.localize('heap_dump_error_wrap_up_text')
-      );
+      expect(errorMessage).to.equal(nls.localize('heap_dump_error_wrap_up_text'));
       expect(sendEventSpy.getCall(1).args[0]).to.be.instanceof(Event);
-      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal(
-        'Fetching heap dumps failed'
-      );
-      expect(sendEventSpy.getCall(2).args[0]).to.be.instanceof(
-        InitializedEvent
-      );
+      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal('Fetching heap dumps failed');
+      expect(sendEventSpy.getCall(2).args[0]).to.be.instanceof(InitializedEvent);
       const eventObj = sendEventSpy.getCall(3).args[0] as DebugProtocol.Event;
       expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
       expect(eventObj.body).to.deep.equal({
@@ -365,10 +288,7 @@ describe('Replay debugger adapter - unit', () => {
       adapter.setLogFile(launchRequestArgs);
       sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
       updateFramesStub = sinon.stub(LogContext.prototype, 'updateFrames');
-      continueRequestStub = sinon.stub(
-        ApexReplayDebug.prototype,
-        'continueRequest'
-      );
+      continueRequestStub = sinon.stub(ApexReplayDebug.prototype, 'continueRequest');
       response = adapter.getDefaultResponse();
     });
 
@@ -380,11 +300,9 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should send stopped event', () => {
-      getLaunchArgsStub = sinon
-        .stub(LogContext.prototype, 'getLaunchArgs')
-        .returns({
-          stopOnEntry: true
-        } as LaunchRequestArguments);
+      getLaunchArgsStub = sinon.stub(LogContext.prototype, 'getLaunchArgs').returns({
+        stopOnEntry: true
+      } as LaunchRequestArguments);
 
       adapter.configurationDoneRequest(response, args);
 
@@ -393,17 +311,13 @@ describe('Replay debugger adapter - unit', () => {
       const event = sendEventSpy.getCall(0).args[0];
       expect(event).to.be.instanceof(StoppedEvent);
       expect(sendEventSpy.getCall(1).args[0]).to.be.instanceof(Event);
-      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal(
-        'configurationDoneRequest'
-      );
+      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal('configurationDoneRequest');
     });
 
     it('Should continue until next breakpoint', () => {
-      getLaunchArgsStub = sinon
-        .stub(LogContext.prototype, 'getLaunchArgs')
-        .returns({
-          stopOnEntry: false
-        } as LaunchRequestArguments);
+      getLaunchArgsStub = sinon.stub(LogContext.prototype, 'getLaunchArgs').returns({
+        stopOnEntry: false
+      } as LaunchRequestArguments);
 
       adapter.configurationDoneRequest(response, args);
 
@@ -412,9 +326,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(updateFramesStub.called).to.be.false;
       expect(continueRequestStub.calledOnce).to.be.true;
       expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(Event);
-      expect(sendEventSpy.getCall(0).args[0].body.subject).to.equal(
-        'configurationDoneRequest'
-      );
+      expect(sendEventSpy.getCall(0).args[0].body.subject).to.equal('configurationDoneRequest');
     });
   });
 
@@ -431,10 +343,7 @@ describe('Replay debugger adapter - unit', () => {
       args = {};
       sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
-      printToDebugConsoleStub = sinon.stub(
-        ApexReplayDebug.prototype,
-        'printToDebugConsole'
-      );
+      printToDebugConsoleStub = sinon.stub(ApexReplayDebug.prototype, 'printToDebugConsole');
     });
 
     afterEach(() => {
@@ -450,13 +359,10 @@ describe('Replay debugger adapter - unit', () => {
       const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
       expect(consoleMessage).to.equal(nls.localize('session_terminated_text'));
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.DisconnectResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.DisconnectResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(Event);
-      expect(sendEventSpy.getCall(0).args[0].body.subject).to.equal(
-        'disconnectRequest'
-      );
+      expect(sendEventSpy.getCall(0).args[0].body.subject).to.equal('disconnectRequest');
     });
   });
 
@@ -476,9 +382,7 @@ describe('Replay debugger adapter - unit', () => {
         body: { threads: [] }
       });
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = sinon
-        .stub(LogContextUtil.prototype, 'readLogFile')
-        .returns(['line1', 'line2']);
+      readLogFileStub = sinon.stub(LogContextUtil.prototype, 'readLogFile').returns(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
     });
 
@@ -491,8 +395,7 @@ describe('Replay debugger adapter - unit', () => {
       adapter.threadsRequest(response);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.ThreadsResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.ThreadsResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(actualResponse.body.threads.length).to.equal(1);
       const thread: Thread = actualResponse.body.threads[0];
@@ -537,13 +440,9 @@ describe('Replay debugger adapter - unit', () => {
         threadId: ApexReplayDebug.THREAD_ID
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = sinon
-        .stub(LogContextUtil.prototype, 'readLogFile')
-        .returns(['line1', 'line2']);
+      readLogFileStub = sinon.stub(LogContextUtil.prototype, 'readLogFile').returns(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
-      getFramesStub = sinon
-        .stub(LogContext.prototype, 'getFrames')
-        .returns(sampleStackFrames);
+      getFramesStub = sinon.stub(LogContext.prototype, 'getFrames').returns(sampleStackFrames);
     });
 
     afterEach(() => {
@@ -556,12 +455,9 @@ describe('Replay debugger adapter - unit', () => {
       adapter.stackTraceRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.StackTraceResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
-      expect(actualResponse.body.stackFrames).to.eql(
-        sampleStackFrames.slice().reverse()
-      );
+      expect(actualResponse.body.stackFrames).to.eql(sampleStackFrames.slice().reverse());
     });
   });
 
@@ -605,15 +501,12 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should terminate session', () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .returns(false);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(false);
 
       adapter.continueRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.StackTraceResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.calledOnce).to.be.true;
       expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(TerminatedEvent);
@@ -627,15 +520,12 @@ describe('Replay debugger adapter - unit', () => {
         .onSecondCall()
         .returns(false);
       updateFramesStub = sinon.stub(LogContext.prototype, 'updateFrames');
-      shouldStopForBreakpointStub = sinon
-        .stub(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint')
-        .returns(true);
+      shouldStopForBreakpointStub = sinon.stub(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint').returns(true);
 
       adapter.continueRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.StackTraceResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.called).to.be.false;
     });
@@ -648,15 +538,12 @@ describe('Replay debugger adapter - unit', () => {
         .onSecondCall()
         .returns(false);
       updateFramesStub = sinon.stub(LogContext.prototype, 'updateFrames');
-      shouldStopForBreakpointStub = sinon
-        .stub(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint')
-        .returns(false);
+      shouldStopForBreakpointStub = sinon.stub(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint').returns(false);
 
       adapter.continueRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.StackTraceResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.calledOnce).to.be.true;
       const event = sendEventSpy.getCall(0).args[0];
@@ -664,20 +551,13 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should handle errors during step execution', () => {
-      hasLogLinesStub = sinon
-        .stub(LogContext.prototype, 'hasLogLines')
-        .onFirstCall()
-        .returns(true);
+      hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').onFirstCall().returns(true);
 
       // Cause `updateFrames` to throw an error to trigger the catch block
       const error = new Error('Test error during step execution');
-      updateFramesStub = sinon
-        .stub(LogContext.prototype, 'updateFrames')
-        .throws(error);
+      updateFramesStub = sinon.stub(LogContext.prototype, 'updateFrames').throws(error);
 
-      shouldStopForBreakpointStub = sinon
-        .stub(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint')
-        .returns(false);
+      shouldStopForBreakpointStub = sinon.stub(MockApexReplayDebug.prototype, 'shouldStopForBreakpoint').returns(false);
 
       try {
         adapter.continueRequest(response, args);
@@ -741,8 +621,7 @@ describe('Replay debugger adapter - unit', () => {
       );
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.StackTraceResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.calledOnce).to.be.true;
       const event = sendEventSpy.getCall(0).args[0];
@@ -768,8 +647,7 @@ describe('Replay debugger adapter - unit', () => {
       );
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.StackTraceResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.calledOnce).to.be.true;
       const event = sendEventSpy.getCall(0).args[0];
@@ -795,8 +673,7 @@ describe('Replay debugger adapter - unit', () => {
       );
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.StackTraceResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.calledOnce).to.be.true;
       const event = sendEventSpy.getCall(0).args[0];
@@ -874,8 +751,7 @@ describe('Replay debugger adapter - unit', () => {
       adapter.setBreakPointsRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.SetBreakpointsResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(actualResponse.body.breakpoints).to.be.empty;
       expect(sendEventSpy.calledOnce).to.be.true;
@@ -891,8 +767,7 @@ describe('Replay debugger adapter - unit', () => {
       adapter.setBreakPointsRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.SetBreakpointsResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(actualResponse.body.breakpoints).to.be.empty;
       expect(sendEventSpy.calledOnce).to.be.true;
@@ -903,9 +778,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return breakpoints', () => {
-      const expectedPath = /^win32/.test(process.platform)
-        ? 'C:\\space in path\\foo.cls'
-        : '/space in path/foo.cls';
+      const expectedPath = /^win32/.test(process.platform) ? 'C:\\space in path\\foo.cls' : '/space in path/foo.cls';
       const uriFromLanguageServer = /^win32/.test(process.platform)
         ? 'file:///c:/space%20in%20path/foo.cls'
         : 'file:///space%20in%20path/foo.cls';
@@ -923,8 +796,7 @@ describe('Replay debugger adapter - unit', () => {
       adapter.setBreakPointsRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.SetBreakpointsResponse =
-        sendResponseSpy.getCall(0).args[0];
+      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.getCall(0).args[0];
       expect(actualResponse.success).to.be.true;
       expect(actualResponse.body.breakpoints).to.deep.equal([
         {
@@ -939,23 +811,13 @@ describe('Replay debugger adapter - unit', () => {
         }
       ]);
       expect(canSetLineBreakpointStub.calledTwice).to.be.true;
-      expect(canSetLineBreakpointStub.getCall(0).args).to.have.same.members([
-        uriFromLanguageServer,
-        1
-      ]);
-      expect(canSetLineBreakpointStub.getCall(1).args).to.have.same.members([
-        uriFromLanguageServer,
-        2
-      ]);
+      expect(canSetLineBreakpointStub.getCall(0).args).to.have.same.members([uriFromLanguageServer, 1]);
+      expect(canSetLineBreakpointStub.getCall(1).args).to.have.same.members([uriFromLanguageServer, 2]);
       expect(sendEventSpy.calledTwice).to.be.true;
       expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(Event);
-      expect(sendEventSpy.getCall(0).args[0].body.subject).to.equal(
-        'Failed to set breakpoint'
-      );
+      expect(sendEventSpy.getCall(0).args[0].body.subject).to.equal('Failed to set breakpoint');
       expect(sendEventSpy.getCall(1).args[0]).to.be.instanceof(Event);
-      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal(
-        'setBreakPointsRequest'
-      );
+      expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal('setBreakPointsRequest');
     });
   });
 
@@ -988,12 +850,8 @@ describe('Replay debugger adapter - unit', () => {
 
       beforeEach(() => {
         adapter = new MockApexReplayDebug();
-        hasLogLinesStub = sinon
-          .stub(LogContext.prototype, 'hasLogLines')
-          .returns(true);
-        meetsLogLevelRequirementsStub = sinon
-          .stub(LogContext.prototype, 'meetsLogLevelRequirements')
-          .returns(true);
+        hasLogLinesStub = sinon.stub(LogContext.prototype, 'hasLogLines').returns(true);
+        meetsLogLevelRequirementsStub = sinon.stub(LogContext.prototype, 'meetsLogLevelRequirements').returns(true);
         sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
         sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
         createMappingsFromLineBreakpointInfo = sinon.spy(
@@ -1011,19 +869,12 @@ describe('Replay debugger adapter - unit', () => {
       });
 
       it('Should handle undefined args', async () => {
-        await adapter.launchRequest(
-          initializedResponse,
-          {} as LaunchRequestArguments
-        );
+        await adapter.launchRequest(initializedResponse, {} as LaunchRequestArguments);
         expect(createMappingsFromLineBreakpointInfo.called).to.be.false;
-        expect(initializedResponse.message).to.deep.equal(
-          nls.localize('session_language_server_error_text')
-        );
+        expect(initializedResponse.message).to.deep.equal(nls.localize('session_language_server_error_text'));
         expect(sendEventSpy.callCount).to.equal(4);
         expect(sendEventSpy.getCall(1).args[0]).to.be.instanceof(Event);
-        expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal(
-          'No line breakpoint info available'
-        );
+        expect(sendEventSpy.getCall(1).args[0].body.subject).to.equal('No line breakpoint info available');
       });
 
       it('Should handle empty line breakpoint info', async () => {
@@ -1033,14 +884,10 @@ describe('Replay debugger adapter - unit', () => {
           projectPath: undefined
         };
 
-        await adapter.launchRequest(
-          initializedResponse,
-          config as LaunchRequestArguments
-        );
+        await adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
         expect(createMappingsFromLineBreakpointInfo.called).to.be.true;
         expect(sendResponseSpy.called).to.be.true;
-        const actualResponse: DebugProtocol.InitializeResponse =
-          sendResponseSpy.getCall(0).args[0];
+        const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(0).args[0];
         expect(actualResponse.success).to.be.true;
         expect(actualResponse).to.deep.equal(initializedResponse);
         expect(adapter.getProjectPath()).to.equal(undefined);
@@ -1063,24 +910,16 @@ describe('Replay debugger adapter - unit', () => {
           projectPath: projectPathArg,
           logFile: 'someTestLogFile.log'
         };
-        await adapter.launchRequest(
-          initializedResponse,
-          config as LaunchRequestArguments
-        );
+        await adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
 
         expect(createMappingsFromLineBreakpointInfo.calledOnce).to.be.true;
-        expect(
-          createMappingsFromLineBreakpointInfo.getCall(0).args[0]
-        ).to.deep.equal(info);
+        expect(createMappingsFromLineBreakpointInfo.getCall(0).args[0]).to.deep.equal(info);
         expect(sendResponseSpy.called).to.be.true;
-        const actualResponse: DebugProtocol.InitializeResponse =
-          sendResponseSpy.getCall(0).args[0];
+        const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(0).args[0];
         expect(actualResponse.success).to.be.true;
         expect(actualResponse).to.deep.equal(initializedResponse);
         // Verify that the line number mapping is the expected line number mapping
-        expect(breakpointUtil.getLineNumberMapping()).to.deep.eq(
-          expectedLineNumberMapping
-        );
+        expect(breakpointUtil.getLineNumberMapping()).to.deep.eq(expectedLineNumberMapping);
         expect(adapter.getProjectPath()).to.equal(projectPathArg);
       });
     });

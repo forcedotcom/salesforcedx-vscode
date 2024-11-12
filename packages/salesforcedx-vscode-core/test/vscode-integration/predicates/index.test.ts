@@ -27,25 +27,15 @@ describe('SFDX Project predicate', () => {
   afterEach(() => mExistsSync.restore());
 
   it('Should fail predicate with message when sfdx-project.json is missing', () => {
-    mExistsSync
-      .withArgs(
-        path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE)
-      )
-      .returns(false);
+    mExistsSync.withArgs(path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE)).returns(false);
 
     const response = isSalesforceProjectOpened.apply(workspace);
     expect(response.result).to.be.false;
-    expect(response.message).to.eql(
-      nls.localize('predicates_no_salesforce_project_found_text')
-    );
+    expect(response.message).to.eql(nls.localize('predicates_no_salesforce_project_found_text'));
   });
 
   it('Should pass predicate when sfdx-project.json is present', () => {
-    mExistsSync
-      .withArgs(
-        path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE)
-      )
-      .returns(true);
+    mExistsSync.withArgs(path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE)).returns(true);
 
     const response = isSalesforceProjectOpened.apply(workspace);
     expect(response.result).to.be.true;

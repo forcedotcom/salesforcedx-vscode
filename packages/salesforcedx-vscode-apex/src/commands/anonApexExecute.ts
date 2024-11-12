@@ -4,10 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ExecuteAnonymousResponse,
-  ExecuteService
-} from '@salesforce/apex-node-bundle';
+import { ExecuteAnonymousResponse, ExecuteService } from '@salesforce/apex-node-bundle';
 import { Connection } from '@salesforce/core-bundle';
 import {
   CancelResponse,
@@ -34,12 +31,8 @@ type ApexExecuteParameters = {
   selection?: vscode.Range;
 };
 
-export class AnonApexGatherer
-  implements ParametersGatherer<ApexExecuteParameters>
-{
-  public gather(): Promise<
-    CancelResponse | ContinueResponse<ApexExecuteParameters>
-  > {
+export class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameters> {
+  public gather(): Promise<CancelResponse | ContinueResponse<ApexExecuteParameters>> {
     if (hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
@@ -47,17 +40,11 @@ export class AnonApexGatherer
       }
 
       const document = editor.document;
-      if (
-        !editor.selection.isEmpty ||
-        document.isUntitled ||
-        document.isDirty
-      ) {
+      if (!editor.selection.isEmpty || document.isUntitled || document.isDirty) {
         return Promise.resolve({
           type: 'CONTINUE',
           data: {
-            apexCode: !editor.selection.isEmpty
-              ? document.getText(editor.selection)
-              : document.getText(),
+            apexCode: !editor.selection.isEmpty ? document.getText(editor.selection) : document.getText(),
             selection: !editor.selection.isEmpty
               ? new vscode.Range(editor.selection.start, editor.selection.end)
               : undefined
@@ -75,24 +62,17 @@ export class AnonApexGatherer
 }
 
 export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
-  public static diagnostics =
-    vscode.languages.createDiagnosticCollection('apex-errors');
+  public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
   private isDebugging: boolean;
 
   constructor(isDebugging: boolean) {
-    super(
-      nls.localize('apex_execute_text'),
-      'apex_execute_library',
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize('apex_execute_text'), 'apex_execute_library', OUTPUT_CHANNEL);
 
     this.isDebugging = isDebugging;
   }
 
-  public async run(
-    response: ContinueResponse<ApexExecuteParameters>
-  ): Promise<boolean> {
+  public async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     if (this.isDebugging) {
       if (!(await this.setUpTraceFlags(connection))) {
@@ -126,11 +106,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
     return true;
   }
 
-  private processResult(
-    result: ExecuteAnonymousResponse,
-    apexFilePath: string | undefined,
-    selection: any
-  ) {
+  private processResult(result: ExecuteAnonymousResponse, apexFilePath: string | undefined, selection: any) {
     this.outputResult(result);
 
     const editor = vscode.window.activeTextEditor;
@@ -139,18 +115,13 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
     this.handleDiagnostics(result, filePath, selection);
   }
 
-  private async launchReplayDebugger(
-    logs?: string | undefined
-  ): Promise<boolean> {
+  private async launchReplayDebugger(logs?: string | undefined): Promise<boolean> {
     const logFilePath = this.getLogFilePath();
     if (!this.saveLogFile(logFilePath, logs)) {
       return false;
     }
 
-    await vscode.commands.executeCommand(
-      'sf.launch.replay.debugger.logfile.path',
-      logFilePath
-    );
+    await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath);
 
     return true;
   }
@@ -197,16 +168,11 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
     channelService.appendLine(outputText);
   }
 
-  private handleDiagnostics(
-    response: ExecuteAnonymousResponse,
-    filePath: string,
-    selection?: vscode.Range
-  ) {
+  private handleDiagnostics(response: ExecuteAnonymousResponse, filePath: string, selection?: vscode.Range) {
     AnonApexLibraryExecuteExecutor.diagnostics.clear();
 
     if (response.diagnostic) {
-      const { compileProblem, exceptionMessage, lineNumber, columnNumber } =
-        response.diagnostic[0];
+      const { compileProblem, exceptionMessage, lineNumber, columnNumber } = response.diagnostic[0];
       let message;
       if (compileProblem && compileProblem !== '') {
         message = compileProblem;
@@ -219,17 +185,10 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
         message,
         severity: vscode.DiagnosticSeverity.Error,
         source: filePath,
-        range: this.adjustErrorRange(
-          Number(lineNumber),
-          Number(columnNumber),
-          selection
-        )
+        range: this.adjustErrorRange(Number(lineNumber), Number(columnNumber), selection)
       };
 
-      AnonApexLibraryExecuteExecutor.diagnostics.set(
-        vscode.Uri.file(filePath),
-        [vscDiagnostic]
-      );
+      AnonApexLibraryExecuteExecutor.diagnostics.set(vscode.Uri.file(filePath), [vscDiagnostic]);
     }
   }
 
@@ -244,10 +203,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
   }
 
   private getZeroBasedRange(line: number, column: number): vscode.Range {
-    const pos = new vscode.Position(
-      line > 0 ? line - 1 : 0,
-      column > 0 ? column - 1 : 0
-    );
+    const pos = new vscode.Position(line > 0 ? line - 1 : 0, column > 0 ? column - 1 : 0);
     return new vscode.Range(pos, pos);
   }
 }

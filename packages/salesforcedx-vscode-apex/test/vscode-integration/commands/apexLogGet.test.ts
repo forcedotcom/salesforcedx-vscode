@@ -9,10 +9,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  ApexDebugLogObject,
-  LogFileSelector
-} from '../../../src/commands/apexLogGet';
+import { ApexDebugLogObject, LogFileSelector } from '../../../src/commands/apexLogGet';
 
 // tslint:disable:no-unused-expression
 describe('Apex Log Get Logging', () => {
@@ -71,9 +68,7 @@ describe('Apex Log Get Logging', () => {
       .resolves(logInfos.slice(0, 1))
       .resolves(logInfos);
 
-    showQuickPickStub = sb
-      .stub(vscode.window, 'showQuickPick')
-      .returns(logInfos[0]);
+    showQuickPickStub = sb.stub(vscode.window, 'showQuickPick').returns(logInfos[0]);
   });
 
   afterEach(() => {

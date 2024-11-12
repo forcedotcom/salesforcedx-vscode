@@ -7,13 +7,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import {
-  FieldValue,
-  Fields,
-  LoggerInterface,
-  LogLine,
-  LoggerLevelValue
-} from '@salesforce/vscode-service-provider';
+import { FieldValue, Fields, LoggerInterface, LogLine, LoggerLevelValue } from '@salesforce/vscode-service-provider';
 
 export class CoreLoggerService implements LoggerInterface {
   private level: LoggerLevelValue = 0;

@@ -13,9 +13,7 @@ export class RetrieveDescriberFactory {
     return new TypeNodeDescriber(node);
   }
 
-  public static createComponentNodeDescriber(
-    node: BrowserNode
-  ): ComponentNodeDescriber {
+  public static createComponentNodeDescriber(node: BrowserNode): ComponentNodeDescriber {
     return new ComponentNodeDescriber(node);
   }
 }

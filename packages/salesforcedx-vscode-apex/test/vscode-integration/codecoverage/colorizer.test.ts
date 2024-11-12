@@ -7,10 +7,7 @@
 
 import { expect } from 'chai';
 import { Range, RelativePattern, Uri, window, workspace } from 'vscode';
-import {
-  CodeCoverageHandler,
-  getLineRange
-} from '../../../src/codecoverage/colorizer';
+import { CodeCoverageHandler, getLineRange } from '../../../src/codecoverage/colorizer';
 import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 
 describe('Code coverage colorizer', () => {
@@ -18,14 +15,8 @@ describe('Code coverage colorizer', () => {
 
   beforeEach(async () => {
     testCoverage = await workspace.findFiles(
-      new RelativePattern(
-        workspace.workspaceFolders![0],
-        '**/DemoController.cls'
-      ),
-      new RelativePattern(
-        workspace.workspaceFolders![0],
-        '**/DemoControllerTest.cls'
-      )
+      new RelativePattern(workspace.workspaceFolders![0], '**/DemoController.cls'),
+      new RelativePattern(workspace.workspaceFolders![0], '**/DemoControllerTest.cls')
     );
   });
 

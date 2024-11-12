@@ -6,10 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import {
-  OrgUserInfo,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { decorators } from '../decorators';
 import {
@@ -48,12 +45,10 @@ export class WorkspaceContext {
   }
 
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
-    await workspaceContextUtils
-      .setupWorkspaceOrgType(orgInfo.username)
-      .catch(e =>
-        // error reported by setupWorkspaceOrgType
-        console.error(e)
-      );
+    await workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
+      // error reported by setupWorkspaceOrgType
+      console.error(e)
+    );
 
     await decorators.showOrg();
   }
