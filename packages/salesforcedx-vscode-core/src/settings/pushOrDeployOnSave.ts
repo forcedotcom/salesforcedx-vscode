@@ -67,12 +67,7 @@ export class DeployQueue {
   }
 
   private async executeDeployCommand(toDeploy: vscode.Uri[]) {
-    await vscode.commands.executeCommand(
-      'sf.deploy.multiple.source.paths',
-      toDeploy,
-      null,
-      true
-    );
+    await vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy, null, true);
   }
 
   private async executePushCommand() {
