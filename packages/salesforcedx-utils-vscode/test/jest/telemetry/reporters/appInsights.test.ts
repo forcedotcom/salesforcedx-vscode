@@ -28,9 +28,9 @@ describe('AppInsights', () => {
 
     beforeEach(() => {
       // Arrange
-      getInstanceMock = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
-        orgId: dummyOrgId
-      } as any);
+      getInstanceMock = jest
+        .spyOn(WorkspaceContextUtil, 'getInstance')
+        .mockReturnValue({ devHubId: '', orgId: dummyOrgId, orgShape: '' } as any);
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
       jest.spyOn(AppInsights.prototype as any, 'updateUserOptIn').mockReturnValue('');
@@ -48,7 +48,7 @@ describe('AppInsights', () => {
       appInsights.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(1);
+      expect(getInstanceMock).toHaveBeenCalledTimes(3);
       expect(trackEventMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock.mock.calls[0][0]).toMatchSnapshot();
     });
@@ -58,7 +58,7 @@ describe('AppInsights', () => {
       appInsights.sendExceptionEvent('Dummy Exception', 'a dummy exception occurred');
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(1);
+      expect(getInstanceMock).toHaveBeenCalledTimes(3);
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
     });

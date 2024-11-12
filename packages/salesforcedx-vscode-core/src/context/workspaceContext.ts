@@ -9,6 +9,7 @@ import { Connection } from '@salesforce/core-bundle';
 import { OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { decorators } from '../decorators';
+import { OrgAuthInfo } from '../util/authInfo';
 import { workspaceContextUtils } from '.';
 
 /**
@@ -23,6 +24,7 @@ export class WorkspaceContext {
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     this.onOrgChange = workspaceContextUtil.onOrgChange;
     this.onOrgChange(this.handleCliConfigChange);
+    this.onOrgChange(this.handleOrgShapeChange);
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
@@ -47,6 +49,21 @@ export class WorkspaceContext {
     );
 
     await decorators.showOrg();
+  }
+
+  protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
+    const { username } = orgInfo;
+    if (username !== undefined) {
+      const orgShape = await workspaceContextUtils.getOrgShape(username);
+      if (orgShape !== 'Undefined') {
+        WorkspaceContextUtil.getInstance().orgShape = orgShape;
+        WorkspaceContextUtil.getInstance().devHubId = undefined;
+      }
+      if (orgShape === 'Scratch') {
+        const devHubId = await OrgAuthInfo.getDevHubIdFromScratchOrg(username);
+        WorkspaceContextUtil.getInstance().devHubId = devHubId;
+      }
+    }
   }
 
   get username(): string | undefined {
