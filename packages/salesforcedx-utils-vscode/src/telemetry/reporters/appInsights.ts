@@ -132,8 +132,10 @@ export class AppInsights extends Disposable implements TelemetryReporter {
   ): void {
     if (this.userOptIn && eventName && this.appInsightsClient) {
       const orgId = WorkspaceContextUtil.getInstance().orgId;
+      const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
+      const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
       let props = properties ? properties : {};
-      props = this.applyTelemetryTag(orgId ? { ...props, orgId } : props);
+      props = this.applyTelemetryTag(orgId ? { ...props, orgId, orgShape, devHubId } : props);
 
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
@@ -157,7 +159,9 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       error.stack = 'DEPRECATED';
 
       const orgId = WorkspaceContextUtil.getInstance().orgId || '';
-      const properties = this.applyTelemetryTag({ orgId });
+      const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
+      const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
+      const properties = this.applyTelemetryTag({ orgId, orgShape, devHubId });
       this.appInsightsClient.trackException({
         exception: error,
         properties,

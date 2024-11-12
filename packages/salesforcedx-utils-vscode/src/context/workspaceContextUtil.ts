@@ -16,6 +16,8 @@ export type OrgUserInfo = {
   alias?: string;
 };
 
+export type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
+
 export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
@@ -29,6 +31,8 @@ export class WorkspaceContextUtil {
   protected _username?: string;
   protected _alias?: string;
   protected _orgId?: string;
+  protected _orgShape?: OrgShape;
+  protected _devHubId?: string;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -121,5 +125,21 @@ export class WorkspaceContextUtil {
 
   get orgId(): string | undefined {
     return this._orgId;
+  }
+
+  get orgShape(): OrgShape | undefined {
+    return this._orgShape;
+  }
+
+  set orgShape(shape: OrgShape) {
+    this._orgShape = shape;
+  }
+
+  get devHubId(): string | undefined {
+    return this._devHubId;
+  }
+
+  set devHubId(id: string | undefined) {
+    this._devHubId = id;
   }
 }

@@ -19,7 +19,7 @@ export {
   SFDX_LWC_EXTENSION_NAME,
   TELEMETRY_GLOBAL_USER_ID
 } from './constants';
-export { OrgUserInfo, WorkspaceContextUtil } from './context/workspaceContextUtil';
+export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService, TelemetryBuilder } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';
