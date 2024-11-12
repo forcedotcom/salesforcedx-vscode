@@ -7,9 +7,7 @@ const vsixfilesLocation = path.join(cwd, 'extensions');
 const vsixes = shell.ls(vsixfilesLocation);
 
 if (!vsixes.length) {
-  shell.error(
-    'No VSIX files found matching the requested version in package.json'
-  );
+  shell.error('No VSIX files found matching the requested version in package.json');
   shell.exit(1);
 }
 

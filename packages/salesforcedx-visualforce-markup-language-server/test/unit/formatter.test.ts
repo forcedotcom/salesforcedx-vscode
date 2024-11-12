@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -11,11 +10,7 @@ import { getLanguageService } from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
 describe('JSON Formatter', () => {
-  const format = (
-    unformatted: string,
-    expected: string,
-    insertSpaces = true
-  ) => {
+  const format = (unformatted: string, expected: string, insertSpaces = true) => {
     let range: Range = null;
     const uri = 'test://test.html';
 
@@ -51,53 +46,25 @@ describe('JSON Formatter', () => {
   });
 
   it('range', () => {
-    const content = [
-      '<div  class = "foo">',
-      '  |<img  src = "foo">|',
-      ' </div>'
-    ].join('\n');
+    const content = ['<div  class = "foo">', '  |<img  src = "foo">|', ' </div>'].join('\n');
 
-    const expected = [
-      '<div  class = "foo">',
-      '  <img src="foo">',
-      ' </div>'
-    ].join('\n');
+    const expected = ['<div  class = "foo">', '  <img src="foo">', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
   it('range 2', () => {
-    const content = [
-      '<div  class = "foo">',
-      '  |<img  src = "foo">|',
-      '  ',
-      ' </div>'
-    ].join('\n');
+    const content = ['<div  class = "foo">', '  |<img  src = "foo">|', '  ', ' </div>'].join('\n');
 
-    const expected = [
-      '<div  class = "foo">',
-      '  <img src="foo">',
-      '  ',
-      ' </div>'
-    ].join('\n');
+    const expected = ['<div  class = "foo">', '  <img src="foo">', '  ', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
   it('range 3', () => {
-    const content = [
-      '<div  class = "foo">',
-      '  |<img  src = "foo">|    ',
-      '  ',
-      ' </div>'
-    ].join('\n');
+    const content = ['<div  class = "foo">', '  |<img  src = "foo">|    ', '  ', ' </div>'].join('\n');
 
-    const expected = [
-      '<div  class = "foo">',
-      '  <img src="foo">',
-      '  ',
-      ' </div>'
-    ].join('\n');
+    const expected = ['<div  class = "foo">', '  <img src="foo">', '  ', ' </div>'].join('\n');
 
     format(content, expected);
   });
@@ -110,53 +77,25 @@ describe('JSON Formatter', () => {
   });
 
   it('range with indent', () => {
-    const content = [
-      '<div  class = "foo">',
-      '  |<img src = "foo">',
-      '  <img  src = "foo">|',
-      ' </div>'
-    ].join('\n');
+    const content = ['<div  class = "foo">', '  |<img src = "foo">', '  <img  src = "foo">|', ' </div>'].join('\n');
 
-    const expected = [
-      '<div  class = "foo">',
-      '  <img src="foo">',
-      '  <img src="foo">',
-      ' </div>'
-    ].join('\n');
+    const expected = ['<div  class = "foo">', '  <img src="foo">', '  <img src="foo">', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
   it('range with indent 2', () => {
-    const content = [
-      '<div  class = "foo">',
-      '|  <img  src = "foo">',
-      '  <img  src = "foo">|',
-      ' </div>'
-    ].join('\n');
+    const content = ['<div  class = "foo">', '|  <img  src = "foo">', '  <img  src = "foo">|', ' </div>'].join('\n');
 
-    const expected = [
-      '<div  class = "foo">',
-      '  <img src="foo">',
-      '  <img src="foo">',
-      ' </div>'
-    ].join('\n');
+    const expected = ['<div  class = "foo">', '  <img src="foo">', '  <img src="foo">', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
   it('range with indent 3', () => {
-    const content = [
-      '<div  class = "foo">',
-      '  <div></div>   |<img  src = "foo"|>',
-      ' </div>'
-    ].join('\n');
+    const content = ['<div  class = "foo">', '  <div></div>   |<img  src = "foo"|>', ' </div>'].join('\n');
 
-    const expected = [
-      '<div  class = "foo">',
-      '  <div></div> <img src="foo">',
-      ' </div>'
-    ].join('\n');
+    const expected = ['<div  class = "foo">', '  <div></div> <img src="foo">', ' </div>'].join('\n');
 
     format(content, expected);
   });

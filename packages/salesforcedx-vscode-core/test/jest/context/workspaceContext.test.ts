@@ -29,9 +29,7 @@ describe('workspaceContext', () => {
       workspaceContextUtilGetInstanceSpy = jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
-      setupWorkspaceOrgTypeMock = jest
-        .spyOn(workspaceContextUtils, 'setupWorkspaceOrgType')
-        .mockResolvedValue();
+      setupWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'setupWorkspaceOrgType').mockResolvedValue();
       decoratorsMock = jest.spyOn(decorators, 'showOrg');
       createStatusBarItemMock = vscode.window.createStatusBarItem as jest.Mock;
     });
@@ -59,11 +57,9 @@ describe('workspaceContext', () => {
     let getInstanceMock: jest.SpyInstance;
 
     beforeEach(() => {
-      getInstanceMock = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue({
-          orgId: dummyOrgId
-        } as any);
+      getInstanceMock = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
+        orgId: dummyOrgId
+      } as any);
     });
 
     it('should get the orgId from WorkspaceContextUtil', () => {

@@ -14,13 +14,9 @@ export class UserService {
   private static getRandomUserId = (): string => randomBytes(20).toString('hex');
 
   private static async executeCliTelemetry(): Promise<string> {
-    const command = new SfCommandBuilder()
-      .withArg('telemetry')
-      .withJson()
-      .build();
+    const command = new SfCommandBuilder().withArg('telemetry').withJson().build();
     const workspacePath = workspaceUtils.getRootWorkspacePath();
-    const execution = new CliCommandExecutor(command, { cwd: workspacePath }
-    ).execute();
+    const execution = new CliCommandExecutor(command, { cwd: workspacePath }).execute();
     const cmdOutput = new CommandOutput();
     const result = cmdOutput.getCmdResult(execution);
     return result;
@@ -30,9 +26,7 @@ export class UserService {
     // Defining UserId in globalState and using the same in appInsights reporter.
     // Assigns cliId to UserId when it's undefined in global state.
     // cliId is undefined when cli-telemetry variable disable-telemetry is true.
-    let globalStateUserId = extensionContext?.globalState.get<
-      string | undefined
-    >(TELEMETRY_GLOBAL_USER_ID);
+    let globalStateUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID);
 
     if (globalStateUserId) {
       return globalStateUserId;
@@ -46,18 +40,12 @@ export class UserService {
         return cmdResult?.result?.cliId ?? this.getRandomUserId();
       })
       .catch(error => {
-        console.log(
-          `Error: ${error} occurred in retrieving cliId, generating user-id ..`
-        );
+        console.log(`Error: ${error} occurred in retrieving cliId, generating user-id ..`);
         return this.getRandomUserId();
       });
     // If the random UserId value is used here it will be unique per extension.
-    await extensionContext?.globalState.update(
-      TELEMETRY_GLOBAL_USER_ID,
-      globalStateUserId
-    );
+    await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, globalStateUserId);
 
     return globalStateUserId;
   }
-
 }

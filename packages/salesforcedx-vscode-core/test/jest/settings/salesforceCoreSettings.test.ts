@@ -10,26 +10,16 @@ import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSett
 describe('salesforceCoreSettings', () => {
   let getConfigValueSpy: jest.SpyInstance;
   beforeEach(() => {
-    getConfigValueSpy = jest.spyOn(
-      (SalesforceCoreSettings as any).prototype,
-      'getConfigValue'
-    );
+    getConfigValueSpy = jest.spyOn((SalesforceCoreSettings as any).prototype, 'getConfigValue');
   });
   describe('getEnableSourceTrackingForDeployAndRetrieve', () => {
     it('should set the default value for enable source tracking to be true.', () => {
       getConfigValueSpy.mockReturnValue(true);
-      const salesforceCoreSettingsInstance =
-        SalesforceCoreSettings.getInstance();
-      const defaultValue =
-        salesforceCoreSettingsInstance.getEnableSourceTrackingForDeployAndRetrieve();
-      expect(salesforceCoreSettingsInstance).toBeInstanceOf(
-        SalesforceCoreSettings
-      );
+      const salesforceCoreSettingsInstance = SalesforceCoreSettings.getInstance();
+      const defaultValue = salesforceCoreSettingsInstance.getEnableSourceTrackingForDeployAndRetrieve();
+      expect(salesforceCoreSettingsInstance).toBeInstanceOf(SalesforceCoreSettings);
       expect(getConfigValueSpy).toHaveBeenCalled();
-      expect(getConfigValueSpy).toBeCalledWith(
-        ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
-        true
-      );
+      expect(getConfigValueSpy).toBeCalledWith(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
       expect(defaultValue).toEqual(true);
     });
   });

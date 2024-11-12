@@ -22,15 +22,10 @@ describe('componentSetUtils', () => {
       const componentSet = new ComponentSet();
       componentSet.apiVersion = 'not set';
 
-      const getUserConfiguredApiVersionMock = jest
-        .fn()
-        .mockResolvedValue('40.0');
+      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue('40.0');
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
-      const getOrgApiVersionSpy = jest.spyOn(
-        componentSetUtils,
-        'getOrgApiVersion'
-      );
+      const getOrgApiVersionSpy = jest.spyOn(componentSetUtils, 'getOrgApiVersion');
 
       await componentSetUtils.setApiVersion(componentSet);
 
@@ -44,14 +39,10 @@ describe('componentSetUtils', () => {
       const componentSet = new ComponentSet();
       componentSet.apiVersion = 'not set';
 
-      const getUserConfiguredApiVersionMock = jest
-        .fn()
-        .mockResolvedValue(undefined);
+      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue(undefined);
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
-      const getOrgApiVersionMock = jest
-        .spyOn(componentSetUtils, 'getOrgApiVersion')
-        .mockResolvedValue('42.0');
+      const getOrgApiVersionMock = jest.spyOn(componentSetUtils, 'getOrgApiVersion').mockResolvedValue('42.0');
 
       await componentSetUtils.setApiVersion(componentSet);
 
@@ -65,14 +56,10 @@ describe('componentSetUtils', () => {
       const componentSet = new ComponentSet();
       componentSet.apiVersion = '44.0';
 
-      const getUserConfiguredApiVersionMock = jest
-        .fn()
-        .mockResolvedValue(undefined);
+      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue(undefined);
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
-      const getOrgApiVersionMock = jest
-        .spyOn(componentSetUtils, 'getOrgApiVersion')
-        .mockResolvedValue('');
+      const getOrgApiVersionMock = jest.spyOn(componentSetUtils, 'getOrgApiVersion').mockResolvedValue('');
 
       await componentSetUtils.setApiVersion(componentSet);
 
@@ -91,14 +78,10 @@ describe('componentSetUtils', () => {
       const getValueMock = jest.fn().mockResolvedValue('53.0');
       SalesforceProjectConfig.getValue = getValueMock;
 
-      const getUserConfiguredApiVersionMock = jest
-        .fn()
-        .mockResolvedValue('52.0');
+      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue('52.0');
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
-      const getOrgApiVersionMock = jest
-        .spyOn(componentSetUtils, 'getOrgApiVersion')
-        .mockResolvedValue('51.0');
+      const getOrgApiVersionMock = jest.spyOn(componentSetUtils, 'getOrgApiVersion').mockResolvedValue('51.0');
 
       await componentSetUtils.setSourceApiVersion(componentSet);
 
@@ -116,14 +99,10 @@ describe('componentSetUtils', () => {
       const getValueMock = jest.fn().mockResolvedValue('53.0');
       SalesforceProjectConfig.getValue = getValueMock;
 
-      const getUserConfiguredApiVersionMock = jest
-        .fn()
-        .mockResolvedValue(undefined);
+      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue(undefined);
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
-      const getOrgApiVersionMock = jest
-        .spyOn(componentSetUtils, 'getOrgApiVersion')
-        .mockResolvedValue('51.0');
+      const getOrgApiVersionMock = jest.spyOn(componentSetUtils, 'getOrgApiVersion').mockResolvedValue('51.0');
 
       await componentSetUtils.setSourceApiVersion(componentSet);
 
@@ -141,14 +120,10 @@ describe('componentSetUtils', () => {
       const getValueMock = jest.fn().mockResolvedValue(undefined);
       SalesforceProjectConfig.getValue = getValueMock;
 
-      const getUserConfiguredApiVersionMock = jest
-        .fn()
-        .mockResolvedValue('52.0');
+      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue('52.0');
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
-      const getOrgApiVersionMock = jest
-        .spyOn(componentSetUtils, 'getOrgApiVersion')
-        .mockResolvedValue('51.0');
+      const getOrgApiVersionMock = jest.spyOn(componentSetUtils, 'getOrgApiVersion').mockResolvedValue('51.0');
 
       await componentSetUtils.setSourceApiVersion(componentSet);
 
@@ -166,14 +141,10 @@ describe('componentSetUtils', () => {
       const getValueMock = jest.fn().mockResolvedValue(undefined);
       SalesforceProjectConfig.getValue = getValueMock;
 
-      const getUserConfiguredApiVersionMock = jest
-        .fn()
-        .mockResolvedValue(undefined);
+      const getUserConfiguredApiVersionMock = jest.fn().mockResolvedValue(undefined);
       ConfigUtil.getUserConfiguredApiVersion = getUserConfiguredApiVersionMock;
 
-      const getOrgApiVersionMock = jest
-        .spyOn(componentSetUtils, 'getOrgApiVersion')
-        .mockResolvedValue('51.0');
+      const getOrgApiVersionMock = jest.spyOn(componentSetUtils, 'getOrgApiVersion').mockResolvedValue('51.0');
 
       await componentSetUtils.setSourceApiVersion(componentSet);
 
@@ -193,9 +164,7 @@ describe('componentSetUtils', () => {
           };
         }
       };
-      const getInstanceMock = jest
-        .spyOn(WorkspaceContext, 'getInstance')
-        .mockReturnValue(workspaceContextFake as any);
+      const getInstanceMock = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(workspaceContextFake as any);
 
       const orgApiVersion = await componentSetUtils.getOrgApiVersion();
 

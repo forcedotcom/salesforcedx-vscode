@@ -7,10 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  BUILDER_VIEW_TYPE,
-  SOQL_BUILDER_WEB_ASSETS_PATH
-} from '../../../src/constants';
+import { BUILDER_VIEW_TYPE, SOQL_BUILDER_WEB_ASSETS_PATH } from '../../../src/constants';
 import { HtmlUtils } from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
@@ -35,8 +32,7 @@ describe('SOQLEditorProvider', () => {
         }
       }
     } as unknown as vscode.ExtensionContext;
-    registerCustomEditorProviderMock = (vscode.window
-      .registerCustomEditorProvider as jest.Mock) = jest
+    registerCustomEditorProviderMock = (vscode.window.registerCustomEditorProvider as jest.Mock) = jest
       .fn()
       .mockReturnValue(mockDisposable);
     isDefaultOrgSetSpy = jest.spyOn(sf, 'isDefaultOrgSet');
@@ -45,10 +41,7 @@ describe('SOQLEditorProvider', () => {
   describe('register', () => {
     it('should register the custom editor provider', () => {
       const disposable = SOQLEditorProvider.register(extensionContext);
-      expect(registerCustomEditorProviderMock).toHaveBeenCalledWith(
-        BUILDER_VIEW_TYPE,
-        expect.any(SOQLEditorProvider)
-      );
+      expect(registerCustomEditorProviderMock).toHaveBeenCalledWith(BUILDER_VIEW_TYPE, expect.any(SOQLEditorProvider));
       expect(disposable).toBeDefined();
     });
   });
@@ -76,23 +69,17 @@ describe('SOQLEditorProvider', () => {
         onDidDispose: jest.fn(),
         dispose: jest.fn()
       } as unknown as vscode.WebviewPanel;
-      workspaceOnDidChangeSpy = (vscode.workspace
-        .onDidChangeTextDocument as jest.Mock) = jest.fn();
-      workspaceOnDidChangeSpy.mockImplementation(
-        (listener, context, disposables) => {
-          return {
-            dispose: jest.fn()
-          };
-        }
-      );
-      webViewPanelSpy = (vscode.window.createWebviewPanel as jest.Mock) =
-        jest.fn();
+      workspaceOnDidChangeSpy = (vscode.workspace.onDidChangeTextDocument as jest.Mock) = jest.fn();
+      workspaceOnDidChangeSpy.mockImplementation((listener, context, disposables) => {
+        return {
+          dispose: jest.fn()
+        };
+      });
+      webViewPanelSpy = (vscode.window.createWebviewPanel as jest.Mock) = jest.fn();
       webViewPanelSpy.mockReturnValue(mockWebviewPanel);
       readFileSyncMock = jest.spyOn(fs, 'readFileSync');
       transformHtmlMock = jest.spyOn(HtmlUtils, 'transformHtml');
-      appendLineMock = jest
-        .spyOn(sf.channelService, 'appendLine')
-        .mockImplementation(jest.fn());
+      appendLineMock = jest.spyOn(sf.channelService, 'appendLine').mockImplementation(jest.fn());
     });
 
     it('should configure the webview options and set the HTML content', async () => {
@@ -103,22 +90,11 @@ describe('SOQLEditorProvider', () => {
       readFileSyncMock.mockReturnValue(mockHtml);
       transformHtmlMock.mockReturnValue(mockTransformedHtml);
 
-      await soqlEditorProvider.resolveCustomTextEditor(
-        mockDocument,
-        mockWebviewPanel,
-        {} as vscode.CancellationToken
-      );
+      await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
       expect(mockWebviewPanel.webview.options).toEqual({
         enableScripts: true,
-        localResourceRoots: [
-          vscode.Uri.file(
-            path.join(
-              extensionContext.extensionPath,
-              SOQL_BUILDER_WEB_ASSETS_PATH
-            )
-          )
-        ]
+        localResourceRoots: [vscode.Uri.file(path.join(extensionContext.extensionPath, SOQL_BUILDER_WEB_ASSETS_PATH))]
       });
       expect(mockWebviewPanel.webview.html).toBe(mockTransformedHtml);
     });
@@ -132,17 +108,11 @@ describe('SOQLEditorProvider', () => {
       readFileSyncMock.mockReturnValue(mockHtml);
       transformHtmlMock.mockReturnValue(mockTransformedHtml);
 
-      await soqlEditorProvider.resolveCustomTextEditor(
-        mockDocument,
-        mockWebviewPanel,
-        {} as vscode.CancellationToken
-      );
+      await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
       const expectedMessage = nls.localize('info_no_default_org');
       expect(appendLineMock).toHaveBeenCalledWith(expectedMessage);
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        expectedMessage
-      );
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(expectedMessage);
     });
   });
 

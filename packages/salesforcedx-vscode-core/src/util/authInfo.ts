@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core-bundle';
-import {
-  ConfigSource,
-  ConfigUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigSource, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { WorkspaceContext } from '../context';
@@ -26,25 +23,15 @@ export class OrgAuthInfo {
     return targetDevHub;
   }
 
-  public static async getTargetOrgOrAlias(
-    enableWarning: boolean
-  ): Promise<string | undefined> {
+  public static async getTargetOrgOrAlias(enableWarning: boolean): Promise<string | undefined> {
     try {
       const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
       if (!targetOrgOrAlias) {
-        displayMessage(
-          nls.localize('error_no_target_org'),
-          enableWarning,
-          VSCodeWindowTypeEnum.Informational
-        );
+        displayMessage(nls.localize('error_no_target_org'), enableWarning, VSCodeWindowTypeEnum.Informational);
         return undefined;
       } else {
         if (await ConfigUtil.isGlobalTargetOrg()) {
-          displayMessage(
-            nls.localize('warning_using_global_username'),
-            enableWarning,
-            VSCodeWindowTypeEnum.Warning
-          );
+          displayMessage(nls.localize('warning_using_global_username'), enableWarning, VSCodeWindowTypeEnum.Warning);
         }
       }
 
@@ -99,14 +86,10 @@ export class OrgAuthInfo {
   public static async isAScratchOrg(username: string): Promise<boolean> {
     const authInfo = await AuthInfo.create({ username });
     const authInfoFields = authInfo.getFields();
-    return Promise.resolve(
-      typeof authInfoFields.devHubUsername !== 'undefined'
-    );
+    return Promise.resolve(typeof authInfoFields.devHubUsername !== 'undefined');
   }
 
-  public static async getConnection(
-    usernameOrAlias?: string
-  ): Promise<Connection> {
+  public static async getConnection(usernameOrAlias?: string): Promise<Connection> {
     let _usernameOrAlias;
 
     if (usernameOrAlias) {

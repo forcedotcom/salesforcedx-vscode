@@ -50,15 +50,12 @@ describe('SObject faux class generator', () => {
     classPath = gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include(
-      nls.localize('class_header_generated_comment')
-    );
+    expect(classText).to.include(nls.localize('class_header_generated_comment'));
   });
 
   it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
-    const customDef =
-      declGenerator.generateSObjectDefinition(minimalCustomSObject);
+    const customDef = declGenerator.generateSObjectDefinition(minimalCustomSObject);
     const classContent = gen.generateFauxClassText(customDef);
 
     let standardFieldComment = `    /* Please add a unique name${EOL}`;
@@ -111,9 +108,7 @@ describe('SObject faux class generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
@@ -151,9 +146,7 @@ describe('SObject faux class generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
@@ -168,19 +161,11 @@ describe('SObject faux class generator', () => {
   });
 
   it('Should create a a valid class with a field and relationship', async () => {
-    const field1 =
-      '{"name": "StringField", "type": "string", "referenceTo": []}';
-    const relation1 =
-      '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
+    const field1 = '{"name": "StringField", "type": "string", "referenceTo": []}';
+    const relation1 = '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
     const sobject1: string =
-      '{ "name": "Custom__c", "fields": [ ' +
-      field1 +
-      ',' +
-      relation1 +
-      ' ], "childRelationships": [] }';
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+      '{ "name": "Custom__c", "fields": [ ' + field1 + ',' + relation1 + ' ], "childRelationships": [] }';
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
@@ -193,19 +178,11 @@ describe('SObject faux class generator', () => {
   });
 
   it('Should create a valid class with child relationship', async () => {
-    const field1 =
-      '{"name": "StringField", "type": "string", "referenceTo": []}';
-    const childRelation1 =
-      '{"childSObject": "Case", "relationshipName": "Case__r"}';
+    const field1 = '{"name": "StringField", "type": "string", "referenceTo": []}';
+    const childRelation1 = '{"childSObject": "Case", "relationshipName": "Case__r"}';
     const sobject1: string =
-      '{ "name": "Custom__c", "fields": [ ' +
-      field1 +
-      ' ], "childRelationships": [' +
-      childRelation1 +
-      '] }';
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+      '{ "name": "Custom__c", "fields": [ ' + field1 + ' ], "childRelationships": [' + childRelation1 + '] }';
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
     classPath = gen.generateFauxClass(sobjectFolder, objDef);
@@ -215,15 +192,9 @@ describe('SObject faux class generator', () => {
   });
 
   it('Should create a valid field name for a child relationship that is missing the relationshipName', async () => {
-    const childRelation1 =
-      '{"childSObject": "Case", "field": "RelatedCaseId", "relationshipName": null}';
-    const sobject1: string =
-      '{ "name": "Custom__c",  "childRelationships": [' +
-      childRelation1 +
-      '] }';
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const childRelation1 = '{"childSObject": "Case", "field": "RelatedCaseId", "relationshipName": null}';
+    const sobject1: string = '{ "name": "Custom__c",  "childRelationships": [' + childRelation1 + '] }';
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
     classPath = gen.generateFauxClass(sobjectFolder, objDef);
@@ -235,20 +206,12 @@ describe('SObject faux class generator', () => {
   // seems odd, but this can happen due to the childRelationships that don't have a relationshipName
 
   it('Should create a class that has no duplicate field names', async () => {
-    const childRelation1 =
-      '{"childSObject": "Case", "relationshipName": "Reference"}';
-    const childRelation2 =
-      '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
+    const childRelation1 = '{"childSObject": "Case", "relationshipName": "Reference"}';
+    const childRelation2 = '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
 
     const sobject1: string =
-      '{ "name": "Custom__c",  "childRelationships": [' +
-      childRelation2 +
-      ',' +
-      childRelation1 +
-      '] }';
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+      '{ "name": "Custom__c",  "childRelationships": [' + childRelation2 + ',' + childRelation1 + '] }';
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
     classPath = gen.generateFauxClass(sobjectFolder, objDef);
@@ -259,16 +222,12 @@ describe('SObject faux class generator', () => {
   });
 
   it('Should create a valid field reference to another SObject when missing the relationshipName', async () => {
-    const childRelation1 =
-      '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
-    const field1 =
-      '{"name": "AccountFieldId", "type": "string", "referenceTo": ["Account"], "relationshipName": null}';
+    const childRelation1 = '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
+    const field1 = '{"name": "AccountFieldId", "type": "string", "referenceTo": ["Account"], "relationshipName": null}';
     const header = '{ "name": "Custom__c",  "childRelationships": [';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header}${childRelation1}],${fieldHeader}${field1}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
     classPath = gen.generateFauxClass(sobjectFolder, objDef);
@@ -285,9 +244,7 @@ describe('SObject faux class generator', () => {
     const header = '{ "name": "Custom__c",  "childRelationships": []';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header},${fieldHeader}${field1}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
     classPath = gen.generateFauxClass(sobjectFolder, objDef);
@@ -304,16 +261,12 @@ describe('SObject faux class generator', () => {
   // Note, currently __x (ExternalObject) is not handled by describe (REST or Cli), but is handled by SDD
 
   it('Should create a valid class for a metadata object with EntityDefinition relationship target', async () => {
-    const header =
-      '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
+    const header = '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
       '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
-    const field2 =
-      '{"name": "StringField", "type": "string", "referenceTo": []}';
+    const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
     classPath = gen.generateFauxClass(sobjectFolder, objDef);
@@ -323,16 +276,11 @@ describe('SObject faux class generator', () => {
   });
 
   it('Should create a valid class for a metadata object with a __mdt target', async () => {
-    const header =
-      '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
-    const field1 =
-      '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
-    const field2 =
-      '{"name": "StringField", "type": "string", "referenceTo": []}';
+    const header = '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
+    const field1 = '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
+    const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
     classPath = gen.generateFauxClass(sobjectFolder, objDef);
@@ -352,9 +300,7 @@ describe('SObject faux class generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(
-      JSON.parse(sobject1)
-    );
+    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
@@ -384,10 +330,7 @@ describe('SObject faux class generator', () => {
     });
 
     it('Should remove standardObjects folder when category is STANDARD', () => {
-      const gen = new FauxClassGenerator(
-        SObjectCategory.STANDARD,
-        STANDARDOBJECTS_DIR
-      );
+      const gen = new FauxClassGenerator(SObjectCategory.STANDARD, STANDARDOBJECTS_DIR);
       const output: SObjectRefreshOutput = {
         sfdxPath,
         addTypeNames: () => {},
@@ -405,10 +348,7 @@ describe('SObject faux class generator', () => {
     });
 
     it('Should remove customObjects folder when category is CUSTOM', () => {
-      const gen = new FauxClassGenerator(
-        SObjectCategory.CUSTOM,
-        CUSTOMOBJECTS_DIR
-      );
+      const gen = new FauxClassGenerator(SObjectCategory.CUSTOM, CUSTOMOBJECTS_DIR);
       const output: SObjectRefreshOutput = {
         sfdxPath,
         addTypeNames: () => {},

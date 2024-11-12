@@ -24,10 +24,6 @@ export class LogStreamConfig {
    */
   public static isEnabledFor(extensionName: string): boolean | '' {
     const vsCodeLogLevelTrace = process.env['VSCODE_LOG_LEVEL'] === 'trace';
-    return !!(
-      LogStreamConfig.logFilePath() &&
-      extensionName &&
-      vsCodeLogLevelTrace
-    );
+    return !!(LogStreamConfig.logFilePath() && extensionName && vsCodeLogLevelTrace);
   }
 }

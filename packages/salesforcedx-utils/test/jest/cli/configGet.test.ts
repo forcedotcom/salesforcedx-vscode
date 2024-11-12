@@ -12,7 +12,7 @@ describe('OrgGet unit tests.', () => {
     totally: 'fake'
   };
   // configGet expect and array with named keys which does not play nice in TS land
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const configMap: any = [
     { key: 'config1', value: 'true' },
     { key: 'target-dev-hub', value: 'test@test.com' },
@@ -28,12 +28,8 @@ describe('OrgGet unit tests.', () => {
   let executeSpy: jest.SpyInstance;
   let getCmdResultSpy: jest.SpyInstance;
   beforeEach(() => {
-    executeSpy = jest
-      .spyOn(CliCommandExecutor.prototype, 'execute')
-      .mockReturnValue(fakeExecution as any);
-    getCmdResultSpy = jest
-      .spyOn(CommandOutput.prototype, 'getCmdResult')
-      .mockResolvedValue(fakeResult);
+    executeSpy = jest.spyOn(CliCommandExecutor.prototype, 'execute').mockReturnValue(fakeExecution as any);
+    getCmdResultSpy = jest.spyOn(CommandOutput.prototype, 'getCmdResult').mockResolvedValue(fakeResult);
   });
 
   it('Should create instance.', () => {
@@ -68,9 +64,7 @@ describe('OrgGet unit tests.', () => {
       getCmdResultSpy.mockResolvedValue(partialJson);
       const configGet = new ConfigGet();
       // Unexpected token error is thrown b/c json can not be parsed.
-      expect(configGet.getConfig(fakePath)).rejects.toThrowError(
-        /Unexpected token/
-      );
+      expect(configGet.getConfig(fakePath)).rejects.toThrowError(/Unexpected token/);
     });
   });
 });

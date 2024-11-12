@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CLIENT_ID,
-  DEFAULT_CONNECTION_TIMEOUT_MS,
-  RequestService
-} from '@salesforce/salesforcedx-utils';
+import { CLIENT_ID, DEFAULT_CONNECTION_TIMEOUT_MS, RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
@@ -17,12 +13,7 @@ import { BaseDebuggerCommand } from '../../../src/commands/baseDebuggerCommand';
 import { DebuggerRequest } from '../../../src/commands/protocol';
 
 class DummyCommand extends BaseDebuggerCommand {
-  public constructor(
-    commandName: string,
-    debuggedRequestId: string,
-    queryString?: string,
-    request?: DebuggerRequest
-  ) {
+  public constructor(commandName: string, debuggedRequestId: string, queryString?: string, request?: DebuggerRequest) {
     super(commandName, debuggedRequestId, queryString, request);
   }
 }
@@ -56,9 +47,7 @@ describe('Base command', () => {
     dummyCommand = new DummyCommand('dummy', '07cFAKE');
     sendRequestSpy = sinon
       .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
-      );
+      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/dummy/07cFAKE',
@@ -71,18 +60,14 @@ describe('Base command', () => {
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
-    expect(dummyCommand.getCommandUrl()).to.equal(
-      'services/debug/v41.0/dummy/07cFAKE'
-    );
+    expect(dummyCommand.getCommandUrl()).to.equal('services/debug/v41.0/dummy/07cFAKE');
   });
 
   it('Should build request with query string', async () => {
     dummyCommand = new DummyCommand('dummy2', '07cFAKE', 'param=whoops');
     sendRequestSpy = sinon
       .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
-      );
+      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
@@ -104,17 +89,10 @@ describe('Base command', () => {
         reference: []
       }
     };
-    dummyCommand = new DummyCommand(
-      'dummy2',
-      '07cFAKE',
-      'param=whoops',
-      myRequest
-    );
+    dummyCommand = new DummyCommand('dummy2', '07cFAKE', 'param=whoops', myRequest);
     sendRequestSpy = sinon
       .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
-      );
+      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
     const requestBody = JSON.stringify(myRequest);
     const expectedOptions: XHROptions = {
       type: 'POST',
@@ -133,21 +111,17 @@ describe('Base command', () => {
 
   it('Should handle command error', async () => {
     dummyCommand = new DummyCommand('dummy', '07cFAKE');
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.reject({
-          status: 500,
-          responseText: '{"message":"There was an error", "action":"Try again"}'
-        } as XHRResponse)
-      );
+    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
+      Promise.reject({
+        status: 500,
+        responseText: '{"message":"There was an error", "action":"Try again"}'
+      } as XHRResponse)
+    );
 
     try {
       await requestService.execute(dummyCommand);
     } catch (error) {
-      expect(error).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
+      expect(error).to.equal('{"message":"There was an error", "action":"Try again"}');
     }
   });
 });

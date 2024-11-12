@@ -4,11 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  viewAllChanges,
-  viewLocalChanges,
-  viewRemoteChanges
-} from '../../../../src/commands';
+import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from '../../../../src/commands';
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 
 describe('viewChanges', () => {
@@ -18,13 +14,11 @@ describe('viewChanges', () => {
   beforeEach(() => {
     // Arrange
     runMock = jest.fn();
-    sfCommandletMocked = jest
-      .spyOn(commandlet, 'SfCommandlet')
-      .mockImplementation((): any => {
-        return {
-          run: runMock
-        };
-      });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => {
+      return {
+        run: runMock
+      };
+    });
   });
 
   describe('viewAllChanges', () => {

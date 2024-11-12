@@ -12,9 +12,7 @@ describe('isLocalLogging', () => {
   let spySettingsService: jest.SpyInstance;
 
   beforeEach(() => {
-    spySettingsService = jest
-      .spyOn(Settings.SettingsService, 'isAdvancedSettingEnabledFor')
-      .mockReturnValue(false);
+    spySettingsService = jest.spyOn(Settings.SettingsService, 'isAdvancedSettingEnabledFor').mockReturnValue(false);
   });
 
   afterEach(() => {

@@ -75,16 +75,12 @@ describe('Postcondition Checkers', () => {
     it('Should proceed to next checker if previous checker in composite checker is ContinueResponse', async () => {
       const compositePostconditionChecker = new CompositePostconditionChecker(
         new (class implements PostconditionChecker<string> {
-          public async check(): Promise<
-            CancelResponse | ContinueResponse<string>
-          > {
+          public async check(): Promise<CancelResponse | ContinueResponse<string>> {
             return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
         new (class implements PostconditionChecker<string> {
-          public async check(): Promise<
-            CancelResponse | ContinueResponse<string>
-          > {
+          public async check(): Promise<CancelResponse | ContinueResponse<string>> {
             return { type: 'CONTINUE', data: 'package.xml' };
           }
         })()
@@ -100,16 +96,12 @@ describe('Postcondition Checkers', () => {
     it('Should not proceed to next checker if previous checker in composite checker is CancelResponse', async () => {
       const compositePostconditionChecker = new CompositePostconditionChecker(
         new (class implements PostconditionChecker<string> {
-          public async check(): Promise<
-            CancelResponse | ContinueResponse<string>
-          > {
+          public async check(): Promise<CancelResponse | ContinueResponse<string>> {
             return { type: 'CANCEL' };
           }
         })(),
         new (class implements PostconditionChecker<string> {
-          public async check(): Promise<
-            CancelResponse | ContinueResponse<string>
-          > {
+          public async check(): Promise<CancelResponse | ContinueResponse<string>> {
             throw new Error('This should not be called');
           }
         })()
@@ -131,9 +123,7 @@ describe('Postcondition Checkers', () => {
           }
         })(),
         new (class {
-          public async gather(): Promise<
-            CancelResponse | ContinueResponse<string>
-          > {
+          public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
             return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
@@ -144,9 +134,7 @@ describe('Postcondition Checkers', () => {
         })(),
         new CompositePostconditionChecker<string>(
           new (class implements PostconditionChecker<string> {
-            public async check(): Promise<
-              CancelResponse | ContinueResponse<string>
-            > {
+            public async check(): Promise<CancelResponse | ContinueResponse<string>> {
               return { type: 'CONTINUE', data: 'package.xml' };
             }
           })()
@@ -166,9 +154,7 @@ describe('Postcondition Checkers', () => {
           }
         })(),
         new (class {
-          public async gather(): Promise<
-            CancelResponse | ContinueResponse<{}>
-          > {
+          public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
             return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
@@ -179,9 +165,7 @@ describe('Postcondition Checkers', () => {
         })(),
         new CompositePostconditionChecker<{}>(
           new (class implements PostconditionChecker<{}> {
-            public async check(): Promise<
-              CancelResponse | ContinueResponse<{}>
-            > {
+            public async check(): Promise<CancelResponse | ContinueResponse<{}>> {
               return { type: 'CANCEL' };
             }
           })()
@@ -294,9 +278,7 @@ describe('Postcondition Checkers', () => {
       it('Should only show overwrite and cancel for one component', async () => {
         await doPrompt(generateComponents(1), [undefined]);
 
-        expect(modalStub.firstCall.args.slice(1)).to.eql([
-          nls.localize('warning_prompt_overwrite')
-        ]);
+        expect(modalStub.firstCall.args.slice(1)).to.eql([nls.localize('warning_prompt_overwrite')]);
       });
 
       it('Should show correct message for one component', async () => {
@@ -305,13 +287,7 @@ describe('Postcondition Checkers', () => {
         await doPrompt(components, [undefined]);
 
         expect(modalStub.firstCall.args[0]).to.equal(
-          nls.localize(
-            'warning_prompt_overwrite_message',
-            components[0].type,
-            components[0].fileName,
-            '',
-            ''
-          )
+          nls.localize('warning_prompt_overwrite_message', components[0].type, components[0].fileName, '', '')
         );
       });
 
@@ -368,40 +344,25 @@ describe('Postcondition Checkers', () => {
         const components = generateComponents(2);
         const actions = [`${nls.localize('warning_prompt_overwrite_all')} (2)`];
 
-        const response = (await doPrompt(
-          components,
-          actions
-        )) as ContinueResponse<LocalComponent[] | LocalComponent>;
+        const response = (await doPrompt(components, actions)) as ContinueResponse<LocalComponent[] | LocalComponent>;
 
         expect(response.data).to.eql(components);
       });
 
       it('Should skip one and overwrite remaining', async () => {
         const components = generateComponents(3);
-        const actions = [
-          nls.localize('warning_prompt_skip'),
-          nls.localize('warning_prompt_overwrite_all') + ' (2)'
-        ];
+        const actions = [nls.localize('warning_prompt_skip'), nls.localize('warning_prompt_overwrite_all') + ' (2)'];
 
-        const response = (await doPrompt(
-          components,
-          actions
-        )) as ContinueResponse<LocalComponent[] | LocalComponent>;
+        const response = (await doPrompt(components, actions)) as ContinueResponse<LocalComponent[] | LocalComponent>;
 
         expect(response.data).to.eql(components.slice(1));
       });
 
       it('Should overwrite one and skip remaining', async () => {
         const components = generateComponents(3);
-        const actions = [
-          nls.localize('warning_prompt_overwrite'),
-          nls.localize('warning_prompt_skip_all') + ' (2)'
-        ];
+        const actions = [nls.localize('warning_prompt_overwrite'), nls.localize('warning_prompt_skip_all') + ' (2)'];
 
-        const response = (await doPrompt(
-          components,
-          actions
-        )) as ContinueResponse<LocalComponent[] | LocalComponent>;
+        const response = (await doPrompt(components, actions)) as ContinueResponse<LocalComponent[] | LocalComponent>;
 
         expect(response.data).to.eql(components.slice(0, 1));
       });
@@ -443,11 +404,7 @@ describe('Postcondition Checkers', () => {
       return data;
     };
 
-    const pathExists = (
-      value: boolean,
-      forComponent: LocalComponent,
-      withExtension: string
-    ) => {
+    const pathExists = (value: boolean, forComponent: LocalComponent, withExtension: string) => {
       const path = join(
         workspaceUtils.getRootWorkspacePath(),
         `package/tests/${forComponent.fileName}${withExtension}`
@@ -468,16 +425,11 @@ describe('Postcondition Checkers', () => {
       env = createSandbox();
       channelOutput = [];
       modalStub = env.stub(notificationService, 'showWarningModal');
-      settingsStub = env.stub(
-        salesforceCoreSettings,
-        'getConflictDetectionEnabled'
-      );
+      settingsStub = env.stub(salesforceCoreSettings, 'getConflictDetectionEnabled');
       conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
       appendLineStub = env.stub(channelService, 'appendLine');
       env.stub(WorkspaceContext, 'getInstance').returns(mockWorkspaceContext);
-      env
-        .stub(workspaceUtil, 'getWorkspaceOrgType')
-        .returns(OrgType.NonSourceTracked);
+      env.stub(workspaceUtil, 'getWorkspaceOrgType').returns(OrgType.NonSourceTracked);
       appendLineStub.callsFake(line => channelOutput.push(line));
     });
 
@@ -528,18 +480,12 @@ describe('Postcondition Checkers', () => {
 
     it('Should return ContinueResponse when no conflicts are detected', async () => {
       const postChecker = new TimestampConflictChecker(false, emptyMessages);
-      const response = await postChecker.handleConflicts(
-        'manifest.xml',
-        'admin@example.com',
-        {
-          different: new Set<TimestampFileProperties>()
-        } as DirectoryDiffResults
-      );
+      const response = await postChecker.handleConflicts('manifest.xml', 'admin@example.com', {
+        different: new Set<TimestampFileProperties>()
+      } as DirectoryDiffResults);
 
       expect(response.type).to.equal('CONTINUE');
-      expect((response as ContinueResponse<string>).data).to.equal(
-        'manifest.xml'
-      );
+      expect((response as ContinueResponse<string>).data).to.equal('manifest.xml');
       expect(appendLineStub.notCalled).to.equal(true);
     });
 
@@ -548,16 +494,12 @@ describe('Postcondition Checkers', () => {
       const results = {
         different: new Set<TimestampFileProperties>([
           {
-            localRelPath:
-              'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
-            remoteRelPath:
-              'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+            localRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
+            remoteRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
           },
           {
-            localRelPath:
-              'main/default/aura/auraPropertySummary/auraPropertySummaryController.js',
-            remoteRelPath:
-              'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+            localRelPath: 'main/default/aura/auraPropertySummary/auraPropertySummaryController.js',
+            remoteRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
           }
         ]),
         scannedLocal: 4,
@@ -565,11 +507,7 @@ describe('Postcondition Checkers', () => {
       } as DirectoryDiffResults;
       modalStub.returns('Cancel');
 
-      const response = await postChecker.handleConflicts(
-        'package.xml',
-        'admin@example.com',
-        results
-      );
+      const response = await postChecker.handleConflicts('package.xml', 'admin@example.com', results);
       expect(response.type).to.equal('CANCEL');
 
       expect(modalStub.firstCall.args.slice(1)).to.eql([
@@ -599,11 +537,7 @@ describe('Postcondition Checkers', () => {
       } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_override'));
 
-      const response = await postChecker.handleConflicts(
-        'manifest.xml',
-        'admin@example.com',
-        results
-      );
+      const response = await postChecker.handleConflicts('manifest.xml', 'admin@example.com', results);
       expect(response.type).to.equal('CONTINUE');
 
       expect(modalStub.firstCall.args.slice(1)).to.eql([
@@ -624,11 +558,7 @@ describe('Postcondition Checkers', () => {
       } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_show_conflicts'));
 
-      const response = await postChecker.handleConflicts(
-        'manifest.xml',
-        'admin@example.com',
-        results
-      );
+      const response = await postChecker.handleConflicts('manifest.xml', 'admin@example.com', results);
       expect(response.type).to.equal('CANCEL');
 
       expect(modalStub.firstCall.args.slice(1)).to.eql([

@@ -21,11 +21,10 @@ import {
 } from 'vscode';
 
 class MockMemento implements Memento {
-
   private keyValues: string[] = [];
   private values: any[] = [];
 
-  constructor(){}
+  constructor() {}
 
   private getIndex(key: string): number {
     return this.keys().findIndex(value => value === key);
@@ -57,8 +56,7 @@ class MockMemento implements Memento {
   }
 }
 
-class MockEnvironmentVariableCollection
-  implements EnvironmentVariableCollection {
+class MockEnvironmentVariableCollection implements EnvironmentVariableCollection {
   public [Symbol.iterator](): Iterator<[variable: string, mutator: EnvironmentVariableMutator], any, undefined> {
     throw new Error('Method not implemented.');
   }
@@ -77,11 +75,7 @@ class MockEnvironmentVariableCollection
     throw new Error('Method not implemented.');
   }
   public forEach(
-    callback: (
-      variable: string,
-      mutator: EnvironmentVariableMutator,
-      collection: EnvironmentVariableCollection
-    ) => any,
+    callback: (variable: string, mutator: EnvironmentVariableMutator, collection: EnvironmentVariableCollection) => any,
     thisArg?: any
   ): void {
     throw new Error('Method not implemented.');

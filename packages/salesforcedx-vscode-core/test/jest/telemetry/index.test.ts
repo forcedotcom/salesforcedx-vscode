@@ -22,16 +22,10 @@ describe('Telemetry', () => {
   let cliSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    mShowInformation = jest
-      .spyOn(window, 'showInformationMessage')
-      .mockResolvedValue(undefined);
-    settings = jest
-      .spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled')
-      .mockReturnValue(true);
+    mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
+    settings = jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
     teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
-    cliSpy = jest
-      .spyOn(telemetryService, 'checkCliTelemetry')
-      .mockResolvedValue(true);
+    cliSpy = jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -62,7 +56,6 @@ describe('Telemetry', () => {
       mockExtensionContext = new MockExtensionContext();
       globalStateTelemetrySpy = jest.spyOn(mockExtensionContext.globalState, 'get');
     });
-
 
     it('should show telemetry opt-out info message only when user is external', async () => {
       // create telemetry shown states
@@ -172,8 +165,7 @@ describe('Telemetry', () => {
     it('should disable CLI telemetry', async () => {
       // create vscode extensionContext
       mockExtensionContext = new MockExtensionContext();
-      jest.spyOn(extensions, 'getExtension')
-        .mockReturnValue(mockExtensionContext as unknown as Extension<any>);
+      jest.spyOn(extensions, 'getExtension').mockReturnValue(mockExtensionContext as unknown as Extension<any>);
       // mock out the isInternalHost call
       jest.spyOn(os, 'hostname').mockReturnValue('test-host');
 

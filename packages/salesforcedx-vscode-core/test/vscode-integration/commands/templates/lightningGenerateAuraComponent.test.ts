@@ -31,17 +31,11 @@ describe('Lightning Generate Component', () => {
   let openTextDocumentStub: SinonStub;
 
   beforeEach(() => {
-    getInternalDevStub = stub(
-      SalesforceCoreSettings.prototype,
-      'getInternalDev'
-    );
+    getInternalDevStub = stub(SalesforceCoreSettings.prototype, 'getInternalDev');
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -74,10 +68,7 @@ describe('Lightning Generate Component', () => {
       'testComponent',
       'testComponent.cmp-meta.xml'
     );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
     assert.noFile([auraComponentPath, auraComponentMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -98,31 +89,15 @@ describe('Lightning Generate Component', () => {
       '.design'
     ];
     for (const suffix of suffixarray) {
-      assert.file(
-        path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          outputPath,
-          fileName,
-          `${fileName}${suffix}`
-        )
-      );
+      assert.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, `${fileName}${suffix}`));
     }
-    assert.fileContent(
-      auraComponentPath,
-      '<aura:component>\n\n</aura:component>'
-    );
-    assert.fileContent(
-      auraComponentMetaPath,
-      '<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">'
-    );
+    assert.fileContent(auraComponentPath, '<aura:component>\n\n</aura:component>');
+    assert.fileContent(auraComponentMetaPath, '<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">');
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, auraComponentPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
   });
 
   it('Should generate internal Aura Component', async () => {
@@ -136,57 +111,27 @@ describe('Lightning Generate Component', () => {
       'testComponent',
       'testComponent.cmp'
     );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
     assert.noFile([auraComponentPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir(
-      '-p',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    shell.mkdir('-p', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
     await internalLightningGenerateAuraComponent(
-      vscode.Uri.file(
-        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-      )
+      vscode.Uri.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath))
     );
 
     // assert
-    const suffixarray = [
-      '.cmp',
-      '.auradoc',
-      '.css',
-      'Controller.js',
-      'Helper.js',
-      'Renderer.js',
-      '.svg',
-      '.design'
-    ];
+    const suffixarray = ['.cmp', '.auradoc', '.css', 'Controller.js', 'Helper.js', 'Renderer.js', '.svg', '.design'];
     for (const suffix of suffixarray) {
-      assert.file(
-        path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          outputPath,
-          fileName,
-          `${fileName}${suffix}`
-        )
-      );
+      assert.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, `${fileName}${suffix}`));
     }
-    assert.fileContent(
-      auraComponentPath,
-      '<aura:component>\n\n</aura:component>'
-    );
+    assert.fileContent(auraComponentPath, '<aura:component>\n\n</aura:component>');
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, auraComponentPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
   });
 });

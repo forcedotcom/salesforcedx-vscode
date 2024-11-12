@@ -56,16 +56,10 @@ describe('DevServerService', () => {
       };
 
       instance.registerServerHandler(handler);
-      expect(
-        instance.isServerHandlerRegistered(),
-        'expected the server handler to be registered'
-      ).to.be.true;
+      expect(instance.isServerHandlerRegistered(), 'expected the server handler to be registered').to.be.true;
 
       instance.clearServerHandler(handler);
-      expect(
-        instance.isServerHandlerRegistered(),
-        'expected the server handler to be cleared'
-      ).to.be.false;
+      expect(instance.isServerHandlerRegistered(), 'expected the server handler to be cleared').to.be.false;
     });
 
     it('clears the specified handler', () => {
@@ -130,33 +124,25 @@ describe('DevServerService', () => {
 
     it('sets the correct url with port from server startup response', async () => {
       const instance = new DevServerService();
-      instance.setBaseUrlFromDevServerUpMessage(
-        'Server up on http://localhost:1234'
-      );
+      instance.setBaseUrlFromDevServerUpMessage('Server up on http://localhost:1234');
       expect(instance.getBaseUrl()).to.equal('http://localhost:1234');
     });
 
     it('sets the correct url from server startup response containing ansi codes', async () => {
       const instance = new DevServerService();
-      instance.setBaseUrlFromDevServerUpMessage(
-        '[35m[1mServer up on http://localhost:3334[22m[39m\n'
-      );
+      instance.setBaseUrlFromDevServerUpMessage('[35m[1mServer up on http://localhost:3334[22m[39m\n');
       expect(instance.getBaseUrl()).to.equal('http://localhost:3334');
     });
 
     it('keeps the default url with port as fall back', async () => {
       const instance = new DevServerService();
-      instance.setBaseUrlFromDevServerUpMessage(
-        'Sever up with no url information \n some other info'
-      );
+      instance.setBaseUrlFromDevServerUpMessage('Sever up with no url information \n some other info');
       expect(instance.getBaseUrl()).to.equal(DEV_SERVER_DEFAULT_BASE_URL);
     });
 
     it('retrieves the correct preview component path', async () => {
       const instance = new DevServerService();
-      expect(instance.getComponentPreviewUrl('HelloWorld')).to.equal(
-        'http://localhost:3333/preview/HelloWorld'
-      );
+      expect(instance.getComponentPreviewUrl('HelloWorld')).to.equal('http://localhost:3333/preview/HelloWorld');
     });
   });
 });

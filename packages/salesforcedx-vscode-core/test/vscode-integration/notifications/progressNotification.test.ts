@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  CommandExecution,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor, CommandExecution, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
@@ -23,16 +19,11 @@ describe('Progress Notification', () => {
   let execution: CommandExecution;
   beforeEach(() => {
     tokenSource = new vscode.CancellationTokenSource();
-    execution = new CliCommandExecutor(
-      new SfCommandBuilder().withArg('--help').build(),
-      {}
-    ).execute(tokenSource.token);
+    execution = new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute(tokenSource.token);
   });
 
   it('Should display progress as a cancellable notification', async () => {
-    const withProgressStub = sinon
-      .stub(vscode.window, 'withProgress')
-      .returns(Promise.resolve());
+    const withProgressStub = sinon.stub(vscode.window, 'withProgress').returns(Promise.resolve());
 
     ProgressNotification.show(execution, tokenSource);
 
@@ -47,9 +38,7 @@ describe('Progress Notification', () => {
 
   it('Should display progress based on given progress location', () => {
     const progressLocation = vscode.ProgressLocation.Window;
-    const withProgressStub = sinon
-      .stub(vscode.window, 'withProgress')
-      .returns(Promise.resolve());
+    const withProgressStub = sinon.stub(vscode.window, 'withProgress').returns(Promise.resolve());
 
     ProgressNotification.show(execution, tokenSource, progressLocation);
 
@@ -63,9 +52,7 @@ describe('Progress Notification', () => {
 
   it('Should subscribe to the observable when given a progress reporter', async () => {
     const progressLocation = vscode.ProgressLocation.Window;
-    const withProgressStub = sinon
-      .stub(vscode.window, 'withProgress')
-      .returns(Promise.resolve());
+    const withProgressStub = sinon.stub(vscode.window, 'withProgress').returns(Promise.resolve());
 
     const progress: vscode.Progress<{
       message?: string;
@@ -79,12 +66,7 @@ describe('Progress Notification', () => {
     const reporter = new Subject<number>();
     const subscribeSpy = sinon.spy(reporter, 'subscribe');
 
-    await ProgressNotification.show(
-      execution,
-      tokenSource,
-      progressLocation,
-      reporter.asObservable()
-    );
+    await ProgressNotification.show(execution, tokenSource, progressLocation, reporter.asObservable());
 
     sinon.assert.calledOnce(subscribeSpy);
     sinon.assert.calledWith(subscribeSpy, sinon.match.has('next'));
@@ -95,9 +77,7 @@ describe('Progress Notification', () => {
 
   it('Should report 100 progress when the reporter invokes complete', async () => {
     const progressLocation = vscode.ProgressLocation.Window;
-    const withProgressStub = sinon
-      .stub(vscode.window, 'withProgress')
-      .returns(Promise.resolve());
+    const withProgressStub = sinon.stub(vscode.window, 'withProgress').returns(Promise.resolve());
 
     const reportStub = sinon.stub();
     const progress: vscode.Progress<{
@@ -111,12 +91,7 @@ describe('Progress Notification', () => {
 
     const reporter = new Subject<number>();
 
-    await ProgressNotification.show(
-      execution,
-      tokenSource,
-      progressLocation,
-      reporter.asObservable()
-    );
+    await ProgressNotification.show(execution, tokenSource, progressLocation, reporter.asObservable());
 
     reporter.complete();
     sinon.assert.calledOnce(reportStub);
@@ -127,9 +102,7 @@ describe('Progress Notification', () => {
 
   it('Should report incremental progress when the reporter invokes next', async () => {
     const progressLocation = vscode.ProgressLocation.Window;
-    const withProgressStub = sinon
-      .stub(vscode.window, 'withProgress')
-      .returns(Promise.resolve());
+    const withProgressStub = sinon.stub(vscode.window, 'withProgress').returns(Promise.resolve());
 
     const reportStub = sinon.stub();
     const progress: vscode.Progress<{
@@ -143,12 +116,7 @@ describe('Progress Notification', () => {
 
     const reporter = new Subject<number>();
 
-    await ProgressNotification.show(
-      execution,
-      tokenSource,
-      progressLocation,
-      reporter.asObservable()
-    );
+    await ProgressNotification.show(execution, tokenSource, progressLocation, reporter.asObservable());
 
     reporter.next(25);
     sinon.assert.calledOnce(reportStub);

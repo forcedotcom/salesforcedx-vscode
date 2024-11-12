@@ -4,11 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ConfigUtil,
-  ContinueResponse,
-  SourceTrackingService
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'fs';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
@@ -46,9 +42,7 @@ describe('Retrieve Executor', () => {
   let getEnableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
 
   class TestRetrieveExecutor extends RetrieveExecutor<{}> {
-    protected getComponents(
-      response: ContinueResponse<{}>
-    ): Promise<ComponentSet> {
+    protected getComponents(response: ContinueResponse<{}>): Promise<ComponentSet> {
       return new Promise(resolve => resolve(dummyComponentSet));
     }
   }
@@ -56,28 +50,17 @@ describe('Retrieve Executor', () => {
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    jest
-      .spyOn(ConfigUtil, 'getUsername')
-      .mockResolvedValue('test@username.com');
-    workspaceContextGetInstanceSpy = jest
-      .spyOn(WorkspaceContext, 'getInstance')
-      .mockReturnValue(mockWorkspaceContext);
+    jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue('test@username.com');
+    workspaceContextGetInstanceSpy = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
     getSourceTrackingSpy = jest
       .spyOn(SourceTrackingService, 'getSourceTracking')
       .mockResolvedValue(dummySourceTracking);
-    retrieveSpy = jest
-      .spyOn(dummyComponentSet, 'retrieve')
-      .mockResolvedValue(dummyRetrieveOperation);
-    pollStatusMock = jest
-      .spyOn(dummyRetrieveOperation, 'pollStatus')
-      .mockResolvedValue(dummyRetrieveResult);
+    retrieveSpy = jest.spyOn(dummyComponentSet, 'retrieve').mockResolvedValue(dummyRetrieveOperation);
+    pollStatusMock = jest.spyOn(dummyRetrieveOperation, 'pollStatus').mockResolvedValue(dummyRetrieveResult);
     updateTrackingAfterRetrieveMock = jest
       .spyOn(SourceTrackingService, 'updateSourceTrackingAfterRetrieve')
       .mockResolvedValue();
-    getWorkspaceOrgTypeMock = jest.spyOn(
-      workspaceContextUtils,
-      'getWorkspaceOrgType'
-    );
+    getWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'getWorkspaceOrgType');
     getEnableSourceTrackingForDeployAndRetrieveMock = jest.spyOn(
       salesforceCoreSettings,
       'getEnableSourceTrackingForDeployAndRetrieve'
@@ -88,10 +71,7 @@ describe('Retrieve Executor', () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
-    const executor = new TestRetrieveExecutor(
-      'testRetrieve',
-      'testRetrieveLog'
-    );
+    const executor = new TestRetrieveExecutor('testRetrieve', 'testRetrieveLog');
     (executor as any).setupCancellation = jest.fn();
     dummyRetrieveResult.response = { status: 'SucceededPartial' };
 
@@ -102,25 +82,18 @@ describe('Retrieve Executor', () => {
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
     expect(getSourceTrackingSpy).toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
-    const getSourceTrackingCallOrder =
-      getSourceTrackingSpy.mock.invocationCallOrder[0];
+    const getSourceTrackingCallOrder = getSourceTrackingSpy.mock.invocationCallOrder[0];
     const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
     expect(getSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
     expect(pollStatusMock).toHaveBeenCalled();
-    expect(updateTrackingAfterRetrieveMock).toHaveBeenCalledWith(
-      dummySourceTracking,
-      dummyRetrieveResult
-    );
+    expect(updateTrackingAfterRetrieveMock).toHaveBeenCalledWith(dummySourceTracking, dummyRetrieveResult);
   });
 
   it('should NOT update source tracking after retrieving without a successful response when “Enable source tracking” is enabled(true)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
-    const executor = new TestRetrieveExecutor(
-      'testRetrieve',
-      'testRetrieveLog'
-    );
+    const executor = new TestRetrieveExecutor('testRetrieve', 'testRetrieveLog');
     (executor as any).setupCancellation = jest.fn();
     dummyRetrieveResult.response = { status: 'Failed' };
 
@@ -131,8 +104,7 @@ describe('Retrieve Executor', () => {
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
     expect(getSourceTrackingSpy).toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
-    const getSourceTrackingCallOrder =
-      getSourceTrackingSpy.mock.invocationCallOrder[0];
+    const getSourceTrackingCallOrder = getSourceTrackingSpy.mock.invocationCallOrder[0];
     const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
     expect(getSourceTrackingCallOrder).toBeLessThan(retrieveCallOrder);
     expect(pollStatusMock).toHaveBeenCalled();
@@ -143,10 +115,7 @@ describe('Retrieve Executor', () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
-    const executor = new TestRetrieveExecutor(
-      'testRetrieve',
-      'testRetrieveLog'
-    );
+    const executor = new TestRetrieveExecutor('testRetrieve', 'testRetrieveLog');
     (executor as any).setupCancellation = jest.fn();
 
     // Act
@@ -164,10 +133,7 @@ describe('Retrieve Executor', () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
-    const executor = new TestRetrieveExecutor(
-      'testRetrieve',
-      'testRetrieveLog'
-    );
+    const executor = new TestRetrieveExecutor('testRetrieve', 'testRetrieveLog');
     (executor as any).setupCancellation = jest.fn();
     dummyRetrieveResult.response = { status: 'SucceededPartial' };
 

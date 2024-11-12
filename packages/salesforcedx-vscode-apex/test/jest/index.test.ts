@@ -26,52 +26,31 @@ describe('indexDoneHandler', () => {
   const apexLSPStatusBarItemMock = jest.mocked(ApexLSPStatusBarItem);
 
   beforeEach(() => {
-    setStatusSpy = jest
-      .spyOn(languageClientUtils, 'setStatus')
-      .mockReturnValue();
+    setStatusSpy = jest.spyOn(languageClientUtils, 'setStatus').mockReturnValue();
     mockLanguageClient = {
       onNotification: jest.fn()
     };
     onNotificationSpy = jest.spyOn(mockLanguageClient, 'onNotification');
-    setClientReadySpy = jest
-      .spyOn(extensionUtils, 'setClientReady')
-      .mockResolvedValue();
+    setClientReadySpy = jest.spyOn(extensionUtils, 'setClientReady').mockResolvedValue();
   });
 
   it('should call languageClientUtils.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
     const languageServerStatusBarItem = new ApexLSPStatusBarItem();
-    await index.indexerDoneHandler(
-      false,
-      mockLanguageClient,
-      languageServerStatusBarItem
-    );
+    await index.indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
     expect(setStatusSpy).toHaveBeenCalledWith(1, '');
-    expect(onNotificationSpy).toHaveBeenCalledWith(
-      API.doneIndexing,
-      expect.any(Function)
-    );
+    expect(onNotificationSpy).toHaveBeenCalledWith(API.doneIndexing, expect.any(Function));
     expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
 
     const mockCallback = onNotificationSpy.mock.calls[0][1];
 
     await mockCallback();
-    expect(setClientReadySpy).toHaveBeenCalledWith(
-      mockLanguageClient,
-      languageServerStatusBarItem
-    );
+    expect(setClientReadySpy).toHaveBeenCalledWith(mockLanguageClient, languageServerStatusBarItem);
   });
 
   it('should call setClientReady when enableSyncInitJobs is true', async () => {
     const languageServerStatusBarItem = new ApexLSPStatusBarItem();
-    await index.indexerDoneHandler(
-      true,
-      mockLanguageClient,
-      languageServerStatusBarItem
-    );
-    expect(setClientReadySpy).toHaveBeenCalledWith(
-      mockLanguageClient,
-      languageServerStatusBarItem
-    );
+    await index.indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
+    expect(setClientReadySpy).toHaveBeenCalledWith(mockLanguageClient, languageServerStatusBarItem);
     expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
   });
 });

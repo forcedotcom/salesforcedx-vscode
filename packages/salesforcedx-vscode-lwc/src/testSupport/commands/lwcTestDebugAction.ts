@@ -8,13 +8,7 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from '../testRunner';
-import {
-  TestCaseInfo,
-  TestExecutionInfo,
-  TestFileInfo,
-  TestInfoKind,
-  TestType
-} from '../types';
+import { TestCaseInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
@@ -28,11 +22,7 @@ const debugSessionStartTimes = new Map<string, [number, number]>();
  * @param args CLI arguments
  * @param cwd current working directory
  */
-export const getDebugConfiguration = (
-  command: string,
-  args: string[],
-  cwd: string
-): vscode.DebugConfiguration => {
+export const getDebugConfiguration = (command: string, args: string[], cwd: string): vscode.DebugConfiguration => {
   const sfDebugSessionId = uuid.v4();
   const debugConfiguration: vscode.DebugConfiguration = {
     sfDebugSessionId,
@@ -59,14 +49,9 @@ export const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
   const shellExecutionInfo = testRunner.getShellExecutionInfo();
   if (shellExecutionInfo) {
-    const { command, args, workspaceFolder, testResultFsPath } =
-      shellExecutionInfo;
+    const { command, args, workspaceFolder, testResultFsPath } = shellExecutionInfo;
     testRunner.startWatchingTestResults(testResultFsPath);
-    const debugConfiguration = getDebugConfiguration(
-      command,
-      args,
-      workspaceFolder.uri.fsPath
-    );
+    const debugConfiguration = getDebugConfiguration(command, args, workspaceFolder.uri.fsPath);
     await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
   }
 };
@@ -75,9 +60,7 @@ export const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
  * Debug an individual test case
  * @param data a test explorer node or information provided by code lens
  */
-export const lwcTestCaseDebug = async (data: {
-  testExecutionInfo: TestCaseInfo;
-}) => {
+export const lwcTestCaseDebug = async (data: { testExecutionInfo: TestCaseInfo }) => {
   const { testExecutionInfo } = data;
   await lwcTestDebug(testExecutionInfo);
 };
@@ -86,9 +69,7 @@ export const lwcTestCaseDebug = async (data: {
  * Debug a test file
  * @param data a test explorer node
  */
-export const lwcTestFileDebug = async (data: {
-  testExecutionInfo: TestExecutionInfo;
-}) => {
+export const lwcTestFileDebug = async (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   await lwcTestDebug(testExecutionInfo);
 };
@@ -123,9 +104,7 @@ export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
  * Send telemetry event if applicable when debug session ends
  * @param session debug session
  */
-export const handleDidTerminateDebugSession = (
-  session: vscode.DebugSession
-) => {
+export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const startTime = debugSessionStartTimes.get(configuration.sfDebugSessionId);
   if (Array.isArray(startTime)) {

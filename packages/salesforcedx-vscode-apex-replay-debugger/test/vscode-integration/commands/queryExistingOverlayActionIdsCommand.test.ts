@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  RequestService,
-  RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils';
+import { RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
@@ -42,17 +39,13 @@ describe('QueryExistingOverlayActionIdsCommand command', () => {
   });
 
   it('QueryExistingOverlayActionIdsCommand GET REST call with parse-able success result, no action objects', async () => {
-    queryOverlayActionCommand = new QueryExistingOverlayActionIdsCommand(
-      userId
+    queryOverlayActionCommand = new QueryExistingOverlayActionIdsCommand(userId);
+    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
+      Promise.resolve({
+        status: 200,
+        responseText: responseSuccessEmpty
+      } as XHRResponse)
     );
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({
-          status: 200,
-          responseText: responseSuccessEmpty
-        } as XHRResponse)
-      );
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Post
     const expectedOptions: XHROptions = createExpectedXHROptions(
@@ -61,33 +54,24 @@ describe('QueryExistingOverlayActionIdsCommand command', () => {
       RestHttpMethodEnum.Get
     );
 
-    const returnString = await requestService.execute(
-      queryOverlayActionCommand,
-      RestHttpMethodEnum.Get
-    );
+    const returnString = await requestService.execute(queryOverlayActionCommand, RestHttpMethodEnum.Get);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
 
     // parse the returnString and verify the size is 0 and the records list is empty
-    const response = JSON.parse(
-      returnString
-    ) as QueryOverlayActionIdsSuccessResult;
+    const response = JSON.parse(returnString) as QueryOverlayActionIdsSuccessResult;
     expect(response.size).to.equal(0);
     expect(response.records.length).to.equal(0);
   });
   it('QueryExistingOverlayActionIdsCommand GET REST call with parse-able success result, 5 action objects', async () => {
-    queryOverlayActionCommand = new QueryExistingOverlayActionIdsCommand(
-      userId
+    queryOverlayActionCommand = new QueryExistingOverlayActionIdsCommand(userId);
+    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
+      Promise.resolve({
+        status: 200,
+        responseText: responseSuccessFiveActions
+      } as XHRResponse)
     );
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({
-          status: 200,
-          responseText: responseSuccessFiveActions
-        } as XHRResponse)
-      );
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Post
     const expectedOptions: XHROptions = createExpectedXHROptions(
@@ -96,18 +80,13 @@ describe('QueryExistingOverlayActionIdsCommand command', () => {
       RestHttpMethodEnum.Get
     );
 
-    const returnString = await requestService.execute(
-      queryOverlayActionCommand,
-      RestHttpMethodEnum.Get
-    );
+    const returnString = await requestService.execute(queryOverlayActionCommand, RestHttpMethodEnum.Get);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
 
     // parse the returnString and verify the size is 5 and there are 5 records in the list
-    const response = JSON.parse(
-      returnString
-    ) as QueryOverlayActionIdsSuccessResult;
+    const response = JSON.parse(returnString) as QueryOverlayActionIdsSuccessResult;
     expect(response.size).to.equal(5);
     expect(response.records.length).to.equal(5);
   });

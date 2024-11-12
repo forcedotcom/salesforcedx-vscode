@@ -10,10 +10,7 @@ import {
   ProjectRetrieveStartSuccessResponse
 } from '@salesforce/salesforcedx-utils-vscode/src/cli/parsers/projectRetrieveStartResultParser';
 import { channelService } from '../../../../src/channels';
-import {
-  ProjectDeployStartExecutor,
-  ProjectRetrieveStartExecutor
-} from '../../../../src/commands';
+import { ProjectDeployStartExecutor, ProjectRetrieveStartExecutor } from '../../../../src/commands';
 import { DeployType } from '../../../../src/commands/projectDeployStart';
 import { CommandParams } from '../../../../src/commands/util';
 import { PersistentStorageService } from '../../../../src/conflict';
@@ -46,9 +43,7 @@ describe('SfCommandletExecutor', () => {
   let appendLineMock: jest.SpyInstance;
 
   beforeEach(() => {
-    appendLineMock = jest
-      .spyOn(channelService, 'appendLine')
-      .mockImplementation(jest.fn());
+    appendLineMock = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
   });
 
   describe('exitProcessHandlerPull', () => {
@@ -64,10 +59,7 @@ describe('SfCommandletExecutor', () => {
 
     it('should update the local cache for the components that were retrieved after a pull', () => {
       const executor = new ProjectRetrieveStartExecutor(undefined, pullCommand);
-      const updateCacheAfterPushPullMock = jest.spyOn(
-        executor as any,
-        'updateCache'
-      );
+      const updateCacheAfterPushPullMock = jest.spyOn(executor as any, 'updateCache');
       (executor as any).channel = { appendLine: appendLineMock };
 
       (executor as any).exitProcessHandlerPull(
@@ -88,9 +80,7 @@ describe('SfCommandletExecutor', () => {
     let parseSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      showWarningMessageMock = jest
-        .spyOn(notificationService, 'showWarningMessage')
-        .mockImplementation(jest.fn());
+      showWarningMessageMock = jest.spyOn(notificationService, 'showWarningMessage').mockImplementation(jest.fn());
 
       parseSpy = jest.spyOn(JSON, 'parse');
     });
@@ -162,9 +152,7 @@ describe('SfCommandletExecutor', () => {
       executor.outputResultPull(parser as any);
 
       // Assert
-      expect(
-        appendLineMock.mock.calls[0][0].includes(dummyName, dummyMsg)
-      ).toEqual(true);
+      expect(appendLineMock.mock.calls[0][0].includes(dummyName, dummyMsg)).toEqual(true);
     });
 
     it('should output at least something to the console when there are errors and no data and the response is missing information', () => {

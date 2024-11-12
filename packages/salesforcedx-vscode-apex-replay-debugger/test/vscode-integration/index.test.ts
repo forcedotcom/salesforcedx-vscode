@@ -23,9 +23,7 @@ describe('Extension Setup', () => {
         }
       };
 
-      const realType = await getDebuggerType(
-        (session as any) as vscode.DebugSession
-      );
+      const realType = await getDebuggerType(session as any as vscode.DebugSession);
 
       expect(realType).to.be.equal(DEBUGGER_TYPE);
     });

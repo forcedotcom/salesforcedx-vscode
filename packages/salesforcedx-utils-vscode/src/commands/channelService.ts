@@ -29,12 +29,8 @@ export class ChannelService {
 
   public streamCommandOutput(execution: CommandExecution) {
     this.streamCommandStartStop(execution);
-    execution.stderrSubject.subscribe(data =>
-      this.channel.append(stripAnsi(data.toString()))
-    );
-    execution.stdoutSubject.subscribe(data =>
-      this.channel.append(stripAnsi(data.toString()))
-    );
+    execution.stderrSubject.subscribe(data => this.channel.append(stripAnsi(data.toString())));
+    execution.stdoutSubject.subscribe(data => this.channel.append(stripAnsi(data.toString())));
   }
 
   public streamCommandStartStop(execution: CommandExecution) {
@@ -51,9 +47,7 @@ export class ChannelService {
       this.showCommandWithTimestamp(execution.command.toCommand());
       this.channel.append(' ');
       if (data !== undefined && data !== null) {
-        this.channel.appendLine(
-          nls.localize('channel_end_with_exit_code', data.toString())
-        );
+        this.channel.appendLine(nls.localize('channel_end_with_exit_code', data.toString()));
       } else {
         this.channel.appendLine(nls.localize('channel_end'));
       }
@@ -66,13 +60,9 @@ export class ChannelService {
       this.channel.append(' ');
       if (data !== undefined) {
         if (/sfdx.*ENOENT/.test(data.message)) {
-          this.channel.appendLine(
-            nls.localize('channel_end_with_sfdx_not_found')
-          );
+          this.channel.appendLine(nls.localize('channel_end_with_sfdx_not_found'));
         } else {
-          this.channel.appendLine(
-            nls.localize('channel_end_with_error', data.message)
-          );
+          this.channel.appendLine(nls.localize('channel_end_with_error', data.message));
         }
       } else {
         this.channel.appendLine(nls.localize('channel_end'));

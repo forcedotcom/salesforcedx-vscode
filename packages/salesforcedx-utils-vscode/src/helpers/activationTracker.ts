@@ -14,10 +14,7 @@ export class ActivationTracker {
   private telemetryService: TelemetryServiceInterface;
   private _activationInfo: ActivationInfo;
 
-  constructor(
-    extensionContext: ExtensionContext,
-    telemetryService: TelemetryServiceInterface
-  ) {
+  constructor(extensionContext: ExtensionContext, telemetryService: TelemetryServiceInterface) {
     this.extensionContext = extensionContext;
     this.telemetryService = telemetryService;
     this._activationInfo = {
@@ -30,26 +27,18 @@ export class ActivationTracker {
   async markActivationStop(activationEndDate?: Date): Promise<void> {
     // capture date and elapsed HR time
     const activateEndDate = activationEndDate ?? new Date();
-    const hrEnd = this.telemetryService.getEndHRTime(
-      this._activationInfo.startActivateHrTime
-    );
+    const hrEnd = this.telemetryService.getEndHRTime(this._activationInfo.startActivateHrTime);
     // getting extension info. This may take up to 10 seconds, as log record creation might be lagging from
     // this code. All needed data have been captured for telemetry, so a wait here should have no effect
     // on quality of telemetry data
     const extensionInfo = await getExtensionInfo(this.extensionContext);
     let extensionActivationTime = -1;
-    if (
-      extensionInfo?.loadStartDate &&
-      activateEndDate.getTime() >= extensionInfo.loadStartDate.getTime()
-    ) {
+    if (extensionInfo?.loadStartDate && activateEndDate.getTime() >= extensionInfo.loadStartDate.getTime()) {
       // subtract activateEndDate from loadStartDate to get the time spent loading the extension if loadStartDate is not undefined
-      extensionActivationTime =
-        activateEndDate.getTime() - extensionInfo.loadStartDate.getTime();
+      extensionActivationTime = activateEndDate.getTime() - extensionInfo.loadStartDate.getTime();
     }
     if (extensionActivationTime < 0) {
-      this.telemetryService.sendExtensionActivationEvent(
-        this._activationInfo.startActivateHrTime
-      );
+      this.telemetryService.sendExtensionActivationEvent(this._activationInfo.startActivateHrTime);
     } else {
       this._activationInfo = {
         ...this._activationInfo,

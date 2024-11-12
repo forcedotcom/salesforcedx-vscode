@@ -14,11 +14,7 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-import {
-  checkJavaVersion,
-  JAVA_HOME_KEY,
-  resolveRequirements
-} from '../../../src/requirements';
+import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../../src/requirements';
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = `~/java_home/real/jdk/${jdk}`;
@@ -67,9 +63,7 @@ describe('Java Requirements Test', () => {
       await checkJavaVersion('~/java_home');
       fail('Should have thrown when the Java version is not supported');
     } catch (err) {
-      expect(err).to.equal(
-        nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
-      );
+      expect(err).to.equal(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
     }
   });
 
@@ -79,9 +73,7 @@ describe('Java Requirements Test', () => {
       const result = await checkJavaVersion('~/java_home');
       expect(result).to.equal(true);
     } catch (err) {
-      fail(
-        `Should not have thrown when the Java version is 11.  The error was: ${err}`
-      );
+      fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
     }
   });
 
@@ -91,9 +83,7 @@ describe('Java Requirements Test', () => {
       const result = await checkJavaVersion('~/java_home');
       expect(result).to.equal(true);
     } catch (err) {
-      fail(
-        `Should not have thrown when the Java version is 17.  The error was: ${err}`
-      );
+      fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
     }
   });
 
@@ -103,11 +93,8 @@ describe('Java Requirements Test', () => {
       const result = await checkJavaVersion('~/java_home');
       expect(result).to.equal(true);
     } catch (err) {
-      fail(
-        `Should not have thrown when the Java version is 21.  The error was: ${err}`
-      );
+      fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
     }
-
   });
   it('Should not support Java 20', async () => {
     execFileStub.yields('', '', 'java.version = 20.0.0');
@@ -115,9 +102,7 @@ describe('Java Requirements Test', () => {
       await checkJavaVersion('~/java_home');
       fail('Should have thrown when the Java version is not supported');
     } catch (err) {
-      expect(err).to.equal(
-        nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
-      );
+      expect(err).to.equal(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
     }
   });
 

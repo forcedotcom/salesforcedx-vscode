@@ -50,11 +50,7 @@ export const setupWorkspaceOrgType = async (targetOrgOrAlias?: string) => {
 };
 
 const setTargetOrgHasChangeTracking = (val: boolean): void => {
-  void vscode.commands.executeCommand(
-    'setContext',
-    'sf:target_org_has_change_tracking',
-    val
-  );
+  void vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', val);
 };
 
 const setHasTargetOrg = (val: boolean): void => {

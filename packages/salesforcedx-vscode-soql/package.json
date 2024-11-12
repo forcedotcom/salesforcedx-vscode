@@ -18,7 +18,7 @@
     "theme": "light"
   },
   "engines": {
-    "vscode": "^1.86.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Programming Languages"
@@ -50,33 +50,23 @@
     "@types/debounce": "^1.2.0",
     "@types/fs-extra": "^8.1.0",
     "@types/mocha": "^5",
-    "@types/node": "^18.11.9",
+    "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
     "@types/sinon": "7.5.2",
-    "@types/vscode": "^1.86.0",
-    "@typescript-eslint/eslint-plugin": "5.62.0",
-    "@typescript-eslint/parser": "5.62.0",
+    "@types/vscode": "^1.90.0",
     "applicationinsights": "1.0.7",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "debounce": "^1.2.0",
     "esbuild": "^0.19.5",
     "esbuild-plugin-pino": "^2.1.0",
-    "eslint": "8.23.0",
-    "eslint-config-prettier": "9.0.0",
-    "eslint-plugin-header": "3.1.1",
-    "eslint-plugin-import": "2.29.0",
-    "eslint-plugin-jest": "27.5.0",
-    "eslint-plugin-jest-formatting": "3.1.0",
-    "eslint-plugin-jsdoc": "46.8.2",
-    "eslint-plugin-prefer-arrow": "1.2.3",
     "eslint-plugin-prettier": "^3.1.4",
     "fs-extra": "^8.1.0",
     "mocha": "^10",
     "papaparse": "^5.3.0",
-    "prettier": "3.0.3",
+    "prettier": "3.3.3",
     "sinon": "13.0.1",
-    "typescript": "^5.2.2",
+    "typescript": "^5.6.2",
     "vscode-extension-tester": "^5.0.0",
     "vscode-languageclient": "6.1.3"
   },

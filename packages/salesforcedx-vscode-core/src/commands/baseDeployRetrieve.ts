@@ -21,10 +21,7 @@ import {
   MetadataApiRetrieve,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve-bundle';
-import {
-  ComponentStatus,
-  RequestStatus
-} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+import { ComponentStatus, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -36,20 +33,13 @@ import { nls } from '../messages';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { DeployQueue, salesforceCoreSettings } from '../settings';
-import {
-  createComponentCount,
-  formatException,
-  SfCommandletExecutor
-} from './util';
+import { createComponentCount, formatException, SfCommandletExecutor } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
-export abstract class DeployRetrieveExecutor<
-  T
-> extends LibraryCommandletExecutor<T> {
-  public static errorCollection =
-    vscode.languages.createDiagnosticCollection('deploy-errors');
+export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecutor<T> {
+  public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
 
   constructor(executionName: string, logName: string) {
@@ -71,19 +61,13 @@ export abstract class DeployRetrieveExecutor<
       await componentSetUtils.setApiVersion(components);
       await componentSetUtils.setSourceApiVersion(components);
 
-      this.telemetry.addProperty(
-        TELEMETRY_METADATA_COUNT,
-        JSON.stringify(createComponentCount(components))
-      );
+      this.telemetry.addProperty(TELEMETRY_METADATA_COUNT, JSON.stringify(createComponentCount(components)));
 
       result = await this.doOperation(components, token);
 
       const status = result?.response.status;
 
-      return (
-        status === RequestStatus.Succeeded ||
-        status === RequestStatus.SucceededPartial
-      );
+      return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
     } catch (e) {
       throw formatException(e);
     } finally {
@@ -91,10 +75,7 @@ export abstract class DeployRetrieveExecutor<
     }
   }
 
-  protected setupCancellation(
-    operation: DeployRetrieveOperation | undefined,
-    token?: vscode.CancellationToken
-  ) {
+  protected setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
     if (token && operation) {
       token.onCancellationRequested(async () => {
         await operation.cancel();
@@ -102,16 +83,12 @@ export abstract class DeployRetrieveExecutor<
     }
   }
 
-  protected abstract getComponents(
-    response: ContinueResponse<T>
-  ): Promise<ComponentSet>;
+  protected abstract getComponents(response: ContinueResponse<T>): Promise<ComponentSet>;
   protected abstract doOperation(
     components: ComponentSet,
     token?: vscode.CancellationToken
   ): Promise<DeployRetrieveResult | undefined>;
-  protected abstract postOperation(
-    result: DeployRetrieveResult | undefined
-  ): Promise<void>;
+  protected abstract postOperation(result: DeployRetrieveResult | undefined): Promise<void>;
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
@@ -122,13 +99,9 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     components.projectDirectory = projectPath;
-    const sourceTrackingEnabled =
-      salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
-      const sourceTracking = await SourceTrackingService.getSourceTracking(
-        projectPath,
-        connection
-      );
+      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
       await sourceTracking.ensureLocalTracking();
     }
 
@@ -141,27 +114,19 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     return operation.pollStatus();
   }
 
-  protected async postOperation(
-    result: DeployResult | undefined
-  ): Promise<void> {
+  protected async postOperation(result: DeployResult | undefined): Promise<void> {
     try {
       if (result) {
         // Update Persistent Storage for the files that were deployed
-        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
-          result
-        );
+        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(result);
 
-        const relativePackageDirs =
-          await SalesforcePackageDirectories.getPackageDirectoryPaths();
+        const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
         channelService.appendLine(output);
 
         const success = result.response.status === RequestStatus.Succeeded;
         if (!success) {
-          this.unsuccessfulOperationHandler(
-            result,
-            DeployRetrieveExecutor.errorCollection
-          );
+          this.unsuccessfulOperationHandler(result, DeployRetrieveExecutor.errorCollection);
         } else {
           DeployRetrieveExecutor.errorCollection.clear();
           SfCommandletExecutor.errorCollection.clear();
@@ -172,24 +137,15 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     }
   }
 
-  protected unsuccessfulOperationHandler(
-    result: DeployResult,
-    errorCollection: any
-  ) {
+  protected unsuccessfulOperationHandler(result: DeployResult, errorCollection: any) {
     handleDeployDiagnostics(result, errorCollection);
   }
 
-  private createOutput(
-    result: DeployResult,
-    relativePackageDirs: string[]
-  ): string {
+  private createOutput(result: DeployResult, relativePackageDirs: string[]): string {
     const table = new Table();
 
     const rowsWithRelativePaths = result.getFileResponses().map(response => {
-      response.filePath = getRelativeProjectPath(
-        response.filePath,
-        relativePackageDirs
-      );
+      response.filePath = getRelativeProjectPath(response.filePath, relativePackageDirs);
       return response;
     }) as unknown as Row[];
 
@@ -236,22 +192,15 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<RetrieveResult | undefined> {
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const sourceTrackingEnabled =
-      salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
-        this.sourceTracking = await SourceTrackingService.getSourceTracking(
-          projectPath,
-          connection
-        );
+        this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
       }
     }
 
-    const defaultOutput = join(
-      projectPath,
-      (await SalesforcePackageDirectories.getDefaultPackageDir()) ?? ''
-    );
+    const defaultOutput = join(projectPath, (await SalesforcePackageDirectories.getDefaultPackageDir()) ?? '');
 
     const operation = await components.retrieve({
       usernameOrConnection: connection,
@@ -265,52 +214,34 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     const result: RetrieveResult = await operation.pollStatus();
     if (sourceTrackingEnabled) {
       const status = result?.response?.status;
-      if (
-        (status === RequestStatus.Succeeded ||
-          status === RequestStatus.SucceededPartial) &&
-        this.sourceTracking
-      ) {
-        await SourceTrackingService.updateSourceTrackingAfterRetrieve(
-          this.sourceTracking,
-          result
-        );
+      if ((status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) && this.sourceTracking) {
+        await SourceTrackingService.updateSourceTrackingAfterRetrieve(this.sourceTracking, result);
       }
     }
 
     return result;
   }
 
-  protected async postOperation(
-    result: RetrieveResult | undefined
-  ): Promise<void> {
+  protected async postOperation(result: RetrieveResult | undefined): Promise<void> {
     if (result) {
       DeployRetrieveExecutor.errorCollection.clear();
       SfCommandletExecutor.errorCollection.clear();
-      const relativePackageDirs =
-        await SalesforcePackageDirectories.getPackageDirectoryPaths();
+      const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
       if (result?.response?.fileProperties !== undefined) {
-        PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
-          result.response.fileProperties
-        );
+        PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
       }
     }
   }
 
-  private createOutput(
-    result: RetrieveResult,
-    relativePackageDirs: string[]
-  ): string {
+  private createOutput(result: RetrieveResult, relativePackageDirs: string[]): string {
     const successes: Row[] = [];
     const failures: Row[] = [];
 
     for (const response of result.getFileResponses()) {
       const asRow = response as unknown as Row;
-      response.filePath = getRelativeProjectPath(
-        response.filePath,
-        relativePackageDirs
-      );
+      response.filePath = getRelativeProjectPath(response.filePath, relativePackageDirs);
       if (response.state !== ComponentStatus.Failed) {
         successes.push(asRow);
       } else {

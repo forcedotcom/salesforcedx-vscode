@@ -26,12 +26,8 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
   let stateAggregatorClearInstanceMock: jest.SpyInstance;
 
   beforeEach(() => {
-    workspacePathStub = jest
-      .spyOn(workspaceUtils, 'getRootWorkspacePath')
-      .mockReturnValue(fakeWorkspace);
-    originalDirectoryStub = jest
-      .spyOn(process, 'cwd')
-      .mockReturnValue(fakeOriginalDirectory);
+    workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
+    originalDirectoryStub = jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
     setMock = jest.fn();
     writeMock = jest.fn();
     configStub = jest.spyOn(Config, 'create');
@@ -41,10 +37,7 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
     mockConfigAggregatorProvider = jest
       .spyOn(ConfigAggregatorProvider, 'getInstance')
       .mockReturnValue(mockConfigAggregatorProviderInstance as any);
-    stateAggregatorClearInstanceMock = jest.spyOn(
-      StateAggregator,
-      'clearInstance'
-    );
+    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstance');
   });
 
   it('should set provided username or alias as default configs', async () => {
@@ -71,17 +64,12 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
     expect(setMock).toHaveBeenCalledWith(TARGET_ORG_KEY, username);
     expect(writeMock).toHaveBeenCalled();
     expect(mockConfigAggregatorProvider).toHaveBeenCalled();
-    expect(
-      mockConfigAggregatorProviderInstance.reloadConfigAggregators
-    ).toHaveBeenCalled();
+    expect(mockConfigAggregatorProviderInstance.reloadConfigAggregators).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
 
     const writeCallOrder = writeMock.mock.invocationCallOrder[0];
-    const reloadCallOrder =
-      mockConfigAggregatorProviderInstance.reloadConfigAggregators.mock
-        .invocationCallOrder[0];
-    const clearInstanceCallOrder =
-      stateAggregatorClearInstanceMock.mock.invocationCallOrder[0];
+    const reloadCallOrder = mockConfigAggregatorProviderInstance.reloadConfigAggregators.mock.invocationCallOrder[0];
+    const clearInstanceCallOrder = stateAggregatorClearInstanceMock.mock.invocationCallOrder[0];
 
     expect(writeCallOrder).toBeLessThan(reloadCallOrder);
     expect(reloadCallOrder).toBeLessThan(clearInstanceCallOrder);
@@ -105,12 +93,8 @@ describe('testing unsetTargetOrg', () => {
   let stateAggregatorClearInstanceMock: jest.SpyInstance;
 
   beforeEach(() => {
-    workspacePathStub = jest
-      .spyOn(workspaceUtils, 'getRootWorkspacePath')
-      .mockReturnValue(fakeWorkspace);
-    originalDirectoryStub = jest
-      .spyOn(process, 'cwd')
-      .mockReturnValue(fakeOriginalDirectory);
+    workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
+    originalDirectoryStub = jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
     unsetMock = jest.fn();
     writeMock = jest.fn();
     configStub = jest.spyOn(Config, 'create');
@@ -119,10 +103,7 @@ describe('testing unsetTargetOrg', () => {
     mockConfigAggregatorProvider = jest
       .spyOn(ConfigAggregatorProvider, 'getInstance')
       .mockReturnValue(mockConfigAggregatorProviderInstance as any);
-    stateAggregatorClearInstanceMock = jest.spyOn(
-      StateAggregator,
-      'clearInstance'
-    );
+    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstance');
   });
 
   it('should unset provided username or alias', async () => {
@@ -130,9 +111,7 @@ describe('testing unsetTargetOrg', () => {
     expect(unsetMock).toHaveBeenCalledWith(TARGET_ORG_KEY);
     expect(writeMock).toHaveBeenCalled();
     expect(mockConfigAggregatorProvider).toHaveBeenCalled();
-    expect(
-      mockConfigAggregatorProviderInstance.reloadConfigAggregators
-    ).toHaveBeenCalled();
+    expect(mockConfigAggregatorProviderInstance.reloadConfigAggregators).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 

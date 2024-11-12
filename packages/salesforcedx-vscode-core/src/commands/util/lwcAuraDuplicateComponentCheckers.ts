@@ -8,8 +8,8 @@
 import { getMessageFromError, notificationService, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { nls } from '../../messages';
-import { ContinueOrCancel, getComponentName, getComponentPath, isContinue,  OneOrMany  } from '../../util';
-import { isComponentName, isDirFileNameSelection} from '../../util/types';
+import { ContinueOrCancel, getComponentName, getComponentPath, isContinue, OneOrMany } from '../../util';
+import { isComponentName, isDirFileNameSelection } from '../../util/types';
 import {
   RENAME_NOT_SUPPORTED_MESSAGE,
   INPUT_NO_COMPONENT_NAME_MESSAGE,
@@ -22,12 +22,11 @@ import {
   checkForDuplicateName
 } from './lwcAuraDuplicateDetectionUtils';
 
-
 /*
  * Checks for existing component name between LWC and Aura during rename
  */
 export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionChecker<OneOrMany> {
-  constructor(private readonly sourceFsPath: string) { }
+  constructor(private readonly sourceFsPath: string) {}
   async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (!isContinue(inputs)) {
       return Promise.resolve(inputs);
@@ -62,7 +61,7 @@ export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionC
  * Checks for existing component name between LWC and Aura during create
  */
 export class LwcAuraDuplicateComponentCheckerForCreate implements PostconditionChecker<OneOrMany> {
-  constructor() { }
+  constructor() {}
   async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (!isContinue(inputs)) {
       return Promise.resolve(inputs);
@@ -77,14 +76,13 @@ export class LwcAuraDuplicateComponentCheckerForCreate implements PostconditionC
 
     const componentPath = inputs.data.outputdir;
     const componentName = getComponentName(inputs.data.fileName);
-    return checkForExistingComponentInAltLocation(componentPath, componentName)
-      .then(exists => {
-        if (exists) {
-          void notificationService.showErrorMessage(nls.localize(INPUT_DUP_ERROR));
-          return { type: 'CANCEL', msg: nls.localize(INPUT_DUP_ERROR) };
-        }
-        // No duplicates found, continue with the process
-        return { type: 'CONTINUE', data: inputs.data };
-      });
+    return checkForExistingComponentInAltLocation(componentPath, componentName).then(exists => {
+      if (exists) {
+        void notificationService.showErrorMessage(nls.localize(INPUT_DUP_ERROR));
+        return { type: 'CANCEL', msg: nls.localize(INPUT_DUP_ERROR) };
+      }
+      // No duplicates found, continue with the process
+      return { type: 'CONTINUE', data: inputs.data };
+    });
   }
 }

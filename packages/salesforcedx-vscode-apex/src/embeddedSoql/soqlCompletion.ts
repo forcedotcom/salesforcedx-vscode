@@ -4,16 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  commands,
-  CompletionItem,
-  CompletionList,
-  EndOfLine,
-  Position,
-  TextDocument,
-  Uri,
-  workspace
-} from 'vscode';
+import { commands, CompletionItem, CompletionList, EndOfLine, Position, TextDocument, Uri, workspace } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
 import { Middleware } from 'vscode-languageclient/node';
@@ -29,31 +20,16 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
   }
 });
 
-const insideSOQLBlock = (
-  apexItems: ProtocolCompletionItem[]
-): { queryText: string; location: any } | undefined => {
-  const soqlItem = apexItems.find(
-    i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL
-  );
-  return soqlItem
-    ? { queryText: soqlItem.detail as string, location: soqlItem.data }
-    : undefined;
+const insideSOQLBlock = (apexItems: ProtocolCompletionItem[]): { queryText: string; location: any } | undefined => {
+  const soqlItem = apexItems.find(i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
+  return soqlItem ? { queryText: soqlItem.detail as string, location: soqlItem.data } : undefined;
 };
 
-const insideApexBindingExpression = (
-  document: TextDocument,
-  soqlQuery: string,
-  position: Position
-): boolean => {
+const insideApexBindingExpression = (document: TextDocument, soqlQuery: string, position: Position): boolean => {
   // Simple heuristic to detect when cursor is on a binding expression
   // (which might have been missed by Apex LSP)
-  const rangeAtCursor = document.getWordRangeAtPosition(
-    position,
-    /[:(_.\w)]+/
-  );
-  const wordAtCursor = rangeAtCursor
-    ? document.getText(rangeAtCursor)
-    : undefined;
+  const rangeAtCursor = document.getWordRangeAtPosition(position, /[:(_.\w)]+/);
+  const wordAtCursor = rangeAtCursor ? document.getText(rangeAtCursor) : undefined;
 
   return !!wordAtCursor && wordAtCursor.startsWith(':');
 };
@@ -77,15 +53,12 @@ const getSOQLVirtualContent = (
     ' ' +
     soqlBlock.queryText +
     ' ' +
-    blankedContent.slice(
-      soqlBlock.location.startIndex + soqlBlock.queryText.length + 2
-    );
+    blankedContent.slice(soqlBlock.location.startIndex + soqlBlock.queryText.length + 2);
 
   return content;
 };
 
 export const soqlMiddleware: Middleware = {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   provideCompletionItem: async (document, position, context, token, next) => {
     const apexCompletionItems = await next(document, position, context, token);
@@ -95,24 +68,14 @@ export const soqlMiddleware: Middleware = {
 
     const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
       ? (apexCompletionItems as ProtocolCompletionItem[])
-      : ((apexCompletionItems )
-        .items as ProtocolCompletionItem[]);
+      : (apexCompletionItems.items as ProtocolCompletionItem[]);
 
     const soqlBlock = insideSOQLBlock(items);
     if (soqlBlock) {
-      if (
-        !insideApexBindingExpression(document, soqlBlock.queryText, position)
-      ) {
-        return await doSOQLCompletion(
-          document,
-          position.with({ character: position.character }),
-          context,
-          soqlBlock
-        );
+      if (!insideApexBindingExpression(document, soqlBlock.queryText, position)) {
+        return await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock);
       } else {
-        return items.filter(
-          i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL
-        );
+        return items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
       }
     } else return apexCompletionItems;
   }
@@ -125,10 +88,7 @@ const doSOQLCompletion = async (
   soqlBlock: any
 ): Promise<CompletionItem[] | CompletionList<CompletionItem>> => {
   const originalUri = document.uri.path;
-  virtualDocumentContents.set(
-    originalUri,
-    getSOQLVirtualContent(document, position, soqlBlock)
-  );
+  virtualDocumentContents.set(originalUri, getSOQLVirtualContent(document, position, soqlBlock));
 
   const vdocUriString = `embedded-soql://soql/${originalUri}.soql`;
   const vdocUri = Uri.parse(vdocUriString);

@@ -7,14 +7,7 @@
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import {
-  ERROR_EVENT,
-  EXIT_EVENT,
-  FAILURE_CODE,
-  STDERR_EVENT,
-  STDOUT_EVENT,
-  SUCCESS_CODE
-} from '../constants';
+import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
 import {
@@ -60,9 +53,7 @@ export class SObjectTransformer {
     const pathToStateFolder = projectPaths.stateFolder();
 
     if (!fs.existsSync(pathToStateFolder)) {
-      return this.errorExit(
-        nls.localize('no_generate_if_not_in_project', pathToStateFolder)
-      );
+      return this.errorExit(nls.localize('no_generate_if_not_in_project', pathToStateFolder));
     }
 
     const output: SObjectRefreshData = this.initializeData(pathToStateFolder);
@@ -140,19 +131,13 @@ export class SObjectTransformer {
   }
 
   private didCancel(): boolean {
-    if (
-      this.cancellationToken &&
-      this.cancellationToken.isCancellationRequested
-    ) {
+    if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
       return true;
     }
     return false;
   }
 
-  private errorExit(
-    message: string,
-    stack?: string
-  ): Promise<SObjectRefreshResult> {
+  private errorExit(message: string, stack?: string): Promise<SObjectRefreshResult> {
     this.emitter.emit(STDERR_EVENT, `${message}\n`);
     this.emitter.emit(ERROR_EVENT, new Error(message));
     this.emitter.emit(EXIT_EVENT, FAILURE_CODE);
@@ -173,14 +158,7 @@ export class SObjectTransformer {
 
   private logSObjects(sobjectKind: string, processedLength: number) {
     if (processedLength > 0) {
-      this.emitter.emit(
-        STDOUT_EVENT,
-        nls.localize(
-          'processed_sobjects_length_text',
-          processedLength,
-          sobjectKind
-        )
-      );
+      this.emitter.emit(STDOUT_EVENT, nls.localize('processed_sobjects_length_text', processedLength, sobjectKind));
     }
   }
 }

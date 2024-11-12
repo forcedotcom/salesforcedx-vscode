@@ -24,11 +24,7 @@ const setLwcJestFileFocusedContext = (textEditor?: vscode.TextEditor) => {
 
     testWatcher.setWatchingContext(textEditor.document.uri);
   } else {
-    vscode.commands.executeCommand(
-      'setContext',
-      SF_LWC_JEST_FILE_FOCUSED_CONTEXT,
-      false
-    );
+    vscode.commands.executeCommand('setContext', SF_LWC_JEST_FILE_FOCUSED_CONTEXT, false);
   }
 };
 
@@ -37,13 +33,10 @@ const setLwcJestFileFocusedContext = (textEditor?: vscode.TextEditor) => {
  * and make sure the correct context is set.
  * @param extensionContext extension context
  */
-export const startWatchingEditorFocusChange = (
-  extensionContext: vscode.ExtensionContext
-) => {
+export const startWatchingEditorFocusChange = (extensionContext: vscode.ExtensionContext) => {
   setLwcJestFileFocusedContext(vscode.window.activeTextEditor);
-  const handleDidChangeActiveTextEditor =
-    vscode.window.onDidChangeActiveTextEditor(textEditor => {
-      setLwcJestFileFocusedContext(textEditor);
-    });
+  const handleDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor(textEditor => {
+    setLwcJestFileFocusedContext(textEditor);
+  });
   extensionContext.subscriptions.push(handleDidChangeActiveTextEditor);
 };

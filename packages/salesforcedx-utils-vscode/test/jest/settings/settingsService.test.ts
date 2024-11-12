@@ -5,14 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import {
-  SETTING_CLEAR_OUTPUT_TAB,
-  SFDX_CORE_CONFIGURATION_NAME
-} from '../../../src';
-import {
-  AdvancedSettings,
-  SettingsService
-} from '../../../src/settings/settingsService';
+import { SETTING_CLEAR_OUTPUT_TAB, SFDX_CORE_CONFIGURATION_NAME } from '../../../src';
+import { AdvancedSettings, SettingsService } from '../../../src/settings/settingsService';
 
 const mockedVSCode = jest.mocked(vscode);
 
@@ -35,13 +29,8 @@ describe('SettingsService', () => {
       const result = SettingsService.getEnableClearOutputBeforeEachCommand();
 
       expect(result).toBe(true);
-      expect(getConfigurationMock).toHaveBeenCalledWith(
-        SFDX_CORE_CONFIGURATION_NAME
-      );
-      expect(mockConfiguration.get).toHaveBeenCalledWith(
-        SETTING_CLEAR_OUTPUT_TAB,
-        false
-      );
+      expect(getConfigurationMock).toHaveBeenCalledWith(SFDX_CORE_CONFIGURATION_NAME);
+      expect(mockConfiguration.get).toHaveBeenCalledWith(SETTING_CLEAR_OUTPUT_TAB, false);
     });
   });
 
@@ -56,9 +45,7 @@ describe('SettingsService', () => {
       );
 
       expect(getConfigurationMock).toHaveBeenCalled();
-      expect(mockConfiguration.get).toHaveBeenCalledWith(
-        'myExtension.advanced.localTelemetryLogging'
-      );
+      expect(mockConfiguration.get).toHaveBeenCalledWith('myExtension.advanced.localTelemetryLogging');
       expect(result).toBe(true);
     });
 
@@ -71,9 +58,7 @@ describe('SettingsService', () => {
       );
 
       expect(getConfigurationMock).toHaveBeenCalledWith();
-      expect(mockConfiguration.get).toHaveBeenCalledWith(
-        'myExtension.advanced.localTelemetryLogging'
-      );
+      expect(mockConfiguration.get).toHaveBeenCalledWith('myExtension.advanced.localTelemetryLogging');
       expect(result).toBe(false);
     });
   });

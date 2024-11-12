@@ -33,12 +33,8 @@ export type ApexDebugLogIdStartTime = {
   startTime: string;
 };
 
-export class LogFileSelector
-  implements ParametersGatherer<ApexDebugLogIdStartTime>
-{
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
-  > {
+export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await this.getLogRecords();
 
@@ -46,10 +42,7 @@ export class LogFileSelector
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
         const localUTCDate = new Date(logInfo.StartTime);
-        const localDateFormatted = localUTCDate.toLocaleDateString(
-          undefined,
-          optionYYYYMMddHHmmss
-        );
+        const localDateFormatted = localUTCDate.toLocaleDateString(undefined, optionYYYYMMddHHmmss);
 
         return {
           id: logInfo.Id,
@@ -107,16 +100,10 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   id: string;
 }> {
   constructor() {
-    super(
-      nls.localize('apex_log_get_text'),
-      'apex_log_get_library',
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize('apex_log_get_text'), 'apex_log_get_library', OUTPUT_CHANNEL);
   }
 
-  public async run(
-    response: ContinueResponse<{ id: string }>
-  ): Promise<boolean> {
+  public async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const logService = new LogService(connection);
     const { id: logId } = response.data;
@@ -137,7 +124,6 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const apexLogGet = async (explorerDir?: any) => {
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),

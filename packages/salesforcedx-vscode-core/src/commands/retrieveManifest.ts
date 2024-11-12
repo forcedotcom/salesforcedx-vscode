@@ -22,15 +22,10 @@ export class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_manifest');
   }
 
-  protected async getComponents(
-    response: ContinueResponse<string>
-  ): Promise<ComponentSet> {
-    const packageDirs =
-      await SalesforcePackageDirectories.getPackageDirectoryPaths();
+  protected async getComponents(response: ContinueResponse<string>): Promise<ComponentSet> {
+    const packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
     const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
-    const resolveSourcePaths = packageDirs.map(packageDir =>
-      join(rootWorkspacePath, packageDir)
-    );
+    const resolveSourcePaths = packageDirs.map(packageDir => join(rootWorkspacePath, packageDir));
 
     const componentSet = await ComponentSet.fromManifest({
       manifestPath: response.data,
@@ -42,9 +37,7 @@ export class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   }
 }
 
-export const retrieveManifest = async (
-  explorerPath: vscode.Uri
-): Promise<void> => {
+export const retrieveManifest = async (explorerPath: vscode.Uri): Promise<void> => {
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {

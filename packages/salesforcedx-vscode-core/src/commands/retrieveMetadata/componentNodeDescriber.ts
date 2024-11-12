@@ -9,9 +9,7 @@ import { NodeDescriber } from './nodeDescriber';
 
 export class ComponentNodeDescriber extends NodeDescriber {
   public buildMetadataArg(): string {
-    return `${this.node.getAssociatedTypeNode().fullName}:${
-      this.node.fullName
-    }`;
+    return `${this.node.getAssociatedTypeNode().fullName}:${this.node.fullName}`;
   }
 
   public gatherOutputLocations(): Promise<LocalComponent[]> {
