@@ -38,19 +38,12 @@ describe('Apex Generate Class', () => {
     showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
     quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
     appendLineStub = sandbox.stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = sandbox
-      .stub(notificationService, 'showSuccessfulExecution')
-      .resolves();
-    showFailedExecutionStub = sandbox.stub(
-      notificationService,
-      'showFailedExecution'
-    );
+    showSuccessfulExecutionStub = sandbox.stub(notificationService, 'showSuccessfulExecution').resolves();
+    showFailedExecutionStub = sandbox.stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
     sendCommandEventStub = sandbox.stub(telemetryService, 'sendCommandEvent');
     sendExceptionStub = sandbox.stub(telemetryService, 'sendException');
-    getTemplatesDirectoryStub = sandbox
-      .stub(ConfigUtil, 'getTemplatesDirectory')
-      .returns(undefined);
+    getTemplatesDirectoryStub = sandbox.stub(ConfigUtil, 'getTemplatesDirectory').returns(undefined);
   });
 
   afterEach(() => {
@@ -60,11 +53,7 @@ describe('Apex Generate Class', () => {
   it('Should generate Apex Class', async () => {
     // arrange
     const outputPath = 'force-app/main/default/classes';
-    const apexClassPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'TestApexClass.cls'
-    );
+    const apexClassPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'TestApexClass.cls');
     const apexClassMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
@@ -85,16 +74,11 @@ describe('Apex Generate Class', () => {
     sinon.assert.calledWith(openTextDocumentStub, apexClassPath);
 
     sinon.assert.calledOnce(sendCommandEventStub);
-    sinon.assert.calledWith(
-      sendCommandEventStub,
-      'apex_generate_class',
-      sinon.match.array,
-      {
-        dirType: 'defaultDir',
-        commandExecutor: 'library',
-        isUsingCustomOrgMetadataTemplates: 'false'
-      }
-    );
+    sinon.assert.calledWith(sendCommandEventStub, 'apex_generate_class', sinon.match.array, {
+      dirType: 'defaultDir',
+      commandExecutor: 'library',
+      isUsingCustomOrgMetadataTemplates: 'false'
+    });
 
     // clean up
     shell.rm('-f', apexClassPath);
@@ -115,15 +99,8 @@ describe('Apex Generate Class', () => {
     sinon.assert.calledOnce(appendLineStub);
     sinon.assert.calledWith(appendLineStub, errorMessage);
     sinon.assert.calledOnce(showFailedExecutionStub);
-    sinon.assert.calledWith(
-      showFailedExecutionStub,
-      nls.localize('apex_generate_class_text')
-    );
+    sinon.assert.calledWith(showFailedExecutionStub, nls.localize('apex_generate_class_text'));
     sinon.assert.calledOnce(sendExceptionStub);
-    sinon.assert.calledWith(
-      sendExceptionStub,
-      'template_create_library',
-      errorMessage
-    );
+    sinon.assert.calledWith(sendExceptionStub, 'template_create_library', errorMessage);
   });
 });

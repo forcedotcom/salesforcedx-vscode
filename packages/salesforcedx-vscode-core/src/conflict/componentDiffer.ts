@@ -22,10 +22,7 @@ export type ComponentDiff = {
  * @param cacheRoot The common root of all files in the cacheComponent
  * @returns An array of file paths, where each element corresponds to one file that differs
  */
-export const diffComponents = (
-  projectComponent: SourceComponent,
-  cacheComponent: SourceComponent
-): ComponentDiff[] => {
+export const diffComponents = (projectComponent: SourceComponent, cacheComponent: SourceComponent): ComponentDiff[] => {
   const diffs: ComponentDiff[] = [];
 
   const projectIndex = new Map<string, string>();

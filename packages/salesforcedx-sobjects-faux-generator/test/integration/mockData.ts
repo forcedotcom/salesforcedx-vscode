@@ -109,8 +109,7 @@ export const mockAPIResponse = {
         updateable: false,
         urls: {
           rowTemplate: '/services/data/v50.0/sobjects/ApexPageInfo/{ID}',
-          defaultValues:
-            '/services/data/v50.0/sobjects/ApexPageInfo/defaultValues?recordTypeId&fields',
+          defaultValues: '/services/data/v50.0/sobjects/ApexPageInfo/defaultValues?recordTypeId&fields',
           describe: '/services/data/v50.0/sobjects/ApexPageInfo/describe',
           sobject: '/services/data/v50.0/sobjects/ApexPageInfo'
         }

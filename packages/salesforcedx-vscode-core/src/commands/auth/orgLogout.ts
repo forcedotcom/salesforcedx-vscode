@@ -50,11 +50,7 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 const executor = new OrgLogoutAll();
-const commandlet = new SfCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
+const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
 
 export const orgLogoutAll = async () => {
   await commandlet.run();
@@ -62,11 +58,7 @@ export const orgLogoutAll = async () => {
 
 export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   constructor() {
-    super(
-      nls.localize('org_logout_default_text'),
-      'org_logout_default',
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
   }
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -82,10 +74,7 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
     try {
       await removeUsername(response.data);
     } catch (e) {
-      telemetryService.sendException(
-        'org_logout_default',
-        `Error: name = ${e.name} message = ${e.message}`
-      );
+      telemetryService.sendException('org_logout_default', `Error: name = ${e.name} message = ${e.message}`);
       return false;
     }
     return true;
@@ -102,16 +91,12 @@ export const orgLogoutDefault = async () => {
     // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
     const logoutCommandlet = new SfCommandlet(
       new SfWorkspaceChecker(),
-      isScratch
-        ? new ScratchOrgLogoutParamsGatherer(username, alias)
-        : new SimpleGatherer<string>(username),
+      isScratch ? new ScratchOrgLogoutParamsGatherer(username, alias) : new SimpleGatherer<string>(username),
       new OrgLogoutDefault()
     );
     await logoutCommandlet.run();
   } else {
-    void notificationService.showInformationMessage(
-      nls.localize('org_logout_no_default_org')
-    );
+    void notificationService.showInformationMessage(nls.localize('org_logout_no_default_org'));
   }
 };
 

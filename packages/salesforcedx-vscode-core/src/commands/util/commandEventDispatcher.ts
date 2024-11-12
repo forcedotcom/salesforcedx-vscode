@@ -17,9 +17,7 @@ export class CommandEventDispatcher implements vscode.Disposable {
     return CommandEventDispatcher.instance;
   }
 
-  public onRefreshSObjectsCommandCompletion(
-    listener: (event: unknown) => unknown
-  ): vscode.Disposable {
+  public onRefreshSObjectsCommandCompletion(listener: (event: unknown) => unknown): vscode.Disposable {
     return RefreshSObjectsExecutor.onRefreshSObjectsCommandCompletion(listener);
   }
 

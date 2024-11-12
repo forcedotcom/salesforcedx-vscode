@@ -19,12 +19,9 @@ import { nls } from '../messages';
 export class TaskViewService implements TreeDataProvider<Task> {
   private static instance: TaskViewService;
   private readonly tasks: Task[];
-  private _onDidChangeTreeData: EventEmitter<
-    Task | undefined
-  > = new EventEmitter<Task | undefined>();
+  private _onDidChangeTreeData: EventEmitter<Task | undefined> = new EventEmitter<Task | undefined>();
 
-  public readonly onDidChangeTreeData: Event<Task | undefined> = this
-    ._onDidChangeTreeData.event;
+  public readonly onDidChangeTreeData: Event<Task | undefined> = this._onDidChangeTreeData.event;
 
   public constructor() {
     this.tasks = [];
@@ -37,10 +34,7 @@ export class TaskViewService implements TreeDataProvider<Task> {
     return TaskViewService.instance;
   }
 
-  public addCommandExecution(
-    execution: CommandExecution,
-    cancellationTokenSource?: CancellationTokenSource
-  ): Task {
+  public addCommandExecution(execution: CommandExecution, cancellationTokenSource?: CancellationTokenSource): Task {
     const task = new Task(this, execution, cancellationTokenSource);
     task.monitor();
     this.tasks.push(task);
@@ -99,10 +93,7 @@ export class Task extends TreeItem {
     execution: CommandExecution,
     cancellationTokenSource?: CancellationTokenSource
   ) {
-    super(
-      nls.localize('task_view_running_message', execution.command),
-      TreeItemCollapsibleState.None
-    );
+    super(nls.localize('task_view_running_message', execution.command), TreeItemCollapsibleState.None);
 
     this.taskViewProvider = taskViewProvider;
     this.execution = execution;

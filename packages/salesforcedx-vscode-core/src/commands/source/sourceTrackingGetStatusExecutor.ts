@@ -12,24 +12,16 @@ import {
 import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 
-export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<
-  string
-> {
+export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<string> {
   private options;
 
-  constructor(
-    executionName: string,
-    logName: string,
-    options?: { local: boolean; remote: boolean }
-  ) {
+  constructor(executionName: string, logName: string, options?: { local: boolean; remote: boolean }) {
     super(nls.localize(executionName), logName, OUTPUT_CHANNEL);
     this.options = options;
   }
 
   public async execute(): Promise<void> {
-    const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(
-      this.options || {}
-    );
+    const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(this.options || {});
     channelService.appendLine(nls.localize('source_status'));
     channelService.appendLine(sourceStatusSummary);
     channelService.showChannelOutput();

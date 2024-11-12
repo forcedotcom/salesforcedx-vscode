@@ -4,12 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Command,
-  DirFileNameSelection,
-  LocalComponent,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, DirFileNameSelection, LocalComponent, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { nls } from '../../messages';
 import { workspaceUtils } from '../../util';
@@ -36,14 +31,7 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_test_create_text'))
       .withArg('force:lightning:lwc:test:create')
-      .withFlag(
-        '--filepath',
-        path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          data.outputdir,
-          data.fileName + '.js'
-        )
-      )
+      .withFlag('--filepath', path.join(workspaceUtils.getRootWorkspacePath(), data.outputdir, data.fileName + '.js'))
       .withLogName('force_lightning_web_component_test_create');
     return builder.build();
   }
@@ -58,10 +46,7 @@ const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 export const forceLightningLwcTestCreate = (): void => {
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
-    new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      filePathGatherer
-    ),
+    new CompositeParametersGatherer<LocalComponent>(metadataTypeGatherer, filePathGatherer),
     new ForceLightningLwcTestCreateExecutor(),
     new OverwriteComponentPrompt()
   );

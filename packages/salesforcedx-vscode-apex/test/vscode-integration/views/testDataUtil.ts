@@ -19,10 +19,7 @@ export const generateApexTestMethod = (namespace?: string): ApexTestMethod[] => 
     const endPos = new vscode.Position(line, 5);
     const file = `/bogus/path/to/${fileName}.cls`;
     const uri = vscode.Uri.file(file);
-    const location = new vscode.Location(
-      uri,
-      new vscode.Range(startPos, endPos)
-    );
+    const location = new vscode.Location(uri, new vscode.Range(startPos, endPos));
     const testInfo: ApexTestMethod = {
       methodName,
       definingType,

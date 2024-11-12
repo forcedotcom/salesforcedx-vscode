@@ -26,18 +26,12 @@ describe('orgList Tests', () => {
     let getAuthInfoListAllAuthorizationsStub: SinonStub;
 
     beforeEach(() => {
-      getAuthInfoListAllAuthorizationsStub = sandbox.stub(
-        AuthInfo,
-        'listAllAuthorizations'
-      );
+      getAuthInfoListAllAuthorizationsStub = sandbox.stub(AuthInfo, 'listAllAuthorizations');
     });
 
     it('should return a list of FileInfo objects when given an array of file names', async () => {
       // Arrange
-      const authFilesArray = [
-        { username: 'test-username1@example.com' },
-        { username: 'test-username2@example.com' }
-      ];
+      const authFilesArray = [{ username: 'test-username1@example.com' }, { username: 'test-username2@example.com' }];
       getAuthInfoListAllAuthorizationsStub.resolves(authFilesArray);
       const orgList = new OrgList();
 
@@ -47,12 +41,8 @@ describe('orgList Tests', () => {
       // Assert
       expect(orgAuthorizations.length).to.equal(2);
 
-      expect(orgAuthorizations[0].username).to.equal(
-        'test-username1@example.com'
-      );
-      expect(orgAuthorizations[1].username).to.equal(
-        'test-username2@example.com'
-      );
+      expect(orgAuthorizations[0].username).to.equal('test-username1@example.com');
+      expect(orgAuthorizations[1].username).to.equal('test-username2@example.com');
     });
 
     it('should return null when no auth files are present', async () => {
@@ -83,20 +73,13 @@ describe('orgList Tests', () => {
             getAll: getAllStub
           }
         };
-        stateAggregatorCreateStub = sandbox
-          .stub(StateAggregator, 'create')
-          .resolves(fakeStateAggregator);
+        stateAggregatorCreateStub = sandbox.stub(StateAggregator, 'create').resolves(fakeStateAggregator);
 
         getAllAliasesForStub = sandbox.stub(ConfigUtil, 'getAllAliasesFor');
-        getAuthFieldsForStub = sandbox.stub(
-          OrgList.prototype,
-          'getAuthFieldsFor'
-        );
+        getAuthFieldsForStub = sandbox.stub(OrgList.prototype, 'getAuthFieldsFor');
       });
 
-      const getFakeOrgAuthorization = (
-        orgAuth?: Partial<OrgAuthorization>
-      ): OrgAuthorization => {
+      const getFakeOrgAuthorization = (orgAuth?: Partial<OrgAuthorization>): OrgAuthorization => {
         const fakeOrgAuth: OrgAuthorization = {
           orgId: orgAuth?.orgId ?? '000',
           username: orgAuth?.username ?? 'test-username1@example.com',
@@ -134,8 +117,7 @@ describe('orgList Tests', () => {
       const dummyScratchOrgAuthWithError = getFakeOrgAuthorization({
         orgId: '222',
         username: 'test-scratchorg3@example.com',
-        error:
-          'No authorization information found for test-scratchorg3@example.com.'
+        error: 'No authorization information found for test-scratchorg3@example.com.'
       });
 
       const dummyDevHubUsername1 = 'test-devhub1@example.com';
@@ -143,13 +125,8 @@ describe('orgList Tests', () => {
 
       it('should filter the list for users other than admins when scratchadminusername field is present', async () => {
         // Arrange
-        const authInfoObjects: OrgAuthorization[] = [
-          dummyOrgAuth1,
-          dummyOrgAuth2
-        ];
-        getAuthFieldsForStub
-          .withArgs(dummyOrgAuth1.username)
-          .returns({ scratchAdminUsername: 'nonadmin@user.com' });
+        const authInfoObjects: OrgAuthorization[] = [dummyOrgAuth1, dummyOrgAuth2];
+        getAuthFieldsForStub.withArgs(dummyOrgAuth1.username).returns({ scratchAdminUsername: 'nonadmin@user.com' });
         getDevHubUsernameStub.resolves(null);
         getAllStub.returns([]);
 
@@ -161,16 +138,11 @@ describe('orgList Tests', () => {
       });
 
       it('should filter the list to only show scratch orgs associated with current target dev hub without an alias', async () => {
-        const authInfoObjects: OrgAuthorization[] = [
-          dummyScratchOrgAuth1,
-          dummyScratchOrgAuth2
-        ];
+        const authInfoObjects: OrgAuthorization[] = [dummyScratchOrgAuth1, dummyScratchOrgAuth2];
         getAuthFieldsForStub.withArgs(dummyScratchOrgAuth1.username).returns({
           devHubUsername: dummyDevHubUsername1
         });
-        getAuthFieldsForStub
-          .withArgs(dummyScratchOrgAuth2.username)
-          .returns({ devHubUsername: dummyDevHubUsername2 });
+        getAuthFieldsForStub.withArgs(dummyScratchOrgAuth2.username).returns({ devHubUsername: dummyDevHubUsername2 });
         getDevHubUsernameStub.resolves(dummyDevHubUsername1);
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
@@ -181,16 +153,11 @@ describe('orgList Tests', () => {
       });
 
       it('should filter the list to only show scratch orgs associated with current target dev hub', async () => {
-        const authInfoObjects: OrgAuthorization[] = [
-          dummyScratchOrgAuth1,
-          dummyScratchOrgAuth2
-        ];
+        const authInfoObjects: OrgAuthorization[] = [dummyScratchOrgAuth1, dummyScratchOrgAuth2];
         getAuthFieldsForStub.withArgs(dummyScratchOrgAuth1.username).returns({
           devHubUsername: dummyDevHubUsername1
         });
-        getAuthFieldsForStub
-          .withArgs(dummyScratchOrgAuth2.username)
-          .returns({ devHubUsername: dummyDevHubUsername2 });
+        getAuthFieldsForStub.withArgs(dummyScratchOrgAuth2.username).returns({ devHubUsername: dummyDevHubUsername2 });
         getDevHubUsernameStub.returns(dummyDevHubUsername1);
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
@@ -200,42 +167,26 @@ describe('orgList Tests', () => {
       });
 
       it('should filter the list to remove org authorizations that have errors', async () => {
-        const authInfoObjectsWithOneError: OrgAuthorization[] = [
-          dummyScratchOrgAuth1,
-          dummyScratchOrgAuthWithError
-        ];
-        getAuthFieldsForStub
-          .withArgs(authInfoObjectsWithOneError[0].username)
-          .returns({
-            devHubUsername: dummyDevHubUsername1
-          });
-        getAllAliasesForStub
-          .withArgs(authInfoObjectsWithOneError[0].username)
-          .returns([AN_ALIAS]);
+        const authInfoObjectsWithOneError: OrgAuthorization[] = [dummyScratchOrgAuth1, dummyScratchOrgAuthWithError];
+        getAuthFieldsForStub.withArgs(authInfoObjectsWithOneError[0].username).returns({
+          devHubUsername: dummyDevHubUsername1
+        });
+        getAllAliasesForStub.withArgs(authInfoObjectsWithOneError[0].username).returns([AN_ALIAS]);
         getDevHubUsernameStub.resolves(dummyDevHubUsername1);
 
-        const authList = await orgList.filterAuthInfo(
-          authInfoObjectsWithOneError
-        );
+        const authList = await orgList.filterAuthInfo(authInfoObjectsWithOneError);
         expect(getDevHubUsernameStub.calledOnce).to.equal(true);
         expect(authList.length).to.equal(1);
         expect(authList[0].includes(AN_ALIAS)).to.equal(true);
-        expect(authList[0].includes(dummyScratchOrgAuth1.username)).to.equal(
-          true
-        );
+        expect(authList[0].includes(dummyScratchOrgAuth1.username)).to.equal(true);
       });
 
       it('should display alias with username when alias is available', async () => {
         // Arrange
         getDevHubUsernameStub.resolves(null);
-        const authInfoObjects: OrgAuthorization[] = [
-          dummyOrgAuth1,
-          dummyOrgAuth2
-        ];
+        const authInfoObjects: OrgAuthorization[] = [dummyOrgAuth1, dummyOrgAuth2];
         getAllStub.withArgs(dummyOrgAuth1.username).returns(['alias1']);
-        getAllAliasesForStub
-          .withArgs(dummyOrgAuth1.username)
-          .returns(['alias1']);
+        getAllAliasesForStub.withArgs(dummyOrgAuth1.username).returns(['alias1']);
         getAuthFieldsForStub.withArgs(authInfoObjects[0].username).returns({});
 
         // Act
@@ -266,24 +217,18 @@ describe('orgList Tests', () => {
           })
         ];
 
-        getAuthFieldsForStub
-          .withArgs('test-scratchorg-today@example.com')
-          .returns({
-            devHubUsername: dummyDevHubUsername1,
-            expirationDate: today.toISOString().split('T')[0]
-          });
-        getAuthFieldsForStub
-          .withArgs('test-scratchorg-yesterday@example.com')
-          .returns({
-            devHubUsername: dummyDevHubUsername1,
-            expirationDate: yesterday.toISOString().split('T')[0]
-          });
-        getAuthFieldsForStub
-          .withArgs('test-scratchorg-tomorrow@example.com')
-          .returns({
-            devHubUsername: dummyDevHubUsername1,
-            expirationDate: tomorrow.toISOString().split('T')[0]
-          });
+        getAuthFieldsForStub.withArgs('test-scratchorg-today@example.com').returns({
+          devHubUsername: dummyDevHubUsername1,
+          expirationDate: today.toISOString().split('T')[0]
+        });
+        getAuthFieldsForStub.withArgs('test-scratchorg-yesterday@example.com').returns({
+          devHubUsername: dummyDevHubUsername1,
+          expirationDate: yesterday.toISOString().split('T')[0]
+        });
+        getAuthFieldsForStub.withArgs('test-scratchorg-tomorrow@example.com').returns({
+          devHubUsername: dummyDevHubUsername1,
+          expirationDate: tomorrow.toISOString().split('T')[0]
+        });
         getDevHubUsernameStub.resolves(dummyDevHubUsername1);
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
@@ -291,16 +236,10 @@ describe('orgList Tests', () => {
         const authList = await orgList.filterAuthInfo(authInfoObjects);
 
         expect(authList[0]).to.equal(
-          'test-scratchorg-today@example.com - ' +
-            nls.localize('org_expired') +
-            ' ' +
-            String.fromCodePoint(0x274c)
+          'test-scratchorg-today@example.com - ' + nls.localize('org_expired') + ' ' + String.fromCodePoint(0x274c)
         );
         expect(authList[1]).to.equal(
-          'test-scratchorg-yesterday@example.com - ' +
-            nls.localize('org_expired') +
-            ' ' +
-            String.fromCodePoint(0x274c)
+          'test-scratchorg-yesterday@example.com - ' + nls.localize('org_expired') + ' ' + String.fromCodePoint(0x274c)
         );
         expect(authList[2]).to.equal('test-scratchorg-tomorrow@example.com');
       });
@@ -309,10 +248,7 @@ describe('orgList Tests', () => {
       let orgListStub: SinonStub;
       let quickPickStub: SinonStub;
       let executeCommandStub: SinonStub;
-      const orgsList = [
-        'alias - test-username1@example.com',
-        'test-username2@example.com'
-      ];
+      const orgsList = ['alias - test-username1@example.com', 'test-username2@example.com'];
       const orgList = new OrgList();
 
       beforeEach(() => {
@@ -330,21 +266,15 @@ describe('orgList Tests', () => {
 
       it('should return Continue and call org:login:web command if SFDX: Authorize an Org is selected', async () => {
         orgListStub.returns(orgsList);
-        quickPickStub.returns(
-          '$(plus) ' + nls.localize('org_login_web_authorize_org_text')
-        );
+        quickPickStub.returns('$(plus) ' + nls.localize('org_login_web_authorize_org_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sf.org.login.web')).to.equal(
-          true
-        );
+        expect(executeCommandStub.calledWith('sf.org.login.web')).to.equal(true);
       });
 
       it('should return Continue and call org:create:scratch command if SFDX: Create a Default Scratch Org is selected', async () => {
         orgListStub.returns(orgsList);
-        quickPickStub.returns(
-          '$(plus) ' + nls.localize('org_create_default_scratch_org_text')
-        );
+        quickPickStub.returns('$(plus) ' + nls.localize('org_create_default_scratch_org_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
         expect(executeCommandStub.calledWith('sf.org.create')).to.equal(true);
@@ -352,26 +282,18 @@ describe('orgList Tests', () => {
 
       it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {
         orgListStub.returns(orgsList);
-        quickPickStub.returns(
-          '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text')
-        );
+        quickPickStub.returns('$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(
-          executeCommandStub.calledWith('sf.org.login.web.dev.hub')
-        ).to.equal(true);
+        expect(executeCommandStub.calledWith('sf.org.login.web.dev.hub')).to.equal(true);
       });
 
       it('should return Continue and call sf:org:login:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
         orgListStub.returns(orgsList);
-        quickPickStub.returns(
-          '$(plus) ' + nls.localize('org_login_access_token_text')
-        );
+        quickPickStub.returns('$(plus) ' + nls.localize('org_login_access_token_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(
-          executeCommandStub.calledWith('sf.org.login.access.token')
-        ).to.equal(true);
+        expect(executeCommandStub.calledWith('sf.org.login.access.token')).to.equal(true);
       });
 
       it('should return Continue and call org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
@@ -379,9 +301,7 @@ describe('orgList Tests', () => {
         quickPickStub.returns('$(plus) ' + nls.localize('org_list_clean_text'));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sf.org.list.clean')).to.equal(
-          true
-        );
+        expect(executeCommandStub.calledWith('sf.org.list.clean')).to.equal(true);
       });
 
       it('should return Continue and call config:set command if a username/alias is selected', async () => {

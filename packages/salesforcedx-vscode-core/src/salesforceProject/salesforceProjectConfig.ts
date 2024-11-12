@@ -22,23 +22,15 @@ import { workspaceUtils } from '../util';
 export default class SalesforceProjectConfig {
   private static instance: SfProjectJson;
   private constructor() {
-    throw new Error(
-      'Error: *** call SfProject.getInstance() to get the singleton instance of this class ***'
-    );
+    throw new Error('Error: *** call SfProject.getInstance() to get the singleton instance of this class ***');
   }
 
   private static async initializeSalesforceProjectConfig() {
-    if (
-      !SalesforceProjectConfig.instance &&
-      isSalesforceProjectOpened.apply(vscode.workspace).result
-    ) {
+    if (!SalesforceProjectConfig.instance && isSalesforceProjectOpened.apply(vscode.workspace).result) {
       const salesforceProjectPath = workspaceUtils.getRootWorkspacePath();
       try {
-        const salesforceProject = await SfProject.resolve(
-          salesforceProjectPath
-        );
-        SalesforceProjectConfig.instance =
-          await salesforceProject.retrieveSfProjectJson();
+        const salesforceProject = await SfProject.resolve(salesforceProjectPath);
+        SalesforceProjectConfig.instance = await salesforceProject.retrieveSfProjectJson();
         const fileWatcher = vscode.workspace.createFileSystemWatcher(
           path.join(salesforceProjectPath, SFDX_PROJECT_FILE)
         );
@@ -60,11 +52,7 @@ export default class SalesforceProjectConfig {
   private static handleError(error: any) {
     let errorMessage = error.message;
     if (error.name === 'JsonParseError') {
-      errorMessage = nls.localize(
-        'error_parsing_sfdx_project_file',
-        error.path,
-        error.message
-      );
+      errorMessage = nls.localize('error_parsing_sfdx_project_file', error.path, error.message);
     }
     notificationService.showErrorMessage(errorMessage);
     telemetryService.sendException('project_config', errorMessage);
@@ -77,9 +65,7 @@ export default class SalesforceProjectConfig {
     return SalesforceProjectConfig.instance;
   }
 
-  public static async getValue<T extends JsonArray | string | undefined>(
-    key: string
-  ): Promise<T> {
+  public static async getValue<T extends JsonArray | string | undefined>(key: string): Promise<T> {
     const projectConfig = await SalesforceProjectConfig.getInstance();
     return projectConfig.get(key) as T;
   }

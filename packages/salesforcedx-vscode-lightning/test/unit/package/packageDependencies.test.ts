@@ -23,14 +23,7 @@ const readJsonFile = (jsonFilePath: string): any => {
   }
 };
 
-const packageJsonPath = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'package.json'
-);
+const packageJsonPath = path.join(__dirname, '..', '..', '..', '..', 'package.json');
 const packageJson = readJsonFile(packageJsonPath);
 
 describe(`package.json dependencies for ${packageJson.name}`, () => {

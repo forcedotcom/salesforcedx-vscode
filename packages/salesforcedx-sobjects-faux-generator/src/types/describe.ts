@@ -28,10 +28,7 @@ export type SObjectField = Pick<
   | 'type'
 >;
 
-export type SObject = Pick<
-  DescribeSObjectResult,
-  'childRelationships' | 'label' | 'custom' | 'name' | 'queryable'
-> & {
+export type SObject = Pick<DescribeSObjectResult, 'childRelationships' | 'label' | 'custom' | 'name' | 'queryable'> & {
   fields: SObjectField[];
 };
 

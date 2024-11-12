@@ -4,10 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ApexTestResultData,
-  ApexTestResultOutcome
-} from '@salesforce/apex-node-bundle';
+import { ApexTestResultData, ApexTestResultOutcome } from '@salesforce/apex-node-bundle';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT } from '../../../src/constants';
 
@@ -132,10 +129,7 @@ export const apexLibMultipleResult = {
 
 const startPos = new vscode.Position(2, 0);
 const endPos = new vscode.Position(2, 5);
-const location = new vscode.Location(
-  vscode.Uri.file('path/to/file0'),
-  new vscode.Range(startPos, endPos)
-);
+const location = new vscode.Location(vscode.Uri.file('path/to/file0'), new vscode.Range(startPos, endPos));
 const definingType = 'file0';
 export const apexLibTestInfo = [
   { methodName: 'test0', definingType, location },

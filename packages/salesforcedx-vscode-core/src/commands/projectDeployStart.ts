@@ -66,7 +66,6 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     return DeployType.Push;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
@@ -75,9 +74,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
       .withLogName(this.params.logName.default);
     if (this.flag === '--ignore-conflicts') {
       builder.withArg(this.flag);
-      builder.withDescription(
-        nls.localize(this.params.description.ignoreConflicts)
-      );
+      builder.withDescription(nls.localize(this.params.description.ignoreConflicts));
     }
     return builder.build();
   }
@@ -87,8 +84,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = workspaceUtils.getRootWorkspacePath() || '';
-    const execFilePathOrPaths =
-      this.getDeployType() === DeployType.Deploy ? response.data : '';
+    const execFilePathOrPaths = this.getDeployType() === DeployType.Deploy ? response.data : '';
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,
       env: { SF_JSON_TO_STDOUT: 'true' }
@@ -115,7 +111,6 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected async exitProcessHandlerPush(
     exitCode: number | undefined,
     stdOut: string,
@@ -125,7 +120,6 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     startTime: [number, number],
     cancellationToken: vscode.CancellationToken | undefined,
     cancellationTokenSource: vscode.CancellationTokenSource
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<void> {
     if (execution.command.logName === PROJECT_DEPLOY_START_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);
@@ -158,21 +152,13 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
         SfCommandletExecutor.errorCollection.clear();
         DeployRetrieveExecutor.errorCollection.clear();
         if (e.name !== 'ProjectDeployStartParserFail') {
-          e.message =
-            'Error while creating diagnostics for vscode problem view.';
+          e.message = 'Error while creating diagnostics for vscode problem view.';
         }
-        telemetryService.sendException(
-          execution.command.logName,
-          `Error: name = ${e.name} message = ${e.message}`
-        );
+        telemetryService.sendException(execution.command.logName, `Error: name = ${e.name} message = ${e.message}`);
         console.error(e.message);
       }
       telemetry.addProperty('success', String(success));
-      this.logMetric(
-        execution.command.logName,
-        startTime,
-        telemetry.build().properties
-      );
+      this.logMetric(execution.command.logName, startTime, telemetry.build().properties);
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     }
   }
@@ -198,9 +184,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
       const rows = pushedSource || (errors && errors.files);
-      const title = !parser.hasConflicts()
-        ? nls.localize(`table_title_${titleType}ed_source`)
-        : undefined;
+      const title = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, title);
       if (parser.hasConflicts()) {
         channelService.appendLine(nls.localize('push_conflicts_error') + '\n');
@@ -220,11 +204,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
       } else {
-        console.log(
-          `There were errors parsing the push operation response.  Raw response: ${JSON.stringify(
-            errors
-          )}`
-        );
+        console.log(`There were errors parsing the push operation response.  Raw response: ${JSON.stringify(errors)}`);
       }
     }
   }
@@ -266,25 +246,12 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function projectDeployStart(
-  this: FlagParameter<string>,
-  isDeployOnSave: boolean
-) {
-  const showOutputPanel = !(
-    isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel()
-  );
+export async function projectDeployStart(this: FlagParameter<string>, isDeployOnSave: boolean) {
+  const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
 
   const { flag } = this || {};
-  const executor = new ProjectDeployStartExecutor(
-    flag,
-    pushCommand,
-    showOutputPanel
-  );
+  const executor = new ProjectDeployStartExecutor(flag, pushCommand, showOutputPanel);
 
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    executor
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
   await commandlet.run();
 }

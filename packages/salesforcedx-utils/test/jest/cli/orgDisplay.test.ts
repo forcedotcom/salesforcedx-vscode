@@ -21,12 +21,8 @@ describe('OrgDisplay unit tests.', () => {
   let executeSpy: jest.SpyInstance;
   let getCmdResultSpy: jest.SpyInstance;
   beforeEach(() => {
-    executeSpy = jest
-      .spyOn(CliCommandExecutor.prototype, 'execute')
-      .mockReturnValue(fakeExecution as any);
-    getCmdResultSpy = jest
-      .spyOn(CommandOutput.prototype, 'getCmdResult')
-      .mockResolvedValue(fakeResult);
+    executeSpy = jest.spyOn(CliCommandExecutor.prototype, 'execute').mockReturnValue(fakeExecution as any);
+    getCmdResultSpy = jest.spyOn(CommandOutput.prototype, 'getCmdResult').mockResolvedValue(fakeResult);
   });
 
   it('Should create instance.', () => {

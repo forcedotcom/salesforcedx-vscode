@@ -6,10 +6,7 @@
  */
 import { Org } from '@salesforce/core-bundle';
 import { WorkspaceContext } from '../../../src/context';
-import {
-  getWorkspaceOrgType,
-  OrgType
-} from '../../../src/context/workspaceOrgType';
+import { getWorkspaceOrgType, OrgType } from '../../../src/context/workspaceOrgType';
 
 describe('workspaceOrgType', () => {
   describe('getWorkspaceOrgType', () => {

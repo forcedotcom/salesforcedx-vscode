@@ -18,7 +18,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.86.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Debuggers"
@@ -26,32 +26,22 @@
   "dependencies": {
     "@salesforce/salesforcedx-apex-debugger": "62.5.0",
     "@salesforce/salesforcedx-utils-vscode": "62.5.0",
-    "@vscode/debugprotocol": "1.65.0",
+    "@vscode/debugprotocol": "1.68.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "62.5.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
-    "@types/node": "^18.11.9",
+    "@types/node": "^20.0.0",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "^1.86.0",
-    "@typescript-eslint/eslint-plugin": "6.9.0",
-    "@typescript-eslint/parser": "6.9.0",
+    "@types/vscode": "^1.90.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "^0.19.5",
     "esbuild-plugin-pino": "^2.1.0",
-    "eslint": "8.52.0",
-    "eslint-config-prettier": "9.0.0",
-    "eslint-plugin-header": "3.1.1",
-    "eslint-plugin-import": "2.29.0",
-    "eslint-plugin-jest": "27.5.0",
-    "eslint-plugin-jest-formatting": "3.1.0",
-    "eslint-plugin-jsdoc": "46.8.2",
-    "eslint-plugin-prefer-arrow": "1.2.3",
     "mocha": "^10",
-    "prettier": "3.0.3",
+    "prettier": "3.3.3",
     "sinon": "^13.0.1"
   },
   "extensionDependencies": [

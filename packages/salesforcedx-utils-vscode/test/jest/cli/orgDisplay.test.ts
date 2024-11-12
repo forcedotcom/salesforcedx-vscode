@@ -7,11 +7,7 @@
 import { SfCommandBuilder } from '../../../src/cli/commandBuilder';
 import { CliCommandExecutor } from '../../../src/cli/commandExecutor';
 import { CommandOutput } from '../../../src/cli/commandOutput';
-import {
-  ORG_DISPLAY_COMMAND,
-  OrgDisplay,
-  OrgInfo
-} from '../../../src/cli/orgDisplay';
+import { ORG_DISPLAY_COMMAND, OrgDisplay, OrgInfo } from '../../../src/cli/orgDisplay';
 
 jest.mock('../../../src/cli/commandExecutor');
 jest.mock('../../../src/cli/commandBuilder');
@@ -52,9 +48,7 @@ describe('orgDisplay Unit Tests.', () => {
         withJson: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue(fakeCommandOuput)
       });
-      (sfCommandBuilderMock.prototype.withJson as any).mockReturnValue(
-        SfCommandBuilder.prototype
-      );
+      (sfCommandBuilderMock.prototype.withJson as any).mockReturnValue(SfCommandBuilder.prototype);
       (commandOutputMock.prototype.getCmdResult as any).mockResolvedValue(
         JSON.stringify({
           result: fakeOrgInfo
@@ -71,9 +65,7 @@ describe('orgDisplay Unit Tests.', () => {
       expect(sfCommandBuilderMock).toHaveBeenCalled();
       const mockSfCommandBuilder = sfCommandBuilderMock.mock.instances[0];
       expect(mockSfCommandBuilder.withArg).toHaveBeenCalledTimes(1);
-      expect(mockSfCommandBuilder.withArg).toHaveBeenCalledWith(
-        ORG_DISPLAY_COMMAND
-      );
+      expect(mockSfCommandBuilder.withArg).toHaveBeenCalledWith(ORG_DISPLAY_COMMAND);
 
       expect(cliCommandExecutorMock).toHaveBeenCalledWith(fakeCommandOuput, {
         cwd: fakeProjectPath
@@ -88,9 +80,7 @@ describe('orgDisplay Unit Tests.', () => {
 
     it('Should reject if fails to parse orgInfo.', () => {
       const badJson = '{so:not:value:json}';
-      (commandOutputMock.prototype.getCmdResult as any).mockResolvedValue(
-        badJson
-      );
+      (commandOutputMock.prototype.getCmdResult as any).mockResolvedValue(badJson);
 
       const orgDisplay = new OrgDisplay();
       // tslint:disable-next-line:no-floating-promises

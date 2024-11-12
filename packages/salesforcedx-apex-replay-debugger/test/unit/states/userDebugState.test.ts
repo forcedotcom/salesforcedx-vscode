@@ -9,10 +9,7 @@ import { Source, StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import { EOL } from 'os';
 import * as sinon from 'sinon';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { UserDebugState } from '../../../src/states';
@@ -32,10 +29,7 @@ describe('User debug event', () => {
 
   beforeEach(() => {
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
-    warnToDebugConsoleStub = sinon.stub(
-      ApexReplayDebug.prototype,
-      'warnToDebugConsole'
-    );
+    warnToDebugConsoleStub = sinon.stub(ApexReplayDebug.prototype, 'warnToDebugConsole');
     getLogLinesStub = sinon
       .stub(LogContext.prototype, 'getLogLines')
       .returns(['foo', 'bar', 'timestamp|USER_DEBUG|[3]|DEBUG|Next message']);
@@ -47,13 +41,7 @@ describe('User debug event', () => {
   });
 
   it('Should not print without any frames', () => {
-    const state = new UserDebugState([
-      'timestamp',
-      'USER_DEBUG',
-      '2',
-      'DEBUG',
-      'Hello'
-    ]);
+    const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
     expect(state.handle(context)).to.be.false;
     expect(context.getFrames()).to.be.empty;
@@ -67,21 +55,11 @@ describe('User debug event', () => {
     } as StackFrame;
     context.getFrames().push(frame);
     context.getExecAnonScriptMapping().set(2, 5);
-    const state = new UserDebugState([
-      'timestamp',
-      'USER_DEBUG',
-      '2',
-      'DEBUG',
-      'Hello'
-    ]);
+    const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
     expect(state.handle(context)).to.be.false;
     expect(warnToDebugConsoleStub.calledOnce).to.be.true;
-    expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([
-      `Hello${EOL}foo${EOL}bar`,
-      frame.source,
-      5
-    ]);
+    expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([`Hello${EOL}foo${EOL}bar`, frame.source, 5]);
   });
 
   it('Should use line number in log line', () => {
@@ -90,20 +68,10 @@ describe('User debug event', () => {
       source: new Source('foo.log')
     } as StackFrame;
     context.getFrames().push(frame);
-    const state = new UserDebugState([
-      'timestamp',
-      'USER_DEBUG',
-      '2',
-      'DEBUG',
-      'Hello'
-    ]);
+    const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
     expect(state.handle(context)).to.be.false;
     expect(warnToDebugConsoleStub.calledOnce).to.be.true;
-    expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([
-      `Hello${EOL}foo${EOL}bar`,
-      frame.source,
-      2
-    ]);
+    expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([`Hello${EOL}foo${EOL}bar`, frame.source, 2]);
   });
 });

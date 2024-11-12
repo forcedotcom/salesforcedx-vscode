@@ -13,16 +13,12 @@ export enum EXT_PACK_TYPES {
   EXPANDED = 'EXPANDED',
   BOTH = 'BOTH',
   NONE = 'NONE'
-};
+}
 
 export class MetricsReporter {
-
   public static extensionPackStatus = (): void => {
     const extensionPackStatus = MetricsReporter.getExtensionPackStatus();
-    TelemetryService.getInstance().sendEventData(
-      EXT_PACK_STATUS_EVENT_NAME,
-      { extpack: extensionPackStatus }
-    );
+    TelemetryService.getInstance().sendEventData(EXT_PACK_STATUS_EVENT_NAME, { extpack: extensionPackStatus });
   };
 
   private static getExtensionPackStatus = (): EXT_PACK_TYPES => {
@@ -45,5 +41,4 @@ export class MetricsReporter {
     const extension = vscode.extensions.getExtension(extensionName);
     return extension !== undefined;
   };
-
 }

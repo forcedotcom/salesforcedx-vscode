@@ -7,11 +7,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { WorkspaceContextUtil } from '../../../src';
-import {
-  fileExtensionsMatch,
-  projectPaths,
-  workspaceUtils
-} from '../../../src/';
+import { fileExtensionsMatch, projectPaths, workspaceUtils } from '../../../src/';
 import {
   APEX,
   APEX_DB,
@@ -43,18 +39,13 @@ describe('test project paths', () => {
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
   const FAKE_WORKSPACE_INSTANCE: any = {};
   const FAKE_STATE_FOLDER = '.sfdx';
-  const FAKE_PATH_TO_STATE_FOLDER = path.join(
-    FAKE_WORKSPACE,
-    FAKE_STATE_FOLDER
-  );
+  const FAKE_PATH_TO_STATE_FOLDER = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
 
   describe('test stateFolder', () => {
     let getRootWorkspacePathStub: jest.SpyInstance;
 
     beforeEach(() => {
-      getRootWorkspacePathStub = jest
-        .spyOn(workspaceUtils, 'getRootWorkspacePath')
-        .mockReturnValue(FAKE_WORKSPACE);
+      getRootWorkspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(FAKE_WORKSPACE);
     });
 
     it('should return a path to the state folder if the project has a root workspace', () => {
@@ -72,9 +63,7 @@ describe('test project paths', () => {
     const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SFDX_CONFIG_FILE);
 
     beforeEach(() => {
-      stateFolderStub = jest
-        .spyOn(projectPaths, 'stateFolder')
-        .mockReturnValue(FAKE_WORKSPACE);
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
 
     it('should be defined', () => {
@@ -113,9 +102,7 @@ describe('test project paths', () => {
     let stateFolderStub: jest.SpyInstance;
 
     beforeEach(() => {
-      stateFolderStub = jest
-        .spyOn(projectPaths, 'stateFolder')
-        .mockReturnValue(FAKE_WORKSPACE);
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.toolsFolder).toBeDefined();
@@ -132,13 +119,9 @@ describe('test project paths', () => {
     let usernameStub: jest.SpyInstance;
     beforeEach(() => {
       FAKE_WORKSPACE_INSTANCE.username = 'fakeUsername';
-      stateFolderStub = jest
-        .spyOn(projectPaths, 'stateFolder')
-        .mockReturnValue(FAKE_WORKSPACE);
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
 
-      usernameStub = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(FAKE_WORKSPACE_INSTANCE);
+      usernameStub = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(FAKE_WORKSPACE_INSTANCE);
     });
     it('should be defined', () => {
       expect(projectPaths.metadataFolder).toBeDefined();
@@ -147,9 +130,7 @@ describe('test project paths', () => {
     it('should return a path to the metadata folder based on root workspace', () => {
       const metadataFolder = projectPaths.metadataFolder();
       const username = FAKE_WORKSPACE_INSTANCE.username;
-      expect(metadataFolder).toEqual(
-        path.join(FAKE_WORKSPACE, ORGS, username, METADATA)
-      );
+      expect(metadataFolder).toEqual(path.join(FAKE_WORKSPACE, ORGS, username, METADATA));
     });
   });
 
@@ -157,9 +138,7 @@ describe('test project paths', () => {
     let stateFolderStub: jest.SpyInstance;
 
     beforeEach(() => {
-      stateFolderStub = jest
-        .spyOn(projectPaths, 'stateFolder')
-        .mockReturnValue(FAKE_WORKSPACE);
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.apexTestResultsFolder).toBeDefined();
@@ -167,9 +146,7 @@ describe('test project paths', () => {
 
     it('should return a path to the apex test results folder based on root workspace', () => {
       const apexTestResultsFolder = projectPaths.apexTestResultsFolder();
-      expect(apexTestResultsFolder).toEqual(
-        path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS, APEX)
-      );
+      expect(apexTestResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS, APEX));
     });
   });
 
@@ -177,20 +154,15 @@ describe('test project paths', () => {
     let stateFolderStub: jest.SpyInstance;
 
     beforeEach(() => {
-      stateFolderStub = jest
-        .spyOn(projectPaths, 'stateFolder')
-        .mockReturnValue(FAKE_WORKSPACE);
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.apexLanguageServerDatabase).toBeDefined();
     });
 
     it('should return a path to the apex Language Server Database folder based on root workspace', () => {
-      const apexLanguageServerDatabase =
-        projectPaths.apexLanguageServerDatabase();
-      expect(apexLanguageServerDatabase).toEqual(
-        path.join(FAKE_WORKSPACE, TOOLS, APEX_DB)
-      );
+      const apexLanguageServerDatabase = projectPaths.apexLanguageServerDatabase();
+      expect(apexLanguageServerDatabase).toEqual(path.join(FAKE_WORKSPACE, TOOLS, APEX_DB));
     });
   });
 
@@ -198,9 +170,7 @@ describe('test project paths', () => {
     let stateFolderStub: jest.SpyInstance;
 
     beforeEach(() => {
-      stateFolderStub = jest
-        .spyOn(projectPaths, 'stateFolder')
-        .mockReturnValue(FAKE_WORKSPACE);
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.lwcTestResultsFolder).toBeDefined();
@@ -208,9 +178,7 @@ describe('test project paths', () => {
 
     it('should return a path to the lwc Test Results Folder based on root workspace', () => {
       const lwcTestResultsFolder = projectPaths.lwcTestResultsFolder();
-      expect(lwcTestResultsFolder).toEqual(
-        path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS, LWC)
-      );
+      expect(lwcTestResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS, LWC));
     });
   });
 
@@ -218,9 +186,7 @@ describe('test project paths', () => {
     let stateFolderStub: jest.SpyInstance;
 
     beforeEach(() => {
-      stateFolderStub = jest
-        .spyOn(projectPaths, 'stateFolder')
-        .mockReturnValue(FAKE_WORKSPACE);
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.testResultsFolder).toBeDefined();
@@ -228,9 +194,7 @@ describe('test project paths', () => {
 
     it('should return a path to the  Test Results Folder based on root workspace', () => {
       const testResultsFolder = projectPaths.testResultsFolder();
-      expect(testResultsFolder).toEqual(
-        path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS)
-      );
+      expect(testResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS));
     });
   });
 
@@ -238,9 +202,7 @@ describe('test project paths', () => {
     let stateFolderStub: jest.SpyInstance;
 
     beforeEach(() => {
-      stateFolderStub = jest
-        .spyOn(projectPaths, 'stateFolder')
-        .mockReturnValue(FAKE_WORKSPACE);
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.debugLogsFolder).toBeDefined();
@@ -248,9 +210,7 @@ describe('test project paths', () => {
 
     it('should return a path to the debug Logs folder based on root workspace', () => {
       const debugLogsFolder = projectPaths.debugLogsFolder();
-      expect(debugLogsFolder).toEqual(
-        path.join(FAKE_WORKSPACE, TOOLS, DEBUG, LOGS)
-      );
+      expect(debugLogsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, DEBUG, LOGS));
     });
   });
 
@@ -266,18 +226,12 @@ describe('test project paths', () => {
     });
 
     it('should return true if the extension of the uri given is the same as the target extension', () => {
-      const extensionsMatching = fileExtensionsMatch(
-        mockEditor.document.uri,
-        'log'
-      );
+      const extensionsMatching = fileExtensionsMatch(mockEditor.document.uri, 'log');
       expect(extensionsMatching).toBeTruthy();
     });
 
     it('should return false if the extension of the uri given is not the same as the target extension', () => {
-      const extensionsMatching = fileExtensionsMatch(
-        mockEditor.document.uri,
-        'txt'
-      );
+      const extensionsMatching = fileExtensionsMatch(mockEditor.document.uri, 'txt');
       expect(extensionsMatching).toBeFalsy();
     });
   });

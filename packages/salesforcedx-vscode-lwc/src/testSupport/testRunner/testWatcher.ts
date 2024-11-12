@@ -22,11 +22,7 @@ class TestWatcher {
    * @param testExecutionInfo test execution info
    */
   public async watchTest(testExecutionInfo: TestExecutionInfo) {
-    const testRunner = new TestRunner(
-      testExecutionInfo,
-      TestRunType.WATCH,
-      LWC_TEST_WATCH_LOG_NAME
-    );
+    const testRunner = new TestRunner(testExecutionInfo, TestRunType.WATCH, LWC_TEST_WATCH_LOG_NAME);
     try {
       const sfTask = await testRunner.executeAsSfTask();
       if (sfTask) {
@@ -88,10 +84,7 @@ class TestWatcher {
    * @param testUri uri of the test
    */
   public setWatchingContext(testUri: vscode.Uri) {
-    if (
-      vscode.window.activeTextEditor &&
-      vscode.window.activeTextEditor.document.uri.fsPath === testUri.fsPath
-    ) {
+    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.fsPath === testUri.fsPath) {
       vscode.commands.executeCommand(
         'setContext',
         SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT,

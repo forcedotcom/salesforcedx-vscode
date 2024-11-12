@@ -13,9 +13,7 @@ export const hasRootWorkspace = (ws: typeof workspace = workspace) => {
 };
 
 export const getRootWorkspace = (): WorkspaceFolder => {
-  return hasRootWorkspace()
-    ? workspace.workspaceFolders![0]
-    : ({} as WorkspaceFolder);
+  return hasRootWorkspace() ? workspace.workspaceFolders![0] : ({} as WorkspaceFolder);
 };
 
 export const getRootWorkspacePath = (): string => {

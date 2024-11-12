@@ -5,10 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet, DeployResult, FileProperties, registry, SourceComponent} from '@salesforce/source-deploy-retrieve-bundle';
-import { MetadataApiDeployStatus, RequestStatus} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+import {
+  ComponentSet,
+  DeployResult,
+  FileProperties,
+  registry,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve-bundle';
+import { MetadataApiDeployStatus, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import { expect } from 'chai';
-import { basename, dirname, join} from 'path';
+import { basename, dirname, join } from 'path';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
@@ -46,8 +52,8 @@ describe('Persistent Storage Service', () => {
     content: join('project', 'classes', 'One.cls'),
     xml: join('project', 'classes', 'One.cls-meta.xml')
   };
-  const deployComponentOne = SourceComponent.createVirtualComponent(deployPropsOne,
-    [{
+  const deployComponentOne = SourceComponent.createVirtualComponent(deployPropsOne, [
+    {
       dirPath: dirname(deployPropsOne.content),
       children: [basename(deployPropsOne.content), basename(deployPropsOne.xml)]
     }
@@ -59,8 +65,8 @@ describe('Persistent Storage Service', () => {
     content: join('project', 'classes', 'Two.cls'),
     xml: join('project', 'classes', 'Two.cls-meta.xml')
   };
-  const deployComponentTwo = SourceComponent.createVirtualComponent(deployPropsTwo,
-    [{
+  const deployComponentTwo = SourceComponent.createVirtualComponent(deployPropsTwo, [
+    {
       dirPath: dirname(deployPropsTwo.content),
       children: [basename(deployPropsTwo.content), basename(deployPropsTwo.xml)]
     }
@@ -70,10 +76,7 @@ describe('Persistent Storage Service', () => {
       status: RequestStatus.Succeeded,
       lastModifiedDate: 'Yesterday'
     } as MetadataApiDeployStatus,
-    new ComponentSet([
-      deployComponentOne,
-      deployComponentTwo
-    ])
+    new ComponentSet([deployComponentOne, deployComponentTwo])
   );
 
   beforeEach(() => {
@@ -84,8 +87,12 @@ describe('Persistent Storage Service', () => {
   it('Should store and retrieve file properties in Memento cache for Retrieve', () => {
     const cache = PersistentStorageService.getInstance();
     cache.setPropertiesForFilesRetrieve(props);
-    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Tomorrow'});
-    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({
+      lastModifiedDate: 'Tomorrow'
+    });
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({
+      lastModifiedDate: 'Yesterday'
+    });
     cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
     cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
     expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);

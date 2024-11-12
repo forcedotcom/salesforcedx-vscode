@@ -24,7 +24,7 @@
  * By default, all categories will be tested. To only process specific
  * categories, call the script with desired categories separated by a space.
  *
- * e.g. 
+ * e.g.
  * node aggregate-junit-xml.js -t integration vscode-integration
  * npm run aggregateJUnit -- -t integration vscode-integration
  */
@@ -82,16 +82,12 @@ function getTestDirectory(packagePath) {
 function getMissingResults(flags) {
   const packagesDir = path.join(process.cwd(), 'packages');
   for (const packageName of fs.readdirSync(packagesDir)) {
-
     const packagePath = path.join(packagesDir, packageName);
     const testDir = getTestDirectory(packagePath);
     if (testDir) {
-
       for (const testEntry of fs.readdirSync(testDir)) {
         if (flags.has(`${testEntry}`)) {
-
           if (!copyJunitTestResult(packagePath, packageName, testEntry)) {
-
             if (testEntry === 'vscode-integration') {
               rerunCrashedVSCodeIntegrationTests(packagePath, packageName, testEntry);
             } else {
@@ -106,24 +102,14 @@ function getMissingResults(flags) {
 
 /*
  * If the current test directory is one we want to aggregate, copy the
- * junit results to the aggregate folder. 
- * 
+ * junit results to the aggregate folder.
+ *
  * Return true or false if the test result was found.
  */
 function copyJunitTestResult(packagePath, packageName, testEntry) {
-  const junitFilePath = path.join(
-    packagePath,
-    categoryToFile[testEntry]
-  );
+  const junitFilePath = path.join(packagePath, categoryToFile[testEntry]);
   if (fs.existsSync(junitFilePath)) {
-    shell.cp(
-      junitFilePath,
-      path.join(
-        process.cwd(),
-        'junit-aggregate',
-        `${packageName}-${categoryToFile[testEntry]}`
-      )
-    );
+    shell.cp(junitFilePath, path.join(process.cwd(), 'junit-aggregate', `${packageName}-${categoryToFile[testEntry]}`));
     return true;
   }
   return false;
@@ -151,10 +137,7 @@ function generateMissingMessage(missingResults) {
         missingMessage = '\nMissing junit results for the following packages:\n';
       }
       missingMessage += `\n* ${testType}:`;
-      missingMessage = pkgs.reduce(
-        (previous, current) => `${previous}\n\t- ${current}`,
-        missingMessage
-      );
+      missingMessage = pkgs.reduce((previous, current) => `${previous}\n\t- ${current}`, missingMessage);
     }
   }
   return missingMessage;
@@ -163,8 +146,7 @@ function generateMissingMessage(missingResults) {
 function checkMissingMessage(missingMessage) {
   if (missingMessage) {
     missingMessage += '\n\nPossible Issues:\n\n';
-    missingMessage +=
-      "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.).\n";
+    missingMessage += "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.).\n";
     missingMessage +=
       '2) An unexpected test runner or reporter failure while running tests. Sometimes extension activation issues or issues in the tests can silently fail.\n';
     missingMessage += '3) Test run configuration is improperly set up.\n';

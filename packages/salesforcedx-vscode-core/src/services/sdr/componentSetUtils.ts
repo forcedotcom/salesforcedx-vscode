@@ -18,8 +18,7 @@ const setApiVersion = async (componentSet: ComponentSet): Promise<void> => {
 
   // Check the SFDX configuration to see if there is an overridden api version.
   // Project level local config takes precedence over global config at system level.
-  const userConfiguredApiVersion =
-    await ConfigUtil.getUserConfiguredApiVersion();
+  const userConfiguredApiVersion = await ConfigUtil.getUserConfiguredApiVersion();
   if (userConfiguredApiVersion) {
     componentSet.apiVersion = userConfiguredApiVersion;
     return;
@@ -27,10 +26,7 @@ const setApiVersion = async (componentSet: ComponentSet): Promise<void> => {
 
   // If no user-configured API Version is present, then get the version from the org.
   const orgApiVersion = await componentSetUtils.getOrgApiVersion();
-  componentSet.apiVersion =
-    orgApiVersion && orgApiVersion.length > 0
-      ? orgApiVersion
-      : componentSet.apiVersion;
+  componentSet.apiVersion = orgApiVersion && orgApiVersion.length > 0 ? orgApiVersion : componentSet.apiVersion;
 };
 
 const setSourceApiVersion = async (componentSet: ComponentSet): Promise<void> => {
@@ -48,8 +44,7 @@ const setSourceApiVersion = async (componentSet: ComponentSet): Promise<void> =>
   }
 
   // Next, attempt to get sourceApiVersion from sfdx-project.json...
-  let sourceApiVersion =
-    await SalesforceProjectConfig.getValue<string>('sourceApiVersion');
+  let sourceApiVersion = await SalesforceProjectConfig.getValue<string>('sourceApiVersion');
   if (!sourceApiVersion) {
     // ...and if sourceApiVersion isn't defined, attempt to get the value from the config aggregator.
     sourceApiVersion = (await ConfigUtil.getUserConfiguredApiVersion())!;

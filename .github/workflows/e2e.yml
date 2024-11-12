@@ -46,5 +46,5 @@ jobs:
     secrets: inherit
     with:
       automationBranch: 'main'
-      vscodeVersion: '1.86.0'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}

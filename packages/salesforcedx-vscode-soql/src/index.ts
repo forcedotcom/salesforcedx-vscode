@@ -14,27 +14,16 @@ import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { workspaceContext, channelService } from './sf';
 import { telemetryService } from './telemetry';
 
-export const activate = async (
-  extensionContext: vscode.ExtensionContext
-): Promise<any> => {
+export const activate = async (extensionContext: vscode.ExtensionContext): Promise<any> => {
   await telemetryService.initializeService(extensionContext);
-  const activationTracker = new ActivationTracker(
-    extensionContext,
-    telemetryService
-  );
+  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
 
-  extensionContext.subscriptions.push(
-    SOQLEditorProvider.register(extensionContext)
-  );
+  extensionContext.subscriptions.push(SOQLEditorProvider.register(extensionContext));
   QueryDataViewService.register(extensionContext);
   await workspaceContext.initialize(extensionContext);
 
-  extensionContext.subscriptions.push(
-    vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew)
-  );
-  extensionContext.subscriptions.push(
-    vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle)
-  );
+  extensionContext.subscriptions.push(vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew));
+  extensionContext.subscriptions.push(vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle));
 
   await startLanguageClient(extensionContext);
   void activationTracker.markActivationStop();

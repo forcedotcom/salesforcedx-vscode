@@ -30,10 +30,7 @@ export class PreviewService {
     return store.get(`last${platform}Device`) || '';
   }
 
-  public updateRememberedDevice(
-    platform: keyof typeof PlatformName,
-    deviceName: string
-  ): void {
+  public updateRememberedDevice(platform: keyof typeof PlatformName, deviceName: string): void {
     const store = WorkspaceUtils.instance.getGlobalStore();
     if (store !== undefined) {
       store.update(`last${platform}Device`, deviceName);
@@ -41,15 +38,10 @@ export class PreviewService {
   }
 
   public isRememberedDeviceEnabled(): boolean {
-    return WorkspaceUtils.instance
-      .getWorkspaceSettings()
-      .get(this.rememberDeviceKey, false);
+    return WorkspaceUtils.instance.getWorkspaceSettings().get(this.rememberDeviceKey, false);
   }
 
   public getLogLevel(): string {
-    return (
-      WorkspaceUtils.instance.getWorkspaceSettings().get(this.logLevelKey) ||
-      this.defaultLogLevel
-    );
+    return WorkspaceUtils.instance.getWorkspaceSettings().get(this.logLevelKey) || this.defaultLogLevel;
   }
 }

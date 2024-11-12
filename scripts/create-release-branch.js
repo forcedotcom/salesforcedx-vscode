@@ -10,8 +10,7 @@ shell.set('-e');
 shell.set('+v');
 
 function getReleaseVersion() {
-  const currentVersion = require('../packages/salesforcedx-vscode/package.json')
-    .version;
+  const currentVersion = require('../packages/salesforcedx-vscode/package.json').version;
   let [version, major, minor, patch] = currentVersion.match(/^(\d+)\.?(\d+)\.?(\*|\d+)$/);
 
   switch (RELEASE_TYPE) {
@@ -78,16 +77,14 @@ shell.exec('git clean -xfd -e node_modules');
 // lerna version
 // increment the version number in all packages without publishing to npmjs
 // only run on branch named develop and do not create git tags
-shell.exec(
-  `lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`
-);
+shell.exec(`lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`);
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
 // all the version bump changes so we'll now need to commit those using git add & commit.
 // Add all package.json version update changes
 shell.exec(`git add "**/package.json"`);
 
-// Execute an npm install so that we update the package-lock.json file with the new version 
+// Execute an npm install so that we update the package-lock.json file with the new version
 // found in the packages for each submodule.
 shell.exec(`npm install --ignore-scripts --package-lock-only --no-audit`);
 
@@ -109,11 +106,11 @@ shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 // In this way, we can resolve conflicts between main branch and develop branch when merge main back to develop after the release.
 // beta versions should not be merged directly to develop, so we don't merge back to main
 if (!isBetaRelease()) {
-  shell.exec(`git checkout develop`)
-  shell.exec(`git merge ${releaseBranchName}`)
-  shell.exec(`git push -u origin develop`)
-  shell.exec(`git checkout ${releaseBranchName}`)
-  shell.exec(`git fetch`)
+  shell.exec(`git checkout develop`);
+  shell.exec(`git merge ${releaseBranchName}`);
+  shell.exec(`git push -u origin develop`);
+  shell.exec(`git checkout ${releaseBranchName}`);
+  shell.exec(`git fetch`);
 }
 
 // Push new release branch to remote

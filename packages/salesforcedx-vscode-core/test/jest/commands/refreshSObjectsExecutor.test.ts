@@ -22,17 +22,11 @@ describe('RefreshSObjectsExecutor', () => {
 
   beforeEach(() => {
     transformer = new SObjectTransformer(new EventEmitter(), [], []);
-    channelServiceSpy = jest
-      .spyOn(channelService, 'showChannelOutput')
-      .mockImplementation(jest.fn());
+    channelServiceSpy = jest.spyOn(channelService, 'showChannelOutput').mockImplementation(jest.fn());
 
     jest.spyOn(channelService, 'clear').mockImplementation(jest.fn());
-    jest
-      .spyOn(channelService, 'streamCommandOutput')
-      .mockImplementation(jest.fn());
-    jest
-      .spyOn(SObjectTransformerFactory, 'create')
-      .mockResolvedValue(transformer);
+    jest.spyOn(channelService, 'streamCommandOutput').mockImplementation(jest.fn());
+    jest.spyOn(SObjectTransformerFactory, 'create').mockResolvedValue(transformer);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
   });
 
@@ -48,10 +42,7 @@ describe('RefreshSObjectsExecutor', () => {
   });
 
   it('should fire the command completion event once the command is finished successfully', async () => {
-    const fireSpy = jest.spyOn(
-      RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter,
-      'fire'
-    );
+    const fireSpy = jest.spyOn(RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter, 'fire');
 
     await doExecute(SObjectRefreshSource.Startup, SObjectCategory.STANDARD);
 
@@ -60,10 +51,7 @@ describe('RefreshSObjectsExecutor', () => {
     });
   });
 
-  const doExecute = async (
-    source: SObjectRefreshSource,
-    category?: SObjectCategory
-  ) => {
+  const doExecute = async (source: SObjectRefreshSource, category?: SObjectCategory) => {
     const executor = new RefreshSObjectsExecutor();
     await executor.execute({
       type: 'CONTINUE',

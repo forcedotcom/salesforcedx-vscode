@@ -10,8 +10,7 @@ export const testData = {
       type: 'ApexClass',
       state: 'modify',
       fullName: 'CommunitiesLandingController',
-      filePath:
-        'force-app/main/default/classes/CommunitiesLandingController.cls',
+      filePath: 'force-app/main/default/classes/CommunitiesLandingController.cls',
       origin: 'local',
       ignored: false,
       conflict: false
@@ -20,8 +19,7 @@ export const testData = {
       type: 'ApexClass',
       state: 'modify',
       fullName: 'CommunitiesLandingControllerTest',
-      filePath:
-        'force-app/main/default/classes/CommunitiesLandingControllerTest.cls',
+      filePath: 'force-app/main/default/classes/CommunitiesLandingControllerTest.cls',
       origin: 'local',
       ignored: false,
       conflict: false

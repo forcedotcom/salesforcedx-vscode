@@ -4,18 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import { channelService } from '../../../../src/channels';
-import {
-  CommandletExecutor,
-  SfCommandlet
-} from '../../../../src/commands/util';
+import { CommandletExecutor, SfCommandlet } from '../../../../src/commands/util';
 import { salesforceCoreSettings } from '../../../../src/settings';
 
 describe('SfCommandlet', () => {
@@ -97,9 +90,7 @@ describe('SfCommandlet', () => {
   });
 
   it('Should clear channel if user preference is set to true', async () => {
-    sandbox
-      .stub(salesforceCoreSettings, 'getEnableClearOutputBeforeEachCommand')
-      .returns(false);
+    sandbox.stub(salesforceCoreSettings, 'getEnableClearOutputBeforeEachCommand').returns(false);
     const clearStub = sandbox.stub(channelService, 'clear');
     const commandlet = new SfCommandlet(
       new (class {
@@ -122,9 +113,7 @@ describe('SfCommandlet', () => {
   });
 
   it('Should not clear channel if user preference is set to false', async () => {
-    sandbox
-      .stub(salesforceCoreSettings, 'getEnableClearOutputBeforeEachCommand')
-      .returns(false);
+    sandbox.stub(salesforceCoreSettings, 'getEnableClearOutputBeforeEachCommand').returns(false);
     const clearStub = sandbox.stub(channelService, 'clear');
     const commandlet = new SfCommandlet(
       new (class {

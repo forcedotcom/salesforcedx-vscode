@@ -25,9 +25,7 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
-jest.mock(
-  '../../../../src/commands/templates/executors/LibraryApexGenerateClassExecutor'
-);
+jest.mock('../../../../src/commands/templates/executors/LibraryApexGenerateClassExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
@@ -37,13 +35,9 @@ const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
 const selectOutputDirMocked = jest.mocked(SelectOutputDir);
 const simpleGathererMocked = jest.mocked(SimpleGatherer);
-const libraryApexGenerateClassExecutorMocked = jest.mocked(
-  LibraryApexGenerateClassExecutor
-);
+const libraryApexGenerateClassExecutorMocked = jest.mocked(LibraryApexGenerateClassExecutor);
 const sfWorkspaceCheckerMocked = jest.mocked(SfWorkspaceChecker);
-const compositeParametersGathererMocked = jest.mocked(
-  CompositeParametersGatherer
-);
+const compositeParametersGathererMocked = jest.mocked(CompositeParametersGatherer);
 const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
 
 describe('apexGenerateClass Unit Tests.', () => {
@@ -55,20 +49,16 @@ describe('apexGenerateClass Unit Tests.', () => {
     runMock = jest.fn();
     // Note that the entire sfCommandlet module can not be mocked like the other modules b/c
     // there are multiple exports there that cause issues if not available.
-    sfCommandletMocked = jest
-      .spyOn(commandlet, 'SfCommandlet')
-      .mockImplementation((): any => {
-        return {
-          run: runMock
-        };
-      });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => {
+      return {
+        run: runMock
+      };
+    });
   });
 
   it('Should be able to execute apexGenerateClass.', async () => {
     await apexGenerateClass();
-    expect(selectFileNameMocked).toHaveBeenCalledWith(
-      APEX_CLASS_NAME_MAX_LENGTH
-    );
+    expect(selectFileNameMocked).toHaveBeenCalledWith(APEX_CLASS_NAME_MAX_LENGTH);
     expect(selectOutputDirMocked).toHaveBeenCalledWith(APEX_CLASS_DIRECTORY);
     expect(simpleGathererMocked).not.toHaveBeenCalled();
     expect(metadataTypeGathererMocked).toHaveBeenCalledWith(APEX_CLASS_TYPE);
@@ -86,9 +76,7 @@ describe('apexGenerateClass Unit Tests.', () => {
       fsPath: '/path1/path2/project/force-app/main/default/classes'
     } as unknown as vscode.Uri;
     await apexGenerateClass(selectedPathUri);
-    expect(selectFileNameMocked).toHaveBeenCalledWith(
-      APEX_CLASS_NAME_MAX_LENGTH
-    );
+    expect(selectFileNameMocked).toHaveBeenCalledWith(APEX_CLASS_NAME_MAX_LENGTH);
     // still called to initialize, not actually used
     expect(selectOutputDirMocked).toHaveBeenCalled();
     expect(simpleGathererMocked).toHaveBeenCalled();

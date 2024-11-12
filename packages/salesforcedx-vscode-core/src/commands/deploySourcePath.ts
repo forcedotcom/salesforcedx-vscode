@@ -25,11 +25,8 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
     this.showChannelOutput = showChannelOutput;
   }
 
-  public async getComponents(
-    response: ContinueResponse<string[]>
-  ): Promise<ComponentSet> {
-    const paths =
-      typeof response.data === 'string' ? [response.data] : response.data;
+  public async getComponents(response: ContinueResponse<string[]>): Promise<ComponentSet> {
+    const paths = typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
 
     return componentSet;
@@ -73,18 +70,13 @@ export const deploySourcePaths = async (
   const messages = getConflictMessagesFor('deploy_with_sourcepath');
 
   if (messages) {
-    const showOutputPanel = !(
-      isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel()
-    );
+    const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
 
     const commandlet = new SfCommandlet<string[]>(
       new SfWorkspaceChecker(),
       new LibraryPathsGatherer(uris),
       new LibraryDeploySourcePathExecutor(showOutputPanel),
-      new CompositePostconditionChecker(
-        new SourcePathChecker(),
-        new TimestampConflictChecker(false, messages)
-      )
+      new CompositePostconditionChecker(new SourcePathChecker(), new TimestampConflictChecker(false, messages))
     );
 
     await commandlet.run();

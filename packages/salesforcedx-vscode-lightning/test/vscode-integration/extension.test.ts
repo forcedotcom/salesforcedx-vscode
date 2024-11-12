@@ -12,12 +12,8 @@ import * as vscode from 'vscode';
 const PERFECT_MATCH = 10;
 
 const matchExtensionAsHtml = async (extension: string) => {
-  const doc = await vscode.workspace.openTextDocument(
-    vscode.Uri.parse(`untitled:fake/path/doc.${extension}`)
-  );
-  expect(vscode.languages.match({ language: 'html' }, doc)).to.equal(
-    PERFECT_MATCH
-  );
+  const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(`untitled:fake/path/doc.${extension}`));
+  expect(vscode.languages.match({ language: 'html' }, doc)).to.equal(PERFECT_MATCH);
 };
 
 describe('Lightning file association', () => {
@@ -55,14 +51,8 @@ describe('Test commands', () => {
   let auraExtension: vscode.Extension<any>;
 
   beforeEach(async () => {
-    if (
-      vscode.workspace &&
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
-    ) {
-      coreExtension = vscode.extensions.getExtension(
-        'salesforce.salesforcedx-vscode-core'
-      ) as vscode.Extension<any>;
+    if (vscode.workspace && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+      coreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core') as vscode.Extension<any>;
 
       auraExtension = vscode.extensions.getExtension(
         'salesforce.salesforcedx-vscode-lightning'
@@ -70,13 +60,13 @@ describe('Test commands', () => {
     }
   });
 
-  it('coreExtension activation', async function(this: Context) {
+  it('coreExtension activation', async function (this: Context) {
     this.timeout(10000);
     await coreExtension.activate();
     expect(coreExtension.isActive);
   });
 
-  it('aura activation', async function(this: Context) {
+  it('aura activation', async function (this: Context) {
     this.timeout(10000);
     await auraExtension.activate();
     expect(auraExtension.isActive);

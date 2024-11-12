@@ -10,10 +10,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  ApexTestQuickPickItem,
-  TestType
-} from '../../../src/commands/apexTestRun';
+import { ApexTestQuickPickItem, TestType } from '../../../src/commands/apexTestRun';
 import {
   ApexTestSuiteOptions,
   TestSuiteBuilder,

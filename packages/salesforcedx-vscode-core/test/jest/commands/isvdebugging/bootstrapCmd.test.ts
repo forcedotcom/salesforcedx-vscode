@@ -6,10 +6,14 @@
  */
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
-import { INSTALLED_PACKAGES, IsvDebugBootstrapExecutor, ISVDEBUGGER, PACKAGE_XML } from '../../../../src/commands/isvdebugging/bootstrapCmd';
+import {
+  INSTALLED_PACKAGES,
+  IsvDebugBootstrapExecutor,
+  ISVDEBUGGER,
+  PACKAGE_XML
+} from '../../../../src/commands/isvdebugging/bootstrapCmd';
 
 describe('isvdebugging unit test', () => {
-
   const TOOLS_FOLDER = 'tools';
   let relativeToolsFolderStub: jest.SpyInstance;
 
@@ -32,12 +36,16 @@ describe('isvdebugging unit test', () => {
 
   it('should test readonly relativeApexPackageXmlPath property', () => {
     isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeApexPackageXmlPath).toEqual(path.join(isvDebugBootstrapExecutorInst.relativeMetadataTempPath, PACKAGE_XML));
+    expect(isvDebugBootstrapExecutorInst.relativeApexPackageXmlPath).toEqual(
+      path.join(isvDebugBootstrapExecutorInst.relativeMetadataTempPath, PACKAGE_XML)
+    );
   });
 
   it('should test readonly relativeInstalledPackagesPath property', () => {
     isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeInstalledPackagesPath).toEqual(path.join(TOOLS_FOLDER, INSTALLED_PACKAGES));
+    expect(isvDebugBootstrapExecutorInst.relativeInstalledPackagesPath).toEqual(
+      path.join(TOOLS_FOLDER, INSTALLED_PACKAGES)
+    );
     expect(relativeToolsFolderStub).toBeCalled();
   });
 });
