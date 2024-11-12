@@ -8,15 +8,15 @@
 
 #### salesforcedx-vscode-core
 
-- Add org shape and dev hub id to telemetry ([PR #5939](https://github.com/forcedotcom/salesforcedx-vscode/pull/5939))
+- We made some changes under the hood. ([PR #5939](https://github.com/forcedotcom/salesforcedx-vscode/pull/5939))
 
-- Control switching to Output panel when Push-or-deploy-on-save is enabled ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
+- Output panel will not be switched by default after push or deploy on save. You can toggle the setting with salesforcedx-vscode-core.push-or-deploy-on-save.showOutputPanel. Thank you @techrd for your contributions. ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Bump min v scode version to 1.90.0 for node 20 ([PR #5937](https://github.com/forcedotcom/salesforcedx-vscode/pull/5937))
+- Bump min vscode version to 1.90.0 for node 20 ([PR #5937](https://github.com/forcedotcom/salesforcedx-vscode/pull/5937))
 
 # 62.3.1 - November 1, 2024
 
