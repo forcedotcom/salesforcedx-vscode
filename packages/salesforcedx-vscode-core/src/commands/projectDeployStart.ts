@@ -24,6 +24,7 @@ import { PersistentStorageService } from '../conflict';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { handlePushDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
+import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
 import {
@@ -53,17 +54,18 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
   public constructor(
     flag?: string,
-    public params: CommandParams = pushCommand
+    public params: CommandParams = pushCommand,
+    showChannelOutput: boolean = true
   ) {
     super();
     this.flag = flag;
+    this.showChannelOutput = showChannelOutput;
   }
 
   protected getDeployType() {
     return DeployType.Push;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
@@ -109,7 +111,6 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected async exitProcessHandlerPush(
     exitCode: number | undefined,
     stdOut: string,
@@ -119,7 +120,6 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     startTime: [number, number],
     cancellationToken: vscode.CancellationToken | undefined,
     cancellationTokenSource: vscode.CancellationTokenSource
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<void> {
     if (execution.command.logName === PROJECT_DEPLOY_START_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);
@@ -246,9 +246,12 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function projectDeployStart(this: FlagParameter<string>) {
+export async function projectDeployStart(this: FlagParameter<string>, isDeployOnSave: boolean) {
+  const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
+
   const { flag } = this || {};
-  const executor = new ProjectDeployStartExecutor(flag, pushCommand);
+  const executor = new ProjectDeployStartExecutor(flag, pushCommand, showOutputPanel);
+
   const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
   await commandlet.run();
 }

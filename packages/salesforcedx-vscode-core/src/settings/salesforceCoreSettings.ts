@@ -16,6 +16,7 @@ import {
   PREFER_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
+  DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL,
   RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
@@ -66,6 +67,10 @@ export class SalesforceCoreSettings {
 
   public getPreferDeployOnSaveEnabled(): boolean {
     return this.getConfigValue(PREFER_DEPLOY_ON_SAVE_ENABLED, false);
+  }
+
+  public getDeployOnSaveShowOutputPanel(): boolean {
+    return this.getConfigValue(DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL, false);
   }
 
   public getEnableSourceTrackingForDeployAndRetrieve(): boolean {

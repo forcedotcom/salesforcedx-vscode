@@ -37,6 +37,7 @@ export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const PREFER_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.preferDeployOnSave';
 export const PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS = 'push-or-deploy-on-save.ignoreConflictsOnPush';
+export const DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL = 'push-or-deploy-on-save.showOutputPanel';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
