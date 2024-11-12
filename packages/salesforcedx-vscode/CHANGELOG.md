@@ -1,3 +1,23 @@
+# 62.5.1 - November 14, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Signed jar for updated range for Class, Enum, Interface + improved symbol hierarchy ([PR #5945](https://github.com/forcedotcom/salesforcedx-vscode/pull/5945))
+
+#### salesforcedx-vscode-core
+
+- Add org shape and dev hub id to telemetry ([PR #5939](https://github.com/forcedotcom/salesforcedx-vscode/pull/5939))
+
+- Control switching to Output panel when Push-or-deploy-on-save is enabled ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Bump min v scode version to 1.90.0 for node 20 ([PR #5937](https://github.com/forcedotcom/salesforcedx-vscode/pull/5937))
+
 # 62.3.1 - November 1, 2024
 
 ## Fixed
