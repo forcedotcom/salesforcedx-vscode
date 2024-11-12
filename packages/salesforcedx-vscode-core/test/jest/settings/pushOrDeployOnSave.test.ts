@@ -15,6 +15,7 @@ describe('DeployQueue', () => {
     let getWorkspaceOrgTypeMock: jest.SpyInstance;
     let executeDeployCommandSpy: jest.SpyInstance;
     let executePushCommandSpy: jest.SpyInstance;
+    let vscodeExecuteCommandSpy: jest.SpyInstance;
 
     beforeEach(() => {
       getPushOrDeployOnSaveEnabledMock = jest.spyOn(
@@ -37,10 +38,12 @@ describe('DeployQueue', () => {
         (DeployQueue as any).prototype,
         'executePushCommand'
       );
+      vscodeExecuteCommandSpy = jest.spyOn(vscode.commands, 'executeCommand');
     });
 
     afterEach(() => {
       DeployQueue.reset();
+      jest.restoreAllMocks();
     });
 
     it('should execute a push command when org type is source-tracked, "Push or deploy on save" is enabled, and "Prefer deploy on save" is disabled', async () => {
@@ -53,6 +56,10 @@ describe('DeployQueue', () => {
       expect(getPreferDeployOnSaveEnabledMock).toHaveBeenCalled();
       expect(executePushCommandSpy).toHaveBeenCalled();
       expect(executeDeployCommandSpy).not.toHaveBeenCalled();
+      expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith(
+        'sf.project.deploy.start.ignore.conflicts',
+        true
+      );
     });
 
     it('should execute a deploy command when "Push or deploy on save" and "Prefer deploy on save" are enabled', async () => {
@@ -62,8 +69,14 @@ describe('DeployQueue', () => {
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
       expect(getPreferDeployOnSaveEnabledMock).toHaveBeenCalled();
-      expect(executeDeployCommandSpy).toHaveBeenCalled();
       expect(executePushCommandSpy).not.toHaveBeenCalled();
+      expect(executeDeployCommandSpy).toHaveBeenCalled();
+      expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith(
+        'sf.deploy.multiple.source.paths',
+        [undefined],
+        null,
+        true
+      );
     });
   });
 });
