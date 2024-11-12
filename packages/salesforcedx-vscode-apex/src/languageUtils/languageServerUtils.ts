@@ -7,11 +7,7 @@
 
 import { execSync } from 'child_process';
 import { SIGKILL } from 'constants';
-import {
-  APEX_LSP_ORPHAN,
-  POWERSHELL_NOT_FOUND,
-  UBER_JAR_NAME
-} from '../constants';
+import { APEX_LSP_ORPHAN, POWERSHELL_NOT_FOUND, UBER_JAR_NAME } from '../constants';
 import { getTelemetryService } from '../telemetry/telemetry';
 
 export type ProcessDetail = {
@@ -45,12 +41,7 @@ const findAndCheckOrphanedProcesses = async (): Promise<ProcessDetail[]> => {
       const command = commandParts.join(' ');
       return { pid, ppid, command, orphaned: false };
     })
-    .filter(
-      processInfo =>
-        !['ps', 'grep', 'Get-CimInstance'].some(c =>
-          processInfo.command.includes(c)
-        )
-    )
+    .filter(processInfo => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c)))
     .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME));
 
   if (processes.length === 0) {

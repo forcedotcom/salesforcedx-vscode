@@ -12,11 +12,7 @@ import { workspaceContextUtils } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
-import {
-  DeployQueue,
-  fileShouldNotBeDeployed,
-  pathIsInPackageDirectory
-} from '../../../src/settings';
+import { DeployQueue, fileShouldNotBeDeployed, pathIsInPackageDirectory } from '../../../src/settings';
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { telemetryService } from '../../../src/telemetry';
 
@@ -30,19 +26,14 @@ describe('Push or Deploy on Save', () => {
   let showErrorMessageStub: SinonStub;
   beforeEach(() => {
     appendLineStub = sandbox.stub(channelService, 'appendLine');
-    showErrorMessageStub = sandbox.stub(
-      notificationService,
-      'showErrorMessage'
-    );
+    showErrorMessageStub = sandbox.stub(notificationService, 'showErrorMessage');
   });
 
   afterEach(() => sandbox.restore());
 
   describe('pathIsInPackageDirectory', () => {
     it('should return true if the path is in a package directory', async () => {
-      sandbox
-        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
-        .returns(true);
+      sandbox.stub(SalesforcePackageDirectories, 'isInPackageDirectory').returns(true);
       const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.true;
       expect(appendLineStub.called).to.be.false;
@@ -50,9 +41,7 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should return false if the path is not in a package directory', async () => {
-      sandbox
-        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
-        .returns(false);
+      sandbox.stub(SalesforcePackageDirectories, 'isInPackageDirectory').returns(false);
       const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.false;
       expect(appendLineStub.called).to.be.false;
@@ -62,18 +51,14 @@ describe('Push or Deploy on Save', () => {
     it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
       const error = new Error();
       error.name = 'NoPackageDirectoriesFound';
-      sandbox
-        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
-        .throws(error);
+      sandbox.stub(SalesforcePackageDirectories, 'isInPackageDirectory').throws(error);
       let errorWasThrown = false;
 
       try {
         await pathIsInPackageDirectory('test-path');
       } catch (e) {
         errorWasThrown = true;
-        expect(e.message).to.equal(
-          nls.localize('error_no_package_directories_found_on_setup_text')
-        );
+        expect(e.message).to.equal(nls.localize('error_no_package_directories_found_on_setup_text'));
       } finally {
         expect(errorWasThrown).to.be.true;
         expect(appendLineStub.called).to.be.true;
@@ -84,17 +69,13 @@ describe('Push or Deploy on Save', () => {
     it('should throw an error if packageDirectories does not specify any paths', async () => {
       const error = new Error();
       error.name = 'NoPackageDirectoryPathsFound';
-      sandbox
-        .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
-        .throws(error);
+      sandbox.stub(SalesforcePackageDirectories, 'isInPackageDirectory').throws(error);
       let errorWasThrown = false;
       try {
         await pathIsInPackageDirectory('test-path');
       } catch (err) {
         errorWasThrown = true;
-        expect(err.message).to.equal(
-          nls.localize('error_no_package_directories_paths_found_text')
-        );
+        expect(err.message).to.equal(nls.localize('error_no_package_directories_paths_found_text'));
       } finally {
         expect(errorWasThrown).to.be.true;
         expect(appendLineStub.called).to.be.true;
@@ -109,14 +90,9 @@ describe('Push or Deploy on Save', () => {
 
     beforeEach(() => {
       DeployQueue.reset();
-      getWorkspaceOrgTypeStub = sandbox.stub(
-        workspaceContextUtils,
-        'getWorkspaceOrgType'
-      );
+      getWorkspaceOrgTypeStub = sandbox.stub(workspaceContextUtils, 'getWorkspaceOrgType');
       executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
-      sandbox
-        .stub(SalesforceCoreSettings.prototype, 'getPreferDeployOnSaveEnabled')
-        .returns(false);
+      sandbox.stub(SalesforceCoreSettings.prototype, 'getPreferDeployOnSaveEnabled').returns(false);
     });
 
     it('should not deploy if nothing has been queued', async () => {
@@ -191,38 +167,24 @@ describe('Push or Deploy on Save', () => {
 
     it('should call project:deploy:start when getPushOrDeployOnSaveIgnoreConflicts is false', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
-      sandbox
-        .stub(
-          SalesforceCoreSettings.prototype,
-          'getPushOrDeployOnSaveIgnoreConflicts'
-        )
-        .returns(false);
+      sandbox.stub(SalesforceCoreSettings.prototype, 'getPushOrDeployOnSaveIgnoreConflicts').returns(false);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
       expect(executeCommandStub.calledOnce).to.be.true;
-      expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sf.project.deploy.start'
-      );
+      expect(executeCommandStub.getCall(0).args[0]).to.eql('sf.project.deploy.start');
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
     });
 
     it('should call project:deploy:start --ignore-conflicts when getPushOrDeployOnSaveIgnoreConflicts is true', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
-      sandbox
-        .stub(
-          SalesforceCoreSettings.prototype,
-          'getPushOrDeployOnSaveIgnoreConflicts'
-        )
-        .returns(true);
+      sandbox.stub(SalesforceCoreSettings.prototype, 'getPushOrDeployOnSaveIgnoreConflicts').returns(true);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
       expect(executeCommandStub.calledOnce).to.be.true;
-      expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sf.project.deploy.start.ignore.conflicts'
-      );
+      expect(executeCommandStub.getCall(0).args[0]).to.eql('sf.project.deploy.start.ignore.conflicts');
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
     });
@@ -233,9 +195,7 @@ describe('Push or Deploy on Save', () => {
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
       expect(executeCommandStub.calledOnce).to.be.true;
-      expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sf.deploy.multiple.source.paths'
-      );
+      expect(executeCommandStub.getCall(0).args[0]).to.eql('sf.deploy.multiple.source.paths');
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
     });
@@ -245,27 +205,19 @@ describe('Push or Deploy on Save', () => {
     // verify which types of files we want to be deployed on save
 
     it('should return true for dot files', async () => {
-      const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed(
-        '/force-app/main/default/.env'
-      );
+      const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/.env');
       expect(stopDotFileFromBeingDeployed).to.be.true;
     });
     it('should return true for soql files', async () => {
-      const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed(
-        '/force-app/main/default/AccountQuery.soql'
-      );
+      const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/AccountQuery.soql');
       expect(stopSOQLFileFromBeingDeployed).to.be.true;
     });
     it('should return true for anonymous apex files', async () => {
-      const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed(
-        '/force-app/main/default/GetAccounts.apex'
-      );
+      const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/GetAccounts.apex');
       expect(stopAnonApexFileFromBeingDeployed).to.be.true;
     });
     it('should return false for class files', async () => {
-      const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed(
-        '/force-app/main/default/MyAccountMap.cls'
-      );
+      const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/MyAccountMap.cls');
       expect(stopClassFileFromBeingDeployed).to.be.false;
     });
   });

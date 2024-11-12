@@ -45,9 +45,7 @@ export class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
   }
 }
 
-export const describeMetadata = async (
-  outputFolder: string
-): Promise<string> => {
+export const describeMetadata = async (outputFolder: string): Promise<string> => {
   const describeMetadataExecutor = new DescribeMetadataExecutor();
   const execution = describeMetadataExecutor.execute();
   if (!fs.existsSync(outputFolder)) {

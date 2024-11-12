@@ -58,28 +58,18 @@ export class DeveloperLogTraceFlag {
   }
 
   public isValidDebugLevelId() {
-    return (
-      this.debugLevelId !== null &&
-      this.debugLevelId !== undefined &&
-      this.debugLevelId !== ''
-    );
+    return this.debugLevelId !== null && this.debugLevelId !== undefined && this.debugLevelId !== '';
   }
 
   public isValidDateLength() {
     const currDate = new Date().valueOf();
-    return (
-      this.expirationDate.getTime() - currDate >
-      this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_SECOND
-    );
+    return this.expirationDate.getTime() - currDate > this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_SECOND;
   }
 
   public validateDates() {
     if (!this.isValidDateLength()) {
       this.startDate = new Date();
-      this.expirationDate = new Date(
-        Date.now() +
-          this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_SECOND
-      );
+      this.expirationDate = new Date(Date.now() + this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_SECOND);
     }
   }
 
@@ -93,11 +83,11 @@ export class DeveloperLogTraceFlag {
     return this.active;
   }
 
-  public getDebugLevelId(): string|undefined|null {
+  public getDebugLevelId(): string | undefined | null {
     return this.debugLevelId;
   }
 
-  public getTraceFlagId(): string|undefined {
+  public getTraceFlagId(): string | undefined {
     return this.traceflagId;
   }
 

@@ -33,9 +33,7 @@ export type RequirementsData = {
  */
 export const resolveRequirements = async (): Promise<RequirementsData> => {
   const javaHome = await checkJavaRuntime();
-  const javaMemory: number | null = workspace
-    .getConfiguration()
-    .get<number | null>(JAVA_MEMORY_KEY, null);
+  const javaMemory: number | null = workspace.getConfiguration().get<number | null>(JAVA_MEMORY_KEY, null);
   await checkJavaVersion(javaHome);
   return Promise.resolve({
     java_home: javaHome,
@@ -65,14 +63,10 @@ const checkJavaRuntime = async (): Promise<string> => {
       javaHome = expandHomeDir(javaHome) as string;
       if (isLocal(javaHome)) {
         // prevent injecting malicious code from unknown repositories
-        return reject(
-          nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK)
-        );
+        return reject(nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK));
       }
       if (!fs.existsSync(javaHome)) {
-        return reject(
-          nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
-        );
+        return reject(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
       }
       return resolve(javaHome);
     }
@@ -80,9 +74,7 @@ const checkJavaRuntime = async (): Promise<string> => {
     // Last resort, try to automatically detect
     findJavaHome((err: Error, home: string) => {
       if (err) {
-        return reject(
-          nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK)
-        );
+        return reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
       } else {
         return resolve(home);
       }
@@ -106,11 +98,7 @@ export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
     cp.execFile(cmdFile, commandOptions, {}, (error, stdout, stderr) => {
       if (error) {
         reject(
-          nls.localize(
-            'java_version_check_command_failed',
-            `${cmdFile} ${commandOptions.join(' ')}`,
-            error.message
-          )
+          nls.localize('java_version_check_command_failed', `${cmdFile} ${commandOptions.join(' ')}`, error.message)
         );
       }
       if (!/java\.version\s*=\s*(?:11|17|21)/g.test(stderr)) {

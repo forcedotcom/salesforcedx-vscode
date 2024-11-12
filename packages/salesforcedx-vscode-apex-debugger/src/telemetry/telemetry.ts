@@ -27,10 +27,7 @@ export class TelemetryService {
     return TelemetryService.instance;
   }
 
-  public initializeService(
-    reporters: TelemetryReporter[],
-    isTelemetryEnabled: boolean
-  ): void {
+  public initializeService(reporters: TelemetryReporter[], isTelemetryEnabled: boolean): void {
     this.isTelemetryEnabled = isTelemetryEnabled;
     this.reporters = reporters;
   }

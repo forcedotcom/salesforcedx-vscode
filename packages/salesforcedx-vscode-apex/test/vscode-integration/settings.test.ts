@@ -17,12 +17,9 @@ describe('Settings', () => {
 
   beforeEach(() => {
     settingStub = sandbox.stub();
-    sandbox
-      .stub(vscode.workspace, 'getConfiguration')
-      .withArgs(SFDX_CORE_CONFIGURATION_NAME)
-      .returns({
-        get: settingStub
-      });
+    sandbox.stub(vscode.workspace, 'getConfiguration').withArgs(SFDX_CORE_CONFIGURATION_NAME).returns({
+      get: settingStub
+    });
   });
 
   afterEach(() => sandbox.restore());

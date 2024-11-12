@@ -26,10 +26,7 @@ export const openDocumentation = (): void => {
 
     if (filePath.includes(AURA_PATH)) {
       docUrl = nls.localize('aura_doc_url');
-    } else if (
-      filePath.includes(APEX_CLASSES_PATH) ||
-      extension === APEX_FILE_NAME_EXTENSION
-    ) {
+    } else if (filePath.includes(APEX_CLASSES_PATH) || extension === APEX_FILE_NAME_EXTENSION) {
       docUrl = nls.localize('apex_doc_url');
     } else if (extension === SOQL_FILE_NAME_EXTENSION) {
       docUrl = nls.localize('soql_doc_url');

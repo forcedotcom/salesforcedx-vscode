@@ -28,11 +28,7 @@ export class HtmlUtils {
    * @param pathToLwcDist
    * @param webview
    */
-  public static transformHtml(
-    html: string,
-    pathToLwcDist: string,
-    webview: vscode.Webview
-  ): string {
+  public static transformHtml(html: string, pathToLwcDist: string, webview: vscode.Webview): string {
     html = HtmlUtils.transformScriptTags(html, pathToLwcDist, webview);
     html = HtmlUtils.replaceCspMetaTag(html, webview);
     return html;
@@ -56,17 +52,11 @@ export class HtmlUtils {
    * @param pathToLwcDist
    * @param webview
    */
-  public static transformScriptTags(
-    html: string,
-    pathToLwcDist: string,
-    webview: vscode.Webview
-  ): string {
+  public static transformScriptTags(html: string, pathToLwcDist: string, webview: vscode.Webview): string {
     let matches: string[] | null;
     let newScriptSrc: vscode.Uri;
     while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
-      newScriptSrc = webview.asWebviewUri(
-        vscode.Uri.file(path.join(pathToLwcDist, matches[1]))
-      );
+      newScriptSrc = webview.asWebviewUri(vscode.Uri.file(path.join(pathToLwcDist, matches[1])));
       html = html.replace(`./${matches[1]}`, newScriptSrc.toString());
     }
     return html;
@@ -77,10 +67,7 @@ export class HtmlUtils {
    * @param html
    * @param webview
    */
-  public static replaceCspMetaTag(
-    html: string,
-    webview: vscode.Webview
-  ): string {
+  public static replaceCspMetaTag(html: string, webview: vscode.Webview): string {
     const cspMetaTag = `<meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self';

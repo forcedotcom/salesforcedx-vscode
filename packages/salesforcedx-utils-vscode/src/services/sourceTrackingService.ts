@@ -21,34 +21,23 @@ export class SourceTrackingService {
    * Gets the Source Tracking instance for this project
    * from the Source Tracking Provider.
    */
-  public static async getSourceTracking(
-    projectPath: string,
-    connection: Connection
-  ): Promise<SourceTracking> {
+  public static async getSourceTracking(projectPath: string, connection: Connection): Promise<SourceTracking> {
     const provider = SourceTrackingProvider.getInstance();
     const tracker = provider.getSourceTracker(projectPath, connection);
     return tracker;
   }
 
-  public static async updateSourceTrackingAfterRetrieve(
-    sourceTracking: SourceTracking,
-    result: RetrieveResult
-  ) {
+  public static async updateSourceTrackingAfterRetrieve(sourceTracking: SourceTracking, result: RetrieveResult) {
     await sourceTracking.updateTrackingFromRetrieve(result);
   }
 
-  public static async getSourceStatusSummary({
-    local = true,
-    remote = true
-  }): Promise<string> {
+  public static async getSourceStatusSummary({ local = true, remote = true }): Promise<string> {
     const sourceTracking = await this.getSourceTrackingForCurrentProject();
     const statusResponse = await sourceTracking.getStatus({
       local,
       remote
     });
-    const sourceStatusSummary: SourceStatusSummary = new SourceStatusSummary(
-      statusResponse
-    );
+    const sourceStatusSummary: SourceStatusSummary = new SourceStatusSummary(statusResponse);
     return sourceStatusSummary.format();
   }
 
@@ -57,10 +46,7 @@ export class SourceTrackingService {
     const workspaceContext = WorkspaceContextUtil.getInstance();
     const connection = await workspaceContext.getConnection();
     const sourceTrackingProvider = SourceTrackingProvider.getInstance();
-    const sourceTracking = await sourceTrackingProvider.getSourceTracker(
-      rootWorkspacePath,
-      connection
-    );
+    const sourceTracking = await sourceTrackingProvider.getSourceTracker(rootWorkspacePath, connection);
     return sourceTracking;
   }
 }
@@ -91,9 +77,7 @@ export class SourceStatusSummary {
   constructor(private statusOutputRows: StatusOutputRow[]) {}
 
   public format(): string {
-    const statusResults = this.statusOutputRows.map(row =>
-      this.resultConverter(row)
-    );
+    const statusResults = this.statusOutputRows.map(row => this.resultConverter(row));
 
     if (statusResults.length === 0) {
       return nls.localize('no_local_or_remote_changes_found');
@@ -126,18 +110,12 @@ export class SourceStatusSummary {
     };
   };
 
-  private static originMap = new Map<
-    StatusOutputRow['origin'],
-    StatusResult['origin']
-  >([
+  private static originMap = new Map<StatusOutputRow['origin'], StatusResult['origin']>([
     ['local', 'Local'],
     ['remote', 'Remote']
   ]);
 
-  private static stateMap = new Map<
-    StatusOutputRow['state'],
-    StatusResult['actualState']
-  >([
+  private static stateMap = new Map<StatusOutputRow['state'], StatusResult['actualState']>([
     ['delete', 'Deleted'],
     ['add', 'Add'],
     ['modify', 'Changed'],
@@ -165,23 +143,15 @@ class StatusResultsTable {
   ];
 
   private columns = this.statusResults.some(result => result.ignored)
-    ? [
-        { label: nls.localize('ignored'), key: 'ignored' },
-        ...StatusResultsTable.baseColumns
-      ]
+    ? [{ label: nls.localize('ignored'), key: 'ignored' }, ...StatusResultsTable.baseColumns]
     : StatusResultsTable.baseColumns;
 
   constructor(private statusResults: StatusResult[]) {}
 
   public value(): string {
-    this.statusResults.forEach(statusResult =>
-      this.convertToTableRow(statusResult)
-    );
+    this.statusResults.forEach(statusResult => this.convertToTableRow(statusResult));
 
-    const table: string = new Table().createTable(
-      this.statusResults as unknown as Row[],
-      this.columns
-    );
+    const table: string = new Table().createTable(this.statusResults as unknown as Row[], this.columns);
 
     return table;
   }

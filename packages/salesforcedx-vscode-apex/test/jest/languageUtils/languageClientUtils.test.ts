@@ -20,7 +20,7 @@ describe('LanguageClientUtils', () => {
   });
 
   it('Should return correct initial status', async () => {
-    const clientStatus = languageClientUtils.getStatus() ;
+    const clientStatus = languageClientUtils.getStatus();
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(false);
@@ -30,7 +30,7 @@ describe('LanguageClientUtils', () => {
 
   it('Should return ready status', async () => {
     languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
-    const clientStatus = languageClientUtils.getStatus() ;
+    const clientStatus = languageClientUtils.getStatus();
 
     expect(clientStatus.isReady()).to.equal(true);
     expect(clientStatus.isIndexing()).to.equal(false);
@@ -39,11 +39,8 @@ describe('LanguageClientUtils', () => {
   });
 
   it('Should return indexing status', async () => {
-    languageClientUtils.setStatus(
-      ClientStatus.Indexing,
-      'Apex client is indexing'
-    );
-    const clientStatus = languageClientUtils.getStatus() ;
+    languageClientUtils.setStatus(ClientStatus.Indexing, 'Apex client is indexing');
+    const clientStatus = languageClientUtils.getStatus();
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(true);
@@ -52,17 +49,12 @@ describe('LanguageClientUtils', () => {
   });
 
   it('Should return error status', async () => {
-    languageClientUtils.setStatus(
-      ClientStatus.Error,
-      'Java version is misconfigured'
-    );
-    const clientStatus = languageClientUtils.getStatus() ;
+    languageClientUtils.setStatus(ClientStatus.Error, 'Java version is misconfigured');
+    const clientStatus = languageClientUtils.getStatus();
 
     expect(clientStatus.isReady()).to.equal(false);
     expect(clientStatus.isIndexing()).to.equal(false);
     expect(clientStatus.failedToInitialize()).to.equal(true);
-    expect(clientStatus.getStatusMessage()).to.equal(
-      'Java version is misconfigured'
-    );
+    expect(clientStatus.getStatusMessage()).to.equal('Java version is misconfigured');
   });
 });

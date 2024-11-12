@@ -37,8 +37,6 @@ describe('testOutlineProvider Unit Tests.', () => {
 
     expect(commandMock.mock.calls.length).toBe(1);
     expect(commandMock.mock.calls[0].length).toBe(1);
-    expect(commandMock.mock.calls[0][0]).toBe(
-      `workbench.actions.treeView.${provider.getId()}.collapseAll`
-    );
+    expect(commandMock.mock.calls[0][0]).toBe(`workbench.actions.treeView.${provider.getId()}.collapseAll`);
   });
 });

@@ -6,12 +6,7 @@
  */
 
 import { Uri, workspace } from 'vscode';
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  TransportKind
-} from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export const code2ProtocolConverter = (value: Uri) => {
@@ -46,17 +41,13 @@ export const createLanguageClient = (serverPath: string): LanguageClient => {
     documentSelector: [
       { language: 'html', scheme: 'file' },
       { language: 'javascript', scheme: 'file' },
-      { language: 'typescript', scheme: 'file'}
+      { language: 'typescript', scheme: 'file' }
     ],
     synchronize: {
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.resource'),
-        workspace.createFileSystemWatcher(
-          '**/labels/CustomLabels.labels-meta.xml'
-        ),
-        workspace.createFileSystemWatcher(
-          '**/staticresources/*.resource-meta.xml'
-        ),
+        workspace.createFileSystemWatcher('**/labels/CustomLabels.labels-meta.xml'),
+        workspace.createFileSystemWatcher('**/staticresources/*.resource-meta.xml'),
         workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
         workspace.createFileSystemWatcher('**/lwc/*/*.js'),
         workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
@@ -71,10 +62,5 @@ export const createLanguageClient = (serverPath: string): LanguageClient => {
     }
   };
 
-  return new LanguageClient(
-    'lwcLanguageServer',
-    'LWC Language Server',
-    serverOptions,
-    clientOptions
-  );
+  return new LanguageClient('lwcLanguageServer', 'LWC Language Server', serverOptions, clientOptions);
 };

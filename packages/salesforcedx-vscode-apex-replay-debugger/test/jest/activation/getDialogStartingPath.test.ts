@@ -6,10 +6,7 @@
  */
 
 import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger/src';
-import {
-  projectPaths,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { getDialogStartingPath } from '../../../src/activation/getDialogStartingPath';
@@ -67,9 +64,7 @@ describe('getDialogStartingPath', () => {
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(pathExistsMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
     expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
-    expect((dialogStartingPathUri as vscode.Uri).path).toEqual(
-      fakePathToDebugLogsFolder
-    );
+    expect((dialogStartingPathUri as vscode.Uri).path).toEqual(fakePathToDebugLogsFolder);
   });
 
   it('Should return state folder as fallback when project log folder not present', async () => {
@@ -91,9 +86,7 @@ describe('getDialogStartingPath', () => {
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(pathExistsMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
     expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToStateFolder);
-    expect((dialogStartingPathUri as vscode.Uri).path).toEqual(
-      fakePathToStateFolder
-    );
+    expect((dialogStartingPathUri as vscode.Uri).path).toEqual(fakePathToStateFolder);
   });
 
   it('Should return undefined when not in a project workspace', async () => {

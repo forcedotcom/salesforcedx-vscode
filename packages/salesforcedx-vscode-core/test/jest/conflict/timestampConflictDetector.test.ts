@@ -20,16 +20,14 @@ describe('TimestampConflictDetector', () => {
       correlateResultsStub = jest
         .spyOn(MetadataCacheService, 'correlateResults')
         .mockReturnValue(testData.dummyCorrelatedComponents as any);
-      persistentStorageServiceMock = jest
-        .spyOn(PersistentStorageService, 'getInstance')
-        .mockReturnValue({
-          makeKey: jest.fn(),
-          getPropertiesForFile: jest.fn().mockResolvedValueOnce({
-            // For the first file, give a value that will trip the
-            // conflict checker
-            lastModifiedDate: dummyLastModifiedDateLocal
-          })
-        } as any);
+      persistentStorageServiceMock = jest.spyOn(PersistentStorageService, 'getInstance').mockReturnValue({
+        makeKey: jest.fn(),
+        getPropertiesForFile: jest.fn().mockResolvedValueOnce({
+          // For the first file, give a value that will trip the
+          // conflict checker
+          lastModifiedDate: dummyLastModifiedDateLocal
+        })
+      } as any);
     });
 
     it('should return diff results for only the files that trip the timestamp conflict detector', async () => {
@@ -40,13 +38,9 @@ describe('TimestampConflictDetector', () => {
         .mockReturnValueOnce([]);
       const timestampConflictDetector = new TimestampConflictDetector();
 
-      const diffs = timestampConflictDetector.createDiffs(
-        testData.dummyMetadataCacheResult as any
-      );
+      const diffs = timestampConflictDetector.createDiffs(testData.dummyMetadataCacheResult as any);
 
-      expect(correlateResultsStub).toHaveBeenCalledWith(
-        testData.dummyMetadataCacheResult
-      );
+      expect(correlateResultsStub).toHaveBeenCalledWith(testData.dummyMetadataCacheResult);
       expect(persistentStorageServiceMock).toHaveBeenCalled();
       expect(diffComponentsStub).toHaveBeenCalledTimes(2);
       expect(diffs.different.size).toBe(2);

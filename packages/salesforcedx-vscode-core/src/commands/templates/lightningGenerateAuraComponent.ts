@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  DirFileNameSelection,
-  LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode';
+import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
@@ -24,16 +21,9 @@ import {
   SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import {
-  FileInternalPathGatherer,
-  InternalDevWorkspaceChecker
-} from './internalCommandUtils';
+import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import {
-  AURA_COMPONENT_EXTENSION,
-  AURA_DIRECTORY,
-  AURA_TYPE
-} from './metadataTypeConstants';
+import { AURA_COMPONENT_EXTENSION, AURA_DIRECTORY, AURA_TYPE } from './metadataTypeConstants';
 
 export class LibraryLightningGenerateAuraComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_aura_component_text');
@@ -64,34 +54,22 @@ const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
 export const lightningGenerateAuraComponent = (): void => {
-  const createTemplateExecutor =
-    new LibraryLightningGenerateAuraComponentExecutor();
+  const createTemplateExecutor = new LibraryLightningGenerateAuraComponentExecutor();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
-    new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      fileNameGatherer,
-      outputDirGatherer
-    ),
+    new CompositeParametersGatherer<LocalComponent>(metadataTypeGatherer, fileNameGatherer, outputDirGatherer),
     createTemplateExecutor,
-    new CompositePostconditionChecker(
-      new LwcAuraDuplicateComponentCheckerForCreate(),
-      new OverwriteComponentPrompt()
-    )
+    new CompositePostconditionChecker(new LwcAuraDuplicateComponentCheckerForCreate(), new OverwriteComponentPrompt())
   );
   void commandlet.run();
 };
 
 export const internalLightningGenerateAuraComponent = (sourceUri: Uri): void => {
-  const createTemplateExecutor =
-    new LibraryLightningGenerateAuraComponentExecutor();
+  const createTemplateExecutor = new LibraryLightningGenerateAuraComponentExecutor();
 
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
-    new CompositeParametersGatherer<DirFileNameSelection>(
-      fileNameGatherer,
-      new FileInternalPathGatherer(sourceUri)
-    ),
+    new CompositeParametersGatherer<DirFileNameSelection>(fileNameGatherer, new FileInternalPathGatherer(sourceUri)),
     createTemplateExecutor
   );
   void commandlet.run();

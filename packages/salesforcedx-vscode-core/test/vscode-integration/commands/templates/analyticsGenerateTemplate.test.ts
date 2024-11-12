@@ -27,10 +27,7 @@ describe('Analytics Generate Template', () => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
   });
@@ -64,15 +61,8 @@ describe('Analytics Generate Template', () => {
       'TestWave/dashboards',
       'TestWaveDashboard.json'
     );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'TestWave')
-    );
-    assert.noFile([
-      templateInfoJsonPath,
-      templateFolderJsonPath,
-      templateDashboardPath
-    ]);
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'TestWave'));
+    assert.noFile([templateInfoJsonPath, templateFolderJsonPath, templateDashboardPath]);
     showInputBoxStub.returns('TestWave');
     quickPickStub.returns(outputPath);
 
@@ -80,19 +70,12 @@ describe('Analytics Generate Template', () => {
     await analyticsGenerateTemplate();
 
     // assert
-    assert.file([
-      templateInfoJsonPath,
-      templateFolderJsonPath,
-      templateDashboardPath
-    ]);
+    assert.file([templateInfoJsonPath, templateFolderJsonPath, templateDashboardPath]);
     assert.fileContent(templateInfoJsonPath, '"label": "TestWave"');
     assert.fileContent(templateFolderJsonPath, '"name": "TestWave"');
     assert.fileContent(templateDashboardPath, '"name": "TestWaveDashboard_tp"');
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
   });
 });

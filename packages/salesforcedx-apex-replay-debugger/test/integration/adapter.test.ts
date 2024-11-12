@@ -10,22 +10,12 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as path from 'path';
 import Uri from 'vscode-uri';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../src/adapter/apexReplayDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints';
 import { GoldFileUtil } from './goldFileUtil';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
-const CONFIG_DIR = path.join(
-  __dirname,
-  '..',
-  '..',
-  'test',
-  'integration',
-  'config'
-);
+const CONFIG_DIR = path.join(__dirname, '..', '..', 'test', 'integration', 'config');
 const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 
 // tslint:disable:no-unused-expression
@@ -43,11 +33,7 @@ describe('Replay debugger adapter - integration', () => {
 
     // Use dc.start(4712) to debug the adapter during
     // tests (adapter needs to be launched in debug mode separately).
-    dc = new DebugClient(
-      'node',
-      './out/src/adapter/apexReplayDebug.js',
-      'apex-replay'
-    );
+    dc = new DebugClient('node', './out/src/adapter/apexReplayDebug.js', 'apex-replay');
     await dc.start();
     dc.defaultTimeout = 10000;
   });
@@ -67,15 +53,9 @@ describe('Replay debugger adapter - integration', () => {
   });
 
   it('Recursive stack', async () => {
-    let classA = Uri.file(
-      `${projectPath}/force-app/main/default/classes/A.cls`
-    ).toString();
-    let classB = Uri.file(
-      `${projectPath}/force-app/main/default/classes/B.cls`
-    ).toString();
-    let classRecursive = Uri.file(
-      `${projectPath}/force-app/main/default/classes/RecursiveTest.cls`
-    ).toString();
+    let classA = Uri.file(`${projectPath}/force-app/main/default/classes/A.cls`).toString();
+    let classB = Uri.file(`${projectPath}/force-app/main/default/classes/B.cls`).toString();
+    let classRecursive = Uri.file(`${projectPath}/force-app/main/default/classes/RecursiveTest.cls`).toString();
     const classAValidLines = [42];
     const classBValidLines = [42];
     const classRecursiveValidLines = [7];
@@ -84,9 +64,7 @@ describe('Replay debugger adapter - integration', () => {
       classB = classB.replace('%3A', ':');
       classRecursive = classRecursive.replace('%3A', ':');
     }
-    console.log(
-      `classA: ${classA}. classB: ${classB}. classRecursive: ${classRecursive}`
-    );
+    console.log(`classA: ${classA}. classB: ${classB}. classRecursive: ${classRecursive}`);
     lineBpInfo.push(
       {
         uri: classA,
@@ -106,10 +84,7 @@ describe('Replay debugger adapter - integration', () => {
     );
     const testName = 'recursive';
     const logFilePath = path.join(LOG_FOLDER, `${testName}.log`);
-    goldFileUtil = new GoldFileUtil(
-      dc,
-      path.join(LOG_FOLDER, `${testName}.gold`)
-    );
+    goldFileUtil = new GoldFileUtil(dc, path.join(LOG_FOLDER, `${testName}.gold`));
 
     const launchResponse = await dc.launchRequest({
       salesforceProject: projectPath,
@@ -125,27 +100,11 @@ describe('Replay debugger adapter - integration', () => {
       const classAPath = Uri.parse(classA).fsPath;
       const classBPath = Uri.parse(classB).fsPath;
       const classRecursivePath = Uri.parse(classRecursive).fsPath;
-      console.log(
-        `classAPath: ${classAPath}. classBPath: ${classBPath}. classRecursivePath: ${classRecursivePath}`
-      );
-      let addBreakpointsResponse = await dc.setBreakpointsRequest(
-        createBreakpointsArgs(classAPath, classAValidLines)
-      );
-      assertBreakpointsCreated(
-        addBreakpointsResponse,
-        1,
-        classAPath,
-        classAValidLines
-      );
-      addBreakpointsResponse = await dc.setBreakpointsRequest(
-        createBreakpointsArgs(classBPath, classBValidLines)
-      );
-      assertBreakpointsCreated(
-        addBreakpointsResponse,
-        1,
-        classBPath,
-        classBValidLines
-      );
+      console.log(`classAPath: ${classAPath}. classBPath: ${classBPath}. classRecursivePath: ${classRecursivePath}`);
+      let addBreakpointsResponse = await dc.setBreakpointsRequest(createBreakpointsArgs(classAPath, classAValidLines));
+      assertBreakpointsCreated(addBreakpointsResponse, 1, classAPath, classAValidLines);
+      addBreakpointsResponse = await dc.setBreakpointsRequest(createBreakpointsArgs(classBPath, classBValidLines));
+      assertBreakpointsCreated(addBreakpointsResponse, 1, classBPath, classBValidLines);
       // tslint:disable-next-line:no-floating-promises
       dc.configurationDoneRequest({});
       // Verify stopped on the first line of debug log
@@ -158,29 +117,17 @@ describe('Replay debugger adapter - integration', () => {
       await dc.continueRequest({
         threadId: ApexReplayDebug.THREAD_ID
       });
-      await goldFileUtil.assertTopState(
-        'breakpoint',
-        classBPath,
-        classBValidLines[0]
-      );
+      await goldFileUtil.assertTopState('breakpoint', classBPath, classBValidLines[0]);
       // Verify stopped on second breakpoint
       await dc.continueRequest({
         threadId: ApexReplayDebug.THREAD_ID
       });
-      await goldFileUtil.assertTopState(
-        'breakpoint',
-        classAPath,
-        classAValidLines[0]
-      );
+      await goldFileUtil.assertTopState('breakpoint', classAPath, classAValidLines[0]);
       // Step out to test class
       await dc.stepOutRequest({
         threadId: ApexReplayDebug.THREAD_ID
       });
-      await goldFileUtil.assertTopState(
-        'step',
-        classRecursivePath,
-        classRecursiveValidLines[0]
-      );
+      await goldFileUtil.assertTopState('step', classRecursivePath, classRecursiveValidLines[0]);
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});
       expect(disconnectResponse.success).to.equal(true);
@@ -188,9 +135,7 @@ describe('Replay debugger adapter - integration', () => {
   });
 
   it('Static variable of one class in different frames', async () => {
-    let classStaticVarsA = Uri.file(
-      `${projectPath}/force-app/main/default/classes/StaticVarsA.cls`
-    ).toString();
+    let classStaticVarsA = Uri.file(`${projectPath}/force-app/main/default/classes/StaticVarsA.cls`).toString();
     const classStaticVarsAValidLines = [9];
     if (process.platform === 'win32') {
       classStaticVarsA = classStaticVarsA.replace('%3A', ':');
@@ -203,10 +148,7 @@ describe('Replay debugger adapter - integration', () => {
     });
     const testName = 'statics';
     const logFilePath = path.join(LOG_FOLDER, `${testName}.log`);
-    goldFileUtil = new GoldFileUtil(
-      dc,
-      path.join(LOG_FOLDER, `${testName}.gold`)
-    );
+    goldFileUtil = new GoldFileUtil(dc, path.join(LOG_FOLDER, `${testName}.gold`));
 
     const launchResponse = await dc.launchRequest({
       salesforceProject: projectPath,
@@ -224,12 +166,7 @@ describe('Replay debugger adapter - integration', () => {
       const addBreakpointsResponse = await dc.setBreakpointsRequest(
         createBreakpointsArgs(classStaticVarsAPath, classStaticVarsAValidLines)
       );
-      assertBreakpointsCreated(
-        addBreakpointsResponse,
-        1,
-        classStaticVarsAPath,
-        classStaticVarsAValidLines
-      );
+      assertBreakpointsCreated(addBreakpointsResponse, 1, classStaticVarsAPath, classStaticVarsAValidLines);
 
       // tslint:disable-next-line:no-floating-promises
       dc.configurationDoneRequest({});
@@ -244,11 +181,7 @@ describe('Replay debugger adapter - integration', () => {
       await dc.continueRequest({
         threadId: ApexReplayDebug.THREAD_ID
       });
-      await goldFileUtil.assertEntireState(
-        'breakpoint',
-        classStaticVarsAPath,
-        classStaticVarsAValidLines[0]
-      );
+      await goldFileUtil.assertEntireState('breakpoint', classStaticVarsAPath, classStaticVarsAValidLines[0]);
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});
       expect(disconnectResponse.success).to.equal(true);
@@ -256,10 +189,7 @@ describe('Replay debugger adapter - integration', () => {
   });
 });
 
-const createBreakpointsArgs = (
-  classPath: string,
-  lineNumbers: number[]
-): DebugProtocol.SetBreakpointsArguments => {
+const createBreakpointsArgs = (classPath: string, lineNumbers: number[]): DebugProtocol.SetBreakpointsArguments => {
   const result: DebugProtocol.SetBreakpointsArguments = {
     source: {
       path: classPath
@@ -267,9 +197,7 @@ const createBreakpointsArgs = (
     lines: lineNumbers,
     breakpoints: []
   };
-  lineNumbers.forEach(lineNumber =>
-    result.breakpoints!.push({ line: lineNumber })
-  );
+  lineNumbers.forEach(lineNumber => result.breakpoints!.push({ line: lineNumber }));
   return result;
 };
 

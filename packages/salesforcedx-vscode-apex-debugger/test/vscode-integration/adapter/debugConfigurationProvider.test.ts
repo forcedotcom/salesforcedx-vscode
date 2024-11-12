@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  DEBUGGER_LAUNCH_TYPE,
-  DEBUGGER_TYPE
-} from '@salesforce/salesforcedx-apex-debugger/out/src';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { DebugConfiguration, extensions, Uri, WorkspaceFolder } from 'vscode';
@@ -30,9 +27,7 @@ describe('Configuration provider', () => {
   let mockApexExtension: sinon.SinonStub;
 
   beforeEach(() => {
-    mockApexExtension = sinon
-      .stub(extensions, 'getExtension')
-      .returns(new MockApexExtension());
+    mockApexExtension = sinon.stub(extensions, 'getExtension').returns(new MockApexExtension());
     provider = new DebugConfigurationProvider();
     getConfigSpy = sinon.spy(DebugConfigurationProvider, 'getConfig');
   });
@@ -78,9 +73,7 @@ describe('Configuration provider', () => {
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
       expect(mockApexExtension.calledOnce).to.be.true;
     } else {
-      expect.fail(
-        'Did not get configuration information from resolveDebugConfiguration'
-      );
+      expect.fail('Did not get configuration information from resolveDebugConfiguration');
     }
   });
 
@@ -101,23 +94,17 @@ describe('Configuration provider', () => {
       expect(config.name).to.equals('sampleName');
       expect(config.type).to.equals('sampleType');
       expect(config.request).to.equals('sampleConfigType');
-      expect(config.requestTypeFilter)
-        .to.be.an('array')
-        .to.include('BATCH_APEX');
+      expect(config.requestTypeFilter).to.be.an('array').to.include('BATCH_APEX');
       expect(config.entryPointFilter).to.equals('test/entrypoint');
       expect(config.connectType).to.equals('ISV_DEBUGGER');
       expect(config.salesforceProject).to.equals('project/path');
-      expect(config.userIdFilter)
-        .to.be.an('array')
-        .to.deep.include('005xx7998909099');
+      expect(config.userIdFilter).to.be.an('array').to.deep.include('005xx7998909099');
       expect(config.trace).to.equals(true);
       expect(config.workspaceSettings).to.not.equals(undefined);
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
       expect(mockApexExtension.calledOnce).to.be.true;
     } else {
-      expect.fail(
-        'Did not get configuration information from resolveDebugConfiguration'
-      );
+      expect.fail('Did not get configuration information from resolveDebugConfiguration');
     }
   });
 });

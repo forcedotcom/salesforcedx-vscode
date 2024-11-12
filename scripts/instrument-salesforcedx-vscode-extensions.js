@@ -19,19 +19,8 @@ const extensionsToInstrument = [
 const folderToInstrument = 'out';
 
 extensionsToInstrument.forEach(extension => {
-  const istanbulExecutable = path.join(
-    __dirname,
-    '..',
-    'node_modules',
-    '.bin',
-    'istanbul'
-  );
-  const extensionFolderToInstrument = path.join(
-    __dirname,
-    '..',
-    extension,
-    folderToInstrument
-  );
+  const istanbulExecutable = path.join(__dirname, '..', 'node_modules', '.bin', 'istanbul');
+  const extensionFolderToInstrument = path.join(__dirname, '..', extension, folderToInstrument);
   const instrumentedFolder = path.join(extension, 'temp-instrumented');
   shell.exec(
     `${istanbulExecutable} instrument ${extensionFolderToInstrument} --complete-copy -o ${instrumentedFolder}`

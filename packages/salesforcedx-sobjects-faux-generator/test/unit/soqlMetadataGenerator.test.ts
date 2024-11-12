@@ -10,19 +10,11 @@ import * as fs from 'fs';
 import { userInfo } from 'os';
 import { join } from 'path';
 import { rm } from 'shelljs';
-import {
-  CUSTOMOBJECTS_DIR,
-  SOQLMETADATA_DIR,
-  STANDARDOBJECTS_DIR
-} from '../../src/constants';
+import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectShortDescription } from '../../src/describe';
 import { SOQLMetadataGenerator } from '../../src/generator/soqlMetadataGenerator';
 import { MinObjectRetriever } from '../../src/retriever';
-import {
-  SObject,
-  SObjectCategory,
-  SObjectRefreshOutput
-} from '../../src/types';
+import { SObject, SObjectCategory, SObjectRefreshOutput } from '../../src/types';
 
 const expect = chai.expect;
 
@@ -98,7 +90,7 @@ class TestSObjectRefreshOutput implements SObjectRefreshOutput {
   private custom: SObject[] = [];
   public error: { message?: string; stack?: string } = {};
 
-  public constructor(public sfdxPath: string) { }
+  public constructor(public sfdxPath: string) {}
 
   public addTypeNames(sobjShort: SObjectShortDescription[]): void {
     this.typeNames.push(...sobjShort);

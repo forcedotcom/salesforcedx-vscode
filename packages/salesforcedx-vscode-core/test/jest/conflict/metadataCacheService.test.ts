@@ -23,23 +23,16 @@ describe('MetadataCacheService', () => {
     let setApiVersionStub: jest.SpyInstance;
 
     beforeEach(() => {
-      workspaceContextStub = jest
-        .spyOn(WorkspaceContext, 'getInstance')
-        .mockReturnValue({
-          getConnection: async () => {
-            return {};
-          }
-        } as any);
-      getSourceComponentsStub = jest
-        .spyOn(MetadataCacheService.prototype, 'getSourceComponents');
+      workspaceContextStub = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+        getConnection: async () => {
+          return {};
+        }
+      } as any);
+      getSourceComponentsStub = jest.spyOn(MetadataCacheService.prototype, 'getSourceComponents');
 
-      setApiVersionStub = jest
-        .spyOn(componentSetUtils, 'setApiVersion')
-        .mockImplementation(jest.fn());
+      setApiVersionStub = jest.spyOn(componentSetUtils, 'setApiVersion').mockImplementation(jest.fn());
 
-      retrieveStub = jest
-        .spyOn(dummyComponentSet, 'retrieve')
-        .mockResolvedValue({} as any);
+      retrieveStub = jest.spyOn(dummyComponentSet, 'retrieve').mockResolvedValue({} as any);
     });
 
     it('should use the suppressEvents option to retrieve files with conflicts', async () => {
@@ -52,9 +45,7 @@ describe('MetadataCacheService', () => {
       expect(getSourceComponentsStub).toHaveBeenCalled();
       expect(setApiVersionStub).toHaveBeenCalledWith(dummyComponentSet);
       const dummyRetrieveOptionsWithSuppressEvents = { suppressEvents: true };
-      expect(retrieveStub).toHaveBeenCalledWith(
-        expect.objectContaining(dummyRetrieveOptionsWithSuppressEvents)
-      );
+      expect(retrieveStub).toHaveBeenCalledWith(expect.objectContaining(dummyRetrieveOptionsWithSuppressEvents));
     });
 
     describe('loadCache', () => {

@@ -110,9 +110,7 @@ export class RequestService {
     }
     const urlElements = [this.instanceUrl, command.getCommandUrl()];
     const queryString = command.getQueryString();
-    const requestUrl = !queryString
-      ? urlElements.join('/')
-      : urlElements.join('/').concat('?', queryString);
+    const requestUrl = !queryString ? urlElements.join('/') : urlElements.join('/').concat('?', queryString);
     const requestBody = command.getRequest();
     const options: XHROptions = {
       type: restHttpMethodEnum,
@@ -122,9 +120,7 @@ export class RequestService {
         'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
         Authorization: `OAuth ${this.accessToken}`,
-        'Content-Length': requestBody
-          ? String(Buffer.byteLength(requestBody, 'utf-8'))
-          : '0',
+        'Content-Length': requestBody ? String(Buffer.byteLength(requestBody, 'utf-8')) : '0',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       },
       data: requestBody

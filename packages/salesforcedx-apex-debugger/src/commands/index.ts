@@ -9,9 +9,5 @@ export { FrameCommand } from './frameCommand';
 export * from './protocol';
 export { ReferencesCommand } from './referencesCommand';
 export { RunCommand } from './runCommand';
-export {
-  StepIntoCommand,
-  StepOutCommand,
-  StepOverCommand
-} from './stepCommands';
+export { StepIntoCommand, StepOutCommand, StepOverCommand } from './stepCommands';
 export { StateCommand } from './stateCommand';

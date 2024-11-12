@@ -15,9 +15,7 @@ export class CompositeCliCommandExecutor {
     this.command = commands;
   }
 
-  public execute(
-    cancellationToken?: CancellationToken
-  ): CompositeCliCommandExecution {
+  public execute(cancellationToken?: CancellationToken): CompositeCliCommandExecution {
     return new CompositeCliCommandExecution(this.command, cancellationToken);
   }
 }

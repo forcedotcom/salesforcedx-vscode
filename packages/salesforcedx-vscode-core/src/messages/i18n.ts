@@ -49,26 +49,19 @@ export const messages = {
     'There was an unexpected error authorizing to your org in a container environment.',
   org_login_device_enter_code: 'Enter %s user code in the verification URL %s',
   action_required: '=== Action Required!',
-  parameter_directory_strict_not_available:
-    'A required metadata folder named "%s" does not exist in this workspace.',
+  parameter_directory_strict_not_available: 'A required metadata folder named "%s" does not exist in this workspace.',
 
   parameter_gatherer_enter_file_name: 'Enter desired filename',
-  parameter_gatherer_enter_dir_name:
-    'Enter desired directory (Press Enter to confirm or Esc to cancel)',
-  parameter_gatherer_select_lwc_type:
-    'Select the lwc component type (Press Enter to confirm or Esc to cancel)',
-  parameter_gatherer_enter_lwc_name:
-    'Enter desired Lightning Web Component (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_enter_dir_name: 'Enter desired directory (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_select_lwc_type: 'Select the lwc component type (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_enter_lwc_name: 'Enter desired Lightning Web Component (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
-  parameter_gatherer_enter_alias_name:
-    'Enter an org alias or use the default alias',
-  parameter_gatherer_enter_custom_url:
-    'Enter a custom login URL or use the default URL',
+  parameter_gatherer_enter_alias_name: 'Enter an org alias or use the default alias',
+  parameter_gatherer_enter_custom_url: 'Enter a custom login URL or use the default URL',
   parameter_gatherer_enter_instance_url: 'Enter Instance URL',
   parameter_gatherer_enter_session_id: 'Enter Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
-  parameter_gatherer_enter_session_id_diagnostic_message:
-    'Enter a valid Session ID',
+  parameter_gatherer_enter_session_id_diagnostic_message: 'Enter a valid Session ID',
   parameter_gatherer_enter_scratch_org_def_files:
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
@@ -78,48 +71,36 @@ export const messages = {
     'Enter the installation key, if required, or leave the field blank',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
-  parameter_gatherer_paste_forceide_url_placeholder:
-    'forceide:// URL from Setup',
+  parameter_gatherer_paste_forceide_url_placeholder: 'forceide:// URL from Setup',
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
   parameter_gatherer_enter_function: 'Enter function details',
   parameter_gatherer_prompt_confirm_option: 'Continue',
   parameter_gatherer_prompt_cancel_option: 'Cancel',
-  parameter_gatherer_placeholder_org_list_clean:
-    'Confirm to continue removing deleted and expired scratch orgs',
-  parameter_gatherer_placeholder_delete_selected_org:
-    'Confirm to continue deleting the selected org',
-  parameter_gatherer_placeholder_delete_default_org:
-    'Confirm to continue deleting the default org',
+  parameter_gatherer_placeholder_org_list_clean: 'Confirm to continue removing deleted and expired scratch orgs',
+  parameter_gatherer_placeholder_delete_selected_org: 'Confirm to continue deleting the selected org',
+  parameter_gatherer_placeholder_delete_default_org: 'Confirm to continue deleting the default org',
 
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
-  org_create_result_parsing_error:
-    'An unexpected error occurred while processing the org create response.',
+  org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
 
   org_open_default_scratch_org_text: 'SFDX: Open Default Org',
-  org_open_default_scratch_org_container_error:
-    'There was an unexpected error when processing the org open response.',
-  org_open_container_mode_message_text:
-    'Access org %s as user %s with the following URL: %s',
+  org_open_default_scratch_org_container_error: 'There was an unexpected error when processing the org open response.',
+  org_open_container_mode_message_text: 'Access org %s as user %s with the following URL: %s',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
-  project_retrieve_start_ignore_conflicts_default_org_text:
-    'SFDX: Pull Source from Default Org and Ignore Conflicts',
+  project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
-  project_deploy_start_ignore_conflicts_default_org_text:
-    'SFDX: Push Source to Default Org and Ignore Conflicts',
+  project_deploy_start_ignore_conflicts_default_org_text: 'SFDX: Push Source to Default Org and Ignore Conflicts',
   view_all_changes_text: 'View All Changes (Local and in Default Org)',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
-  deploy_select_file_or_directory:
-    'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
-  deploy_select_manifest:
-    'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
+  deploy_select_file_or_directory: 'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
+  deploy_select_manifest: 'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
   retrieve_display_text: 'Retrieve This Source from Org',
   retrieve_and_open_display_text: 'Retrieve and Open Source',
   retrieve_select_file_or_directory:
     'You can run SFDX: Retrieve This Source from Org only on a source file or directory.',
-  retrieve_select_manifest:
-    'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
+  retrieve_select_manifest: 'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
   delete_source_text: 'SFDX: Delete from Project and Org',
   delete_source_manifest_unsupported_message:
     'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete.',
@@ -146,14 +127,12 @@ export const messages = {
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
     'No project.toml found. Create a project.toml, or create a new function using SFDX: Create Function.',
-  force_function_start_warning_not_in_function_folder:
-    'Open a function file to run SFDX: Start Function',
+  force_function_start_warning_not_in_function_folder: 'Open a function file to run SFDX: Start Function',
   force_function_start_warning_plugin_not_installed:
     'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://developer.salesforce.com/docs/platform/functions/guide/set-up.html).',
   force_function_start_warning_docker_not_installed_or_not_started:
     'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
-  force_function_start_unexpected_error:
-    'SFDX: Start Function exited unexpectedly',
+  force_function_start_unexpected_error: 'SFDX: Start Function exited unexpectedly',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Invoke',
   force_function_debug_invoke_tooltip: 'Debug Invoke',
@@ -168,8 +147,7 @@ export const messages = {
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_continue_confirm: 'Continue',
   warning_prompt_overwrite_cancel: 'Cancel',
-  warning_prompt_overwrite_message:
-    'Are you sure you want to overwrite %s:%s?\n\n%s\n\n%s',
+  warning_prompt_overwrite_message: 'Are you sure you want to overwrite %s:%s?\n\n%s\n\n%s',
   warning_prompt_overwrite: 'Overwrite',
   warning_prompt_overwrite_all: 'Overwrite All',
   warning_prompt_skip: 'Skip',
@@ -187,13 +165,10 @@ export const messages = {
   debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
   debugger_stop_none_found_text: 'No Apex Debugger session found.',
   data_query_input_text: 'SFDX: Execute SOQL Query...',
-  data_query_selection_text:
-    'SFDX: Execute SOQL Query with Currently Selected Text',
+  data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  anon_apex_execute_document_text:
-    'SFDX: Execute Anonymous Apex with Editor Contents',
-  anon_apex_execute_selection_text:
-    'SFDX: Execute Anonymous Apex with Currently Selected Text',
+  anon_apex_execute_document_text: 'SFDX: Execute Anonymous Apex with Editor Contents',
+  anon_apex_execute_selection_text: 'SFDX: Execute Anonymous Apex with Currently Selected Text',
   package_install_text: 'SFDX: Install Package',
   project_generate_text: 'SFDX: Create Project',
   project_generate_open_dialog_create_label: 'Create Project',
@@ -205,23 +180,17 @@ export const messages = {
   project_generate_analytics_template: 'Analytics project template',
   apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
   start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
-  apex_debug_log_status_bar_text:
-    '$(file-text) Recording detailed logs until %s',
+  apex_debug_log_status_bar_text: '$(file-text) Recording detailed logs until %s',
   apex_debug_log_status_bar_hover_text:
     'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
   stop_apex_debug_logging: 'SFDX: Turn Off Apex Debug Log for Replay Debugger',
-  isv_debug_bootstrap_create_project:
-    'SFDX: ISV Debugger Setup, Step 1 of 5: Creating project',
-  isv_debug_bootstrap_configure_project:
-    'SFDX: ISV Debugger Setup, Step 2 of 5: Configuring project',
+  isv_debug_bootstrap_create_project: 'SFDX: ISV Debugger Setup, Step 1 of 5: Creating project',
+  isv_debug_bootstrap_configure_project: 'SFDX: ISV Debugger Setup, Step 2 of 5: Configuring project',
   isv_debug_bootstrap_configure_project_retrieve_namespace:
     'SFDX: ISV Debugger Setup, Step 2 of 5: Configuring project: Retrieving namespace',
-  isv_debug_bootstrap_retrieve_org_source:
-    'SFDX: ISV Debugger Setup, Step 3 of 5: Retrieving unpackaged Apex code',
-  isv_debug_bootstrap_list_installed_packages:
-    'SFDX: ISV Debugger Setup, Step 4 of 5: Querying for installed packages',
-  isv_debug_bootstrap_retrieve_package_source:
-    'SFDX: ISV Debugger Setup, Step 5 of 5: Retrieving package: %s',
+  isv_debug_bootstrap_retrieve_org_source: 'SFDX: ISV Debugger Setup, Step 3 of 5: Retrieving unpackaged Apex code',
+  isv_debug_bootstrap_list_installed_packages: 'SFDX: ISV Debugger Setup, Step 4 of 5: Querying for installed packages',
+  isv_debug_bootstrap_retrieve_package_source: 'SFDX: ISV Debugger Setup, Step 5 of 5: Retrieving package: %s',
   isv_debug_bootstrap_processing_package: 'Processing package: %s',
   isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
   isv_debug_bootstrap_open_project: 'Opening project in Visual Studio Code',
@@ -230,8 +199,7 @@ export const messages = {
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
   error_updating_salesforce_project: 'Error updating sfdx-project.json: %s',
-  error_writing_installed_package_info:
-    'Error writing installed-package.json: %s',
+  error_writing_installed_package_info: 'Error writing installed-package.json: %s',
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
 
   demo_mode_status_text: '$(gist-secret) SFDX DEMO',
@@ -241,12 +209,9 @@ export const messages = {
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   org_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
   org_logout_default_text: 'SFDX: Log Out from Default Org',
-  manifest_input_dupe_error:
-    'Manifest with the name %s already exists. Delete this manifest or use another name.',
-  manifest_input_save_placeholder:
-    'Enter a unique manifest file name (without file extension)',
-  manifest_input_save_prompt:
-    'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
+  manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
+  manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
+  manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
   REST_API_description: 'Execute the query with REST API',
@@ -284,8 +249,7 @@ export const messages = {
   org_select_text: 'Select an org to set as default',
   org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
-  invalid_default_org:
-    'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
+  invalid_default_org: 'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
   config_set_org_text: 'SFDX: Set a Default Org',
@@ -293,10 +257,8 @@ export const messages = {
   table_header_name: 'Name',
   table_header_value: 'Value',
   table_header_success: 'Success',
-  error_parsing_sfdx_project_file:
-    "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
-  sfdx_cli_not_found:
-    'Salesforce CLI is not installed. Install it from [%s](%s)',
+  error_parsing_sfdx_project_file: "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
+  sfdx_cli_not_found: 'Salesforce CLI is not installed. Install it from [%s](%s)',
   sfdx_cli_not_supported:
     'Your installed Salesforce CLI version is no longer supported. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
   sf_v1_not_supported:
@@ -325,8 +287,7 @@ export const messages = {
     'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  error_no_target_dev_hub:
-    'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
+  error_no_target_dev_hub: 'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   custom_output_directory: 'Choose a Custom Directory',
   warning_using_global_username:
     'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.',
@@ -337,17 +298,14 @@ export const messages = {
   aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
   lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
-  force_lightning_lwc_test_create_text:
-    'SFDX: Create Lightning Web Component Test',
+  force_lightning_lwc_test_create_text: 'SFDX: Create Lightning Web Component Test',
   empty_components: 'No components available',
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
-  error_invalid_org_alias:
-    'Alias can only contain underscores, spaces and alphanumeric characters',
+  error_invalid_org_alias: 'Alias can only contain underscores, spaces and alphanumeric characters',
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_fetching_metadata: 'Error fetching metadata for org.',
-  error_org_browser_text:
-    'Run "SFDX: Authorize an Org" to authorize your org again.',
+  error_org_browser_text: 'Run "SFDX: Authorize an Org" to authorize your org again.',
   error_org_browser_init: 'Org Browser has not been initialized',
   error_workspace_context_init: 'WorkspaceContext has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
@@ -616,28 +574,21 @@ export const messages = {
   XOrgHub: 'X Org Hubs',
 
   conflict_detect_execution_name: 'Conflict Detection',
-  conflict_detect_error:
-    'An error was encountered during conflict detection. %s',
-  conflict_detect_initialization_error:
-    'Unexpected error initializing metadata cache',
-  conflict_detect_conflicts_during_deploy:
-    'Conflicts were detected while deploying metadata. Choose how to proceed.',
+  conflict_detect_error: 'An error was encountered during conflict detection. %s',
+  conflict_detect_initialization_error: 'Unexpected error initializing metadata cache',
+  conflict_detect_conflicts_during_deploy: 'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
     'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
   conflict_detect_override: 'Override Conflicts and Deploy',
   conflict_detect_show_conflicts: 'View Conflicts and Cancel Deploy',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
-  conflict_detect_conflict_header_timestamp:
-    'Conflicts:\n    Found %s file(s) in conflict:\n',
-  conflict_detect_command_hint:
-    '\nRun the following command to overwrite the conflicts:\n  %s',
+  conflict_detect_conflict_header_timestamp: 'Conflicts:\n    Found %s file(s) in conflict:\n',
+  conflict_detect_command_hint: '\nRun the following command to overwrite the conflicts:\n  %s',
   conflict_detect_no_target_org: 'No target org for this project',
-  conflict_detect_no_default_package_dir:
-    'No default package directory for this project',
+  conflict_detect_no_default_package_dir: 'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',
-  conflict_detect_not_enabled:
-    'Enable the Detect Conflicts at Sync setting to view org differences',
+  conflict_detect_not_enabled: 'Enable the Detect Conflicts at Sync setting to view org differences',
   conflict_detect_root_title: 'Org Differences',
   conflict_detect_view_root: '%s : %s file difference(s)',
   conflict_detect_no_conflicts: 'No conflicts',
@@ -649,10 +600,8 @@ export const messages = {
 
   source_diff_text: 'SFDX: Diff File Against Org',
   source_diff_folder_text: 'SFDX: Diff Folder Against Org',
-  source_diff_components_not_in_org:
-    'Selected components are not available in the org',
-  source_diff_unsupported_type:
-    'Diff for this metadata type is currently not supported',
+  source_diff_components_not_in_org: 'Selected components are not available in the org',
+  source_diff_unsupported_type: 'Diff for this metadata type is currently not supported',
   source_diff_title: '%s//%s ↔ local//%s',
   source_diff_folder_title: '%s - File Diffs',
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
@@ -662,13 +611,11 @@ export const messages = {
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_result_parse_error: 'Not able to parse current results.',
   lib_retrieve_message_title: 'Retrieve Warnings',
-  package_id_validation_error:
-    'Package ID should be a 15 or 18 character Id that starts with 04t',
+  package_id_validation_error: 'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
   force_function_enter_function: 'Enter a name for the function',
   force_function_enter_language: 'Select a language for your function',
-  force_function_install_npm_dependencies_progress:
-    'Installing NPM dependencies',
+  force_function_install_npm_dependencies_progress: 'Installing NPM dependencies',
   force_function_install_npm_dependencies_error:
     "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json",
   force_function_install_mvn_dependencies_error:
@@ -687,15 +634,13 @@ export const messages = {
   rename_component_input_dup_file_name_error:
     'This file name is already in use in the current component directory. Choose a different name and try again.',
   rename_component_input_placeholder: 'Enter a unique component name',
-  rename_component_input_prompt:
-    'Press Enter to confirm your input or Escape to cancel',
+  rename_component_input_prompt: 'Press Enter to confirm your input or Escape to cancel',
   rename_component_warning:
     'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
   rename_component_error:
     'Unable to rename the component. Try renaming the component manually and then redeploying your changes.',
   error_function_type: 'Unable to determine type of executing function.',
-  error_unable_to_get_started_function:
-    'Unable to access the function in "{0}".',
+  error_unable_to_get_started_function: 'Unable to access the function in "{0}".',
   pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
   pending_org_expiration_notification_message:
     'Warning: One or more of your orgs expire in the next %s days. For more details, review the Output panel.',
@@ -703,23 +648,18 @@ export const messages = {
     'Warning: The following orgs expire in the next %s days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
-  soql_doc_url:
-    'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
+  soql_doc_url: 'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
-  functions_doc_url:
-    'https://developer.salesforce.com/tools/vscode/en/functions/overview',
+  functions_doc_url: 'https://developer.salesforce.com/tools/vscode/en/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
-  parameter_gatherer_file_name_max_length_validation_error_message:
-    'File name cannot exceed {0} characters',
+  parameter_gatherer_file_name_max_length_validation_error_message: 'File name cannot exceed {0} characters',
   source_status: 'Source Status',
-  predicates_no_folder_opened_text:
-    'No folder opened. Open a Salesforce DX project in VS Code.',
+  predicates_no_folder_opened_text: 'No folder opened. Open a Salesforce DX project in VS Code.',
   predicates_no_salesforce_project_found_text:
     'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',
   create_not_supported: 'Create is not supported for multiple components',
-  input_incorrect_properties:
-    'Input does not contain correct component properties'
+  input_incorrect_properties: 'Input does not contain correct component properties'
 };

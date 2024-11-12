@@ -9,10 +9,7 @@ import {
   INVALID_CROSS_REFERENCE_KEY,
   OVERLAY_ACTION_DELETE_URL
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import {
-  RequestService,
-  RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils';
+import { RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
@@ -28,8 +25,7 @@ let sendRequestSpy: sinon.SinonStub;
 let batchDeleteCommand: BatchDeleteExistingOverlayActionCommand;
 const requestService = new RequestService();
 const tempApexExecutionOverlayId = '1doxx00000FAKE';
-const expectedBatchUrl =
-  'https://www.salesforce.com/services/data/v43.0/tooling/composite/batch';
+const expectedBatchUrl = 'https://www.salesforce.com/services/data/v43.0/tooling/composite/batch';
 const requestBody =
   '{"batchRequests":[{"method":"DELETE","url":"services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/1doxx00000FAKE0"},{"method":"DELETE","url":"services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/1doxx00000FAKE1"},{"method":"DELETE","url":"services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/1doxx00000FAKE2"},{"method":"DELETE","url":"services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/1doxx00000FAKE3"},{"method":"DELETE","url":"services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/1doxx00000FAKE4"}]}';
 const responseNoErrors =
@@ -52,19 +48,14 @@ it('BatchDeleteExistingOverlayActionCommand POST REST call with non-error result
   for (let i = 0; i < 5; i++) {
     const request: BatchRequest = {
       method: RestHttpMethodEnum.Delete,
-      url:
-        'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' +
-        tempApexExecutionOverlayId +
-        i
+      url: 'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' + tempApexExecutionOverlayId + i
     };
     requests.push(request);
   }
   const batchRequests: BatchRequests = {
     batchRequests: requests
   };
-  batchDeleteCommand = new BatchDeleteExistingOverlayActionCommand(
-    batchRequests
-  );
+  batchDeleteCommand = new BatchDeleteExistingOverlayActionCommand(batchRequests);
 
   sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
     Promise.resolve({
@@ -74,16 +65,9 @@ it('BatchDeleteExistingOverlayActionCommand POST REST call with non-error result
   );
 
   // The expected options needs to contain the request body, url and RestHttpMethodEnum.Post
-  const expectedOptions: XHROptions = createExpectedXHROptions(
-    requestBody,
-    expectedBatchUrl,
-    RestHttpMethodEnum.Post
-  );
+  const expectedOptions: XHROptions = createExpectedXHROptions(requestBody, expectedBatchUrl, RestHttpMethodEnum.Post);
 
-  const returnString = await requestService.execute(
-    batchDeleteCommand,
-    RestHttpMethodEnum.Post
-  );
+  const returnString = await requestService.execute(batchDeleteCommand, RestHttpMethodEnum.Post);
 
   expect(sendRequestSpy.calledOnce).to.equal(true);
   expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
@@ -109,9 +93,7 @@ it('BatchDeleteExistingOverlayActionCommand POST REST call with error result', a
   const batchRequests: BatchRequests = {
     batchRequests: requests
   };
-  batchDeleteCommand = new BatchDeleteExistingOverlayActionCommand(
-    batchRequests
-  );
+  batchDeleteCommand = new BatchDeleteExistingOverlayActionCommand(batchRequests);
 
   sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
     Promise.resolve({
@@ -121,16 +103,9 @@ it('BatchDeleteExistingOverlayActionCommand POST REST call with error result', a
   );
 
   // The expected options needs to contain the request body, url and RestHttpMethodEnum.Post
-  const expectedOptions: XHROptions = createExpectedXHROptions(
-    requestBody,
-    expectedBatchUrl,
-    RestHttpMethodEnum.Post
-  );
+  const expectedOptions: XHROptions = createExpectedXHROptions(requestBody, expectedBatchUrl, RestHttpMethodEnum.Post);
 
-  const returnString = await requestService.execute(
-    batchDeleteCommand,
-    RestHttpMethodEnum.Post
-  );
+  const returnString = await requestService.execute(batchDeleteCommand, RestHttpMethodEnum.Post);
 
   expect(sendRequestSpy.calledOnce).to.equal(true);
   expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
@@ -142,7 +117,5 @@ it('BatchDeleteExistingOverlayActionCommand POST REST call with error result', a
   const response = JSON.parse(returnString) as BatchDeleteResponse;
   expect(response.hasErrors).to.equal(true);
   expect(response.results.length).to.equal(5);
-  expect(response.results[2].result![0].errorCode).to.be.equal(
-    INVALID_CROSS_REFERENCE_KEY
-  );
+  expect(response.results[2].result![0].errorCode).to.be.equal(INVALID_CROSS_REFERENCE_KEY);
 });

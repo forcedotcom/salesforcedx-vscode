@@ -3,17 +3,8 @@
 const path = require('path');
 const shell = require('shelljs');
 
-const prettierExecutable = path.join(
-  __dirname,
-  '..',
-  'node_modules',
-  '.bin',
-  'prettier'
-);
+const prettierExecutable = path.join(__dirname, '..', 'node_modules', '.bin', 'prettier');
 
-shell.exec(
-  `${prettierExecutable} --config .prettierrc --write "packages/salesforcedx-*/package.json" "package.json"`,
-  {
-    cwd: path.join(__dirname, '..')
-  }
-);
+shell.exec(`${prettierExecutable} --config .prettierrc --write "packages/salesforcedx-*/package.json" "package.json"`, {
+  cwd: path.join(__dirname, '..')
+});

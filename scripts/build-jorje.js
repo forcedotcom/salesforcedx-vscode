@@ -33,18 +33,18 @@ const SIGN_ERR = `Failed to sign jar: %s\n`;
 const SIGN_INFO = `^^ Ignore the certificate signer expired errors. We are ok with these.`;
 
 //Directories
-const CURRENT_DIR=process.cwd();
-let JORJE_DEV_DIR='';
-let SFDC_KEYSTORE='';
-let SFDC_KEYPASS='';
-const JORJE_DEST_DIR=`${CURRENT_DIR}/packages/salesforcedx-vscode-apex/out`;
-const JORJE_DEST_PATH=`${JORJE_DEST_DIR}/apex-jorje-lsp.jar`;
+const CURRENT_DIR = process.cwd();
+let JORJE_DEV_DIR = '';
+let SFDC_KEYSTORE = '';
+let SFDC_KEYPASS = '';
+const JORJE_DEST_DIR = `${CURRENT_DIR}/packages/salesforcedx-vscode-apex/out`;
+const JORJE_DEST_PATH = `${JORJE_DEST_DIR}/apex-jorje-lsp.jar`;
 
 function verifyPaths() {
   console.log(LOG_HEADER);
   JORJE_DEV_DIR = checkJorjeDirectory();
   if (needSigning === 'true') {
-    ({SFDC_KEYSTORE, SFDC_KEYPASS} = checkSigningAbility());
+    ({ SFDC_KEYSTORE, SFDC_KEYPASS } = checkSigningAbility());
   }
 }
 
@@ -53,7 +53,9 @@ function buildLSP() {
   console.log(util.format(BUILD_MSG, CURRENT_DIR));
   process.chdir(JORJE_DEV_DIR);
   if (needSigning === 'true') {
-    shell.exec(`mvn clean install package -Plsp -Psign-jars -Dsfdc.keystore=${SFDC_KEYSTORE} -Dsfdc.keypass=${SFDC_KEYPASS} -Dsfdc.storepass=${SFDC_KEYPASS} -DskipTests`);
+    shell.exec(
+      `mvn clean install package -Plsp -Psign-jars -Dsfdc.keystore=${SFDC_KEYSTORE} -Dsfdc.keypass=${SFDC_KEYPASS} -Dsfdc.storepass=${SFDC_KEYPASS} -DskipTests`
+    );
   } else {
     shell.exec(`mvn clean install package -Plsp -DskipTests;`);
   }
@@ -62,7 +64,9 @@ function buildLSP() {
 function getLSP() {
   console.log(util.format(FIND_MSG, JORJE_DEV_DIR));
   const re = /apex-jorje-lsp-\d{3}\.\d*-SNAPSHOT\.jar$/;
-  return shell.find(JORJE_DEV_DIR).filter(function(file) { return file.match(re); })[0];
+  return shell.find(JORJE_DEV_DIR).filter(function (file) {
+    return file.match(re);
+  })[0];
 }
 
 function copyLSP(jar) {

@@ -14,7 +14,7 @@ describe('Telemetry Messages', () => {
   let spyShowInfoMessage: jest.SpyInstance;
 
   beforeEach(() => {
-    spyShowInfoMessage = jest.spyOn(window,'showInformationMessage').mockResolvedValue(undefined);
+    spyShowInfoMessage = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -35,7 +35,7 @@ describe('Telemetry Messages', () => {
     let spyCommand: jest.SpyInstance;
     const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
 
-    beforeEach(() =>{
+    beforeEach(() => {
       spyCommand = jest.spyOn(commands, 'executeCommand');
     });
 
@@ -44,10 +44,7 @@ describe('Telemetry Messages', () => {
     });
 
     it('should display the telemetry message with opt-out link', async () => {
-      const showMessage = nls.localize(
-        'telemetry_legal_dialog_message',
-        TELEMETRY_OPT_OUT_LINK
-      );
+      const showMessage = nls.localize('telemetry_legal_dialog_message', TELEMETRY_OPT_OUT_LINK);
 
       await telemetryWithOptOutMessage();
       expect(spyShowInfoMessage).toHaveBeenCalledWith(showMessage, showButtonText);

@@ -4,10 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  SourceTrackingService,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { SourceTrackingService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../../../src/channels';
 import { SourceTrackingGetStatusExecutor } from '../../../../src/commands/source/sourceTrackingGetStatusExecutor';
 import { nls } from '../../../../src/messages';
@@ -25,17 +22,13 @@ describe('SourceTrackingGetStatusExecutor', () => {
     const dummySourceStatusSummary = 'this is a source status summary';
 
     beforeEach(() => {
-      jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(FAKE_WORKSPACE_INSTANCE);
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(FAKE_WORKSPACE_INSTANCE);
 
       getSourceStatusSummaryMock = jest
         .spyOn(SourceTrackingService, 'getSourceStatusSummary')
         .mockResolvedValue(dummySourceStatusSummary);
       jest.spyOn(channelService, 'appendLine').mockImplementation(appendSpy);
-      jest
-        .spyOn(channelService, 'showChannelOutput')
-        .mockImplementation(showChannelOutputSpy);
+      jest.spyOn(channelService, 'showChannelOutput').mockImplementation(showChannelOutputSpy);
     });
 
     it('should get the source status summary and show it in the output', async () => {

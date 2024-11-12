@@ -20,10 +20,7 @@ describe('OrgAuthInfo', () => {
   let getTargetDevHubOrAliasStub: SinonStub;
 
   beforeEach(async () => {
-    getTargetDevHubOrAliasStub = sandbox.stub(
-      ConfigUtil,
-      'getTargetDevHubOrAlias'
-    );
+    getTargetDevHubOrAliasStub = sandbox.stub(ConfigUtil, 'getTargetDevHubOrAlias');
   });
 
   afterEach(() => sandbox.restore());
@@ -43,10 +40,7 @@ describe('OrgAuthInfo', () => {
 
     it('should return the username for the matching alias', async () => {
       const info = await StateAggregator.getInstance();
-      sandbox
-        .stub(info.aliases, 'getUsername')
-        .withArgs(alias)
-        .returns(username);
+      sandbox.stub(info.aliases, 'getUsername').withArgs(alias).returns(username);
       expect(await OrgAuthInfo.getUsername(alias)).to.equal(username);
     });
   });
@@ -54,10 +48,7 @@ describe('OrgAuthInfo', () => {
   describe('getTargetDevHubOrAlias', () => {
     it('should return notification if there is no dev hub set', async () => {
       getTargetDevHubOrAliasStub.resolves(undefined);
-      const infoMessageStub = sandbox.stub(
-        vscode.window,
-        'showInformationMessage'
-      );
+      const infoMessageStub = sandbox.stub(vscode.window, 'showInformationMessage');
 
       await OrgAuthInfo.getTargetDevHubOrAlias(true);
 
@@ -66,30 +57,19 @@ describe('OrgAuthInfo', () => {
 
     it('should run authorize a dev hub command if button clicked', async () => {
       getTargetDevHubOrAliasStub.resolves(undefined);
-      const showMessageStub = sandbox.stub(
-        vscode.window,
-        'showInformationMessage'
-      );
+      const showMessageStub = sandbox.stub(vscode.window, 'showInformationMessage');
       showMessageStub.returns(nls.localize('notification_make_default_dev'));
-      const executeCommandStub = sandbox.stub(
-        vscode.commands,
-        'executeCommand'
-      );
+      const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
 
       await OrgAuthInfo.getTargetDevHubOrAlias(true);
 
-      expect(
-        executeCommandStub.calledWith('sf.org.login.web.dev.hub')
-      ).to.equal(true);
+      expect(executeCommandStub.calledWith('sf.org.login.web.dev.hub')).to.equal(true);
       expect(showMessageStub.calledOnce).to.equal(true);
     });
 
     it('should not show a message if there is a dev hub set', async () => {
       getTargetDevHubOrAliasStub.resolves('username');
-      const infoMessageStub = sandbox.stub(
-        vscode.window,
-        'showInformationMessage'
-      );
+      const infoMessageStub = sandbox.stub(vscode.window, 'showInformationMessage');
 
       await OrgAuthInfo.getTargetDevHubOrAlias(true);
 
@@ -111,21 +91,15 @@ describe('OrgAuthInfo', () => {
     let connectionCreateStub: SinonStub;
 
     beforeEach(() => {
-      authinfoCreateStub = sandbox
-        .stub(AuthInfo, 'create')
-        .resolves(fakeAuthInfo);
-      connectionCreateStub = sandbox
-        .stub(Connection, 'create')
-        .resolves(fakeConnection);
+      authinfoCreateStub = sandbox.stub(AuthInfo, 'create').resolves(fakeAuthInfo);
+      connectionCreateStub = sandbox.stub(Connection, 'create').resolves(fakeConnection);
     });
 
     it('should use username/alias when passed as argument', async () => {
       const connection = await OrgAuthInfo.getConnection(username);
       expect(connection).to.equal(fakeConnection);
       expect(authinfoCreateStub.calledWith({ username })).to.equal(true);
-      expect(
-        connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
-      ).to.equal(true);
+      expect(connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })).to.equal(true);
     });
 
     it('should use target org/alias when invoked without argument', async () => {
@@ -139,9 +113,7 @@ describe('OrgAuthInfo', () => {
           username: targetOrg
         })
       ).to.equal(true);
-      expect(
-        connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
-      ).to.equal(true);
+      expect(connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })).to.equal(true);
     });
   });
 });

@@ -57,32 +57,19 @@ describe('CliCommandExecution Unit Tests.', () => {
   });
 
   it('Should be able to create an instance.', () => {
-    const cliCommandExecution = new CliCommandExecution(
-      testCommand,
-      testChildProcess
-    );
+    const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess);
     expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
     expect(fromEventSpy).toHaveBeenCalledTimes(4);
     expect(fromEventSpy.mock.calls[0]).toEqual([testChildProcess, 'exit']);
     expect(fromEventSpy.mock.calls[1]).toEqual([testChildProcess, 'error']);
-    expect(fromEventSpy.mock.calls[2]).toEqual([
-      testChildProcess.stdout,
-      'data'
-    ]);
-    expect(fromEventSpy.mock.calls[3]).toEqual([
-      testChildProcess.stderr,
-      'data'
-    ]);
+    expect(fromEventSpy.mock.calls[2]).toEqual([testChildProcess.stdout, 'data']);
+    expect(fromEventSpy.mock.calls[3]).toEqual([testChildProcess.stderr, 'data']);
 
     expect(subscribeSpy).toHaveBeenCalledTimes(2);
   });
 
   it('Should be able to create an instance with cancelation token.', () => {
-    const cliCommandExecution = new CliCommandExecution(
-      testCommand,
-      testChildProcess,
-      testCancelationToken
-    );
+    const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
     expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
     expect(subscribeSpy).toHaveBeenCalledTimes(3);
     expect(intervalSpy).toHaveBeenCalledWith(CANCELLATION_INTERVAL);
@@ -90,11 +77,7 @@ describe('CliCommandExecution Unit Tests.', () => {
 
   describe('Subscribe handlers.', () => {
     it('Should call timer unsubscribe on exit.', () => {
-      const cliCommandExecution = new CliCommandExecution(
-        testCommand,
-        testChildProcess,
-        testCancelationToken
-      );
+      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       expect(cliCommandExecution).toBeDefined();
       const exitSubscribeHandler = subscribeSpy.mock.calls[0][0];
       exitSubscribeHandler();
@@ -102,11 +85,7 @@ describe('CliCommandExecution Unit Tests.', () => {
     });
 
     it('Should call timer unsubscribe on error.', () => {
-      const cliCommandExecution = new CliCommandExecution(
-        testCommand,
-        testChildProcess,
-        testCancelationToken
-      );
+      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       expect(cliCommandExecution).toBeDefined();
       const exitSubscribeHandler = subscribeSpy.mock.calls[1][0];
       exitSubscribeHandler();
@@ -118,31 +97,19 @@ describe('CliCommandExecution Unit Tests.', () => {
     it('Should fail to create if child has no pid.', () => {
       testChildProcess.pid = undefined;
       expect(() => {
-        new CliCommandExecution(
-          testCommand,
-          testChildProcess,
-          testCancelationToken
-        );
+        new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       }).toThrowError(NO_PID_ERROR);
     });
     it('Should fail to create if child has no stdout.', () => {
       testChildProcess.stdout = undefined;
       expect(() => {
-        new CliCommandExecution(
-          testCommand,
-          testChildProcess,
-          testCancelationToken
-        );
+        new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       }).toThrowError(NO_STDOUT_ERROR);
     });
     it('Should fail to create if child has no stderr.', () => {
       testChildProcess.stderr = undefined;
       expect(() => {
-        new CliCommandExecution(
-          testCommand,
-          testChildProcess,
-          testCancelationToken
-        );
+        new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       }).toThrowError(NO_STDERR_ERROR);
     });
   });
@@ -155,11 +122,7 @@ describe('CliCommandExecution Unit Tests.', () => {
     });
     it('Should be able to successfully kill child process.', async () => {
       testCancelationToken.isCancellationRequested = true;
-      const cliCommandExecution = new CliCommandExecution(
-        testCommand,
-        testChildProcess,
-        testCancelationToken
-      );
+      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
       expect(subscribeSpy).toHaveBeenCalledTimes(3);
       const timoutHandler = subscribeSpy.mock.calls[2][0];
@@ -182,11 +145,7 @@ describe('CliCommandExecution Unit Tests.', () => {
     it('Should log if fails to kill child process.', () => {
       const killError = new Error('Failed to kill');
       testCancelationToken.isCancellationRequested = true;
-      const cliCommandExecution = new CliCommandExecution(
-        testCommand,
-        testChildProcess,
-        testCancelationToken
-      );
+      const cliCommandExecution = new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
       expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
       expect(subscribeSpy).toHaveBeenCalledTimes(3);
       const timoutHandler = subscribeSpy.mock.calls[2][0];

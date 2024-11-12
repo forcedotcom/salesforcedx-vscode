@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -6,22 +5,13 @@
 'use strict';
 
 import { expect } from 'chai';
-import {
-  Location,
-  Range,
-  SymbolInformation,
-  SymbolKind,
-  TextDocument
-} from 'vscode-languageserver-types';
+import { Location, Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Symbols', () => {
   const TEST_URI = 'test://test/test.html';
 
-  const assertSymbols = (
-    symbols: SymbolInformation[],
-    expected: SymbolInformation[]
-  ) => {
+  const assertSymbols = (symbols: SymbolInformation[], expected: SymbolInformation[]) => {
     expect(symbols).to.deep.equal(expected);
   };
 
@@ -59,8 +49,7 @@ describe('HTML Symbols', () => {
   });
 
   it('Id and classes', () => {
-    const content =
-      '<html id=\'root\'><body id="Foo" class="bar"><div class="a b"></div></body></html>';
+    const content = '<html id=\'root\'><body id="Foo" class="bar"><div class="a b"></div></body></html>';
 
     const expected = [
       {

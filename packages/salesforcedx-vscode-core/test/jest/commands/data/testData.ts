@@ -13,36 +13,31 @@ export const dummyPullResult = {
         state: 'Created',
         fullName: 'F9',
         type: 'ApexClass',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/F9.cls'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/F9.cls'
       },
       {
         state: 'Created',
         fullName: 'F9',
         type: 'ApexClass',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/F9.cls-meta.xml'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/F9.cls-meta.xml'
       },
       {
         state: 'Changed',
         fullName: 'D9',
         type: 'ApexClass',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/D9.cls'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/D9.cls'
       },
       {
         state: 'Changed',
         fullName: 'D9',
         type: 'ApexClass',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/D9.cls-meta.xml'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/D9.cls-meta.xml'
       },
       {
         state: 'Changed',
         fullName: 'Admin',
         type: 'Profile',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/profiles/Admin.profile-meta.xml'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/profiles/Admin.profile-meta.xml'
       }
     ]
   },
@@ -60,29 +55,25 @@ export const dummyPushResult = {
         state: 'Changed',
         fullName: 'E1',
         type: 'ApexClass',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/E1.cls'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/E1.cls'
       },
       {
         state: 'Changed',
         fullName: 'E1',
         type: 'ApexClass',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/E1.cls-meta.xml'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/E1.cls-meta.xml'
       },
       {
         state: 'Created',
         fullName: 'G1',
         type: 'ApexClass',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/G1.cls'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/G1.cls'
       },
       {
         state: 'Created',
         fullName: 'G1',
         type: 'ApexClass',
-        filePath:
-          '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/G1.cls-meta.xml'
+        filePath: '/Users/test.user/scratchpad/NewProj1/force-app/main/default/classes/G1.cls-meta.xml'
       }
     ]
   },

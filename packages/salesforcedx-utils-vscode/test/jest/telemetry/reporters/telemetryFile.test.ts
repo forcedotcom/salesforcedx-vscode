@@ -42,11 +42,7 @@ describe('TelemetryFile', () => {
     const exceptionMessage = 'Test exception message';
     const measurements = { metric1: 10, metric2: 20 };
 
-    telemetryFile.sendExceptionEvent(
-      exceptionName,
-      exceptionMessage,
-      measurements
-    );
+    telemetryFile.sendExceptionEvent(exceptionName, exceptionMessage, measurements);
 
     expect(writeToFileMock).toHaveBeenCalledWith(exceptionName, {
       exceptionMessage,
@@ -66,9 +62,7 @@ describe('TelemetryFile', () => {
 
       await (telemetryFile as any).writeToFile(eventName, properties);
 
-      expect(
-        (fs.promises.appendFile as jest.Mock).mock.calls[0]
-      ).toMatchSnapshot();
+      expect((fs.promises.appendFile as jest.Mock).mock.calls[0]).toMatchSnapshot();
     });
   });
 });

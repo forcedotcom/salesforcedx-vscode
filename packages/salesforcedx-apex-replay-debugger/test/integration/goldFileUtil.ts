@@ -20,9 +20,7 @@ export class GoldFileUtil {
   constructor(dc: DebugClient, goldFilePath: string) {
     this.dc = dc;
     this.goldFilePath = goldFilePath;
-    this.golds = fs
-      .readFileSync(this.goldFilePath, 'utf-8')
-      .split(this.delimiter);
+    this.golds = fs.readFileSync(this.goldFilePath, 'utf-8').split(this.delimiter);
     this.golds = this.golds.map(gold => {
       return gold.trim();
     });
@@ -34,16 +32,8 @@ export class GoldFileUtil {
     });
   }
 
-  public async assertTopState(
-    stoppedReason: string,
-    stoppedFilePath: string,
-    stoppedLine: number
-  ): Promise<void> {
-    const stackTraceResponse = await this.assertStackTrace(
-      stoppedReason,
-      stoppedFilePath,
-      stoppedLine
-    );
+  public async assertTopState(stoppedReason: string, stoppedFilePath: string, stoppedLine: number): Promise<void> {
+    const stackTraceResponse = await this.assertStackTrace(stoppedReason, stoppedFilePath, stoppedLine);
 
     const scopesResponse = await this.dc.scopesRequest({
       frameId: stackTraceResponse.body.stackFrames[0].id
@@ -60,16 +50,8 @@ export class GoldFileUtil {
     await this.assertVariables(staticScope);
   }
 
-  public async assertEntireState(
-    stoppedReason: string,
-    stoppedFilePath: string,
-    stoppedLine: number
-  ): Promise<void> {
-    const stackTraceResponse = await this.assertStackTrace(
-      stoppedReason,
-      stoppedFilePath,
-      stoppedLine
-    );
+  public async assertEntireState(stoppedReason: string, stoppedFilePath: string, stoppedLine: number): Promise<void> {
+    const stackTraceResponse = await this.assertStackTrace(stoppedReason, stoppedFilePath, stoppedLine);
 
     for (const frame of stackTraceResponse.body.stackFrames) {
       const scopesResponse = await this.dc.scopesRequest({
@@ -93,23 +75,16 @@ export class GoldFileUtil {
     stoppedFilePath: string,
     stoppedLine: number
   ): Promise<DebugProtocol.StackTraceResponse> {
-    const stackTraceResponse = await this.dc.assertStoppedLocation(
-      stoppedReason,
-      {
-        path: stoppedFilePath,
-        line: stoppedLine
-      }
-    );
+    const stackTraceResponse = await this.dc.assertStoppedLocation(stoppedReason, {
+      path: stoppedFilePath,
+      line: stoppedLine
+    });
     stackTraceResponse.body.stackFrames.forEach(frame => {
       if (frame.source && frame.source.path) {
         frame.source.path = '<redacted>';
       }
     });
-    const actualStack = JSON.stringify(
-      stackTraceResponse.body.stackFrames,
-      null,
-      2
-    );
+    const actualStack = JSON.stringify(stackTraceResponse.body.stackFrames, null, 2);
     this.compareGoldValue(actualStack);
     return stackTraceResponse;
   }
@@ -118,11 +93,7 @@ export class GoldFileUtil {
     const variablesResponse = await this.dc.variablesRequest({
       variablesReference: scope.variablesReference
     });
-    const actualVariables = JSON.stringify(
-      variablesResponse.body.variables,
-      null,
-      2
-    );
+    const actualVariables = JSON.stringify(variablesResponse.body.variables, null, 2);
     this.compareGoldValue(actualVariables);
   }
 

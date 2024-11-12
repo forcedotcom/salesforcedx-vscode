@@ -7,10 +7,7 @@
 
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import { FrameExitState } from '../../../src/states';
 

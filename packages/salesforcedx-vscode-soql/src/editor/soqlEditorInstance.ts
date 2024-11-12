@@ -69,9 +69,7 @@ class ConnectionChangedListener {
   }
 
   public removeSoqlEditor(editor: SOQLEditorInstance): void {
-    this.editorInstances = this.editorInstances.filter(
-      instance => instance !== editor
-    );
+    this.editorInstances = this.editorInstances.filter(instance => instance !== editor);
   }
 
   public async connectionChanged(): Promise<void> {
@@ -85,9 +83,7 @@ export class SOQLEditorInstance {
   protected lastIncomingSoqlStatement = '';
 
   // Notify soqlEditorProvider when destroyed
-  protected disposedCallback:
-    | ((instance: SOQLEditorInstance) => void)
-    | undefined;
+  protected disposedCallback: ((instance: SOQLEditorInstance) => void) | undefined;
 
   constructor(
     protected document: vscode.TextDocument,
@@ -95,18 +91,10 @@ export class SOQLEditorInstance {
     protected _token: vscode.CancellationToken
   ) {
     // Update the UI when the Text Document is changed, if its the same document.
-    vscode.workspace.onDidChangeTextDocument(
-      debounce(this.onDocumentChangeHandler, 1000),
-      this,
-      this.subscriptions
-    );
+    vscode.workspace.onDidChangeTextDocument(debounce(this.onDocumentChangeHandler, 1000), this, this.subscriptions);
 
     // Update the text document when message recieved
-    webviewPanel.webview.onDidReceiveMessage(
-      this.onDidRecieveMessageHandler,
-      this,
-      this.subscriptions
-    );
+    webviewPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
 
     // register editor with connection changed listener
     ConnectionChangedListener.getInstance().addSoqlEditor(this);
@@ -115,20 +103,14 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected sendMessageToUi(
-    type: string,
-    payload?: string | string[] | DescribeSObjectResult
-  ): void {
+  protected sendMessageToUi(type: string, payload?: string | string[] | DescribeSObjectResult): void {
     this.webviewPanel.webview
       .postMessage({
         type,
         payload
       })
       .then(undefined, (err: string) => {
-        const message = nls.localize(
-          'error_unknown_error',
-          'web_view_post_message'
-        );
+        const message = nls.localize('error_unknown_error', 'web_view_post_message');
         channelService.appendLine(message);
         trackErrorWithTelemetry(type, err);
       });
@@ -175,14 +157,9 @@ export class SOQLEditorInstance {
       }
       case MessageType.UI_TELEMETRY: {
         const { unsupported } = event.payload as TelemetryModelJson;
-        const hasUnsupported = Array.isArray(unsupported)
-          ? unsupported.length
-          : unsupported;
+        const hasUnsupported = Array.isArray(unsupported) ? unsupported.length : unsupported;
         if (hasUnsupported) {
-          trackErrorWithTelemetry(
-            'syntax_unsupported',
-            JSON.stringify(event.payload)
-          ).catch(console.error);
+          trackErrorWithTelemetry('syntax_unsupported', JSON.stringify(event.payload)).catch(console.error);
           const message = nls.localize('info_syntax_unsupported');
           channelService.appendLine(message);
         }
@@ -192,10 +169,7 @@ export class SOQLEditorInstance {
         retrieveSObject(event.payload as string)
           .then(sobject => this.updateSObjectMetadata(sobject))
           .catch(() => {
-            const message = nls.localize(
-              'error_sobject_metadata_request',
-              event.payload
-            );
+            const message = nls.localize('error_sobject_metadata_request', event.payload);
             channelService.appendLine(message);
           });
         break;
@@ -229,9 +203,7 @@ export class SOQLEditorInstance {
       default: {
         const message = nls.localize('error_unknown_error', event.type);
         channelService.appendLine(message);
-        trackErrorWithTelemetry('message_unknown', event.type).catch(
-          console.error
-        );
+        trackErrorWithTelemetry('message_unknown', event.type).catch(console.error);
       }
     }
   }
@@ -248,9 +220,7 @@ export class SOQLEditorInstance {
 
     const queryText = this.document.getText();
     const conn = await workspaceContext.getConnection();
-    const queryData = await new QueryRunner(
-      conn as unknown as Connection
-    ).runQuery(queryText);
+    const queryData = await new QueryRunner(conn as unknown as Connection).runQuery(queryText);
     this.openQueryDataView(queryData);
     this.runQueryDone();
   }
@@ -262,26 +232,15 @@ export class SOQLEditorInstance {
   }
 
   protected openQueryDataView(queryData: QueryResult<JsonMap>): void {
-    const webview = new QueryDataView(
-      this.subscriptions,
-      queryData,
-      this.document
-    );
+    const webview = new QueryDataView(this.subscriptions, queryData, this.document);
     webview.createOrShowWebView();
   }
 
   // Write out the json to a given document. //
-  protected updateTextDocument(
-    document: vscode.TextDocument,
-    soqlQuery: string
-  ): Thenable<boolean> {
+  protected updateTextDocument(document: vscode.TextDocument, soqlQuery: string): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
 
-    edit.replace(
-      document.uri,
-      new vscode.Range(0, 0, document.lineCount, 0),
-      soqlQuery
-    );
+    edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), soqlQuery);
 
     return vscode.workspace.applyEdit(edit);
   }

@@ -27,10 +27,7 @@ describe('Apex Generate Trigger', () => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
   });
@@ -46,11 +43,7 @@ describe('Apex Generate Trigger', () => {
   it('Should generate Apex Trigger', async () => {
     // arrange
     const outputPath = 'force-app/main/default/triggers';
-    const apexTriggerPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'TestApexTrigger.trigger'
-    );
+    const apexTriggerPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'TestApexTrigger.trigger');
     const apexTriggerMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,

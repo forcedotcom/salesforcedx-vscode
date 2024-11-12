@@ -33,8 +33,7 @@ const activationRecordRegExp =
 
 // capturing group regex for parsing current session log start records
 // 2024-01-16 15:18:17.014 [info] Extension host with pid 3574 started
-const sessionStartRecordRegExp =
-  /.*?Extension host with pid\s?(?<pid>[0-9]+?)\s+?started/;
+const sessionStartRecordRegExp = /.*?Extension host with pid\s?(?<pid>[0-9]+?)\s+?started/;
 
 export const isProcessAlive = (pid: string): boolean => {
   try {
@@ -67,9 +66,7 @@ export const readExtensionHostLog = async (logUri: Uri): Promise<string[]> => {
  * @example
  * const logUri = getExtensionHostLogLocation(extensionContext);
  */
-export const getExtensionHostLogLocation = (
-  extensionContext: ExtensionContext
-): Uri | undefined => {
+export const getExtensionHostLogLocation = (extensionContext: ExtensionContext): Uri | undefined => {
   const logUri = extensionContext.logUri;
   const targetDir = 'exthost';
   const parts = logUri.fsPath.split(sep);
@@ -101,17 +98,14 @@ export const getExtensionHostLogActivationRecords = async (
   // find the last entry for the beginning of extensions being loaded due to the
   // same extension host log file being used across sessions.
   const lastExtensionLoadStart = extHostLogLines.reduce(
-    (lastIndex, log, currentIndex) =>
-      sessionStartRecordRegExp.test(log) ? currentIndex : lastIndex,
+    (lastIndex, log, currentIndex) => (sessionStartRecordRegExp.test(log) ? currentIndex : lastIndex),
     -1
   );
   if (lastExtensionLoadStart === -1) {
     return undefined;
   }
 
-  const sessionStartMatches = sessionStartRecordRegExp.exec(
-    extHostLogLines[lastExtensionLoadStart]
-  )!;
+  const sessionStartMatches = sessionStartRecordRegExp.exec(extHostLogLines[lastExtensionLoadStart])!;
 
   const { pid } = sessionStartMatches.groups as {
     pid: string;
@@ -128,36 +122,27 @@ export const getExtensionHostLogActivationRecords = async (
   const filtered = extHostLogLines.slice(lastExtensionLoadStart).filter(log => {
     return log.includes('ExtensionService#_doActivateExtension');
   });
-  const reduced = filtered.reduce(
-    (result: Record<string, ParsedLog>, log: string) => {
-      const matches = activationRecordRegExp.exec(log.trim());
-      if (!matches) {
-        return result;
-      }
-      const {
-        dateTimeStr,
-        level,
-        eventName,
-        extensionId,
-        properties: propertiesString
-      } = matches.groups as RegexGroups;
-      const dateTime = new Date(dateTimeStr);
+  const reduced = filtered.reduce((result: Record<string, ParsedLog>, log: string) => {
+    const matches = activationRecordRegExp.exec(log.trim());
+    if (!matches) {
+      return result;
+    }
+    const { dateTimeStr, level, eventName, extensionId, properties: propertiesString } = matches.groups as RegexGroups;
+    const dateTime = new Date(dateTimeStr);
 
-      const propertiesParts = propertiesString.split(', ');
-      const properties = propertiesParts.reduce(
-        (props: Record<string, string>, propertyPart: string) => {
-          const [key, value] = propertyPart.split(': ');
-          return { ...props, [key]: value };
-        },
-        {} as Record<string, string>
-      );
-      return {
-        ...result,
-        [extensionId]: { dateTime, level, eventName, properties }
-      };
-    },
-    {}
-  );
+    const propertiesParts = propertiesString.split(', ');
+    const properties = propertiesParts.reduce(
+      (props: Record<string, string>, propertyPart: string) => {
+        const [key, value] = propertyPart.split(': ');
+        return { ...props, [key]: value };
+      },
+      {} as Record<string, string>
+    );
+    return {
+      ...result,
+      [extensionId]: { dateTime, level, eventName, properties }
+    };
+  }, {});
   return reduced;
 };
 
@@ -169,11 +154,8 @@ export const getExtensionHostLogActivationRecords = async (
  * @param extensionContext
  * @returns instance of ExtensionsInfo
  */
-export const getExtensionsInfo = async (
-  extensionContext: ExtensionContext
-): Promise<ExtensionsInfo | undefined> => {
-  const activationRecords =
-    await getExtensionHostLogActivationRecords(extensionContext);
+export const getExtensionsInfo = async (extensionContext: ExtensionContext): Promise<ExtensionsInfo | undefined> => {
+  const activationRecords = await getExtensionHostLogActivationRecords(extensionContext);
   if (!activationRecords) {
     return undefined;
   }

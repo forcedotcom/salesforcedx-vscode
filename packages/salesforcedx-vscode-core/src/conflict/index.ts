@@ -28,9 +28,7 @@ export {
 export { PersistentStorageService } from './persistentStorageService';
 export const conflictView = ConflictView.getInstance();
 
-export const setupConflictView = async (
-  extensionContext: ExtensionContext
-): Promise<void> => {
+export const setupConflictView = async (extensionContext: ExtensionContext): Promise<void> => {
   const view = conflictView;
   await view.init(extensionContext);
 };
@@ -38,13 +36,9 @@ export const setupConflictView = async (
 export const registerConflictView = (): Disposable => {
   const viewItems: Disposable[] = [];
 
-  viewItems.push(
-    commands.registerCommand('sf.conflict.diff', (entry: ConflictFile) => conflictDiff(entry))
-  );
+  viewItems.push(commands.registerCommand('sf.conflict.diff', (entry: ConflictFile) => conflictDiff(entry)));
 
-  viewItems.push(
-    commands.registerCommand('sf.conflict.open', (entry: ConflictNode) => openResource(entry))
-  );
+  viewItems.push(commands.registerCommand('sf.conflict.open', (entry: ConflictNode) => openResource(entry)));
 
   return Disposable.from(...viewItems);
 };
@@ -53,12 +47,7 @@ const conflictDiff = (file: ConflictFile) => {
   const local = Uri.file(path.join(file.localPath, file.localRelPath));
   const remote = Uri.file(path.join(file.remotePath, file.remoteRelPath));
 
-  const title = nls.localize(
-    'conflict_detect_diff_title',
-    file.remoteLabel,
-    file.fileName,
-    file.fileName
-  );
+  const title = nls.localize('conflict_detect_diff_title', file.remoteLabel, file.fileName, file.fileName);
   void commands.executeCommand('vscode.diff', remote, local, title);
 };
 

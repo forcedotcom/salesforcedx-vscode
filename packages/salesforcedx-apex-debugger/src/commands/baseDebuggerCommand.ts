@@ -14,12 +14,7 @@ export class BaseDebuggerCommand extends BaseCommand {
   private readonly debuggerApiPath = 'services/debug/v41.0';
   private readonly request: DebuggerRequest | undefined;
 
-  public constructor(
-    commandName: string,
-    debuggedRequestId: string,
-    queryString?: string,
-    request?: DebuggerRequest
-  ) {
+  public constructor(commandName: string, debuggedRequestId: string, queryString?: string, request?: DebuggerRequest) {
     super(queryString);
     this.commandName = commandName;
     this.debuggedRequestId = debuggedRequestId;
@@ -27,11 +22,7 @@ export class BaseDebuggerCommand extends BaseCommand {
   }
 
   public getCommandUrl(): string {
-    const urlElements = [
-      this.debuggerApiPath,
-      this.commandName,
-      this.debuggedRequestId
-    ];
+    const urlElements = [this.debuggerApiPath, this.commandName, this.debuggedRequestId];
     return urlElements.join('/');
   }
 

@@ -28,16 +28,12 @@ describe('AppInsights', () => {
 
     beforeEach(() => {
       // Arrange
-      getInstanceMock = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue({
-          orgId: dummyOrgId
-        } as any);
+      getInstanceMock = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
+        orgId: dummyOrgId
+      } as any);
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
-      jest
-        .spyOn(AppInsights.prototype as any, 'updateUserOptIn')
-        .mockReturnValue('');
+      jest.spyOn(AppInsights.prototype as any, 'updateUserOptIn').mockReturnValue('');
     });
 
     it('should send telemetry data to appInsightsClient.trackEvent', () => {
@@ -59,10 +55,7 @@ describe('AppInsights', () => {
 
     it('should send orgId to appInsightsClient.trackException', () => {
       // Act
-      appInsights.sendExceptionEvent(
-        'Dummy Exception',
-        'a dummy exception occurred'
-      );
+      appInsights.sendExceptionEvent('Dummy Exception', 'a dummy exception occurred');
 
       // Assert
       expect(getInstanceMock).toHaveBeenCalledTimes(1);
@@ -79,13 +72,7 @@ describe('AppInsights', () => {
     };
 
     beforeEach(() => {
-      appInsights = new AppInsights(
-        fakeExtensionId,
-        fakeExtensionVersion,
-        'aKey',
-        fakeUserId,
-        false
-      );
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, 'aKey', fakeUserId, false);
       (appInsights as any).appInsightsClient = appInsightsClientMock;
     });
 
@@ -168,9 +155,7 @@ describe('AppInsights', () => {
     let appInsights: AppInsights;
 
     beforeEach(() => {
-      jest
-        .spyOn(os, 'hostname')
-        .mockReturnValue('test.internal.salesforce.com');
+      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
       jest.spyOn(os, 'cpus').mockReturnValue([
         {
           model: 'AMD EPYC 7763 64-Core Processor',
@@ -206,7 +191,7 @@ describe('AppInsights', () => {
       const commonProps = appInsights['getCommonProperties']();
       const internalProps = appInsights['getInternalProperties']();
       const result = appInsights['aggregateLoggingProperties']();
-      expect(result).toEqual({...commonProps, ...internalProps});
+      expect(result).toEqual({ ...commonProps, ...internalProps });
     });
 
     it('should return common properties when is not internal user', () => {

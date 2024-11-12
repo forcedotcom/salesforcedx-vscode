@@ -50,9 +50,7 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
     for (const gatherer of this.gatherers) {
       const input = await gatherer.gather();
       if (input.type === CONTINUE) {
-        Object.keys(input.data).map(
-          key => (aggregatedData[key] = input.data[key])
-        );
+        Object.keys(input.data).map(key => (aggregatedData[key] = input.data[key]));
       } else {
         return {
           type: CANCEL
@@ -94,13 +92,7 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
   private readonly exclude?: string;
   private readonly maxResults?: number;
 
-  constructor(
-    displayMessage: string,
-    errorMessage: string,
-    include: string,
-    exclude?: string,
-    maxResults?: number
-  ) {
+  constructor(displayMessage: string, errorMessage: string, include: string, exclude?: string, maxResults?: number) {
     this.displayMessage = displayMessage;
     this.errorMessage = errorMessage;
     this.include = include;
@@ -108,14 +100,8 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
     this.maxResults = maxResults;
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<FileSelection>
-  > {
-    const files = await vscode.workspace.findFiles(
-      this.include,
-      this.exclude,
-      this.maxResults
-    );
+  public async gather(): Promise<CancelResponse | ContinueResponse<FileSelection>> {
+    const files = await vscode.workspace.findFiles(this.include, this.exclude, this.maxResults);
     const fileItems = files.map(file => {
       return {
         label: path.basename(file.toString()),
@@ -129,33 +115,25 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
     const selection = await vscode.window.showQuickPick(fileItems, {
       placeHolder: this.displayMessage
     });
-    return selection
-      ? { type: CONTINUE, data: { file: selection.description.toString() } }
-      : { type: CANCEL };
+    return selection ? { type: CONTINUE, data: { file: selection.description.toString() } } : { type: CANCEL };
   }
 }
 
-export class SelectFileName
-  implements ParametersGatherer<FileNameParameter>
-{
+export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   private maxFileNameLength: number;
 
   constructor(maxFileNameLength?: number) {
     this.maxFileNameLength = maxFileNameLength || Infinity;
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ fileName: string }>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string }>> {
     const fileNameInputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_file_name'),
       ...(this.maxFileNameLength !== Infinity && {
         validateInput: value => {
           return value.length > this.maxFileNameLength
             ? nls
-                .localize(
-                  'parameter_gatherer_file_name_max_length_validation_error_message'
-                )
+                .localize('parameter_gatherer_file_name_max_length_validation_error_message')
                 .replace('{0}', this.maxFileNameLength.toString())
             : null;
         }
@@ -167,12 +145,8 @@ export class SelectFileName
   }
 }
 
-export class SelectUsername
-  implements ParametersGatherer<{ username: string }>
-{
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ username: string }>
-  > {
+export class SelectUsername implements ParametersGatherer<{ username: string }> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ username: string }>> {
     const usernameInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_username_name')
     } as vscode.InputBoxOptions;
@@ -193,42 +167,26 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
       this.LOGOUT_RESPONSE
     );
 
-    return response && response === this.LOGOUT_RESPONSE
-      ? { type: CONTINUE, data: {} }
-      : { type: CANCEL };
+    return response && response === this.LOGOUT_RESPONSE ? { type: CONTINUE, data: {} } : { type: CANCEL };
   }
 }
 
-export class SelectLwcComponentDir
-  implements ParametersGatherer<{ fileName: string; outputdir: string }>
-{
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>
-  > {
+export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: string; outputdir: string }> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>> {
     let packageDirs: string[] = [];
     try {
-      packageDirs =
-        await SalesforcePackageDirectories.getPackageDirectoryPaths();
+      packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
-      if (
-        e.name !== 'NoPackageDirectoryPathsFound' &&
-        e.name !== 'NoPackageDirectoriesFound'
-      ) {
+      if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
         throw e;
       }
     }
-    const packageDir = await this.showMenu(
-      packageDirs,
-      'parameter_gatherer_enter_dir_name'
-    );
+    const packageDir = await this.showMenu(packageDirs, 'parameter_gatherer_enter_dir_name');
     let outputdir;
     const namePathMap = new Map();
     let fileName;
     if (packageDir) {
-      const pathToPkg = path.join(
-        workspaceUtils.getRootWorkspacePath(),
-        packageDir
-      );
+      const pathToPkg = path.join(workspaceUtils.getRootWorkspacePath(), packageDir);
       const components = ComponentSet.fromSource(pathToPkg);
 
       const lwcNames = [];
@@ -239,10 +197,7 @@ export class SelectLwcComponentDir
           lwcNames.push(fullName);
         }
       }
-      const chosenLwcName = await this.showMenu(
-        lwcNames,
-        'parameter_gatherer_enter_lwc_name'
-      );
+      const chosenLwcName = await this.showMenu(lwcNames, 'parameter_gatherer_enter_lwc_name');
       if (chosenLwcName) {
         const filePathToXml = namePathMap.get(chosenLwcName);
         fileName = path.basename(filePathToXml, '.js-meta.xml');
@@ -259,43 +214,30 @@ export class SelectLwcComponentDir
       : { type: CANCEL };
   }
 
-  public async showMenu(
-    options: string[],
-    message: string
-  ): Promise<string | undefined> {
+  public async showMenu(options: string[], message: string): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: nls.localize(message)
     } as vscode.QuickPickOptions);
   }
 }
 
-export class SelectOutputDir
-  implements ParametersGatherer<OutputDirParameter>
-{
+export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
   public static readonly defaultOutput = path.join('main', 'default');
-  public static readonly customDirOption = `$(file-directory) ${nls.localize(
-    'custom_output_directory'
-  )}`;
+  public static readonly customDirOption = `$(file-directory) ${nls.localize('custom_output_directory')}`;
 
   public constructor(typeDir: string, typeDirRequired?: boolean) {
     this.typeDir = typeDir;
     this.typeDirRequired = typeDirRequired;
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<OutputDirParameter>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<OutputDirParameter>> {
     let packageDirs: string[] = [];
     try {
-      packageDirs =
-        await SalesforcePackageDirectories.getPackageDirectoryPaths();
+      packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
-      if (
-        e.name !== 'NoPackageDirectoryPathsFound' &&
-        e.name !== 'NoPackageDirectoriesFound'
-      ) {
+      if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
         throw e;
       }
     }
@@ -304,16 +246,11 @@ export class SelectOutputDir
     let outputdir = await this.showMenu(dirOptions);
 
     if (outputdir === SelectOutputDir.customDirOption) {
-      dirOptions = this.getCustomOptions(
-        packageDirs,
-        workspaceUtils.getRootWorkspacePath()
-      );
+      dirOptions = this.getCustomOptions(packageDirs, workspaceUtils.getRootWorkspacePath());
       outputdir = await this.showMenu(dirOptions);
     }
 
-    return outputdir
-      ? { type: CONTINUE, data: { outputdir } }
-      : { type: CANCEL };
+    return outputdir ? { type: CONTINUE, data: { outputdir } } : { type: CANCEL };
   }
 
   public getDefaultOptions(packageDirectories: string[]): string[] {
@@ -325,17 +262,12 @@ export class SelectOutputDir
   }
 
   public getCustomOptions(packageDirs: string[], rootPath: string): string[] {
-    const packages =
-      packageDirs.length > 1 ? `{${packageDirs.join(',')}}` : packageDirs[0];
-    return new glob.GlobSync(
-      path.join(rootPath, packages, '**', path.sep)
-    ).found.map(value => {
+    const packages = packageDirs.length > 1 ? `{${packageDirs.join(',')}}` : packageDirs[0];
+    return new glob.GlobSync(path.join(rootPath, packages, '**', path.sep)).found.map(value => {
       let relativePath = path.relative(rootPath, path.join(value, '/'));
       relativePath = path.join(
         relativePath,
-        this.typeDirRequired && !relativePath.endsWith(this.typeDir)
-          ? this.typeDir
-          : ''
+        this.typeDirRequired && !relativePath.endsWith(this.typeDir) ? this.typeDir : ''
       );
       return relativePath;
     });
@@ -363,18 +295,14 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
   }
 }
 
-export class RetrieveComponentOutputGatherer
-  implements ParametersGatherer<LocalComponent[]>
-{
+export class RetrieveComponentOutputGatherer implements ParametersGatherer<LocalComponent[]> {
   private describer: RetrieveDescriber;
 
   constructor(describer: RetrieveDescriber) {
     this.describer = describer;
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<LocalComponent[]>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<LocalComponent[]>> {
     return {
       type: CONTINUE,
       data: await this.describer.gatherOutputLocations()
@@ -394,23 +322,17 @@ export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplatePar
   }
 }
 
-export class PromptConfirmGatherer
-  implements ParametersGatherer<{ choice: string }>
-{
+export class PromptConfirmGatherer implements ParametersGatherer<{ choice: string }> {
   private question: string;
 
   constructor(question: string) {
     this.question = question;
   }
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ choice: string }>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ choice: string }>> {
     const confirmOpt = nls.localize('parameter_gatherer_prompt_confirm_option');
     const cancelOpt = nls.localize('parameter_gatherer_prompt_cancel_option');
     const choice = await this.showMenu([cancelOpt, confirmOpt]);
-    return confirmOpt === choice
-      ? { type: CONTINUE, data: { choice } }
-      : { type: CANCEL };
+    return confirmOpt === choice ? { type: CONTINUE, data: { choice } } : { type: CANCEL };
   }
 
   public async showMenu(options: string[]): Promise<string | undefined> {
@@ -420,19 +342,14 @@ export class PromptConfirmGatherer
   }
 }
 
-export class SelectLwcComponentType
-  implements ParametersGatherer<{ extension: string }>
-{
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ extension: string }>
-  > {
-    const hasTsSupport = vscode.workspace.getConfiguration(SFDX_LWC_EXTENSION_NAME).get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
+export class SelectLwcComponentType implements ParametersGatherer<{ extension: string }> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ extension: string }>> {
+    const hasTsSupport = vscode.workspace
+      .getConfiguration(SFDX_LWC_EXTENSION_NAME)
+      .get(LWC_PREVIEW_TYPESCRIPT_SUPPORT, false);
     if (hasTsSupport) {
       const lwcComponentTypes = ['TypeScript', 'JavaScript'];
-      const lwcComponentType = await this.showMenu(
-        lwcComponentTypes,
-        'parameter_gatherer_select_lwc_type'
-      );
+      const lwcComponentType = await this.showMenu(lwcComponentTypes, 'parameter_gatherer_select_lwc_type');
       return lwcComponentType
         ? {
             type: CONTINUE,
@@ -440,13 +357,10 @@ export class SelectLwcComponentType
           }
         : { type: CANCEL };
     }
-    return { type: CONTINUE, data: { extension: 'JavaScript'} };
+    return { type: CONTINUE, data: { extension: 'JavaScript' } };
   }
 
-  public async showMenu(
-    options: string[],
-    message: string
-  ): Promise<string | undefined> {
+  public async showMenu(options: string[], message: string): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: nls.localize(message)
     } as vscode.QuickPickOptions);

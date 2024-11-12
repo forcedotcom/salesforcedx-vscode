@@ -11,25 +11,14 @@ import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
 import * as Sinon from 'sinon';
 import * as vscode from 'vscode';
-import {
-  OrgType,
-  WorkspaceContext,
-  workspaceContextUtils
-} from '../../../src/context';
+import { OrgType, WorkspaceContext, workspaceContextUtils } from '../../../src/context';
 import * as workspaceUtil from '../../../src/context/workspaceOrgType';
 import { OrgAuthInfo } from '../../../src/util';
 
 const sandbox = createSandbox();
 
-const expectSetHasTargetOrg = (
-  hasUsername: boolean,
-  executeCommandStub: sinon.SinonStub
-) => {
-  expect(executeCommandStub.getCall(0).args).to.eql([
-    'setContext',
-    'sf:has_target_org',
-    hasUsername
-  ]);
+const expectSetHasTargetOrg = (hasUsername: boolean, executeCommandStub: sinon.SinonStub) => {
+  expect(executeCommandStub.getCall(0).args).to.eql(['setContext', 'sf:has_target_org', hasUsername]);
 };
 
 const expectTargetOrgHasChangeTracking = (
@@ -59,10 +48,7 @@ describe('workspaceOrgType', () => {
     orgCreateStub = sandbox.stub(Org, 'create');
     getTargetOrgOrAliasStub = sandbox.stub(OrgAuthInfo, 'getTargetOrgOrAlias');
     createStub = sandbox.stub(AuthInfo, 'create');
-    workspaceContextGetInstanceStub = sandbox.stub(
-      WorkspaceContext,
-      'getInstance'
-    );
+    workspaceContextGetInstanceStub = sandbox.stub(WorkspaceContext, 'getInstance');
   });
 
   afterEach(() => {
@@ -74,17 +60,13 @@ describe('workspaceOrgType', () => {
     });
     it('returns undefined when no target-org is set', async () => {
       getTargetOrgOrAliasStub.resolves(undefined);
-      expect(await workspaceContextUtils.getTargetOrgOrAlias()).to.equal(
-        undefined
-      );
+      expect(await workspaceContextUtils.getTargetOrgOrAlias()).to.equal(undefined);
     });
 
     it('returns the target-org when the username is set', async () => {
       const username = 'test@org.com';
       getTargetOrgOrAliasStub.resolves(username);
-      expect(await workspaceContextUtils.getTargetOrgOrAlias()).to.equal(
-        username
-      );
+      expect(await workspaceContextUtils.getTargetOrgOrAlias()).to.equal(username);
     });
   });
 
@@ -127,10 +109,7 @@ describe('workspaceOrgType', () => {
       workspaceContextGetInstanceStub.returns(() => {
         throw new Error('no connection found.');
       });
-      const executeCommandStub = sandbox.stub(
-        vscode.commands,
-        'executeCommand'
-      );
+      const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
 
       await workspaceUtil.setupWorkspaceOrgType();
 
@@ -143,14 +122,9 @@ describe('workspaceOrgType', () => {
 
     describe('setWorkspaceOrgTypeWithOrgType', () => {
       it('should set sf:target_org_has_change_tracking to true when default org is source-tracked', async () => {
-        const executeCommandStub = sandbox.stub(
-          vscode.commands,
-          'executeCommand'
-        );
+        const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
 
-        workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(
-          OrgType.SourceTracked
-        );
+        workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
 
         expect(executeCommandStub.calledOnce).to.equal(true);
         expectTargetOrgHasChangeTracking(true, executeCommandStub, 0);
@@ -159,14 +133,9 @@ describe('workspaceOrgType', () => {
       });
 
       it('should set sf:target_org_has_change_tracking to false when the default org is not source-tracked', async () => {
-        const executeCommandStub = sandbox.stub(
-          vscode.commands,
-          'executeCommand'
-        );
+        const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
 
-        workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(
-          OrgType.NonSourceTracked
-        );
+        workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(OrgType.NonSourceTracked);
 
         expect(executeCommandStub.calledOnce).to.equal(true);
         expectTargetOrgHasChangeTracking(false, executeCommandStub, 0);

@@ -35,20 +35,12 @@ describe('CliCommandExecutor Unit Tests.', () => {
   });
 
   it('Should be able to create an instance.', () => {
-    const cliCommandExecutor = new CliCommandExecutor(
-      fakeCommand,
-      options,
-      false
-    );
+    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options, false);
     expect(cliCommandExecutor).toBeInstanceOf(CliCommandExecutor);
   });
 
   it('Should be able to include global env.', () => {
-    const cliCommandExecutor = new CliCommandExecutor(
-      fakeCommand,
-      options,
-      true
-    );
+    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options, true);
     const populatedOptions = (cliCommandExecutor as any).options;
     expect(populatedOptions.env).toEqual(
       expect.objectContaining({
@@ -63,21 +55,9 @@ describe('CliCommandExecutor Unit Tests.', () => {
   it('Should be able to execute the command.', () => {
     const fakeChildProcess = {};
     crossSpawnMocked.mockReturnValue(fakeChildProcess as any);
-    const cliCommandExecutor = new CliCommandExecutor(
-      fakeCommand,
-      options,
-      false
-    );
+    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options, false);
     cliCommandExecutor.execute();
-    expect(crossSpawnMocked).toHaveBeenCalledWith(
-      fakeCommand.command,
-      fakeCommand.args,
-      options
-    );
-    expect(CliCommandExecutorMock).toHaveBeenCalledWith(
-      fakeCommand,
-      fakeChildProcess,
-      undefined
-    );
+    expect(crossSpawnMocked).toHaveBeenCalledWith(fakeCommand.command, fakeCommand.args, options);
+    expect(CliCommandExecutorMock).toHaveBeenCalledWith(fakeCommand, fakeChildProcess, undefined);
   });
 });

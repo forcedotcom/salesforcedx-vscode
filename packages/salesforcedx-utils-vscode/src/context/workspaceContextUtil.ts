@@ -39,19 +39,14 @@ export class WorkspaceContextUtil {
 
     const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = projectPaths.salesforceProjectConfig();
-    this.cliConfigWatcher =
-      vscode.workspace.createFileSystemWatcher(cliConfigPath);
+    this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
     this.cliConfigWatcher.onDidDelete(bindedHandler);
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
-    extensionContext.subscriptions.push(
-      this.cliConfigWatcher,
-      this.onOrgChangeEmitter,
-      this.cliConfigWatcher
-    );
+    extensionContext.subscriptions.push(this.cliConfigWatcher, this.onOrgChangeEmitter, this.cliConfigWatcher);
     await this.handleCliConfigChange();
   }
 
@@ -91,18 +86,14 @@ export class WorkspaceContextUtil {
 
     if (targetOrgOrAlias) {
       this._username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
-      this._alias =
-        targetOrgOrAlias !== this._username ? targetOrgOrAlias : undefined;
+      this._alias = targetOrgOrAlias !== this._username ? targetOrgOrAlias : undefined;
       try {
         const connection = await this.getConnection();
         this._orgId = connection?.getAuthInfoFields().orgId;
       } catch (error: unknown) {
         this._orgId = '';
         if (error instanceof Error) {
-          console.log(
-            'There was an problem getting the orgId of the default org: ',
-            error
-          );
+          console.log('There was an problem getting the orgId of the default org: ', error);
           TelemetryService.getInstance().sendException(
             WORKSPACE_CONTEXT_ORG_ID_ERROR,
             `name: ${error.name}, message: ${error.message}`

@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  DEFAULT_CONNECTION_TIMEOUT_MS,
-  RequestService
-} from '@salesforce/salesforcedx-utils';
+import { DEFAULT_CONNECTION_TIMEOUT_MS, RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
@@ -33,9 +30,7 @@ describe('State command', () => {
   it('Should build request', async () => {
     sendRequestSpy = sinon
       .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
-      );
+      .returns(Promise.resolve({ status: 200, responseText: '' } as XHRResponse));
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/state/07cFAKE',
@@ -51,21 +46,17 @@ describe('State command', () => {
   });
 
   it('Should handle run command error', async () => {
-    sendRequestSpy = sinon
-      .stub(RequestService.prototype, 'sendRequest')
-      .returns(
-        Promise.reject({
-          status: 500,
-          responseText: '{"message":"There was an error", "action":"Try again"}'
-        } as XHRResponse)
-      );
+    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
+      Promise.reject({
+        status: 500,
+        responseText: '{"message":"There was an error", "action":"Try again"}'
+      } as XHRResponse)
+    );
 
     try {
       await requestService.execute(stateCommand);
     } catch (error) {
-      expect(error).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
+      expect(error).to.equal('{"message":"There was an error", "action":"Try again"}');
     }
   });
 });

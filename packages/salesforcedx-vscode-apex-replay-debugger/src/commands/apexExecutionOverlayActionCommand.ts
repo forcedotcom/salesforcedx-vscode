@@ -26,11 +26,7 @@ export class ApexExecutionOverlayActionCommand extends BaseCommand {
   private readonly requestString: string | undefined;
   private readonly actionObjectId: string | undefined;
 
-  public constructor(
-    requestString?: string,
-    actionObjectId?: string,
-    queryString?: string
-  ) {
+  public constructor(requestString?: string, actionObjectId?: string, queryString?: string) {
     super(queryString);
     this.requestString = requestString;
     this.actionObjectId = actionObjectId;

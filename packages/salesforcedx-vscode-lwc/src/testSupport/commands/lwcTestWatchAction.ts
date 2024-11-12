@@ -6,12 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { testWatcher } from '../testRunner/testWatcher';
-import {
-  TestExecutionInfo,
-  TestFileInfo,
-  TestInfoKind,
-  TestType
-} from '../types';
+import { TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 
 import { isLwcJestTest } from '../utils';
 
@@ -22,9 +17,7 @@ import { isLwcJestTest } from '../utils';
  * it will re-run the tests.
  * @param data provided by test watch commands (or test explorer potentially in the future)
  */
-export const lwcTestStartWatching = async (data: {
-  testExecutionInfo: TestExecutionInfo;
-}) => {
+export const lwcTestStartWatching = async (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   await testWatcher.watchTest(testExecutionInfo);
 };
@@ -34,9 +27,7 @@ export const lwcTestStartWatching = async (data: {
  * It will terminate the test watch task matched by the test URI.
  * @param data provided by test watch commands
  */
-export const lwcTestStopWatching = async (data: {
-  testExecutionInfo: TestExecutionInfo;
-}) => {
+export const lwcTestStopWatching = async (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   testWatcher.stopWatchingTest(testExecutionInfo);
 };

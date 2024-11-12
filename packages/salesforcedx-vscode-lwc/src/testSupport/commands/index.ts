@@ -15,12 +15,7 @@ import {
 } from './lwcTestDebugAction';
 import { lwcTestNavigateToTest } from './lwcTestNavigateToTest';
 import { lwcTestRefreshTestExplorer } from './lwcTestRefreshTestExplorer';
-import {
-  lwcTestCaseRun,
-  lwcTestFileRun,
-  lwcTestRunActiveTextEditorTest,
-  lwcTestRunAllTests
-} from './lwcTestRunAction';
+import { lwcTestCaseRun, lwcTestFileRun, lwcTestRunActiveTextEditorTest, lwcTestRunAllTests } from './lwcTestRunAction';
 import {
   lwcTestStartWatchingCurrentFile,
   lwcTestStopWatchingAllTests,
@@ -31,13 +26,8 @@ import {
  * Register all commands with the extension context
  * @param extensionContext extension context
  */
-export const registerCommands = (
-  extensionContext: ExtensionContext
-): Disposable => {
-  const lwcTestRunAllTestsCmd = commands.registerCommand(
-    'sf.lightning.lwc.test.runAllTests',
-    lwcTestRunAllTests
-  );
+export const registerCommands = (extensionContext: ExtensionContext): Disposable => {
+  const lwcTestRunAllTestsCmd = commands.registerCommand('sf.lightning.lwc.test.runAllTests', lwcTestRunAllTests);
   const lwcTestRefreshTestExplorerCmd = commands.registerCommand(
     'sf.lightning.lwc.test.refreshTestExplorer',
     lwcTestRefreshTestExplorer
@@ -46,22 +36,10 @@ export const registerCommands = (
     'sf.lightning.lwc.test.navigateToTest',
     lwcTestNavigateToTest
   );
-  const lwcTestFileRunCmd = commands.registerCommand(
-    'sf.lightning.lwc.test.file.run',
-    lwcTestFileRun
-  );
-  const lwcTestFileDebugCmd = commands.registerCommand(
-    'sf.lightning.lwc.test.file.debug',
-    lwcTestFileDebug
-  );
-  const lwcTestCaseRunCmd = commands.registerCommand(
-    'sf.lightning.lwc.test.case.run',
-    lwcTestCaseRun
-  );
-  const lwcTestCaseDebugCmd = commands.registerCommand(
-    'sf.lightning.lwc.test.case.debug',
-    lwcTestCaseDebug
-  );
+  const lwcTestFileRunCmd = commands.registerCommand('sf.lightning.lwc.test.file.run', lwcTestFileRun);
+  const lwcTestFileDebugCmd = commands.registerCommand('sf.lightning.lwc.test.file.debug', lwcTestFileDebug);
+  const lwcTestCaseRunCmd = commands.registerCommand('sf.lightning.lwc.test.case.run', lwcTestCaseRun);
+  const lwcTestCaseDebugCmd = commands.registerCommand('sf.lightning.lwc.test.case.debug', lwcTestCaseDebug);
   const lwcTestEditorTitleRunCmd = commands.registerCommand(
     'sf.lightning.lwc.test.editorTitle.run',
     lwcTestRunActiveTextEditorTest
@@ -82,12 +60,8 @@ export const registerCommands = (
     'sf.lightning.lwc.test.stopWatchingAllTests',
     lwcTestStopWatchingAllTests
   );
-  const startDebugSessionDisposable = vscode.debug.onDidStartDebugSession(
-    handleDidStartDebugSession
-  );
-  const stopDebugSessionDisposable = vscode.debug.onDidTerminateDebugSession(
-    handleDidTerminateDebugSession
-  );
+  const startDebugSessionDisposable = vscode.debug.onDidStartDebugSession(handleDidStartDebugSession);
+  const stopDebugSessionDisposable = vscode.debug.onDidTerminateDebugSession(handleDidTerminateDebugSession);
   const disposables = Disposable.from(
     lwcTestRefreshTestExplorerCmd,
     lwcTestNavigateToTestCmd,

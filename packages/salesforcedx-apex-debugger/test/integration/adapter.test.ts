@@ -6,11 +6,7 @@
  */
 
 import * as util from '@salesforce/salesforcedx-test-utils-vscode/out/src/orgUtils';
-import {
-  CliCommandExecutor,
-  CommandExecution,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor, CommandExecution, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
@@ -21,16 +17,7 @@ import { LaunchRequestArguments } from '../../src/adapter/apexDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints/lineBreakpoint';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
-const SIMPLE_VARIABLES_DIR = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'test',
-  'integration',
-  'config',
-  'variables'
-);
+const SIMPLE_VARIABLES_DIR = path.join(__dirname, '..', '..', '..', 'test', 'integration', 'config', 'variables');
 const SOURCE_FOLDER = path.join(SIMPLE_VARIABLES_DIR, 'source');
 const APEX_EXEC_FILE = path.join(SIMPLE_VARIABLES_DIR, 'apexExec', 'test.apex');
 const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
@@ -53,9 +40,7 @@ describe.skip('Interactive debugger adapter - integration', () => {
     await util.generateSFProject(PROJECT_NAME);
     // Create scratch org with Debug Apex enabled
     util.addFeatureToScratchOrgConfig(PROJECT_NAME, 'DebugApex');
-    apexClassUri = Uri.file(
-      `${projectPath}/force-app/main/default/classes/BasicVariables.cls`
-    ).toString();
+    apexClassUri = Uri.file(`${projectPath}/force-app/main/default/classes/BasicVariables.cls`).toString();
     if (process.platform === 'win32') {
       apexClassUri = apexClassUri.replace('%3A', ':');
     }
@@ -63,10 +48,7 @@ describe.skip('Interactive debugger adapter - integration', () => {
     LINE_BREAKPOINT_INFO.push({
       uri: apexClassUri,
       typeref: 'BasicVariables',
-      lines: [
-        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31, 32, 33,
-        34, 36, 37, 39, 40, 42
-      ]
+      lines: [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31, 32, 33, 34, 36, 37, 39, 40, 42]
     });
     LINE_BREAKPOINT_INFO.push({
       uri: apexClassUri,
@@ -138,12 +120,8 @@ describe.skip('Interactive debugger adapter - integration', () => {
       });
       expect(stackTraceResponse.success).to.equal(true);
       expect(stackTraceResponse.body.stackFrames.length).to.equal(2);
-      expect(stackTraceResponse.body.stackFrames[0].name).to.equal(
-        'BasicVariables.testAll()'
-      );
-      expect(stackTraceResponse.body.stackFrames[1].name).to.equal(
-        'anon.execute()'
-      );
+      expect(stackTraceResponse.body.stackFrames[0].name).to.equal('BasicVariables.testAll()');
+      expect(stackTraceResponse.body.stackFrames[1].name).to.equal('anon.execute()');
       // Verify threads
       const threadResponse = await dc.threadsRequest();
       expect(threadResponse.success).to.equal(true);
@@ -196,10 +174,7 @@ describe.skip('Interactive debugger adapter - integration', () => {
   });
 });
 
-const execApexNoWait = (
-  apexExecFilePath: string,
-  userName: string
-): CommandExecution => {
+const execApexNoWait = (apexExecFilePath: string, userName: string): CommandExecution => {
   return new CliCommandExecutor(
     new SfCommandBuilder()
       .withArg('apex:run')

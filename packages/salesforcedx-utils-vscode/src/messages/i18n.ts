@@ -16,8 +16,7 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  sfdx_cli_not_found:
-    'Salesforce CLI is not installed. Install it from [%s](%s)',
+  sfdx_cli_not_found: 'Salesforce CLI is not installed. Install it from [%s](%s)',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
@@ -31,8 +30,7 @@ export const messages = {
 
   error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  cannot_determine_workspace:
-    'Unable to determine workspace folders for workspace',
+  cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
 
   channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
@@ -41,8 +39,7 @@ export const messages = {
     'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/salesforcecli',
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
-  predicates_no_folder_opened_text:
-    'No folder opened. Open a Salesforce DX project in VS Code.',
+  predicates_no_folder_opened_text: 'No folder opened. Open a Salesforce DX project in VS Code.',
   predicates_no_salesforce_project_found_text:
     'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   trace_flags_unknown_user: 'Unknown user',

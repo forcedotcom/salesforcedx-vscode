@@ -23,11 +23,6 @@ export {
   setUpOrgExpirationWatcher
 } from './orgUtil';
 
-export {
-  ComponentName,
-  ContinueOrCancel,
-  OneOrMany,
-  isContinue
-} from './types';
+export { ComponentName, ContinueOrCancel, OneOrMany, isContinue } from './types';
 
 export * from './componentUtils';

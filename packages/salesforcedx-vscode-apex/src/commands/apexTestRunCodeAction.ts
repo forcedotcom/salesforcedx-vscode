@@ -40,19 +40,10 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private codeCoverage: boolean = false;
   private outputDir: string;
 
-  public static diagnostics =
-    vscode.languages.createDiagnosticCollection('apex-errors');
+  public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
-  constructor(
-    tests: string[],
-    outputDir = getTempFolder(),
-    codeCoverage = settings.retrieveTestCodeCoverage()
-  ) {
-    super(
-      nls.localize('apex_test_run_text'),
-      'apex_test_run_code_action_library',
-      OUTPUT_CHANNEL
-    );
+  constructor(tests: string[], outputDir = getTempFolder(), codeCoverage = settings.retrieveTestCodeCoverage()) {
+    super(nls.localize('apex_test_run_text'), 'apex_test_run_code_action_library', OUTPUT_CHANNEL);
     this.tests = tests;
     this.outputDir = outputDir;
     this.codeCoverage = codeCoverage;
@@ -68,17 +59,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
-    const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
-      this.tests.join()
-    );
+    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, this.tests.join());
 
     const progressReporter: Progress<ApexTestProgressValue> = {
       report: value => {
-        if (
-          value.type === 'StreamingClientProgress' ||
-          value.type === 'FormatTestResultProgress'
-        ) {
+        if (value.type === 'StreamingClientProgress' || value.type === 'FormatTestResultProgress') {
           progress?.report({ message: value.message });
         }
       }
@@ -124,34 +109,23 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 
     testsWithDiagnostics.forEach(test => {
       const diagnostic = test.diagnostic as ApexDiagnostic;
-      const componentPath = correlatedArtifacts.get(
-        test.apexClass.fullName ?? test.apexClass.name
-      );
+      const componentPath = correlatedArtifacts.get(test.apexClass.fullName ?? test.apexClass.name);
 
       if (componentPath) {
         const vscDiagnostic: vscode.Diagnostic = {
           message: `${diagnostic.exceptionMessage}\n${diagnostic.exceptionStackTrace}`,
           severity: vscode.DiagnosticSeverity.Error,
           source: componentPath,
-          range: this.getZeroBasedRange(
-            diagnostic.lineNumber ?? 1,
-            diagnostic.columnNumber ?? 1
-          )
+          range: this.getZeroBasedRange(diagnostic.lineNumber ?? 1, diagnostic.columnNumber ?? 1)
         };
 
-        ApexLibraryTestRunExecutor.diagnostics.set(
-          vscode.Uri.file(componentPath),
-          [vscDiagnostic]
-        );
+        ApexLibraryTestRunExecutor.diagnostics.set(vscode.Uri.file(componentPath), [vscDiagnostic]);
       }
     });
   }
 
   private getZeroBasedRange(line: number, column: number): vscode.Range {
-    const pos = new vscode.Position(
-      line > 0 ? line - 1 : 0,
-      column > 0 ? column - 1 : 0
-    );
+    const pos = new vscode.Position(line > 0 ? line - 1 : 0, column > 0 ? column - 1 : 0);
     return new vscode.Range(pos, pos);
   }
 
@@ -170,18 +144,13 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       correlatedArtifacts.set(testName, 'unknown');
     }
 
-    const workspaceFolder = vscode.workspace.workspaceFolders
-      ? vscode.workspace.workspaceFolders[0]
-      : undefined;
+    const workspaceFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0] : undefined;
     if (!workspaceFolder) {
       return correlatedArtifacts;
     }
 
     const patterns = packageDirectories.map(pkgDir => {
-      const relativePath = path.relative(
-        workspaceFolder.uri.fsPath,
-        pkgDir.fullPath
-      );
+      const relativePath = path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath);
       return `${relativePath}/**/*.cls`;
     });
 
@@ -192,10 +161,9 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     const filesWithDuplicates = (await Promise.all(findFilesPromises)).flat();
 
     // Remove duplicates
-    const files = Array.from(
-      new Set(filesWithDuplicates.map(file => file.toString()))
-    )
-    .map(filePath => vscode.Uri.parse(filePath));
+    const files = Array.from(new Set(filesWithDuplicates.map(file => file.toString()))).map(filePath =>
+      vscode.Uri.parse(filePath)
+    );
 
     // Iterate over each file found
     for (const file of files) {
@@ -213,20 +181,13 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 
 const apexTestRunCodeAction = async (tests: string[]) => {
   const testRunExecutor = new ApexLibraryTestRunExecutor(tests);
-  const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
-    new EmptyParametersGatherer(),
-    testRunExecutor
-  );
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), testRunExecutor);
   await commandlet.run();
 };
 
 const getTempFolder = (): string => {
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
-    const apexDir = getTestResultsFolder(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      'apex'
-    );
+    const apexDir = getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
@@ -248,9 +209,7 @@ export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
 
 // evaluate test class param: if not provided, apply cached value
 // exported for testability
-export const resolveTestClassParam = async (
-  testClass: string
-): Promise<string> => {
+export const resolveTestClassParam = async (testClass: string): Promise<string> => {
   if (isEmpty(testClass)) {
     // value not provided for re-run invocations
     // apply cached value, if available
@@ -268,9 +227,7 @@ export const apexTestClassRunCodeAction = async (testClass: string) => {
   testClass = await resolveTestClassParam(testClass);
   if (isEmpty(testClass)) {
     // test param not provided: show error and terminate
-    void notificationService.showErrorMessage(
-      nls.localize('apex_test_run_codeAction_no_class_test_param_text')
-    );
+    void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_class_test_param_text'));
     return;
   }
 
@@ -291,9 +248,7 @@ export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
 
 // evaluate test method param: if not provided, apply cached value
 // exported for testability
-export const resolveTestMethodParam = async (
-  testMethod: string
-): Promise<string> => {
+export const resolveTestMethodParam = async (testMethod: string): Promise<string> => {
   if (isEmpty(testMethod)) {
     // value not provided for re-run invocations
     // apply cached value, if available
@@ -312,9 +267,7 @@ export const apexTestMethodRunCodeAction = async (testMethod: string) => {
   testMethod = await resolveTestMethodParam(testMethod);
   if (isEmpty(testMethod)) {
     // test param not provided: show error and terminate
-    void notificationService.showErrorMessage(
-      nls.localize('apex_test_run_codeAction_no_method_test_param_text')
-    );
+    void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_method_test_param_text'));
     return;
   }
 

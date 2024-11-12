@@ -25,10 +25,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 import { channelService } from '../sf';
-import {
-  FileFormat,
-  QueryDataFileService as FileService
-} from './queryDataFileService';
+import { FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
@@ -77,15 +74,8 @@ export class QueryDataViewService {
       vscode.ViewColumn.Two,
       {
         localResourceRoots: [
-          vscode.Uri.file(
-            path.join(
-              QueryDataViewService.extensionPath,
-              DATA_VIEW_RESOURCE_ROOTS_PATH
-            )
-          ),
-          vscode.Uri.file(
-            path.join(QueryDataViewService.extensionPath, IMAGES_DIR_NAME)
-          )
+          vscode.Uri.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_RESOURCE_ROOTS_PATH)),
+          vscode.Uri.file(path.join(QueryDataViewService.extensionPath, IMAGES_DIR_NAME))
         ],
         enableScripts: true
       }
@@ -100,28 +90,17 @@ export class QueryDataViewService {
     );
 
     // set the tab icon for the webview
-    const imagesDirPath = path.join(
-      QueryDataViewService.extensionPath,
-      IMAGES_DIR_NAME
-    );
-    const salesforceCloudUri = vscode.Uri.file(
-      path.join(imagesDirPath, 'Salesforce_Cloud.png')
-    );
+    const imagesDirPath = path.join(QueryDataViewService.extensionPath, IMAGES_DIR_NAME);
+    const salesforceCloudUri = vscode.Uri.file(path.join(imagesDirPath, 'Salesforce_Cloud.png'));
 
     this.currentPanel.iconPath = {
       light: salesforceCloudUri,
       dark: salesforceCloudUri
     };
 
-    this.currentPanel.webview.html = this.getWebViewContent(
-      this.currentPanel.webview
-    );
+    this.currentPanel.webview.html = this.getWebViewContent(this.currentPanel.webview);
 
-    this.currentPanel.webview.onDidReceiveMessage(
-      this.onDidRecieveMessageHandler,
-      this,
-      this.subscriptions
-    );
+    this.currentPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
 
     return this.currentPanel.webview;
   }
@@ -137,21 +116,14 @@ export class QueryDataViewService {
         break;
       default:
         channelService.appendLine(nls.localize('error_unknown_error', type));
-        trackErrorWithTelemetry('data_view_message_type', type).catch(
-          console.error
-        );
+        trackErrorWithTelemetry('data_view_message_type', type).catch(console.error);
         break;
     }
   }
 
   protected handleSaveRecords(format: FileFormat): void {
     try {
-      const fileService = new FileService(
-        this.queryText,
-        this.queryData,
-        format,
-        this.document
-      );
+      const fileService = new FileService(this.queryText, this.queryData, format, this.document);
       fileService.save();
     } catch (err) {
       const message = nls.localize('error_data_view_save');
@@ -162,49 +134,19 @@ export class QueryDataViewService {
 
   protected getWebViewContent(webview: vscode.Webview): string {
     const baseStyleUri = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          QueryDataViewService.extensionPath,
-          DATA_VIEW_UI_PATH,
-          QUERY_DATA_VIEW_STYLE_FILENAME
-        )
-      )
+      vscode.Uri.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_STYLE_FILENAME))
     );
     const tabulatorStyleUri = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          QueryDataViewService.extensionPath,
-          DATA_VIEW_UI_PATH,
-          TABULATOR_STYLE_FILENAME
-        )
-      )
+      vscode.Uri.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, TABULATOR_STYLE_FILENAME))
     );
     const viewControllerUri = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          QueryDataViewService.extensionPath,
-          DATA_VIEW_UI_PATH,
-          QUERY_DATA_VIEW_SCRIPT_FILENAME
-        )
-      )
+      vscode.Uri.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_SCRIPT_FILENAME))
     );
     const tabulatorUri = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          QueryDataViewService.extensionPath,
-          DATA_VIEW_UI_PATH,
-          TABULATOR_SCRIPT_FILENAME
-        )
-      )
+      vscode.Uri.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, TABULATOR_SCRIPT_FILENAME))
     );
     const saveIconUri = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          QueryDataViewService.extensionPath,
-          DATA_VIEW_ICONS_PATH,
-          SAVE_ICON_FILENAME
-        )
-      )
+      vscode.Uri.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_ICONS_PATH, SAVE_ICON_FILENAME))
     );
 
     const staticAssets = {

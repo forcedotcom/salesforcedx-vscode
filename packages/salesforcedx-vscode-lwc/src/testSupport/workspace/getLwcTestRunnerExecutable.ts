@@ -20,22 +20,14 @@ import { workspaceService } from './workspaceService';
 export const getLwcTestRunnerExecutable = (cwd: string) => {
   const workspaceType = workspaceService.getCurrentWorkspaceType();
   if (workspaceService.isSFDXWorkspace(workspaceType)) {
-    const lwcTestRunnerExecutable = path.join(
-      cwd,
-      'node_modules',
-      '.bin',
-      'lwc-jest'
-    );
+    const lwcTestRunnerExecutable = path.join(cwd, 'node_modules', '.bin', 'lwc-jest');
     if (fs.existsSync(lwcTestRunnerExecutable)) {
       return lwcTestRunnerExecutable;
     } else {
       const errorMessage = nls.localize('no_lwc_jest_found_text');
       console.error(errorMessage);
       vscode.window.showErrorMessage(errorMessage);
-      telemetryService.sendException(
-        'lwc_test_no_lwc_jest_found',
-        errorMessage
-      );
+      telemetryService.sendException('lwc_test_no_lwc_jest_found', errorMessage);
     }
   } else if (workspaceService.isCoreWorkspace(workspaceType)) {
     const lwcTestRunnerExecutable = which.sync('lwc-test', {
@@ -47,16 +39,10 @@ export const getLwcTestRunnerExecutable = (cwd: string) => {
       const errorMessage = nls.localize('no_lwc_testrunner_found_text');
       console.error(errorMessage);
       vscode.window.showErrorMessage(errorMessage);
-      telemetryService.sendException(
-        'lwc_test_no_lwc_testrunner_found',
-        errorMessage
-      );
+      telemetryService.sendException('lwc_test_no_lwc_testrunner_found', errorMessage);
     }
   } else {
     // This is not expected since test support should not be activated for other workspace types
-    telemetryService.sendException(
-      'lwc_test_no_lwc_testrunner_found',
-      'Unsupported workspace'
-    );
+    telemetryService.sendException('lwc_test_no_lwc_testrunner_found', 'Unsupported workspace');
   }
 };

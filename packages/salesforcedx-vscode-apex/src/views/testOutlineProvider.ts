@@ -8,13 +8,7 @@ import { TestResult } from '@salesforce/apex-node-bundle';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  APEX_GROUP_RANGE,
-  APEX_TESTS,
-  FAIL_RESULT,
-  PASS_RESULT,
-  SKIP_RESULT
-} from '../constants';
+import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { getApexTests, languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
 import { IconsEnum, iconHelpers } from './icons';
@@ -32,11 +26,10 @@ const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
 const BASE_ID = 'sf.test.view';
 
-export class ApexTestOutlineProvider
-  implements vscode.TreeDataProvider<TestNode>
-{
-  private onDidChangeTestData: vscode.EventEmitter<TestNode | undefined> =
-    new vscode.EventEmitter<TestNode | undefined>();
+export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode> {
+  private onDidChangeTestData: vscode.EventEmitter<TestNode | undefined> = new vscode.EventEmitter<
+    TestNode | undefined
+  >();
   public onDidChangeTreeData = this.onDidChangeTestData.event;
 
   private apexTestMap: Map<string, TestNode> = new Map<string, TestNode>();
@@ -76,9 +69,7 @@ export class ApexTestOutlineProvider
         const languageClientStatus = languageClientUtils.getStatus();
         if (!languageClientStatus.isReady()) {
           if (languageClientStatus.failedToInitialize()) {
-            void vscode.window.showInformationMessage(
-              languageClientStatus.getStatusMessage()
-            );
+            void vscode.window.showInformationMessage(languageClientStatus.getStatusMessage());
             return new Array<ApexTestNode>();
           }
           message = LOADING_MESSAGE;
@@ -125,15 +116,10 @@ export class ApexTestOutlineProvider
   }
 
   public async collapseAll(): Promise<void> {
-    return vscode.commands.executeCommand(
-      `workbench.actions.treeView.${this.getId()}.collapseAll`
-    );
+    return vscode.commands.executeCommand(`workbench.actions.treeView.${this.getId()}.collapseAll`);
   }
 
-  public async onResultFileCreate(
-    apexTestPath: string,
-    testResultFile: string
-  ) {
+  public async onResultFileCreate(apexTestPath: string, testResultFile: string) {
     const testRunIdFile = path.join(apexTestPath, TEST_RUN_ID_FILE);
     const testRunId = readFileSync(testRunIdFile).toString();
     const testResultFilePath = path.join(
@@ -155,10 +141,7 @@ export class ApexTestOutlineProvider
     this.testIndex.clear();
     if (this.apexTestInfo) {
       this.apexTestInfo.forEach(testMethod => {
-        this.testIndex.set(
-          testMethod.location.uri.toString(),
-          testMethod.definingType
-        );
+        this.testIndex.set(testMethod.location.uri.toString(), testMethod.definingType);
       });
     }
   }
@@ -171,14 +154,9 @@ export class ApexTestOutlineProvider
     this.rootNode.children = new Array<TestNode>();
     if (this.apexTestInfo) {
       this.apexTestInfo.forEach(test => {
-        let apexGroup = this.apexTestMap.get(
-          test.definingType
-        ) as ApexTestGroupNode;
+        let apexGroup = this.apexTestMap.get(test.definingType) as ApexTestGroupNode;
         if (!apexGroup) {
-          const groupLocation = new vscode.Location(
-            test.location.uri,
-            APEX_GROUP_RANGE
-          );
+          const groupLocation = new vscode.Location(test.location.uri, APEX_GROUP_RANGE);
           apexGroup = new ApexTestGroupNode(test.definingType, groupLocation);
           this.apexTestMap.set(test.definingType, apexGroup);
         }
@@ -187,10 +165,7 @@ export class ApexTestOutlineProvider
         apexTest.name = apexGroup.label + '.' + apexTest.label;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);
-        if (
-          this.rootNode &&
-          !(this.rootNode.children.indexOf(apexGroup) >= 0)
-        ) {
+        if (this.rootNode && !(this.rootNode.children.indexOf(apexGroup) >= 0)) {
           this.rootNode.children.push(apexGroup);
         }
         this.testStrings.add(apexGroup.name);
@@ -213,13 +188,9 @@ export class ApexTestOutlineProvider
     const groups = new Set<ApexTestGroupNode>();
     for (const test of testResult.tests) {
       const { name, namespacePrefix } = test.apexClass;
-      const apexGroupName = namespacePrefix
-        ? `${namespacePrefix}.${name}`
-        : name;
+      const apexGroupName = namespacePrefix ? `${namespacePrefix}.${name}` : name;
 
-      const apexGroupNode = this.apexTestMap.get(
-        apexGroupName
-      ) as ApexTestGroupNode;
+      const apexGroupNode = this.apexTestMap.get(apexGroupName) as ApexTestGroupNode;
 
       if (apexGroupNode) {
         groups.add(apexGroupNode);
@@ -251,11 +222,7 @@ export abstract class TestNode extends vscode.TreeItem {
   public name: string;
   public location: vscode.Location | null;
 
-  constructor(
-    label: string,
-    collapsibleState: vscode.TreeItemCollapsibleState,
-    location: vscode.Location | null
-  ) {
+  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, location: vscode.Location | null) {
     super(label, collapsibleState);
     this.location = location;
     this.description = label;

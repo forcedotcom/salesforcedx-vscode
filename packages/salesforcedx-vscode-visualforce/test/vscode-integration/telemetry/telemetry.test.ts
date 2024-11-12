@@ -51,12 +51,7 @@ describe('Telemetry', () => {
     const expectedMeasures = {
       startupTime: match.number
     };
-    assert.calledWith(
-      sendEvent,
-      'activationEvent',
-      expectedProps,
-      match(expectedMeasures)
-    );
+    assert.calledWith(sendEvent, 'activationEvent', expectedProps, match(expectedMeasures));
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {

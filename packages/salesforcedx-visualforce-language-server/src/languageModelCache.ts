@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -48,11 +47,7 @@ export const getLanguageModelCache = <T>(
       const version = document.version;
       const languageId = document.languageId;
       const languageModelInfo = languageModels[document.uri];
-      if (
-        languageModelInfo &&
-        languageModelInfo.version === version &&
-        languageModelInfo.languageId === languageId
-      ) {
+      if (languageModelInfo && languageModelInfo.version === version && languageModelInfo.languageId === languageId) {
         languageModelInfo.cTime = Date.now();
         return languageModelInfo.languageModel;
       }

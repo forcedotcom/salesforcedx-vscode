@@ -55,10 +55,7 @@ export class ProjectDeployStartResultParser {
         name: this.response.name ?? 'DeployFailed',
         status: this.response.status,
         ...(files && {
-          files: files.filter(
-            (file: { state: string }) =>
-              file.state === 'Failed' || file.state === 'Conflict'
-          )
+          files: files.filter((file: { state: string }) => file.state === 'Failed' || file.state === 'Conflict')
         })
       } as ProjectDeployStartErrorResponse;
     }
@@ -79,8 +76,6 @@ export class ProjectDeployStartResultParser {
   }
 
   public hasConflicts(): boolean {
-    return (
-      this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
-    );
+    return this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME;
   }
 }

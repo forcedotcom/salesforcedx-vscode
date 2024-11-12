@@ -8,29 +8,14 @@
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
-import {
-  commands,
-  ConfigurationTarget,
-  Disposable,
-  ExtensionContext,
-  workspace,
-  WorkspaceConfiguration
-} from 'vscode';
-import {
-  lightningLwcOpen,
-  lightningLwcPreview,
-  lightningLwcStart,
-  lightningLwcStop
-} from './commands';
+import { commands, ConfigurationTarget, Disposable, ExtensionContext, workspace, WorkspaceConfiguration } from 'vscode';
+import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
 import { ESLINT_NODEPATH_CONFIG, log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
-import {
-  activateLwcTestSupport,
-  shouldActivateLwcTestSupport
-} from './testSupport';
+import { activateLwcTestSupport, shouldActivateLwcTestSupport } from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
 
 export const activate = async (extensionContext: ExtensionContext) => {
@@ -65,9 +50,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    log(
-      'LWC LSP - autodetect did not find a valid project structure, exiting....'
-    );
+    log('LWC LSP - autodetect did not find a valid project structure, exiting....');
     log('WorkspaceType detected: ' + workspaceType);
     return;
   }
@@ -83,9 +66,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
-  const serverModule = extensionContext.asAbsolutePath(
-    path.join(...serverPath)
-  );
+  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
   const client = createLanguageClient(serverModule);
 
   extensionContext.subscriptions.push(client.start());
@@ -100,19 +81,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
     const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
     if (currentNodePath && currentNodePath.includes(SFDX_LWC_EXTENSION_NAME)) {
       try {
-        log(
-          'Removing eslint.nodePath setting as the LWC Extension no longer manages this value'
-        );
-        await config.update(
-          ESLINT_NODEPATH_CONFIG,
-          undefined,
-          ConfigurationTarget.Workspace
-        );
+        log('Removing eslint.nodePath setting as the LWC Extension no longer manages this value');
+        await config.update(ESLINT_NODEPATH_CONFIG, undefined, ConfigurationTarget.Workspace);
       } catch (e) {
-        telemetryService.sendException(
-          'lwc_eslint_nodepath_couldnt_be_set',
-          e.message
-        );
+        telemetryService.sendException('lwc_eslint_nodepath_couldnt_be_set', e.message);
       }
     }
   }

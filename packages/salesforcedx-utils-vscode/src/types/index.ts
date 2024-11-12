@@ -26,9 +26,7 @@ export type PreconditionChecker = {
 };
 
 export type PostconditionChecker<T> = {
-  check(
-    inputs: ContinueResponse<T> | CancelResponse
-  ): Promise<ContinueResponse<T> | CancelResponse>;
+  check(inputs: ContinueResponse<T> | CancelResponse): Promise<ContinueResponse<T> | CancelResponse>;
 };
 
 // Input gathering

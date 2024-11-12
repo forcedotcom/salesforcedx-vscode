@@ -15,21 +15,9 @@ describe('Aura Definition Linking', () => {
   let lwcDir: string;
 
   beforeEach(async () => {
-    auraDir = path.join(
-      workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'aura'
-    );
+    auraDir = path.join(workspace.workspaceFolders![0].uri.fsPath, 'force-app', 'main', 'default', 'aura');
 
-    lwcDir = path.join(
-      workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'lwc'
-    );
+    lwcDir = path.join(workspace.workspaceFolders![0].uri.fsPath, 'force-app', 'main', 'default', 'lwc');
 
     await new Promise(r => setTimeout(r, 1500));
   });
@@ -63,15 +51,10 @@ describe('Aura Definition Linking', () => {
  * @param endLocation - expected definition location given the position
  * @param position - position to initiate the definition lookup
  */
-const testDefinitionNavigation = async (
-  startLocation: string,
-  endLocation: string,
-  position: Position
-) => {
+const testDefinitionNavigation = async (startLocation: string, endLocation: string, position: Position) => {
   const doc = await workspace.openTextDocument(startLocation);
   const editor = await window.showTextDocument(doc);
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const locations = (await commands.executeCommand(
     'vscode.executeDefinitionProvider',
     editor.document.uri,
@@ -80,7 +63,6 @@ const testDefinitionNavigation = async (
 
   expect(locations).to.have.lengthOf(1);
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const location = locations![0];
 
   expect(location).to.have.property('uri');

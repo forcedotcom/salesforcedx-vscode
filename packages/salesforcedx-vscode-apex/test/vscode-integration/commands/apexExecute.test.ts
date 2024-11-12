@@ -20,10 +20,7 @@ import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import {
-  AnonApexGatherer,
-  AnonApexLibraryExecuteExecutor
-} from '../../../src/commands/anonApexExecute';
+import { AnonApexGatherer, AnonApexLibraryExecuteExecutor } from '../../../src/commands/anonApexExecute';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
@@ -41,11 +38,9 @@ describe('Apex Execute', () => {
   beforeEach(async () => {
     sb = createSandbox();
     settingStub = sb.stub();
-    sb.stub(vscode.workspace, 'getConfiguration')
-      .withArgs(SFDX_CORE_CONFIGURATION_NAME)
-      .returns({
-        get: settingStub
-      });
+    sb.stub(vscode.workspace, 'getConfiguration').withArgs(SFDX_CORE_CONFIGURATION_NAME).returns({
+      get: settingStub
+    });
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -54,14 +49,10 @@ describe('Apex Execute', () => {
         username: testData.username
       })
     });
-    sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('target-org')
-      .returns(testData.username);
+    sb.stub(ConfigAggregator.prototype, 'getPropertyValue').withArgs('target-org').returns(testData.username);
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
-    traceFlagsStub = sb
-      .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags').returns(true);
 
     sb.stub(vscode.window, 'activeTextEditor').get(() => ({
       document: {
@@ -83,11 +74,7 @@ describe('Apex Execute', () => {
 
   describe('AnonApexGatherer', async () => {
     it('should return the selected file to execute anonymous apex', async () => {
-      const fileName = path.join(
-        projectPaths.stateFolder(),
-        'tools',
-        'tempApex.input'
-      );
+      const fileName = path.join(projectPaths.stateFolder(), 'tools', 'tempApex.input');
       const mockActiveTextEditor = {
         document: {
           uri: { fsPath: fileName },
@@ -109,11 +96,7 @@ describe('Apex Execute', () => {
 
     it('should return the text in file if file has not been created yet', async () => {
       const text = 'System.assert(true);';
-      const fileName = path.join(
-        projectPaths.stateFolder(),
-        'tools',
-        'tempApex.input'
-      );
+      const fileName = path.join(projectPaths.stateFolder(), 'tools', 'tempApex.input');
       const mockActiveTextEditor = {
         document: {
           uri: { fsPath: fileName },
@@ -172,17 +155,9 @@ describe('Apex Execute', () => {
 
     beforeEach(() => {
       outputStub = sb.stub(channelService, 'appendLine');
-      showChannelOutputStub = sb.spy(
-        ChannelService.prototype,
-        'showChannelOutput'
-      );
-      setDiagnosticStub = sb.stub(
-        AnonApexLibraryExecuteExecutor.diagnostics,
-        'set'
-      );
-      debugLogsfolder = sb
-        .stub(projectPaths, 'debugLogsFolder')
-        .returns('.sfdx/tools/debug/logs');
+      showChannelOutputStub = sb.spy(ChannelService.prototype, 'showChannelOutput');
+      setDiagnosticStub = sb.stub(AnonApexLibraryExecuteExecutor.diagnostics, 'set');
+      debugLogsfolder = sb.stub(projectPaths, 'debugLogsFolder').returns('.sfdx/tools/debug/logs');
     });
 
     it('should format result correctly for a successful execution', async () => {
@@ -203,12 +178,8 @@ describe('Apex Execute', () => {
       };
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
-      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
-        execAnonResponse.logs
-      }`;
-      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
-        execAnonResponse
-      );
+      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${execAnonResponse.logs}`;
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(execAnonResponse);
 
       await executor.run({ type: 'CONTINUE', data: {} });
       expect(showChannelOutputStub.notCalled).to.be.true;
@@ -232,9 +203,7 @@ describe('Apex Execute', () => {
         ]
       };
       const expectedOutput = `Error: Line: ${execAnonResponse.diagnostic[0].lineNumber}, Column: ${execAnonResponse.diagnostic[0].columnNumber}\nError: ${execAnonResponse.diagnostic[0].compileProblem}\n`;
-      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
-        execAnonResponse
-      );
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(execAnonResponse);
 
       await executor.run({ type: 'CONTINUE', data: {} });
       expect(showChannelOutputStub.notCalled).to.be.true;
@@ -257,16 +226,11 @@ describe('Apex Execute', () => {
           }
         ]
       };
-      const { exceptionMessage, exceptionStackTrace } =
-        execAnonResponse.diagnostic[0];
+      const { exceptionMessage, exceptionStackTrace } = execAnonResponse.diagnostic[0];
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
-      )}\nError: ${exceptionMessage}\nError: ${exceptionStackTrace}\n\n${
-        execAnonResponse.logs
-      }`;
-      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
-        execAnonResponse
-      );
+      )}\nError: ${exceptionMessage}\nError: ${exceptionStackTrace}\n\n${execAnonResponse.logs}`;
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(execAnonResponse);
 
       await executor.run({ type: 'CONTINUE', data: {} });
       expect(showChannelOutputStub.notCalled).to.be.true;
@@ -289,9 +253,7 @@ describe('Apex Execute', () => {
           }
         ]
       };
-      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
-        execAnonResponse
-      );
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(execAnonResponse);
 
       const expectedDiagnostic = {
         message: execAnonResponse.diagnostic[0].exceptionMessage,
@@ -304,16 +266,11 @@ describe('Apex Execute', () => {
         type: 'CONTINUE',
         data: {
           fileName: file,
-          selection: new vscode.Range(
-            new vscode.Position(3, 1),
-            new vscode.Position(3, 22)
-          )
+          selection: new vscode.Range(new vscode.Position(3, 1), new vscode.Position(3, 22))
         }
       });
 
-      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
-        expectedDiagnostic
-      ]);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([expectedDiagnostic]);
     });
   });
 
@@ -339,20 +296,12 @@ describe('Apex Execute', () => {
     let executeStub: SinonStub;
 
     beforeEach(() => {
-      setDiagnosticStub = sb.stub(
-        AnonApexLibraryExecuteExecutor.diagnostics,
-        'set'
-      );
-      executeStub = sb
-        .stub(ExecuteService.prototype, 'executeAnonymous')
-        .resolves(defaultResponse);
+      setDiagnosticStub = sb.stub(AnonApexLibraryExecuteExecutor.diagnostics, 'set');
+      executeStub = sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(defaultResponse);
     });
 
     it('should clear diagnostics before setting new ones', async () => {
-      const clearStub = sb.stub(
-        AnonApexLibraryExecuteExecutor.diagnostics,
-        'clear'
-      );
+      const clearStub = sb.stub(AnonApexLibraryExecuteExecutor.diagnostics, 'clear');
 
       await executor.run({ data: { fileName: file }, type: 'CONTINUE' });
 
@@ -371,9 +320,7 @@ describe('Apex Execute', () => {
 
       expect(setDiagnosticStub.calledOnce).to.be.true;
       expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
-      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
-        expectedDiagnostic
-      ]);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([expectedDiagnostic]);
     });
 
     it('should set compile problem as message if present', async () => {
@@ -400,9 +347,7 @@ describe('Apex Execute', () => {
 
       expect(setDiagnosticStub.calledOnce).to.be.true;
       expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
-      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
-        expectedDiagnostic
-      ]);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([expectedDiagnostic]);
     });
 
     it('should set exception message as message if compile problem not present', async () => {
@@ -428,9 +373,7 @@ describe('Apex Execute', () => {
 
       expect(setDiagnosticStub.calledOnce).to.be.true;
       expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
-      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
-        expectedDiagnostic
-      ]);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([expectedDiagnostic]);
     });
 
     it('should set exception message as message if compile problem empty string', async () => {
@@ -457,9 +400,7 @@ describe('Apex Execute', () => {
 
       expect(setDiagnosticStub.calledOnce).to.be.true;
       expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
-      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
-        expectedDiagnostic
-      ]);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([expectedDiagnostic]);
     });
 
     it('should set unexpected message as message if compile problem and exception message empty strings', async () => {
@@ -486,9 +427,7 @@ describe('Apex Execute', () => {
 
       expect(setDiagnosticStub.calledOnce).to.be.true;
       expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
-      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
-        expectedDiagnostic
-      ]);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([expectedDiagnostic]);
     });
   });
 
@@ -500,14 +439,8 @@ describe('Apex Execute', () => {
 
     beforeEach(() => {
       outputStub = sb.stub(channelService, 'appendLine');
-      showChannelOutputStub = sb.spy(
-        ChannelService.prototype,
-        'showChannelOutput'
-      );
-      setDiagnosticStub = sb.stub(
-        AnonApexLibraryExecuteExecutor.diagnostics,
-        'set'
-      );
+      showChannelOutputStub = sb.spy(ChannelService.prototype, 'showChannelOutput');
+      setDiagnosticStub = sb.stub(AnonApexLibraryExecuteExecutor.diagnostics, 'set');
     });
 
     it('should set up trace flags and run the Apex replay debugger when AnonApexLibraryExecuteExecutor(true) runs', async () => {
@@ -528,12 +461,8 @@ describe('Apex Execute', () => {
       };
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
-      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
-        execAnonResponse.logs
-      }`;
-      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
-        execAnonResponse
-      );
+      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${execAnonResponse.logs}`;
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(execAnonResponse);
 
       await executor.run({ type: 'CONTINUE', data: {} });
 
@@ -559,12 +488,8 @@ describe('Apex Execute', () => {
       };
       const expectedOutput = `${nls.localize(
         'apex_execute_compile_success'
-      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
-        execAnonResponse.logs
-      }`;
-      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
-        execAnonResponse
-      );
+      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${execAnonResponse.logs}`;
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(execAnonResponse);
 
       await executor.run({ type: 'CONTINUE', data: {} });
 

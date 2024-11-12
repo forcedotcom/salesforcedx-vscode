@@ -67,16 +67,10 @@ export class TelemetryFile implements TelemetryReporter {
   ) {
     const timestamp = new Date().toISOString();
 
-    await fs.promises.appendFile(
-      this.filePath,
-      JSON.stringify({ timestamp, command, data }, null, 2) + ','
-    );
+    await fs.promises.appendFile(this.filePath, JSON.stringify({ timestamp, command, data }, null, 2) + ',');
   }
 
   private logFilePathFor(extensionId: string): string {
-    return path.join(
-      getRootWorkspacePath(),
-      `${extensionId}-${LOCAL_TELEMETRY_FILE}`
-    );
+    return path.join(getRootWorkspacePath(), `${extensionId}-${LOCAL_TELEMETRY_FILE}`);
   }
 }

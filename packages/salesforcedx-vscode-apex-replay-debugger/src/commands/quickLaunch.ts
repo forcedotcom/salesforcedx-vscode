@@ -23,10 +23,7 @@ import {
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
-import {
-  checkpointService,
-  CheckpointService
-} from '../breakpoints/checkpointService';
+import { checkpointService, CheckpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -45,10 +42,7 @@ type LogFileRetrieveResult = {
 };
 
 export class QuickLaunch {
-  public async debugTest(
-    testClass: string,
-    testName?: string
-  ): Promise<boolean> {
+  public async debugTest(testClass: string, testName?: string): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
 
     const traceFlags = new TraceFlags(connection);
@@ -56,11 +50,9 @@ export class QuickLaunch {
       return false;
     }
 
-    const oneOrMoreCheckpoints =
-      checkpointService.hasOneOrMoreActiveCheckpoints(true);
+    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(true);
     if (oneOrMoreCheckpoints) {
-      const createCheckpointsResult =
-        await CheckpointService.sfCreateCheckpoints();
+      const createCheckpointsResult = await CheckpointService.sfCreateCheckpoints();
       if (!createCheckpointsResult) {
         return false;
       }
@@ -69,10 +61,7 @@ export class QuickLaunch {
     const testResult = await this.runTests(connection, testClass, testName);
 
     if (testResult.success && testResult.logFileId) {
-      const logFileRetrieve = await this.retrieveLogFile(
-        connection,
-        testResult.logFileId
-      );
+      const logFileRetrieve = await this.retrieveLogFile(connection, testResult.logFileId);
 
       if (logFileRetrieve.success && logFileRetrieve.filePath) {
         launchFromLogFile(logFileRetrieve.filePath, false);
@@ -84,11 +73,7 @@ export class QuickLaunch {
     return false;
   }
 
-  private async runTests(
-    connection: Connection,
-    testClass: string,
-    testMethod?: string
-  ): Promise<TestRunResult> {
+  private async runTests(connection: Connection, testClass: string, testMethod?: string): Promise<TestRunResult> {
     const testService = new TestService(connection);
     try {
       const payload = await testService.buildSyncPayload(
@@ -96,10 +81,7 @@ export class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
-      const result: TestResult = (await testService.runTestSynchronous(
-        payload,
-        true
-      )) as TestResult;
+      const result: TestResult = (await testService.runTestSynchronous(payload, true)) as TestResult;
       if (workspaceUtils.hasRootWorkspace()) {
         const apexTestResultsPath = projectPaths.apexTestResultsFolder();
         await testService.writeResultFiles(
@@ -128,10 +110,7 @@ export class QuickLaunch {
     }
   }
 
-  private async retrieveLogFile(
-    connection: Connection,
-    logId: string
-  ): Promise<LogFileRetrieveResult> {
+  private async retrieveLogFile(connection: Connection, logId: string): Promise<LogFileRetrieveResult> {
     const logService = new LogService(connection);
     const outputDir = projectPaths.debugLogsFolder();
 
@@ -143,11 +122,7 @@ export class QuickLaunch {
 
 export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   constructor() {
-    super(
-      nls.localize('debug_test_exec_name'),
-      'debug_test_replay_debugger',
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize('debug_test_exec_name'), 'debug_test_replay_debugger', OUTPUT_CHANNEL);
   }
 
   public async run(response: ContinueResponse<string[]>): Promise<boolean> {
@@ -164,10 +139,7 @@ export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   }
 }
 
-export const setupAndDebugTests = async (
-  className: string,
-  methodName?: string
-): Promise<void> => {
+export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const executor = new TestDebuggerExecutor();
   const response = {
     type: 'CONTINUE',

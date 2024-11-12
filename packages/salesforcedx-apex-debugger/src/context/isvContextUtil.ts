@@ -26,19 +26,10 @@ export class IsvContextUtil {
       const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
       const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
 
-      if (
-        typeof isvDebuggerSid !== 'undefined' &&
-        typeof isvDebuggerUrl !== 'undefined'
-      ) {
+      if (typeof isvDebuggerSid !== 'undefined' && typeof isvDebuggerUrl !== 'undefined') {
         // set auth context
-        GlobalCliEnvironment.environmentVariables.set(
-          ENV_SF_TARGET_ORG,
-          isvDebuggerSid
-        );
-        GlobalCliEnvironment.environmentVariables.set(
-          ENV_SF_ORG_INSTANCE_URL,
-          isvDebuggerUrl
-        );
+        GlobalCliEnvironment.environmentVariables.set(ENV_SF_TARGET_ORG, isvDebuggerSid);
+        GlobalCliEnvironment.environmentVariables.set(ENV_SF_ORG_INSTANCE_URL, isvDebuggerUrl);
         isvDebugProject = true;
       }
     }
@@ -49,8 +40,6 @@ export class IsvContextUtil {
     // reset any auth
     GlobalCliEnvironment.environmentVariables.delete(ENV_SF_TARGET_ORG);
     GlobalCliEnvironment.environmentVariables.delete(ENV_SF_ORG_INSTANCE_URL);
-    console.log(
-      `Deleted environment variables ${ENV_SF_TARGET_ORG} and ${ENV_SF_ORG_INSTANCE_URL}`
-    );
+    console.log(`Deleted environment variables ${ENV_SF_TARGET_ORG} and ${ENV_SF_ORG_INSTANCE_URL}`);
   }
 }

@@ -28,39 +28,29 @@ describe('CommandEventDispatcher', () => {
     const mockDisposable = new vscode.Disposable(() => {});
 
     beforeEach(() => {
-      (RefreshSObjectsExecutor as any).onRefreshSObjectsCommandCompletion = jest
-        .fn()
-        .mockReturnValue(mockDisposable);
+      (RefreshSObjectsExecutor as any).onRefreshSObjectsCommandCompletion = jest.fn().mockReturnValue(mockDisposable);
     });
 
     it('should call refreshSObjectExecutor event and return the disposable', () => {
       const dispatcher = CommandEventDispatcher.getInstance();
       const listener = () => {};
-      const disposable =
-        dispatcher.onRefreshSObjectsCommandCompletion(listener);
+      const disposable = dispatcher.onRefreshSObjectsCommandCompletion(listener);
 
       expect(disposable).toBe(mockDisposable);
-      expect(
-        (RefreshSObjectsExecutor as any).onRefreshSObjectsCommandCompletion
-      ).toHaveBeenCalledWith(listener);
+      expect((RefreshSObjectsExecutor as any).onRefreshSObjectsCommandCompletion).toHaveBeenCalledWith(listener);
     });
   });
 
   describe('dispose', () => {
     beforeEach(() => {
-      (
-        RefreshSObjectsExecutor as any
-      ).refreshSObjectsCommandCompletionEventEmitter = { dispose: jest.fn() };
+      (RefreshSObjectsExecutor as any).refreshSObjectsCommandCompletionEventEmitter = { dispose: jest.fn() };
     });
 
     it('should dispose the refreshSObjectsCommandCompletionEventEmitter', () => {
       const dispatcher = CommandEventDispatcher.getInstance();
       dispatcher.dispose();
 
-      expect(
-        (RefreshSObjectsExecutor as any)
-          .refreshSObjectsCommandCompletionEventEmitter.dispose
-      ).toHaveBeenCalled();
+      expect((RefreshSObjectsExecutor as any).refreshSObjectsCommandCompletionEventEmitter.dispose).toHaveBeenCalled();
     });
   });
 });

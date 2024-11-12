@@ -41,8 +41,7 @@ import { telemetryService } from './telemetry';
 
 // tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
-  export const type: RequestType<TextDocumentPositionParams, string, any, any> =
-    new RequestType('html/tag');
+  export const type: RequestType<TextDocumentPositionParams, string, any, any> = new RequestType('html/tag');
 }
 
 export const activate = (context: ExtensionContext) => {
@@ -50,9 +49,7 @@ export const activate = (context: ExtensionContext) => {
   const toDispose = context.subscriptions;
 
   // The server is implemented in node
-  const serverModule = context.asAbsolutePath(
-    path.join(...context.extension.packageJSON.serverPath)
-  );
+  const serverModule = context.asAbsolutePath(path.join(...context.extension.packageJSON.serverPath));
   // The debug options for the server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6004'] };
 
@@ -87,12 +84,7 @@ export const activate = (context: ExtensionContext) => {
   };
 
   // Create the language client and start the client.
-  const client = new LanguageClient(
-    'visualforce',
-    'Visualforce Language Server',
-    serverOptions,
-    clientOptions
-  );
+  const client = new LanguageClient('visualforce', 'Visualforce Language Server', serverOptions, clientOptions);
   client.registerFeature(new ConfigurationFeature(client));
 
   let disposable = client.start();
@@ -101,75 +93,45 @@ export const activate = (context: ExtensionContext) => {
     .onReady()
     .then(() => {
       disposable = languages.registerColorProvider(documentSelector, {
-        provideDocumentColors: (
-          document: TextDocument
-        ): Thenable<ColorInformation[]> => {
+        provideDocumentColors: (document: TextDocument): Thenable<ColorInformation[]> => {
           const params: DocumentColorParams = {
-            textDocument:
-              client.code2ProtocolConverter.asTextDocumentIdentifier(document)
+            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(document)
           };
-          return client
-            .sendRequest(DocumentColorRequest.type, params)
-            .then(symbols => {
-              return symbols.map(symbol => {
-                const range = client.protocol2CodeConverter.asRange(
-                  symbol.range
-                );
-                const color = new Color(
-                  symbol.color.red,
-                  symbol.color.green,
-                  symbol.color.blue,
-                  symbol.color.alpha
-                );
-                return new ColorInformation(range, color);
-              });
+          return client.sendRequest(DocumentColorRequest.type, params).then(symbols => {
+            return symbols.map(symbol => {
+              const range = client.protocol2CodeConverter.asRange(symbol.range);
+              const color = new Color(symbol.color.red, symbol.color.green, symbol.color.blue, symbol.color.alpha);
+              return new ColorInformation(range, color);
             });
+          });
         },
         provideColorPresentations: (
           color: Color,
           colorContext: { document: TextDocument; range: Range }
         ): Thenable<ColorPresentation[]> => {
           const params: ColorPresentationParams = {
-            textDocument:
-              client.code2ProtocolConverter.asTextDocumentIdentifier(
-                colorContext.document
-              ),
+            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(colorContext.document),
             range: client.code2ProtocolConverter.asRange(colorContext.range),
             color
           };
-          return client
-            .sendRequest(ColorPresentationRequest.type, params)
-            .then(presentations => {
-              return presentations.map(p => {
-                const presentation = new ColorPresentation(p.label);
-                presentation.textEdit =
-                  p.textEdit &&
-                  client.protocol2CodeConverter.asTextEdit(p.textEdit);
-                presentation.additionalTextEdits =
-                  p.additionalTextEdits &&
-                  client.protocol2CodeConverter.asTextEdits(
-                    p.additionalTextEdits
-                  );
-                return presentation;
-              });
+          return client.sendRequest(ColorPresentationRequest.type, params).then(presentations => {
+            return presentations.map(p => {
+              const presentation = new ColorPresentation(p.label);
+              presentation.textEdit = p.textEdit && client.protocol2CodeConverter.asTextEdit(p.textEdit);
+              presentation.additionalTextEdits =
+                p.additionalTextEdits && client.protocol2CodeConverter.asTextEdits(p.additionalTextEdits);
+              return presentation;
             });
+          });
         }
       });
       toDispose.push(disposable);
 
       const tagRequestor = (document: TextDocument, position: Position) => {
-        const param =
-          client.code2ProtocolConverter.asTextDocumentPositionParams(
-            document,
-            position
-          );
+        const param = client.code2ProtocolConverter.asTextDocumentPositionParams(document, position);
         return client.sendRequest(TagCloseRequest.type, param);
       };
-      disposable = activateTagClosing(
-        tagRequestor,
-        { visualforce: true },
-        'visualforce.autoClosingTags'
-      );
+      disposable = activateTagClosing(tagRequestor, { visualforce: true }, 'visualforce.autoClosingTags');
       toDispose.push(disposable);
     })
     .catch(err => {
@@ -185,22 +147,12 @@ export const activate = (context: ExtensionContext) => {
     wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()=+[{\]}\\|;:'",.<>/\s]+)/g,
     onEnterRules: [
       {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
+        beforeText: new RegExp(`<(?!(?:${EMPTY_ELEMENTS.join('|')}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`, 'i'),
         afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>$/i,
         action: { indentAction: IndentAction.IndentOutdent }
       },
       {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
+        beforeText: new RegExp(`<(?!(?:${EMPTY_ELEMENTS.join('|')}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`, 'i'),
         action: { indentAction: IndentAction.Indent }
       }
     ]
@@ -210,22 +162,12 @@ export const activate = (context: ExtensionContext) => {
     wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()=+[{\]}\\|;:'",.<>/\s]+)/g,
     onEnterRules: [
       {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
+        beforeText: new RegExp(`<(?!(?:${EMPTY_ELEMENTS.join('|')}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`, 'i'),
         afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>$/i,
         action: { indentAction: IndentAction.IndentOutdent }
       },
       {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
+        beforeText: new RegExp(`<(?!(?:${EMPTY_ELEMENTS.join('|')}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`, 'i'),
         action: { indentAction: IndentAction.Indent }
       }
     ]
@@ -235,31 +177,19 @@ export const activate = (context: ExtensionContext) => {
     wordPattern: /(-?\d*\.\d\w*)|([^`~!@$^&*()-=+[{\]}\\|;:'",.<>/\s]+)/g,
     onEnterRules: [
       {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
+        beforeText: new RegExp(`<(?!(?:${EMPTY_ELEMENTS.join('|')}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`, 'i'),
         afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>$/i,
         action: { indentAction: IndentAction.IndentOutdent }
       },
       {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
+        beforeText: new RegExp(`<(?!(?:${EMPTY_ELEMENTS.join('|')}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`, 'i'),
         action: { indentAction: IndentAction.Indent }
       }
     ]
   });
 
   // Telemetry
-  const salesforceCoreExtension = extensions.getExtension(
-    'salesforce.salesforcedx-vscode-core'
-  );
+  const salesforceCoreExtension = extensions.getExtension('salesforce.salesforcedx-vscode-core');
 
   if (salesforceCoreExtension && salesforceCoreExtension.exports) {
     telemetryService.initializeService(

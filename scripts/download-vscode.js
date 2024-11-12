@@ -3,8 +3,7 @@
 const ncp = require('ncp');
 const path = require('path');
 const fs = require('fs');
-const downloadAndUnzipVSCode = require('@vscode/test-electron')
-  .downloadAndUnzipVSCode;
+const downloadAndUnzipVSCode = require('@vscode/test-electron').downloadAndUnzipVSCode;
 const logger = require('./logger-util');
 
 // Copy vscode to these directories
@@ -33,16 +32,10 @@ downloadAndUnzipVSCode(vscodeVersion)
     let vscodeIndex = executablePath.indexOf(VSCODE_TEST) + 13;
 
     // 'vscode-1.41.1'
-    let vscodeDirname = executablePath.substring(
-      vscodeIndex,
-      executablePath.indexOf(path.sep, vscodeIndex)
-    );
+    let vscodeDirname = executablePath.substring(vscodeIndex, executablePath.indexOf(path.sep, vscodeIndex));
 
     // '~/salesforcedx-vscode/.vscode-test/vscode-1.41.1/'
-    let vscodeFullPath = executablePath.substring(
-      0,
-      vscodeIndex + vscodeDirname.length + 1
-    );
+    let vscodeFullPath = executablePath.substring(0, vscodeIndex + vscodeDirname.length + 1);
 
     // '~/salesforcedx-vscode/'
     let vscodeBasePath = path.dirname(path.dirname(vscodeFullPath));
@@ -77,7 +70,7 @@ downloadAndUnzipVSCode(vscodeVersion)
             fs.mkdirSync(copyDestination, { recursive: true });
           }
           logger.debug(`Copying to: ${copyDestination}`);
-          ncp(vscodeFullPath, copyDestination, function(err) {
+          ncp(vscodeFullPath, copyDestination, function (err) {
             if (err) {
               return console.error(err);
             }

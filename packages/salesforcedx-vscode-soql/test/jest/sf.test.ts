@@ -28,9 +28,7 @@ describe('sf utils', () => {
       } show error message when showErrorMessage=${showErrorMessage}`, async () => {
         await sf.withSFConnection(jest.fn(), showErrorMessage);
 
-        expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(
-          showErrorMessage ? 1 : 0
-        );
+        expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(showErrorMessage ? 1 : 0);
       });
     };
 
@@ -46,9 +44,7 @@ describe('sf utils', () => {
       it(`should ${maybeNot} show connection error message when default org is ${maybeNot} set`, async () => {
         await sf.onOrgChangeDefaultHandler(orgInfo);
 
-        expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(
-          isDefaultOrgSet ? 1 : 0
-        );
+        expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(isDefaultOrgSet ? 1 : 0);
       });
     };
 

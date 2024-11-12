@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -7,12 +6,7 @@
 'use strict';
 
 import * as assert from 'assert';
-import {
-  createScanner,
-  Scanner,
-  ScannerState,
-  TokenType
-} from '../../src/parser/htmlScanner';
+import { createScanner, Scanner, ScannerState, TokenType } from '../../src/parser/htmlScanner';
 
 describe('HTML Scanner', () => {
   type Token = {
@@ -32,14 +26,8 @@ describe('HTML Scanner', () => {
           offset: scanner.getTokenOffset(),
           type: tokenType
         };
-        if (
-          tokenType === TokenType.StartTag ||
-          tokenType === TokenType.EndTag
-        ) {
-          actualToken.content = t.input.substr(
-            scanner.getTokenOffset(),
-            scanner.getTokenLength()
-          );
+        if (tokenType === TokenType.StartTag || tokenType === TokenType.EndTag) {
+          actualToken.content = t.input.substr(scanner.getTokenOffset(), scanner.getTokenLength());
         }
         actual.push(actualToken);
         tokenType = scanner.scan();
@@ -699,8 +687,7 @@ describe('HTML Scanner', () => {
   it('Tag with Angular Attribute Name', () => {
     assertTokens([
       {
-        input:
-          '<abc #myinput (click)="bar" [value]="someProperty" *ngIf="someCondition">',
+        input: '<abc #myinput (click)="bar" [value]="someProperty" *ngIf="someCondition">',
         tokens: [
           { offset: 0, type: TokenType.StartTagOpen },
           { offset: 1, type: TokenType.StartTag, content: 'abc' },

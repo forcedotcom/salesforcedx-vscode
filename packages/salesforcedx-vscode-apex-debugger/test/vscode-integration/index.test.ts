@@ -52,40 +52,22 @@ describe('Extension Setup', () => {
         ];
       });
       it('Should order breakpoints by enabled first', () => {
-        const exceptionBreakpointQuickPicks = mergeExceptionBreakpointInfos(
-          breakpointInfos,
-          ['com/salesforce/api/exception/NullPointerException']
-        );
+        const exceptionBreakpointQuickPicks = mergeExceptionBreakpointInfos(breakpointInfos, [
+          'com/salesforce/api/exception/NullPointerException'
+        ]);
 
         expect(exceptionBreakpointQuickPicks.length).to.equal(3);
-        expect(exceptionBreakpointQuickPicks[0].typeref).to.equal(
-          'com/salesforce/api/exception/NullPointerException'
-        );
-        expect(exceptionBreakpointQuickPicks[0].breakMode).to.equal(
-          EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS
-        );
-        expect(exceptionBreakpointQuickPicks[0].description).to.equal(
-          `$(stop) ${nls.localize('always_break_text')}`
-        );
-        expect(exceptionBreakpointQuickPicks[1].typeref).to.equal(
-          'barexception'
-        );
-        expect(exceptionBreakpointQuickPicks[1].breakMode).to.equal(
-          EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
-        );
-        expect(exceptionBreakpointQuickPicks[2].typeref).to.equal(
-          'fooexception'
-        );
-        expect(exceptionBreakpointQuickPicks[2].breakMode).to.equal(
-          EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
-        );
+        expect(exceptionBreakpointQuickPicks[0].typeref).to.equal('com/salesforce/api/exception/NullPointerException');
+        expect(exceptionBreakpointQuickPicks[0].breakMode).to.equal(EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS);
+        expect(exceptionBreakpointQuickPicks[0].description).to.equal(`$(stop) ${nls.localize('always_break_text')}`);
+        expect(exceptionBreakpointQuickPicks[1].typeref).to.equal('barexception');
+        expect(exceptionBreakpointQuickPicks[1].breakMode).to.equal(EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER);
+        expect(exceptionBreakpointQuickPicks[2].typeref).to.equal('fooexception');
+        expect(exceptionBreakpointQuickPicks[2].breakMode).to.equal(EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER);
       });
 
       it('Should not modify breakpoint infos if enabled breakpoints has empty typerefs', () => {
-        const exceptionBreakpointQuickPicks = mergeExceptionBreakpointInfos(
-          breakpointInfos,
-          []
-        );
+        const exceptionBreakpointQuickPicks = mergeExceptionBreakpointInfos(breakpointInfos, []);
 
         expect(exceptionBreakpointQuickPicks).to.deep.equal(breakpointInfos);
       });
@@ -185,9 +167,7 @@ describe('Extension Setup', () => {
         }
       };
 
-      const realType = await getDebuggerType(
-        (session as any) as vscode.DebugSession
-      );
+      const realType = await getDebuggerType(session as any as vscode.DebugSession);
 
       expect(realType).to.be.equal(DEBUGGER_TYPE);
     });

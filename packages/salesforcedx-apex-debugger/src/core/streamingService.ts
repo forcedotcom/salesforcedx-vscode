@@ -6,11 +6,7 @@
  */
 
 import { RequestService } from '@salesforce/salesforcedx-utils';
-import {
-  ApexDebuggerEventType,
-  StreamingClient,
-  StreamingClientInfo
-} from './streamingClient';
+import { ApexDebuggerEventType, StreamingClient, StreamingClientInfo } from './streamingClient';
 
 export class StreamingService {
   public static SYSTEM_EVENT_CHANNEL = '/systemTopic/ApexDebuggerSystemEvent';
@@ -50,10 +46,7 @@ export class StreamingService {
     }
   }
 
-  public hasProcessedEvent(
-    type: ApexDebuggerEventType,
-    replayId: number
-  ): boolean {
+  public hasProcessedEvent(type: ApexDebuggerEventType, replayId: number): boolean {
     const client = this.getClient(type);
     if (client && replayId > client.getReplayId()) {
       return false;
@@ -61,10 +54,7 @@ export class StreamingService {
     return true;
   }
 
-  public markEventProcessed(
-    type: ApexDebuggerEventType,
-    replayId: number
-  ): void {
+  public markEventProcessed(type: ApexDebuggerEventType, replayId: number): void {
     const client = this.getClient(type);
     if (client) {
       client.setReplayId(replayId);
@@ -77,23 +67,11 @@ export class StreamingService {
     systemEventClientInfo: StreamingClientInfo,
     userEventClientInfo: StreamingClientInfo
   ): Promise<boolean> {
-    const urlElements = [
-      this.removeTrailingSlashURL(requestService.instanceUrl),
-      'cometd',
-      this.apiVersion
-    ];
+    const urlElements = [this.removeTrailingSlashURL(requestService.instanceUrl), 'cometd', this.apiVersion];
     const streamUrl = urlElements.join('/');
 
-    this.systemEventClient = new StreamingClient(
-      streamUrl,
-      requestService,
-      systemEventClientInfo
-    );
-    this.userEventClient = new StreamingClient(
-      streamUrl,
-      requestService,
-      userEventClientInfo
-    );
+    this.systemEventClient = new StreamingClient(streamUrl, requestService, systemEventClientInfo);
+    this.userEventClient = new StreamingClient(streamUrl, requestService, userEventClientInfo);
 
     await this.systemEventClient.subscribe();
     await this.userEventClient.subscribe();

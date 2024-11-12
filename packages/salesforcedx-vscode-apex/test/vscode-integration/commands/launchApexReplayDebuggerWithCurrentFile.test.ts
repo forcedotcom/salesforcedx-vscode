@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TestContext } from '@salesforce/core-bundle';
-import {
-  fileUtils,
-  notificationService,
-  SfCommandlet
-} from '@salesforce/salesforcedx-utils-vscode';
+import { fileUtils, notificationService, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -32,17 +28,12 @@ describe('Launch Replay Debugger', () => {
   it('should return an error when the editor is not found', async () => {
     sb.stub(vscode.window, 'activeTextEditor').get(() => undefined);
 
-    const showErrorMessageStub = sb.stub(
-      notificationService,
-      'showErrorMessage'
-    );
+    const showErrorMessageStub = sb.stub(notificationService, 'showErrorMessage');
 
     await launchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
-    expect(
-      showErrorMessageStub.calledWith(nls.localize('unable_to_locate_editor'))
-    ).to.equal(true);
+    expect(showErrorMessageStub.calledWith(nls.localize('unable_to_locate_editor'))).to.equal(true);
   });
 
   it("should return an error when the document's URI is not found", async () => {
@@ -52,17 +43,12 @@ describe('Launch Replay Debugger', () => {
       }
     }));
 
-    const showErrorMessageStub = sb.stub(
-      notificationService,
-      'showErrorMessage'
-    );
+    const showErrorMessageStub = sb.stub(notificationService, 'showErrorMessage');
 
     await launchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
-    expect(
-      showErrorMessageStub.calledWith(nls.localize('unable_to_locate_document'))
-    ).to.equal(true);
+    expect(showErrorMessageStub.calledWith(nls.localize('unable_to_locate_document'))).to.equal(true);
   });
 
   it('should return an error when not a log file, not an anon apex file, and not an apex test class', async () => {
@@ -72,27 +58,20 @@ describe('Launch Replay Debugger', () => {
       }
     }));
 
-    const showErrorMessageStub = sb.stub(
-      notificationService,
-      'showErrorMessage'
-    );
+    const showErrorMessageStub = sb.stub(notificationService, 'showErrorMessage');
 
     sb.stub(ApexTestOutlineProvider.prototype, 'refresh').returns(undefined);
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(
-      undefined
-    );
+    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(undefined);
 
     flushFilePathStub.returns(undefined);
 
     await launchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
-    expect(
-      showErrorMessageStub.calledWith(
-        nls.localize('launch_apex_replay_debugger_unsupported_file')
-      )
-    ).to.equal(true);
+    expect(showErrorMessageStub.calledWith(nls.localize('launch_apex_replay_debugger_unsupported_file'))).to.equal(
+      true
+    );
   });
 
   it('should call executeCommand() if file is a log file', async () => {
@@ -102,16 +81,12 @@ describe('Launch Replay Debugger', () => {
       }
     }));
 
-    const executeCommandSpy = sb
-      .stub(vscode.commands, 'executeCommand')
-      .resolves(true);
+    const executeCommandSpy = sb.stub(vscode.commands, 'executeCommand').resolves(true);
 
     await launchApexReplayDebuggerWithCurrentFile();
 
     expect(executeCommandSpy.called).to.equal(true);
-    expect(
-      executeCommandSpy.calledWith('sf.launch.replay.debugger.logfile')
-    ).to.equal(true);
+    expect(executeCommandSpy.calledWith('sf.launch.replay.debugger.logfile')).to.equal(true);
   });
 
   it('should call SfCommandlet.run() if file is an anon apex file', async () => {
@@ -137,23 +112,17 @@ describe('Launch Replay Debugger', () => {
 
     sb.stub(ApexTestOutlineProvider.prototype, 'refresh').returns(undefined);
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(
-      'foo.cls'
-    );
+    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns('foo.cls');
 
     sb.stub(SfCommandlet.prototype, 'run').returns(undefined);
 
     flushFilePathStub.returns('foo.cls');
 
-    const executeCommandSpy = sb
-      .stub(vscode.commands, 'executeCommand')
-      .resolves(true);
+    const executeCommandSpy = sb.stub(vscode.commands, 'executeCommand').resolves(true);
 
     await launchApexReplayDebuggerWithCurrentFile();
 
     expect(executeCommandSpy.called).to.equal(true);
-    expect(executeCommandSpy.calledWith('sf.test.view.debugTests')).to.equal(
-      true
-    );
+    expect(executeCommandSpy.calledWith('sf.test.view.debugTests')).to.equal(true);
   });
 });

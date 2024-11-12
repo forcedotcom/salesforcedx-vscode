@@ -17,9 +17,7 @@ describe('ensureCurrentWorkingDirIsProjectPath', () => {
   beforeEach(() => {
     fsExistsSyncSpy = jest.spyOn(fs, 'existsSync');
     processCwdSpy = jest.spyOn(process, 'cwd');
-    processChDirSpy = jest
-      .spyOn(process, 'chdir')
-      .mockImplementation(jest.fn());
+    processChDirSpy = jest.spyOn(process, 'chdir').mockImplementation(jest.fn());
   });
 
   it('should change the processes current working directory to the project directory', async () => {

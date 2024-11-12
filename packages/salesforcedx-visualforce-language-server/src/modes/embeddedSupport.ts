@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -21,10 +20,7 @@ export type LanguageRange = Range & {
 };
 
 export type HTMLDocumentRegions = {
-  getEmbeddedDocument(
-    languageId: string,
-    ignoreAttributeValues?: boolean
-  ): TextDocument;
+  getEmbeddedDocument(languageId: string, ignoreAttributeValues?: boolean): TextDocument;
   getLanguageRanges(range: Range): LanguageRange[];
   getLanguageAtPosition(position: Position): string;
   getLanguagesInDocument(): string[];
@@ -40,10 +36,7 @@ type EmbeddedRegion = {
   attributeValue?: boolean;
 };
 
-export const getDocumentRegions = (
-  languageService: LanguageService,
-  document: TextDocument
-): HTMLDocumentRegions => {
+export const getDocumentRegions = (languageService: LanguageService, document: TextDocument): HTMLDocumentRegions => {
   const regions: EmbeddedRegion[] = [];
   const scanner = languageService.createScanner(document.getText());
   let lastTagName: string;
@@ -77,24 +70,14 @@ export const getDocumentRegions = (
         lastAttributeName = scanner.getTokenText();
         break;
       case TokenType.AttributeValue:
-        if (
-          lastAttributeName === 'src' &&
-          lastTagName.toLowerCase() === 'script'
-        ) {
+        if (lastAttributeName === 'src' && lastTagName.toLowerCase() === 'script') {
           let value = scanner.getTokenText();
           if (value[0] === "'" || value[0] === '"') {
             value = value.substr(1, value.length - 1);
           }
           importedScripts.push(value);
-        } else if (
-          lastAttributeName === 'type' &&
-          lastTagName.toLowerCase() === 'script'
-        ) {
-          if (
-            /["'](module|(text|application)\/(java|ecma)script)["']/.test(
-              scanner.getTokenText()
-            )
-          ) {
+        } else if (lastAttributeName === 'type' && lastTagName.toLowerCase() === 'script') {
+          if (/["'](module|(text|application)\/(java|ecma)script)["']/.test(scanner.getTokenText())) {
             languageIdFromType = 'javascript';
           } else {
             languageIdFromType = void 0;
@@ -123,27 +106,19 @@ export const getDocumentRegions = (
     token = scanner.scan();
   }
   return {
-    getLanguageRanges: (range: Range) =>
-      getLanguageRanges(document, regions, range),
+    getLanguageRanges: (range: Range) => getLanguageRanges(document, regions, range),
     getEmbeddedDocument: (languageId: string, ignoreAttributeValues: boolean) =>
       getEmbeddedDocument(document, regions, languageId, ignoreAttributeValues),
-    getLanguageAtPosition: (position: Position) =>
-      getLanguageAtPosition(document, regions, position),
+    getLanguageAtPosition: (position: Position) => getLanguageAtPosition(document, regions, position),
     getLanguagesInDocument: () => getLanguagesInDocument(document, regions),
     getImportedScripts: () => importedScripts
   };
 };
-const getLanguageRanges = (
-  document: TextDocument,
-  regions: EmbeddedRegion[],
-  range: Range
-): LanguageRange[] => {
+const getLanguageRanges = (document: TextDocument, regions: EmbeddedRegion[], range: Range): LanguageRange[] => {
   const result: LanguageRange[] = [];
   let currentPos = range ? range.start : Position.create(0, 0);
   let currentOffset = range ? document.offsetAt(range.start) : 0;
-  const endOffset = range
-    ? document.offsetAt(range.end)
-    : document.getText().length;
+  const endOffset = range ? document.offsetAt(range.end) : document.getText().length;
   for (const region of regions) {
     if (region.end > currentOffset && region.start < endOffset) {
       const start = Math.max(region.start, currentOffset);
@@ -180,10 +155,7 @@ const getLanguageRanges = (
   return result;
 };
 
-const getLanguagesInDocument = (
-  document: TextDocument,
-  regions: EmbeddedRegion[]
-): string[] => {
+const getLanguagesInDocument = (document: TextDocument, regions: EmbeddedRegion[]): string[] => {
   const result = [];
   for (const region of regions) {
     if (region.languageId && result.indexOf(region.languageId) === -1) {
@@ -197,11 +169,7 @@ const getLanguagesInDocument = (
   return result;
 };
 
-const getLanguageAtPosition = (
-  document: TextDocument,
-  regions: EmbeddedRegion[],
-  position: Position
-): string => {
+const getLanguageAtPosition = (document: TextDocument, regions: EmbeddedRegion[], position: Position): string => {
   const offset = document.offsetAt(position);
   for (const region of regions) {
     if (region.start <= offset) {
@@ -226,37 +194,15 @@ const getEmbeddedDocument = (
   let result = '';
   let lastSuffix = '';
   for (const c of contents) {
-    if (
-      c.languageId === languageId &&
-      (!ignoreAttributeValues || !c.attributeValue)
-    ) {
-      result = substituteWithWhitespace(
-        result,
-        currentPos,
-        c.start,
-        oldContent,
-        lastSuffix,
-        getPrefix(c)
-      );
+    if (c.languageId === languageId && (!ignoreAttributeValues || !c.attributeValue)) {
+      result = substituteWithWhitespace(result, currentPos, c.start, oldContent, lastSuffix, getPrefix(c));
       result += oldContent.substring(c.start, c.end);
       currentPos = c.end;
       lastSuffix = getSuffix(c);
     }
   }
-  result = substituteWithWhitespace(
-    result,
-    currentPos,
-    oldContent.length,
-    oldContent,
-    lastSuffix,
-    ''
-  );
-  return TextDocument.create(
-    document.uri,
-    languageId,
-    document.version,
-    result
-  );
+  result = substituteWithWhitespace(result, currentPos, oldContent.length, oldContent, lastSuffix, '');
+  return TextDocument.create(document.uri, languageId, document.version, result);
 };
 
 const getPrefix = (c: EmbeddedRegion) => {

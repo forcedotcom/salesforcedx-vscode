@@ -17,9 +17,7 @@ describe('testOutlineProvider Unit Tests.', () => {
   beforeEach(() => {
     // testOutlineProvider has a hidden dependency on iconHelpers.getIconPath that needs to be mocked
     // for our purposes, the return value has no bearing on what we're testing
-    jest
-      .spyOn(iconHelpers, 'getIconPath')
-      .mockReturnValue(vscode.Uri.parse('https://salesforce.com'));
+    jest.spyOn(iconHelpers, 'getIconPath').mockReturnValue(vscode.Uri.parse('https://salesforce.com'));
     commandMock = jest.spyOn(vscodeMocked.commands, 'executeCommand');
   });
 
@@ -35,8 +33,6 @@ describe('testOutlineProvider Unit Tests.', () => {
 
     expect(commandMock.mock.calls.length).toBe(1);
     expect(commandMock.mock.calls[0].length).toBe(1);
-    expect(commandMock.mock.calls[0][0]).toBe(
-      `workbench.actions.treeView.${provider.getId()}.collapseAll`
-    );
+    expect(commandMock.mock.calls[0][0]).toBe(`workbench.actions.treeView.${provider.getId()}.collapseAll`);
   });
 });

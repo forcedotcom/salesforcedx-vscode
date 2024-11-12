@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  DirFileNameSelection,
-  LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode';
+import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateType, VisualforcePageOptions } from '@salesforce/templates';
 import { nls } from '../../messages';
 import {
@@ -21,10 +18,7 @@ import {
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import {
-  VISUALFORCE_PAGE_DIRECTORY,
-  VISUALFORCE_PAGE_TYPE
-} from './metadataTypeConstants';
+import { VISUALFORCE_PAGE_DIRECTORY, VISUALFORCE_PAGE_TYPE } from './metadataTypeConstants';
 
 export class LibraryVisualforceGeneratePageExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('visualforce_generate_page_text');
@@ -53,11 +47,7 @@ export const visualforceGeneratePage = (): void => {
   const createTemplateExecutor = new LibraryVisualforceGeneratePageExecutor();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
-    new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      fileNameGatherer,
-      outputDirGatherer
-    ),
+    new CompositeParametersGatherer<LocalComponent>(metadataTypeGatherer, fileNameGatherer, outputDirGatherer),
     createTemplateExecutor,
     new OverwriteComponentPrompt()
   );

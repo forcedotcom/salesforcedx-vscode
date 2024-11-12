@@ -15,20 +15,11 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../workspaces';
 import { notificationService } from './index';
 
 export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public apply(item: typeof workspace): PredicateResponse {
     if (!hasRootWorkspace()) {
-      return PredicateResponse.of(
-        false,
-        nls.localize('predicates_no_folder_opened_text')
-      );
-    } else if (
-      !fs.existsSync(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE))
-    ) {
-      return PredicateResponse.of(
-        false,
-        nls.localize('predicates_no_salesforce_project_found_text')
-      );
+      return PredicateResponse.of(false, nls.localize('predicates_no_folder_opened_text'));
+    } else if (!fs.existsSync(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE))) {
+      return PredicateResponse.of(false, nls.localize('predicates_no_salesforce_project_found_text'));
     } else {
       return PredicateResponse.true();
     }

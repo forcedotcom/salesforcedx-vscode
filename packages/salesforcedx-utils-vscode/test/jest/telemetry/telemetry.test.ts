@@ -18,9 +18,7 @@ describe('Telemetry', () => {
     it('getInstance should return a TelemetryService instance for core extension when no name is provided', () => {
       const instance = TelemetryServiceProvider.getInstance();
       expect(instance).toBeInstanceOf(TelemetryService);
-      expect(
-        TelemetryServiceProvider.instances.has(SFDX_CORE_EXTENSION_NAME)
-      ).toBeTruthy();
+      expect(TelemetryServiceProvider.instances.has(SFDX_CORE_EXTENSION_NAME)).toBeTruthy();
     });
 
     it('getInstance should return the same TelemetryService instance for core extension on subsequent calls', () => {
@@ -33,26 +31,21 @@ describe('Telemetry', () => {
       const extensionName = 'someExtension';
       const instance = TelemetryServiceProvider.getInstance(extensionName);
       expect(instance).toBeInstanceOf(TelemetryService);
-      expect(
-        TelemetryServiceProvider.instances.has(extensionName)
-      ).toBeTruthy();
+      expect(TelemetryServiceProvider.instances.has(extensionName)).toBeTruthy();
     });
 
     it('getInstance should return the same TelemetryService instance for a named extension on subsequent calls', () => {
       const extensionName = 'someExtension';
       const firstInstance = TelemetryServiceProvider.getInstance(extensionName);
-      const secondInstance =
-        TelemetryServiceProvider.getInstance(extensionName);
+      const secondInstance = TelemetryServiceProvider.getInstance(extensionName);
       expect(secondInstance).toBe(firstInstance);
     });
 
     it('getInstance should return different instances for different extension names', () => {
       const firstExtensionName = 'extensionOne';
       const secondExtensionName = 'extensionTwo';
-      const firstInstance =
-        TelemetryServiceProvider.getInstance(firstExtensionName);
-      const secondInstance =
-        TelemetryServiceProvider.getInstance(secondExtensionName);
+      const firstInstance = TelemetryServiceProvider.getInstance(firstExtensionName);
+      const secondInstance = TelemetryServiceProvider.getInstance(secondExtensionName);
       expect(firstInstance).not.toBe(secondInstance);
     });
   });
@@ -60,16 +53,13 @@ describe('Telemetry', () => {
   describe('Telemetry Service - getInstance', () => {
     it('getInstance should return the core instance if no extension name provided', () => {
       const firstInstance = TelemetryService.getInstance();
-      const secondInstance = TelemetryServiceProvider.getInstance(
-        SFDX_CORE_EXTENSION_NAME
-      );
+      const secondInstance = TelemetryServiceProvider.getInstance(SFDX_CORE_EXTENSION_NAME);
       expect(firstInstance).toBe(secondInstance);
     });
     it('getInstance should return the same TelemetryService instance for a named extension on subsequent calls', () => {
       const extensionName = 'someExtension';
       const firstInstance = TelemetryService.getInstance(extensionName);
-      const secondInstance =
-        TelemetryServiceProvider.getInstance(extensionName);
+      const secondInstance = TelemetryServiceProvider.getInstance(extensionName);
       expect(secondInstance).toBe(firstInstance);
     });
   });
@@ -97,7 +87,11 @@ describe('Telemetry', () => {
 
     it('should return true when isTelemetryExtensionConfigurationEnabled and checkCliTelemetry are true', async () => {
       spyIsTelemetryExtensionConfigurationEnabled.mockReturnValue(true);
-      changeTelemetryServiceProperty(TelemetryServiceProvider.getInstance(), 'cliAllowsTelemetryPromise', Promise.resolve(true));
+      changeTelemetryServiceProperty(
+        TelemetryServiceProvider.getInstance(),
+        'cliAllowsTelemetryPromise',
+        Promise.resolve(true)
+      );
       expect(await instance.isTelemetryEnabled()).toBe(true);
     });
 

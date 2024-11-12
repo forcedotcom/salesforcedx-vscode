@@ -6,19 +6,13 @@
  */
 
 import * as vscode from 'vscode';
-import {
-  BUILDER_VIEW_TYPE,
-  EDITOR_VIEW_TYPE,
-  OPEN_WITH_COMMAND
-} from '../constants';
+import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { telemetryService } from '../telemetry';
 
 export const soqlBuilderToggle = (doc: vscode.Uri): Promise<void> => {
   telemetryService.sendCommandEvent('soql_builder_toggle', process.hrtime());
 
-  const viewType = vscode.window.activeTextEditor
-    ? BUILDER_VIEW_TYPE
-    : EDITOR_VIEW_TYPE;
+  const viewType = vscode.window.activeTextEditor ? BUILDER_VIEW_TYPE : EDITOR_VIEW_TYPE;
 
   void vscode.commands.executeCommand(OPEN_WITH_COMMAND, doc, viewType);
   return Promise.resolve();

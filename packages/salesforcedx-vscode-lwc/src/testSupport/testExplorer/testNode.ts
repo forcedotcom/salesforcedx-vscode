@@ -19,11 +19,7 @@ export abstract class TestNode extends vscode.TreeItem {
   public location?: vscode.Location;
   public iconPath = getIconPath();
 
-  constructor(
-    label: string,
-    collapsibleState: vscode.TreeItemCollapsibleState,
-    location?: vscode.Location
-  ) {
+  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, location?: vscode.Location) {
     super(label, collapsibleState);
     this.location = location;
     this.description = label;
@@ -66,8 +62,7 @@ export class SfTestGroupNode extends TestNode {
   constructor(
     label: string,
     testExecutionInfo: TestExecutionInfo,
-    collapsibleState: vscode.TreeItemCollapsibleState = vscode
-      .TreeItemCollapsibleState.Collapsed
+    collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed
   ) {
     super(label, collapsibleState);
     this.testExecutionInfo = testExecutionInfo;

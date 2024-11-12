@@ -8,19 +8,10 @@ import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
-import {
-  CUSTOMOBJECTS_DIR,
-  SOQLMETADATA_DIR,
-  STANDARDOBJECTS_DIR
-} from '../constants';
+import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
-import {
-  SObject,
-  SObjectCategory,
-  SObjectGenerator,
-  SObjectRefreshOutput
-} from '../types';
+import { SObject, SObjectCategory, SObjectGenerator, SObjectRefreshOutput } from '../types';
 
 const BASE_FOLDER = [TOOLS, SOQLMETADATA_DIR];
 
@@ -44,10 +35,7 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     }
   }
 
-  private generateTypesNames(
-    folderPath: string,
-    typeNames: SObjectShortDescription[]
-  ): void {
+  private generateTypesNames(folderPath: string, typeNames: SObjectShortDescription[]): void {
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath, { recursive: true });
     }
@@ -60,10 +48,7 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     });
   }
 
-  private generateMetadataForSObject(
-    folderPath: string,
-    sobject: SObject
-  ): void {
+  private generateMetadataForSObject(folderPath: string, sobject: SObject): void {
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath);
     }
@@ -78,23 +63,14 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     });
   }
 
-  private async resetOutputFolder(
-    outputFolder: string,
-    category: SObjectCategory
-  ): Promise<boolean> {
+  private async resetOutputFolder(outputFolder: string, category: SObjectCategory): Promise<boolean> {
     const customsFolder = path.join(outputFolder, CUSTOMOBJECTS_DIR);
     const standardsFolder = path.join(outputFolder, STANDARDOBJECTS_DIR);
 
-    if (
-      [SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category) &&
-      fs.existsSync(standardsFolder)
-    ) {
+    if ([SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category) && fs.existsSync(standardsFolder)) {
       rm('-rf', standardsFolder);
     }
-    if (
-      [SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category) &&
-      fs.existsSync(customsFolder)
-    ) {
+    if ([SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category) && fs.existsSync(customsFolder)) {
       rm('-rf', customsFolder);
     }
 

@@ -52,22 +52,14 @@ class ApexTestRunCacheService {
   public async setCachedClassTestParam(test: string) {
     // enable then run 'last executed' command so command
     // added to 'recently used'
-    await vscode.commands.executeCommand(
-      'setContext',
-      'sf:has_cached_test_class',
-      true
-    );
+    await vscode.commands.executeCommand('setContext', 'sf:has_cached_test_class', true);
     this.lastClassTestParam = test;
   }
 
   public async setCachedMethodTestParam(test: string) {
     // enable then run 'last executed' command so command
     // added to 'recently used'
-    await vscode.commands.executeCommand(
-      'setContext',
-      'sf:has_cached_test_method',
-      true
-    );
+    await vscode.commands.executeCommand('setContext', 'sf:has_cached_test_method', true);
     this.lastMethodTestParam = test;
   }
 }

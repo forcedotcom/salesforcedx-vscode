@@ -23,9 +23,7 @@ const runQueryString = 'runQuery';
 const emptyQueryResults = { done: true, totalSize: 0, records: [] };
 export const afterStart = (client: LanguageClient): LanguageClient => {
   client.onRequest('runQuery', async (queryText: string) => {
-    const enabled = workspace
-      .getConfiguration(SOQL_CONFIGURATION_NAME)
-      .get<boolean>(SOQL_VALIDATION_CONFIG);
+    const enabled = workspace.getConfiguration(SOQL_CONFIGURATION_NAME).get<boolean>(SOQL_VALIDATION_CONFIG);
 
     try {
       return enabled

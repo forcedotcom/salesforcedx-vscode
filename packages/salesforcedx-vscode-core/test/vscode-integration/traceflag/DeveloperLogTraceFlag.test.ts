@@ -28,12 +28,8 @@ describe('Start Apex Debug Logging', () => {
       expect(developerLogTraceFlag.isValidDateLength()).to.be.false;
       developerLogTraceFlag.validateDates();
       expect(
-        developerLogTraceFlag.getExpirationDate().getTime() -
-          developerLogTraceFlag.getStartDate().getTime()
-      ).to.equal(
-        developerLogTraceFlag.LOG_TIMER_LENGTH_MINUTES *
-          developerLogTraceFlag.MILLISECONDS_PER_SECOND
-      );
+        developerLogTraceFlag.getExpirationDate().getTime() - developerLogTraceFlag.getStartDate().getTime()
+      ).to.equal(developerLogTraceFlag.LOG_TIMER_LENGTH_MINUTES * developerLogTraceFlag.MILLISECONDS_PER_SECOND);
     });
   });
 

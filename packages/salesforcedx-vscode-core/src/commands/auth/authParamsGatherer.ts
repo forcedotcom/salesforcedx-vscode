@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
 import { nls } from '../../messages';
@@ -56,17 +52,11 @@ const inputAccessToken = async (): Promise<string | undefined> => {
   const accessToken = await vscode.window.showInputBox({
     value: '',
     prompt: nls.localize('parameter_gatherer_enter_session_id'),
-    placeHolder: nls.localize(
-      'parameter_gatherer_enter_session_id_placeholder'
-    ),
+    placeHolder: nls.localize('parameter_gatherer_enter_session_id_placeholder'),
     password: true,
     ignoreFocusOut: true,
     validateInput: text => {
-      return text && text.length > 0
-        ? null
-        : nls.localize(
-            'parameter_gatherer_enter_session_id_diagnostic_message'
-          );
+      return text && text.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message');
     }
   });
   return accessToken;
@@ -103,11 +93,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
 
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
     const projectUrl = await this.getProjectLoginUrl();
-    const items: vscode.QuickPickItem[] = [
-      this.orgTypes.production,
-      this.orgTypes.sandbox,
-      this.orgTypes.custom
-    ];
+    const items: vscode.QuickPickItem[] = [this.orgTypes.production, this.orgTypes.sandbox, this.orgTypes.custom];
     if (projectUrl) {
       const { project } = this.orgTypes;
       project.detail = `${nls.localize('auth_project_detail')} (${projectUrl})`;
@@ -116,9 +102,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
     return items;
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<AuthParams>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<AuthParams>> {
     const quickPickItems = await this.getQuickPickItems();
     const selection = await vscode.window.showQuickPick(quickPickItems);
     if (!selection) {
@@ -162,12 +146,8 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   }
 }
 
-export class AccessTokenParamsGatherer
-  implements ParametersGatherer<AccessTokenParams>
-{
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<AccessTokenParams>
-  > {
+export class AccessTokenParamsGatherer implements ParametersGatherer<AccessTokenParams> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<AccessTokenParams>> {
     const instanceUrl = await inputInstanceUrl();
     if (instanceUrl === undefined) {
       return { type: 'CANCEL' };
@@ -194,26 +174,17 @@ export class AccessTokenParamsGatherer
   }
 }
 
-export class ScratchOrgLogoutParamsGatherer
-  implements ParametersGatherer<string>
-{
+export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string> {
   public constructor(
     public readonly username: string,
     public readonly alias?: string
   ) {}
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    const prompt = nls.localize(
-      'org_logout_scratch_prompt',
-      this.alias || this.username
-    );
+    const prompt = nls.localize('org_logout_scratch_prompt', this.alias || this.username);
     const logoutResponse = nls.localize('org_logout_scratch_logout');
 
-    const confirm = await vscode.window.showInformationMessage(
-      prompt,
-      { modal: true },
-      ...[logoutResponse]
-    );
+    const confirm = await vscode.window.showInformationMessage(prompt, { modal: true }, ...[logoutResponse]);
     if (confirm !== logoutResponse) {
       return { type: 'CANCEL' };
     }

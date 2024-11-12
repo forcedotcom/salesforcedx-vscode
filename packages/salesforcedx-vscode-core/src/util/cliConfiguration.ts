@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ConfigUtil,
-  GlobalCliEnvironment
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
 import { which } from 'shelljs';
 import { window } from 'vscode';
 import {
@@ -33,19 +30,12 @@ export const isCLIInstalled = () => {
 };
 
 export const showCLINotInstalledMessage = () => {
-  const showMessage = nls.localize(
-    'salesforce_cli_not_found',
-    SF_CLI_DOWNLOAD_LINK,
-    SF_CLI_DOWNLOAD_LINK
-  );
+  const showMessage = nls.localize('salesforce_cli_not_found', SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK);
   void window.showWarningMessage(showMessage);
 };
 
 export const disableCLITelemetry = () => {
-  GlobalCliEnvironment.environmentVariables.set(
-    ENV_SF_DISABLE_TELEMETRY,
-    'true'
-  );
+  GlobalCliEnvironment.environmentVariables.set(ENV_SF_DISABLE_TELEMETRY, 'true');
 };
 
 export const isCLITelemetryAllowed = async () => {
@@ -56,17 +46,11 @@ export const isCLITelemetryAllowed = async () => {
 export const setNodeExtraCaCerts = () => {
   const extraCerts = salesforceCoreSettings.getNodeExtraCaCerts();
   if (extraCerts) {
-    GlobalCliEnvironment.environmentVariables.set(
-      ENV_NODE_EXTRA_CA_CERTS,
-      extraCerts
-    );
+    GlobalCliEnvironment.environmentVariables.set(ENV_NODE_EXTRA_CA_CERTS, extraCerts);
   }
 };
 
 export const setSfLogLevel = () => {
-  GlobalCliEnvironment.environmentVariables.set(
-    ENV_SF_LOG_LEVEL,
-    salesforceCoreSettings.getSfLogLevel()
-  );
+  GlobalCliEnvironment.environmentVariables.set(ENV_SF_LOG_LEVEL, salesforceCoreSettings.getSfLogLevel());
   process.env[ENV_SF_LOG_LEVEL] = salesforceCoreSettings.getSfLogLevel();
 };

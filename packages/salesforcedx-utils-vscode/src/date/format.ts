@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {format} from 'util';
+import { format } from 'util';
 
 export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
   const month2Digit = makeDoubleDigit(localUTCDate.getMonth() + 1);

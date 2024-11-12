@@ -29,11 +29,7 @@ export class CliCommandExecution implements CommandExecution {
 
   private readonly childProcessPid: number;
 
-  constructor(
-    command: Command,
-    childProcess: ChildProcess,
-    cancellationToken?: CancellationToken
-  ) {
+  constructor(command: Command, childProcess: ChildProcess, cancellationToken?: CancellationToken) {
     this.command = command;
     this.cancellationToken = cancellationToken;
 
@@ -45,19 +41,13 @@ export class CliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
 
     // Process
-    this.processExitSubject = Observable.fromEvent(
-      childProcess,
-      'exit'
-    );
+    this.processExitSubject = Observable.fromEvent(childProcess, 'exit');
     this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
     });
-    this.processErrorSubject = Observable.fromEvent(
-      childProcess,
-      'error'
-    );
+    this.processErrorSubject = Observable.fromEvent(childProcess, 'error');
     this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();

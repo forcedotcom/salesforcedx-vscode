@@ -4,11 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  AuthFields,
-  OrgAuthorization,
-  StateAggregator
-} from '@salesforce/core-bundle';
+import { AuthFields, OrgAuthorization, StateAggregator } from '@salesforce/core-bundle';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
@@ -31,9 +27,7 @@ describe('OrgList tests', () => {
 
   const dummyDevHubUsername = 'test-devhub@example.com';
 
-  const createOrgAuthorization = (
-    overrides: Partial<OrgAuthorization> = {}
-  ): OrgAuthorization => ({
+  const createOrgAuthorization = (overrides: Partial<OrgAuthorization> = {}): OrgAuthorization => ({
     orgId: '000',
     username: 'test-username@example.com',
     oauthMethod: 'unknown',
@@ -74,12 +68,8 @@ describe('OrgList tests', () => {
       onDidCreate: jest.fn(),
       onDidDelete: jest.fn()
     };
-    createFileSystemWatcherMock = (
-      vscode.workspace.createFileSystemWatcher as any
-    ).mockReturnValue(mockWatcher);
-    createStatusBarItemMock = (
-      vscode.window.createStatusBarItem as jest.Mock
-    ).mockReturnValue(mockStatusBarItem);
+    createFileSystemWatcherMock = (vscode.workspace.createFileSystemWatcher as any).mockReturnValue(mockWatcher);
+    createStatusBarItemMock = (vscode.window.createStatusBarItem as jest.Mock).mockReturnValue(mockStatusBarItem);
     orgList = new OrgList();
     getAuthFieldsForMock = jest.spyOn(OrgList.prototype, 'getAuthFieldsFor');
     getUsernameForMock = jest.spyOn(ConfigUtil, 'getUsernameFor');
@@ -90,9 +80,7 @@ describe('OrgList tests', () => {
         getAll: getAllMock
       }
     };
-    stateAggregatorCreateMock = jest
-      .spyOn(StateAggregator, 'create')
-      .mockResolvedValue(fakeStateAggregator);
+    stateAggregatorCreateMock = jest.spyOn(StateAggregator, 'create').mockResolvedValue(fakeStateAggregator);
     getAllAliasesForMock = jest.spyOn(ConfigUtil, 'getAllAliasesFor');
   });
 
@@ -128,21 +116,12 @@ describe('OrgList tests', () => {
     it('should include aliases in the result if available', async () => {
       const orgAuths = [orgAuthWithAlias, validOrgAuth];
       getDevHubUsernameMock.mockResolvedValue(null);
-      getAllMock
-        .mockResolvedValueOnce(orgAuthWithAlias.aliases)
-        .mockResolvedValueOnce(orgAuth.aliases);
-      getAllAliasesForMock
-        .mockResolvedValueOnce(orgAuthWithAlias.aliases)
-        .mockResolvedValueOnce(orgAuth.aliases);
-      getAuthFieldsForMock
-        .mockResolvedValueOnce(orgAuthWithAlias)
-        .mockResolvedValueOnce(orgAuth);
+      getAllMock.mockResolvedValueOnce(orgAuthWithAlias.aliases).mockResolvedValueOnce(orgAuth.aliases);
+      getAllAliasesForMock.mockResolvedValueOnce(orgAuthWithAlias.aliases).mockResolvedValueOnce(orgAuth.aliases);
+      getAuthFieldsForMock.mockResolvedValueOnce(orgAuthWithAlias).mockResolvedValueOnce(orgAuth);
       const result = await orgList.filterAuthInfo(orgAuths);
 
-      expect(result).toEqual([
-        'alias1 - test-username@example.com',
-        validOrgAuth.username
-      ]);
+      expect(result).toEqual(['alias1 - test-username@example.com', validOrgAuth.username]);
     });
 
     it('should filter out org authorizations with errors', async () => {
@@ -160,17 +139,12 @@ describe('OrgList tests', () => {
       getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
       getUsernameForMock.mockResolvedValueOnce(orgAuthScratchOrg.username);
       getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
-      getAuthFieldsForMock.mockResolvedValueOnce(
-        orgAuthScratchOrg as AuthFields
-      );
+      getAuthFieldsForMock.mockResolvedValueOnce(orgAuthScratchOrg as AuthFields);
       getDevHubUsernameMock.mockResolvedValueOnce(dummyDevHubUsername);
 
       const result = await orgList.filterAuthInfo(orgAuths);
 
-      expect(result).toEqual([
-        validOrgAuth.username,
-        orgAuthScratchOrg.username
-      ]);
+      expect(result).toEqual([validOrgAuth.username, orgAuthScratchOrg.username]);
     });
   });
 
@@ -186,9 +160,7 @@ describe('OrgList tests', () => {
       const result = await orgList.isOrgExpired(orgAuthWithAlias.aliases![0]);
 
       expect(result).toBe(false);
-      expect(getUsernameForMock).toHaveBeenCalledWith(
-        orgAuthWithAlias.aliases![0]
-      );
+      expect(getUsernameForMock).toHaveBeenCalledWith(orgAuthWithAlias.aliases![0]);
       expect(getAuthFieldsForMock).toHaveBeenCalledWith(orgAuth.username);
     });
 
@@ -203,12 +175,8 @@ describe('OrgList tests', () => {
       const result = await orgList.isOrgExpired(orgAuthWithAlias.aliases![0]);
 
       expect(result).toBe(false);
-      expect(getUsernameForMock).toHaveBeenCalledWith(
-        orgAuthWithAlias.aliases![0]
-      );
-      expect(getAuthFieldsForMock).toHaveBeenCalledWith(
-        orgAuthWithAlias.username
-      );
+      expect(getUsernameForMock).toHaveBeenCalledWith(orgAuthWithAlias.aliases![0]);
+      expect(getAuthFieldsForMock).toHaveBeenCalledWith(orgAuthWithAlias.username);
     });
 
     it('should return true if the expirationDate is in the past', async () => {
@@ -222,12 +190,8 @@ describe('OrgList tests', () => {
       const result = await orgList.isOrgExpired(orgAuthWithAlias.aliases![0]);
 
       expect(result).toBe(true);
-      expect(getUsernameForMock).toHaveBeenCalledWith(
-        orgAuthWithAlias.aliases![0]
-      );
-      expect(getAuthFieldsForMock).toHaveBeenCalledWith(
-        orgAuthWithAlias.username
-      );
+      expect(getUsernameForMock).toHaveBeenCalledWith(orgAuthWithAlias.aliases![0]);
+      expect(getAuthFieldsForMock).toHaveBeenCalledWith(orgAuthWithAlias.username);
     });
   });
 
@@ -278,13 +242,9 @@ describe('OrgList tests', () => {
     });
 
     it('should display an error icon when the org is not valid', async () => {
-      const error = new Error(
-        'No authorization information found for invalid-org'
-      );
+      const error = new Error('No authorization information found for invalid-org');
       error.name = 'NamedOrgNotFoundError';
-      consoleErrorMock = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
       // Mock isOrgExpired to resolve to true (expired)
       isOrgExpiredMock.mockRejectedValue(error);
 
@@ -296,15 +256,10 @@ describe('OrgList tests', () => {
       await new Promise(process.nextTick);
 
       // Assert that the statusBarItem text is set to the error message
-      expect(mockStatusBarItem.text).toBe(
-        `$(error) ${nls.localize('invalid_default_org')}`
-      );
+      expect(mockStatusBarItem.text).toBe(`$(error) ${nls.localize('invalid_default_org')}`);
 
       // Assert that the error is logged to the console
-      expect(consoleErrorMock).toHaveBeenCalledWith(
-        'Error checking org expiration: ',
-        error
-      );
+      expect(consoleErrorMock).toHaveBeenCalledWith('Error checking org expiration: ', error);
 
       // Clean up - restore the original console.error implementation
       consoleErrorMock.mockRestore();
@@ -322,9 +277,7 @@ describe('OrgList tests', () => {
     it('should handle errors during org expiration check', async () => {
       // Mock isOrgExpired to throw an error
       const error = new Error('Org expiration check failed');
-      consoleErrorMock = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
       isOrgExpiredMock.mockRejectedValue(error);
 
       // Call the method with a valid targetOrgOrAlias

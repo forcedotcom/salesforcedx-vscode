@@ -35,12 +35,7 @@ export class Table {
       const width = maxColWidths.get(col.key);
       if (width) {
         const isLastCol = index === arr.length - 1;
-        columnHeader += this.fillColumn(
-          col.label || col.key,
-          width,
-          COLUMN_FILLER,
-          isLastCol
-        );
+        columnHeader += this.fillColumn(col.label || col.key, width, COLUMN_FILLER, isLastCol);
         headerSeparator += this.fillColumn('', width, HEADER_FILLER, isLastCol);
       }
     });
@@ -59,12 +54,7 @@ export class Table {
           const cellWidth = maxColWidths.get(col.key);
           if (cellWidth) {
             if (lineIndex === 0) {
-              outputRow += this.fillColumn(
-                line,
-                cellWidth,
-                COLUMN_FILLER,
-                isLastCol
-              );
+              outputRow += this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol);
             } else {
               // If the cell is multiline, add an additional line to the table
               // and pad it to the beginning of the current column
@@ -100,9 +90,7 @@ export class Table {
         // if a cell is multiline, find the line that's the longest
         const longestLineWidth = cell
           .split('\n')
-          .reduce((maxLine, line) =>
-            line.length > maxLine.length ? line : maxLine
-          ).length;
+          .reduce((maxLine, line) => (line.length > maxLine.length ? line : maxLine)).length;
         if (longestLineWidth > maxColWidth) {
           maxColWidths.set(col.key, longestLineWidth);
         }
@@ -111,12 +99,7 @@ export class Table {
     return maxColWidths;
   }
 
-  private fillColumn(
-    label: string,
-    width: number,
-    filler: string,
-    isLastCol: boolean
-  ): string {
+  private fillColumn(label: string, width: number, filler: string, isLastCol: boolean): string {
     let filled = label;
     for (let i = 0; i < width - label.length; i++) {
       filled += filler;

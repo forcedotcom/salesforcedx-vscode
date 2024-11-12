@@ -24,9 +24,7 @@ describe('ProjectRetrieveStartExecutor', () => {
 
       (pullExecutor as any).updateCache(dummyPullResult);
 
-      expect(setPropertiesForFilesPushPullMock).toHaveBeenCalledWith(
-        dummyPullResult.result.files
-      );
+      expect(setPropertiesForFilesPushPullMock).toHaveBeenCalledWith(dummyPullResult.result.files);
     });
   });
 });

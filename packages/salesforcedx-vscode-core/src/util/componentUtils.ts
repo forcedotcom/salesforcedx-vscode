@@ -13,10 +13,7 @@ export const LWC = 'lwc';
 export const AURA = 'aura';
 export const TEST_FOLDER = '__tests__';
 
-export const inputGuard = async (
-  sourceFsPath: string,
-  newName: string
-): Promise<string> => {
+export const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
   const componentPath = await getComponentPath(sourceFsPath);
   if (isLwcComponent(componentPath)) {
     newName = newName.charAt(0).toLowerCase() + newName.slice(1);
@@ -25,9 +22,7 @@ export const inputGuard = async (
   return newName;
 };
 
-export const getLightningComponentDirectory = (
-  sourceFsPath: string
-): string => {
+export const getLightningComponentDirectory = (sourceFsPath: string): string => {
   const directories = sourceFsPath.split(path.sep);
   const rootDir = directories.includes(LWC) ? LWC : AURA;
   const lwcDirectoryIndex = directories.lastIndexOf(rootDir);
@@ -44,11 +39,9 @@ export const getComponentPath = async (sourceFsPath: string): Promise<string> =>
   return dirname;
 };
 
-export const getComponentName = (componentPath: string): string =>
-  path.basename(componentPath);
+export const getComponentName = (componentPath: string): string => path.basename(componentPath);
 
-export const isLwcComponent = (componentPath: string): boolean =>
-  path.basename(path.dirname(componentPath)) === LWC;
+export const isLwcComponent = (componentPath: string): boolean => path.basename(path.dirname(componentPath)) === LWC;
 
 // for testing
 export const componentUtils = {

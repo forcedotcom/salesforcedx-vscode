@@ -8,6 +8,4 @@
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 
-export const channelService = ChannelService.getInstance(
-  nls.localize('lwc_output_channel_name')
-);
+export const channelService = ChannelService.getInstance(nls.localize('lwc_output_channel_name'));

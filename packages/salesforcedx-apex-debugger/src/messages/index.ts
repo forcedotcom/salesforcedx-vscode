@@ -17,7 +17,6 @@ import { messages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
 const loadMessageBundle = (config?: Config): Message => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const resolveFileName = (locale: string): string => {
     return locale === DEFAULT_LOCALE
       ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
@@ -39,9 +38,5 @@ const loadMessageBundle = (config?: Config): Message => {
 };
 
 export const nls = new Localization(
-  loadMessageBundle(
-    process.env.VSCODE_NLS_CONFIG
-      ? JSON.parse(process.env.VSCODE_NLS_CONFIG!)
-      : undefined
-  )
+  loadMessageBundle(process.env.VSCODE_NLS_CONFIG ? JSON.parse(process.env.VSCODE_NLS_CONFIG!) : undefined)
 );

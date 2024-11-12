@@ -7,10 +7,7 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { LogEntryState } from '../../../src/states';
 
@@ -19,9 +16,7 @@ describe('LogEntry event', () => {
   let readLogFileStub: sinon.SinonStub;
 
   beforeEach(() => {
-    readLogFileStub = sinon
-      .stub(LogContextUtil.prototype, 'readLogFile')
-      .returns(['line1', 'line2']);
+    readLogFileStub = sinon.stub(LogContextUtil.prototype, 'readLogFile').returns(['line1', 'line2']);
   });
 
   afterEach(() => {

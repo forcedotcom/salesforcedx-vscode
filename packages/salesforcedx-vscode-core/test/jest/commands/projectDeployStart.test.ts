@@ -10,10 +10,7 @@ import { nls } from '@salesforce/salesforcedx-utils-vscode/src/messages';
 import { ProjectDeployStartExecutor } from '../../../src/commands';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { DeployType } from '../../../src/commands/projectDeployStart';
-import {
-  CommandParams,
-  SfCommandletExecutor
-} from '../../../src/commands/util';
+import { CommandParams, SfCommandletExecutor } from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
 import { dummyPushResult, dummyStdOut } from './data/testData';
 
@@ -28,9 +25,7 @@ describe('ProjectDeployStartExecutor', () => {
       jest.spyOn(ChannelService, 'getInstance').mockReturnValue({} as any);
       jest.spyOn(nls, 'localize').mockReturnValue('');
       (ProjectDeployStartExecutor as any).logMetric = jest.fn();
-      jest
-        .spyOn(ProjectDeployStartExecutor.prototype, 'logMetric')
-        .mockImplementation(jest.fn());
+      jest.spyOn(ProjectDeployStartExecutor.prototype, 'logMetric').mockImplementation(jest.fn());
     });
 
     it('should update the local cache for the components that were deployed after a push', async () => {
@@ -39,8 +34,7 @@ describe('ProjectDeployStartExecutor', () => {
         command: 'project:deploy:start',
         description: {
           default: 'project_deploy_start_default_org_text',
-          ignoreConflicts:
-            'project_deploy_start_ignore_conflicts_default_org_text'
+          ignoreConflicts: 'project_deploy_start_ignore_conflicts_default_org_text'
         },
         logName: { default: 'project_deploy_start_default_scratch_org' }
       };
@@ -50,14 +44,8 @@ describe('ProjectDeployStartExecutor', () => {
       const executorAsAny = executor as any;
       SfCommandletExecutor.errorCollection = MockErrorCollection as any;
       DeployRetrieveExecutor.errorCollection = MockErrorCollection as any;
-      const deployRetrieveExecutorClearSpy = jest.spyOn(
-        DeployRetrieveExecutor.errorCollection,
-        'clear'
-      );
-      const sfCommandletExecutorClearSpy = jest.spyOn(
-        SfCommandletExecutor.errorCollection,
-        'clear'
-      );
+      const deployRetrieveExecutorClearSpy = jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
+      const sfCommandletExecutorClearSpy = jest.spyOn(SfCommandletExecutor.errorCollection, 'clear');
       executorAsAny.updateCache = updateCacheMock;
       executorAsAny.getDeployType = jest.fn().mockReturnValue(DeployType.Push);
       executorAsAny.logMetric = jest.fn();
@@ -94,9 +82,7 @@ describe('ProjectDeployStartExecutor', () => {
 
       (pushExecutor as any).updateCache(dummyPushResult);
 
-      expect(setPropertiesForFilesPushPullMock).toHaveBeenCalledWith(
-        dummyPushResult.result.files
-      );
+      expect(setPropertiesForFilesPushPullMock).toHaveBeenCalledWith(dummyPushResult.result.files);
     });
   });
 });

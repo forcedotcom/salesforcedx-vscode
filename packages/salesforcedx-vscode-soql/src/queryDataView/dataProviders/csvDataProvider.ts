@@ -49,17 +49,13 @@ export class CsvDataProvider implements DataProvider {
       colData.columns.forEach(col => {
         let currentObject: any = record;
         col.fieldHelper.forEach(segment => {
-          const key = Object.keys(currentObject).find(
-            k => k.toLowerCase() === segment.toLowerCase()
-          );
+          const key = Object.keys(currentObject).find(k => k.toLowerCase() === segment.toLowerCase());
           if (key) {
             currentObject = currentObject[key];
           }
         });
         queryRecord.push(
-          typeof currentObject === 'string' ||
-            typeof currentObject === 'number' ||
-            typeof currentObject === 'boolean'
+          typeof currentObject === 'string' || typeof currentObject === 'number' || typeof currentObject === 'boolean'
             ? `${currentObject}`
             : ''
         );
@@ -67,16 +63,14 @@ export class CsvDataProvider implements DataProvider {
 
       let subRecords: string[][] = [];
       colData.subTables.forEach(subTable => {
-        const key = Object.keys(record).find(
-          k => k.toLowerCase() === subTable.objectName.toLowerCase()
-        );
+        const key = Object.keys(record).find(k => k.toLowerCase() === subTable.objectName.toLowerCase());
         if (
           key &&
           record[key] &&
           typeof record[key] === 'object' &&
-          Array.isArray(((record[key] as unknown) as any).records)
+          Array.isArray((record[key] as unknown as any).records)
         ) {
-          ((record[key] as unknown) as any).records.forEach((subRec: any) => {
+          (record[key] as unknown as any).records.forEach((subRec: any) => {
             subRecords = subRecords.concat(flattenRecord(subRec, subTable));
           });
         }

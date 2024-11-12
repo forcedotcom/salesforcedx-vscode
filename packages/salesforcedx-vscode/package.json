@@ -18,7 +18,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.86.0"
+    "vscode": "^1.90.0"
   },
   "scripts": {
     "vscode:package": "vsce package --no-dependencies",

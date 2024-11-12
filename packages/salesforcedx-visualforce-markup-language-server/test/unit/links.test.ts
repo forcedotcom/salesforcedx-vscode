@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -11,9 +10,7 @@ import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Link Detection', () => {
-  const getDocumentContext = (
-    documentUrl: string
-  ): htmlLanguageService.DocumentContext => {
+  const getDocumentContext = (documentUrl: string): htmlLanguageService.DocumentContext => {
     return {
       resolveReference: (ref, base) => {
         if (base) {
@@ -24,37 +21,17 @@ describe('HTML Link Detection', () => {
     };
   };
 
-  const testLinkCreation = (
-    modelUrl: string,
-    tokenContent: string,
-    expected: string
-  ): void => {
-    const document = TextDocument.create(
-      modelUrl,
-      'html',
-      0,
-      `<a href="${tokenContent}">`
-    );
+  const testLinkCreation = (modelUrl: string, tokenContent: string, expected: string): void => {
+    const document = TextDocument.create(modelUrl, 'html', 0, `<a href="${tokenContent}">`);
     const ls = htmlLanguageService.getLanguageService();
     const links = ls.findDocumentLinks(document, getDocumentContext(modelUrl));
     assert.equal(links[0] && links[0].target, expected);
   };
 
-  const testLinkDetection = (
-    value: string,
-    expectedLinks: { offset: number; target: string }[]
-  ): void => {
-    const document = TextDocument.create(
-      'test://test/test.html',
-      'html',
-      0,
-      value
-    );
+  const testLinkDetection = (value: string, expectedLinks: { offset: number; target: string }[]): void => {
+    const document = TextDocument.create('test://test/test.html', 'html', 0, value);
     const ls = htmlLanguageService.getLanguageService();
-    const links = ls.findDocumentLinks(
-      document,
-      getDocumentContext(document.uri)
-    );
+    const links = ls.findDocumentLinks(document, getDocumentContext(document.uri));
     assert.deepEqual(
       links.map(l => ({ offset: l.range.start.character, target: l.target })),
       expectedLinks
@@ -70,87 +47,39 @@ describe('HTML Link Detection', () => {
       'file:///C:\\Alex\\src\\path\\to\\file.txt',
       'file:///C:\\Alex\\src\\path\\to\\file.txt'
     );
-    testLinkCreation(
-      'http://model/1',
-      'http://www.microsoft.com/',
-      'http://www.microsoft.com/'
-    );
-    testLinkCreation(
-      'http://model/1',
-      'https://www.microsoft.com/',
-      'https://www.microsoft.com/'
-    );
-    testLinkCreation(
-      'http://model/1',
-      '//www.microsoft.com/',
-      'http://www.microsoft.com/'
-    );
+    testLinkCreation('http://model/1', 'http://www.microsoft.com/', 'http://www.microsoft.com/');
+    testLinkCreation('http://model/1', 'https://www.microsoft.com/', 'https://www.microsoft.com/');
+    testLinkCreation('http://model/1', '//www.microsoft.com/', 'http://www.microsoft.com/');
     testLinkCreation('http://model/x/1', 'a.js', 'http://model/x/a.js');
     testLinkCreation('http://model/x/1', './a2.js', 'http://model/x/a2.js');
     testLinkCreation('http://model/x/1', '/b.js', 'http://model/b.js');
     testLinkCreation('http://model/x/y/1', '../../c.js', 'http://model/c.js');
 
-    testLinkCreation(
-      'file:///C:/Alex/src/path/to/file.txt',
-      'javascript:void;',
-      null
-    );
-    testLinkCreation(
-      'file:///C:/Alex/src/path/to/file.txt',
-      ' \tjavascript:alert(7);',
-      null
-    );
-    testLinkCreation(
-      'file:///C:/Alex/src/path/to/file.txt',
-      ' #relative',
-      null
-    );
+    testLinkCreation('file:///C:/Alex/src/path/to/file.txt', 'javascript:void;', null);
+    testLinkCreation('file:///C:/Alex/src/path/to/file.txt', ' \tjavascript:alert(7);', null);
+    testLinkCreation('file:///C:/Alex/src/path/to/file.txt', ' #relative', null);
     testLinkCreation(
       'file:///C:/Alex/src/path/to/file.txt',
       'file:///C:\\Alex\\src\\path\\to\\file.txt',
       'file:///C:\\Alex\\src\\path\\to\\file.txt'
     );
-    testLinkCreation(
-      'file:///C:/Alex/src/path/to/file.txt',
-      'http://www.microsoft.com/',
-      'http://www.microsoft.com/'
-    );
+    testLinkCreation('file:///C:/Alex/src/path/to/file.txt', 'http://www.microsoft.com/', 'http://www.microsoft.com/');
     testLinkCreation(
       'file:///C:/Alex/src/path/to/file.txt',
       'https://www.microsoft.com/',
       'https://www.microsoft.com/'
     );
-    testLinkCreation(
-      'file:///C:/Alex/src/path/to/file.txt',
-      '  //www.microsoft.com/',
-      'http://www.microsoft.com/'
-    );
-    testLinkCreation(
-      'file:///C:/Alex/src/path/to/file.txt',
-      'a.js',
-      'file:///C:/Alex/src/path/to/a.js'
-    );
-    testLinkCreation(
-      'file:///C:/Alex/src/path/to/file.txt',
-      '/a.js',
-      'file:///a.js'
-    );
+    testLinkCreation('file:///C:/Alex/src/path/to/file.txt', '  //www.microsoft.com/', 'http://www.microsoft.com/');
+    testLinkCreation('file:///C:/Alex/src/path/to/file.txt', 'a.js', 'file:///C:/Alex/src/path/to/a.js');
+    testLinkCreation('file:///C:/Alex/src/path/to/file.txt', '/a.js', 'file:///a.js');
 
     testLinkCreation(
       'https://www.test.com/path/to/file.txt',
       'file:///C:\\Alex\\src\\path\\to\\file.txt',
       'file:///C:\\Alex\\src\\path\\to\\file.txt'
     );
-    testLinkCreation(
-      'https://www.test.com/path/to/file.txt',
-      '//www.microsoft.com/',
-      'https://www.microsoft.com/'
-    );
-    testLinkCreation(
-      'https://www.test.com/path/to/file.txt',
-      '//www.microsoft.com/',
-      'https://www.microsoft.com/'
-    );
+    testLinkCreation('https://www.test.com/path/to/file.txt', '//www.microsoft.com/', 'https://www.microsoft.com/');
+    testLinkCreation('https://www.test.com/path/to/file.txt', '//www.microsoft.com/', 'https://www.microsoft.com/');
 
     // invalid uris are ignored
     testLinkCreation('https://www.test.com/path/to/file.txt', '%', null);
@@ -164,28 +93,19 @@ describe('HTML Link Detection', () => {
   });
 
   it('Link detection', () => {
-    testLinkDetection('<img src="foo.png">', [
-      { offset: 10, target: 'test://test/foo.png' }
-    ]);
-    testLinkDetection('<a href="http://server/foo.html">', [
-      { offset: 9, target: 'http://server/foo.html' }
-    ]);
+    testLinkDetection('<img src="foo.png">', [{ offset: 10, target: 'test://test/foo.png' }]);
+    testLinkDetection('<a href="http://server/foo.html">', [{ offset: 9, target: 'http://server/foo.html' }]);
     testLinkDetection('<img src="">', []);
-    testLinkDetection('<LINK HREF="a.html">', [
-      { offset: 12, target: 'test://test/a.html' }
-    ]);
+    testLinkDetection('<LINK HREF="a.html">', [{ offset: 12, target: 'test://test/a.html' }]);
     testLinkDetection('<LINK HREF="a.html\n>\n', []);
 
     testLinkDetection('<html><base href="docs/"><img src="foo.png"></html>', [
       { offset: 18, target: 'test://test/docs/' },
       { offset: 35, target: 'test://test/docs/foo.png' }
     ]);
-    testLinkDetection(
-      '<html><base href="http://www.example.com/page.html"><img src="foo.png"></html>',
-      [
-        { offset: 18, target: 'http://www.example.com/page.html' },
-        { offset: 62, target: 'http://www.example.com/foo.png' }
-      ]
-    );
+    testLinkDetection('<html><base href="http://www.example.com/page.html"><img src="foo.png"></html>', [
+      { offset: 18, target: 'http://www.example.com/page.html' },
+      { offset: 62, target: 'http://www.example.com/foo.png' }
+    ]);
   });
 });

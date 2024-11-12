@@ -20,15 +20,11 @@ export const messages = {
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
   apex_execute_unexpected_error: 'Unexpected error',
-  apex_language_server_loading:
-    'Indexing Apex files. Hold tight, almost ready… $(sync~spin)',
+  apex_language_server_loading: 'Indexing Apex files. Hold tight, almost ready… $(sync~spin)',
   apex_language_server_loaded: 'Indexing complete $(check)',
-  apex_language_server_failed_activate:
-    'Unable to activate the Apex Language Server',
-  apex_language_server_quit_and_restarting:
-    'Apex Language Server has stopped. Restarting… %d of 5',
-  cannot_determine_workspace:
-    'Unable to determine workspace folders for workspace',
+  apex_language_server_failed_activate: 'Unable to activate the Apex Language Server',
+  apex_language_server_quit_and_restarting: 'Apex Language Server has stopped. Restarting… %d of 5',
+  cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex',
   client_name: 'Apex Language Server',
   colorizer_no_code_coverage_on_project:
@@ -40,10 +36,8 @@ export const messages = {
   colorizer_no_code_coverage_current_file:
     'No code coverage information was found for file %s. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
-  anon_apex_execute_document_text:
-    'SFDX: Execute Anonymous Apex with Editor Contents',
-  anon_apex_execute_selection_text:
-    'SFDX: Execute Anonymous Apex with Currently Selected Text',
+  anon_apex_execute_document_text: 'SFDX: Execute Anonymous Apex with Editor Contents',
+  anon_apex_execute_selection_text: 'SFDX: Execute Anonymous Apex with Currently Selected Text',
   apex_log_get_text: 'SFDX: Get Apex Debug Logs',
   apex_log_get_no_logs_text: 'No Apex debug logs were found',
   apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
@@ -70,15 +64,13 @@ export const messages = {
     'Local Java runtime (%s) is unsupported. Set the salesforcedx-vscode-apex.java.home VS Code setting to a runtime outside of the current project. For more information, go to [Set Your Java Version](%s).',
   source_java_home_env_var_text: 'The JAVA_HOME environment variable',
   source_jdk_home_env_var_text: 'The JDK_HOME environment variable',
-  source_java_home_setting_text:
-    'The salesforcedx-vscode-apex.java.home setting defined in VS Code settings',
+  source_java_home_setting_text: 'The salesforcedx-vscode-apex.java.home setting defined in VS Code settings',
   source_missing_text:
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   wrong_java_version_text:
     'An unsupported Java version was detected. Download and install [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html), [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) or [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](%s).',
   wrong_java_version_short: 'Unsupported Java version',
-  java_version_check_command_failed:
-    'Running java command %s failed with error: %s',
+  java_version_check_command_failed: 'Running java command %s failed with error: %s',
   apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
@@ -88,10 +80,8 @@ export const messages = {
     'Found %d orphaned Apex Language Server processes.\nWould you like to terminate them?',
   terminate_processes: 'Terminate Processes',
   terminate_show_processes: 'Show Processes',
-  terminate_failed:
-    'Failed to terminate Apex Language Server process PID: %d: %s',
-  terminated_orphaned_process:
-    'Terminated Apex Language Server process PID: %d',
+  terminate_failed: 'Failed to terminate Apex Language Server process PID: %d: %s',
+  terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
   terminated_orphaned_processes: 'Terminated %d orphaned processes.',
   unknown_error: 'Unknown error',
   process_id: 'Process ID',

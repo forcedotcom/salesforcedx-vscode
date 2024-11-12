@@ -135,14 +135,8 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should compare based on slot for Local', async () => {
       // given
-      const v1 = new ApexVariable(
-        newStringValue('a_name', 'value', 10),
-        ApexVariableKind.Local
-      );
-      const v2 = new ApexVariable(
-        newStringValue('z_name', 'value', 9),
-        ApexVariableKind.Local
-      );
+      const v1 = new ApexVariable(newStringValue('a_name', 'value', 10), ApexVariableKind.Local);
+      const v2 = new ApexVariable(newStringValue('z_name', 'value', 9), ApexVariableKind.Local);
 
       // when
       const result1 = ApexVariable.compareVariables(v1, v2);
@@ -155,14 +149,8 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should compare based on slot for Field', async () => {
       // given
-      const v1 = new ApexVariable(
-        newStringValue('a_name', 'value', 10),
-        ApexVariableKind.Field
-      );
-      const v2 = new ApexVariable(
-        newStringValue('z_name', 'value', 9),
-        ApexVariableKind.Field
-      );
+      const v1 = new ApexVariable(newStringValue('a_name', 'value', 10), ApexVariableKind.Field);
+      const v2 = new ApexVariable(newStringValue('z_name', 'value', 9), ApexVariableKind.Field);
 
       // when
       const result1 = ApexVariable.compareVariables(v1, v2);
@@ -175,14 +163,8 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should compare based on name for others', async () => {
       // given
-      const v1 = new ApexVariable(
-        newStringValue('a_name', 'value'),
-        ApexVariableKind.Static
-      );
-      const v2 = new ApexVariable(
-        newStringValue('z_name', 'value'),
-        ApexVariableKind.Static
-      );
+      const v1 = new ApexVariable(newStringValue('a_name', 'value'), ApexVariableKind.Static);
+      const v2 = new ApexVariable(newStringValue('z_name', 'value'), ApexVariableKind.Static);
 
       // when
       const result1 = ApexVariable.compareVariables(v1, v2);
@@ -195,14 +177,8 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should compare based on numbered name (eg. array index)', async () => {
       // given
-      const v1 = new ApexVariable(
-        newStringValue('[124]', 'value'),
-        ApexVariableKind.Static
-      );
-      const v2 = new ApexVariable(
-        newStringValue('123', 'value'),
-        ApexVariableKind.Static
-      );
+      const v1 = new ApexVariable(newStringValue('[124]', 'value'), ApexVariableKind.Static);
+      const v2 = new ApexVariable(newStringValue('123', 'value'), ApexVariableKind.Static);
 
       // when
       const result1 = ApexVariable.compareVariables(v1, v2);
@@ -215,14 +191,8 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should compare numbered name with string', async () => {
       // given
-      const v1 = new ApexVariable(
-        newStringValue('12', 'value'),
-        ApexVariableKind.Static
-      );
-      const v2 = new ApexVariable(
-        newStringValue('a_name', 'value'),
-        ApexVariableKind.Static
-      );
+      const v1 = new ApexVariable(newStringValue('12', 'value'), ApexVariableKind.Static);
+      const v2 = new ApexVariable(newStringValue('a_name', 'value'), ApexVariableKind.Static);
 
       // when
       const result1 = ApexVariable.compareVariables(v1, v2);
@@ -260,10 +230,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       adapter.populateReferences(references, 'FakeRequestId');
 
-      const variableRef = await adapter.resolveApexIdToVariableReference(
-        'FakeRequestId',
-        0
-      );
+      const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', 0);
 
       expect(variableRef).to.be.at.least(0);
       const container = adapter.getVariableContainer(variableRef as number);
@@ -318,10 +285,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       adapter.populateReferences(references, 'FakeRequestId');
 
-      const variableRef = await adapter.resolveApexIdToVariableReference(
-        'FakeRequestId',
-        0
-      );
+      const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', 0);
 
       expect(variableRef).to.be.at.least(0);
       const container = adapter.getVariableContainer(variableRef as number);
@@ -359,10 +323,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       adapter.populateReferences(references, 'FakeRequestId');
 
-      const variableRef = await adapter.resolveApexIdToVariableReference(
-        'FakeRequestId',
-        0
-      );
+      const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', 0);
 
       expect(variableRef).to.be.at.least(0);
       const container = adapter.getVariableContainer(variableRef as number);
@@ -388,10 +349,7 @@ describe('Debugger adapter variable handling - unit', () => {
           nameForMessages: 'foo'
         }
       };
-      const expectedTupleContainer = new MapTupleContainer(
-        tupleA,
-        'FakeRequestId'
-      );
+      const expectedTupleContainer = new MapTupleContainer(tupleA, 'FakeRequestId');
       const references: Reference[] = [
         {
           type: 'map',
@@ -414,10 +372,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       adapter.populateReferences(references, 'FakeRequestId');
 
-      const variableRef = await adapter.resolveApexIdToVariableReference(
-        'FakeRequestId',
-        0
-      );
+      const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', 0);
 
       expect(variableRef).to.be.at.least(0);
       const container = adapter.getVariableContainer(variableRef as number);
@@ -427,11 +382,8 @@ describe('Debugger adapter variable handling - unit', () => {
       const mapContainer = container as MapReferenceContainer;
       expect(mapContainer.getNumberOfChildren()).to.equal(1);
       expect(mapContainer.tupleContainers.size).to.equal(1);
-      expect(mapContainer.tupleContainers.get(1000)).to.deep.equal(
-        expectedTupleContainer
-      );
-      expect(mapContainer.tupleContainers.get(1000)!.getNumberOfChildren()).to
-        .be.undefined;
+      expect(mapContainer.tupleContainers.get(1000)).to.deep.equal(expectedTupleContainer);
+      expect(mapContainer.tupleContainers.get(1000)!.getNumberOfChildren()).to.be.undefined;
     });
 
     it('Should not expand unknown reference type', async () => {
@@ -480,10 +432,7 @@ describe('Debugger adapter variable handling - unit', () => {
       const apexId = undefined;
 
       // when
-      const variableRef = await adapter.resolveApexIdToVariableReference(
-        'FakeRequestId',
-        apexId
-      );
+      const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', apexId);
 
       // then
       expect(variableRef).to.be.undefined;
@@ -522,10 +471,7 @@ describe('Debugger adapter variable handling - unit', () => {
       );
 
       // when
-      const variableRef = await adapter.resolveApexIdToVariableReference(
-        'FakeRequestId',
-        apexId
-      );
+      const variableRef = await adapter.resolveApexIdToVariableReference('FakeRequestId', apexId);
 
       // then
       expect(referencesSpy.callCount).to.equal(1);
@@ -589,9 +535,7 @@ describe('Debugger adapter variable handling - unit', () => {
       stateSpy = sinon
         .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve(JSON.stringify(stateResponse)));
-      sourcePathSpy = sinon
-        .stub(BreakpointService.prototype, 'getSourcePathFromTyperef')
-        .returns('file:///foo.cls');
+      sourcePathSpy = sinon.stub(BreakpointService.prototype, 'getSourcePathFromTyperef').returns('file:///foo.cls');
 
       // when
       await adapter.stackTraceRequest(
@@ -601,9 +545,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       // then
       expect(stateSpy.called).to.equal(true);
-      const response = adapter.getResponse(
-        0
-      ) as DebugProtocol.StackTraceResponse;
+      const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
       expect(response.success).to.equal(true);
       const stackFrames = response.body.stackFrames;
       expect(stackFrames.length).to.equal(2);
@@ -611,17 +553,11 @@ describe('Debugger adapter variable handling - unit', () => {
       const frameInfo = adapter.getStackFrameInfo(stackFrames[0].id);
       expect(frameInfo).to.be.ok; // should have frame info for frame id
       expect(frameInfo.locals).to.be.ok;
-      expect(frameInfo.locals).to.deep.equal(
-        stateResponse.stateResponse.state.locals.local
-      );
+      expect(frameInfo.locals).to.deep.equal(stateResponse.stateResponse.state.locals.local);
       expect(frameInfo.statics).to.be.ok;
-      expect(frameInfo.statics).to.deep.equal(
-        stateResponse.stateResponse.state.statics.static
-      );
+      expect(frameInfo.statics).to.deep.equal(stateResponse.stateResponse.state.statics.static);
       expect(frameInfo.globals).to.be.ok;
-      expect(frameInfo.globals).to.deep.equal(
-        stateResponse.stateResponse.state.globals.global
-      );
+      expect(frameInfo.globals).to.deep.equal(stateResponse.stateResponse.state.globals.global);
     });
 
     it('Should create as part of stackTraceRequest without variables info', async () => {
@@ -651,9 +587,7 @@ describe('Debugger adapter variable handling - unit', () => {
       stateSpy = sinon
         .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve(JSON.stringify(stateResponse)));
-      sourcePathSpy = sinon
-        .stub(BreakpointService.prototype, 'getSourcePathFromTyperef')
-        .returns('file:///foo.cls');
+      sourcePathSpy = sinon.stub(BreakpointService.prototype, 'getSourcePathFromTyperef').returns('file:///foo.cls');
 
       // when
       await adapter.stackTraceRequest(
@@ -663,9 +597,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       // then
       expect(stateSpy.called).to.equal(true);
-      const response = adapter.getResponse(
-        0
-      ) as DebugProtocol.StackTraceResponse;
+      const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
       expect(response.success).to.equal(true);
       const stackFrames = response.body.stackFrames;
       expect(stackFrames.length).to.equal(2);
@@ -695,9 +627,7 @@ describe('Debugger adapter variable handling - unit', () => {
           }
         }
       };
-      stateSpy = sinon
-        .stub(RequestService.prototype, 'execute')
-        .returns(Promise.resolve(JSON.stringify(frameRespObj)));
+      stateSpy = sinon.stub(RequestService.prototype, 'execute').returns(Promise.resolve(JSON.stringify(frameRespObj)));
 
       // when
       await adapter.fetchFrameVariables(frameInfo);
@@ -706,17 +636,11 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(stateSpy.called).to.equal(true);
       expect(frameInfo).to.be.ok; // should have frame info for frame id
       expect(frameInfo.locals).to.be.ok;
-      expect(frameInfo.locals).to.deep.equal(
-        frameRespObj.frameResponse.frame.locals.local
-      );
+      expect(frameInfo.locals).to.deep.equal(frameRespObj.frameResponse.frame.locals.local);
       expect(frameInfo.statics).to.be.ok;
-      expect(frameInfo.statics).to.deep.equal(
-        frameRespObj.frameResponse.frame.statics.static
-      );
+      expect(frameInfo.statics).to.deep.equal(frameRespObj.frameResponse.frame.statics.static);
       expect(frameInfo.globals).to.be.ok;
-      expect(frameInfo.globals).to.deep.equal(
-        frameRespObj.frameResponse.frame.globals.global
-      );
+      expect(frameInfo.globals).to.deep.equal(frameRespObj.frameResponse.frame.globals.global);
     });
   });
 
@@ -807,18 +731,12 @@ describe('Debugger adapter variable handling - unit', () => {
       resolveApexIdToVariableReferenceSpy = sinon
         .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
         .returns(1001);
-      const expectedVariableObj = new ApexVariable(
-        variableValue,
-        ApexVariableKind.Local,
-        1001
-      );
+      const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Local, 1001);
 
       const localScope = new ScopeContainer('local', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
       expect(vars.length).to.equal(1);
-      expect(
-        ApexVariable.compareVariables(expectedVariableObj, vars[0])
-      ).to.equal(0);
+      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).to.equal(0);
     });
 
     it('Should expand static scope', async () => {
@@ -835,18 +753,12 @@ describe('Debugger adapter variable handling - unit', () => {
       resolveApexIdToVariableReferenceSpy = sinon
         .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
         .returns(1001);
-      const expectedVariableObj = new ApexVariable(
-        variableValue,
-        ApexVariableKind.Static,
-        1001
-      );
+      const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Static, 1001);
 
       const localScope = new ScopeContainer('static', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
       expect(vars.length).to.equal(1);
-      expect(
-        ApexVariable.compareVariables(expectedVariableObj, vars[0])
-      ).to.equal(0);
+      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).to.equal(0);
     });
 
     it('Should expand global scope', async () => {
@@ -863,18 +775,12 @@ describe('Debugger adapter variable handling - unit', () => {
       resolveApexIdToVariableReferenceSpy = sinon
         .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
         .returns(1001);
-      const expectedVariableObj = new ApexVariable(
-        variableValue,
-        ApexVariableKind.Global,
-        1001
-      );
+      const expectedVariableObj = new ApexVariable(variableValue, ApexVariableKind.Global, 1001);
 
       const localScope = new ScopeContainer('global', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
       expect(vars.length).to.equal(1);
-      expect(
-        ApexVariable.compareVariables(expectedVariableObj, vars[0])
-      ).to.equal(0);
+      expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).to.equal(0);
     });
   });
 
@@ -886,10 +792,7 @@ describe('Debugger adapter variable handling - unit', () => {
       adapter = new ApexDebugForTest(new RequestService());
       adapter.setSalesforceProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
-      resetIdleTimersSpy = sinon.spy(
-        ApexDebugForTest.prototype,
-        'resetIdleTimer'
-      );
+      resetIdleTimersSpy = sinon.spy(ApexDebugForTest.prototype, 'resetIdleTimer');
     });
 
     afterEach(() => {
@@ -903,15 +806,10 @@ describe('Debugger adapter variable handling - unit', () => {
       };
 
       // when
-      await adapter.variablesRequest(
-        {} as DebugProtocol.VariablesResponse,
-        args
-      );
+      await adapter.variablesRequest({} as DebugProtocol.VariablesResponse, args);
 
       // then
-      const response = adapter.getResponse(
-        0
-      ) as DebugProtocol.VariablesResponse;
+      const response = adapter.getResponse(0) as DebugProtocol.VariablesResponse;
       expect(response.success).to.equal(true);
       expect(response.body).to.be.ok;
       expect(response.body.variables).to.be.ok;
@@ -925,9 +823,7 @@ describe('Debugger adapter variable handling - unit', () => {
         new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
         new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
       ];
-      const variableReference = adapter.createVariableContainer(
-        new DummyContainer(variables)
-      );
+      const variableReference = adapter.createVariableContainer(new DummyContainer(variables));
 
       // when
       await adapter.variablesRequest(
@@ -938,9 +834,7 @@ describe('Debugger adapter variable handling - unit', () => {
       );
 
       // then
-      const response = adapter.getResponse(
-        0
-      ) as DebugProtocol.VariablesResponse;
+      const response = adapter.getResponse(0) as DebugProtocol.VariablesResponse;
       expect(response.success).to.equal(true);
       expect(response.body).to.be.ok;
       expect(response.body.variables).to.be.ok;
@@ -954,9 +848,7 @@ describe('Debugger adapter variable handling - unit', () => {
         new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
         new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
       ];
-      const variableReference = adapter.createVariableContainer(
-        new ErrorDummyContainer(variables)
-      );
+      const variableReference = adapter.createVariableContainer(new ErrorDummyContainer(variables));
 
       await adapter.variablesRequest(
         {} as DebugProtocol.VariablesResponse,
@@ -965,9 +857,7 @@ describe('Debugger adapter variable handling - unit', () => {
         } as DebugProtocol.VariablesArguments
       );
 
-      const response = adapter.getResponse(
-        0
-      ) as DebugProtocol.VariablesResponse;
+      const response = adapter.getResponse(0) as DebugProtocol.VariablesResponse;
       expect(response.success).to.equal(true);
       expect(response.body.variables.length).to.equal(0);
       expect(resetIdleTimersSpy.called).to.equal(false);
@@ -975,11 +865,7 @@ describe('Debugger adapter variable handling - unit', () => {
   });
 });
 
-export const newStringValue = (
-  name: string,
-  value = 'value',
-  slot?: number
-): Value => {
+export const newStringValue = (name: string, value = 'value', slot?: number): Value => {
   const result: any = {
     name,
     declaredTypeRef: 'java/lang/String',

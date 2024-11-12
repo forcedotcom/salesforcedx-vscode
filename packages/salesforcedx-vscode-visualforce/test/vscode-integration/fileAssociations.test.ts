@@ -11,12 +11,8 @@ import * as vscode from 'vscode';
 const PERFECT_MATCH = 10;
 
 const matchExtensionAsHtml = async (extension: string) => {
-  const doc = await vscode.workspace.openTextDocument(
-    vscode.Uri.parse(`untitled:fake/path/doc.${extension}`)
-  );
-  expect(vscode.languages.match({ language: 'visualforce' }, doc)).to.equal(
-    PERFECT_MATCH
-  );
+  const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(`untitled:fake/path/doc.${extension}`));
+  expect(vscode.languages.match({ language: 'visualforce' }, doc)).to.equal(PERFECT_MATCH);
 };
 
 describe('Visualforce file association', () => {

@@ -7,32 +7,20 @@
 import { join } from 'path';
 
 class DefaultPathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
+  public getPathToSource(dirPath: string, fileName: string, fileExt: string): string {
     return join(dirPath, `${fileName}${fileExt}`);
   }
 }
 
 class BundlePathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
+  public getPathToSource(dirPath: string, fileName: string, fileExt: string): string {
     const bundleName = fileName;
     return join(dirPath, bundleName, `${fileName}${fileExt}`);
   }
 }
 
 class WaveTemplateBundlePathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
+  public getPathToSource(dirPath: string, fileName: string, fileExt: string): string {
     const bundleName = fileName;
     // template-info is the main static file name for all WaveTemplateBundles
     return join(dirPath, bundleName, `template-info${fileExt}`);
@@ -40,41 +28,20 @@ class WaveTemplateBundlePathStrategy implements SourcePathStrategy {
 }
 
 class FunctionTemplatePathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
+  public getPathToSource(dirPath: string, fileName: string, fileExt: string): string {
     return join(dirPath, `index${fileExt}`);
   }
 }
 
 class FunctionJavaTemplatePathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
-    const className =
-      fileName.charAt(0).toUpperCase() + fileName.slice(1) + 'Function';
-    return join(
-      dirPath,
-      'src',
-      'main',
-      'java',
-      'com',
-      'example',
-      `${className}${fileExt}`
-    );
+  public getPathToSource(dirPath: string, fileName: string, fileExt: string): string {
+    const className = fileName.charAt(0).toUpperCase() + fileName.slice(1) + 'Function';
+    return join(dirPath, 'src', 'main', 'java', 'com', 'example', `${className}${fileExt}`);
   }
 }
 
 class LwcTestPathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
+  public getPathToSource(dirPath: string, fileName: string, fileExt: string): string {
     return join(dirPath, '__tests__', `${fileName}.test${fileExt}`);
   }
 }

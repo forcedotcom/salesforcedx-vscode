@@ -13,11 +13,7 @@ import {
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL
 } from '../../../src/constants';
-import {
-  BaseCommand,
-  RequestService,
-  RestHttpMethodEnum
-} from '../../../src/requestService';
+import { BaseCommand, RequestService, RestHttpMethodEnum } from '../../../src/requestService';
 jest.mock('request-light');
 
 // This ensures that typscript understands the mocked module
@@ -54,9 +50,7 @@ describe('RequestService unit tests.', () => {
 
   it('Should have default timeout.', () => {
     const requestService = new RequestService();
-    expect(requestService.connectionTimeoutMs).toEqual(
-      DEFAULT_CONNECTION_TIMEOUT_MS
-    );
+    expect(requestService.connectionTimeoutMs).toEqual(DEFAULT_CONNECTION_TIMEOUT_MS);
   });
 
   describe('getEnvVars()', () => {
@@ -95,9 +89,7 @@ describe('RequestService unit tests.', () => {
     let sendRequestMock: jest.SpyInstance;
 
     beforeEach(() => {
-      sendRequestMock = jest
-        .spyOn(RequestService.prototype, 'sendRequest')
-        .mockName('sendRequestMock');
+      sendRequestMock = jest.spyOn(RequestService.prototype, 'sendRequest').mockName('sendRequestMock');
       requestServiceInst = new RequestService();
       requestServiceInst.proxyUrl = testProxyUrl;
       requestServiceInst.instanceUrl = testInstanceUrl;
@@ -115,10 +107,7 @@ describe('RequestService unit tests.', () => {
       expect(result).toEqual(fakeResponse.responseText);
       expect(sendRequestMock).toHaveBeenCalled();
       expect(sendRequestMock.mock.calls[0]).toMatchSnapshot();
-      expect(mockedRequestLight.configure).toHaveBeenCalledWith(
-        testProxyUrl,
-        true
-      );
+      expect(mockedRequestLight.configure).toHaveBeenCalledWith(testProxyUrl, true);
     });
 
     it('Should include proxy authorization info if defined.', async () => {
@@ -138,19 +127,14 @@ describe('RequestService unit tests.', () => {
       // have getRequest return nothing to exercise that path.
       jest.spyOn(queryCommand, 'getRequest').mockReturnValue(undefined);
 
-      const result = await requestServiceInst.execute(
-        queryCommand,
-        RestHttpMethodEnum.Get
-      );
+      const result = await requestServiceInst.execute(queryCommand, RestHttpMethodEnum.Get);
       expect(result).toEqual(fakeResponse.responseText);
       expect(sendRequestMock.mock.calls[0]).toMatchSnapshot();
     });
 
     it('Should reject on error.', async () => {
       sendRequestMock.mockRejectedValue(fakeResponse);
-      expect(requestServiceInst.execute(testCommand)).rejects.toMatch(
-        fakeResponse.responseText
-      );
+      expect(requestServiceInst.execute(testCommand)).rejects.toMatch(fakeResponse.responseText);
     });
   });
 

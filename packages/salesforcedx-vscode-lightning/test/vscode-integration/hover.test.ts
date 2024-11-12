@@ -7,28 +7,15 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import {
-  Hover,
-  Position,
-  MarkdownString,
-  commands,
-  window,
-  workspace
-} from 'vscode';
+import { Hover, Position, MarkdownString, commands, window, workspace } from 'vscode';
 
-describe('Aura Hovers', function() {
+describe('Aura Hovers', function () {
   this.timeout(4000);
 
   let auraDir: string;
 
   beforeEach(async () => {
-    auraDir = path.join(
-      workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'aura'
-    );
+    auraDir = path.join(workspace.workspaceFolders![0].uri.fsPath, 'force-app', 'main', 'default', 'aura');
 
     await new Promise(r => setTimeout(r, 1000));
   });
@@ -38,7 +25,7 @@ describe('Aura Hovers', function() {
   });
 
   // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-  it('Should provide additional details when hovering over an aura tag', async function() {
+  it('Should provide additional details when hovering over an aura tag', async function () {
     const doc = await workspace.openTextDocument(
       path.join(auraDir, 'auraPubsubSubscriber', 'auraPubsubSubscriber.cmp')
     );
@@ -47,7 +34,6 @@ describe('Aura Hovers', function() {
     // hover over the 'lightning:card' tag
     const position = new Position(25, 17);
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const hoverInstances = (await commands.executeCommand(
       'vscode.executeHoverProvider',
       editor.document.uri,
@@ -66,7 +52,7 @@ describe('Aura Hovers', function() {
   });
 
   // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-  it('Should provide additional details when hovering over an aura attribute', async function() {
+  it('Should provide additional details when hovering over an aura attribute', async function () {
     const doc = await workspace.openTextDocument(
       path.join(auraDir, 'auraPubsubSubscriber', 'auraPubsubSubscriber.cmp')
     );
@@ -75,7 +61,6 @@ describe('Aura Hovers', function() {
     // hover over the 'title' attribute
     const position = new Position(25, 24);
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const hoverInstances = (await commands.executeCommand(
       'vscode.executeHoverProvider',
       editor.document.uri,
@@ -105,12 +90,10 @@ describe('Aura Hovers', function() {
 const findContentFromInstances = (instances: Hover[], expectedContent: string) => {
   for (const instance of instances) {
     // type assertion to prevent using a deprecated type
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+
     const contents = instance!.contents as MarkdownString[];
 
-    const content = contents.find(cncnt =>
-      cncnt.value.includes(expectedContent)
-    );
+    const content = contents.find(cncnt => cncnt.value.includes(expectedContent));
 
     // return the first found match
     if (content) {

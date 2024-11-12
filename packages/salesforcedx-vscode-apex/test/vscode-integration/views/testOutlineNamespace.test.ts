@@ -10,59 +10,33 @@ import * as events from 'events';
 import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  APEX_GROUP_RANGE,
-  APEX_TESTS,
-  FAIL_RESULT,
-  PASS_RESULT
-} from '../../../src/constants';
+import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT } from '../../../src/constants';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
-import {
-  ApexTestGroupNode,
-  ApexTestNode,
-  ApexTestOutlineProvider
-} from '../../../src/views/testOutlineProvider';
+import { ApexTestGroupNode, ApexTestNode, ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider';
 import { ApexTestRunner } from '../../../src/views/testRunner';
 import { generateApexTestMethod } from './testDataUtil';
-import {
-  apexLibMultipleNsResult,
-  apexLibNsResult,
-  apexLibNsTestInfo
-} from './testNamespacedOutputs';
+import { apexLibMultipleNsResult, apexLibNsResult, apexLibNsTestInfo } from './testNamespacedOutputs';
 
 describe('Test View with namespace', () => {
   let testOutline: ApexTestOutlineProvider;
-  const apexNamespacedTestInfo: ApexTestMethod[] =
-    generateApexTestMethod('tester');
+  const apexNamespacedTestInfo: ApexTestMethod[] = generateApexTestMethod('tester');
 
   describe('Get Tests and Create Tree', () => {
     it('Should create one test and one class when using namespace', () => {
-      testOutline = new ApexTestOutlineProvider(
-        apexNamespacedTestInfo.slice(0, 1)
-      );
+      testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo.slice(0, 1));
       if (testOutline.getHead()) {
         expect(testOutline.getHead().name).to.equal(APEX_TESTS);
         expect(testOutline.getHead().children.length).to.equal(1);
         const testChildGroup = testOutline.getHead().children[0];
         expect(testChildGroup).instanceof(ApexTestGroupNode);
-        const groupLocation = new vscode.Location(
-          apexNamespacedTestInfo[0].location.uri,
-          APEX_GROUP_RANGE
-        );
+        const groupLocation = new vscode.Location(apexNamespacedTestInfo[0].location.uri, APEX_GROUP_RANGE);
         expect(testChildGroup.location).to.deep.equal(groupLocation);
-        expect(testChildGroup.name).to.equal(
-          apexNamespacedTestInfo[0].definingType
-        );
+        expect(testChildGroup.name).to.equal(apexNamespacedTestInfo[0].definingType);
         expect(testChildGroup.children.length).to.equal(1);
         const testChild = testChildGroup.children[0];
-        const fullName =
-          apexNamespacedTestInfo[0].definingType +
-          '.' +
-          apexNamespacedTestInfo[0].methodName;
+        const fullName = apexNamespacedTestInfo[0].definingType + '.' + apexNamespacedTestInfo[0].methodName;
         expect(testChild.name).to.deep.equal(fullName);
-        expect(testChild.location).to.deep.equal(
-          apexNamespacedTestInfo[0].location
-        );
+        expect(testChild.location).to.deep.equal(apexNamespacedTestInfo[0].location);
       }
     });
 
@@ -77,10 +51,7 @@ describe('Test View with namespace', () => {
           const testInfo2 = apexNamespacedTestInfo[i];
           expect(testChildGroup.children.length).to.equal(2); // Each group has two children
           expect(testChildGroup.name).to.equal(testInfo1.definingType);
-          const groupLocation = new vscode.Location(
-            testInfo1.location.uri,
-            APEX_GROUP_RANGE
-          );
+          const groupLocation = new vscode.Location(testInfo1.location.uri, APEX_GROUP_RANGE);
           expect(testChildGroup.location).to.deep.equal(groupLocation);
           // Check child test
           const test1 = testChildGroup.children[0];
@@ -124,12 +95,9 @@ describe('Test View with namespace', () => {
       parseJSONStub.callsFake(() => {
         return apexLibNsResult;
       });
-      testOutline = new ApexTestOutlineProvider(
-        apexNamespacedTestInfo.slice(0, 1)
-      );
+      testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo.slice(0, 1));
       testOutline.updateTestResults('oneFilePass');
-      const testGroupNode = testOutline.getHead()
-        .children[0] as ApexTestGroupNode;
+      const testGroupNode = testOutline.getHead().children[0] as ApexTestGroupNode;
       expect(testGroupNode.passing).to.equal(1);
       const testNode = testGroupNode.children[0] as ApexTestNode;
       expect(testNode.outcome).to.equal(PASS_RESULT);
@@ -148,17 +116,11 @@ describe('Test View with namespace', () => {
       expect(groupNode.failing).to.eql(1);
 
       expect(groupNode.children[0].name).to.equal('tester.file0.test0');
-      expect((groupNode.children[0] as ApexTestNode).outcome).to.equal(
-        PASS_RESULT
-      );
+      expect((groupNode.children[0] as ApexTestNode).outcome).to.equal(PASS_RESULT);
       expect(groupNode.children[1].name).to.equal('tester.file0.test1');
-      expect((groupNode.children[1] as ApexTestNode).outcome).to.equal(
-        FAIL_RESULT
-      );
+      expect((groupNode.children[1] as ApexTestNode).outcome).to.equal(FAIL_RESULT);
       expect(groupNode.children[2].name).to.equal('tester.file0.test2');
-      expect((groupNode.children[2] as ApexTestNode).outcome).to.equal(
-        PASS_RESULT
-      );
+      expect((groupNode.children[2] as ApexTestNode).outcome).to.equal(PASS_RESULT);
     });
   });
 
@@ -194,36 +156,24 @@ describe('Test View with namespace', () => {
     });
 
     it('Should go to definition if a test does not have an error message', async () => {
-      const testNode = new ApexTestNode(
-        'sampleTest',
-        apexNamespacedTestInfo[0].location
-      );
+      const testNode = new ApexTestNode('sampleTest', apexNamespacedTestInfo[0].location);
       const testRange = testNode.location!.range;
 
       await testRunner.showErrorMessage(testNode);
 
       // make sure we emit the update_selection event with the correct position
-      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sf:update_selection',
-        testRange
-      ]);
+      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal(['sf:update_selection', testRange]);
     });
 
     it('Should go to error if a test has one', async () => {
       const lineFailure = 22;
-      const testNode = new ApexTestNode(
-        'failedTest',
-        apexNamespacedTestInfo[0].location
-      );
+      const testNode = new ApexTestNode('failedTest', apexNamespacedTestInfo[0].location);
       testNode.errorMessage = 'System.AssertException: Assertion Failed';
       testNode.stackTrace = `Class.fakeClass.test0: line ${lineFailure}, column 1`;
 
       await testRunner.showErrorMessage(testNode);
 
-      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sf:update_selection',
-        lineFailure - 1
-      ]);
+      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal(['sf:update_selection', lineFailure - 1]);
     });
 
     it('Should go to error of first failing test in a failed test class', async () => {
@@ -232,10 +182,7 @@ describe('Test View with namespace', () => {
 
       await testRunner.showErrorMessage(testClass);
 
-      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
-        'sf:update_selection',
-        lineFailure - 1
-      ]);
+      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal(['sf:update_selection', lineFailure - 1]);
     });
   });
 });

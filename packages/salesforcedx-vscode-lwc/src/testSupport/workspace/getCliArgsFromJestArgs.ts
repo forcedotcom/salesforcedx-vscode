@@ -12,22 +12,14 @@ import { TestRunType } from '../testRunner/testRunner';
  * @param jestArgs jest args
  * @param testRunType test run type
  */
-export const getCliArgsFromJestArgs = (
-  jestArgs: string[],
-  testRunType: TestRunType
-) => {
+export const getCliArgsFromJestArgs = (jestArgs: string[], testRunType: TestRunType) => {
   const cliArgs = ['--', ...jestArgs];
 
-  const usePreviewJavaScriptDebugger = workspace
-    .getConfiguration('debug')
-    .get('javascript.usePreview');
+  const usePreviewJavaScriptDebugger = workspace.getConfiguration('debug').get('javascript.usePreview');
 
   // W-9883286
   // Since VS Code 1.60, `debug.javascript.usePreview` setting is no longer available
-  if (
-    testRunType === TestRunType.DEBUG &&
-    usePreviewJavaScriptDebugger === false
-  ) {
+  if (testRunType === TestRunType.DEBUG && usePreviewJavaScriptDebugger === false) {
     cliArgs.unshift('--debug');
   }
   return cliArgs;

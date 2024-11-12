@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -43,25 +42,15 @@ import {
   TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
-import {
-  getLanguageModelCache,
-  LanguageModelCache
-} from '../languageModelCache';
-import {
-  getWordAtText,
-  isWhitespaceOnly,
-  repeat,
-  startsWith
-} from '../utils/strings';
+import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
+import { getWordAtText, isWhitespaceOnly, repeat, startsWith } from '../utils/strings';
 import { HTMLDocumentRegions } from './embeddedSupport';
 import { LanguageMode, Settings } from './languageModes';
 
 const FILE_NAME = 'vscode://javascript/1'; // the same 'file' is used for all contents
 const JS_WORD_REGEX = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
 
-export const getJavascriptMode = (
-  documentRegions: LanguageModelCache<HTMLDocumentRegions>
-): LanguageMode => {
+export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocumentRegions>): LanguageMode => {
   const jsDocuments = getLanguageModelCache<TextDocument>(10, 60, document =>
     documentRegions.get(document).getEmbeddedDocument('javascript')
   );
@@ -76,11 +65,7 @@ export const getJavascriptMode = (
   let currentTextDocument: TextDocument;
   let scriptFileVersion = 0;
   const updateCurrentTextDocument = (doc: TextDocument) => {
-    if (
-      !currentTextDocument ||
-      doc.uri !== currentTextDocument.uri ||
-      doc.version !== currentTextDocument.version
-    ) {
+    if (!currentTextDocument || doc.uri !== currentTextDocument.uri || doc.version !== currentTextDocument.version) {
       currentTextDocument = jsDocuments.get(doc);
       scriptFileVersion++;
     }
@@ -131,32 +116,24 @@ export const getJavascriptMode = (
     configure: (options: any) => {
       globalSettings = options;
     },
-    doValidation: (document: TextDocument): Diagnostic[] =>{
+    doValidation: (document: TextDocument): Diagnostic[] => {
       updateCurrentTextDocument(document);
-      const syntaxDiagnostics = jsLanguageService.getSyntacticDiagnostics(
-        FILE_NAME
-      );
-      const semanticDiagnostics = jsLanguageService.getSemanticDiagnostics(
-        FILE_NAME
-      );
-      return syntaxDiagnostics.concat(semanticDiagnostics).map(
-        (diag): Diagnostic => {
-          return {
-            range: convertRange(currentTextDocument, diag),
-            severity: DiagnosticSeverity.Error,
-            message: flattenDiagnosticMessageText(diag.messageText, '\n')
-          };
-        }
-      );
+      const syntaxDiagnostics = jsLanguageService.getSyntacticDiagnostics(FILE_NAME);
+      const semanticDiagnostics = jsLanguageService.getSemanticDiagnostics(FILE_NAME);
+      return syntaxDiagnostics.concat(semanticDiagnostics).map((diag): Diagnostic => {
+        return {
+          range: convertRange(currentTextDocument, diag),
+          severity: DiagnosticSeverity.Error,
+          message: flattenDiagnosticMessageText(diag.messageText, '\n')
+        };
+      });
     },
     doComplete: (document: TextDocument, position: Position): CompletionList => {
       updateCurrentTextDocument(document);
       const offset = currentTextDocument.offsetAt(position);
-      const completions = jsLanguageService.getCompletionsAtPosition(
-        FILE_NAME,
-        offset,
-        { includeExternalModuleExports: false }
-      );
+      const completions = jsLanguageService.getCompletionsAtPosition(FILE_NAME, offset, {
+        includeExternalModuleExports: false
+      });
       if (!completions) {
         return { isIncomplete: false, items: [] };
       }
@@ -204,10 +181,7 @@ export const getJavascriptMode = (
     },
     doHover: (document: TextDocument, position: Position): Hover => {
       updateCurrentTextDocument(document);
-      const info = jsLanguageService.getQuickInfoAtPosition(
-        FILE_NAME,
-        currentTextDocument.offsetAt(position)
-      );
+      const info = jsLanguageService.getQuickInfoAtPosition(FILE_NAME, currentTextDocument.offsetAt(position));
       if (info) {
         const contents = displayPartsToString(info.displayParts);
         return {
@@ -247,9 +221,7 @@ export const getJavascriptMode = (
             signature.label += label;
             signature.parameters.push(parameter);
             if (i < a.length - 1) {
-              signature.label += displayPartsToString(
-                item.separatorDisplayParts
-              );
+              signature.label += displayPartsToString(item.separatorDisplayParts);
             }
           });
           signature.label += displayPartsToString(item.suffixDisplayParts);
@@ -259,26 +231,18 @@ export const getJavascriptMode = (
       }
       return null;
     },
-    findDocumentHighlight: (
-      document: TextDocument,
-      position: Position
-    ): DocumentHighlight[] => {
+    findDocumentHighlight: (document: TextDocument, position: Position): DocumentHighlight[] => {
       updateCurrentTextDocument(document);
-      const highlights = jsLanguageService.getDocumentHighlights(
-        FILE_NAME,
-        currentTextDocument.offsetAt(position),
-        [document.uri]
-      );
+      const highlights = jsLanguageService.getDocumentHighlights(FILE_NAME, currentTextDocument.offsetAt(position), [
+        document.uri
+      ]);
 
       if (highlights.length > 0) {
         // Only one file to search above so there should only be one result
         return highlights[0].highlightSpans.map(entry => {
           return {
             range: convertRange(currentTextDocument, entry.textSpan),
-            kind:
-              entry.kind === 'writtenReference'
-                ? DocumentHighlightKind.Write
-                : DocumentHighlightKind.Text
+            kind: entry.kind === 'writtenReference' ? DocumentHighlightKind.Write : DocumentHighlightKind.Text
           };
         });
       }
@@ -290,10 +254,7 @@ export const getJavascriptMode = (
       if (items) {
         const result: SymbolInformation[] = [];
         const existing = {};
-        const collectSymbols = (
-          item: NavigationBarItem,
-          containerLabel?: string
-        ) => {
+        const collectSymbols = (item: NavigationBarItem, containerLabel?: string) => {
           const sig = item.text + item.kind + item.spans[0].start;
           if (item.kind !== 'script' && !existing[sig]) {
             const symbol: SymbolInformation = {
@@ -324,10 +285,7 @@ export const getJavascriptMode = (
     },
     findDefinition: (document: TextDocument, position: Position): Definition => {
       updateCurrentTextDocument(document);
-      const definition = jsLanguageService.getDefinitionAtPosition(
-        FILE_NAME,
-        currentTextDocument.offsetAt(position)
-      );
+      const definition = jsLanguageService.getDefinitionAtPosition(FILE_NAME, currentTextDocument.offsetAt(position));
       if (definition) {
         return definition
           .filter(d => d.fileName === FILE_NAME)
@@ -342,10 +300,7 @@ export const getJavascriptMode = (
     },
     findReferences: (document: TextDocument, position: Position): Location[] => {
       updateCurrentTextDocument(document);
-      const references = jsLanguageService.getReferencesAtPosition(
-        FILE_NAME,
-        currentTextDocument.offsetAt(position)
-      );
+      const references = jsLanguageService.getReferencesAtPosition(FILE_NAME, currentTextDocument.offsetAt(position));
       if (references) {
         return references
           .filter(d => d.fileName === FILE_NAME)
@@ -364,54 +319,28 @@ export const getJavascriptMode = (
       formatParams: FormattingOptions,
       settings: Settings = globalSettings
     ): TextEdit[] => {
-      currentTextDocument = documentRegions
-        .get(document)
-        .getEmbeddedDocument('javascript', true);
+      currentTextDocument = documentRegions.get(document).getEmbeddedDocument('javascript', true);
       scriptFileVersion++;
 
-      const formatterSettings =
-        settings && settings.javascript && settings.javascript.format;
+      const formatterSettings = settings && settings.javascript && settings.javascript.format;
 
-      const initialIndentLevel = computeInitialIndent(
-        document,
-        range,
-        formatParams
-      );
-      const formatSettings = convertOptions(
-        formatParams,
-        formatterSettings,
-        initialIndentLevel + 1
-      );
+      const initialIndentLevel = computeInitialIndent(document, range, formatParams);
+      const formatSettings = convertOptions(formatParams, formatterSettings, initialIndentLevel + 1);
       const start = currentTextDocument.offsetAt(range.start);
       let end = currentTextDocument.offsetAt(range.end);
       let lastLineRange = null;
       if (
         range.end.character === 0 ||
-        isWhitespaceOnly(
-          currentTextDocument
-            .getText()
-            .substr(end - range.end.character, range.end.character)
-        )
+        isWhitespaceOnly(currentTextDocument.getText().substr(end - range.end.character, range.end.character))
       ) {
         end -= range.end.character;
-        lastLineRange = Range.create(
-          Position.create(range.end.line, 0),
-          range.end
-        );
+        lastLineRange = Range.create(Position.create(range.end.line, 0), range.end);
       }
-      const edits = jsLanguageService.getFormattingEditsForRange(
-        FILE_NAME,
-        start,
-        end,
-        formatSettings
-      );
+      const edits = jsLanguageService.getFormattingEditsForRange(FILE_NAME, start, end, formatSettings);
       if (edits) {
         const result = [];
         for (const edit of edits) {
-          if (
-            edit.span.start >= start &&
-            edit.span.start + edit.span.length <= end
-          ) {
+          if (edit.span.start >= start && edit.span.start + edit.span.length <= end) {
             result.push({
               range: convertRange(currentTextDocument, edit.span),
               newText: edit.newText
@@ -438,10 +367,7 @@ export const getJavascriptMode = (
   };
 };
 
-const convertRange = (
-  document: TextDocument,
-  span: { start: number; length: number }
-): Range => {
+const convertRange = (document: TextDocument, span: { start: number; length: number }): Range => {
   const startPosition = document.positionAt(span.start);
   const endPosition = document.positionAt(span.start + span.length);
   return Range.create(startPosition, endPosition);
@@ -519,9 +445,7 @@ const convertOptions = (
     IndentStyle: IndentStyle.Smart,
     NewLineCharacter: '\n',
     BaseIndentSize: options.tabSize * initialIndentLevel,
-    InsertSpaceAfterCommaDelimiter: Boolean(
-      !formatSettings || formatSettings.insertSpaceAfterCommaDelimiter
-    ),
+    InsertSpaceAfterCommaDelimiter: Boolean(!formatSettings || formatSettings.insertSpaceAfterCommaDelimiter),
     InsertSpaceAfterSemicolonInForStatements: Boolean(
       !formatSettings || formatSettings.insertSpaceAfterSemicolonInForStatements
     ),
@@ -529,28 +453,22 @@ const convertOptions = (
       !formatSettings || formatSettings.insertSpaceBeforeAndAfterBinaryOperators
     ),
     InsertSpaceAfterKeywordsInControlFlowStatements: Boolean(
-      !formatSettings ||
-        formatSettings.insertSpaceAfterKeywordsInControlFlowStatements
+      !formatSettings || formatSettings.insertSpaceAfterKeywordsInControlFlowStatements
     ),
     InsertSpaceAfterFunctionKeywordForAnonymousFunctions: Boolean(
-      !formatSettings ||
-        formatSettings.insertSpaceAfterFunctionKeywordForAnonymousFunctions
+      !formatSettings || formatSettings.insertSpaceAfterFunctionKeywordForAnonymousFunctions
     ),
     InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: Boolean(
-      formatSettings &&
-        formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis
+      formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis
     ),
     InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: Boolean(
-      formatSettings &&
-        formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets
+      formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets
     ),
     InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: Boolean(
-      formatSettings &&
-        formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces
+      formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces
     ),
     InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces: Boolean(
-      formatSettings &&
-        formatSettings.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces
+      formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces
     ),
     PlaceOpenBraceOnNewLineForControlBlocks: Boolean(
       formatSettings && formatSettings.placeOpenBraceOnNewLineForFunctions
@@ -561,11 +479,7 @@ const convertOptions = (
   };
 };
 
-const computeInitialIndent = (
-  document: TextDocument,
-  range: Range,
-  options: FormattingOptions
-) => {
+const computeInitialIndent = (document: TextDocument, range: Range, options: FormattingOptions) => {
   const lineStart = document.offsetAt(Position.create(range.start.line, 0));
   const content = document.getText();
 

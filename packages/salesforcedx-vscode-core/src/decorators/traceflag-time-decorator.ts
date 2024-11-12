@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  optionHHmm,
-  optionMMddYYYY
-} from '@salesforce/salesforcedx-utils-vscode';
+import { optionHHmm, optionMMddYYYY } from '@salesforce/salesforcedx-utils-vscode';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL } from './../constants';
 import { nls } from './../messages';

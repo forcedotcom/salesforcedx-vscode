@@ -14,10 +14,7 @@ import { CancellationToken, Command } from '../types';
 import { CliCommandExecution } from './cliCommandExecution';
 import { GlobalCliEnvironment } from './globalCliEnvironment';
 export class CliCommandExecutor {
-  protected static patchEnv(
-    options: SpawnOptions,
-    baseEnvironment: Map<string, string>
-  ): SpawnOptions {
+  protected static patchEnv(options: SpawnOptions, baseEnvironment: Map<string, string>): SpawnOptions {
     // start with current process environment
     const env = Object.create(null);
 
@@ -45,30 +42,15 @@ export class CliCommandExecutor {
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
-  public constructor(
-    command: Command,
-    options: SpawnOptions,
-    inheritGlobalEnvironmentVariables = true
-  ) {
+  public constructor(command: Command, options: SpawnOptions, inheritGlobalEnvironmentVariables = true) {
     this.command = command;
     this.options = inheritGlobalEnvironmentVariables
-      ? CliCommandExecutor.patchEnv(
-          options,
-          GlobalCliEnvironment.environmentVariables
-        )
+      ? CliCommandExecutor.patchEnv(options, GlobalCliEnvironment.environmentVariables)
       : options;
   }
 
   public execute(cancellationToken?: CancellationToken): CliCommandExecution {
-    const childProcess = cross_spawn(
-      this.command.command,
-      this.command.args,
-      this.options
-    );
-    return new CliCommandExecution(
-      this.command,
-      childProcess,
-      cancellationToken
-    );
+    const childProcess = cross_spawn(this.command.command, this.command.args, this.options);
+    return new CliCommandExecution(this.command, childProcess, cancellationToken);
   }
 }

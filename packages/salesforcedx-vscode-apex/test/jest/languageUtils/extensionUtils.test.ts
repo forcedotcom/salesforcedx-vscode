@@ -30,29 +30,19 @@ describe('extensionUtils Unit Tests.', () => {
       .mockReturnValue(mockTestOutlineProviderInst as any);
 
     languageServerStatusBarItem = new ApexLSPStatusBarItem();
-    refreshSpy = jest
-      .spyOn(mockTestOutlineProviderInst, 'refresh')
-      .mockResolvedValue();
+    refreshSpy = jest.spyOn(mockTestOutlineProviderInst, 'refresh').mockResolvedValue();
     readySpy = jest.spyOn(languageServerStatusBarItem, 'ready');
-    setStatusSpy = jest
-      .spyOn(languageClientUtils, 'setStatus')
-      .mockReturnValue();
+    setStatusSpy = jest.spyOn(languageClientUtils, 'setStatus').mockReturnValue();
     mockLanguageClient = {
       errorHandler: {
         serviceHasStartedSuccessfully: jest.fn()
       }
     };
-    serviceHasStartedSuccessfullySpy = jest.spyOn(
-      mockLanguageClient.errorHandler,
-      'serviceHasStartedSuccessfully'
-    );
+    serviceHasStartedSuccessfullySpy = jest.spyOn(mockLanguageClient.errorHandler, 'serviceHasStartedSuccessfully');
   });
 
   it('should be executed as expected', async () => {
-    await extensionUtils.setClientReady(
-      mockLanguageClient,
-      languageServerStatusBarItem
-    );
+    await extensionUtils.setClientReady(mockLanguageClient, languageServerStatusBarItem);
     expect(getTestOutlineProviderSpy).toHaveBeenCalled();
     expect(refreshSpy).toHaveBeenCalled();
     expect(readySpy).toHaveBeenCalled();

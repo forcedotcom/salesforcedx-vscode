@@ -13,13 +13,7 @@ import {
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  DebugConfiguration,
-  ExtensionContext,
-  extensions,
-  Uri,
-  WorkspaceFolder
-} from 'vscode';
+import { DebugConfiguration, ExtensionContext, extensions, Uri, WorkspaceFolder } from 'vscode';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { updateLastOpened } from '../../../src/index';
 import { nls } from '../../../src/messages';
@@ -40,9 +34,7 @@ describe('Configuration provider', () => {
 
   beforeEach(() => {
     getConfigSpy = sinon.spy(DebugConfigurationProvider, 'getConfig');
-    mockApexExtension = sinon
-      .stub(extensions, 'getExtension')
-      .returns(new MockApexExtension());
+    mockApexExtension = sinon.stub(extensions, 'getExtension').returns(new MockApexExtension());
     provider = new DebugConfigurationProvider();
   });
 
@@ -99,9 +91,7 @@ describe('Configuration provider', () => {
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
       expect(mockApexExtension.calledOnce).to.be.true;
     } else {
-      expect.fail(
-        'Did not get configuration information from resolveDebugConfiguration'
-      );
+      expect.fail('Did not get configuration information from resolveDebugConfiguration');
     }
   });
 
@@ -126,9 +116,7 @@ describe('Configuration provider', () => {
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
       expect(mockApexExtension.calledOnce).to.be.true;
     } else {
-      expect.fail(
-        'Did not get configuration information from resolveDebugConfiguration'
-      );
+      expect.fail('Did not get configuration information from resolveDebugConfiguration');
     }
   });
 });
@@ -146,17 +134,8 @@ describe('extension context log path tests', () => {
   };
 
   it('Should update the extension context', () => {
-    updateLastOpened(
-      (mContext as any) as ExtensionContext,
-      '/foo/bar/logfilename.log'
-    );
-    expect(mementoKeys).to.have.same.members([
-      `${LAST_OPENED_LOG_KEY}`,
-      `${LAST_OPENED_LOG_FOLDER_KEY}`
-    ]);
-    expect(mementoValues).to.have.same.members([
-      '/foo/bar/logfilename.log',
-      '/foo/bar'
-    ]);
+    updateLastOpened(mContext as any as ExtensionContext, '/foo/bar/logfilename.log');
+    expect(mementoKeys).to.have.same.members([`${LAST_OPENED_LOG_KEY}`, `${LAST_OPENED_LOG_FOLDER_KEY}`]);
+    expect(mementoValues).to.have.same.members(['/foo/bar/logfilename.log', '/foo/bar']);
   });
 });

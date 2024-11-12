@@ -5,15 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ApexLanguageClient } from '../apexLanguageClient';
-import {
-  DEBUGGER_EXCEPTION_BREAKPOINTS,
-  DEBUGGER_LINE_BREAKPOINTS
-} from '../constants';
-import {
-  ApexLSPConverter,
-  ApexTestMethod,
-  LSPApexTestMethod
-} from '../views/lspConverter';
+import { DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS } from '../constants';
+import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
 
 export class LanguageClientUtils {
   private static instance: LanguageClientUtils;
@@ -95,9 +88,7 @@ export const getApexTests = async (): Promise<ApexTestMethod[]> => {
   const ret = new Array<ApexTestMethod>();
   const languageClient = LanguageClientUtils.getInstance().getClientInstance();
   if (languageClient) {
-    response = (await languageClient.sendRequest(
-      'test/getTestMethods'
-    ));
+    response = await languageClient.sendRequest('test/getTestMethods');
   }
   for (const requestInfo of response) {
     ret.push(ApexLSPConverter.toApexTestMethod(requestInfo));

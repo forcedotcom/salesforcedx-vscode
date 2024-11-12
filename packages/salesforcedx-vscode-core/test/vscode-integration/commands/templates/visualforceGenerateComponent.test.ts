@@ -28,10 +28,7 @@ describe('Visualforce Generate Component', () => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -50,20 +47,9 @@ describe('Visualforce Generate Component', () => {
     // arrange
     const fileName = 'testVFCmp';
     const outputPath = 'force-app/main/default/components';
-    const vfCmpPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testVFCmp.component'
-    );
-    const vfCmpMetaPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testVFCmp.component-meta.xml'
-    );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    const vfCmpPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFCmp.component');
+    const vfCmpMetaPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFCmp.component-meta.xml');
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
     assert.noFile([vfCmpPath, vfCmpMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -77,9 +63,6 @@ describe('Visualforce Generate Component', () => {
     sinon.assert.calledWith(openTextDocumentStub, vfCmpPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
   });
 });

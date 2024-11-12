@@ -35,10 +35,7 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import * as os from 'os';
 import { basename } from 'path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
-import {
-  LineBreakpointInfo,
-  LineBreakpointsInTyperef
-} from '../breakpoints/lineBreakpoint';
+import { LineBreakpointInfo, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {
   DebuggerResponse,
   FrameCommand,
@@ -78,11 +75,7 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
-import {
-  VscodeDebuggerMessage,
-  VscodeDebuggerMessageType,
-  WorkspaceSettings
-} from '../index';
+import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../index';
 import { nls } from '../messages';
 
 // Below import has to be required for bundling
@@ -98,13 +91,7 @@ const TRACE_CATEGORY_STREAMINGAPI = 'streaming';
 
 const CONNECT_TYPE_ISV_DEBUGGER = 'ISV_DEBUGGER';
 
-export type TraceCategory =
-  | 'all'
-  | 'variables'
-  | 'launch'
-  | 'protocol'
-  | 'breakpoints'
-  | 'streaming';
+export type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol' | 'breakpoints' | 'streaming';
 
 export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   // comma separated list of trace selectors (see TraceCategory)
@@ -151,18 +138,8 @@ export class ApexVariable extends Variable {
   private readonly slot: number;
   private readonly kind: ApexVariableKind;
 
-  constructor(
-    value: Value,
-    kind: ApexVariableKind,
-    variableReference?: number,
-    numOfChildren?: number
-  ) {
-    super(
-      value.name,
-      ApexVariable.valueAsString(value),
-      variableReference,
-      numOfChildren
-    );
+  constructor(value: Value, kind: ApexVariableKind, variableReference?: number, numOfChildren?: number) {
+    super(value.name, ApexVariable.valueAsString(value), variableReference, numOfChildren);
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
     this.type = value.nameForMessages;
@@ -232,9 +209,7 @@ export class ApexVariable extends Variable {
   }
 
   private static isLocalOrField(v1: ApexVariable) {
-    return (
-      v1.kind === ApexVariableKind.Local || v1.kind === ApexVariableKind.Field
-    );
+    return v1.kind === ApexVariableKind.Local || v1.kind === ApexVariableKind.Field;
   }
 
   private static isString(value: Value) {
@@ -245,12 +220,7 @@ export class ApexVariable extends Variable {
 export type FilterType = 'named' | 'indexed' | 'all';
 
 export type VariableContainer = {
-  expand(
-    session: ApexDebug,
-    filter: FilterType,
-    start?: number,
-    count?: number
-  ): Promise<ApexVariable[]>;
+  expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]>;
 
   getNumberOfChildren(): number | undefined;
 };
@@ -266,19 +236,8 @@ export class ScopeContainer implements VariableContainer {
     this.frameInfo = frameInfo;
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  public async expand(
-    session: ApexDebug,
-    filter: FilterType,
-    start?: number,
-    count?: number
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): Promise<ApexVariable[]> {
-    if (
-      !this.frameInfo.locals &&
-      !this.frameInfo.statics &&
-      !this.frameInfo.globals
-    ) {
+  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+    if (!this.frameInfo.locals && !this.frameInfo.statics && !this.frameInfo.globals) {
       await session.fetchFrameVariables(this.frameInfo);
     }
 
@@ -303,17 +262,8 @@ export class ScopeContainer implements VariableContainer {
 
     return Promise.all(
       values.map(async value => {
-        const variableReference =
-          await session.resolveApexIdToVariableReference(
-            this.frameInfo.requestId,
-            value.ref
-          );
-        return new ApexVariable(
-          value,
-          variableKind,
-          variableReference,
-          session.getNumberOfChildren(variableReference)
-        );
+        const variableReference = await session.resolveApexIdToVariableReference(this.frameInfo.requestId, value.ref);
+        return new ApexVariable(value, variableKind, variableReference, session.getNumberOfChildren(variableReference));
       })
     );
   }
@@ -334,14 +284,7 @@ export class ObjectReferenceContainer implements VariableContainer {
     this.size = reference.size;
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  public async expand(
-    session: ApexDebug,
-    filter: FilterType,
-    start?: number,
-    count?: number
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): Promise<ApexVariable[]> {
+  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
     if (!this.reference.fields) {
       // this object is empty
       return [];
@@ -349,11 +292,7 @@ export class ObjectReferenceContainer implements VariableContainer {
 
     return Promise.all(
       this.reference.fields.map(async value => {
-        const variableReference =
-          await session.resolveApexIdToVariableReference(
-            this.requestId,
-            value.ref
-          );
+        const variableReference = await session.resolveApexIdToVariableReference(this.requestId, value.ref);
         return new ApexVariable(
           value,
           ApexVariableKind.Field,
@@ -370,12 +309,7 @@ export class ObjectReferenceContainer implements VariableContainer {
 }
 
 export class CollectionReferenceContainer extends ObjectReferenceContainer {
-  public async expand(
-    session: ApexDebug,
-    filter: FilterType,
-    start?: number,
-    count?: number
-  ): Promise<ApexVariable[]> {
+  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
     if (!this.reference.value) {
       // this object is empty
       return [];
@@ -387,11 +321,7 @@ export class CollectionReferenceContainer extends ObjectReferenceContainer {
       count = this.reference.value.length;
     }
     const apexVariables: ApexVariable[] = [];
-    for (
-      let i = start;
-      i < start + count && i < this.reference.value.length;
-      i++
-    ) {
+    for (let i = start; i < start + count && i < this.reference.value.length; i++) {
       const variableReference = await session.resolveApexIdToVariableReference(
         this.requestId,
         this.reference.value[i].ref
@@ -412,19 +342,11 @@ export class CollectionReferenceContainer extends ObjectReferenceContainer {
 export class MapReferenceContainer extends ObjectReferenceContainer {
   public readonly tupleContainers: Map<number, MapTupleContainer> = new Map();
 
-  public addTupleContainer(
-    reference: number,
-    tupleContainer: MapTupleContainer
-  ): void {
+  public addTupleContainer(reference: number, tupleContainer: MapTupleContainer): void {
     this.tupleContainers.set(reference, tupleContainer);
   }
 
-  public async expand(
-    session: ApexDebug,
-    filter: FilterType,
-    start?: number,
-    count?: number
-  ): Promise<ApexVariable[]> {
+  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
     if (start === undefined) {
       start = 0;
     }
@@ -472,14 +394,7 @@ export class MapTupleContainer implements VariableContainer {
     return ApexVariable.valueAsString(this.tuple.value);
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  public async expand(
-    session: ApexDebug,
-    filter: FilterType,
-    start?: number,
-    count?: number
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): Promise<ApexVariable[]> {
+  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
     if (!this.tuple.key && !this.tuple.value) {
       // this object is empty
       return [];
@@ -497,10 +412,7 @@ export class MapTupleContainer implements VariableContainer {
     const variables = [];
     if (this.tuple.key) {
       const keyVariableReference = this.tuple.key.ref
-        ? await session.resolveApexIdToVariableReference(
-            this.requestId,
-            this.tuple.key.ref
-          )
+        ? await session.resolveApexIdToVariableReference(this.requestId, this.tuple.key.ref)
         : undefined;
       variables.push(
         new ApexVariable(
@@ -513,10 +425,7 @@ export class MapTupleContainer implements VariableContainer {
     }
     if (this.tuple.value) {
       const valueVariableReference = this.tuple.value.ref
-        ? await session.resolveApexIdToVariableReference(
-            this.requestId,
-            this.tuple.value.ref
-          )
+        ? await session.resolveApexIdToVariableReference(this.requestId, this.tuple.value.ref)
         : undefined;
       variables.push(
         new ApexVariable(
@@ -567,11 +476,9 @@ export class ApexDebug extends LoggingDebugSession {
     this.threadId = 1;
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): void {
     this.initializedResponse = response;
     this.initializedResponse.body = {
@@ -593,12 +500,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(this.initializedResponse);
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  protected attachRequest(
-    response: DebugProtocol.AttachResponse,
-    args: DebugProtocol.AttachRequestArguments
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): void {
+  protected attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): void {
     response.success = false;
     this.sendResponse(response);
   }
@@ -634,9 +536,7 @@ export class ApexDebug extends LoggingDebugSession {
         );
       }, DEFAULT_IDLE_WARN3_MS),
       setTimeout(() => {
-        this.warnToDebugConsole(
-          nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60000)
-        );
+        this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60000));
         this.sendEvent(new TerminatedEvent());
       }, DEFAULT_IDLE_TIMEOUT_MS)
     );
@@ -656,19 +556,13 @@ export class ApexDebug extends LoggingDebugSession {
     return this.idleTimers;
   }
 
-  protected async launchRequest(
-    response: DebugProtocol.LaunchResponse,
-    args: LaunchRequestArguments
-  ): Promise<void> {
+  protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
     response.success = false;
     this.initBreakpointSessionServices(args);
     this.setValidBreakpointLines(args);
     this.setupLogger(args);
     this.salesforceProject = args.salesforceProject;
-    this.log(
-      TRACE_CATEGORY_LAUNCH,
-      `launchRequest: salesforceProject=${args.salesforceProject}`
-    );
+    this.log(TRACE_CATEGORY_LAUNCH, `launchRequest: salesforceProject=${args.salesforceProject}`);
     this.sendEvent(
       new Event(SEND_METRIC_EVENT, {
         subject: `launchRequest: salesforceProject=${args.salesforceProject}`,
@@ -688,10 +582,7 @@ export class ApexDebug extends LoggingDebugSession {
         );
         const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
         const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
-        if (
-          typeof isvDebuggerSid === 'undefined' ||
-          typeof isvDebuggerUrl === 'undefined'
-        ) {
+        if (typeof isvDebuggerSid === 'undefined' || typeof isvDebuggerUrl === 'undefined') {
           response.message = nls.localize('invalid_isv_project_config');
           // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set
           this.sendEvent(
@@ -705,16 +596,12 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo(
-          args.salesforceProject
-        );
+        const orgInfo = await new OrgDisplay().getOrgInfo(args.salesforceProject);
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }
 
-      const isStreamingConnected = await this.connectStreaming(
-        args.salesforceProject
-      );
+      const isStreamingConnected = await this.connectStreaming(args.salesforceProject);
       if (!isStreamingConnected) {
         return this.sendResponse(response);
       }
@@ -727,9 +614,7 @@ export class ApexDebug extends LoggingDebugSession {
         .start();
       if (this.mySessionService.isConnected()) {
         response.success = true;
-        this.printToDebugConsole(
-          nls.localize('session_started_text', sessionId)
-        );
+        this.printToDebugConsole(nls.localize('session_started_text', sessionId));
         // telemetry for the case where the ISV debugger started successfully
         if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
           this.sendEvent(
@@ -743,9 +628,7 @@ export class ApexDebug extends LoggingDebugSession {
         else {
           this.sendEvent(
             new Event(SEND_METRIC_EVENT, {
-              subject: nls.localize(
-                'interactive_debugger_launched_successfully'
-              ),
+              subject: nls.localize('interactive_debugger_launched_successfully'),
               type: 'startInteractiveDebuggerSuccess'
             })
           );
@@ -753,9 +636,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.sendEvent(new InitializedEvent());
         this.resetIdleTimer();
       } else {
-        this.errorToDebugConsole(
-          `${nls.localize('command_error_help_text')}:${os.EOL}${sessionId}`
-        );
+        this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${sessionId}`);
       }
     } catch (error) {
       this.tryToParseSfError(response, error);
@@ -763,18 +644,13 @@ export class ApexDebug extends LoggingDebugSession {
       if (error === undefined) {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
-            subject: nls.localize(
-              'isv_debugger_session_authentication_invalid'
-            ),
+            subject: nls.localize('isv_debugger_session_authentication_invalid'),
             type: 'startIsvDebuggerAuthenticationInvalid'
           })
         );
       }
       // telemetry for invalid org-isv-debugger-url
-      else if (
-        String(error) ===
-        "TypeError: Cannot read properties of undefined (reading 'pathname')"
-      ) {
+      else if (String(error) === "TypeError: Cannot read properties of undefined (reading 'pathname')") {
         this.sendEvent(
           new Event(SEND_METRIC_EVENT, {
             subject: nls.localize('org_isv_debugger_url_invalid'),
@@ -801,8 +677,7 @@ export class ApexDebug extends LoggingDebugSession {
       this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
       this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
       this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
-      this.myRequestService.connectionTimeoutMs =
-        workspaceSettings.connectionTimeoutMs;
+      this.myRequestService.connectionTimeoutMs = workspaceSettings.connectionTimeoutMs;
     }
 
     // initialize services
@@ -814,8 +689,7 @@ export class ApexDebug extends LoggingDebugSession {
     if (args && args.lineBreakpointInfo) {
       const lineBpInfo: LineBreakpointInfo[] = args.lineBreakpointInfo;
       if (lineBpInfo && lineBpInfo.length > 0) {
-        const lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> =
-          new Map();
+        const lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> = new Map();
         const typerefMapping: Map<string, string> = new Map();
         for (const info of lineBpInfo) {
           if (!lineNumberMapping.has(info.uri)) {
@@ -828,10 +702,7 @@ export class ApexDebug extends LoggingDebugSession {
           lineNumberMapping.get(info.uri)!.push(validLines);
           typerefMapping.set(info.typeref, info.uri);
         }
-        this.myBreakpointService.setValidLines(
-          lineNumberMapping,
-          typerefMapping
-        );
+        this.myBreakpointService.setValidLines(lineNumberMapping, typerefMapping);
       }
     }
   }
@@ -854,7 +725,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected async disconnectRequest(
     response: DebugProtocol.DisconnectResponse,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     try {
@@ -865,15 +736,9 @@ export class ApexDebug extends LoggingDebugSession {
           const terminatedSessionId = await this.mySessionService.stop();
           if (!this.mySessionService.isConnected()) {
             response.success = true;
-            this.printToDebugConsole(
-              nls.localize('session_terminated_text', terminatedSessionId)
-            );
+            this.printToDebugConsole(nls.localize('session_terminated_text', terminatedSessionId));
           } else {
-            this.errorToDebugConsole(
-              `${nls.localize('command_error_help_text')}:${
-                os.EOL
-              }${terminatedSessionId}`
-            );
+            this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${terminatedSessionId}`);
           }
         } catch (error) {
           this.tryToParseSfError(response, error);
@@ -897,23 +762,16 @@ export class ApexDebug extends LoggingDebugSession {
       const unverifiedBreakpoints: number[] = [];
       let verifiedBreakpoints: Set<number> = new Set();
       try {
-        verifiedBreakpoints = await this.lock.acquire(
-          `breakpoint-${uri}`,
-          async () => {
-            this.log(
-              TRACE_CATEGORY_BREAKPOINTS,
-              `setBreakPointsRequest: uri=${uri}`
-            );
-            const knownBps =
-              await this.myBreakpointService.reconcileLineBreakpoints(
-                this.salesforceProject,
-                uri,
-                this.mySessionService.getSessionId(),
-                args.lines!.map(line => this.convertClientLineToDebugger(line))
-              );
-            return Promise.resolve(knownBps);
-          }
-        );
+        verifiedBreakpoints = await this.lock.acquire(`breakpoint-${uri}`, async () => {
+          this.log(TRACE_CATEGORY_BREAKPOINTS, `setBreakPointsRequest: uri=${uri}`);
+          const knownBps = await this.myBreakpointService.reconcileLineBreakpoints(
+            this.salesforceProject,
+            uri,
+            this.mySessionService.getSessionId(),
+            args.lines!.map(line => this.convertClientLineToDebugger(line))
+          );
+          return Promise.resolve(knownBps);
+        });
         // tslint:disable-next-line:no-empty
       } catch (error) {}
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
@@ -937,11 +795,9 @@ export class ApexDebug extends LoggingDebugSession {
       });
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
-        `setBreakPointsRequest: uri=${uri} args.lines=${args.lines.join(
-          ','
-        )} verified=${Array.from(verifiedBreakpoints).join(
-          ','
-        )} unverified=${unverifiedBreakpoints.join(',')}`
+        `setBreakPointsRequest: uri=${uri} args.lines=${args.lines.join(',')} verified=${Array.from(
+          verifiedBreakpoints
+        ).join(',')} unverified=${unverifiedBreakpoints.join(',')}`
       );
     }
     response.success = true;
@@ -967,10 +823,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected async nextRequest(
-    response: DebugProtocol.NextResponse,
-    args: DebugProtocol.NextArguments
-  ): Promise<void> {
+  protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
     response.success = false;
     if (this.requestThreads.has(args.threadId)) {
       const requestId = this.requestThreads.get(args.threadId)!;
@@ -1021,9 +874,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
     const debuggedThreads: Thread[] = [];
     for (const threadId of this.requestThreads.keys()) {
-      debuggedThreads.push(
-        new Thread(threadId, `Request ID: ${this.requestThreads.get(threadId)}`)
-      );
+      debuggedThreads.push(new Thread(threadId, `Request ID: ${this.requestThreads.get(threadId)}`));
     }
     response.success = true;
     response.body = { threads: debuggedThreads };
@@ -1046,9 +897,7 @@ export class ApexDebug extends LoggingDebugSession {
           TRACE_CATEGORY_VARIABLES,
           `stackTraceRequest: args threadId=${args.threadId} startFrame=${args.startFrame} levels=${args.levels}`
         );
-        const responseString = await this.myRequestService.execute(
-          new StateCommand(requestId)
-        );
+        const responseString = await this.myRequestService.execute(new StateCommand(requestId));
         return Promise.resolve(responseString);
       });
       const stateRespObj: DebuggerResponse = JSON.parse(stateResponse);
@@ -1056,58 +905,35 @@ export class ApexDebug extends LoggingDebugSession {
       if (this.hasStackFrames(stateRespObj)) {
         const serverFrames = stateRespObj.stateResponse.state.stack.stackFrame;
         for (let i = 0; i < serverFrames.length; i++) {
-          const sourcePath = this.myBreakpointService.getSourcePathFromTyperef(
-            serverFrames[i].typeRef
-          );
-          const frameInfo = new ApexDebugStackFrameInfo(
-            requestId,
-            serverFrames[i].frameNumber
-          );
+          const sourcePath = this.myBreakpointService.getSourcePathFromTyperef(serverFrames[i].typeRef);
+          const frameInfo = new ApexDebugStackFrameInfo(requestId, serverFrames[i].frameNumber);
           const frameId = this.stackFrameInfos.create(frameInfo);
           if (i === 0 && stateRespObj.stateResponse.state) {
             // populate first stack frame with info from state response (saves a server round trip)
             this.log(
               TRACE_CATEGORY_VARIABLES,
-              'stackTraceRequest: state=' +
-                JSON.stringify(stateRespObj.stateResponse.state)
+              'stackTraceRequest: state=' + JSON.stringify(stateRespObj.stateResponse.state)
             );
-            if (
-              stateRespObj.stateResponse.state.locals &&
-              stateRespObj.stateResponse.state.locals.local
-            ) {
+            if (stateRespObj.stateResponse.state.locals && stateRespObj.stateResponse.state.locals.local) {
               frameInfo.locals = stateRespObj.stateResponse.state.locals.local;
             } else {
               frameInfo.locals = [];
             }
 
-            if (
-              stateRespObj.stateResponse.state.statics &&
-              stateRespObj.stateResponse.state.statics.static
-            ) {
-              frameInfo.statics =
-                stateRespObj.stateResponse.state.statics.static;
+            if (stateRespObj.stateResponse.state.statics && stateRespObj.stateResponse.state.statics.static) {
+              frameInfo.statics = stateRespObj.stateResponse.state.statics.static;
             } else {
               frameInfo.statics = [];
             }
 
-            if (
-              stateRespObj.stateResponse.state.globals &&
-              stateRespObj.stateResponse.state.globals.global
-            ) {
-              frameInfo.globals =
-                stateRespObj.stateResponse.state.globals.global;
+            if (stateRespObj.stateResponse.state.globals && stateRespObj.stateResponse.state.globals.global) {
+              frameInfo.globals = stateRespObj.stateResponse.state.globals.global;
             } else {
               frameInfo.globals = [];
             }
 
-            if (
-              stateRespObj.stateResponse.state.references &&
-              stateRespObj.stateResponse.state.references.references
-            ) {
-              this.populateReferences(
-                stateRespObj.stateResponse.state.references.references,
-                frameInfo.requestId
-              );
+            if (stateRespObj.stateResponse.state.references && stateRespObj.stateResponse.state.references.references) {
+              this.populateReferences(stateRespObj.stateResponse.state.references.references, frameInfo.requestId);
             }
           }
 
@@ -1115,12 +941,7 @@ export class ApexDebug extends LoggingDebugSession {
             new StackFrame(
               frameId,
               serverFrames[i].fullName,
-              sourcePath
-                ? new Source(
-                    basename(sourcePath),
-                    this.convertDebuggerPathToClient(sourcePath)
-                  )
-                : undefined,
+              sourcePath ? new Source(basename(sourcePath), this.convertDebuggerPathToClient(sourcePath)) : undefined,
               this.convertDebuggerLineToClient(serverFrames[i].lineNumber),
               0
             )
@@ -1149,18 +970,13 @@ export class ApexDebug extends LoggingDebugSession {
     return false;
   }
 
-  protected async customRequest(
-    command: string,
-    response: DebugProtocol.Response,
-    args: any
-  ): Promise<void> {
+  protected async customRequest(command: string, response: DebugProtocol.Response, args: any): Promise<void> {
     response.success = true;
     switch (command) {
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
       case EXCEPTION_BREAKPOINT_REQUEST:
-        // eslint-disable-next-line no-case-declarations
         const requestArgs: SetExceptionBreakpointsArguments = args;
         if (requestArgs && requestArgs.exceptionInfo) {
           try {
@@ -1171,41 +987,24 @@ export class ApexDebug extends LoggingDebugSession {
                 requestArgs.exceptionInfo
               );
             });
-            if (
-              requestArgs.exceptionInfo.breakMode ===
-              EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS
-            ) {
+            if (requestArgs.exceptionInfo.breakMode === EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS) {
               this.printToDebugConsole(
-                nls.localize(
-                  'created_exception_breakpoint_text',
-                  requestArgs.exceptionInfo.label
-                )
+                nls.localize('created_exception_breakpoint_text', requestArgs.exceptionInfo.label)
               );
-            } else if (
-              requestArgs.exceptionInfo.breakMode ===
-              EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
-            ) {
+            } else if (requestArgs.exceptionInfo.breakMode === EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER) {
               this.printToDebugConsole(
-                nls.localize(
-                  'removed_exception_breakpoint_text',
-                  requestArgs.exceptionInfo.label
-                )
+                nls.localize('removed_exception_breakpoint_text', requestArgs.exceptionInfo.label)
               );
             }
           } catch (error) {
             response.success = false;
-            this.log(
-              TRACE_CATEGORY_BREAKPOINTS,
-              `exceptionBreakpointRequest: error=${error}`
-            );
+            this.log(TRACE_CATEGORY_BREAKPOINTS, `exceptionBreakpointRequest: error=${error}`);
           }
         }
         break;
       case LIST_EXCEPTION_BREAKPOINTS_REQUEST:
         response.body = {
-          typerefs: Array.from(
-            this.myBreakpointService.getExceptionBreakpointCache().keys()
-          )
+          typerefs: Array.from(this.myBreakpointService.getExceptionBreakpointCache().keys())
         };
         break;
       default:
@@ -1221,37 +1020,16 @@ export class ApexDebug extends LoggingDebugSession {
     response.success = true;
     const frameInfo = this.stackFrameInfos.get(args.frameId);
     if (!frameInfo) {
-      this.log(
-        TRACE_CATEGORY_VARIABLES,
-        `scopesRequest: no frame info found for stack frame ${args.frameId}`
-      );
+      this.log(TRACE_CATEGORY_VARIABLES, `scopesRequest: no frame info found for stack frame ${args.frameId}`);
       response.body = { scopes: [] };
       this.sendResponse(response);
       return;
     }
 
     const scopes = new Array<Scope>();
-    scopes.push(
-      new Scope(
-        'Local',
-        this.variableHandles.create(new ScopeContainer('local', frameInfo)),
-        false
-      )
-    );
-    scopes.push(
-      new Scope(
-        'Static',
-        this.variableHandles.create(new ScopeContainer('static', frameInfo)),
-        false
-      )
-    );
-    scopes.push(
-      new Scope(
-        'Global',
-        this.variableHandles.create(new ScopeContainer('global', frameInfo)),
-        false
-      )
-    );
+    scopes.push(new Scope('Local', this.variableHandles.create(new ScopeContainer('local', frameInfo)), false));
+    scopes.push(new Scope('Static', this.variableHandles.create(new ScopeContainer('static', frameInfo)), false));
+    scopes.push(new Scope('Global', this.variableHandles.create(new ScopeContainer('global', frameInfo)), false));
     scopes.forEach(scope => {
       this.log(
         TRACE_CATEGORY_VARIABLES,
@@ -1268,9 +1046,7 @@ export class ApexDebug extends LoggingDebugSession {
     args: DebugProtocol.VariablesArguments
   ): Promise<void> {
     response.success = true;
-    const variablesContainer = this.variableHandles.get(
-      args.variablesReference
-    );
+    const variablesContainer = this.variableHandles.get(args.variablesReference);
     if (!variablesContainer) {
       this.log(
         TRACE_CATEGORY_VARIABLES,
@@ -1287,109 +1063,69 @@ export class ApexDebug extends LoggingDebugSession {
       );
     }
 
-    const filter: FilterType =
-      args.filter === 'indexed' || args.filter === 'named'
-        ? args.filter
-        : 'all';
+    const filter: FilterType = args.filter === 'indexed' || args.filter === 'named' ? args.filter : 'all';
     try {
-      const variables = await variablesContainer.expand(
-        this,
-        filter,
-        args.start,
-        args.count
-      );
+      const variables = await variablesContainer.expand(this, filter, args.start, args.count);
       variables.sort(ApexVariable.compareVariables);
       response.body = { variables };
       this.resetIdleTimer();
       this.sendResponse(response);
     } catch (error) {
-      this.log(
-        TRACE_CATEGORY_VARIABLES,
-        `variablesRequest: error reading variables ${error} ${error.stack}`
-      );
+      this.log(TRACE_CATEGORY_VARIABLES, `variablesRequest: error reading variables ${error} ${error.stack}`);
       // in case of error return empty variables array
       response.body = { variables: [] };
       this.sendResponse(response);
     }
   }
 
-  public async fetchFrameVariables(
-    frameInfo: ApexDebugStackFrameInfo
-  ): Promise<void> {
+  public async fetchFrameVariables(frameInfo: ApexDebugStackFrameInfo): Promise<void> {
     const frameResponse = await this.myRequestService.execute(
       new FrameCommand(frameInfo.requestId, frameInfo.frameNumber)
     );
     const frameRespObj: DebuggerResponse = JSON.parse(frameResponse);
-    if (
-      frameRespObj &&
-      frameRespObj.frameResponse &&
-      frameRespObj.frameResponse.frame
-    ) {
+    if (frameRespObj && frameRespObj.frameResponse && frameRespObj.frameResponse.frame) {
       this.log(
         TRACE_CATEGORY_VARIABLES,
-        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` +
-          JSON.stringify(frameRespObj.frameResponse.frame)
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` + JSON.stringify(frameRespObj.frameResponse.frame)
       );
-      if (
-        frameRespObj.frameResponse.frame.locals &&
-        frameRespObj.frameResponse.frame.locals.local
-      ) {
+      if (frameRespObj.frameResponse.frame.locals && frameRespObj.frameResponse.frame.locals.local) {
         frameInfo.locals = frameRespObj.frameResponse.frame.locals.local;
       } else {
         frameInfo.locals = [];
       }
 
-      if (
-        frameRespObj.frameResponse.frame.statics &&
-        frameRespObj.frameResponse.frame.statics.static
-      ) {
+      if (frameRespObj.frameResponse.frame.statics && frameRespObj.frameResponse.frame.statics.static) {
         frameInfo.statics = frameRespObj.frameResponse.frame.statics.static;
       } else {
         frameInfo.statics = [];
       }
 
-      if (
-        frameRespObj.frameResponse.frame.globals &&
-        frameRespObj.frameResponse.frame.globals.global
-      ) {
+      if (frameRespObj.frameResponse.frame.globals && frameRespObj.frameResponse.frame.globals.global) {
         frameInfo.globals = frameRespObj.frameResponse.frame.globals.global;
       } else {
         frameInfo.globals = [];
       }
 
-      if (
-        frameRespObj.frameResponse.frame.references &&
-        frameRespObj.frameResponse.frame.references.references
-      ) {
-        this.populateReferences(
-          frameRespObj.frameResponse.frame.references.references,
-          frameInfo.requestId
-        );
+      if (frameRespObj.frameResponse.frame.references && frameRespObj.frameResponse.frame.references.references) {
+        this.populateReferences(frameRespObj.frameResponse.frame.references.references, frameInfo.requestId);
       }
     }
   }
 
-  protected populateReferences(
-    references: Reference[],
-    requestId: string
-  ): void {
+  protected populateReferences(references: Reference[], requestId: string): void {
     references.map(reference => {
       if (this.variableContainerReferenceByApexId.has(reference.id)) {
         return;
       }
       let variableReference: number;
       if (reference.type === 'object') {
-        variableReference = this.variableHandles.create(
-          new ObjectReferenceContainer(reference, requestId)
-        );
+        variableReference = this.variableHandles.create(new ObjectReferenceContainer(reference, requestId));
         this.log(
           TRACE_CATEGORY_VARIABLES,
           `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
         );
       } else if (reference.type === 'list' || reference.type === 'set') {
-        variableReference = this.variableHandles.create(
-          new CollectionReferenceContainer(reference, requestId)
-        );
+        variableReference = this.variableHandles.create(new CollectionReferenceContainer(reference, requestId));
         this.log(
           TRACE_CATEGORY_VARIABLES,
           `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages} with size ${reference.size}`
@@ -1411,24 +1147,16 @@ export class ApexDebug extends LoggingDebugSession {
         );
       } else {
         const referenceInfo = JSON.stringify(reference);
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `populateReferences: unhandled reference: ${referenceInfo}`
-        );
+        this.log(TRACE_CATEGORY_VARIABLES, `populateReferences: unhandled reference: ${referenceInfo}`);
         return;
       }
 
       // map apex id to container reference
-      this.variableContainerReferenceByApexId.set(
-        reference.id,
-        variableReference
-      );
+      this.variableContainerReferenceByApexId.set(reference.id, variableReference);
     });
   }
 
-  public getNumberOfChildren(
-    variableReference: number | undefined
-  ): number | undefined {
+  public getNumberOfChildren(variableReference: number | undefined): number | undefined {
     if (variableReference !== undefined) {
       const variableContainer = this.variableHandles.get(variableReference);
       if (variableContainer) {
@@ -1454,8 +1182,7 @@ export class ApexDebug extends LoggingDebugSession {
         return;
       }
     }
-    const variableReference =
-      this.variableContainerReferenceByApexId.get(apexId);
+    const variableReference = this.variableContainerReferenceByApexId.get(apexId);
     this.log(
       TRACE_CATEGORY_VARIABLES,
       `resolveApexIdToVariableReference: resolved apexId=${apexId} to variableReference=${variableReference}`
@@ -1463,39 +1190,25 @@ export class ApexDebug extends LoggingDebugSession {
     return variableReference;
   }
 
-  public async fetchReferences(
-    requestId: string,
-    ...apexIds: number[]
-  ): Promise<void> {
+  public async fetchReferences(requestId: string, ...apexIds: number[]): Promise<void> {
     this.log(
       TRACE_CATEGORY_VARIABLES,
       `fetchReferences: fetching references with apexIds=${apexIds} (request ${requestId})`
     );
-    const referencesResponse = await this.myRequestService.execute(
-      new ReferencesCommand(requestId, ...apexIds)
-    );
-    const referencesResponseObj: DebuggerResponse =
-      JSON.parse(referencesResponse);
+    const referencesResponse = await this.myRequestService.execute(new ReferencesCommand(requestId, ...apexIds));
+    const referencesResponseObj: DebuggerResponse = JSON.parse(referencesResponse);
     if (
       referencesResponseObj &&
       referencesResponseObj.referencesResponse &&
       referencesResponseObj.referencesResponse.references &&
       referencesResponseObj.referencesResponse.references.references
     ) {
-      this.populateReferences(
-        referencesResponseObj.referencesResponse.references.references,
-        requestId
-      );
+      this.populateReferences(referencesResponseObj.referencesResponse.references.references, requestId);
     }
   }
 
-  public async fetchReferencesIfNecessary(
-    requestId: string,
-    apexIds: number[]
-  ): Promise<void> {
-    const apexIdsToFetch = apexIds.filter(
-      apexId => !this.variableContainerReferenceByApexId.has(apexId)
-    );
+  public async fetchReferencesIfNecessary(requestId: string, apexIds: number[]): Promise<void> {
+    const apexIdsToFetch = apexIds.filter(apexId => !this.variableContainerReferenceByApexId.has(apexId));
     if (apexIdsToFetch.length === 0) {
       return;
     }
@@ -1506,10 +1219,7 @@ export class ApexDebug extends LoggingDebugSession {
     await this.fetchReferences(requestId, ...apexIdsToFetch);
   }
 
-  protected evaluateRequest(
-    response: DebugProtocol.EvaluateResponse,
-    args: DebugProtocol.EvaluateArguments
-  ): void {
+  protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
     response.body = {
       result: args.expression,
       variablesReference: 0
@@ -1518,16 +1228,9 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected printToDebugConsole(
-    msg?: string,
-    sourceFile?: Source,
-    sourceLine?: number
-  ): void {
+  protected printToDebugConsole(msg?: string, sourceFile?: Source, sourceLine?: number): void {
     if (msg && msg.length !== 0) {
-      const event: DebugProtocol.OutputEvent = new OutputEvent(
-        `${msg}${ApexDebug.LINEBREAK}`,
-        'stdout'
-      );
+      const event: DebugProtocol.OutputEvent = new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stdout');
       event.body.source = sourceFile;
       event.body.line = sourceLine;
       event.body.column = 0;
@@ -1537,9 +1240,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected warnToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
-      this.sendEvent(
-        new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'console')
-      );
+      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'console'));
     }
   }
 
@@ -1550,18 +1251,12 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   public log(traceCategory: TraceCategory, message: string) {
-    if (
-      this.trace &&
-      (this.traceAll || this.trace.indexOf(traceCategory) >= 0)
-    ) {
+    if (this.trace && (this.traceAll || this.trace.indexOf(traceCategory) >= 0)) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
 
-  public tryToParseSfError(
-    response: DebugProtocol.Response,
-    error?: any
-  ): void {
+  public tryToParseSfError(response: DebugProtocol.Response, error?: any): void {
     if (!error) {
       return;
     }
@@ -1570,54 +1265,34 @@ export class ApexDebug extends LoggingDebugSession {
       const errorObj = extractJsonObject(error);
       if (errorObj && errorObj.message) {
         const errorMessage: string = errorObj.message;
-        if (
-          errorMessage.includes(
-            'entity type cannot be inserted: Apex Debugger Session'
-          )
-        ) {
+        if (errorMessage.includes('entity type cannot be inserted: Apex Debugger Session')) {
           response.message = nls.localize('session_no_entity_access_text');
         } else {
           response.message = errorMessage;
         }
         if (errorObj.action) {
-          this.errorToDebugConsole(
-            `${nls.localize('command_error_help_text')}:${os.EOL}${
-              errorObj.action
-            }`
-          );
+          this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${errorObj.action}`);
         }
       } else {
         response.message = nls.localize('unexpected_error_help_text');
-        this.errorToDebugConsole(
-          `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
-        );
+        this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
       }
     } catch (e) {
-      response.message =
-        response.message || nls.localize('unexpected_error_help_text');
-      this.errorToDebugConsole(
-        `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
-      );
+      response.message = response.message || nls.localize('unexpected_error_help_text');
+      this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
     }
   }
 
   public async connectStreaming(projectPath: string): Promise<boolean> {
     const clientInfos: StreamingClientInfo[] = [];
-    for (const channel of [
-      StreamingService.SYSTEM_EVENT_CHANNEL,
-      StreamingService.USER_EVENT_CHANNEL
-    ]) {
+    for (const channel of [StreamingService.SYSTEM_EVENT_CHANNEL, StreamingService.USER_EVENT_CHANNEL]) {
       const clientInfo = new StreamingClientInfoBuilder()
         .forChannel(channel)
         .withConnectedHandler(() => {
-          this.printToDebugConsole(
-            nls.localize('streaming_connected_text', channel)
-          );
+          this.printToDebugConsole(nls.localize('streaming_connected_text', channel));
         })
         .withDisconnectedHandler(() => {
-          this.printToDebugConsole(
-            nls.localize('streaming_disconnected_text', channel)
-          );
+          this.printToDebugConsole(nls.localize('streaming_disconnected_text', channel));
         })
         .withErrorHandler((reason: string) => {
           this.errorToDebugConsole(reason);
@@ -1634,22 +1309,12 @@ export class ApexDebug extends LoggingDebugSession {
     const systemChannelInfo = clientInfos[0];
     const userChannelInfo = clientInfos[1];
 
-    return this.myStreamingService.subscribe(
-      projectPath,
-      this.myRequestService,
-      systemChannelInfo,
-      userChannelInfo
-    );
+    return this.myStreamingService.subscribe(projectPath, this.myRequestService, systemChannelInfo, userChannelInfo);
   }
 
   public handleEvent(message: DebuggerMessage): void {
-    const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[
-      message.sobject.Type
-    ];
-    this.log(
-      TRACE_CATEGORY_STREAMINGAPI,
-      `handleEvent: received ${JSON.stringify(message)}`
-    );
+    const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[message.sobject.Type];
+    this.log(TRACE_CATEGORY_STREAMINGAPI, `handleEvent: received ${JSON.stringify(message)}`);
     if (
       !this.mySessionService.isConnected() ||
       this.mySessionService.getSessionId() !== message.sobject.SessionId ||
@@ -1712,10 +1377,7 @@ export class ApexDebug extends LoggingDebugSession {
   public logEvent(message: DebuggerMessage): void {
     let eventDescriptionSourceFile: Source | undefined;
     let eventDescriptionSourceLine: number | undefined;
-    let logMessage =
-      message.event.createdDate === null
-        ? new Date().toUTCString()
-        : message.event.createdDate;
+    let logMessage = message.event.createdDate === null ? new Date().toUTCString() : message.event.createdDate;
     logMessage += ` | ${message.sobject.Type}`;
     if (message.sobject.RequestId) {
       logMessage += ` | Request: ${message.sobject.RequestId}`;
@@ -1733,17 +1395,13 @@ export class ApexDebug extends LoggingDebugSession {
       if (matches && matches.length === 3) {
         const possibleClassName = matches[1];
         const possibleClassLine = parseInt(matches[2], 10);
-        const possibleSourcePath =
-          this.myBreakpointService.getSourcePathFromPartialTyperef(
-            possibleClassName
-          );
+        const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(possibleClassName);
         if (possibleSourcePath) {
           eventDescriptionSourceFile = new Source(
             basename(possibleSourcePath),
             this.convertDebuggerPathToClient(possibleSourcePath)
           );
-          eventDescriptionSourceLine =
-            this.convertDebuggerLineToClient(possibleClassLine);
+          eventDescriptionSourceLine = this.convertDebuggerLineToClient(possibleClassLine);
         }
       }
     }
@@ -1751,16 +1409,10 @@ export class ApexDebug extends LoggingDebugSession {
       logMessage += ` |${os.EOL}${message.sobject.Stacktrace}`;
     }
 
-    this.printToDebugConsole(
-      logMessage,
-      eventDescriptionSourceFile,
-      eventDescriptionSourceLine
-    );
+    this.printToDebugConsole(logMessage, eventDescriptionSourceFile, eventDescriptionSourceLine);
   }
 
-  private getThreadIdFromRequestId(
-    requestId: string | undefined
-  ): number | undefined {
+  private getThreadIdFromRequestId(requestId: string | undefined): number | undefined {
     for (const threadId of this.requestThreads.keys()) {
       if (this.requestThreads.get(threadId) === requestId) {
         return threadId;
@@ -1785,10 +1437,7 @@ export class ApexDebug extends LoggingDebugSession {
 
       // cleanup everything that's no longer necessary after all request finished
       if (this.requestThreads.size === 0) {
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          'handleRequestFinished: clearing variable cache'
-        );
+        this.log(TRACE_CATEGORY_VARIABLES, 'handleRequestFinished: clearing variable cache');
         this.stackFrameInfos.reset();
         this.variableHandles.reset();
         this.variableContainerReferenceByApexId.clear();
@@ -1831,10 +1480,7 @@ export class ApexDebug extends LoggingDebugSession {
       // cleanup everything that's no longer valid after a stop event
       // but only if only one request is currently debugged (we wan't to preserve the info for a second request)
       if (this.requestThreads.size === 1) {
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          'handleStopped: clearing variable cache'
-        );
+        this.log(TRACE_CATEGORY_VARIABLES, 'handleStopped: clearing variable cache');
         this.stackFrameInfos.reset();
         this.variableHandles.reset();
         this.variableContainerReferenceByApexId.clear();
@@ -1847,8 +1493,7 @@ export class ApexDebug extends LoggingDebugSession {
       // if breakpointid is found in exception breakpoint cache
       // set the reason for stopped event to that reason
       if (message.sobject.BreakpointId) {
-        const cache: Map<string, string> =
-          this.myBreakpointService.getExceptionBreakpointCache();
+        const cache: Map<string, string> = this.myBreakpointService.getExceptionBreakpointCache();
         cache.forEach((value, key) => {
           if (value === message.sobject.BreakpointId) {
             // typerefs for exceptions will change based on whether they are custom,
@@ -1861,10 +1506,7 @@ export class ApexDebug extends LoggingDebugSession {
           }
         });
       }
-      const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(
-        reason,
-        threadId
-      );
+      const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(reason, threadId);
       this.sendEvent(stoppedEvent);
     }
   }

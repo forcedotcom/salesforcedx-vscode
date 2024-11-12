@@ -6,11 +6,7 @@
  */
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
-import {
-  CliCommandExecutor,
-  CommandOutput,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   EmptyParametersGatherer,
@@ -134,10 +130,7 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
     if (vscode.window.activeTextEditor) {
       sourceUri = vscode.window.activeTextEditor.document.uri;
     } else {
-      const message = nls.localize(
-        'lightning_lwc_preview_file_undefined',
-        sourceUri
-      );
+      const message = nls.localize('lightning_lwc_preview_file_undefined', sourceUri);
       showError(new Error(message), logName, commandName);
       return;
     }
@@ -145,19 +138,13 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
 
   const resourcePath = sourceUri.fsPath;
   if (!resourcePath) {
-    const message = nls.localize(
-      'lightning_lwc_preview_file_undefined',
-      resourcePath
-    );
+    const message = nls.localize('lightning_lwc_preview_file_undefined', resourcePath);
     showError(new Error(message), logName, commandName);
     return;
   }
 
   if (!fs.existsSync(resourcePath)) {
-    const message = nls.localize(
-      'lightning_lwc_preview_file_nonexist',
-      resourcePath
-    );
+    const message = nls.localize('lightning_lwc_preview_file_nonexist', resourcePath);
     showError(new Error(message), logName, commandName);
     return;
   }
@@ -168,10 +155,7 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
     ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
     : componentUtil.moduleFromFile(resourcePath, isSFDX);
   if (!componentName) {
-    const message = nls.localize(
-      'lightning_lwc_preview_unsupported',
-      resourcePath
-    );
+    const message = nls.localize('lightning_lwc_preview_unsupported', resourcePath);
     showError(new Error(message), logName, commandName);
     return;
   }
@@ -189,14 +173,8 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
  * @param componentName name of the lwc
  * @param resourcePath path to the lwc
  */
-const executePreview = async (
-  startTime: [number, number],
-  componentName: string,
-  resourcePath: string
-) => {
-  const commandCancelledMessage = nls.localize(
-    'lightning_lwc_operation_cancelled'
-  );
+const executePreview = async (startTime: [number, number], componentName: string, resourcePath: string) => {
+  const commandCancelledMessage = nls.localize('lightning_lwc_operation_cancelled');
 
   // 1. Prompt user to select a platform
   const platformSelection = await selectPlatform();
@@ -227,8 +205,7 @@ const executePreview = async (
 
   // 3. Determine project root directory and path to the config file
   const projectRootDir = getProjectRootDirectory(resourcePath);
-  const configFilePath =
-    projectRootDir && path.join(projectRootDir, 'mobile-apps.json');
+  const configFilePath = projectRootDir && path.join(projectRootDir, 'mobile-apps.json');
 
   // 4. Prompt user to select a target app (if any)
   const targetApp = await selectTargetApp(platformSelection, configFilePath);
@@ -258,11 +235,7 @@ const executePreview = async (
  * @param componentName name of the component to preview
  * @param startTime start time of the preview command
  */
-const startServer = async (
-  isDesktop: boolean,
-  componentName: string,
-  startTime: [number, number]
-) => {
+const startServer = async (isDesktop: boolean, componentName: string, startTime: [number, number]) => {
   if (!DevServerService.instance.isServerHandlerRegistered()) {
     console.log(`${logName}: server was not running, starting...`);
     const preconditionChecker = new SfWorkspaceChecker();
@@ -272,18 +245,13 @@ const startServer = async (
       componentName
     });
 
-    const commandlet = new SfCommandlet(
-      preconditionChecker,
-      parameterGatherer,
-      executor
-    );
+    const commandlet = new SfCommandlet(preconditionChecker, parameterGatherer, executor);
 
     await commandlet.run();
     telemetryService.sendCommandEvent(logName, startTime);
   } else if (isDesktop) {
     try {
-      const fullUrl =
-        DevServerService.instance.getComponentPreviewUrl(componentName);
+      const fullUrl = DevServerService.instance.getComponentPreviewUrl(componentName);
       await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
@@ -310,13 +278,9 @@ const selectPlatform = async (): Promise<PreviewQuickPickItem | undefined> => {
  * @param platformSelection the selected platform
  * @returns the name of the selected device or undefined if no selection was made.
  */
-const selectTargetDevice = async (
-  platformSelection: PreviewQuickPickItem
-): Promise<string | undefined> => {
+const selectTargetDevice = async (platformSelection: PreviewQuickPickItem): Promise<string | undefined> => {
   const isAndroid = platformSelection.id === PreviewPlatformType.Android;
-  const lastTarget = PreviewService.instance.getRememberedDevice(
-    platformSelection.platformName
-  );
+  const lastTarget = PreviewService.instance.getRememberedDevice(platformSelection.platformName);
   let target: string | undefined = platformSelection.defaultTargetName;
   let createDevicePlaceholderText = isAndroid
     ? nls.localize('lightning_lwc_android_target_default')
@@ -324,9 +288,7 @@ const selectTargetDevice = async (
 
   // Remember device setting enabled and previous device retrieved.
   if (PreviewService.instance.isRememberedDeviceEnabled() && lastTarget) {
-    const message = isAndroid
-      ? 'lightning_lwc_android_target_remembered'
-      : 'lightning_lwc_ios_target_remembered';
+    const message = isAndroid ? 'lightning_lwc_android_target_remembered' : 'lightning_lwc_ios_target_remembered';
     createDevicePlaceholderText = nls.localize(message, lastTarget);
     target = lastTarget;
   }
@@ -339,13 +301,10 @@ const selectTargetDevice = async (
     .build();
 
   let deviceListExecutionExitCode: number | undefined;
-  const deviceListCancellationTokenSource =
-    new vscode.CancellationTokenSource();
+  const deviceListCancellationTokenSource = new vscode.CancellationTokenSource();
   const deviceListCancellationToken = deviceListCancellationTokenSource.token;
   const deviceListExecutor = new CliCommandExecutor(deviceListCommand, {});
-  const deviceListExecution = deviceListExecutor.execute(
-    deviceListCancellationToken
-  );
+  const deviceListExecution = deviceListExecutor.execute(deviceListCancellationToken);
   deviceListExecution.processExitSubject.subscribe(exitCode => {
     deviceListExecutionExitCode = exitCode;
   });
@@ -359,15 +318,13 @@ const selectTargetDevice = async (
   let targetName: string | undefined;
 
   try {
-    const result: string =
-      await deviceListOutput.getCmdResult(deviceListExecution);
+    const result: string = await deviceListOutput.getCmdResult(deviceListExecution);
 
     const jsonString: string = result.substring(result.indexOf('{'));
 
     // populate quick pick list of devices from the parsed JSON data
     if (isAndroid) {
-      const devices: AndroidVirtualDevice[] = JSON.parse(jsonString)
-        .result as AndroidVirtualDevice[];
+      const devices: AndroidVirtualDevice[] = JSON.parse(jsonString).result as AndroidVirtualDevice[];
       devices.forEach(device => {
         const label: string = device.displayName;
         const detail: string = `${device.target}, ${device.api}`;
@@ -375,8 +332,7 @@ const selectTargetDevice = async (
         items.push({ label, detail, name });
       });
     } else {
-      const devices: IOSSimulatorDevice[] = JSON.parse(jsonString)
-        .result as IOSSimulatorDevice[];
+      const devices: IOSSimulatorDevice[] = JSON.parse(jsonString).result as IOSSimulatorDevice[];
       devices.forEach(device => {
         const label: string = device.name;
         const detail: string = device.runtimeId;
@@ -390,15 +346,8 @@ const selectTargetDevice = async (
     // then show an error message and exit. For other reasons,
     // silently fail and proceed with an empty list of devices.
     const error = String(e) || '';
-    if (
-      deviceListExecutionExitCode === 127 ||
-      error.includes('not a sf command')
-    ) {
-      showError(
-        new Error(nls.localize('lightning_lwc_no_mobile_plugin')),
-        logName,
-        commandName
-      );
+    if (deviceListExecutionExitCode === 127 || error.includes('not a sf command')) {
+      showError(new Error(nls.localize('lightning_lwc_no_mobile_plugin')), logName, commandName);
       throw e;
     }
   }
@@ -435,10 +384,7 @@ const selectTargetDevice = async (
 
   // new target device entered
   if (targetName && targetName !== '') {
-    PreviewService.instance.updateRememberedDevice(
-      platformSelection.platformName,
-      targetName
-    );
+    PreviewService.instance.updateRememberedDevice(platformSelection.platformName, targetName);
 
     target = targetName;
   }
@@ -472,9 +418,7 @@ const selectTargetApp = async (
     const fileContent = fs.readFileSync(configFile, 'utf8');
     const json = JSON.parse(fileContent);
     const appDefinitionsForSelectedPlatform =
-      platformSelection.id === PreviewPlatformType.Android
-        ? json.apps.android
-        : json.apps.ios;
+      platformSelection.id === PreviewPlatformType.Android ? json.apps.android : json.apps.ios;
 
     const apps = Array.from<any>(appDefinitionsForSelectedPlatform);
 
@@ -548,9 +492,7 @@ const executeMobilePreview = async (
     commandBuilder = commandBuilder.withFlag('-f', configFile);
   }
 
-  const previewCommand = commandBuilder
-    .withFlag('--loglevel', PreviewService.instance.getLogLevel())
-    .build();
+  const previewCommand = commandBuilder.withFlag('--loglevel', PreviewService.instance.getLogLevel()).build();
 
   const previewExecutor = new CliCommandExecutor(previewCommand, {
     env: { SF_JSON_TO_STDOUT: 'true' }
@@ -569,15 +511,8 @@ const executeMobilePreview = async (
         : nls.localize('lightning_lwc_ios_failure', targetDevice);
       showError(new Error(message), logName, commandName);
     } else if (!isAndroid) {
-      notificationService
-        .showSuccessfulExecution(
-          previewExecution.command.toString(),
-          channelService
-        )
-        .catch();
-      vscode.window.showInformationMessage(
-        nls.localize('lightning_lwc_ios_start', targetDevice)
-      );
+      notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
+      vscode.window.showInformationMessage(nls.localize('lightning_lwc_ios_start', targetDevice));
     }
   });
 
@@ -586,15 +521,8 @@ const executeMobilePreview = async (
   if (isAndroid) {
     previewExecution.stdoutSubject.subscribe(async data => {
       if (data && data.toString().includes(androidSuccessString)) {
-        notificationService
-          .showSuccessfulExecution(
-            previewExecution.command.toString(),
-            channelService
-          )
-          .catch();
-        vscode.window.showInformationMessage(
-          nls.localize('lightning_lwc_android_start', targetDevice)
-        );
+        notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
+        vscode.window.showInformationMessage(nls.localize('lightning_lwc_android_start', targetDevice));
       }
     });
   }
@@ -607,17 +535,13 @@ const executeMobilePreview = async (
  * @param startPath starting path to search for the config file.
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
-export const getProjectRootDirectory = (
-  startPath: string
-): string | undefined => {
+export const getProjectRootDirectory = (startPath: string): string | undefined => {
   if (!fs.existsSync(startPath)) {
     return undefined;
   }
 
   const searchingForFile = 'sfdx-project.json';
-  let dir: string | undefined = fs.lstatSync(startPath).isDirectory()
-    ? startPath
-    : path.dirname(startPath);
+  let dir: string | undefined = fs.lstatSync(startPath).isDirectory() ? startPath : path.dirname(startPath);
   while (dir) {
     const fileName = path.join(dir, searchingForFile);
     if (fs.existsSync(fileName)) {

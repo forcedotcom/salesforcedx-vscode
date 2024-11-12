@@ -18,7 +18,6 @@ export enum CliStatusEnum {
 }
 
 export class CliVersionStatus {
-
   public getCliVersion(isSfdx: boolean): string {
     try {
       const result = execSync(`${isSfdx ? 'sfdx' : 'sf'} --version`);
@@ -35,7 +34,6 @@ export class CliVersionStatus {
   }
 
   public validateCliInstallationAndVersion(sfdxCliVersionString: string, sfCliVersionString: string): CliStatusEnum {
-
     // Case 1: Neither SFDX CLI nor SF CLI is installed
     if (semver.satisfies(sfdxCliVersionString, '0.0.0') && semver.satisfies(sfCliVersionString, '0.0.0')) {
       return CliStatusEnum.cliNotInstalled;
@@ -53,7 +51,7 @@ export class CliVersionStatus {
 
     const minSFDXVersion = '7.193.2';
     if (semver.satisfies(sfCliVersionString, '<2.0.0')) {
-      if (semver.satisfies(sfdxCliVersionString, (`<${minSFDXVersion}`))) {
+      if (semver.satisfies(sfdxCliVersionString, `<${minSFDXVersion}`)) {
         // Case 4: Outdated SFDX CLI version is installed
         return CliStatusEnum.outdatedSFDXVersion;
       } else {

@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import { InputUtils } from '../../../src/util/inputUtils';
 
 describe('inputUtils Unit tests', () => {
-
   describe('getFormattedString', () => {
     let showInputBoxStub: sinon.SinonStub;
     const INPUT_VAL = 'Test Input';

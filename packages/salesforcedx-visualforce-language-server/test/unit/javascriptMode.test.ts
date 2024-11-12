@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -19,16 +18,9 @@ describe('HTML Javascript Support', () => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
-    const document = TextDocument.create(
-      'test://test/test.html',
-      'html',
-      0,
-      value
-    );
+    const document = TextDocument.create('test://test/test.html', 'html', 0, value);
 
-    const documentRegions = getLanguageModelCache<
-      embeddedSupport.HTMLDocumentRegions
-    >(10, 60, doc =>
+    const documentRegions = getLanguageModelCache<embeddedSupport.HTMLDocumentRegions>(10, 60, doc =>
       embeddedSupport.getDocumentRegions(htmlLanguageService, doc)
     );
 
@@ -40,10 +32,7 @@ describe('HTML Javascript Support', () => {
 
     const actualLabels = list.items.map(c => c.label).sort();
     for (const expected of expectedProposals) {
-      assert.ok(
-        actualLabels.indexOf(expected) !== -1,
-        'Not found:' + expected + ' is ' + actualLabels.join(', ')
-      );
+      assert.ok(actualLabels.indexOf(expected) !== -1, 'Not found:' + expected + ' is ' + actualLabels.join(', '));
     }
   };
 

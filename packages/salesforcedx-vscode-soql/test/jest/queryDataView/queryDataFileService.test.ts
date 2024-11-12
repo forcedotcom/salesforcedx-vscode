@@ -8,10 +8,7 @@ import { QueryResult } from '@jsforce/jsforce-node';
 import { JsonMap } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  FileFormat,
-  QueryDataFileService
-} from '../../../src/queryDataView/queryDataFileService';
+import { FileFormat, QueryDataFileService } from '../../../src/queryDataView/queryDataFileService';
 
 describe('Query Data File Service', () => {
   const queryText = 'SELECT Id, Name FROM Account';
@@ -28,12 +25,7 @@ describe('Query Data File Service', () => {
     const format = FileFormat.JSON;
     const savedFilePath = '/test/path/to/savedFile.json';
 
-    const queryDataFileService = new QueryDataFileService(
-      queryText,
-      queryData,
-      format,
-      document
-    );
+    const queryDataFileService = new QueryDataFileService(queryText, queryData, format, document);
 
     jest.spyOn(path, 'parse').mockReturnValue({ dir: '/test/' } as any);
 

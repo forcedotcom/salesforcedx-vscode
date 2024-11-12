@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  FileProperties,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve-bundle';
+import { FileProperties, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -26,16 +23,7 @@ import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 describe('Timestamp Conflict Detector Execution', () => {
   const TODAY = '2023-01-28T00:15:28.000Z';
   const YESTERDAY = '2023-01-27T00:15:28.000Z';
-  const PROJ_ROOT = path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    '..',
-    'test',
-    'vscode-integration',
-    'conflict'
-  );
+  const PROJ_ROOT = path.join(__dirname, '..', '..', '..', '..', 'test', 'vscode-integration', 'conflict');
   const TEST_DATA_FOLDER = path.join(
     __dirname,
     '..',
@@ -60,10 +48,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     differStub = sinon.stub(differ, 'diffComponents');
     executor = new TimestampConflictDetector();
     executorSpy = sinon.spy(executor, 'createDiffs');
-    cacheStub = sinon.stub(
-      PersistentStorageService.prototype,
-      'getPropertiesForFile'
-    );
+    cacheStub = sinon.stub(PersistentStorageService.prototype, 'getPropertiesForFile');
     channelServiceStub = sinon.stub(channelService, 'appendLine');
     workspaceStub = stubRootWorkspace(PROJECT_DIR);
   });

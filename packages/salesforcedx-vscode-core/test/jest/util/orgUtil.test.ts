@@ -37,24 +37,16 @@ describe('orgUtil tests', () => {
       onDidCreate: jest.fn(),
       onDidDelete: jest.fn()
     };
-    createFileSystemWatcherMock = (
-      vscode.workspace.createFileSystemWatcher as any
-    ).mockReturnValue(mockWatcher);
-    createStatusBarItemMock = (
-      vscode.window.createStatusBarItem as any
-    ).mockReturnValue({
+    createFileSystemWatcherMock = (vscode.workspace.createFileSystemWatcher as any).mockReturnValue(mockWatcher);
+    createStatusBarItemMock = (vscode.window.createStatusBarItem as any).mockReturnValue({
       command: '',
       text: '',
       tooltip: '',
       show: jest.fn(),
       dispose: jest.fn()
     });
-    showWarningMessageSpy = jest
-      .spyOn(notificationService, 'showWarningMessage')
-      .mockImplementation(jest.fn());
-    appendLineSpy = jest
-      .spyOn(channelService, 'appendLine')
-      .mockImplementation(jest.fn());
+    showWarningMessageSpy = jest.spyOn(notificationService, 'showWarningMessage').mockImplementation(jest.fn());
+    appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
     showChannelOutputSpy = jest.spyOn(channelService, 'showChannelOutput');
     listAllAuthorizationsSpy = jest.spyOn(AuthInfo, 'listAllAuthorizations');
     authInfoCreateSpy = jest.spyOn(AuthInfo, 'create');
@@ -108,9 +100,7 @@ describe('orgUtil tests', () => {
 
     authInfoCreateSpy.mockResolvedValue({
       getFields: () => ({
-        expirationDate: `${yesterday.getFullYear()}-${
-          yesterday.getMonth() + 1
-        }-${yesterday.getDate()}`
+        expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
       })
     });
     getUsernameMock.mockResolvedValue('foo');
@@ -216,9 +206,7 @@ describe('orgUtil tests', () => {
     });
     authInfoCreateSpy.mockResolvedValueOnce({
       getFields: () => ({
-        expirationDate: `${expiredDate.getFullYear()}-${
-          expiredDate.getMonth() + 1
-        }-${expiredDate.getDate()}`
+        expirationDate: `${expiredDate.getFullYear()}-${expiredDate.getMonth() + 1}-${expiredDate.getDate()}`
       })
     });
     getUsernameMock.mockResolvedValue('expired-org@salesforce.com');

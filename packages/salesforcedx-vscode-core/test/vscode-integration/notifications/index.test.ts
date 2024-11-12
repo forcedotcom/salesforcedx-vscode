@@ -14,9 +14,7 @@ import { NotificationService } from '../../../src/notifications/notificationServ
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 
 const SHOW_BUTTON_TEXT = nls.localize('notification_show_button_text');
-const SHOW_ONLY_STATUS_BAR_BUTTON_TEXT = nls.localize(
-  'notification_show_in_status_bar_button_text'
-);
+const SHOW_ONLY_STATUS_BAR_BUTTON_TEXT = nls.localize('notification_show_in_status_bar_button_text');
 
 // tslint:disable:no-empty
 describe('Notifications', () => {
@@ -29,22 +27,11 @@ describe('Notifications', () => {
 
   beforeEach(() => {
     mShow = stub(channelService, 'showChannelOutput');
-    mShowInformation = stub(window, 'showInformationMessage').returns(
-      Promise.resolve(null)
-    );
-    mShowWarningMessage = stub(window, 'showWarningMessage').returns(
-      Promise.resolve(null)
-    );
-    mShowErrorMessage = stub(window, 'showErrorMessage').returns(
-      Promise.resolve(null)
-    );
-    mStatusBar = stub(window, 'setStatusBarMessage').returns(
-      Promise.resolve(null)
-    );
-    settings = stub(
-      SalesforceCoreSettings.prototype,
-      'getShowCLISuccessMsg'
-    ).returns(true);
+    mShowInformation = stub(window, 'showInformationMessage').returns(Promise.resolve(null));
+    mShowWarningMessage = stub(window, 'showWarningMessage').returns(Promise.resolve(null));
+    mShowErrorMessage = stub(window, 'showErrorMessage').returns(Promise.resolve(null));
+    mStatusBar = stub(window, 'setStatusBarMessage').returns(Promise.resolve(null));
+    settings = stub(SalesforceCoreSettings.prototype, 'getShowCLISuccessMsg').returns(true);
   });
 
   afterEach(() => {
@@ -81,9 +68,7 @@ describe('Notifications', () => {
   it('Should notify successful and show channel as requested', done => {
     // For this particular test, we need it to return a different value
     mShowInformation.restore();
-    mShowInformation = stub(window, 'showInformationMessage').returns(
-      Promise.resolve(SHOW_BUTTON_TEXT)
-    );
+    mShowInformation = stub(window, 'showInformationMessage').returns(Promise.resolve(SHOW_BUTTON_TEXT));
     const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
 
@@ -107,10 +92,7 @@ describe('Notifications', () => {
   it('Should notify successful in status bar based on user configuration', done => {
     // Set user configuration to show success messages in status bar.
     settings.restore();
-    settings = stub(
-      SalesforceCoreSettings.prototype,
-      'getShowCLISuccessMsg'
-    ).returns(false);
+    settings = stub(SalesforceCoreSettings.prototype, 'getShowCLISuccessMsg').returns(false);
 
     const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
@@ -134,10 +116,7 @@ describe('Notifications', () => {
     mShowInformation = stub(window, 'showInformationMessage').returns(
       Promise.resolve(SHOW_ONLY_STATUS_BAR_BUTTON_TEXT)
     );
-    const updateSetting = stub(
-      SalesforceCoreSettings.prototype,
-      'updateShowCLISuccessMsg'
-    );
+    const updateSetting = stub(SalesforceCoreSettings.prototype, 'updateShowCLISuccessMsg');
     const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
 
@@ -165,11 +144,7 @@ describe('Notifications', () => {
     const cancellationTokenSource = new CancellationTokenSource();
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus(
-      'mock command',
-      observable,
-      cancellationTokenSource.token
-    );
+    notificationService.reportExecutionStatus('mock command', observable, cancellationTokenSource.token);
 
     cancellationTokenSource.cancel();
 

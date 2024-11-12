@@ -7,11 +7,7 @@
 
 import * as minSObjectsFromFile from '../../src/data/minSObjects.json';
 import { SObjectShortDescription } from '../describe';
-import {
-  SObject,
-  SObjectDefinitionRetriever,
-  SObjectRefreshOutput
-} from '../types';
+import { SObject, SObjectDefinitionRetriever, SObjectRefreshOutput } from '../types';
 
 type minSObjectsFileFormat = {
   typeNames: SObjectShortDescription[];

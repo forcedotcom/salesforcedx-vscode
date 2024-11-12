@@ -1,56 +1,55 @@
 {
-    "name": "lwc-recipes",
-    "private": true,
-    "version": "0.1.0",
-    "description": "Lightning Web Components Recipes",
-    "scripts": {
-        "lint": "npm run lint:lwc && npm run lint:aura",
-        "lint:lwc": "eslint **/lwc/**",
-        "lint:aura": "sfdx force:lightning:lint force-app/main/default/aura --exit",
-        "test": "npm run lint && npm run test:unit",
-        "test:unit": "lwc-jest",
-        "test:unit:watch": "lwc-jest --watch",
-        "test:unit:debug": "lwc-jest --debug",
-        "test:unit:coverage": "lwc-jest --coverage",
-        "prettier": "prettier --write '**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,yaml,yml}'",
-        "prettier:verify": "prettier --list-different '**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,yaml,yml}'",
-        "postinstall": "node bin/check-version.js"
-    },
-    "author": "salesforce.com",
-    "license": "CC0-1.0",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/trailheadapps/lwc-recipes"
-    },
-    "engines": {
-        "node": ">= 10.13.0",
-        "npm": ">= 6.5.0"
-    },
-    "devDependencies": {
-        "@salesforce/eslint-config-lwc": "^3.4.0",
-        "@salesforce/sfdx-lwc-jest": "^0.6.2",
-        "eslint": "8.23.0",
-        "husky": "^3.1.0",
-        "jest-canvas-mock": "^2.2.0",
-        "lint-staged": "^9.5.0",
-        "prettier": "^1.18",
-        "prettier-plugin-apex": "^1.0.0",
-        "semver": "^7.1.1"
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged && npm run lint:aura"
-        }
-    },
-    "lint-staged": {
-        "**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,yaml,yml}": [
-            "prettier --write"
-        ],
-        "**/lwc/**": [
-            "eslint"
-        ],
-        "*": [
-            "git add"
-        ]
+  "name": "lwc-recipes",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Lightning Web Components Recipes",
+  "scripts": {
+    "lint": "npm run lint:lwc && npm run lint:aura",
+    "lint:lwc": "eslint **/lwc/**",
+    "lint:aura": "sfdx force:lightning:lint force-app/main/default/aura --exit",
+    "test": "npm run lint && npm run test:unit",
+    "test:unit": "lwc-jest",
+    "test:unit:watch": "lwc-jest --watch",
+    "test:unit:debug": "lwc-jest --debug",
+    "test:unit:coverage": "lwc-jest --coverage",
+    "prettier": "prettier --write '**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,yaml,yml}'",
+    "prettier:verify": "prettier --list-different '**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,yaml,yml}'",
+    "postinstall": "node bin/check-version.js"
+  },
+  "author": "salesforce.com",
+  "license": "CC0-1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trailheadapps/lwc-recipes"
+  },
+  "engines": {
+    "node": ">= 10.13.0",
+    "npm": ">= 6.5.0"
+  },
+  "devDependencies": {
+    "@salesforce/sfdx-lwc-jest": "^0.6.2",
+    "eslint": "8.23.0",
+    "husky": "^3.1.0",
+    "jest-canvas-mock": "^2.2.0",
+    "lint-staged": "^9.5.0",
+    "prettier": "^1.18",
+    "prettier-plugin-apex": "^1.0.0",
+    "semver": "^7.1.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && npm run lint:aura"
     }
+  },
+  "lint-staged": {
+    "**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,yaml,yml}": [
+      "prettier --write"
+    ],
+    "**/lwc/**": [
+      "eslint"
+    ],
+    "*": [
+      "git add"
+    ]
+  }
 }

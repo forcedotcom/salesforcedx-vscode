@@ -13,9 +13,7 @@ import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 
-export const setUpOrgExpirationWatcher = async (
-  orgList: OrgList
-): Promise<void> => {
+export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
   // Run once to start off with.
   await checkForSoonToBeExpiredOrgs(orgList);
 
@@ -34,9 +32,7 @@ export const setUpOrgExpirationWatcher = async (
   */
 };
 
-export const checkForSoonToBeExpiredOrgs = async (
-  orgList: OrgList
-): Promise<void> => {
+export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<void> => {
   if (!orgList) {
     return;
   }
@@ -45,9 +41,7 @@ export const checkForSoonToBeExpiredOrgs = async (
     const daysBeforeExpire = 5;
     const today = new Date();
     const daysUntilExpiration = new Date();
-    daysUntilExpiration.setDate(
-      daysUntilExpiration.getDate() + daysBeforeExpire
-    );
+    daysUntilExpiration.setDate(daysUntilExpiration.getDate() + daysBeforeExpire);
 
     const orgAuthorizations = await AuthInfo.listAllAuthorizations();
     if (!orgAuthorizations) {
@@ -72,9 +66,7 @@ export const checkForSoonToBeExpiredOrgs = async (
       const expirationDate = new Date(authFields.expirationDate);
       if (expirationDate < today) {
         if (orgAuthorization.username === (await ConfigUtil.getUsername())) {
-          void notificationService.showWarningMessage(
-            nls.localize('default_org_expired')
-          );
+          void notificationService.showWarningMessage(nls.localize('default_org_expired'));
         }
         continue;
       }
@@ -86,13 +78,7 @@ export const checkForSoonToBeExpiredOrgs = async (
             ? orgAuthorization.aliases[0]
             : orgAuthorization.username;
 
-        results.push(
-          nls.localize(
-            'pending_org_expiration_expires_on_message',
-            aliasName,
-            authFields.expirationDate
-          )
-        );
+        results.push(nls.localize('pending_org_expiration_expires_on_message', aliasName, authFields.expirationDate));
       }
     }
 
@@ -101,19 +87,12 @@ export const checkForSoonToBeExpiredOrgs = async (
     }
 
     notificationService.showWarningMessage(
-      nls.localize(
-        'pending_org_expiration_notification_message',
-        daysBeforeExpire
-      )
+      nls.localize('pending_org_expiration_notification_message', daysBeforeExpire)
     );
 
     const formattedOrgsToDisplay = results.join('\n\n');
     channelService.appendLine(
-      nls.localize(
-        'pending_org_expiration_output_channel_message',
-        daysBeforeExpire,
-        formattedOrgsToDisplay
-      )
+      nls.localize('pending_org_expiration_output_channel_message', daysBeforeExpire, formattedOrgsToDisplay)
     );
     channelService.showChannelOutput();
   } catch (err) {
@@ -121,9 +100,7 @@ export const checkForSoonToBeExpiredOrgs = async (
   }
 };
 
-export const getAuthFieldsFor = async (
-  username: string
-): Promise<AuthFields> => {
+export const getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
   const authInfo: AuthInfo = await AuthInfo.create({
     username
   });

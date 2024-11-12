@@ -24,10 +24,7 @@ describe('PersistentStorageService', () => {
 
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);
-      setPropertiesForFileMock = jest.spyOn(
-        PersistentStorageService.prototype,
-        'setPropertiesForFile'
-      );
+      setPropertiesForFileMock = jest.spyOn(PersistentStorageService.prototype, 'setPropertiesForFile');
     });
 
     it('should update the properties in the cache for the files that are passed in', () => {

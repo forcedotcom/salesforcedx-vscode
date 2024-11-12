@@ -26,11 +26,7 @@ export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> 
   private sourcePaths: string[];
   private responseText: string | undefined;
   constructor(sourcePaths: string[], responseText: string | undefined) {
-    super(
-      nls.localize(GENERATE_MANIFEST_EXECUTOR),
-      GENERATE_MANIFEST_EXECUTOR,
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize(GENERATE_MANIFEST_EXECUTOR), GENERATE_MANIFEST_EXECUTOR, OUTPUT_CHANNEL);
     this.sourcePaths = sourcePaths;
     this.responseText = responseText;
   }
@@ -45,9 +41,7 @@ export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> 
     /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     if (this.sourcePaths) {
-      const packageXML = await ComponentSet.fromSource(
-        this.sourcePaths
-      ).getPackageXml();
+      const packageXML = await ComponentSet.fromSource(this.sourcePaths).getPackageXml();
       if (this.responseText === undefined) {
         // Canceled and declined to name the document
         await openUntitledDocument(packageXML);
@@ -60,10 +54,7 @@ export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> 
   }
 }
 
-export const projectGenerateManifest =  async (
-  sourceUri: vscode.Uri,
-  uris: vscode.Uri[] | undefined
-): Promise<void> => {
+export const projectGenerateManifest = async (sourceUri: vscode.Uri, uris: vscode.Uri[] | undefined): Promise<void> => {
   if (!uris || uris.length < 1) {
     uris = [];
     uris.push(sourceUri);
@@ -111,14 +102,9 @@ const saveDocument = async (response: string, packageXML: string): Promise<void>
 
 const checkForDuplicateManifest = (saveLocation: string, fileName: string): void => {
   if (fs.existsSync(saveLocation)) {
-    void vscode.window.showErrorMessage(
-      format(nls.localize('manifest_input_dupe_error'), fileName)
-    );
-    throw new Error(
-      format(nls.localize('manifest_input_dupe_error'), fileName)
-    );
+    void vscode.window.showErrorMessage(format(nls.localize('manifest_input_dupe_error'), fileName));
+    throw new Error(format(nls.localize('manifest_input_dupe_error'), fileName));
   }
 };
 
-const appendExtension = (input: string): string =>
-  parse(input).name?.concat('.xml');
+const appendExtension = (input: string): string => parse(input).name?.concat('.xml');

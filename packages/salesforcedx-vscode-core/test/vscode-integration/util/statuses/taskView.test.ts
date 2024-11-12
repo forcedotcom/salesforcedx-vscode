@@ -7,11 +7,7 @@
 
 // tslint:disable:no-unused-expression
 
-import {
-  CliCommandExecutor,
-  CommandBuilder,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor, CommandBuilder, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { CancellationTokenSource } from 'vscode';
@@ -28,10 +24,7 @@ describe('Task View', () => {
 
     it('Should add a command to its internal queue', () => {
       taskViewService.addCommandExecution(
-        new CliCommandExecutor(
-          new SfCommandBuilder().withArg('--help').build(),
-          {}
-        ).execute()
+        new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute()
       );
 
       expect(taskViewService.getChildren()).to.have.lengthOf(1);
@@ -42,10 +35,7 @@ describe('Task View', () => {
 
     it('Should fire an event when a command is added', async () => {
       taskViewService.addCommandExecution(
-        new CliCommandExecutor(
-          new SfCommandBuilder().withArg('--help').build(),
-          {}
-        ).execute()
+        new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute()
       );
 
       const event = await new Promise((resolve, reject) => {
@@ -61,10 +51,7 @@ describe('Task View', () => {
 
     it('Should remove a command from its internal queue when present', () => {
       const task = taskViewService.addCommandExecution(
-        new CliCommandExecutor(
-          new SfCommandBuilder().withArg('--help').build(),
-          {}
-        ).execute()
+        new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute()
       );
 
       taskViewService.removeTask(task);
@@ -74,16 +61,10 @@ describe('Task View', () => {
 
     it('Should not remove a command from its internal queue when not present', () => {
       taskViewService.addCommandExecution(
-        new CliCommandExecutor(
-          new SfCommandBuilder().withArg('--help').build(),
-          {}
-        ).execute()
+        new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute()
       );
       taskViewService.addCommandExecution(
-        new CliCommandExecutor(
-          new SfCommandBuilder().withArg('--help').build(),
-          {}
-        ).execute()
+        new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute()
       );
       const bogusTask = new Task(taskViewService, stub() as any);
 
@@ -96,10 +77,7 @@ describe('Task View', () => {
     it('Should terminate and remove specific task if provided', () => {
       const tokenSource = new CancellationTokenSource();
       const task = taskViewService.addCommandExecution(
-        new CliCommandExecutor(
-          new SfCommandBuilder().withArg('--help').build(),
-          {}
-        ).execute(tokenSource.token),
+        new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute(tokenSource.token),
         tokenSource
       );
 
@@ -112,10 +90,7 @@ describe('Task View', () => {
 
     it('Should terminate LRU task if no specific task provided', () => {
       taskViewService.addCommandExecution(
-        new CliCommandExecutor(
-          new SfCommandBuilder().withArg('--help').build(),
-          {}
-        ).execute()
+        new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute()
       );
 
       expect(taskViewService.getChildren()).to.have.lengthOf(1);
@@ -129,10 +104,7 @@ describe('Task View', () => {
   describe('Task', () => {
     it('Should remove itself from Task View once terminated', async () => {
       const taskViewService = new TaskViewService();
-      const execution = new CliCommandExecutor(
-        new SfCommandBuilder().withArg('--help').build(),
-        {}
-      ).execute();
+      const execution = new CliCommandExecutor(new SfCommandBuilder().withArg('--help').build(), {}).execute();
       taskViewService.addCommandExecution(execution);
 
       expect(taskViewService.getChildren()).to.have.lengthOf(1);
@@ -148,10 +120,7 @@ describe('Task View', () => {
 
     it('Should remove itself from Task View if erroneous', async () => {
       const taskViewService = new TaskViewService();
-      const execution = new CliCommandExecutor(
-        new CommandBuilder('sf_').build(),
-        {}
-      ).execute();
+      const execution = new CliCommandExecutor(new CommandBuilder('sf_').build(), {}).execute();
       taskViewService.addCommandExecution(execution);
 
       expect(taskViewService.getChildren()).to.have.lengthOf(1);

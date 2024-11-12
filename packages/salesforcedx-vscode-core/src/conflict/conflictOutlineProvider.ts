@@ -7,17 +7,14 @@
 import * as vscode from 'vscode';
 import { ConflictFile, ConflictGroupNode, ConflictNode } from './conflictNode';
 
-export class ConflictOutlineProvider
-  implements vscode.TreeDataProvider<ConflictNode> {
+export class ConflictOutlineProvider implements vscode.TreeDataProvider<ConflictNode> {
   private root: ConflictGroupNode | null;
   private emptyLabel?: string;
 
-  private internalOnDidChangeTreeData: vscode.EventEmitter<
+  private internalOnDidChangeTreeData: vscode.EventEmitter<ConflictNode | undefined> = new vscode.EventEmitter<
     ConflictNode | undefined
-  > = new vscode.EventEmitter<ConflictNode | undefined>();
-  public readonly onDidChangeTreeData: vscode.Event<
-    ConflictNode | undefined
-  > = this.internalOnDidChangeTreeData.event;
+  >();
+  public readonly onDidChangeTreeData: vscode.Event<ConflictNode | undefined> = this.internalOnDidChangeTreeData.event;
 
   public constructor() {
     this.root = null;
@@ -31,11 +28,7 @@ export class ConflictOutlineProvider
     this.internalOnDidChangeTreeData.fire(node);
   }
 
-  public reset(
-    rootLabel: string,
-    conflicts: ConflictFile[],
-    emptyLabel?: string
-  ) {
+  public reset(rootLabel: string, conflicts: ConflictFile[], emptyLabel?: string) {
     this.emptyLabel = emptyLabel;
     this.root = this.createConflictRoot(rootLabel, conflicts);
   }
@@ -68,10 +61,7 @@ export class ConflictOutlineProvider
     return element.parent;
   }
 
-  private createConflictRoot(
-    rootLabel: string,
-    conflicts: ConflictFile[]
-  ): ConflictGroupNode {
+  private createConflictRoot(rootLabel: string, conflicts: ConflictFile[]): ConflictGroupNode {
     const orgRoot = new ConflictGroupNode(rootLabel, this.emptyLabel);
     orgRoot.id = 'ROOT-NODE';
     orgRoot.addChildren(conflicts);

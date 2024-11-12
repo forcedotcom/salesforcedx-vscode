@@ -28,7 +28,7 @@ describe('MetricsReporter', () => {
       MetricsReporter.extensionPackStatus();
 
       expect(telemetrySpy).toHaveBeenCalledTimes(1);
-      expect(telemetrySpy).toHaveBeenCalledWith(eventName, {extpack: 'NONE'});
+      expect(telemetrySpy).toHaveBeenCalledWith(eventName, { extpack: 'NONE' });
     });
 
     it('reports BASE if only the base pack is installed', () => {
@@ -39,7 +39,7 @@ describe('MetricsReporter', () => {
       MetricsReporter.extensionPackStatus();
 
       expect(telemetrySpy).toHaveBeenCalledTimes(1);
-      expect(telemetrySpy).toHaveBeenCalledWith(eventName, {extpack: 'BASE'});
+      expect(telemetrySpy).toHaveBeenCalledWith(eventName, { extpack: 'BASE' });
     });
 
     it('reports EXPANDED if only the expanded pack is installed', () => {
@@ -50,7 +50,7 @@ describe('MetricsReporter', () => {
       MetricsReporter.extensionPackStatus();
 
       expect(telemetrySpy).toHaveBeenCalledTimes(1);
-      expect(telemetrySpy).toHaveBeenCalledWith(eventName, {extpack: 'EXPANDED'});
+      expect(telemetrySpy).toHaveBeenCalledWith(eventName, { extpack: 'EXPANDED' });
     });
 
     it('reports BOTH if both the base and expanded packs are installed', () => {
@@ -60,7 +60,7 @@ describe('MetricsReporter', () => {
       MetricsReporter.extensionPackStatus();
 
       expect(telemetrySpy).toHaveBeenCalledTimes(1);
-      expect(telemetrySpy).toHaveBeenCalledWith(eventName, {extpack: 'BOTH'});
+      expect(telemetrySpy).toHaveBeenCalledWith(eventName, { extpack: 'BOTH' });
     });
   });
 });

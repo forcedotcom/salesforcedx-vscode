@@ -7,9 +7,7 @@
 import { SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { ConflictDetectionMessages } from '../commands/util';
 
-export const getConflictMessagesFor = (
-  logName: string
-): ConflictDetectionMessages | undefined => {
+export const getConflictMessagesFor = (logName: string): ConflictDetectionMessages | undefined => {
   const warningMessageKey = 'conflict_detect_conflicts_during_deploy';
   const messagesByLogName: Map<string, ConflictDetectionMessages> = new Map([
     [
@@ -20,11 +18,7 @@ export const getConflictMessagesFor = (
           const commands: string[] = [];
           (inputs as string[]).forEach(input => {
             commands.push(
-              new SfCommandBuilder()
-                .withArg('project:deploy:start')
-                .withFlag('--sourcepath', input)
-                .build()
-                .toString()
+              new SfCommandBuilder().withArg('project:deploy:start').withFlag('--sourcepath', input).build().toString()
             );
           });
           const hints = commands.join('\n  ');

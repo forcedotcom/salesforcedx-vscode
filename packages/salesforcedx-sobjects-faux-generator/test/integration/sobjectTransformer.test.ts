@@ -15,14 +15,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { createSandbox } from 'sinon';
 import { SObjectTransformer } from '../../src';
-import {
-  ERROR_EVENT,
-  EXIT_EVENT,
-  FAILURE_CODE,
-  STDERR_EVENT,
-  STDOUT_EVENT,
-  SUCCESS_CODE
-} from '../../src/constants';
+import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../../src/constants';
 import { nls } from '../../src/messages';
 import { MinObjectRetriever } from '../../src/retriever';
 import { CancellationTokenSource } from './integrationTestUtil';
@@ -127,20 +120,13 @@ describe('Transform sobject definitions', () => {
   it('Should fail if outside a DX project', async () => {
     env.stub(fs, 'existsSync').returns(false);
 
-    const transformer = new SObjectTransformer(
-      emitter,
-      [],
-      [],
-      cancellationTokenSource.token
-    );
+    const transformer = new SObjectTransformer(emitter, [], [], cancellationTokenSource.token);
 
     try {
       await transformer.transform();
       fail('transformer should have thrown an error');
     } catch ({ error }) {
-      expect(error.message).to.contain(
-        nls.localize('no_generate_if_not_in_project', '')
-      );
+      expect(error.message).to.contain(nls.localize('no_generate_if_not_in_project', ''));
       return;
     }
   });
@@ -149,12 +135,7 @@ describe('Transform sobject definitions', () => {
     env.stub(fs, 'existsSync').returns(true);
     env.stub(MinObjectRetriever.prototype, 'retrieve').returns([]);
 
-    const transformer = new SObjectTransformer(
-      emitter,
-      [new MinObjectRetriever()],
-      [],
-      cancellationTokenSource.token
-    );
+    const transformer = new SObjectTransformer(emitter, [new MinObjectRetriever()], [], cancellationTokenSource.token);
     cancellationTokenSource.cancel();
 
     const result = await transformer.transform();
@@ -200,12 +181,7 @@ describe('Transform sobject definitions', () => {
     it('Should emit an exit event with code success code 0 on success', async () => {
       let exitCode = FAILURE_CODE;
 
-      const transformer = new SObjectTransformer(
-        emitter,
-        [],
-        [],
-        cancellationTokenSource.token
-      );
+      const transformer = new SObjectTransformer(emitter, [], [], cancellationTokenSource.token);
       emitter.addListener(EXIT_EVENT, (data: number) => {
         exitCode = data;
       });
@@ -248,9 +224,7 @@ describe('Transform sobject definitions', () => {
 
       expect(result.error).to.be.undefined;
       expect(result.data.standardObjects).to.eql(1);
-      expect(stdoutInfo).to.contain(
-        nls.localize('processed_sobjects_length_text', 1, 'Standard')
-      );
+      expect(stdoutInfo).to.contain(nls.localize('processed_sobjects_length_text', 1, 'Standard'));
     });
 
     it('Should log the number of custom objects processed on success', async () => {
@@ -286,9 +260,7 @@ describe('Transform sobject definitions', () => {
 
       expect(result.error).to.be.undefined;
       expect(result.data.customObjects).to.eql(1);
-      expect(stdoutInfo).to.contain(
-        nls.localize('processed_sobjects_length_text', 1, 'Custom')
-      );
+      expect(stdoutInfo).to.contain(nls.localize('processed_sobjects_length_text', 1, 'Custom'));
     });
   });
 });

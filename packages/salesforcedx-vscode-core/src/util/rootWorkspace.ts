@@ -13,8 +13,7 @@ const hasRootWorkspace = (ws: typeof workspace = workspace) =>
 const getRootWorkspace = (): WorkspaceFolder =>
   hasRootWorkspace() ? workspace.workspaceFolders![0] : ({} as WorkspaceFolder);
 
-const getRootWorkspacePath = (): string =>
-  getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '';
+const getRootWorkspacePath = (): string => (getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '');
 
 export const workspaceUtils = {
   hasRootWorkspace,

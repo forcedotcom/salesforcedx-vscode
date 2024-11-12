@@ -24,10 +24,7 @@ import {
   workspace
 } from 'vscode';
 
-import {
-  CancellationToken,
-  ProvideCompletionItemsSignature
-} from 'vscode-languageclient';
+import { CancellationToken, ProvideCompletionItemsSignature } from 'vscode-languageclient';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import { soqlMiddleware } from '../../../src/embeddedSoql';
 
@@ -39,24 +36,15 @@ type JavaApexLocation = {
   line: number;
   column: number;
 };
-const createApexLSPSpecialSOQLCompletionItem = (
-  soqlText: string,
-  location: JavaApexLocation
-): CompletionItem => {
+const createApexLSPSpecialSOQLCompletionItem = (soqlText: string, location: JavaApexLocation): CompletionItem => {
   const item = new ProtocolCompletionItem(SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
   item.kind = CompletionItemKind.Snippet;
   item.detail = soqlText;
   item.data = location;
   return item;
 };
-const FAKE_APEX_COMPLETION_ITEM = new CompletionItem(
-  'ApexCompletionItem',
-  CompletionItemKind.Class
-);
-const FAKE_SOQL_COMPLETION_ITEM = new CompletionItem(
-  'SoqlCompletionItem',
-  CompletionItemKind.Class
-);
+const FAKE_APEX_COMPLETION_ITEM = new CompletionItem('ApexCompletionItem', CompletionItemKind.Class);
+const FAKE_SOQL_COMPLETION_ITEM = new CompletionItem('SoqlCompletionItem', CompletionItemKind.Class);
 
 describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completion', () => {
   let sandbox: sinon.SinonSandbox;
@@ -77,9 +65,7 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
       const executeCommandSpy = sandbox.spy(commands, 'executeCommand');
       const { doc, position } = await prepareFile('class Test { | }');
       tempDoc = doc.uri;
-      const items = await invokeSoqlMiddleware(doc, position, [
-        FAKE_APEX_COMPLETION_ITEM
-      ]);
+      const items = await invokeSoqlMiddleware(doc, position, [FAKE_APEX_COMPLETION_ITEM]);
 
       expect(items.length).to.equal(1);
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -89,22 +75,12 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
 
   describe('When inside SOQL block', () => {
     it('Should drop Apex LSP items, invoke SOQL completion and return SOQL LSP items', async () => {
-      const lines: string[] = [
-        'class Test {',
-        '  private Account[] account = [SELECT Id |];',
-        '}'
-      ];
-      const soqlOnlyLines: string[] = [
-        '            ',
-        '                               SELECT Id |  ',
-        ' '
-      ];
+      const lines: string[] = ['class Test {', '  private Account[] account = [SELECT Id |];', '}'];
+      const soqlOnlyLines: string[] = ['            ', '                               SELECT Id |  ', ' '];
       const apexCode = lines.join('\n');
       const soqlCode = soqlOnlyLines.join('\n');
 
-      const executeCommandSpy = sandbox
-        .stub(commands, 'executeCommand')
-        .returns([FAKE_SOQL_COMPLETION_ITEM]);
+      const executeCommandSpy = sandbox.stub(commands, 'executeCommand').returns([FAKE_SOQL_COMPLETION_ITEM]);
 
       const { doc, position } = await prepareFile(apexCode);
       tempDoc = doc.uri;
@@ -124,8 +100,7 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
       expect(items.length).to.equal(1);
       expect(items[0]).to.equal(FAKE_SOQL_COMPLETION_ITEM);
       const virtualDocUri = executeCommandSpy.lastCall.args[1];
-      const soqlVirtualDoc =
-        await vscode.workspace.openTextDocument(virtualDocUri);
+      const soqlVirtualDoc = await vscode.workspace.openTextDocument(virtualDocUri);
       expect(soqlVirtualDoc.getText()).to.equal(soqlCode.replace('|', ''));
     });
   });
@@ -148,13 +123,7 @@ const invokeSoqlMiddleware = async (
 
   const finalItems: ProtocolCompletionItem[] = [];
   if (soqlMiddleware.provideCompletionItem) {
-    const soqlItems = await soqlMiddleware.provideCompletionItem(
-      doc,
-      position,
-      context,
-      token,
-      apexLSPCompletionFn
-    );
+    const soqlItems = await soqlMiddleware.provideCompletionItem(doc, position, context, token, apexLSPCompletionFn);
 
     const items: ProtocolCompletionItem[] = Array.isArray(soqlItems)
       ? (soqlItems as ProtocolCompletionItem[])
@@ -165,26 +134,19 @@ const invokeSoqlMiddleware = async (
   return finalItems;
 };
 
-const prepareFile = async (
-  text: string
-): Promise<{ doc: TextDocument; position: Position }> => {
+const prepareFile = async (text: string): Promise<{ doc: TextDocument; position: Position }> => {
   const position = getCursorPosition(text);
   const finalText = text.replace('|', '');
 
   const encoder = new TextEncoder();
 
   const workspacePath = workspace.workspaceFolders![0].uri.fsPath;
-  const fileUri = Uri.file(
-    path.join(workspacePath, `test_embeddedSoql_${generateRandomInt()}.cls`)
-  );
+  const fileUri = Uri.file(path.join(workspacePath, `test_embeddedSoql_${generateRandomInt()}.cls`));
   await workspace.fs.writeFile(fileUri, encoder.encode(finalText));
   return { doc: await activate(fileUri), position };
 };
 
-const getCursorPosition = (
-  text: string,
-  cursorChar: string = '|'
-): Position => {
+const getCursorPosition = (text: string, cursorChar: string = '|'): Position => {
   for (const [line, lineText] of text.split('\n').entries()) {
     const column = lineText.indexOf(cursorChar);
     if (column >= 0) return new Position(line, column);

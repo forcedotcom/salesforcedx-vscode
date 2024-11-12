@@ -28,10 +28,7 @@ describe('Visualforce Generate Page', () => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -50,16 +47,8 @@ describe('Visualforce Generate Page', () => {
     // arrange
     const fileName = 'testVFPage';
     const outputPath = 'force-app/main/default/components';
-    const vfPagePath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testVFPage.page'
-    );
-    const vfPageMetaPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testVFPage.page-meta.xml'
-    );
+    const vfPagePath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFPage.page');
+    const vfPageMetaPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFPage.page-meta.xml');
     shell.rm('-f', path.join(vfPagePath));
     shell.rm('-f', path.join(vfPageMetaPath));
     assert.noFile([vfPagePath, vfPageMetaPath]);
@@ -75,9 +64,6 @@ describe('Visualforce Generate Page', () => {
     sinon.assert.calledWith(openTextDocumentStub, vfPagePath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
   });
 });

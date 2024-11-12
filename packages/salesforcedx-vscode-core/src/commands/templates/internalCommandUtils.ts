@@ -21,20 +21,15 @@ export class InternalDevWorkspaceChecker implements PreconditionChecker {
   }
 }
 
-export class FileInternalPathGatherer
-  implements ParametersGatherer<{ outputdir: string }>
-{
+export class FileInternalPathGatherer implements ParametersGatherer<{ outputdir: string }> {
   private filePath: string;
   public constructor(uri: Uri) {
     this.filePath = uri.fsPath;
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ outputdir: string }>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ outputdir: string }>> {
     const outputdir = this.filePath;
-    const isDir =
-      fs.existsSync(outputdir) && fs.lstatSync(outputdir).isDirectory();
+    const isDir = fs.existsSync(outputdir) && fs.lstatSync(outputdir).isDirectory();
 
     if (isDir) {
       return { type: 'CONTINUE', data: { outputdir } };

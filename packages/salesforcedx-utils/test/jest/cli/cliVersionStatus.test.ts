@@ -9,7 +9,6 @@ import * as child_process from 'child_process';
 import { CliStatusEnum, CliVersionStatus } from '../../../src/cli/cliVersionStatus';
 
 describe('CliVersionStatus unit tests.', () => {
-
   const sfV2_string = '@salesforce/cli/2.15.9 darwin-arm64 node-v18.17.1';
   const sfdxV7_valid_string = 'sfdx-cli/7.209.6 win32-x64 node-v18.15.0';
   const sfV1_string = '@salesforce/cli/1.87.0 darwin-arm64 node-v18.17.1';
@@ -28,15 +27,12 @@ describe('CliVersionStatus unit tests.', () => {
   Test cases that produce a result for getSfdxCliVersion() and getSfCliVersion()
   */
   describe('Test cases that produce a result for getSfdxCliVersion() and getSfCliVersion()', () => {
-
     const fakeExecution = Buffer.from('fake result');
     const fakeResult = 'fake result';
 
     let executeSpy: jest.SpyInstance;
     beforeEach(() => {
-      executeSpy = jest
-        .spyOn(child_process, 'execSync')
-        .mockReturnValue(fakeExecution);
+      executeSpy = jest.spyOn(child_process, 'execSync').mockReturnValue(fakeExecution);
     });
 
     it('getSfdxCliVersion() - can get a result', async () => {
@@ -58,16 +54,13 @@ describe('CliVersionStatus unit tests.', () => {
   Test cases that throw an error for getSfdxCliVersion() and getSfCliVersion()
   */
   describe('Test cases that throw an error for getSfdxCliVersion() and getSfCliVersion()', () => {
-
     const cliNotFound = 'No CLI';
 
     let executeSpy: jest.SpyInstance;
     beforeEach(() => {
-      executeSpy = jest
-        .spyOn(child_process, 'execSync')
-        .mockImplementationOnce(() => {
-          throw new Error('simulate exception in execSync()');
-        });
+      executeSpy = jest.spyOn(child_process, 'execSync').mockImplementationOnce(() => {
+        throw new Error('simulate exception in execSync()');
+      });
     });
 
     it('getSfdxCliVersion() - throws error', async () => {

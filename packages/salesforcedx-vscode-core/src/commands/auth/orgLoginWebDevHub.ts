@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Command,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
@@ -19,22 +16,13 @@ import * as vscode from 'vscode';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
-import {
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from '../util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from '../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
-import {
-  AuthDemoModeExecutor,
-  OrgLoginWebContainerExecutor
-} from './orgLoginWeb';
+import { AuthDemoModeExecutor, OrgLoginWebContainerExecutor } from './orgLoginWeb';
 
 export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExecutor {
   public build(data: AuthDevHubParams): Command {
-    const command = new SfCommandBuilder().withDescription(
-      nls.localize('org_login_web_authorize_dev_hub_text')
-    );
+    const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_dev_hub_text'));
 
     command
       .withArg(CLI.ORG_LOGIN_DEVICE)
@@ -51,9 +39,7 @@ export class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
   public build(data: AuthDevHubParams): Command {
-    const command = new SfCommandBuilder().withDescription(
-      nls.localize('org_login_web_authorize_dev_hub_text')
-    );
+    const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_dev_hub_text'));
 
     command
       .withArg(CLI.ORG_LOGIN_WEB)
@@ -78,12 +64,8 @@ export class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> 
   }
 }
 
-export class AuthDevHubParamsGatherer
-  implements ParametersGatherer<AuthDevHubParams>
-{
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<AuthDevHubParams>
-  > {
+export class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<AuthDevHubParams>> {
     const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: DEFAULT_ALIAS
@@ -121,10 +103,6 @@ export const createAuthDevHubExecutor = (): SfCommandletExecutor<{}> => {
 };
 
 export const orgLoginWebDevHub = async () => {
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    createAuthDevHubExecutor()
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, createAuthDevHubExecutor());
   await commandlet.run();
 };

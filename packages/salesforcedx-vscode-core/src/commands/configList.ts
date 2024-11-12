@@ -5,17 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Command,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
-import {
-  EmptyParametersGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class ConfigList extends SfCommandletExecutor<{}> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -31,11 +23,7 @@ export class ConfigList extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 const executor = new ConfigList();
-const commandlet = new SfCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
+const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
 
 export const configList = async (): Promise<void> => {
   await commandlet.run();

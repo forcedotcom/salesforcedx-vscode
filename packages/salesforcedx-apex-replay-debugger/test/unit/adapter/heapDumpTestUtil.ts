@@ -329,12 +329,7 @@ export const createHeapDumpResultForTriggers = (): ApexHeapDump => {
             {
               address: '0x10954bcf',
               size: 5,
-              symbols: [
-                'Trigger.isbefore',
-                'Trigger.isdelete',
-                'Trigger.isundelete',
-                'Trigger.isupdate'
-              ],
+              symbols: ['Trigger.isbefore', 'Trigger.isdelete', 'Trigger.isundelete', 'Trigger.isupdate'],
               value: {
                 value: false
               }

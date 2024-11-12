@@ -9,11 +9,7 @@ import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import Uri from 'vscode-uri';
-import {
-  ApexReplayDebug,
-  ApexVariable,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, ApexVariable, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState } from '../../../src/states';
 
@@ -34,15 +30,9 @@ describe('Frame entry event', () => {
   beforeEach(() => {
     map = new Map<string, Map<string, ApexVariable>>();
     map.set('previousClass', new Map<string, ApexVariable>());
-    map
-      .get('previousClass')!
-      .set('var1', new ApexVariable('var1', '0', 'Integer'));
-    getUriFromSignatureStub = sinon
-      .stub(LogContext.prototype, 'getUriFromSignature')
-      .returns(uriFromSignature);
-    getStaticMapStub = sinon
-      .stub(LogContext.prototype, 'getStaticVariablesClassMap')
-      .returns(map);
+    map.get('previousClass')!.set('var1', new ApexVariable('var1', '0', 'Integer'));
+    getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
+    getStaticMapStub = sinon.stub(LogContext.prototype, 'getStaticVariablesClassMap').returns(map);
   });
 
   afterEach(() => {
@@ -53,9 +43,7 @@ describe('Frame entry event', () => {
   it('Should add a frame', () => {
     const state = new FrameEntryState(['signature']);
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
-    context
-      .getFrames()
-      .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
+    context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(state.handle(context)).to.be.false;
 
@@ -73,17 +61,13 @@ describe('Frame entry event', () => {
       }
     } as StackFrame);
     expect(context.getStaticVariablesClassMap().has('signature')).to.be.true;
-    expect(
-      context.getStaticVariablesClassMap().get('signature')!.size
-    ).to.equal(0);
+    expect(context.getStaticVariablesClassMap().get('signature')!.size).to.equal(0);
   });
 
   it('Should parse the class name from method signature and add it to static variable map', () => {
     const state = new FrameEntryState(['className.method']);
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
-    context
-      .getFrames()
-      .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
+    context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(state.handle(context)).to.be.false;
 
@@ -101,17 +85,13 @@ describe('Frame entry event', () => {
       }
     } as StackFrame);
     expect(context.getStaticVariablesClassMap()).to.include.keys('className');
-    expect(
-      context.getStaticVariablesClassMap().get('className')!.size
-    ).to.equal(0);
+    expect(context.getStaticVariablesClassMap().get('className')!.size).to.equal(0);
   });
 
   it('Should use existing static variables when the entry is for a class that was seen earlier', () => {
     const state = new FrameEntryState(['previousClass.seenBefore']);
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
-    context
-      .getFrames()
-      .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
+    context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(state.handle(context)).to.be.false;
 
@@ -128,11 +108,7 @@ describe('Frame entry event', () => {
         sourceReference: 0
       }
     } as StackFrame);
-    expect(context.getStaticVariablesClassMap()).to.include.keys(
-      'previousClass'
-    );
-    expect(context.getStaticVariablesClassMap().get('previousClass')).equals(
-      map.get('previousClass')
-    );
+    expect(context.getStaticVariablesClassMap()).to.include.keys('previousClass');
+    expect(context.getStaticVariablesClassMap().get('previousClass')).equals(map.get('previousClass'));
   });
 });

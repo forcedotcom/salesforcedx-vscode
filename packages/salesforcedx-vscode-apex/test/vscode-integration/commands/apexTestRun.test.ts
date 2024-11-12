@@ -68,11 +68,7 @@ describe('Apex Library Test Run Executor', async () => {
       cancellationToken
     );
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([
-      'RunSpecifiedTests',
-      undefined,
-      'testClass'
-    ]);
+    expect(buildPayloadStub.args[0]).to.eql(['RunSpecifiedTests', undefined, 'testClass']);
     assert.calledOnce(runTestStub);
     assert.calledWith(
       runTestStub,
@@ -104,12 +100,7 @@ describe('Apex Library Test Run Executor', async () => {
     );
 
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([
-      'RunSpecifiedTests',
-      undefined,
-      undefined,
-      'testSuite'
-    ]);
+    expect(buildPayloadStub.args[0]).to.eql(['RunSpecifiedTests', undefined, undefined, 'testSuite']);
     assert.calledOnce(runTestStub);
     assert.calledWith(
       runTestStub,
@@ -133,14 +124,7 @@ describe('Apex Library Test Run Executor', async () => {
     );
 
     assert.calledOnce(runTestStub);
-    assert.calledWith(
-      runTestStub,
-      { testLevel: TestLevel.RunLocalTests },
-      true,
-      false,
-      match.any,
-      cancellationToken
-    );
+    assert.calledWith(runTestStub, { testLevel: TestLevel.RunLocalTests }, true, false, match.any, cancellationToken);
   });
 
   it('should run test with correct parameters for all tests', async () => {
@@ -167,31 +151,29 @@ describe('Apex Library Test Run Executor', async () => {
 
   it('should report progress', async () => {
     const apexLibExecutor = new ApexLibraryTestRunExecutor();
-    runTestStub.callsFake(
-      (payload, codecoverage, exitEarly, progressReporter, token) => {
-        progressReporter.report({
-          type: 'StreamingClientProgress',
-          value: 'streamingTransportUp',
-          message: 'Listening for streaming state changes...'
-        });
-        progressReporter.report({
-          type: 'StreamingClientProgress',
-          value: 'streamingProcessingTestRun',
-          message: 'Processing test run 707500000000000001',
-          testRunId: '707500000000000001'
-        });
-        progressReporter.report({
-          type: 'FormatTestResultProgress',
-          value: 'retrievingTestRunSummary',
-          message: 'Retrieving test run summary record'
-        });
-        progressReporter.report({
-          type: 'FormatTestResultProgress',
-          value: 'queryingForAggregateCodeCoverage',
-          message: 'Querying for aggregate code coverage results'
-        });
-      }
-    );
+    runTestStub.callsFake((payload, codecoverage, exitEarly, progressReporter, token) => {
+      progressReporter.report({
+        type: 'StreamingClientProgress',
+        value: 'streamingTransportUp',
+        message: 'Listening for streaming state changes...'
+      });
+      progressReporter.report({
+        type: 'StreamingClientProgress',
+        value: 'streamingProcessingTestRun',
+        message: 'Processing test run 707500000000000001',
+        testRunId: '707500000000000001'
+      });
+      progressReporter.report({
+        type: 'FormatTestResultProgress',
+        value: 'retrievingTestRunSummary',
+        message: 'Retrieving test run summary record'
+      });
+      progressReporter.report({
+        type: 'FormatTestResultProgress',
+        value: 'queryingForAggregateCodeCoverage',
+        message: 'Querying for aggregate code coverage results'
+      });
+    });
 
     await apexLibExecutor.run(
       {
@@ -253,26 +235,17 @@ describe('Apex Library Test Run Executor', async () => {
 
       expect(result.type).to.equal('CONTINUE');
       expect(quickPickStub.getCall(0).args.length).to.equal(1);
-      const fileItems: ApexTestQuickPickItem[] =
-        quickPickStub.getCall(0).args[0];
+      const fileItems: ApexTestQuickPickItem[] = quickPickStub.getCall(0).args[0];
       expect(fileItems.length).to.equal(4);
       expect(fileItems[0].label).to.equal('DemoSuite');
       expect(fileItems[0].type).to.equal(TestType.Suite);
       expect(fileItems[3].label).to.equal('DemoControllerTests');
       expect(fileItems[3].type).to.equal(TestType.Class);
-      expect(fileItems[1].label).to.equal(
-        nls.localize('apex_test_run_all_local_test_label')
-      );
-      expect(fileItems[1].description).to.equal(
-        nls.localize('apex_test_run_all_local_tests_description_text')
-      );
+      expect(fileItems[1].label).to.equal(nls.localize('apex_test_run_all_local_test_label'));
+      expect(fileItems[1].description).to.equal(nls.localize('apex_test_run_all_local_tests_description_text'));
       expect(fileItems[1].type).to.equal(TestType.AllLocal);
-      expect(fileItems[2].label).to.equal(
-        nls.localize('apex_test_run_all_test_label')
-      );
-      expect(fileItems[2].description).to.equal(
-        nls.localize('apex_test_run_all_tests_description_text')
-      );
+      expect(fileItems[2].label).to.equal(nls.localize('apex_test_run_all_test_label'));
+      expect(fileItems[2].description).to.equal(nls.localize('apex_test_run_all_tests_description_text'));
       expect(fileItems[2].type).to.equal(TestType.All);
     });
   });

@@ -5,19 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Config,
-  ConfigAggregator,
-  Org,
-  OrgConfigProperties,
-  StateAggregator
-} from '@salesforce/core-bundle';
+import { Config, ConfigAggregator, Org, OrgConfigProperties, StateAggregator } from '@salesforce/core-bundle';
 import { workspaceUtils } from '..';
-import {
-  SF_CONFIG_DISABLE_TELEMETRY,
-  TARGET_DEV_HUB_KEY,
-  TARGET_ORG_KEY
-} from '../constants';
+import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
 import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../services/telemetry';
 
@@ -29,8 +19,7 @@ export enum ConfigSource {
 
 export class ConfigUtil {
   public static async getConfigSource(key: string): Promise<ConfigSource> {
-    const configAggregator =
-      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const configSource = configAggregator.getLocation(key);
     switch (configSource) {
       case ConfigAggregator.Location.LOCAL:
@@ -49,23 +38,16 @@ export class ConfigUtil {
    * override the API version that is otherwise gotten from the authenticated
    * Org in some cases, such as when deploying metadata.
    */
-  public static async getUserConfiguredApiVersion(): Promise<
-    string | undefined
-  > {
-    const configAggregator =
-      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const apiVersion = configAggregator.getPropertyValue(
-      OrgConfigProperties.ORG_API_VERSION
-    );
+  public static async getUserConfiguredApiVersion(): Promise<string | undefined> {
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const apiVersion = configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION);
     return apiVersion ? String(apiVersion) : undefined;
   }
 
   public static async getTargetOrgOrAlias(): Promise<string | undefined> {
     try {
-      const configAggregator =
-        await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-      const targetOrgOrAlias =
-        configAggregator.getPropertyValue(TARGET_ORG_KEY);
+      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+      const targetOrgOrAlias = configAggregator.getPropertyValue(TARGET_ORG_KEY);
       if (!targetOrgOrAlias) {
         return undefined;
       }
@@ -74,49 +56,36 @@ export class ConfigUtil {
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
-        TelemetryService.getInstance().sendException(
-          'get_target_org_alias',
-          err.message
-        );
+        TelemetryService.getInstance().sendException('get_target_org_alias', err.message);
       }
       throw err;
     }
   }
 
   public static async isGlobalTargetOrg(): Promise<boolean> {
-    const configSource: ConfigSource =
-      await ConfigUtil.getConfigSource(TARGET_ORG_KEY);
+    const configSource: ConfigSource = await ConfigUtil.getConfigSource(TARGET_ORG_KEY);
     return configSource === ConfigSource.Global;
   }
 
   public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const configAggregator =
-      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const templatesDirectory = configAggregator.getPropertyValue(
-      OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
-    );
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const templatesDirectory = configAggregator.getPropertyValue(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES);
     return templatesDirectory ? String(templatesDirectory) : undefined;
   }
 
   public static async isTelemetryDisabled(): Promise<boolean> {
-    const configAggregator =
-      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const isTelemetryDisabled = configAggregator.getPropertyValue(
-      SF_CONFIG_DISABLE_TELEMETRY
-    );
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const isTelemetryDisabled = configAggregator.getPropertyValue(SF_CONFIG_DISABLE_TELEMETRY);
     return isTelemetryDisabled === 'true';
   }
 
   public static async getTargetDevHubOrAlias(): Promise<string | undefined> {
-    const configAggregator =
-      await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const targetDevHub = configAggregator.getPropertyValue(TARGET_DEV_HUB_KEY);
     return targetDevHub ? String(targetDevHub) : undefined;
   }
 
-  public static async getGlobalTargetDevHubOrAlias(): Promise<
-    string | undefined
-  > {
+  public static async getGlobalTargetDevHubOrAlias(): Promise<string | undefined> {
     const globalConfig = await Config.create({ isGlobal: true });
     const globalTargetDevHub = globalConfig.get(TARGET_DEV_HUB_KEY);
 
@@ -189,9 +158,7 @@ export class ConfigUtil {
     }
   }
 
-  public static async setTargetOrgOrAlias(
-    usernameOrAlias: string
-  ): Promise<void> {
+  public static async setTargetOrgOrAlias(usernameOrAlias: string): Promise<void> {
     const originalDirectory = process.cwd();
     // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
     const workspacePath = workspaceUtils.getRootWorkspacePath();

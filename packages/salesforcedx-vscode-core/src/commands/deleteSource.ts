@@ -4,10 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Command,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
@@ -62,9 +59,7 @@ export class ManifestChecker implements PreconditionChecker {
       const manifestPath = path.join(workspaceRootPath, 'manifest');
       const isManifestFile = this.explorerPath.includes(manifestPath);
       if (isManifestFile) {
-        notificationService.showErrorMessage(
-          nls.localize('delete_source_manifest_unsupported_message')
-        );
+        notificationService.showErrorMessage(nls.localize('delete_source_manifest_unsupported_message'));
         return false;
       }
       return true;
@@ -73,9 +68,7 @@ export class ManifestChecker implements PreconditionChecker {
   }
 }
 
-export class ConfirmationAndSourcePathGatherer
-  implements ParametersGatherer<{ filePath: string }>
-{
+export class ConfirmationAndSourcePathGatherer implements ParametersGatherer<{ filePath: string }> {
   private explorerPath: string;
   private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
@@ -84,15 +77,9 @@ export class ConfirmationAndSourcePathGatherer
     this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ filePath: string }>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ filePath: string }>> {
     const prompt = nls.localize('delete_source_confirmation_message');
-    const response = await vscode.window.showInformationMessage(
-      prompt,
-      this.PROCEED,
-      this.CANCEL
-    );
+    const response = await vscode.window.showInformationMessage(prompt, this.PROCEED, this.CANCEL);
 
     return response && response === this.PROCEED
       ? { type: 'CONTINUE', data: { filePath: this.explorerPath } }
@@ -111,9 +98,7 @@ export const deleteSource = async (sourceUri: vscode.Uri) => {
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
       sourceUri = editor.document.uri;
     } else {
-      const errorMessage = nls.localize(
-        'delete_source_select_file_or_directory'
-      );
+      const errorMessage = nls.localize('delete_source_select_file_or_directory');
       telemetryService.sendException('project_delete_source', errorMessage);
       void notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);

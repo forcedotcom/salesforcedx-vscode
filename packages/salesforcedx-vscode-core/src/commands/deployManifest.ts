@@ -24,15 +24,10 @@ export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_manifest');
   }
 
-  protected async getComponents(
-    response: ContinueResponse<string>
-  ): Promise<ComponentSet> {
-    const packageDirs =
-      await SalesforcePackageDirectories.getPackageDirectoryPaths();
+  protected async getComponents(response: ContinueResponse<string>): Promise<ComponentSet> {
+    const packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
     const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
-    const resolveSourcePaths = packageDirs.map(packageDir =>
-      join(rootWorkspacePath, packageDir)
-    );
+    const resolveSourcePaths = packageDirs.map(packageDir => join(rootWorkspacePath, packageDir));
     const componentSet = await ComponentSet.fromManifest({
       manifestPath: response.data,
       resolveSourcePaths,

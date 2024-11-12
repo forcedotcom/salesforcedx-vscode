@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  DescribeGlobalResult,
-  DescribeSObjectResult,
-  Field
-} from '@jsforce/jsforce-node';
+import { DescribeGlobalResult, DescribeSObjectResult, Field } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core-bundle';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
@@ -34,8 +30,7 @@ export class SObjectDescribe {
    * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
    */
   public async describeGlobal(): Promise<SObjectShortDescription[]> {
-    const allDescriptions: DescribeGlobalResult =
-      await this.connection.describeGlobal();
+    const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
     const requestedDescriptions = allDescriptions.sobjects.map(sobject => {
       return { name: sobject.name, custom: sobject.custom };
     });
@@ -47,22 +42,12 @@ export class SObjectDescribe {
   }
 
   public buildSObjectDescribeURL(sObjectName: string): string {
-    const urlElements = [
-      this.getVersion(),
-      this.sobjectsPart,
-      sObjectName,
-      'describe'
-    ];
+    const urlElements = [this.getVersion(), this.sobjectsPart, sObjectName, 'describe'];
     return urlElements.join('/');
   }
 
   public buildBatchRequestURL(): string {
-    const batchUrlElements = [
-      this.connection.instanceUrl,
-      this.servicesPath,
-      this.getVersion(),
-      this.batchPart
-    ];
+    const batchUrlElements = [this.connection.instanceUrl, this.servicesPath, this.getVersion(), this.batchPart];
     return batchUrlElements.join('/');
   }
 
@@ -91,9 +76,7 @@ export class SObjectDescribe {
     }) as unknown as BatchResponse;
   }
 
-  public async describeSObjectBatchRequest(
-    types: string[]
-  ): Promise<SObject[]> {
+  public async describeSObjectBatchRequest(types: string[]): Promise<SObject[]> {
     try {
       const batchRequest = this.buildBatchRequestBody(types);
       const batchResponse = await this.runRequest(batchRequest);
@@ -139,21 +122,10 @@ export class SObjectDescribe {
  * @param describeSObject full metadata of an sobject, as returned by the jsforce's sobject/describe api
  * @returns SObject containing a subset of DescribeSObjectResult information
  */
-export const toMinimalSObject = (
-  describeSObject: DescribeSObjectResult
-): SObject => {
+export const toMinimalSObject = (describeSObject: DescribeSObjectResult): SObject => {
   return {
-    fields: describeSObject.fields
-      ? describeSObject.fields.map(toMinimalSObjectField)
-      : [],
-    ...pick(
-      describeSObject,
-      'label',
-      'childRelationships',
-      'custom',
-      'name',
-      'queryable'
-    )
+    fields: describeSObject.fields ? describeSObject.fields.map(toMinimalSObjectField) : [],
+    ...pick(describeSObject, 'label', 'childRelationships', 'custom', 'name', 'queryable')
   };
 };
 

@@ -29,14 +29,10 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   private disposables: vscode.Disposable[] = [];
   private hasIndexedTestFiles = false;
   private testFileInfoMap = new Map<string, TestFileInfo>();
-  private diagnosticCollection =
-    vscode.languages.createDiagnosticCollection('lwcTestErrors');
-  private onDidUpdateTestResultsIndexEventEmitter =
-    new vscode.EventEmitter<undefined>();
-  private onDidUpdateTestIndexEventEmitter =
-    new vscode.EventEmitter<undefined>();
-  public onDidUpdateTestResultsIndex =
-    this.onDidUpdateTestResultsIndexEventEmitter.event;
+  private diagnosticCollection = vscode.languages.createDiagnosticCollection('lwcTestErrors');
+  private onDidUpdateTestResultsIndexEventEmitter = new vscode.EventEmitter<undefined>();
+  private onDidUpdateTestIndexEventEmitter = new vscode.EventEmitter<undefined>();
+  public onDidUpdateTestResultsIndex = this.onDidUpdateTestResultsIndexEventEmitter.event;
   public onDidUpdateTestIndex = this.onDidUpdateTestIndexEventEmitter.event;
 
   /**
@@ -65,9 +61,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
    * Set up file system watcher for test files change/create/delete.
    */
   public async configureAndIndex() {
-    const lwcTestWatcher = vscode.workspace.createFileSystemWatcher(
-      LWC_TEST_GLOB_PATTERN
-    );
+    const lwcTestWatcher = vscode.workspace.createFileSystemWatcher(LWC_TEST_GLOB_PATTERN);
     lwcTestWatcher.onDidCreate(
       async testUri => {
         await this.indexTestCases(testUri);
@@ -131,9 +125,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
    * It lazily parses test information, until expanding the test file or providing code lens
    * @param testUri uri of test file
    */
-  public async findTestInfoFromLwcJestTestFile(
-    testUri: vscode.Uri
-  ): Promise<TestCaseInfo[]> {
+  public async findTestInfoFromLwcJestTestFile(testUri: vscode.Uri): Promise<TestCaseInfo[]> {
     // parse
     const { fsPath: testFsPath } = testUri;
     let testFileInfo = this.testFileInfoMap.get(testFsPath);
@@ -146,9 +138,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     return this.parseTestFileAndMergeTestResults(testFileInfo);
   }
 
-  private parseTestFileAndMergeTestResults(
-    testFileInfo: TestFileInfo
-  ): TestCaseInfo[] {
+  private parseTestFileAndMergeTestResults(testFileInfo: TestFileInfo): TestCaseInfo[] {
     try {
       const { testUri } = testFileInfo;
       const { fsPath: testFsPath } = testUri;
@@ -160,10 +150,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
         const { name, nameRange, ancestorTitles } = itBlock;
         const testName = name;
         const testRange = new vscode.Range(
-          new vscode.Position(
-            nameRange.start.line - 1,
-            nameRange.start.column - 1
-          ),
+          new vscode.Position(nameRange.start.line - 1, nameRange.start.column - 1),
           new vscode.Position(nameRange.end.line - 1, nameRange.end.column)
         );
         const testLocation = new vscode.Location(testUri, testRange);
@@ -195,10 +182,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
    */
   private async indexAllTestFiles(): Promise<TestFileInfo[]> {
     // TODO, infer package directory from sfdx-project.json
-    const lwcJestTestFiles = await vscode.workspace.findFiles(
-      LWC_TEST_GLOB_PATTERN,
-      '**/node_modules/**'
-    );
+    const lwcJestTestFiles = await vscode.workspace.findFiles(LWC_TEST_GLOB_PATTERN, '**/node_modules/**');
     const allTestFileInfo = lwcJestTestFiles.map(lwcJestTestFile => {
       const { fsPath } = lwcJestTestFile;
       let testFileInfo = this.testFileInfoMap.get(fsPath);
@@ -213,10 +197,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
 
   private indexTestFile(testFsPath: string): TestFileInfo {
     const testUri = vscode.Uri.file(testFsPath);
-    const testLocation = new vscode.Location(
-      testUri,
-      new vscode.Position(0, 0)
-    );
+    const testLocation = new vscode.Location(testUri, new vscode.Position(0, 0));
     const testFileInfo: TestFileInfo = {
       kind: TestInfoKind.TEST_FILE,
       testType: TestType.LWC,
@@ -231,17 +212,11 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     this.testFileInfoMap.delete(testFsPath);
   }
 
-  private mergeTestResults(
-    testCasesInfo: TestCaseInfo[],
-    rawTestResults: RawTestResult[]
-  ) {
+  private mergeTestResults(testCasesInfo: TestCaseInfo[], rawTestResults: RawTestResult[]) {
     const rawTestResultsByTitle = new Map<string, RawTestResult[]>();
     rawTestResults.forEach(rawTestResult => {
       const { title } = rawTestResult;
-      rawTestResultsByTitle.set(title, [
-        ...(rawTestResultsByTitle.get(title) || []),
-        rawTestResult
-      ]);
+      rawTestResultsByTitle.set(title, [...(rawTestResultsByTitle.get(title) || []), rawTestResult]);
     });
 
     testCasesInfo.forEach(testCaseInfo => {
@@ -249,18 +224,14 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
 
       const rawTestResultsOfTestName = rawTestResultsByTitle.get(testName);
       if (rawTestResultsOfTestName) {
-        const matchedRawTestResults = rawTestResultsOfTestName.filter(
-          rawTestResultOfTestName => {
-            const { title, ancestorTitles } = rawTestResultOfTestName;
-            // match ancestor titles if possible
-            const isMatched = testCaseAncestorTitles
-              ? testName === title &&
-                JSON.stringify(testCaseAncestorTitles) ===
-                  JSON.stringify(ancestorTitles)
-              : testName === title;
-            return isMatched;
-          }
-        );
+        const matchedRawTestResults = rawTestResultsOfTestName.filter(rawTestResultOfTestName => {
+          const { title, ancestorTitles } = rawTestResultOfTestName;
+          // match ancestor titles if possible
+          const isMatched = testCaseAncestorTitles
+            ? testName === title && JSON.stringify(testCaseAncestorTitles) === JSON.stringify(ancestorTitles)
+            : testName === title;
+          return isMatched;
+        });
         if (matchedRawTestResults && matchedRawTestResults.length > 0) {
           testCaseInfo.testResult = {
             status: matchedRawTestResults[0].status
@@ -296,46 +267,38 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       };
 
       const testUri = vscode.Uri.file(testFsPath);
-      const diagnostics = assertionResults.reduce(
-        (diagnosticsResult: vscode.Diagnostic[], assertionResult) => {
-          const { failureMessages, location } = assertionResult;
-          if (failureMessages && failureMessages.length > 0) {
-            const failureMessage = sanitizeFailureMessage(failureMessages[0]);
-            const failurePosition =
-              extractPositionFromFailureMessage(testFsPath, failureMessage) ||
-              new vscode.Position(location.line - 1, location.column - 1);
-            const diagnostic = new vscode.Diagnostic(
-              new vscode.Range(failurePosition, failurePosition),
-              failureMessage
-            );
-            diagnosticsResult.push(diagnostic);
-          }
-          return diagnosticsResult;
-        },
-        []
-      );
+      const diagnostics = assertionResults.reduce((diagnosticsResult: vscode.Diagnostic[], assertionResult) => {
+        const { failureMessages, location } = assertionResult;
+        if (failureMessages && failureMessages.length > 0) {
+          const failureMessage = sanitizeFailureMessage(failureMessages[0]);
+          const failurePosition =
+            extractPositionFromFailureMessage(testFsPath, failureMessage) ||
+            new vscode.Position(location.line - 1, location.column - 1);
+          const diagnostic = new vscode.Diagnostic(new vscode.Range(failurePosition, failurePosition), failureMessage);
+          diagnosticsResult.push(diagnostic);
+        }
+        return diagnosticsResult;
+      }, []);
       this.diagnosticCollection.set(testUri, diagnostics);
 
       // Generate test results
-      const rawTestResults: RawTestResult[] = assertionResults.map(
-        assertionResult => {
-          const { title, status, ancestorTitles } = assertionResult;
-          let testResultStatus: TestResultStatus;
-          if (status === 'passed') {
-            testResultStatus = TestResultStatus.PASSED;
-          } else if (status === 'failed') {
-            testResultStatus = TestResultStatus.FAILED;
-          } else {
-            testResultStatus = TestResultStatus.SKIPPED;
-          }
-          const testCaseInfo: RawTestResult = {
-            title,
-            status: testResultStatus,
-            ancestorTitles
-          };
-          return testCaseInfo;
+      const rawTestResults: RawTestResult[] = assertionResults.map(assertionResult => {
+        const { title, status, ancestorTitles } = assertionResult;
+        let testResultStatus: TestResultStatus;
+        if (status === 'passed') {
+          testResultStatus = TestResultStatus.PASSED;
+        } else if (status === 'failed') {
+          testResultStatus = TestResultStatus.FAILED;
+        } else {
+          testResultStatus = TestResultStatus.SKIPPED;
         }
-      );
+        const testCaseInfo: RawTestResult = {
+          title,
+          status: testResultStatus,
+          ancestorTitles
+        };
+        return testCaseInfo;
+      });
 
       // Set raw test results
       testFileInfo.rawTestResults = rawTestResults;

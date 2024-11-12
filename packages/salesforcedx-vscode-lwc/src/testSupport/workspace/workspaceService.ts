@@ -11,26 +11,18 @@ import * as vscode from 'vscode';
  * Provide capabilities for VS Code regarding LWC workspace types defined in lightning-lsp-common
  */
 class WorkspaceService {
-  private currentWorkspaceType: lspCommon.WorkspaceType =
-    lspCommon.WorkspaceType.UNKNOWN;
+  private currentWorkspaceType: lspCommon.WorkspaceType = lspCommon.WorkspaceType.UNKNOWN;
 
   /**
    * Setup current workspace type
    * @param extensionContext extension context
    * @param workspaceType
    */
-  public register(
-    extensionContext: vscode.ExtensionContext,
-    workspaceType: lspCommon.WorkspaceType
-  ) {
+  public register(extensionContext: vscode.ExtensionContext, workspaceType: lspCommon.WorkspaceType) {
     this.setCurrentWorkspaceType(workspaceType);
 
     const isInternalDev = this.isCoreWorkspace(workspaceType);
-    vscode.commands.executeCommand(
-      'setContext',
-      'sf:internal_dev',
-      isInternalDev
-    );
+    vscode.commands.executeCommand('setContext', 'sf:internal_dev', isInternalDev);
   }
 
   public getCurrentWorkspaceType() {
@@ -46,10 +38,7 @@ class WorkspaceService {
   }
 
   public isCoreWorkspace(workspaceType: lspCommon.WorkspaceType) {
-    return (
-      workspaceType === lspCommon.WorkspaceType.CORE_ALL ||
-      workspaceType === lspCommon.WorkspaceType.CORE_PARTIAL
-    );
+    return workspaceType === lspCommon.WorkspaceType.CORE_ALL || workspaceType === lspCommon.WorkspaceType.CORE_PARTIAL;
   }
 
   /**

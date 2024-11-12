@@ -83,11 +83,7 @@ export class MetadataCacheService {
    * @param componentPath A path referring to a project folder or an individual component resource
    * @param projectPath The base path of a SFDX Project
    */
-  public initialize(
-    componentPath: string,
-    projectPath: string,
-    isManifest: boolean = false
-  ): void {
+  public initialize(componentPath: string, projectPath: string, isManifest: boolean = false): void {
     this.componentPath = componentPath;
     this.projectPath = projectPath;
     this.isManifest = isManifest;
@@ -119,8 +115,7 @@ export class MetadataCacheService {
 
   public async getSourceComponents(): Promise<ComponentSet> {
     if (this.componentPath && this.projectPath) {
-      const packageDirs =
-        await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
+      const packageDirs = await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
             manifestPath: this.componentPath,
@@ -133,9 +128,7 @@ export class MetadataCacheService {
     return new ComponentSet();
   }
 
-  public async createRetrieveOperation(
-    comps?: ComponentSet
-  ): Promise<MetadataApiRetrieve> {
+  public async createRetrieveOperation(comps?: ComponentSet): Promise<MetadataApiRetrieve> {
     const components = comps || (await this.getSourceComponents());
     this.clearDirectory(this.cachePath, true);
 
@@ -151,9 +144,7 @@ export class MetadataCacheService {
     return operation;
   }
 
-  public async processResults(
-    result: RetrieveResult | undefined
-  ): Promise<MetadataCacheResult | undefined> {
+  public async processResults(result: RetrieveResult | undefined): Promise<MetadataCacheResult | undefined> {
     if (!result) {
       return;
     }
@@ -164,16 +155,10 @@ export class MetadataCacheService {
       const cacheCommon = this.findLongestCommonDir(components, this.cachePath);
 
       const sourceComps = this.sourceComponents.getSourceComponents().toArray();
-      const projCommon = this.findLongestCommonDir(
-        sourceComps,
-        this.projectPath
-      );
+      const projCommon = this.findLongestCommonDir(sourceComps, this.projectPath);
 
       let selectedType = PathType.Unknown;
-      if (
-        fs.existsSync(this.componentPath) &&
-        fs.lstatSync(this.componentPath).isDirectory()
-      ) {
+      if (fs.existsSync(this.componentPath) && fs.lstatSync(this.componentPath).isDirectory()) {
         selectedType = PathType.Folder;
       } else if (this.isManifest) {
         selectedType = PathType.Manifest;
@@ -216,10 +201,7 @@ export class MetadataCacheService {
     return { components, properties };
   }
 
-  private findLongestCommonDir(
-    comps: SourceComponent[],
-    baseDir: string
-  ): string {
+  private findLongestCommonDir(comps: SourceComponent[], baseDir: string): string {
     if (comps.length === 0) {
       return '';
     }
@@ -275,9 +257,7 @@ export class MetadataCacheService {
    * @param result A MetadataCacheResult
    * @returns An array with one entry per retrieved component, with all corresponding information about the component included
    */
-  public static correlateResults(
-    result: MetadataCacheResult
-  ): CorrelatedComponent[] {
+  public static correlateResults(result: MetadataCacheResult): CorrelatedComponent[] {
     const components: CorrelatedComponent[] = [];
 
     const projectIndex = new Map<string, RecomposedComponent>();
@@ -288,10 +268,7 @@ export class MetadataCacheService {
 
     const fileIndex = new Map<string, FileProperties>();
     for (const fileProperty of result.properties) {
-      fileIndex.set(
-        MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName),
-        fileProperty
-      );
+      fileIndex.set(MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName), fileProperty);
     }
 
     fileIndex.forEach((fileProperties, key) => {
@@ -327,18 +304,12 @@ export class MetadataCacheService {
    * @param index The map which is mutated by this function
    * @param components The parent and/or child components to add to the map
    */
-  private static pairParentsAndChildren(
-    index: Map<string, RecomposedComponent>,
-    components: SourceComponent[]
-  ) {
+  private static pairParentsAndChildren(index: Map<string, RecomposedComponent>, components: SourceComponent[]) {
     for (const comp of components) {
       const key = MetadataCacheService.makeKey(comp.type.name, comp.fullName);
       // If the component has a parent it is assumed to be a child
       if (comp.parent) {
-        const parentKey = MetadataCacheService.makeKey(
-          comp.parent.type.name,
-          comp.parent.fullName
-        );
+        const parentKey = MetadataCacheService.makeKey(comp.parent.type.name, comp.parent.fullName);
         const parentEntry = index.get(parentKey);
         if (parentEntry) {
           // Add the child component if we have an entry for the parent
@@ -374,11 +345,7 @@ export class MetadataCacheService {
   }
 
   public makeCachePath(cacheKey: string): string {
-    return path.join(
-      os.tmpdir(),
-      ...MetadataCacheService.CACHE_FOLDER,
-      cacheKey
-    );
+    return path.join(os.tmpdir(), ...MetadataCacheService.CACHE_FOLDER, cacheKey);
   }
 
   public getPropsPath(): string {
@@ -401,10 +368,7 @@ export class MetadataCacheService {
   }
 }
 
-export type MetadataCacheCallback = (
-  username: string,
-  cache: MetadataCacheResult | undefined
-) => Promise<void>;
+export type MetadataCacheCallback = (username: string, cache: MetadataCacheResult | undefined) => Promise<void>;
 
 export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   private cacheService: MetadataCacheService;
@@ -427,11 +391,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   }
 
   protected async getComponents(response: any): Promise<ComponentSet> {
-    this.cacheService.initialize(
-      response.data,
-      workspaceUtils.getRootWorkspacePath(),
-      this.isManifest
-    );
+    this.cacheService.initialize(response.data, workspaceUtils.getRootWorkspacePath(), this.isManifest);
     return this.cacheService.getSourceComponents();
   }
 
@@ -439,15 +399,13 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const operation =
-      await this.cacheService.createRetrieveOperation(components);
+    const operation = await this.cacheService.createRetrieveOperation(components);
     this.setupCancellation(operation, token);
     return operation.pollStatus();
   }
 
   protected async postOperation(result: RetrieveResult | undefined) {
-    const cache: MetadataCacheResult | undefined =
-      await this.cacheService.processResults(result);
+    const cache: MetadataCacheResult | undefined = await this.cacheService.processResults(result);
     await this.callback(this.username, cache);
   }
 }

@@ -6,40 +6,25 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import {
-  instantiateContext,
-  MockTestOrgData,
-  restoreContext,
-  stubContext
-} from '@salesforce/core-bundle';
+import { instantiateContext, MockTestOrgData, restoreContext, stubContext } from '@salesforce/core-bundle';
 import {
   CancelResponse,
   ContinueResponse,
   fileUtils,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentSet,
-  registry,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, registry, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import {
-  LibraryRetrieveSourcePathExecutor,
-  SourcePathChecker
-} from '../../../src/commands';
+import { LibraryRetrieveSourcePathExecutor, SourcePathChecker } from '../../../src/commands';
 import * as retrieveSourcePath from '../../../src/commands/retrieveSourcePath';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import {
-  SalesforcePackageDirectories,
-  SalesforceProjectConfig
-} from '../../../src/salesforceProject';
+import { SalesforcePackageDirectories, SalesforceProjectConfig } from '../../../src/salesforceProject';
 import { workspaceUtils } from '../../../src/util';
 
 const $$ = instantiateContext();
@@ -69,16 +54,10 @@ describe('Retrieve with Sourcepath Option', () => {
 
       mockConnection = await testData.getConnection();
 
-      sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(
-        mockConnection
-      );
-      sb.stub(WorkspaceContext.prototype, 'username').get(
-        () => testData.username
-      );
+      sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
+      sb.stub(WorkspaceContext.prototype, 'username').get(() => testData.username);
 
-      sb.stub(SalesforcePackageDirectories, 'getDefaultPackageDir').resolves(
-        defaultPackage
-      );
+      sb.stub(SalesforcePackageDirectories, 'getDefaultPackageDir').resolves(defaultPackage);
       sb.stub(SalesforceProjectConfig, 'getValue').resolves('11.0');
       sb.stub(SourceTrackingService, 'getSourceTracking');
       sb.stub(SourceTrackingService, 'updateSourceTrackingAfterRetrieve');
@@ -97,12 +76,8 @@ describe('Retrieve with Sourcepath Option', () => {
         })
       ]);
 
-      sb.stub(ComponentSet, 'fromSource')
-        .withArgs([fsPath])
-        .returns(toRetrieve);
-      retrieveStub = sb
-        .stub(toRetrieve, 'retrieve')
-        .returns({ pollStatus: pollStatusStub });
+      sb.stub(ComponentSet, 'fromSource').withArgs([fsPath]).returns(toRetrieve);
+      retrieveStub = sb.stub(toRetrieve, 'retrieve').returns({ pollStatus: pollStatusStub });
 
       await executor.run({
         type: 'CONTINUE',
@@ -112,10 +87,7 @@ describe('Retrieve with Sourcepath Option', () => {
       expect(retrieveStub.calledOnce).to.equal(true);
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
-        output: path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          defaultPackage
-        ),
+        output: path.join(workspaceUtils.getRootWorkspacePath(), defaultPackage),
         merge: true,
         suppressEvents: false
       });
@@ -126,36 +98,23 @@ describe('Retrieve with Sourcepath Option', () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
       const filePath2 = path.join('classes', 'MyClass2.cls');
       const filePath3 = path.join('lwc', 'myBundle', 'myBundle');
-      const uris = [
-        vscode.Uri.file(filePath1),
-        vscode.Uri.file(filePath2),
-        vscode.Uri.file(filePath3)
-      ];
+      const uris = [vscode.Uri.file(filePath1), vscode.Uri.file(filePath2), vscode.Uri.file(filePath3)];
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const sourcePathCheckerCheckStub = sb
-        .stub(SourcePathChecker.prototype, 'check')
-        .returns({
-          type: 'CONTINUE',
-          data: filePaths
-        });
+      const sourcePathCheckerCheckStub = sb.stub(SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
       const flushFilePathsStub = sb
         .stub(fileUtils, 'flushFilePaths')
-        .returns([
-          path.sep + filePath1,
-          path.sep + filePath2,
-          path.sep + filePath3
-        ]);
+        .returns([path.sep + filePath1, path.sep + filePath2, path.sep + filePath3]);
 
       await retrieveSourcePath.retrieveSourcePaths(uris[0], uris);
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
-      const continueResponse = sourcePathCheckerCheckStub
-        .args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(
-        JSON.stringify(filePaths)
-      );
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
 
       flushFilePathsStub.restore();
       sourcePathCheckerCheckStub.restore();
@@ -167,24 +126,17 @@ describe('Retrieve with Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const sourcePathCheckerCheckStub = sb
-        .stub(SourcePathChecker.prototype, 'check')
-        .returns({
-          type: 'CONTINUE',
-          data: filePaths
-        });
-      const flushFilePathsStub = sb
-        .stub(fileUtils, 'flushFilePaths')
-        .returns([path.sep + filePath1]);
+      const sourcePathCheckerCheckStub = sb.stub(SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+      const flushFilePathsStub = sb.stub(fileUtils, 'flushFilePaths').returns([path.sep + filePath1]);
 
       await retrieveSourcePath.retrieveSourcePaths(uris[0], uris);
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
-      const continueResponse = sourcePathCheckerCheckStub
-        .args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(
-        JSON.stringify(filePaths)
-      );
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
 
       flushFilePathsStub.restore();
       sourcePathCheckerCheckStub.restore();
@@ -196,24 +148,17 @@ describe('Retrieve with Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const sourcePathCheckerCheckStub = sb
-        .stub(SourcePathChecker.prototype, 'check')
-        .returns({
-          type: 'CONTINUE',
-          data: filePaths
-        });
-      const flushFilePathsStub = sb
-        .stub(fileUtils, 'flushFilePaths')
-        .returns([path.sep + filePath1]);
+      const sourcePathCheckerCheckStub = sb.stub(SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+      const flushFilePathsStub = sb.stub(fileUtils, 'flushFilePaths').returns([path.sep + filePath1]);
 
       await retrieveSourcePath.retrieveSourcePaths(uris[0], undefined);
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
-      const continueResponse = sourcePathCheckerCheckStub
-        .args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(
-        JSON.stringify(filePaths)
-      );
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
 
       flushFilePathsStub.restore();
       sourcePathCheckerCheckStub.restore();
@@ -230,18 +175,12 @@ describe('Retrieve with Sourcepath Option', () => {
       const uris = undefined;
 
       const filePaths = [filePath1];
-      const sourcePathCheckerCheckStub = sb
-        .stub(SourcePathChecker.prototype, 'check')
-        .returns({
-          type: 'CONTINUE',
-          data: filePaths
-        });
-      const getUriFromActiveEditorStub = sb
-        .stub(retrieveSourcePath, 'getUriFromActiveEditor')
-        .returns(filePath1);
-      const flushFilePathsStub = sb
-        .stub(fileUtils, 'flushFilePaths')
-        .returns([undefined]);
+      const sourcePathCheckerCheckStub = sb.stub(SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+      const getUriFromActiveEditorStub = sb.stub(retrieveSourcePath, 'getUriFromActiveEditor').returns(filePath1);
+      const flushFilePathsStub = sb.stub(fileUtils, 'flushFilePaths').returns([undefined]);
 
       await retrieveSourcePath.retrieveSourcePaths(sourceUri, uris);
 
@@ -270,9 +209,7 @@ describe('SourcePathChecker', () => {
   });
 
   it('Should continue when source path is in a package directory', async () => {
-    const isInPackageDirectoryStub = sb
-      .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
-      .returns(true);
+    const isInPackageDirectoryStub = sb.stub(SalesforcePackageDirectories, 'isInPackageDirectory').returns(true);
     const pathChecker = new SourcePathChecker();
     const sourcePath = path.join(workspacePath, 'package');
     const continueResponse = (await pathChecker.check({
@@ -288,18 +225,14 @@ describe('SourcePathChecker', () => {
   });
 
   it('Should notify user and cancel when source path is not inside of a package directory', async () => {
-    const isInPackageDirectoryStub = sb
-      .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
-      .returns(false);
+    const isInPackageDirectoryStub = sb.stub(SalesforcePackageDirectories, 'isInPackageDirectory').returns(false);
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
       data: [path.join('not', 'in', 'package', 'directory')]
     })) as CancelResponse;
 
-    const errorMessage = nls.localize(
-      'error_source_path_not_in_package_directory_text'
-    );
+    const errorMessage = nls.localize('error_source_path_not_in_package_directory_text');
     expect(appendLineSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(showErrorMessageSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(cancelResponse.type).to.equal('CANCEL');
@@ -307,18 +240,14 @@ describe('SourcePathChecker', () => {
   });
 
   it('Should cancel and notify user if an error occurs when fetching the package directories', async () => {
-    const isInPackageDirectoryStub = sb
-      .stub(SalesforcePackageDirectories, 'isInPackageDirectory')
-      .throws(new Error());
+    const isInPackageDirectoryStub = sb.stub(SalesforcePackageDirectories, 'isInPackageDirectory').throws(new Error());
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
       data: ['test/path']
     })) as CancelResponse;
 
-    const errorMessage = nls.localize(
-      'error_source_path_not_in_package_directory_text'
-    );
+    const errorMessage = nls.localize('error_source_path_not_in_package_directory_text');
     expect(appendLineSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(showErrorMessageSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(cancelResponse.type).to.equal('CANCEL');

@@ -12,8 +12,7 @@ import { workspaceUtils } from '../util';
 
 export default class SalesforcePackageDirectories {
   public static async getPackageDirectoryPaths(): Promise<string[]> {
-    const packageDirectories =
-      await SalesforceProjectConfig.getValue<JsonArray>('packageDirectories');
+    const packageDirectories = await SalesforceProjectConfig.getValue<JsonArray>('packageDirectories');
     if (packageDirectories) {
       let packageDirectoryPaths: string[] = [];
       packageDirectories.forEach(packageDir => {
@@ -47,18 +46,14 @@ export default class SalesforcePackageDirectories {
   }
 
   public static async getPackageDirectoryFullPaths(): Promise<string[]> {
-    const packageDirectoryPaths =
-      await SalesforcePackageDirectories.getPackageDirectoryPaths();
+    const packageDirectoryPaths = await SalesforcePackageDirectories.getPackageDirectoryPaths();
     const salesforceProjectPath = workspaceUtils.getRootWorkspacePath();
-    return packageDirectoryPaths.map(packageDirectoryPath =>
-      path.join(salesforceProjectPath, packageDirectoryPath)
-    );
+    return packageDirectoryPaths.map(packageDirectoryPath => path.join(salesforceProjectPath, packageDirectoryPath));
   }
 
   public static async isInPackageDirectory(filePath: string): Promise<boolean> {
     let filePathIsInPackageDirectory = false;
-    const packageDirectoryPaths =
-      await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
+    const packageDirectoryPaths = await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
     for (const packageDirectoryPath of packageDirectoryPaths) {
       if (filePath.startsWith(packageDirectoryPath)) {
         filePathIsInPackageDirectory = true;
@@ -71,13 +66,9 @@ export default class SalesforcePackageDirectories {
   public static async getDefaultPackageDir(): Promise<string | undefined> {
     let packageDirs: string[] = [];
     try {
-      packageDirs =
-        await SalesforcePackageDirectories.getPackageDirectoryPaths();
+      packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
     } catch (e) {
-      if (
-        e.name !== 'NoPackageDirectoryPathsFound' &&
-        e.name !== 'NoPackageDirectoriesFound'
-      ) {
+      if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
         throw e;
       }
     }

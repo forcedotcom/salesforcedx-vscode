@@ -15,14 +15,9 @@ import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
-  public static register(
-    extensionContext: vscode.ExtensionContext
-  ): vscode.Disposable {
+  public static register(extensionContext: vscode.ExtensionContext): vscode.Disposable {
     const provider = new SOQLEditorProvider(extensionContext);
-    const providerRegistration = vscode.window.registerCustomEditorProvider(
-      BUILDER_VIEW_TYPE,
-      provider
-    );
+    const providerRegistration = vscode.window.registerCustomEditorProvider(BUILDER_VIEW_TYPE, provider);
     return providerRegistration;
   }
 

@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -33,11 +32,7 @@ describe('HTML Parser', () => {
     assert.deepEqual(document.roots.map(toJSON), expected);
   };
 
-  const assertNodeBefore = (
-    input: string,
-    offset: number,
-    expectedTag: string
-  ) => {
+  const assertNodeBefore = (input: string, offset: number, expectedTag: string) => {
     const document = parse(input);
     const node = document.findNodeBefore(offset);
     assert.equal(node ? node.tag : '', expectedTag, 'offset ' + offset);
@@ -314,8 +309,7 @@ describe('HTML Parser', () => {
   });
 
   it('Attributes', () => {
-    const str =
-      '<div class="these are my-classes" id="test"><span aria-describedby="test"></span></div>';
+    const str = '<div class="these are my-classes" id="test"><span aria-describedby="test"></span></div>';
     assertAttributes(str, [
       {
         tag: 'div',

@@ -13,20 +13,10 @@ const FILES_CHANGED = 'FILES_CHANGED';
 const PACKAGES = 'PACKAGES';
 const TYPE_HEADER = '\n## %s\n';
 const SECTION_HEADER = '\n#### %s\n';
-const MESSAGE_FORMAT =
-  '\n- %s ([PR #%s](https://github.com/forcedotcom/salesforcedx-vscode/pull/%s))\n';
-const PR_ALREADY_EXISTS_ERROR =
-  'Filtered PR number %s. An entry already exists in the changelog.';
+const MESSAGE_FORMAT = '\n- %s ([PR #%s](https://github.com/forcedotcom/salesforcedx-vscode/pull/%s))\n';
+const PR_ALREADY_EXISTS_ERROR = 'Filtered PR number %s. An entry already exists in the changelog.';
 
-const typesToIgnore = [
-  'chore',
-  'style',
-  'refactor',
-  'test',
-  'build',
-  'ci',
-  'revert'
-];
+const typesToIgnore = ['chore', 'style', 'refactor', 'test', 'build', 'ci', 'revert'];
 
 const logger = (msg, obj) => {
   if (!obj) {
@@ -38,7 +28,7 @@ const logger = (msg, obj) => {
 
 /**
  * Returns the previous release branch
- * @returns 
+ * @returns
  */
 
 function getPreviousReleaseBranch() {
@@ -50,12 +40,11 @@ function getPreviousReleaseBranch() {
  * Returns a list of remote release branches, sorted in reverse order by
  * creation date. This ensures that the first entry is the latest branch.
  */
- function getRemoteReleaseBranches() {
+function getRemoteReleaseBranches() {
   return shell
-    .exec(
-      `git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`,
-      { silent: false }
-    )
+    .exec(`git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`, {
+      silent: false
+    })
     .replace(/\n/g, ',')
     .split(',')
     .map(Function.prototype.call, String.prototype.trim);
@@ -65,19 +54,16 @@ function getPreviousReleaseBranch() {
  * This command will list all commits that are different between
  * the two branches. Therefore, we are guaranteed to get all new
  * commits relevant only to the new branch.
- * @param {string} releaseBranch 
- * @param {string} previousBranch 
- * @returns 
+ * @param {string} releaseBranch
+ * @param {string} previousBranch
+ * @returns
  */
- function getCommits(releaseBranch, previousBranch) {
+function getCommits(releaseBranch, previousBranch) {
   logger(`\nStep 3: Get commits from ${previousBranch} to ${releaseBranch}`);
   const commits = shell
-    .exec(
-      `git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`,
-      {
-        silent: false
-      }
-    )
+    .exec(`git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`, {
+      silent: false
+    })
     .stdout.trim()
     .split('\n');
   return commits;
@@ -85,10 +71,10 @@ function getPreviousReleaseBranch() {
 
 /**
  * Parse the commits and return them as a list of hashmaps.
- * @param {string[]} commits 
- * @returns 
+ * @param {string[]} commits
+ * @returns
  */
- function parseCommits(commits) {
+function parseCommits(commits) {
   logger(`\nStep 4: Determine which commits we want to share in the changelog`);
   let commitMaps = [];
   for (let i = 0; i < commits.length; i++) {
@@ -131,7 +117,7 @@ function buildMapFromCommit(commit) {
 function filterExistingPREntries(parsedCommits) {
   let currentChangeLog = fs.readFileSync(constants.CHANGE_LOG_PATH);
   let filteredResults = [];
-  parsedCommits.forEach(function(map) {
+  parsedCommits.forEach(function (map) {
     if (!currentChangeLog.includes('PR #' + map[PR_NUM])) {
       filteredResults.push(map);
     } else {
@@ -142,29 +128,27 @@ function filterExistingPREntries(parsedCommits) {
 }
 
 /**
-* Groups all messages per package header so they can be displayed under
- * the same package header subsection. Returns a map of lists. 
+ * Groups all messages per package header so they can be displayed under
+ * the same package header subsection. Returns a map of lists.
  * @param {string[]} parsedCommits array of parsed commit
  * @param {string} packagesToIgnore comma separated list of packages to be ignored for changelog generation
- * @returns 
+ * @returns
  */
- function getMessagesGroupedByPackage(parsedCommits, packagesToIgnore) {
+function getMessagesGroupedByPackage(parsedCommits, packagesToIgnore) {
   let groupedMessages = {};
   let sortedMessages = {};
-  parsedCommits.forEach(function(map) {
-    map[PACKAGES].forEach(function(packageName) {
+  parsedCommits.forEach(function (map) {
+    map[PACKAGES].forEach(function (packageName) {
       const key = generateKey(packageName, map[TYPE], packagesToIgnore);
       if (key) {
         groupedMessages[key] = groupedMessages[key] || [];
-        groupedMessages[key].push(
-          util.format(MESSAGE_FORMAT, map[MESSAGE], map[PR_NUM], map[PR_NUM])
-        );
+        groupedMessages[key].push(util.format(MESSAGE_FORMAT, map[MESSAGE], map[PR_NUM], map[PR_NUM]));
       }
     });
   });
   Object.keys(groupedMessages)
     .sort()
-    .forEach(function(key) {
+    .forEach(function (key) {
       sortedMessages[key] = groupedMessages[key];
     });
   return sortedMessages;
@@ -172,9 +156,9 @@ function filterExistingPREntries(parsedCommits) {
 
 /**
  * Returns formatted change log
- * @param {string} releaseBranch 
- * @param {string[]} groupedMessages 
- * @returns 
+ * @param {string} releaseBranch
+ * @param {string[]} groupedMessages
+ * @returns
  */
 function getChangeLogText(releaseBranch, groupedMessages) {
   let changeLogText = util.format(
@@ -183,14 +167,14 @@ function getChangeLogText(releaseBranch, groupedMessages) {
     getReleaseDate()
   );
   let lastType = '';
-  Object.keys(groupedMessages).forEach(function(typeAndPackageName) {
+  Object.keys(groupedMessages).forEach(function (typeAndPackageName) {
     let [type, packageName] = typeAndPackageName.split('|');
     if (!lastType || lastType != type) {
       changeLogText += util.format(TYPE_HEADER, type);
       lastType = type;
     }
     changeLogText += util.format(SECTION_HEADER, packageName);
-    groupedMessages[typeAndPackageName].forEach(function(message) {
+    groupedMessages[typeAndPackageName].forEach(function (message) {
       changeLogText += message;
     });
   });
@@ -209,7 +193,7 @@ function getFilesChanged(commitNumber) {
 
 function getPackageHeaders(filesChanged) {
   let packageHeaders = new Set();
-  filesChanged.split(',').forEach(function(filePath) {
+  filesChanged.split(',').forEach(function (filePath) {
     const packageName = getPackageName(filePath);
     if (packageName) {
       packageHeaders.add(packageName);
@@ -220,7 +204,7 @@ function getPackageHeaders(filesChanged) {
 
 /**
  * Write changelog to file
- * @param {string} textToInsert 
+ * @param {string} textToInsert
  */
 function writeChangeLog(textToInsert) {
   logger(`\nStep 5: Adding changelog to: ${constants.CHANGE_LOG_PATH}`);
@@ -233,16 +217,9 @@ function writeChangeLog(textToInsert) {
 }
 
 function getPackageName(filePath) {
-  if (
-    filePath &&
-    !filePath.includes('/images/') &&
-    !filePath.includes('/test/')
-  ) {
+  if (filePath && !filePath.includes('/images/') && !filePath.includes('/test/')) {
     let packageName = filePath.replace('packages/', '').split('/')[0];
-    return packageName.startsWith('salesforce') ||
-      packageName.startsWith('docs')
-      ? packageName
-      : null;
+    return packageName.startsWith('salesforce') || packageName.startsWith('docs') ? packageName : null;
   }
   return null;
 }
@@ -250,7 +227,7 @@ function getPackageName(filePath) {
 function filterPackageNames(packageHeaders) {
   let filteredHeaders = new Set(packageHeaders);
   if (packageHeaders.has('salesforcedx-vscode-core')) {
-    packageHeaders.forEach(function(packageName) {
+    packageHeaders.forEach(function (packageName) {
       if (packageName != 'salesforcedx-vscode-core' && packageName != 'docs') {
         filteredHeaders.delete(packageName);
       }
@@ -260,15 +237,15 @@ function filterPackageNames(packageHeaders) {
 }
 
 /**
- * 
+ *
  * Generate the key to be used in the grouped messages map. This will help us
  * determine whether this is an addition or fix, along with the package header
  * that the commit should be inserted under.
- * 
- * @param {string} packageName Name of the package within the extensions repo 
+ *
+ * @param {string} packageName Name of the package within the extensions repo
  * @param {string} type Type of the commit
  * @param {string} packagesToIgnore  Name of the packages (comma separated) that we don't need changelog generated
- * @returns 
+ * @returns
  */
 function generateKey(packageName, type, packagesToIgnore) {
   if (
@@ -287,10 +264,10 @@ function getReleaseDate() {
   let releaseDate = new Date();
   releaseDate.setDate(releaseDate.getDate() + 2);
   return new Intl.DateTimeFormat('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(releaseDate);
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(releaseDate);
 }
 
 /**
@@ -308,7 +285,7 @@ function updateChangeLog(remoteReleaseBranch, remotePreviousBranch) {
     console.log(`\nChecking out ${localReleaseBranch}`);
     const commitCommand = `git checkout ${localReleaseBranch}`;
     shell.exec(commitCommand);
-    
+
     const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
     const changeLog = getChangeLogText(remoteReleaseBranch, groupedMessages);
     writeChangeLog(changeLog);
@@ -319,5 +296,6 @@ function updateChangeLog(remoteReleaseBranch, remotePreviousBranch) {
 }
 
 module.exports = {
-  getPreviousReleaseBranch, updateChangeLog
-}
+  getPreviousReleaseBranch,
+  updateChangeLog
+};

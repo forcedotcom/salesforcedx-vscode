@@ -5,17 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandOutput,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor, Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
@@ -89,11 +80,7 @@ class ActiveLogging implements ParametersGatherer<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new ActiveLogging();
 const executor = new StopApexDebugLoggingExecutor();
-const commandlet = new SfCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
+const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
 
 export const stopApexDebugLogging = async (): Promise<void> => {
   await commandlet.run();

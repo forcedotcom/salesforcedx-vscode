@@ -6,10 +6,7 @@
  */
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import {
-  retrieveEnableSyncInitJobs,
-  retrieveTestCodeCoverage
-} from '../../src/settings';
+import { retrieveEnableSyncInitJobs, retrieveTestCodeCoverage } from '../../src/settings';
 
 describe('settings Unit Tests.', () => {
   const vscodeMocked = jest.mocked(vscode);
@@ -17,10 +14,7 @@ describe('settings Unit Tests.', () => {
   let getFn: jest.Mock;
 
   beforeEach(() => {
-    getConfigurationMock = jest.spyOn(
-      vscodeMocked.workspace,
-      'getConfiguration'
-    );
+    getConfigurationMock = jest.spyOn(vscodeMocked.workspace, 'getConfiguration');
     getFn = jest.fn();
   });
 
@@ -32,9 +26,7 @@ describe('settings Unit Tests.', () => {
     const result = retrieveTestCodeCoverage();
 
     expect(result).toBe(false);
-    expect(getConfigurationMock).toHaveBeenCalledWith(
-      SFDX_CORE_CONFIGURATION_NAME
-    );
+    expect(getConfigurationMock).toHaveBeenCalledWith(SFDX_CORE_CONFIGURATION_NAME);
     expect(getFn).toHaveBeenCalledWith('retrieve-test-code-coverage', false);
   });
 
@@ -46,9 +38,6 @@ describe('settings Unit Tests.', () => {
     const result = retrieveEnableSyncInitJobs();
     expect(result).toBe(true);
     expect(getConfigurationMock).toHaveBeenCalledWith();
-    expect(getFn).toHaveBeenCalledWith(
-      'salesforcedx-vscode-apex.wait-init-jobs',
-      true
-    );
+    expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.wait-init-jobs', true);
   });
 });

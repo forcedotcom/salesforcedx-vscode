@@ -20,15 +20,11 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
-import {
-  disableCLITelemetry,
-  isCLITelemetryAllowed
-} from '../telemetry/cliConfiguration';
+import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { determineReporters } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 import { UserService } from './userService';
-
 
 type CommandMetric = {
   extensionName: string;
@@ -105,10 +101,12 @@ export class TelemetryService implements TelemetryServiceInterface {
    * Initialize Telemetry Service during extension activation.
    * @param extensionContext extension context
    */
-  public async initializeService(
-    extensionContext: ExtensionContext
-  ): Promise<void> {
-    const { name, version, aiKey } = extensionContext.extension.packageJSON as { name: string; version: string; aiKey: string };
+  public async initializeService(extensionContext: ExtensionContext): Promise<void> {
+    const { name, version, aiKey } = extensionContext.extension.packageJSON as {
+      name: string;
+      version: string;
+      aiKey: string;
+    };
     if (!name) {
       console.log('Extension name is not defined in package.json');
     }
@@ -124,9 +122,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
     this.checkCliTelemetry()
       .then(cliEnabled => {
-        this.setCliTelemetryEnabled(
-          this.isTelemetryExtensionConfigurationEnabled() && cliEnabled
-        );
+        this.setCliTelemetryEnabled(this.isTelemetryExtensionConfigurationEnabled() && cliEnabled);
       })
       .catch(error => {
         console.log('Error initializing telemetry service: ' + error);
@@ -156,9 +152,7 @@ export class TelemetryService implements TelemetryServiceInterface {
    * exported only for unit test
    */
   public getTelemetryReporterName(): string {
-    return this.extensionName.startsWith(SFDX_EXTENSION_PACK_NAME)
-      ? SFDX_EXTENSION_PACK_NAME
-      : this.extensionName;
+    return this.extensionName.startsWith(SFDX_EXTENSION_PACK_NAME) ? SFDX_EXTENSION_PACK_NAME : this.extensionName;
   }
 
   public getReporters(): TelemetryReporter[] {
@@ -166,9 +160,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
-    return this.isInternal
-      ? true
-      : (this.isTelemetryExtensionConfigurationEnabled() && await this.checkCliTelemetry());
+    return this.isInternal ? true : this.isTelemetryExtensionConfigurationEnabled() && (await this.checkCliTelemetry());
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
@@ -181,12 +173,8 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
-      workspace
-        .getConfiguration('telemetry')
-        .get<boolean>('enableTelemetry', true) &&
-      workspace
-        .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-        .get<boolean>('telemetry.enabled', true)
+      workspace.getConfiguration('telemetry').get<boolean>('enableTelemetry', true) &&
+      workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('telemetry.enabled', true)
     );
   }
 
@@ -199,25 +187,12 @@ export class TelemetryService implements TelemetryServiceInterface {
   public sendActivationEventInfo(activationInfo: ActivationInfo) {
     const telemetryBuilder = new TelemetryBuilder();
     const telemetryData = telemetryBuilder
-      .addProperty(
-        'activateStartDate',
-        activationInfo.activateStartDate?.toISOString()
-      )
-      .addProperty(
-        'activateEndDate',
-        activationInfo.activateEndDate?.toISOString()
-      )
+      .addProperty('activateStartDate', activationInfo.activateStartDate?.toISOString())
+      .addProperty('activateEndDate', activationInfo.activateEndDate?.toISOString())
       .addProperty('loadStartDate', activationInfo.loadStartDate?.toISOString())
-      .addMeasurement(
-        'extensionActivationTime',
-        activationInfo.extensionActivationTime
-      )
+      .addMeasurement('extensionActivationTime', activationInfo.extensionActivationTime)
       .build();
-    this.sendExtensionActivationEvent(
-      activationInfo.startActivateHrTime,
-      activationInfo.markEndTime,
-      telemetryData
-    );
+    this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, telemetryData);
   }
 
   public sendExtensionActivationEvent(
@@ -237,11 +212,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
     this.validateTelemetry(() => {
       this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent(
-          'activationEvent',
-          properties,
-          measurements
-        );
+        reporter.sendTelemetryEvent('activationEvent', properties, measurements);
       });
     });
   }
@@ -278,11 +249,7 @@ export class TelemetryService implements TelemetryServiceInterface {
           }
         }
         this.reporters.forEach(reporter => {
-          reporter.sendTelemetryEvent(
-            'commandExecution',
-            aggregatedProps,
-            aggregatedMeasurements
-          );
+          reporter.sendTelemetryEvent('commandExecution', aggregatedProps, aggregatedMeasurements);
         });
       }
     });
@@ -296,12 +263,12 @@ export class TelemetryService implements TelemetryServiceInterface {
         } catch (error) {
           console.log(
             'There was an error sending an exception report to: ' +
-            typeof reporter +
-            ' ' +
-            'name: ' +
-            name +
-            ' message: ' +
-            message
+              typeof reporter +
+              ' ' +
+              'name: ' +
+              name +
+              ' message: ' +
+              message
           );
         }
       });

@@ -30,17 +30,11 @@ describe('Lightning Generate Event', () => {
   let openTextDocumentStub: SinonStub;
 
   beforeEach(() => {
-    getInternalDevStub = stub(
-      SalesforceCoreSettings.prototype,
-      'getInternalDev'
-    );
+    getInternalDevStub = stub(SalesforceCoreSettings.prototype, 'getInternalDev');
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -61,22 +55,14 @@ describe('Lightning Generate Event', () => {
     getInternalDevStub.returns(false);
     const fileName = 'testEvent';
     const outputPath = 'force-app/main/default/aura';
-    const auraEventPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testEvent.evt'
-    );
+    const auraEventPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testEvent.evt');
     const auraEventMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testEvent.evt-meta.xml'
     );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
     assert.noFile([auraEventPath, auraEventMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -90,10 +76,7 @@ describe('Lightning Generate Event', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
   });
 
   it('Should generate internal Aura Event', async () => {
@@ -101,44 +84,23 @@ describe('Lightning Generate Event', () => {
     getInternalDevStub.returns(true);
     const fileName = 'testEvent';
     const outputPath = 'force-app/main/default/aura';
-    const auraEventPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testEvent.evt'
-    );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    const auraEventPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testEvent.evt');
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
     assert.noFile([auraEventPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir(
-      '-p',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
-    await internalLightningGenerateEvent(
-      vscode.Uri.file(
-        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-      )
-    );
+    shell.mkdir('-p', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
+    await internalLightningGenerateEvent(vscode.Uri.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath)));
 
     // assert
     assert.file([auraEventPath]);
-    assert.fileContent(
-      auraEventPath,
-      '<aura:event type="APPLICATION" description="Event template"/>'
-    );
+    assert.fileContent(auraEventPath, '<aura:event type="APPLICATION" description="Event template"/>');
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
   });
 });

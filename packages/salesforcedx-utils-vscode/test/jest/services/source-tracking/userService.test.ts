@@ -6,7 +6,14 @@
  */
 
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecution, CliCommandExecutor, CommandOutput, SfCommandBuilder, TelemetryService, workspaceUtils } from '../../../../src';
+import {
+  CliCommandExecution,
+  CliCommandExecutor,
+  CommandOutput,
+  SfCommandBuilder,
+  TelemetryService,
+  workspaceUtils
+} from '../../../../src';
 import { UserService } from '../../../../src/services/userService';
 
 describe('UserService', () => {
@@ -26,7 +33,9 @@ describe('UserService', () => {
     beforeEach(() => {
       getRootWorkspacePathSpy = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('abc');
       executionSpy = jest.spyOn(CliCommandExecutor.prototype, 'execute').mockReturnValue(cliCommandExecution);
-      getCmdResultSpy = jest.spyOn(CommandOutput.prototype, 'getCmdResult').mockResolvedValue(JSON.stringify(fakeCliTelemetryData));
+      getCmdResultSpy = jest
+        .spyOn(CommandOutput.prototype, 'getCmdResult')
+        .mockResolvedValue(JSON.stringify(fakeCliTelemetryData));
     });
     it('should return command output of sf telemetry', async () => {
       const fakePath = '/fine/total';
@@ -69,9 +78,8 @@ describe('UserService', () => {
       (telemetryService as any).extensionContext = { globalState: { get: fakeGet, update: fakeUpdate } };
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       fakeExtensionContext = (telemetryService as any).extensionContext;
-      executeCliTelemetrySpy = jest.spyOn((UserService as any), 'executeCliTelemetry');
-      getRandomUserIdSpy = jest.spyOn((UserService as any), 'getRandomUserId');
-
+      executeCliTelemetrySpy = jest.spyOn(UserService as any, 'executeCliTelemetry');
+      getRandomUserIdSpy = jest.spyOn(UserService as any, 'getRandomUserId');
     });
 
     it('should return cliId when telemetryUserId is undefined in global state', async () => {

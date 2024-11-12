@@ -6,16 +6,11 @@
  */
 
 import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import {
-  projectPaths,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync } from 'fs';
 import * as vscode from 'vscode';
 
-export const getDialogStartingPath = (
-  extContext: vscode.ExtensionContext
-): vscode.Uri | undefined => {
+export const getDialogStartingPath = (extContext: vscode.ExtensionContext): vscode.Uri | undefined => {
   if (workspaceUtils.hasRootWorkspace()) {
     // If the user has already selected a document through getLogFileName then
     // use that path if it still exists.
@@ -39,12 +34,8 @@ export const getDialogStartingPath = (
   }
 };
 
-const getLastOpenedLogFolder = (
-  extContext: vscode.ExtensionContext
-): string | undefined => {
-  const pathToLastOpenedLogFolder = extContext.workspaceState.get<string>(
-    LAST_OPENED_LOG_FOLDER_KEY
-  );
+const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | undefined => {
+  const pathToLastOpenedLogFolder = extContext.workspaceState.get<string>(LAST_OPENED_LOG_FOLDER_KEY);
   return pathToLastOpenedLogFolder;
 };
 

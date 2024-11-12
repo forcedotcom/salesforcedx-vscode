@@ -6,10 +6,7 @@
  */
 
 import { COMPOSITE_BATCH_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import {
-  BaseCommand,
-  RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils';
+import { BaseCommand, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 
 export type BatchRequests = {
   batchRequests: BatchRequest[];

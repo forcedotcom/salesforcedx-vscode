@@ -5,18 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { basename, normalize } from 'path';
 import { channelService } from '../../channels';
-import {
-  conflictView,
-  DirectoryDiffResults,
-  MetadataCacheService
-} from '../../conflict';
+import { conflictView, DirectoryDiffResults, MetadataCacheService } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
 import { nls } from '../../messages';
@@ -45,9 +37,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
     if (inputs.type === 'CONTINUE') {
       channelService.showChannelOutput();
       channelService.showCommandWithTimestamp(
-        `${nls.localize('channel_starting_message')}${nls.localize(
-          'conflict_detect_execution_name'
-        )}\n`
+        `${nls.localize('channel_starting_message')}${nls.localize('conflict_detect_execution_name')}\n`
       );
 
       const { username } = WorkspaceContext.getInstance();
@@ -71,17 +61,12 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         const diffs = detector.createDiffs(result);
 
         channelService.showCommandWithTimestamp(
-          `${nls.localize('channel_end')} ${nls.localize(
-            'conflict_detect_execution_name'
-          )}\n`
+          `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`
         );
         return await this.handleConflicts(inputs.data, username, diffs);
       } catch (error) {
         console.error(error);
-        const errorMsg = nls.localize(
-          'conflict_detect_error',
-          error.toString()
-        );
+        const errorMsg = nls.localize('conflict_detect_error', error.toString());
         channelService.appendLine(errorMsg);
         telemetryService.sendException('ConflictDetectionException', errorMsg);
         await DeployQueue.get().unlock();
@@ -95,21 +80,12 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
     usernameOrAlias: string,
     results: DirectoryDiffResults
   ): Promise<ContinueResponse<string> | CancelResponse> {
-    const conflictTitle = nls.localize(
-      'conflict_detect_view_root',
-      usernameOrAlias,
-      results.different.size
-    );
+    const conflictTitle = nls.localize('conflict_detect_view_root', usernameOrAlias, results.different.size);
 
     if (results.different.size === 0) {
       conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
     } else {
-      channelService.appendLine(
-        nls.localize(
-          'conflict_detect_conflict_header_timestamp',
-          results.different.size
-        )
-      );
+      channelService.appendLine(nls.localize('conflict_detect_conflict_header_timestamp', results.different.size));
       results.different.forEach(file => {
         channelService.appendLine(normalize(basename(file.localRelPath)));
       });
@@ -121,27 +97,14 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       );
 
       if (choice === nls.localize('conflict_detect_override')) {
-        conflictView.visualizeDifferences(
-          conflictTitle,
-          usernameOrAlias,
-          false
-        );
+        conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
       } else {
         channelService.appendLine(
-          nls.localize(
-            'conflict_detect_command_hint',
-            this.messages.commandHint(componentPath)
-          )
+          nls.localize('conflict_detect_command_hint', this.messages.commandHint(componentPath))
         );
 
-        const doReveal =
-          choice === nls.localize('conflict_detect_show_conflicts');
-        conflictView.visualizeDifferences(
-          conflictTitle,
-          usernameOrAlias,
-          doReveal,
-          results
-        );
+        const doReveal = choice === nls.localize('conflict_detect_show_conflicts');
+        conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, doReveal, results);
 
         await DeployQueue.get().unlock();
         return { type: 'CANCEL' };

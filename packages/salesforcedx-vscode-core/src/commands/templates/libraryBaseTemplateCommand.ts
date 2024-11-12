@@ -7,11 +7,7 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  TemplateOptions,
-  TemplateService,
-  TemplateType
-} from '@salesforce/templates';
+import { TemplateOptions, TemplateService, TemplateType } from '@salesforce/templates';
 import { Properties } from '@salesforce/vscode-service-provider';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from 'vscode';
@@ -20,12 +16,7 @@ import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
 
-import {
-  CommandletExecutor,
-  PathStrategyFactory,
-  SelectOutputDir,
-  SourcePathStrategy
-} from '../util';
+import { CommandletExecutor, PathStrategyFactory, SelectOutputDir, SourcePathStrategy } from '../util';
 
 type ExecutionResult = {
   output?: string;
@@ -35,8 +26,7 @@ type ExecutionResult = {
 /**
  * Base class for all template commands
  */
-export abstract class LibraryBaseTemplateCommand<T>
-  implements CommandletExecutor<T> {
+export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecutor<T> {
   private _metadataType: MetadataInfo | undefined;
   protected showChannelOutput = true;
 
@@ -75,28 +65,19 @@ export abstract class LibraryBaseTemplateCommand<T>
       async () => {
         try {
           const templateOptions = this.constructTemplateOptions(response.data);
-          const libraryResult = await this.createTemplate(
-            this.templateType,
-            templateOptions
-          );
+          const libraryResult = await this.createTemplate(this.templateType, templateOptions);
           const fileName = this.getOutputFileName(response.data);
           telemetryService.sendCommandEvent(this.telemetryName, startTime, {
             dirType: this.identifyDirType(libraryResult.outputDir),
             commandExecutor: 'library',
             ...this.telemetryProperties
           });
-          await this.openCreatedTemplateInVSCode(
-            libraryResult.outputDir,
-            fileName
-          );
+          await this.openCreatedTemplateInVSCode(libraryResult.outputDir, fileName);
           return {
             output: libraryResult.rawOutput
           };
         } catch (error) {
-          telemetryService.sendException(
-            'template_create_library',
-            error.message
-          );
+          telemetryService.sendException('template_create_library', error.message);
           return {
             error
           };
@@ -116,10 +97,7 @@ export abstract class LibraryBaseTemplateCommand<T>
     }
   }
 
-  private async createTemplate(
-    templateType: TemplateType,
-    templateOptions: TemplateOptions
-  ) {
+  private async createTemplate(templateType: TemplateType, templateOptions: TemplateOptions) {
     const cwd = workspaceUtils.getRootWorkspacePath();
     const templateService = TemplateService.getInstance(cwd);
     let customOrgMetadataTemplates;
@@ -131,25 +109,14 @@ export abstract class LibraryBaseTemplateCommand<T>
       customOrgMetadataTemplates = String(configValue);
     }
 
-    this.telemetryProperties.isUsingCustomOrgMetadataTemplates = String(
-      customOrgMetadataTemplates !== undefined
-    );
+    this.telemetryProperties.isUsingCustomOrgMetadataTemplates = String(customOrgMetadataTemplates !== undefined);
 
-    return await templateService.create(
-      templateType,
-      templateOptions,
-      customOrgMetadataTemplates
-    );
+    return await templateService.create(templateType, templateOptions, customOrgMetadataTemplates);
   }
 
-  protected async openCreatedTemplateInVSCode(
-    outputdir: string,
-    fileName: string
-  ) {
+  protected async openCreatedTemplateInVSCode(outputdir: string, fileName: string) {
     if (workspaceUtils.hasRootWorkspace()) {
-      const document = await workspace.openTextDocument(
-        this.getPathToSource(outputdir, fileName)
-      );
+      const document = await workspace.openTextDocument(this.getPathToSource(outputdir, fileName));
       window.showTextDocument(document);
     }
   }
@@ -179,23 +146,14 @@ export abstract class LibraryBaseTemplateCommand<T>
   }
 
   private identifyDirType(outputDirectory: string): string {
-    const defaultDirectoryPath = path.join(
-      SelectOutputDir.defaultOutput,
-      this.getDefaultDirectory()
-    );
-    return outputDirectory.endsWith(defaultDirectoryPath)
-      ? 'defaultDir'
-      : 'customDir';
+    const defaultDirectoryPath = path.join(SelectOutputDir.defaultOutput, this.getDefaultDirectory());
+    return outputDirectory.endsWith(defaultDirectoryPath) ? 'defaultDir' : 'customDir';
   }
 
   private getPathToSource(outputDir: string, fileName: string): string {
     // outputDir from library is an absolute path
     const sourceDirectory = outputDir;
-    return this.getSourcePathStrategy().getPathToSource(
-      sourceDirectory,
-      fileName,
-      this.getFileExtension()
-    );
+    return this.getSourcePathStrategy().getPathToSource(sourceDirectory, fileName, this.getFileExtension());
   }
 
   public getSourcePathStrategy(): SourcePathStrategy {

@@ -50,14 +50,8 @@ describe('Debugger streaming client', () => {
       );
 
       expect(fayeHeaderSpy.calledTwice).to.equal(true);
-      expect(fayeHeaderSpy.getCall(0).args).to.have.same.members([
-        'Authorization',
-        'OAuth 123'
-      ]);
-      expect(fayeHeaderSpy.getCall(1).args).to.have.same.members([
-        'Content-Type',
-        'application/json'
-      ]);
+      expect(fayeHeaderSpy.getCall(0).args).to.have.same.members(['Authorization', 'OAuth 123']);
+      expect(fayeHeaderSpy.getCall(1).args).to.have.same.members(['Content-Type', 'application/json']);
       expect(client.getReplayId()).to.equal(-1);
     });
   });

@@ -15,9 +15,7 @@ import { iconKey, ICONS } from './IconsEnum';
  * @returns The Uri to the icon image.
  */
 const getIconPath = (key: iconKey) => {
-  const baseExtensionPath = extensionUris.extensionUri(
-    VSCODE_APEX_EXTENSION_NAME
-  );
+  const baseExtensionPath = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
   const iconUri = extensionUris.join(baseExtensionPath, ICONS[key]);
   return iconUri;
 };

@@ -6,10 +6,10 @@
  */
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
-import {join} from 'path';
+import { join } from 'path';
 import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
 import { FauxClassGenerator } from '../../../src/generator';
-import {DeclarationGenerator} from '../../../src/generator/declarationGenerator';
+import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { INDENT } from '../../../src/generator/fauxClassGenerator';
 jest.mock('../../../src/generator/declarationGenerator');
 
@@ -32,7 +32,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
   });
 
   describe('commentToString()', () => {
-
     it('Should return empty string for empty input', () => {
       const empty = '';
       const actual = FauxClassGenerator.commentToString(empty);
@@ -55,11 +54,8 @@ describe('FauxClassGenerator Unit Tests.', () => {
       let expectedSecondComment = `${INDENT}/*  More complex ${EOL}`;
       expectedSecondComment += `**************this is a test **************${EOL}`;
       expectedSecondComment += `${EOL}${INDENT}*/${EOL}`;
-      const parseSecondComment = FauxClassGenerator.commentToString(
-        secondComment
-      );
+      const parseSecondComment = FauxClassGenerator.commentToString(secondComment);
       expect(expectedSecondComment).toEqual(parseSecondComment);
-
     });
 
     it('Should parse a comment with spaces.', () => {
@@ -69,7 +65,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
       const parseThirdComment = FauxClassGenerator.commentToString(thirdComment);
       expect(expectedThirdComment).toEqual(parseThirdComment);
     });
-
   });
 
   describe('generate()', () => {
@@ -83,7 +78,9 @@ describe('FauxClassGenerator Unit Tests.', () => {
     let generateFauxClassMock: jest.SpyInstance;
 
     beforeEach(() => {
-      resetOutputFolderMock = jest.spyOn((FauxClassGenerator.prototype as any), 'resetOutputFolder').mockReturnValue(true);
+      resetOutputFolderMock = jest
+        .spyOn(FauxClassGenerator.prototype as any, 'resetOutputFolder')
+        .mockReturnValue(true);
       generateFauxClassMock = jest.spyOn(FauxClassGenerator.prototype, 'generateFauxClass');
       getStandardMock = jest.fn();
       getCustomMock = jest.fn();
@@ -104,7 +101,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     });
 
     it('Should process standard sobjects.', () => {
-      const fakeSObject = {name: 'fake'};
+      const fakeSObject = { name: 'fake' };
       const fakeSobjectDef = 'look at me the sobject';
       getStandardMock.mockReturnValue([fakeSObject]);
       (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
@@ -120,7 +117,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     });
 
     it('Should process custom sobjects.', () => {
-      const fakeSObject = {name: 'fake'};
+      const fakeSObject = { name: 'fake' };
       const fakeSobjectDef = 'look at me the sobject';
       getCustomMock.mockReturnValue([fakeSObject]);
       (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);

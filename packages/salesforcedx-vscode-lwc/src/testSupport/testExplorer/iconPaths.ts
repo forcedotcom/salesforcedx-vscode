@@ -12,41 +12,17 @@ import { VSCODE_LWC_EXTENSION_NAME } from '../../constants';
 import { TestResult, TestResultStatus } from '../types';
 
 const extensionPath = extensionUris.extensionUri(VSCODE_LWC_EXTENSION_NAME);
-const LIGHT_BLUE_BUTTON = extensionUris.join(
-  extensionPath,
-  path.join('resources', 'light', 'testNotRun.svg')
-);
+const LIGHT_BLUE_BUTTON = extensionUris.join(extensionPath, path.join('resources', 'light', 'testNotRun.svg'));
 
-const LIGHT_RED_BUTTON = extensionUris.join(
-  extensionPath,
-  path.join('resources', 'light', 'testFail.svg')
-);
+const LIGHT_RED_BUTTON = extensionUris.join(extensionPath, path.join('resources', 'light', 'testFail.svg'));
 
-const LIGHT_GREEN_BUTTON = extensionUris.join(
-  extensionPath,
-  path.join('resources', 'light', 'testPass.svg')
-);
-const LIGHT_ORANGE_BUTTON = extensionUris.join(
-  extensionPath,
-  path.join('resources', 'light', 'testSkip.svg')
-);
+const LIGHT_GREEN_BUTTON = extensionUris.join(extensionPath, path.join('resources', 'light', 'testPass.svg'));
+const LIGHT_ORANGE_BUTTON = extensionUris.join(extensionPath, path.join('resources', 'light', 'testSkip.svg'));
 
-const DARK_BLUE_BUTTON = extensionUris.join(
-  extensionPath,
-  path.join('resources', 'dark', 'testNotRun.svg')
-);
-const DARK_RED_BUTTON = extensionUris.join(
-  extensionPath,
-  path.join('resources', 'dark', 'testFail.svg')
-);
-const DARK_GREEN_BUTTON = extensionUris.join(
-  extensionPath,
-  path.join('resources', 'dark', 'testPass.svg')
-);
-const DARK_ORANGE_BUTTON = extensionUris.join(
-  extensionPath,
-  path.join('resources', 'dark', 'testSkip.svg')
-);
+const DARK_BLUE_BUTTON = extensionUris.join(extensionPath, path.join('resources', 'dark', 'testNotRun.svg'));
+const DARK_RED_BUTTON = extensionUris.join(extensionPath, path.join('resources', 'dark', 'testFail.svg'));
+const DARK_GREEN_BUTTON = extensionUris.join(extensionPath, path.join('resources', 'dark', 'testPass.svg'));
+const DARK_ORANGE_BUTTON = extensionUris.join(extensionPath, path.join('resources', 'dark', 'testSkip.svg'));
 
 type IconPath = { light: vscode.Uri; dark: vscode.Uri };
 

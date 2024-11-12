@@ -12,9 +12,7 @@ export class StatusBarToggle implements Disposable {
   private static readonly toggleCodeCovCommand = 'sf.apex.toggle.colorizer';
   private static readonly showIcon = '$(three-bars)';
   private static readonly hideIcon = '$(tasklist)';
-  private static readonly toolTip = nls.localize(
-    'colorizer_statusbar_hover_text'
-  );
+  private static readonly toolTip = nls.localize('colorizer_statusbar_hover_text');
   private isEnabled: boolean;
   private statusBarItem: StatusBarItem;
 

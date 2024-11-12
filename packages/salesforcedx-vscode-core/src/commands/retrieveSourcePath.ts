@@ -4,11 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  CancelResponse,
-  ContinueResponse,
-  PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -19,21 +15,13 @@ import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
-export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
-  string[]
-> {
+export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
   constructor() {
-    super(
-      nls.localize('retrieve_this_source_text'),
-      'retrieve_with_sourcepath'
-    );
+    super(nls.localize('retrieve_this_source_text'), 'retrieve_with_sourcepath');
   }
 
-  public async getComponents(
-    response: ContinueResponse<string[]>
-  ): Promise<ComponentSet> {
-    const paths =
-      typeof response.data === 'string' ? [response.data] : response.data;
+  public async getComponents(response: ContinueResponse<string[]>): Promise<ComponentSet> {
+    const paths = typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
 
     return componentSet;
@@ -48,13 +36,10 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
       const sourcePaths = inputs.data;
       try {
         for (const sourcePath of sourcePaths) {
-          const isInSalesforcePackageDirectory =
-            await SalesforcePackageDirectories.isInPackageDirectory(sourcePath);
+          const isInSalesforcePackageDirectory = await SalesforcePackageDirectories.isInPackageDirectory(sourcePath);
 
           if (!isInSalesforcePackageDirectory) {
-            throw nls.localize(
-              'error_source_path_not_in_package_directory_text'
-            );
+            throw nls.localize('error_source_path_not_in_package_directory_text');
           }
         }
 
@@ -62,15 +47,11 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
       } catch (error) {
         telemetryService.sendException(
           'retrieve_with_sourcepath',
-          `Error while parsing package directories. ${
-            error instanceof Error ? error.message : JSON.stringify(error)
-          }`
+          `Error while parsing package directories. ${error instanceof Error ? error.message : JSON.stringify(error)}`
         );
       }
 
-      const errorMessage = nls.localize(
-        'error_source_path_not_in_package_directory_text'
-      );
+      const errorMessage = nls.localize('error_source_path_not_in_package_directory_text');
       telemetryService.sendException('retrieve_with_sourcepath', errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
@@ -80,10 +61,7 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
   }
 }
 
-export const retrieveSourcePaths = async (
-  sourceUri: vscode.Uri | undefined,
-  uris: vscode.Uri[] | undefined
-) => {
+export const retrieveSourcePaths = async (sourceUri: vscode.Uri | undefined, uris: vscode.Uri[] | undefined) => {
   if (!sourceUri) {
     // When the source is retrieved via the command palette, both sourceUri and uris are
     // each undefined, and sourceUri needs to be obtained from the active text editor.
