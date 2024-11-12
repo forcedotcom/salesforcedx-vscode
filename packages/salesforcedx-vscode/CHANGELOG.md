@@ -10,7 +10,7 @@
 
 - We made some changes under the hood. ([PR #5939](https://github.com/forcedotcom/salesforcedx-vscode/pull/5939))
 
-- Output panel will not be switched by default after push or deploy on save. You can toggle the setting with salesforcedx-vscode-core.push-or-deploy-on-save.showOutputPanel. Thank you @techrd for your contributions. ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
+- Output panel will not be switched by default after push or deploy on save. You can toggle the setting with salesforcedx-vscode-core.push-or-deploy-on-save.showOutputPanel. Thank you @[tehnrd](https://github.com/tehnrd) for your contributions. ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
 
 ## Fixed
 
