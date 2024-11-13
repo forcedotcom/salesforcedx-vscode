@@ -112,7 +112,7 @@ jobs:
 
   Apex_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/apexE2EredHat.yml
+    uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
       automationBranch: 'main'
