@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We improved the accuracy of the range for Class, Enum, and Interface symbols in the Apex LSP `.jar` file. ([PR #5945](https://github.com/forcedotcom/salesforcedx-vscode/pull/5945))
+- We improved the accuracy of the range for Class, Enum, and Interface symbols in the Apex LSP `.jar` file. We also modified document symbol creation to introduce a nested symbol hierarchy in the Outline View, improving clarity of the outline. ([PR #5945](https://github.com/forcedotcom/salesforcedx-vscode/pull/5945))
 
 #### salesforcedx-vscode-core
 
