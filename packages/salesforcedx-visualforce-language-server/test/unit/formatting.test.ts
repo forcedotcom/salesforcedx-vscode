@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -9,15 +8,9 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {
-  FormattingOptions,
-  Range,
-  TextDocument,
-  TextEdit
-} from 'vscode-languageserver-types';
+import { FormattingOptions, Range, TextDocument, TextEdit } from 'vscode-languageserver-types';
 import { format } from '../../src/modes/formatting';
 import { getLanguageModes } from '../../src/modes/languageModes';
-
 
 describe('HTML Embedded Formatting', () => {
   beforeAll(() => {
@@ -44,38 +37,21 @@ describe('HTML Embedded Formatting', () => {
     let rangeStartOffset = value.indexOf('|');
     let rangeEndOffset;
     if (rangeStartOffset !== -1) {
-      value =
-        value.substr(0, rangeStartOffset) + value.substr(rangeStartOffset + 1);
+      value = value.substr(0, rangeStartOffset) + value.substr(rangeStartOffset + 1);
 
       rangeEndOffset = value.indexOf('|');
-      value =
-        value.substr(0, rangeEndOffset) + value.substr(rangeEndOffset + 1);
+      value = value.substr(0, rangeEndOffset) + value.substr(rangeEndOffset + 1);
     } else {
       rangeStartOffset = 0;
       rangeEndOffset = value.length;
     }
-    const document = TextDocument.create(
-      'test://test/test.html',
-      'html',
-      0,
-      value
-    );
-    const range = Range.create(
-      document.positionAt(rangeStartOffset),
-      document.positionAt(rangeEndOffset)
-    );
+    const document = TextDocument.create('test://test/test.html', 'html', 0, value);
+    const range = Range.create(document.positionAt(rangeStartOffset), document.positionAt(rangeEndOffset));
     if (!formatOptions) {
       formatOptions = FormattingOptions.create(2, true);
     }
 
-    const result = format(
-      languageModes,
-      document,
-      range,
-      formatOptions,
-      void 0,
-      { css: true, javascript: true }
-    );
+    const result = format(languageModes, document, range, formatOptions, void 0, { css: true, javascript: true });
 
     const actual = applyEdits(document, result);
     assert.equal(actual, expected, message);
@@ -86,29 +62,16 @@ describe('HTML Embedded Formatting', () => {
     expectedPath: string,
     options?: any,
     formatOptions?: FormattingOptions
-  ): void  => {
-    const input = fs
-      .readFileSync(path.join(__dirname, 'fixtures', 'inputs', fixtureName))
-      .toString();
-    const expected = fs
-      .readFileSync(path.join(__dirname, 'fixtures', 'expected', expectedPath))
-      .toString();
+  ): void => {
+    const input = fs.readFileSync(path.join(__dirname, 'fixtures', 'inputs', fixtureName)).toString();
+    const expected = fs.readFileSync(path.join(__dirname, 'fixtures', 'expected', expectedPath)).toString();
     assertFormat(input, expected, options, formatOptions, expectedPath);
   };
 
   it('Should handle HTML only', () => {
-    assertFormat(
-      '<html><body><p>Hello</p></body></html>',
-      '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>'
-    );
-    assertFormat(
-      '|<html><body><p>Hello</p></body></html>|',
-      '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>'
-    );
-    assertFormat(
-      '<html>|<body><p>Hello</p></body>|</html>',
-      '<html><body>\n  <p>Hello</p>\n</body></html>'
-    );
+    assertFormat('<html><body><p>Hello</p></body></html>', '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>');
+    assertFormat('|<html><body><p>Hello</p></body></html>|', '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>');
+    assertFormat('<html>|<body><p>Hello</p></body>|</html>', '<html><body>\n  <p>Hello</p>\n</body></html>');
   });
 
   it('Should handle HTML & Scripts', () => {
@@ -140,18 +103,8 @@ describe('HTML Embedded Formatting', () => {
 
   it('HTML & Scripts - Fixtures', () => {
     assertFormatWithFixture('19813.html', '19813.html');
-    assertFormatWithFixture(
-      '19813.html',
-      '19813-4spaces.html',
-      void 0,
-      FormattingOptions.create(4, true)
-    );
-    assertFormatWithFixture(
-      '19813.html',
-      '19813-tab.html',
-      void 0,
-      FormattingOptions.create(1, false)
-    );
+    assertFormatWithFixture('19813.html', '19813-4spaces.html', void 0, FormattingOptions.create(4, true));
+    assertFormatWithFixture('19813.html', '19813-tab.html', void 0, FormattingOptions.create(1, false));
     assertFormatWithFixture('21634.html', '21634.html');
   });
 
@@ -189,11 +142,7 @@ describe('HTML Embedded Formatting', () => {
       '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>\n',
       options
     );
-    assertFormat(
-      '<html>|<body><p>Hello</p></body>|</html>',
-      '<html><body>\n  <p>Hello</p>\n</body></html>',
-      options
-    );
+    assertFormat('<html>|<body><p>Hello</p></body>|</html>', '<html><body>\n  <p>Hello</p>\n</body></html>', options);
     assertFormat(
       '<html><head><script>\nvar x=1;\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    var x = 1;\n  </script>\n</head>\n\n</html>\n',
@@ -223,8 +172,7 @@ describe('HTML Embedded Formatting', () => {
 const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
   let text = document.getText();
   const sortedEdits = edits.sort((a, b) => {
-    const startDiff =
-      document.offsetAt(b.range.start) - document.offsetAt(a.range.start);
+    const startDiff = document.offsetAt(b.range.start) - document.offsetAt(a.range.start);
     if (startDiff === 0) {
       return document.offsetAt(b.range.end) - document.offsetAt(a.range.end);
     }
@@ -236,10 +184,7 @@ const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
     const endOffset = document.offsetAt(e.range.end);
     assert.ok(startOffset <= endOffset);
     assert.ok(endOffset <= lastOffset);
-    text =
-      text.substring(0, startOffset) +
-      e.newText +
-      text.substring(endOffset, text.length);
+    text = text.substring(0, startOffset) + e.newText + text.substring(endOffset, text.length);
     lastOffset = startOffset;
   });
   return text;

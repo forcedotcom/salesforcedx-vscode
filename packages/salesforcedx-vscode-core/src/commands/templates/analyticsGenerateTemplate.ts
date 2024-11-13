@@ -23,10 +23,7 @@ import {
   SourcePathStrategy
 } from '../util';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import {
-  ANALYTICS_TEMPLATE_DIRECTORY,
-  ANALYTICS_TEMPLATE_TYPE
-} from './metadataTypeConstants';
+import { ANALYTICS_TEMPLATE_DIRECTORY, ANALYTICS_TEMPLATE_TYPE } from './metadataTypeConstants';
 
 export class LibraryAnalyticsGenerateTemplateExecutor extends LibraryBaseTemplateCommand<TemplateAndDir> {
   public executionName = nls.localize('analytics_generate_template_text');
@@ -66,29 +63,18 @@ export class SelectProjectTemplate implements ParametersGatherer<Template> {
     const projectTemplateInputOptions = {
       prompt: nls.localize('analytics_template_name_text')
     } as vscode.InputBoxOptions;
-    const fileName = await vscode.window.showInputBox(
-      projectTemplateInputOptions
-    );
+    const fileName = await vscode.window.showInputBox(projectTemplateInputOptions);
 
-    return fileName
-      ? { type: 'CONTINUE', data: { fileName } }
-      : { type: 'CANCEL' };
+    return fileName ? { type: 'CONTINUE', data: { fileName } } : { type: 'CANCEL' };
   }
 }
 
 const outputDirGatherer = new SelectOutputDir(ANALYTICS_TEMPLATE_DIRECTORY);
 
-const parameterGatherer = new CompositeParametersGatherer(
-  new SelectProjectTemplate(),
-  outputDirGatherer
-);
+const parameterGatherer = new CompositeParametersGatherer(new SelectProjectTemplate(), outputDirGatherer);
 
 export const analyticsGenerateTemplate = (): void => {
   const createTemplateExecutor = new LibraryAnalyticsGenerateTemplateExecutor();
-  const commandlet = new SfCommandlet(
-    new SfWorkspaceChecker(),
-    parameterGatherer,
-    createTemplateExecutor
-  );
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, createTemplateExecutor);
   void commandlet.run();
 };

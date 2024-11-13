@@ -12,15 +12,13 @@ import { stubWorkspace } from './rootWorkspace.test-util';
 
 // tslint:disable:no-unused-expression
 describe('RootWorkspace utils should', () => {
-  const myFolder: WorkspaceFolder = ({
+  const myFolder: WorkspaceFolder = {
     name: 'test',
     uri: {
       fsPath: '/test/test'
     }
-  } as unknown) as WorkspaceFolder;
-  const myWorkspaces: WorkspaceFolder[] = ([
-    myFolder
-  ] as unknown) as WorkspaceFolder[];
+  } as unknown as WorkspaceFolder;
+  const myWorkspaces: WorkspaceFolder[] = [myFolder] as unknown as WorkspaceFolder[];
   const WORKSPACE_NAME = 'sfdx-simple';
   let workspaceStub: SinonStub | undefined;
 

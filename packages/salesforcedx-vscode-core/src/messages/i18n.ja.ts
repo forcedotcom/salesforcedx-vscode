@@ -44,64 +44,48 @@ export const messages = {
   org_login_access_token_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
-  parameter_directory_strict_not_available:
-    '必要なメタデータフォルダ "%s" がこのワークスペースに存在しません。',
+  parameter_directory_strict_not_available: '必要なメタデータフォルダ "%s" がこのワークスペースに存在しません。',
 
   parameter_gatherer_enter_file_name: 'ファイル名を入力',
-  parameter_gatherer_enter_dir_name:
-    'フォルダを入力 (Enter で確認または Esc でキャンセル)',
+  parameter_gatherer_enter_dir_name: 'フォルダを入力 (Enter で確認または Esc でキャンセル)',
   parameter_gatherer_enter_username_name: '対象ユーザ名を入力',
-  parameter_gatherer_enter_alias_name:
-    '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
-  parameter_gatherer_enter_custom_url:
-    'カスタムのログイン URL を入力またはデフォルトの URL を使用',
+  parameter_gatherer_enter_alias_name: '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
+  parameter_gatherer_enter_custom_url: 'カスタムのログイン URL を入力またはデフォルトの URL を使用',
   parameter_gatherer_enter_instance_url: 'Enter Instance URL',
   parameter_gatherer_enter_session_id: 'Enter Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
-  parameter_gatherer_enter_session_id_diagnostic_message:
-    'Enter a valid Session ID',
+  parameter_gatherer_enter_session_id_diagnostic_message: 'Enter a valid Session ID',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'スクラッチ組織の有効日数を入力 (1 から 30 まで) またはデフォルト値 (7) を使用',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
-  parameter_gatherer_paste_forceide_url:
-    '設定から forceide:// の URL をペースト',
+  parameter_gatherer_paste_forceide_url: '設定から forceide:// の URL をペースト',
   parameter_gatherer_paste_forceide_url_placeholder: '設定の forceide:// URL',
   parameter_gatherer_invalid_forceide_url:
     'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
 
-  org_create_default_scratch_org_text:
-    'SFDX: デフォルトのスクラッチ組織を作成...',
-  org_create_result_parsing_error:
-    '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
+  org_create_default_scratch_org_text: 'SFDX: デフォルトのスクラッチ組織を作成...',
+  org_create_result_parsing_error: '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
 
   org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
-  org_open_default_scratch_org_container_error:
-    '組織を開くレスポンスの処理中に予期せぬエラーが発生しました。',
-  org_open_container_mode_message_text:
-    '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
+  org_open_default_scratch_org_container_error: '組織を開くレスポンスの処理中に予期せぬエラーが発生しました。',
+  org_open_container_mode_message_text: '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
-  project_retrieve_start_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織からソースをプル',
-  project_retrieve_start_ignore_conflicts_default_org_text:
-    'SFDX: Pull Source from Default Org and Ignore Conflicts',
+  project_retrieve_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織からソースをプル',
+  project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
 
-  project_deploy_start_default_org_text:
-    'SFDX: デフォルトのスクラッチ組織へソースを転送',
-  project_deploy_start_ignore_conflicts_default_org_text:
-    'SFDX: Push Source to Default Org and Ignore Conflicts',
+  project_deploy_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織へソースを転送',
+  project_deploy_start_ignore_conflicts_default_org_text: 'SFDX: Push Source to Default Org and Ignore Conflicts',
 
   deploy_this_source_text: 'SFDX: このソースを組織へデプロイ',
   deploy_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: このソースを組織へデプロイ を実行できます。',
-  deploy_select_manifest:
-    'マニフェストファイル上でのみ SFDX マニフェストのソースを組織へデプロイ を実行できます。',
+  deploy_select_manifest: 'マニフェストファイル上でのみ SFDX マニフェストのソースを組織へデプロイ を実行できます。',
   retrieve_this_source_text: 'SFDX: このソースを組織から取得',
   retrieve_display_text: 'SFDX: このソースを組織から取得',
   retrieve_and_open_display_text: 'Retrieve and Open Source',
   retrieve_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: このソースを組織から取得 を実行できます。',
-  retrieve_select_manifest:
-    'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
+  retrieve_select_manifest: 'マニフェストファイル上でのみ SFDX: マニフェストのソースを組織から取得 を実行できます。',
   delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
   delete_source_manifest_unsupported_message:
     'SFDX: 組織およびプロジェクトから削除 はマニフェストファイルでサポートされていません。削除するソースファイルやディレクトリを選択してください。',
@@ -131,35 +115,28 @@ export const messages = {
     '指定されたプロジェクト名は選択されたディレクトリ上に既に存在します。上書きしてもよろしいですか？',
   warning_prompt_continue_confirm: '続ける',
   warning_prompt_overwrite_cancel: 'キャンセル',
-  warning_prompt_overwrite_message:
-    '上書きしてもよろしいですか？ %s:%s?\n\n%s\n\n%s',
+  warning_prompt_overwrite_message: '上書きしてもよろしいですか？ %s:%s?\n\n%s\n\n%s',
   warning_prompt_overwrite: '上書き',
   warning_prompt_overwrite_all: 'すべて上書き',
   warning_prompt_skip: 'スキップ',
   warning_prompt_skip_all: 'すべてスキップ',
   warning_prompt_other_existing: '%s つの既存コンポーネント',
-  warning_prompt_other_not_shown:
-    '...表示されていない残り %s つのコンポーネント\n',
+  warning_prompt_other_not_shown: '...表示されていない残り %s つのコンポーネント\n',
   config_list_text: 'SFDX: すべての設定変数を一覧表示',
   alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
   org_display_username_text: 'SFDX: 組織の詳細を表示...',
   debugger_query_session_text: 'Apex デバッガセッションをクエリ',
   debugger_stop_text: 'SFDX: Apex デバッガセッションを停止',
-  debugger_stop_none_found_text:
-    'Apex デバッガセッションが見つかりませんでした。',
+  debugger_stop_none_found_text: 'Apex デバッガセッションが見つかりませんでした。',
   data_query_input_text: 'SFDX: SOQL クエリを実行...',
-  data_query_selection_text:
-    'SFDX: 現在選択されているテキストで SOQL クエリを実行',
+  data_query_selection_text: 'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
-  anon_apex_execute_document_text:
-    'SFDX: エディタの内容で匿名 Apex コードを実行',
-  anon_apex_execute_selection_text:
-    'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
+  anon_apex_execute_document_text: 'SFDX: エディタの内容で匿名 Apex コードを実行',
+  anon_apex_execute_selection_text: 'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   project_generate_text: 'SFDX: プロジェクトを作成',
   project_generate_open_dialog_create_label: 'プロジェクトを作成',
-  project_generate_standard_template:
-    '標準のプロジェクトテンプレート (デフォルト)',
+  project_generate_standard_template: '標準のプロジェクトテンプレート (デフォルト)',
   project_generate_standard_template_display_text: '標準',
   project_generate_empty_template_display_text: '空',
   project_generate_analytics_template_display_text: 'Analytics',
@@ -167,38 +144,29 @@ export const messages = {
   project_generate_analytics_template: 'Analytics のプロジェクトテンプレート',
   project_generate_manifest: 'SFDX: Generate Manifest File',
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
-  start_apex_debug_logging:
-    'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
-  apex_debug_log_status_bar_text:
-    '$(file-text) 詳細なログを記録しています。%s まで。',
+  start_apex_debug_logging: 'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
+  apex_debug_log_status_bar_text: '$(file-text) 詳細なログを記録しています。%s まで。',
   apex_debug_log_status_bar_hover_text:
     'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
-  stop_apex_debug_logging:
-    'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
-  isv_debug_bootstrap_create_project:
-    'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
-  isv_debug_bootstrap_configure_project:
-    'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています',
+  stop_apex_debug_logging: 'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
+  isv_debug_bootstrap_create_project: 'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
+  isv_debug_bootstrap_configure_project: 'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています',
   isv_debug_bootstrap_configure_project_retrieve_namespace:
     'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています: 名前空間を取得しています',
   isv_debug_bootstrap_retrieve_org_source:
     'SFDX: ISV デバッガ 設定 ステップ 3/7: パッケージ化されていない Apex コードを取得しています',
   isv_debug_bootstrap_list_installed_packages:
     'SFDX: ISV デバッガ 設定 ステップ 5/7: インストール済みパッケージをクエリしています',
-  isv_debug_bootstrap_retrieve_package_source:
-    'SFDX: ISV デバッガ 設定 ステップ 6/7: パッケージを取得しています',
+  isv_debug_bootstrap_retrieve_package_source: 'SFDX: ISV デバッガ 設定 ステップ 6/7: パッケージを取得しています',
   isv_debug_bootstrap_processing_package: 'パッケージを処理しています: %s',
   isv_debug_bootstrap_generate_launchjson: '起動構成ファイルを作成しています',
-  isv_debug_bootstrap_open_project:
-    'プロジェクトを新しい Visual Studio Code のウィンドウで開いています',
+  isv_debug_bootstrap_open_project: 'プロジェクトを新しい Visual Studio Code のウィンドウで開いています',
 
   error_creating_packagexml: 'package.xml の作成中にエラー: %s',
-  error_extracting_org_source:
-    'ダウンロードされたApex ソースの抽出中にエラー: %s',
+  error_extracting_org_source: 'ダウンロードされたApex ソースの抽出中にエラー: %s',
   error_extracting_packages: 'パッケージの抽出中にエラー: %s',
   error_updating_sf_project: 'sfdx-project.json の更新中にエラー: %s',
-  error_writing_installed_package_info:
-    'installed-package.json の書き込み中にエラー: %s',
+  error_writing_installed_package_info: 'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
 
   demo_mode_status_text: '$(gist-secret) SFDX DEMO',
@@ -243,15 +211,12 @@ export const messages = {
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
   org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
-  invalid_default_org:
-    'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
+  invalid_default_org: 'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
   config_set_org_text: 'SFDX: デフォルトの組織を設定',
-  error_parsing_sfdx_project_file:
-    'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
-  sfdx_cli_not_found:
-    'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
+  error_parsing_sfdx_project_file: 'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
+  sfdx_cli_not_found: 'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
   sfdx_cli_not_supported:
     'Your installed Salesforce CLI version is no longer supported. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
   sf_v1_not_supported:
@@ -292,11 +257,9 @@ export const messages = {
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
   error_invalid_org_alias: '別名にはアンダースコアと英数字のみを使用できます。',
-  error_invalid_expiration_days:
-    '日数には 1 から 30 までの数値を指定してください。',
+  error_invalid_expiration_days: '日数には 1 から 30 までの数値を指定してください。',
   error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
-  error_org_browser_text:
-    '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
+  error_org_browser_text: '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
   error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
   list_metadata: 'SFDX: Force List Metadata',
@@ -489,10 +452,8 @@ export const messages = {
   XOrgHub: 'X Org Hubs',
 
   conflict_detect_error: '競合を検出中にエラーが発生しました。%s',
-  conflict_detect_retrieve_org_source:
-    '競合の検出: 組織のソースを取得しています',
-  conflict_detect_convert_org_source:
-    '競合の検出: 組織のソースを変換しています',
+  conflict_detect_retrieve_org_source: '競合の検出: 組織のソースを取得しています',
+  conflict_detect_convert_org_source: '競合の検出: 組織のソースを変換しています',
   conflict_detect_conflicts_during_deploy:
     'メタデータのデプロイ中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
   conflict_detect_conflicts_during_retrieve:
@@ -501,15 +462,11 @@ export const messages = {
   conflict_detect_show_conflicts: '競合を表示',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
-  conflict_detect_command_hint:
-    '\nRun the following command to overwrite the conflicts:\n  %s',
-  conflict_detect_no_target_org:
-    'このプロジェクトにはデフォルトのユーザ名がありません',
-  conflict_detect_no_default_package_dir:
-    'このプロジェクトにはデフォルトのパッケージディレクトリがありません',
+  conflict_detect_command_hint: '\nRun the following command to overwrite the conflicts:\n  %s',
+  conflict_detect_no_target_org: 'このプロジェクトにはデフォルトのユーザ名がありません',
+  conflict_detect_no_default_package_dir: 'このプロジェクトにはデフォルトのパッケージディレクトリがありません',
   conflict_detect_view_init: '競合検出ビューが初期化されていません',
-  conflict_detect_not_enabled:
-    '組織との差分を表示するために、Detect Conflicts at Sync 設定を有効化してください',
+  conflict_detect_not_enabled: '組織との差分を表示するために、Detect Conflicts at Sync 設定を有効化してください',
   conflict_detect_root_title: 'Org Differences',
   conflict_detect_view_root: '%s : %s file difference(s)',
   conflict_detect_no_conflicts: '競合がありません',
@@ -518,24 +475,18 @@ export const messages = {
 
   source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
   source_diff_folder_text: 'SFDX: Diff Folder Against Org',
-  source_diff_components_not_in_org:
-    'Selected components are not available in the org',
-  source_diff_unsupported_type:
-    'このメタデータ型に対する差分は現在サポートされていません。',
+  source_diff_components_not_in_org: 'Selected components are not available in the org',
+  source_diff_unsupported_type: 'このメタデータ型に対する差分は現在サポートされていません。',
   source_diff_title: '%s//%s ↔ ローカル //%s',
-  package_id_validation_error:
-    'Package ID should be a 15 or 18 character Id that starts with 04t',
+  package_id_validation_error: 'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
-  soql_doc_url:
-    'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',
+  soql_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
-  functions_doc_url:
-    'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
+  functions_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
-  parameter_gatherer_file_name_max_length_validation_error_message:
-    'ファイル名は {0} 文字を超えることはできません',
+  parameter_gatherer_file_name_max_length_validation_error_message: 'ファイル名は {0} 文字を超えることはできません',
   predicates_no_folder_opened_text:
     'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
   predicates_no_salesforce_project_found_text:

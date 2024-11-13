@@ -23,16 +23,12 @@ describe('utils tests', () => {
 
     it('Should throw error if argument is a simple text', () => {
       const invalidJson = initialValue.how;
-      expect(() => extractJsonObject(invalidJson)).toThrow(
-        'The string "does" is not a valid JSON string.'
-      );
+      expect(() => extractJsonObject(invalidJson)).toThrow('The string "does" is not a valid JSON string.');
     });
 
     it('Should throw error if argument is invalid JSON string', () => {
       const invalidJson = jsonString.substring(10);
-      expect(() => extractJsonObject(invalidJson)).toThrow(
-        `The string "${invalidJson}" is not a valid JSON string.`
-      );
+      expect(() => extractJsonObject(invalidJson)).toThrow(`The string "${invalidJson}" is not a valid JSON string.`);
     });
   });
   describe('stripAnsiInJson', () => {
@@ -73,8 +69,7 @@ describe('utils tests', () => {
     });
 
     it('should handle complex JSON with ANSI codes', () => {
-      const input =
-        '{"key1": "\u001b[31mvalue1\u001b[0m", "key2": "\u001b[32mvalue2\u001b[0m"}';
+      const input = '{"key1": "\u001b[31mvalue1\u001b[0m", "key2": "\u001b[32mvalue2\u001b[0m"}';
       const result = stripAnsiInJson(input, true);
       expect(result).toBe('{"key1": "value1", "key2": "value2"}');
     });

@@ -30,17 +30,11 @@ describe('Lightning Generate Interface', () => {
   let openTextDocumentStub: SinonStub;
 
   beforeEach(() => {
-    getInternalDevStub = stub(
-      SalesforceCoreSettings.prototype,
-      'getInternalDev'
-    );
+    getInternalDevStub = stub(SalesforceCoreSettings.prototype, 'getInternalDev');
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -73,10 +67,7 @@ describe('Lightning Generate Interface', () => {
       fileName,
       'testInterface.intf-meta.xml'
     );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
     assert.noFile([auraInterfacePath, auraInterfaceMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -90,10 +81,7 @@ describe('Lightning Generate Interface', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
   });
 
   it('Should generate internal Aura Interface', async () => {
@@ -107,23 +95,15 @@ describe('Lightning Generate Interface', () => {
       fileName,
       'testInterface.intf'
     );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
     assert.noFile([auraInterfacePath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir(
-      '-p',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    shell.mkdir('-p', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
     await internalLightningGenerateInterface(
-      vscode.Uri.file(
-        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-      )
+      vscode.Uri.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath))
     );
 
     // assert
@@ -138,9 +118,6 @@ describe('Lightning Generate Interface', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
   });
 });

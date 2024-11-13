@@ -30,14 +30,10 @@ describe('AppInsights', () => {
       // Arrange
       getInstanceMock = jest
         .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue({
-          orgId: dummyOrgId
-        } as any);
+        .mockReturnValue({ devHubId: '', orgId: dummyOrgId, orgShape: '' } as any);
 
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
-      jest
-        .spyOn(AppInsights.prototype as any, 'updateUserOptIn')
-        .mockReturnValue('');
+      jest.spyOn(AppInsights.prototype as any, 'updateUserOptIn').mockReturnValue('');
     });
 
     it('should send telemetry data to appInsightsClient.trackEvent', () => {
@@ -52,20 +48,17 @@ describe('AppInsights', () => {
       appInsights.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(1);
+      expect(getInstanceMock).toHaveBeenCalledTimes(3);
       expect(trackEventMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock.mock.calls[0][0]).toMatchSnapshot();
     });
 
     it('should send orgId to appInsightsClient.trackException', () => {
       // Act
-      appInsights.sendExceptionEvent(
-        'Dummy Exception',
-        'a dummy exception occurred'
-      );
+      appInsights.sendExceptionEvent('Dummy Exception', 'a dummy exception occurred');
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(1);
+      expect(getInstanceMock).toHaveBeenCalledTimes(3);
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
     });
@@ -79,13 +72,7 @@ describe('AppInsights', () => {
     };
 
     beforeEach(() => {
-      appInsights = new AppInsights(
-        fakeExtensionId,
-        fakeExtensionVersion,
-        'aKey',
-        fakeUserId,
-        false
-      );
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, 'aKey', fakeUserId, false);
       (appInsights as any).appInsightsClient = appInsightsClientMock;
     });
 
@@ -168,9 +155,7 @@ describe('AppInsights', () => {
     let appInsights: AppInsights;
 
     beforeEach(() => {
-      jest
-        .spyOn(os, 'hostname')
-        .mockReturnValue('test.internal.salesforce.com');
+      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
       jest.spyOn(os, 'cpus').mockReturnValue([
         {
           model: 'AMD EPYC 7763 64-Core Processor',
@@ -206,7 +191,7 @@ describe('AppInsights', () => {
       const commonProps = appInsights['getCommonProperties']();
       const internalProps = appInsights['getInternalProperties']();
       const result = appInsights['aggregateLoggingProperties']();
-      expect(result).toEqual({...commonProps, ...internalProps});
+      expect(result).toEqual({ ...commonProps, ...internalProps });
     });
 
     it('should return common properties when is not internal user', () => {

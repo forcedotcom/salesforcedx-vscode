@@ -16,12 +16,7 @@ import {
 import * as vscode from 'vscode';
 import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
-import {
-  CompositeParametersGatherer,
-  EmptyPreChecker,
-  SfCommandlet,
-  SfCommandletExecutor
-} from './util';
+import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
 
 type packageInstallOptions = {
   packageId: string;
@@ -74,35 +69,25 @@ export class SelectPackageID implements ParametersGatherer<PackageID> {
     } as vscode.InputBoxOptions;
 
     const packageId = await vscode.window.showInputBox(packageIdInputOptions);
-    return packageId
-      ? { type: 'CONTINUE', data: { packageId } }
-      : { type: 'CANCEL' };
+    return packageId ? { type: 'CONTINUE', data: { packageId } } : { type: 'CANCEL' };
   }
 }
 
-export class SelectInstallationKey
-  implements ParametersGatherer<InstallationKey>
-{
+export class SelectInstallationKey implements ParametersGatherer<InstallationKey> {
   private readonly prefillValueProvider?: () => string;
 
   constructor(prefillValueProvider?: () => string) {
     this.prefillValueProvider = prefillValueProvider;
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<InstallationKey>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<InstallationKey>> {
     const installationKeyInputOptions = {
-      prompt: nls.localize(
-        'parameter_gatherer_enter_installation_key_if_necessary'
-      )
+      prompt: nls.localize('parameter_gatherer_enter_installation_key_if_necessary')
     } as vscode.InputBoxOptions;
     if (this.prefillValueProvider) {
       installationKeyInputOptions.value = this.prefillValueProvider();
     }
-    const installationKey = await vscode.window.showInputBox(
-      installationKeyInputOptions
-    );
+    const installationKey = await vscode.window.showInputBox(installationKeyInputOptions);
     return installationKey || installationKey === ''
       ? { type: 'CONTINUE', data: { installationKey } }
       : { type: 'CANCEL' };
@@ -110,16 +95,9 @@ export class SelectInstallationKey
 }
 
 const workspaceChecker = new EmptyPreChecker();
-const parameterGatherer = new CompositeParametersGatherer(
-  new SelectPackageID(),
-  new SelectInstallationKey()
-);
+const parameterGatherer = new CompositeParametersGatherer(new SelectPackageID(), new SelectInstallationKey());
 
-const sfPackageInstallCommandlet = new SfCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  new PackageInstallExecutor()
-);
+const sfPackageInstallCommandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new PackageInstallExecutor());
 
 export const packageInstall = async (): Promise<void> => {
   await sfPackageInstallCommandlet.run();

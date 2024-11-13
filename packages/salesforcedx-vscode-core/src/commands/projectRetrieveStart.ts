@@ -59,9 +59,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
       .withLogName(this.params.logName.default);
 
     if (this.flag === '--ignore-conflicts') {
-      builder
-        .withArg(this.flag)
-        .withDescription(nls.localize(this.params.description.ignoreConflicts));
+      builder.withArg(this.flag).withDescription(nls.localize(this.params.description.ignoreConflicts));
     }
     return builder.build();
   }
@@ -82,13 +80,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     });
 
     execution.processExitSubject.subscribe(exitCode => {
-      this.exitProcessHandlerPull(
-        exitCode,
-        execution,
-        response,
-        startTime,
-        output
-      );
+      this.exitProcessHandlerPull(exitCode, execution, response, startTime, output);
     });
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
@@ -115,23 +107,14 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
       this.outputResultPull(pullParser);
     }
 
-    const telemetryData = this.getTelemetryData(
-      exitCode === 0,
-      response,
-      output
-    );
+    const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
     let properties;
     let measurements;
     if (telemetryData) {
       properties = telemetryData.properties;
       measurements = telemetryData.measurements;
     }
-    this.logMetric(
-      execution.command.logName,
-      startTime,
-      properties,
-      measurements
-    );
+    this.logMetric(execution.command.logName, startTime, properties, measurements);
     this.onDidFinishExecutionEventEmitter.fire(startTime);
   }
 
@@ -156,9 +139,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     const pulledSource = successes ? successes?.result.files : undefined;
     if (pulledSource || parser.hasConflicts()) {
       const rows = pulledSource || errors?.files;
-      const tableTitle = !parser.hasConflicts()
-        ? nls.localize(`table_title_${titleType}ed_source`)
-        : undefined;
+      const tableTitle = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, tableTitle);
       if (parser.hasConflicts()) {
         channelService.appendLine(nls.localize('pull_conflicts_error') + '\n');
@@ -178,11 +159,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
       } else {
-        console.log(
-          `There were errors parsing the pull operation response.  Raw response: ${JSON.stringify(
-            errors
-          )}`
-        );
+        console.log(`There were errors parsing the pull operation response.  Raw response: ${JSON.stringify(errors)}`);
       }
     }
   }
@@ -227,10 +204,6 @@ const parameterGatherer = new EmptyParametersGatherer();
 export async function projectRetrieveStart(this: FlagParameter<string>) {
   const { flag } = this || {};
   const executor = new ProjectRetrieveStartExecutor(flag, pullCommand);
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    executor
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
   await commandlet.run();
 }

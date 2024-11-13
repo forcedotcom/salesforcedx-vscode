@@ -76,7 +76,7 @@ jobs:
 
   DeployAndRetrieve:
     if: ${{ inputs.deployAndRetrieveE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/deployRetrieveE2EredHat.yml
+    uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
@@ -116,7 +116,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: 'main'
-      vscodeVersion: '1.86.0'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
   Core_min_vscode_version:
@@ -125,16 +125,16 @@ jobs:
     secrets: inherit
     with:
       automationBranch: 'main'
-      vscodeVersion: '1.86.0'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
   DeployAndRetrieve_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/deployRetrieveE2EredHat.yml
+    uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
       automationBranch: 'main'
-      vscodeVersion: '1.86.0'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
   LSP_min_vscode_version:
@@ -143,7 +143,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: 'main'
-      vscodeVersion: '1.86.0'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
   LWC_min_vscode_version:
@@ -152,7 +152,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: 'main'
-      vscodeVersion: '1.86.0'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
   SOQL_min_vscode_version:
@@ -161,5 +161,5 @@ jobs:
     secrets: inherit
     with:
       automationBranch: 'main'
-      vscodeVersion: '1.86.0'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}

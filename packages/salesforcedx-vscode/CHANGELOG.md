@@ -1,3 +1,34 @@
+# 62.5.1 - November 14, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We improved the accuracy of the range for Class, Enum, and Interface symbols in the Apex LSP `.jar` file. We also modified document symbol creation to introduce a nested symbol hierarchy in the Outline View, improving clarity of the outline. ([PR #5945](https://github.com/forcedotcom/salesforcedx-vscode/pull/5945))
+
+#### salesforcedx-vscode-core
+
+- When you push or deploy on save, you’ll no longer automatically switch to the output panel view by default. You can toggle this setting with the `salesforcedx-vscode-core.push-or-deploy-on-save.showOutputPanel` setting. Thank you [Jason Venable](https://github.com/tehnrd) for this contribution. ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
+- We made some changes under the hood. ([PR #5939](https://github.com/forcedotcom/salesforcedx-vscode/pull/5939))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- To ensure smooth operation the Salesforce Extension Pack needs to run with a minimum supported Visual Studio Code version. We support only Visual Studio Code 1.90.0 or higher. ([PR #5937](https://github.com/forcedotcom/salesforcedx-vscode/pull/5937))
+
+# 62.3.1 - November 1, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed a bug where deleted folders still showed Apex tests in the Testing sidebar. Now, when you delete a folder, it will be completely removed. No more pesky leftover tests! We did this by adding a new file watcher that triggers when an entire folder is deleted. ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
+
+- 🚀 We improved the startup time of the Apex extension by 30%. This was achieved by moving our check for orphaned Apex Language Server instances outside the activation loop. This means that Apex extensions start up faster, so you can get to work more quickly. ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
+
+- We made some changes under the hood. ([PR #5930](https://github.com/forcedotcom/salesforcedx-vscode/pull/5930))
+
 # 62.2.0 - October 23, 2024
 
 ## Added
@@ -13,7 +44,7 @@
 #### salesforcedx-vscode-apex
 
 - We updated the Java Home Setting description to include Java 21. ([PR #5878](https://github.com/forcedotcom/salesforcedx-vscode/pull/5878))
-- We updated the Apex Language Server to support the latest features and improvements of the language. When you activate the new version of the Apex extension for the first time, you could experience some lag while your workspace is upgraded to 252 Apex artifacts and your project is fully indexed. ([PR #5887](https://github.com/forcedotcom/salesforcedx-vscode/pull/5887))
+- We updated the Apex Language Server to support the latest features and improvements of the language. When you activate the new  of the Apex extension for the first time, you could experience some lag while your workspace is upgraded to 252 Apex artifacts and your project is fully indexed. ([PR #5887](https://github.com/forcedotcom/salesforcedx-vscode/pull/5887))
 
 #### salesforcedx-vscode-core
 
@@ -23,10 +54,15 @@
 ## Added
 
 ### salesforcedx-vscode-apex
+
 ### salesforcedx-vscode-apex-replay-debugger
+
 ### salesforcedx-vscode-core
+
 ### salesforcedx-vscode-lightning
+
 ### salesforcedx-vscode-lwc
+
 ### salesforcedx-vscode-soql
 
 - We made some changes under the hood. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889)).

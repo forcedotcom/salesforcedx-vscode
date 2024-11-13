@@ -8,10 +8,7 @@
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { BreakpointUtil } from '../../../src/breakpoints';
 import {
   EVENT_CODE_UNIT_FINISHED,
@@ -59,25 +56,11 @@ describe('LogContext', () => {
   beforeEach(() => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
-      .returns([
-        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
-        'line1',
-        'line2'
-      ]);
-    getFileSizeStub = sinon
-      .stub(LogContextUtil.prototype, 'getFileSize')
-      .returns(123);
-    shouldTraceLogFileStub = sinon
-      .stub(ApexReplayDebug.prototype, 'shouldTraceLogFile')
-      .returns(true);
-    printToDebugConsoleStub = sinon.stub(
-      ApexReplayDebug.prototype,
-      'printToDebugConsole'
-    );
-    revertStateAfterHeapDumpSpy = sinon.spy(
-      LogContext.prototype,
-      'revertStateAfterHeapDump'
-    );
+      .returns(['43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..', 'line1', 'line2']);
+    getFileSizeStub = sinon.stub(LogContextUtil.prototype, 'getFileSize').returns(123);
+    shouldTraceLogFileStub = sinon.stub(ApexReplayDebug.prototype, 'shouldTraceLogFile').returns(true);
+    printToDebugConsoleStub = sinon.stub(ApexReplayDebug.prototype, 'printToDebugConsole');
+    revertStateAfterHeapDumpSpy = sinon.spy(LogContext.prototype, 'revertStateAfterHeapDump');
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
   });
 
@@ -119,9 +102,7 @@ describe('LogContext', () => {
 
   it('Should not have log lines', () => {
     readLogFileStub.restore();
-    readLogFileStub = sinon
-      .stub(LogContextUtil.prototype, 'readLogFile')
-      .returns([]);
+    readLogFileStub = sinon.stub(LogContextUtil.prototype, 'readLogFile').returns([]);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     expect(context.hasLogLines()).to.be.false;
@@ -133,11 +114,7 @@ describe('LogContext', () => {
     readLogFileStub.restore();
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
-      .returns([
-        '43.0 APEX_CODE,DEBUG;...;VISUALFORCE,DEBUG;..',
-        'line1',
-        'line2'
-      ]);
+      .returns(['43.0 APEX_CODE,DEBUG;...;VISUALFORCE,DEBUG;..', 'line1', 'line2']);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     expect(context.meetsLogLevelRequirements()).to.be.false;
@@ -166,9 +143,7 @@ describe('LogContext', () => {
   });
 
   it('Should handle undefined log event', () => {
-    parseLogEventStub = sinon
-      .stub(LogContext.prototype, 'parseLogEvent')
-      .returns(undefined);
+    parseLogEventStub = sinon.stub(LogContext.prototype, 'parseLogEvent').returns(undefined);
 
     context.updateFrames();
 
@@ -177,9 +152,7 @@ describe('LogContext', () => {
 
   it('Should continue handling until the end of log file', () => {
     noOpHandleStub = sinon.stub(NoOpState.prototype, 'handle').returns(false);
-    parseLogEventStub = sinon
-      .stub(LogContext.prototype, 'parseLogEvent')
-      .returns(new NoOpState());
+    parseLogEventStub = sinon.stub(LogContext.prototype, 'parseLogEvent').returns(new NoOpState());
 
     context.updateFrames();
 
@@ -194,9 +167,7 @@ describe('LogContext', () => {
       .returns(false)
       .onSecondCall()
       .returns(true);
-    parseLogEventStub = sinon
-      .stub(LogContext.prototype, 'parseLogEvent')
-      .returns(new NoOpState());
+    parseLogEventStub = sinon.stub(LogContext.prototype, 'parseLogEvent').returns(new NoOpState());
     context.setState(new LogEntryState());
     context.getFrames().push({} as StackFrame);
 
@@ -209,9 +180,7 @@ describe('LogContext', () => {
   });
 
   it('Should revert state if there is a heapdump', () => {
-    hasHeapDumpStub = sinon
-      .stub(LogContext.prototype, 'hasHeapDump')
-      .returns(true);
+    hasHeapDumpStub = sinon.stub(LogContext.prototype, 'hasHeapDump').returns(true);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     context.updateFrames();
@@ -220,9 +189,7 @@ describe('LogContext', () => {
   });
 
   it('Should not revert state if there is no heapdump', () => {
-    hasHeapDumpStub = sinon
-      .stub(LogContext.prototype, 'hasHeapDump')
-      .returns(false);
+    hasHeapDumpStub = sinon.stub(LogContext.prototype, 'hasHeapDump').returns(false);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     context.updateFrames();
@@ -301,9 +268,7 @@ describe('LogContext', () => {
 
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.setState(new LogEntryState());
-    context.parseLogEvent(
-      `<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`
-    );
+    context.parseLogEvent(`<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`);
 
     expect(context.scanLogForHeapDumpLines()).to.be.true;
     expect(context.hasHeapDumpForTopFrame()).to.equal('<HeapDumpId1>');
@@ -324,9 +289,7 @@ describe('LogContext', () => {
 
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.setState(new LogEntryState());
-    context.parseLogEvent(
-      `<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`
-    );
+    context.parseLogEvent(`<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`);
 
     expect(context.scanLogForHeapDumpLines()).to.be.true;
     expect(context.hasHeapDumpForTopFrame()).to.be.undefined;
@@ -348,16 +311,12 @@ describe('LogContext', () => {
 
     it('Should detect NoOp with unexpected number of fields', () => {
       context.setState(new LogEntryState());
-      expect(context.parseLogEvent('timestamp|foo')).to.be.an.instanceof(
-        NoOpState
-      );
+      expect(context.parseLogEvent('timestamp|foo')).to.be.an.instanceof(NoOpState);
     });
 
     it('Should detect NoOp with unknown event', () => {
       context.setState(new LogEntryState());
-      expect(context.parseLogEvent('timestamp|foo|bar')).to.be.an.instanceof(
-        NoOpState
-      );
+      expect(context.parseLogEvent('timestamp|foo|bar')).to.be.an.instanceof(NoOpState);
     });
 
     it('Should detect execute anonymous script line', () => {
@@ -371,81 +330,61 @@ describe('LogContext', () => {
     it('Should detect FrameEntry with CODE_UNIT_STARTED', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_CODE_UNIT_STARTED}|`)
-      ).to.be.an.instanceof(FrameEntryState);
+      expect(context.parseLogEvent(`|${EVENT_CODE_UNIT_STARTED}|`)).to.be.an.instanceof(FrameEntryState);
     });
 
     it('Should detect FrameEntry with CONSTRUCTOR_ENTRY', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_CONSTRUCTOR_ENTRY}|`)
-      ).to.be.an.instanceof(FrameEntryState);
+      expect(context.parseLogEvent(`|${EVENT_CONSTRUCTOR_ENTRY}|`)).to.be.an.instanceof(FrameEntryState);
     });
 
     it('Should detect FrameEntry with METHOD_ENTRY', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_METHOD_ENTRY}|`)
-      ).to.be.an.instanceof(FrameEntryState);
+      expect(context.parseLogEvent(`|${EVENT_METHOD_ENTRY}|`)).to.be.an.instanceof(FrameEntryState);
     });
 
     it('Should detect FrameEntry with VF_APEX_CALL_START', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_VF_APEX_CALL_START}|`)
-      ).to.be.an.instanceof(FrameEntryState);
+      expect(context.parseLogEvent(`|${EVENT_VF_APEX_CALL_START}|`)).to.be.an.instanceof(FrameEntryState);
     });
 
     it('Should detect FrameExit with CODE_UNIT_FINISHED', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_CODE_UNIT_FINISHED}|`)
-      ).to.be.an.instanceof(FrameExitState);
+      expect(context.parseLogEvent(`|${EVENT_CODE_UNIT_FINISHED}|`)).to.be.an.instanceof(FrameExitState);
     });
 
     it('Should detect FrameExit with CONSTRUCTOR_EXIT', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_CONSTRUCTOR_EXIT}|`)
-      ).to.be.an.instanceof(FrameExitState);
+      expect(context.parseLogEvent(`|${EVENT_CONSTRUCTOR_EXIT}|`)).to.be.an.instanceof(FrameExitState);
     });
 
     it('Should detect FrameExit with METHOD_EXIT', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_METHOD_EXIT}|`)
-      ).to.be.an.instanceof(FrameExitState);
+      expect(context.parseLogEvent(`|${EVENT_METHOD_EXIT}|`)).to.be.an.instanceof(FrameExitState);
     });
 
     it('Should detect FrameExit with VF_APEX_CALL_END', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_VF_APEX_CALL_END}|`)
-      ).to.be.an.instanceof(FrameExitState);
+      expect(context.parseLogEvent(`|${EVENT_VF_APEX_CALL_END}|`)).to.be.an.instanceof(FrameExitState);
     });
 
     it('Should detect StatementExecute with STATEMENT_EXECUTE', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_STATEMENT_EXECUTE}|[1]`)
-      ).to.be.an.instanceof(StatementExecuteState);
+      expect(context.parseLogEvent(`|${EVENT_STATEMENT_EXECUTE}|[1]`)).to.be.an.instanceof(StatementExecuteState);
     });
 
     it('Should detect UserDebug with USER_DEBUG', () => {
       context.setState(new LogEntryState());
 
-      expect(
-        context.parseLogEvent(`|${EVENT_USER_DEBUG}|[1]|DEBUG|Hello`)
-      ).to.be.an.instanceof(UserDebugState);
+      expect(context.parseLogEvent(`|${EVENT_USER_DEBUG}|[1]|DEBUG|Hello`)).to.be.an.instanceof(UserDebugState);
     });
   });
 
@@ -454,15 +393,10 @@ describe('LogContext', () => {
     const typerefMapping: Map<string, string> = new Map();
     typerefMapping.set('namespace/Foo$Bar', '/path/foo.cls');
     typerefMapping.set('namespace/Foo', '/path/foo.cls');
-    typerefMapping.set(
-      '__sfdc_trigger/namespace/MyTrigger',
-      '/path/MyTrigger.trigger'
-    );
+    typerefMapping.set('__sfdc_trigger/namespace/MyTrigger', '/path/MyTrigger.trigger');
 
     beforeEach(() => {
-      getTyperefMappingStub = sinon
-        .stub(BreakpointUtil.prototype, 'getTyperefMapping')
-        .returns(typerefMapping);
+      getTyperefMappingStub = sinon.stub(BreakpointUtil.prototype, 'getTyperefMapping').returns(typerefMapping);
     });
 
     afterEach(() => {
@@ -470,23 +404,17 @@ describe('LogContext', () => {
     });
 
     it('Should return debug log fs path for execute anonymous signature', () => {
-      expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).to.equal(
-        context.getLogFilePath()
-      );
+      expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).to.equal(context.getLogFilePath());
     });
 
     it('Should return URI for inner class', () => {
       expect(
-        context.getUriFromSignature(
-          'namespace.Foo.Bar(namespace.Foo.Bar, String, Map<String,String>, List<String>)'
-        )
+        context.getUriFromSignature('namespace.Foo.Bar(namespace.Foo.Bar, String, Map<String,String>, List<String>)')
       ).to.equal('/path/foo.cls');
     });
 
     it('Should return URI for trigger', () => {
-      expect(
-        context.getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')
-      ).to.be.equal('/path/MyTrigger.trigger');
+      expect(context.getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')).to.be.equal('/path/MyTrigger.trigger');
     });
   });
 });

@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import {
-  CommandletExecutor,
-  ParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker
-} from '../types';
+import { CommandletExecutor, ParametersGatherer, PostconditionChecker, PreconditionChecker } from '../types';
 import { notificationService } from './index';
 import { EmptyPostChecker } from './postconditionCheckers';
 

@@ -6,7 +6,4 @@
  */
 
 export { MinObjectRetriever } from './minObjectRetriever';
-export {
-  OrgObjectRetriever,
-  OrgObjectDetailRetriever
-} from './orgObjectRetriever';
+export { OrgObjectRetriever, OrgObjectDetailRetriever } from './orgObjectRetriever';

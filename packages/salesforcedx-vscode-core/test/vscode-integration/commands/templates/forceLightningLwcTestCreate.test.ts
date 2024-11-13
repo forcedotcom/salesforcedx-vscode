@@ -20,29 +20,20 @@ describe('Force Lightning Web Component Test Create', () => {
       fileName,
       outputdir: path.join(outputDirPath, 'testing')
     });
-    const fullFilepath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputDirPath,
-      'testing',
-      fileName + '.js'
-    );
+    const fullFilepath = path.join(workspaceUtils.getRootWorkspacePath(), outputDirPath, 'testing', fileName + '.js');
 
     if (fullFilepath) {
       expect(lwcCreateTestCommand.toCommand()).to.equal(
         `sf force:lightning:lwc:test:create --filepath ${fullFilepath}`
       );
-      expect(lwcCreateTestCommand.description).to.equal(
-        nls.localize('force_lightning_lwc_test_create_text')
-      );
+      expect(lwcCreateTestCommand.description).to.equal(nls.localize('force_lightning_lwc_test_create_text'));
       expect(lightningLWCTestCreate.getDefaultDirectory()).to.equal('lwc');
       expect(lightningLWCTestCreate.getFileExtension()).to.equal('.js');
       expect(
         lightningLWCTestCreate
           .getSourcePathStrategy()
           .getPathToSource(path.join(outputDirPath, 'testing'), fileName, '.js')
-      ).to.equal(
-        path.join(outputDirPath, fileName, '__tests__', `${fileName}.test.js`)
-      );
+      ).to.equal(path.join(outputDirPath, fileName, '__tests__', `${fileName}.test.js`));
     }
   });
 });

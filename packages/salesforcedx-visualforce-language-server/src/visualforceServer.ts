@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -29,32 +28,19 @@ import {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ServerCapabilities as CPServerCapabilities
 } from 'vscode-languageserver-protocol';
-import {
-  ConfigurationParams,
-  ConfigurationRequest
-} from 'vscode-languageserver-protocol';
-import {
-  Diagnostic,
-  DocumentLink,
-  SymbolInformation,
-  TextDocument
-} from 'vscode-languageserver-types';
+import { ConfigurationParams, ConfigurationRequest } from 'vscode-languageserver-protocol';
+import { Diagnostic, DocumentLink, SymbolInformation, TextDocument } from 'vscode-languageserver-types';
 import * as nls from 'vscode-nls';
 import uri from 'vscode-uri';
 import { format } from './modes/formatting';
-import {
-  getLanguageModes,
-  LanguageModes,
-  Settings
-} from './modes/languageModes';
+import { getLanguageModes, LanguageModes, Settings } from './modes/languageModes';
 
 import { pushAll } from './utils/arrays';
 
 nls.config(process.env['VSCODE_NLS_CONFIG']);
 
 namespace TagCloseRequest {
-  export const type: RequestType<TextDocumentPositionParams, string, any, any> =
-    new RequestType('html/tag');
+  export const type: RequestType<TextDocumentPositionParams, string, any, any> = new RequestType('html/tag');
 }
 
 // Create a connection for the server
@@ -84,10 +70,7 @@ documents.onDidClose(e => {
   delete documentSettings[e.document.uri];
 });
 
-const getDocumentSettings = (
-  textDocument: TextDocument,
-  needsDocumentSettings: () => boolean
-): Thenable<Settings> => {
+const getDocumentSettings = (textDocument: TextDocument, needsDocumentSettings: () => boolean): Thenable<Settings> => {
   if (scopedSettingsSupport && needsDocumentSettings()) {
     let promise = documentSettings[textDocument.uri];
     if (!promise) {
@@ -117,9 +100,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   workspacePath = params.rootPath;
 
   languageModes = getLanguageModes(
-    initializationOptions
-      ? initializationOptions.embeddedLanguages
-      : { css: true, javascript: true }
+    initializationOptions ? initializationOptions.embeddedLanguages : { css: true, javascript: true }
   );
   documents.onDidClose(e => {
     languageModes.onDocumentRemoved(e.document);
@@ -136,17 +117,8 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
     return !!c;
   };
 
-  clientSnippetSupport = hasClientCapability(
-    'textDocument',
-    'completion',
-    'completionItem',
-    'snippetSupport'
-  );
-  clientDynamicRegisterSupport = hasClientCapability(
-    'workspace',
-    'symbol',
-    'dynamicRegistration'
-  );
+  clientSnippetSupport = hasClientCapability('textDocument', 'completion', 'completionItem', 'snippetSupport');
+  clientDynamicRegisterSupport = hasClientCapability('workspace', 'symbol', 'dynamicRegistration');
   scopedSettingsSupport = hasClientCapability('workspace', 'configuration');
   const capabilities: ServerCapabilities = {
     // Tell the client that the server works in FULL text document sync mode
@@ -194,13 +166,8 @@ connection.onDidChangeConfiguration(change => {
       globalSettings.visualforce.format.enable;
     if (enableFormatter) {
       if (!formatterRegistration) {
-        const documentSelector: DocumentSelector = [
-          { language: 'visualforce', scheme: 'file' }
-        ];
-        formatterRegistration = connection.client.register(
-          DocumentRangeFormattingRequest.type,
-          { documentSelector }
-        );
+        const documentSelector: DocumentSelector = [{ language: 'visualforce', scheme: 'file' }];
+        formatterRegistration = connection.client.register(DocumentRangeFormattingRequest.type, { documentSelector });
       }
     } else if (formatterRegistration) {
       formatterRegistration.then(r => r.dispose());
@@ -243,12 +210,8 @@ const triggerValidation = (textDocument: TextDocument): void => {
   }, validationDelayMs);
 };
 
-const isValidationEnabled = (
-  languageId: string,
-  settings: Settings = globalSettings
-) => {
-  const validationSettings =
-    settings && settings.visualforce && settings.visualforce.validate;
+const isValidationEnabled = (languageId: string, settings: Settings = globalSettings) => {
+  const validationSettings = settings && settings.visualforce && settings.visualforce.validate;
   if (validationSettings) {
     return (
       (languageId === 'css' && validationSettings.styles !== false) ||
@@ -262,9 +225,7 @@ const validateTextDocument = async (textDocument: TextDocument) => {
   const diagnostics: Diagnostic[] = [];
   if (textDocument.languageId === 'html') {
     const modes = languageModes.getAllModesInDocument(textDocument);
-    const settings = await getDocumentSettings(textDocument, () =>
-      modes.some(m => !!m.doValidation)
-    );
+    const settings = await getDocumentSettings(textDocument, () => modes.some(m => !!m.doValidation));
     modes.forEach(mode => {
       if (mode.doValidation && isValidationEnabled(mode.getId(), settings)) {
         pushAll(diagnostics, mode.doValidation(textDocument, settings));
@@ -276,10 +237,7 @@ const validateTextDocument = async (textDocument: TextDocument) => {
 
 connection.onCompletion(async textDocumentPosition => {
   const document = documents.get(textDocumentPosition.textDocument.uri);
-  const mode = languageModes.getModeAtPosition(
-    document,
-    textDocumentPosition.position
-  );
+  const mode = languageModes.getModeAtPosition(document, textDocumentPosition.position);
   if (mode && mode.doComplete) {
     if (mode.getId() !== 'html') {
       connection.telemetry.logEvent({
@@ -287,10 +245,7 @@ connection.onCompletion(async textDocumentPosition => {
         value: { languageId: mode.getId() }
       });
     }
-    const settings = await getDocumentSettings(
-      document,
-      () => mode.doComplete.length > 2
-    );
+    const settings = await getDocumentSettings(document, () => mode.doComplete.length > 2);
     return mode.doComplete(document, textDocumentPosition.position, settings);
   }
   return { isIncomplete: true, items: [] };
@@ -310,10 +265,7 @@ connection.onCompletionResolve(item => {
 
 connection.onHover(textDocumentPosition => {
   const document = documents.get(textDocumentPosition.textDocument.uri);
-  const mode = languageModes.getModeAtPosition(
-    document,
-    textDocumentPosition.position
-  );
+  const mode = languageModes.getModeAtPosition(document, textDocumentPosition.position);
   if (mode && mode.doHover) {
     return mode.doHover(document, textDocumentPosition.position);
   }
@@ -322,25 +274,16 @@ connection.onHover(textDocumentPosition => {
 
 connection.onDocumentHighlight(documentHighlightParams => {
   const document = documents.get(documentHighlightParams.textDocument.uri);
-  const mode = languageModes.getModeAtPosition(
-    document,
-    documentHighlightParams.position
-  );
+  const mode = languageModes.getModeAtPosition(document, documentHighlightParams.position);
   if (mode && mode.findDocumentHighlight) {
-    return mode.findDocumentHighlight(
-      document,
-      documentHighlightParams.position
-    );
+    return mode.findDocumentHighlight(document, documentHighlightParams.position);
   }
   return [];
 });
 
 connection.onDefinition(definitionParams => {
   const document = documents.get(definitionParams.textDocument.uri);
-  const mode = languageModes.getModeAtPosition(
-    document,
-    definitionParams.position
-  );
+  const mode = languageModes.getModeAtPosition(document, definitionParams.position);
   if (mode && mode.findDefinition) {
     return mode.findDefinition(document, definitionParams.position);
   }
@@ -349,10 +292,7 @@ connection.onDefinition(definitionParams => {
 
 connection.onReferences(referenceParams => {
   const document = documents.get(referenceParams.textDocument.uri);
-  const mode = languageModes.getModeAtPosition(
-    document,
-    referenceParams.position
-  );
+  const mode = languageModes.getModeAtPosition(document, referenceParams.position);
   if (mode && mode.findReferences) {
     return mode.findReferences(document, referenceParams.position);
   }
@@ -361,10 +301,7 @@ connection.onReferences(referenceParams => {
 
 connection.onSignatureHelp(signatureHelpParms => {
   const document = documents.get(signatureHelpParms.textDocument.uri);
-  const mode = languageModes.getModeAtPosition(
-    document,
-    signatureHelpParms.position
-  );
+  const mode = languageModes.getModeAtPosition(document, signatureHelpParms.position);
   if (mode && mode.doSignatureHelp) {
     return mode.doSignatureHelp(document, signatureHelpParms.position);
   }
@@ -378,24 +315,13 @@ connection.onDocumentRangeFormatting(async formatParams => {
     settings = globalSettings;
   }
   const unformattedTags: string =
-    (settings &&
-      settings.visualforce &&
-      settings.visualforce.format &&
-      settings.visualforce.format.unformatted) ||
-    '';
+    (settings && settings.visualforce && settings.visualforce.format && settings.visualforce.format.unformatted) || '';
   const enabledModes = {
     css: !unformattedTags.match(/\bstyle\b/),
     javascript: !unformattedTags.match(/\bscript\b/)
   };
 
-  return format(
-    languageModes,
-    document,
-    formatParams.range,
-    formatParams.options,
-    settings,
-    enabledModes
-  );
+  return format(languageModes, document, formatParams.range, formatParams.options, settings, enabledModes);
 });
 
 connection.onDocumentLinks(documentLinkParam => {
@@ -460,10 +386,7 @@ connection.onRequest(TagCloseRequest.type, params => {
   if (document) {
     const pos = params.position;
     if (pos.character > 0) {
-      const mode = languageModes.getModeAtPosition(
-        document,
-        Position.create(pos.line, pos.character - 1)
-      );
+      const mode = languageModes.getModeAtPosition(document, Position.create(pos.line, pos.character - 1));
       if (mode && mode.doAutoClose) {
         return mode.doAutoClose(document, pos);
       }

@@ -13,13 +13,7 @@ describe('Aura Intellisense Test Suite', () => {
   let auraDir: string;
 
   beforeEach(async () => {
-    auraDir = path.join(
-      vscode.workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'aura'
-    );
+    auraDir = path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, 'force-app', 'main', 'default', 'aura');
     await new Promise(r => setTimeout(r, 1000));
   });
 
@@ -32,19 +26,14 @@ describe('Aura Intellisense Test Suite', () => {
    */
 
   it('Aura markup intellisense', async () => {
-    const docUri = vscode.Uri.file(
-      path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp')
-    );
+    const docUri = vscode.Uri.file(path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = '<c:';
     const startPosition = new vscode.Position(1, 7);
-    const endPosition = new vscode.Position(
-      startPosition.line,
-      startPosition.character + text.length
-    );
+    const endPosition = new vscode.Position(startPosition.line, startPosition.character + text.length);
     const rangeReplace = new vscode.Range(startPosition, endPosition);
     await editor.edit(editBuilder => {
       editBuilder.replace(rangeReplace, text);
@@ -63,7 +52,7 @@ describe('Aura Intellisense Test Suite', () => {
         {
           label: 'c:DemoApp',
           kind: vscode.CompletionItemKind.Property
-        }/*,
+        } /*,
           // NOTE: this commented out since it caused the test to inconsistently fail
           // in the autobuilds, this area is covered by tests in the lang server repo.
           // Custom LWC
@@ -80,45 +69,33 @@ describe('Aura Intellisense Test Suite', () => {
    */
 
   it('Aura global javascript intellisense', async () => {
-    const docUri = vscode.Uri.file(
-      path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
-    );
+    const docUri = vscode.Uri.file(path.join(auraDir, 'DemoComponent', 'DemoComponentController.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = '$A.util.get';
     const startPosition = new vscode.Position(2, 3);
-    const endPosition = new vscode.Position(
-      startPosition.line,
-      startPosition.character + text.length
-    );
+    const endPosition = new vscode.Position(startPosition.line, startPosition.character + text.length);
     const rangeReplace = new vscode.Range(startPosition, endPosition);
     await editor.edit(editBuilder => {
       editBuilder.replace(rangeReplace, text);
     });
 
     await testCompletion(docUri, endPosition, {
-      items: [
-        { label: 'getBooleanValue', kind: vscode.CompletionItemKind.Function }
-      ]
+      items: [{ label: 'getBooleanValue', kind: vscode.CompletionItemKind.Function }]
     });
   });
 
   it('Aura property javascript intellisense', async () => {
-    const docUri = vscode.Uri.file(
-      path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
-    );
+    const docUri = vscode.Uri.file(path.join(auraDir, 'DemoComponent', 'DemoComponentController.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = 'component.get';
     const startPosition = new vscode.Position(2, 3);
-    const endPosition = new vscode.Position(
-      startPosition.line,
-      startPosition.character + text.length
-    );
+    const endPosition = new vscode.Position(startPosition.line, startPosition.character + text.length);
     const rangeReplace = new vscode.Range(startPosition, endPosition);
     await editor.edit(editBuilder => {
       editBuilder.replace(rangeReplace, text);
@@ -130,28 +107,21 @@ describe('Aura Intellisense Test Suite', () => {
   });
 
   it('Aura helper javascript intellisense', async () => {
-    const docUri = vscode.Uri.file(
-      path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
-    );
+    const docUri = vscode.Uri.file(path.join(auraDir, 'DemoComponent', 'DemoComponentController.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = 'helper.hel';
     const startPosition = new vscode.Position(2, 3);
-    const endPosition = new vscode.Position(
-      startPosition.line,
-      startPosition.character + text.length
-    );
+    const endPosition = new vscode.Position(startPosition.line, startPosition.character + text.length);
     const rangeReplace = new vscode.Range(startPosition, endPosition);
     await editor.edit(editBuilder => {
       editBuilder.replace(rangeReplace, text);
     });
 
     await testCompletion(docUri, endPosition, {
-      items: [
-        { label: 'helperFunction', kind: vscode.CompletionItemKind.Function }
-      ]
+      items: [{ label: 'helperFunction', kind: vscode.CompletionItemKind.Function }]
     });
   });
 });
@@ -165,7 +135,7 @@ const testCompletion = async (
   expectedCompletionList: vscode.CompletionList
 ) => {
   // Simulate triggering a completion
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+
   const actualCompletionList = (await vscode.commands.executeCommand(
     'vscode.executeCompletionItemProvider',
     docUri,
@@ -182,32 +152,24 @@ const testCompletion = async (
 
     assert.isDefined(
       actualItem,
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-plus-operands
+
       "Couldn't find expected completion item '" + expectedItem.label + "'"
     );
     assert.equal(
       actualItem!.label,
       expectedItem.label,
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-plus-operands
+
       'Expected completion item to have label: ' + expectedItem.label
     );
     assert.equal(
       actualItem!.kind,
       expectedItem.kind,
-      "Expected completion item'" +
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-plus-operands
-      expectedItem.label +
-      "' to have type: " +
-      expectedItem.kind
+      "Expected completion item'" + expectedItem.label + "' to have type: " + expectedItem.kind
     );
     if (actualItem?.detail === 'Lightning') {
       assert.isDefined(
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         actualItem!.documentation,
-        "Expected completion item '" +
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-plus-operands
-        expectedItem.label +
-        "' to have documentation"
+        "Expected completion item '" + expectedItem.label + "' to have documentation"
       );
     }
   });

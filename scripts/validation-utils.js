@@ -14,12 +14,8 @@ module.exports = {
   checkVSCodeVersion: () => {
     const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
     if (!nextVersion || !nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
-      logger.error(
-        `You must set environment variable 'SALESFORCEDX_VSCODE_VERSION'.`
-      );
-      logger.info(
-        `To set: 'export SALESFORCEDX_VSCODE_VERSION=xx.yy.zz'. Where xx.yy.zz is the release number.`
-      );
+      logger.error(`You must set environment variable 'SALESFORCEDX_VSCODE_VERSION'.`);
+      logger.info(`To set: 'export SALESFORCEDX_VSCODE_VERSION=xx.yy.zz'. Where xx.yy.zz is the release number.`);
       process.exit(-1);
     }
   },
@@ -30,30 +26,16 @@ module.exports = {
   },
 
   checkNodeVersion: () => {
-    logger.header(
-      '\nVerifying node version ' + NODE_VERSION + ' is installed.'
-    );
-    const [version, major, minor, patch] = process.version.match(
-      /^v(\d+)\.?(\d+)\.?(\*|\d+)$/
-    );
-    if (
-      parseInt(major) != NODE_VERSION.split('.')[0] ||
-      parseInt(minor) < NODE_VERSION.split('.')[1]
-    ) {
-      logger.error(
-        'Please update from node version ' +
-          process.version +
-          ' to ' +
-          NODE_VERSION
-      );
+    logger.header('\nVerifying node version ' + NODE_VERSION + ' is installed.');
+    const [version, major, minor, patch] = process.version.match(/^v(\d+)\.?(\d+)\.?(\*|\d+)$/);
+    if (parseInt(major) != NODE_VERSION.split('.')[0] || parseInt(minor) < NODE_VERSION.split('.')[1]) {
+      logger.error('Please update from node version ' + process.version + ' to ' + NODE_VERSION);
       process.exit(-1);
     }
   },
 
   checkLernaInstall: () => {
-    logger.header(
-      `\nVerifying lerna is installed for node version ${NODE_VERSION}.`
-    );
+    logger.header(`\nVerifying lerna is installed for node version ${NODE_VERSION}.`);
     if (!shell.which('lerna') || !shell.which('lerna').includes(NODE_VERSION)) {
       logger.info(`Lerna location: ` + shell.which('lerna'));
       logger.info(
@@ -64,30 +46,20 @@ module.exports = {
   },
 
   checkVSCEInstall: () => {
-    logger.header(
-      `\nVerifying vsce is installed for node version ${NODE_VERSION}.`
-    );
+    logger.header(`\nVerifying vsce is installed for node version ${NODE_VERSION}.`);
     if (!shell.which('vsce') || !shell.which('vsce').includes(NODE_VERSION)) {
       logger.info('VSCE Location: ' + shell.which('vsce'));
-      logger.info(
-        `VSCE not found for node version ${NODE_VERSION} - Installing latest version.`
-      );
+      logger.info(`VSCE not found for node version ${NODE_VERSION} - Installing latest version.`);
       shell.exec('npm install -g vsce');
     }
   },
 
   checkSalesforcePublisherAccess: () => {
     logger.header('\nVerifying access to the Salesforce publisher.');
-    const publishers = shell
-      .exec('vsce ls-publishers', { silent: true })
-      .stdout.trim();
+    const publishers = shell.exec('vsce ls-publishers', { silent: true }).stdout.trim();
     if (!publishers.includes('salesforce')) {
-      logger.error(
-        'You do not have access to the salesforce publisher id as part of vsce.'
-      );
-      logger.info(
-        'Either the marketplace token is incorrect or your access to our publisher was removed.'
-      );
+      logger.error('You do not have access to the salesforce publisher id as part of vsce.');
+      logger.info('Either the marketplace token is incorrect or your access to our publisher was removed.');
       process.exit(-1);
     }
   },
@@ -118,10 +90,7 @@ module.exports = {
     }
 
     try {
-      if (
-        !fs.statSync(JORJE_DEV_DIR).isDirectory() ||
-        !JORJE_DEV_DIR.includes('apex-jorje')
-      ) {
+      if (!fs.statSync(JORJE_DEV_DIR).isDirectory() || !JORJE_DEV_DIR.includes('apex-jorje')) {
         logger.error(
           `JORJE_DEV_DIR environment variable does not direct to apex-jorje: ${JORJE_DEV_DIR}. Check your bash profile.`
         );
@@ -129,9 +98,7 @@ module.exports = {
       }
     } catch (error) {
       logger.error(`Apex Jorje source repository not found.`);
-      logger.error(
-        `Verify the path of the environment variable JORJE_DEV_DIR: ${JORJE_DEV_DIR}`
-      );
+      logger.error(`Verify the path of the environment variable JORJE_DEV_DIR: ${JORJE_DEV_DIR}`);
       process.exit(-1);
     }
     return JORJE_DEV_DIR;
@@ -154,17 +121,13 @@ module.exports = {
         process.exit(-1);
       }
     } catch (error) {
-      logger.error(
-        `File ${KEYSTORE} not found. Verify the path of the SFDC_KEYSTORE environment variable`
-      );
+      logger.error(`File ${KEYSTORE} not found. Verify the path of the SFDC_KEYSTORE environment variable`);
       logger.info(`Verify the path of the SFDC_KEYSTORE environment variable`);
       process.exit(-1);
     }
 
     if (!process.env['SFDC_KEYPASS']) {
-      logger.error(
-        `You must set environment 'SFDC_KEYPASS'. Refer to LSP FAQ Quip doc for more info.`
-      );
+      logger.error(`You must set environment 'SFDC_KEYPASS'. Refer to LSP FAQ Quip doc for more info.`);
       logger.info(
         `To set: Add 'export SFDC_KEYSTORE=PASS' to your bash profile, where PASS is the passphrase for the keystore.`
       );

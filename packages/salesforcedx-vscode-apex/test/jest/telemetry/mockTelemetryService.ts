@@ -5,14 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import { TelemetryServiceInterface, ActivationInfo, TelemetryData, Properties, Measurements, TelemetryReporter } from '@salesforce/vscode-service-provider';
+import {
+  TelemetryServiceInterface,
+  ActivationInfo,
+  TelemetryData,
+  Properties,
+  Measurements,
+  TelemetryReporter
+} from '@salesforce/vscode-service-provider';
 import { ExtensionContext, ExtensionMode } from 'vscode';
 
 export class MockTelemetryService extends TelemetryService implements TelemetryServiceInterface {
   initializeService(extensionContext: ExtensionContext): Promise<void> {
     return Promise.resolve();
   }
-  initializeServiceWithAttributes(name: string, apiKey?: string, version?: string, extensionMode?: ExtensionMode): Promise<void> {
+  initializeServiceWithAttributes(
+    name: string,
+    apiKey?: string,
+    version?: string,
+    extensionMode?: ExtensionMode
+  ): Promise<void> {
     return Promise.resolve();
   }
   getReporters(): TelemetryReporter[] {
@@ -39,7 +51,12 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
   sendExtensionDeactivationEvent(): void {
     // No-op implementation
   }
-  sendCommandEvent(commandName?: string, hrstart?: [number, number], properties?: Properties, measurements?: Measurements): void {
+  sendCommandEvent(
+    commandName?: string,
+    hrstart?: [number, number],
+    properties?: Properties,
+    measurements?: Measurements
+  ): void {
     // No-op implementation
   }
   sendException(name: string, message: string): void {

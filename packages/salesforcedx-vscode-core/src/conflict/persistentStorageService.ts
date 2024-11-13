@@ -9,10 +9,7 @@ import {
   ProjectRetrieveStartResult,
   ProjectDeployStartResult
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  DeployResult,
-  FileProperties
-} from '@salesforce/source-deploy-retrieve-bundle';
+import { DeployResult, FileProperties } from '@salesforce/source-deploy-retrieve-bundle';
 import { ExtensionContext, Memento } from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
@@ -30,9 +27,7 @@ export class PersistentStorageService {
   }
 
   public static initialize(extensionContext: ExtensionContext) {
-    PersistentStorageService.instance = new PersistentStorageService(
-      extensionContext
-    );
+    PersistentStorageService.instance = new PersistentStorageService(extensionContext);
   }
 
   public static getInstance(): PersistentStorageService {
@@ -47,26 +42,16 @@ export class PersistentStorageService {
     return this.storage.get<ConflictFileProperties>(key);
   }
 
-  public setPropertiesForFile(
-    key: string,
-    conflictFileProperties: ConflictFileProperties | undefined
-  ) {
+  public setPropertiesForFile(key: string, conflictFileProperties: ConflictFileProperties | undefined) {
     this.storage.update(key, conflictFileProperties);
   }
 
-  public setPropertiesForFilesRetrieve(
-    fileProperties: FileProperties | FileProperties[]
-  ) {
-    const fileArray = Array.isArray(fileProperties)
-      ? fileProperties
-      : [fileProperties];
+  public setPropertiesForFilesRetrieve(fileProperties: FileProperties | FileProperties[]) {
+    const fileArray = Array.isArray(fileProperties) ? fileProperties : [fileProperties];
     for (const fileProperty of fileArray) {
-      this.setPropertiesForFile(
-        this.makeKey(fileProperty.type, fileProperty.fullName),
-        {
-          lastModifiedDate: fileProperty.lastModifiedDate
-        }
-      );
+      this.setPropertiesForFile(this.makeKey(fileProperty.type, fileProperty.fullName), {
+        lastModifiedDate: fileProperty.lastModifiedDate
+      });
     }
   }
 
@@ -79,9 +64,7 @@ export class PersistentStorageService {
     }
   }
 
-  public setPropertiesForFilesPushPull(
-    pushOrPullResults: ProjectDeployStartResult[] | ProjectRetrieveStartResult[]
-  ) {
+  public setPropertiesForFilesPushPull(pushOrPullResults: ProjectDeployStartResult[] | ProjectRetrieveStartResult[]) {
     const afterPushPullTimestamp = new Date().toISOString();
     for (const file of pushOrPullResults) {
       if (!file.fullName) {

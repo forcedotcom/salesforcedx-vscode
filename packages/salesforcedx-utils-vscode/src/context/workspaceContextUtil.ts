@@ -16,6 +16,8 @@ export type OrgUserInfo = {
   alias?: string;
 };
 
+export type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
+
 export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
@@ -29,6 +31,8 @@ export class WorkspaceContextUtil {
   protected _username?: string;
   protected _alias?: string;
   protected _orgId?: string;
+  protected _orgShape?: OrgShape;
+  protected _devHubId?: string;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -39,19 +43,14 @@ export class WorkspaceContextUtil {
 
     const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = projectPaths.salesforceProjectConfig();
-    this.cliConfigWatcher =
-      vscode.workspace.createFileSystemWatcher(cliConfigPath);
+    this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
     this.cliConfigWatcher.onDidDelete(bindedHandler);
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
-    extensionContext.subscriptions.push(
-      this.cliConfigWatcher,
-      this.onOrgChangeEmitter,
-      this.cliConfigWatcher
-    );
+    extensionContext.subscriptions.push(this.cliConfigWatcher, this.onOrgChangeEmitter, this.cliConfigWatcher);
     await this.handleCliConfigChange();
   }
 
@@ -91,18 +90,14 @@ export class WorkspaceContextUtil {
 
     if (targetOrgOrAlias) {
       this._username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
-      this._alias =
-        targetOrgOrAlias !== this._username ? targetOrgOrAlias : undefined;
+      this._alias = targetOrgOrAlias !== this._username ? targetOrgOrAlias : undefined;
       try {
         const connection = await this.getConnection();
         this._orgId = connection?.getAuthInfoFields().orgId;
       } catch (error: unknown) {
         this._orgId = '';
         if (error instanceof Error) {
-          console.log(
-            'There was an problem getting the orgId of the default org: ',
-            error
-          );
+          console.log('There was an problem getting the orgId of the default org: ', error);
           TelemetryService.getInstance().sendException(
             WORKSPACE_CONTEXT_ORG_ID_ERROR,
             `name: ${error.name}, message: ${error.message}`
@@ -130,5 +125,21 @@ export class WorkspaceContextUtil {
 
   get orgId(): string | undefined {
     return this._orgId;
+  }
+
+  get orgShape(): OrgShape | undefined {
+    return this._orgShape;
+  }
+
+  set orgShape(shape: OrgShape) {
+    this._orgShape = shape;
+  }
+
+  get devHubId(): string | undefined {
+    return this._devHubId;
+  }
+
+  set devHubId(id: string | undefined) {
+    this._devHubId = id;
   }
 }
