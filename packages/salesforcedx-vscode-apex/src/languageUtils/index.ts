@@ -12,7 +12,8 @@ export {
   getLineBreakpointInfo,
   getApexTests,
   getExceptionBreakpointInfo,
-  LanguageClientStatus
+  LanguageClientStatus,
+  getWorkspaceSymbols
 } from './languageClientUtils';
 
 export { enableJavaDocSymbols } from './javaDocSymbols';

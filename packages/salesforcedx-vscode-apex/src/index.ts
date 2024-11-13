@@ -39,7 +39,8 @@ import {
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
-  languageClientUtils
+  languageClientUtils,
+  getWorkspaceSymbols
 } from './languageUtils';
 import { nls } from './messages';
 import { retrieveEnableSyncInitJobs } from './settings';
@@ -92,6 +93,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
     getApexTests,
+    getWorkspaceSymbols,
     languageClientUtils
   };
 
@@ -280,6 +282,8 @@ const createLanguageClient = async (
       });
       await indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
       extensionContext.subscriptions.push(languageClientUtils.getClientInstance()!);
+      const apexMethods = await getWorkspaceSymbols('hello world!');
+      console.log(apexMethods);
     } else {
       languageClientUtils.setStatus(
         ClientStatus.Error,

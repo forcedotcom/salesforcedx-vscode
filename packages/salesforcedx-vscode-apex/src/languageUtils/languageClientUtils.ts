@@ -104,3 +104,12 @@ export const getExceptionBreakpointInfo = async (): Promise<{}> => {
   }
   return Promise.resolve(response);
 };
+
+export const getWorkspaceSymbols = async (query: string): Promise<any[]> => {
+  let response = new Array<any>();
+  const languageClient = LanguageClientUtils.getInstance().getClientInstance();
+  if (languageClient) {
+    response = await languageClient.sendRequest('workspace/symbol', { query });
+  }
+  return Promise.resolve(response);
+};

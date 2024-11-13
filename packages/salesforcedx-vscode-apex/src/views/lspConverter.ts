@@ -28,6 +28,13 @@ export type ApexTestMethod = {
   location: vscode.Location;
 };
 
+// export type WorkspaceSymbol = {
+//   name: string;
+//   containerName: string; // its outer class
+//   modifier: string;
+//   location: LSPLocation;
+// }
+
 export class ApexLSPConverter {
   public static toApexTestMethod(requestInfo: LSPApexTestMethod): ApexTestMethod {
     const testLocation = ApexLSPConverter.toLocation(requestInfo.location);
