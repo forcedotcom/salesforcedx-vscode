@@ -58,7 +58,7 @@ on:
 jobs:
   Apex:
     if: ${{ inputs.apexE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/apexE2EredHat.yml
+    uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
