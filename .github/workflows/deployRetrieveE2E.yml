@@ -156,7 +156,7 @@ jobs:
       type: 'e2e'
 
   slack_failure_notification:
-    if: ${{ failure()}}
+    if: ${{ failure() }}
     needs: [deployAndRetrieve, manifestBuilder, orgBrowser, pushAndPull, mdDeployRetrieve]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit

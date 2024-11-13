@@ -36,7 +36,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.92.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -78,7 +78,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.92.2'
+        default: 'stable'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -92,7 +92,8 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'apexLsp.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'apexLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
@@ -102,9 +103,11 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'apexReplayDebugger.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'apexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["macos-latest"]'
 
   debugApexTests:
     if: ${{ inputs.debugApexTests }}
@@ -112,9 +115,11 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'debugApexTests.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'debugApexTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["macos-latest", "windows-latest"]'
 
   runApexTests:
     if: ${{ inputs.runApexTests }}
@@ -122,7 +127,8 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'runApexTests.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'runApexTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
@@ -132,20 +138,14 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'trailApexReplayDebugger.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'trailApexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   slack_success_notification:
     if: ${{ success() }}
-    needs:
-      [
-        apexLSP,
-        apexReplayDebugger,
-        debugApexTests,
-        runApexTests,
-        trailApexReplayDebugger
-      ]
+    needs: [apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
@@ -159,14 +159,7 @@ jobs:
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs:
-      [
-        apexLSP,
-        apexReplayDebugger,
-        debugApexTests,
-        runApexTests,
-        trailApexReplayDebugger
-      ]
+    needs: [apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
@@ -180,14 +173,7 @@ jobs:
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs:
-      [
-        apexLSP,
-        apexReplayDebugger,
-        debugApexTests,
-        runApexTests,
-        trailApexReplayDebugger
-      ]
+    needs: [apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
