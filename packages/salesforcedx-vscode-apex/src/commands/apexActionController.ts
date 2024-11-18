@@ -9,11 +9,10 @@ import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-ut
 import * as fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types'; // Adjust the import path as necessary
 import * as path from 'path';
-import { QuickPickItem } from 'vscode';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
+import { stringify } from 'yaml';
 import { getTelemetryService } from '../telemetry/telemetry';
-import { MetadataOrchestrator } from './metadataOrchestrator';
+import { MetadataOrchestrator, MethodMetadata } from './metadataOrchestrator';
 
 export class ApexActionController {
   constructor(
@@ -23,32 +22,8 @@ export class ApexActionController {
       increment?: number | undefined;
     }>
   ) {}
-  public listApexMethods = (apexClassPath: string): Promise<QuickPickItem[]> => {
-    // Read the content of the Apex class file
-    const fileContent = fs.readFileSync(apexClassPath).toString();
 
-    // Regular expression to match method declarations in Apex
-    const methodRegExp = /@[\w]+\s*\b(public|private|protected|global)\s+(static\s+)?[\w<>\[\]]+\s+(\w+)\s*\(/g;
-
-    const methods: QuickPickItem[] = [];
-    let match;
-
-    // Extract all method names that match the regular expression
-    while ((match = methodRegExp.exec(fileContent)) !== null) {
-      const methodName = match[3];
-      methods.push({
-        label: methodName,
-        description: apexClassPath
-      });
-    }
-
-    // Sort the methods alphabetically by name
-    methods.sort((a, b) => a.label.localeCompare(b.label));
-
-    return Promise.resolve(methods);
-  };
-
-  public createApexActionFromMethod = async (methodIdentifier: string): Promise<void> => {
+  public createApexActionFromMethod = async (): Promise<void> => {
     const telemetryService = await getTelemetryService();
     const progressReporter: Progress<any> = {
       report: value => {
@@ -58,32 +33,46 @@ export class ApexActionController {
       }
     };
     try {
-      // Step 1: Validate Method
-      if (!this.isMethodEligible(methodIdentifier)) {
-        void notificationService.showErrorMessage(
-          '`Method ${methodIdentifier} is not eligible for Apex Action creation.`'
-        );
-        throw new Error(`Method ${methodIdentifier} is not eligible for Apex Action creation.`);
+      // // Step 0: Validate Method
+      // if (!this.isMethodEligible(methodIdentifier)) {
+      //   void notificationService.showErrorMessage(
+      //     '`Method ${methodIdentifier} is not eligible for Apex Action creation.`'
+      //   );
+      //   throw new Error(`Method ${methodIdentifier} is not eligible for Apex Action creation.`);
+      // }
+
+      // Step 1: Extract Metadata
+      progressReporter.report({ message: 'Extracting metadata.' });
+      const metadata = this.metadataOrchestrator.extractMethodMetadata();
+      if (!metadata) {
+        void notificationService.showErrorMessage('Failed to extract metadata from selected method.');
+        throw new Error('Failed to extract metadata from selected method.');
       }
 
-      // Step 2: Extract Metadata
-      progressReporter.report({ message: 'Extracting metadata.' });
-      const metadata = await this.metadataOrchestrator.extractMethodMetadata(methodIdentifier);
+      // Step 2: Validate Method
+      if (!this.metadataOrchestrator.validateAuraEnabledMethod(metadata.isAuraEnabled)) {
+        void notificationService.showErrorMessage(
+          `Method ${metadata.name} is not eligible for Apex Action creation. It is NOT annotated with @AuraEnabled.`
+        );
+        throw new Error(
+          `Method ${metadata.name} is not eligible for Apex Action creation. It is NOT annotated with @AuraEnabled.`
+        );
+      }
 
       // Step 3: Generate OpenAPI Document
       progressReporter.report({ message: 'Generating OpenAPI document.' });
       const openApiDocument = this.generateOpenAPIDocument(metadata);
 
       // Step 4: Write OpenAPI Document to File
-      const openApiFilePath = `${methodIdentifier}_openapi.json`;
+      const openApiFilePath = `${metadata.name}_openapi.yml`;
       await this.saveDocument(openApiFilePath, openApiDocument);
 
       // Step 6: Notify Success
-      notificationService.showInformationMessage(`Apex Action created for method: ${methodIdentifier}`);
-      telemetryService.sendEventData('ApexActionCreated', { method: methodIdentifier });
+      notificationService.showInformationMessage(`Apex Action created for method: ${metadata.name}.`);
+      telemetryService.sendEventData('ApexActionCreated', { method: metadata.name });
     } catch (error) {
       // Error Handling
-      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}`);
+      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}.`);
       telemetryService.sendException('ApexActionCreationFailed', error);
       throw error;
     }
@@ -100,26 +89,38 @@ export class ApexActionController {
       fs.mkdirSync(openAPIdocumentsPath);
     }
     const saveLocation = path.join(openAPIdocumentsPath, fileName);
-    fs.writeFileSync(saveLocation, JSON.stringify(content));
+    fs.writeFileSync(saveLocation, content);
     await vscode.workspace.openTextDocument(saveLocation).then((newDocument: any) => {
       void vscode.window.showTextDocument(newDocument);
     });
   };
 
-  public generateOpenAPIDocument = (metadata: any): OpenAPIV3.Document => {
+  public generateOpenAPIDocument = (metadata: MethodMetadata): string => {
     // Placeholder for OpenAPI generation logic
-    return {
+    // ProgressNotification.show(execution, cancellationTokenSource);
+    const openAPIDocument: OpenAPIV3.Document = {
       openapi: '3.0.0',
       info: { title: 'Apex Actions', version: '1.0.0' },
       paths: {
-        [`/apex/${metadata}`]: {
+        [`/apex/${metadata.name}`]: {
           post: {
-            summary: `Invoke ${metadata}`,
-            operationId: metadata,
-            responses: { 200: { description: 'Success' } }
+            operationId: metadata.name,
+            summary: `Invoke ${metadata.name}`,
+            parameters: metadata.parameters as unknown as (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[],
+            responses: {
+              200: {
+                description: 'Success',
+                content: {
+                  'application/json': { schema: { type: metadata.returnType as OpenAPIV3.NonArraySchemaObjectType } }
+                }
+              }
+            }
           }
         }
       }
     };
+
+    // Convert the OpenAPI document to YAML
+    return stringify(openAPIDocument);
   };
 }
