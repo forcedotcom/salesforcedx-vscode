@@ -5,16 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export { anonApexDebug, anonApexExecute } from './anonApexExecute';
+export { ApexActionController } from './apexActionController';
 export { apexLogGet } from './apexLogGet';
 export { apexTestRun } from './apexTestRun';
 export {
-  ApexLibraryTestRunExecutor,
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
+  ApexLibraryTestRunExecutor,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate
 } from './apexTestRunCodeAction';
 export { apexTestSuiteAdd, apexTestSuiteCreate, apexTestSuiteRun } from './apexTestSuite';
+export { createApexActionFromMethod } from './createApexAction';
 export { launchApexReplayDebuggerWithCurrentFile } from './launchApexReplayDebuggerWithCurrentFile';

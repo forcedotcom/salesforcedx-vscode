@@ -26,6 +26,7 @@ import {
   apexTestSuiteAdd,
   apexTestSuiteCreate,
   apexTestSuiteRun,
+  createApexActionFromMethod,
   launchApexReplayDebuggerWithCurrentFile
 } from './commands';
 import { API, SET_JAVA_DOC_LINK } from './constants';
@@ -153,6 +154,10 @@ const registerCommands = (): vscode.Disposable => {
     'sf.anon.apex.execute.selection',
     anonApexExecute
   );
+  const createApexActionFromMethodCmd = vscode.commands.registerCommand(
+    'sf.create.apex.action.method',
+    createApexActionFromMethod
+  );
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
@@ -178,6 +183,7 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd,
+    createApexActionFromMethodCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
 };

@@ -57,6 +57,7 @@
     "markdown-link-check": "^3.9.3",
     "ncp": "^2.0.0",
     "nyc": "15.1.0",
+    "openapi-types": "12.1.3",
     "ovsx": "0.8.0",
     "prettier": "3.3.3",
     "shelljs": "0.8.5",

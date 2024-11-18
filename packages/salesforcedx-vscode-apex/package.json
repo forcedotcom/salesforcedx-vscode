@@ -126,6 +126,18 @@
       ]
     },
     "menus": {
+      "editor/context": [
+        {
+          "command": "sf.create.apex.action.method",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.create.apex.action.method",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
+        }
+      ],
       "view/title": [
         {
           "command": "sf.test.view.run",
@@ -235,6 +247,10 @@
         {
           "command": "sf.test.view.collapseAll",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.create.apex.action.method",
+          "when": "sf:project_opened && sf:has_target_org"
         }
       ]
     },
@@ -338,6 +354,10 @@
       {
         "command": "sf.apex.test.last.method.run",
         "title": "%apex_test_last_method_run_text%"
+      },
+      {
+        "command": "sf.create.apex.action.method",
+        "title": "%create_apex_action_method%"
       }
     ],
     "configuration": {
