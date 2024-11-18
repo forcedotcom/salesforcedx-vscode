@@ -1,3 +1,5 @@
+# 62.6.0 - November 20, 2024
+
 # 62.5.1 - November 14, 2024
 
 ## Added
