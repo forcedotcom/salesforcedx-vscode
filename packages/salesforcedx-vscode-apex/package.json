@@ -130,11 +130,9 @@
         {
           "command": "sf.create.apex.action.method",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
-        }
-      ],
-      "explorer/context": [
+        },
         {
-          "command": "sf.create.apex.action.method",
+          "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
         }
       ],
@@ -249,7 +247,7 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.create.apex.action.method",
+          "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org"
         }
       ]
@@ -358,6 +356,10 @@
       {
         "command": "sf.create.apex.action.method",
         "title": "%create_apex_action_method%"
+      },
+      {
+        "command": "sf.create.apex.action.class",
+        "title": "%create_apex_action_class%"
       }
     ],
     "configuration": {

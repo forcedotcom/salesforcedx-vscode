@@ -45,15 +45,11 @@ export class ApexActionController {
       progressReporter.report({ message: 'Extracting metadata.' });
       const metadata = this.metadataOrchestrator.extractMethodMetadata();
       if (!metadata) {
-        void notificationService.showErrorMessage('Failed to extract metadata from selected method.');
         throw new Error('Failed to extract metadata from selected method.');
       }
 
       // Step 2: Validate Method
       if (!this.metadataOrchestrator.validateAuraEnabledMethod(metadata.isAuraEnabled)) {
-        void notificationService.showErrorMessage(
-          `Method ${metadata.name} is not eligible for Apex Action creation. It is NOT annotated with @AuraEnabled.`
-        );
         throw new Error(
           `Method ${metadata.name} is not eligible for Apex Action creation. It is NOT annotated with @AuraEnabled.`
         );
@@ -61,7 +57,7 @@ export class ApexActionController {
 
       // Step 3: Generate OpenAPI Document
       progressReporter.report({ message: 'Generating OpenAPI document.' });
-      const openApiDocument = this.generateOpenAPIDocument(metadata);
+      const openApiDocument = this.generateOpenAPIDocument([metadata]);
 
       // Step 4: Write OpenAPI Document to File
       const openApiFilePath = `${metadata.name}_openapi.yml`;
@@ -70,6 +66,50 @@ export class ApexActionController {
       // Step 6: Notify Success
       notificationService.showInformationMessage(`Apex Action created for method: ${metadata.name}.`);
       telemetryService.sendEventData('ApexActionCreated', { method: metadata.name });
+    } catch (error) {
+      // Error Handling
+      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}.`);
+      telemetryService.sendException('ApexActionCreationFailed', error);
+      throw error;
+    }
+  };
+
+  public createApexActionFromClass = async (): Promise<void> => {
+    const telemetryService = await getTelemetryService();
+    const progressReporter: Progress<any> = {
+      report: value => {
+        if (value.type === 'StreamingClientProgress' || value.type === 'FormatTestResultProgress') {
+          this.progress?.report({ message: value.message });
+        }
+      }
+    };
+    try {
+      // // Step 0: Validate Method
+      // if (!this.isMethodEligible(methodIdentifier)) {
+      //   void notificationService.showErrorMessage(
+      //     '`Method ${methodIdentifier} is not eligible for Apex Action creation.`'
+      //   );
+      //   throw new Error(`Method ${methodIdentifier} is not eligible for Apex Action creation.`);
+      // }
+
+      // Step 1: Extract Metadata
+      progressReporter.report({ message: 'Extracting metadata.' });
+      const metadata = this.metadataOrchestrator.extractAllMethodsMetadata();
+      if (!metadata) {
+        throw new Error('Failed to extract metadata from class.');
+      }
+
+      // Step 2: Generate OpenAPI Document
+      progressReporter.report({ message: 'Generating OpenAPI document.' });
+      const openApiDocument = this.generateOpenAPIDocument(metadata);
+
+      // Step 3: Write OpenAPI Document to File
+      const openApiFilePath = `${metadata[0].name}_openapi.yml`;
+      await this.saveDocument(openApiFilePath, openApiDocument);
+
+      // Step 4: Notify Success
+      notificationService.showInformationMessage(`Apex Action created for class: ${metadata[0].name}.`);
+      telemetryService.sendEventData('ApexActionCreated', { method: metadata[0].name });
     } catch (error) {
       // Error Handling
       notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}.`);
@@ -95,31 +135,33 @@ export class ApexActionController {
     });
   };
 
-  public generateOpenAPIDocument = (metadata: MethodMetadata): string => {
+  public generateOpenAPIDocument = (metadata: MethodMetadata[]): string => {
     // Placeholder for OpenAPI generation logic
-    // ProgressNotification.show(execution, cancellationTokenSource);
-    const openAPIDocument: OpenAPIV3.Document = {
-      openapi: '3.0.0',
-      info: { title: 'Apex Actions', version: '1.0.0' },
-      paths: {
-        [`/apex/${metadata.name}`]: {
-          post: {
-            operationId: metadata.name,
-            summary: `Invoke ${metadata.name}`,
-            parameters: metadata.parameters as unknown as (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[],
-            responses: {
-              200: {
-                description: 'Success',
-                content: {
-                  'application/json': { schema: { type: metadata.returnType as OpenAPIV3.NonArraySchemaObjectType } }
-                }
+    const paths: OpenAPIV3.PathsObject = {};
+
+    metadata.forEach(method => {
+      paths[`/apex/${method.name}`] = {
+        post: {
+          operationId: method.name,
+          summary: `Invoke ${method.name}`,
+          parameters: method.parameters as unknown as (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[],
+          responses: {
+            200: {
+              description: 'Success',
+              content: {
+                'application/json': { schema: { type: method.returnType as OpenAPIV3.NonArraySchemaObjectType } }
               }
             }
           }
         }
-      }
-    };
+      };
+    });
 
+    const openAPIDocument: OpenAPIV3.Document = {
+      openapi: '3.0.0',
+      info: { title: 'Apex Actions', version: '1.0.0' },
+      paths
+    };
     // Convert the OpenAPI document to YAML
     return stringify(openAPIDocument);
   };

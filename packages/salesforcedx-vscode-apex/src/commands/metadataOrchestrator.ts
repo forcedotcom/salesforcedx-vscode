@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { stringify } from 'querystring';
 import * as vscode from 'vscode';
 export interface MethodMetadata {
   name: string;
   parameters: Parameter[];
   returnType: string;
   isAuraEnabled: boolean;
+  className?: string;
 }
 export interface Parameter {
   name: string;
@@ -87,6 +89,84 @@ export class MetadataOrchestrator {
       isAuraEnabled
     };
   };
+
+  public extractAllMethodsMetadata = (): MethodMetadata[] | undefined => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      notificationService.showErrorMessage('No active editor detected.');
+      return;
+    }
+
+    const document = editor.document;
+    const filePath = document.fileName;
+    const className = filePath
+      .substring(filePath.lastIndexOf(process.platform === 'win32' ? '\\' : '/') + 1)
+      .split('.')
+      .shift();
+    const lines = document.getText().split('\n');
+    const metadataList: MethodMetadata[] = [];
+    let currentMethodSignature = '';
+    let isAuraEnabled = false;
+    let isEligible = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      // Detect @AuraEnabled annotation
+      if (line.includes('@AuraEnabled')) {
+        isAuraEnabled = true;
+        isEligible = true;
+      }
+
+      // Build the method signature
+      currentMethodSignature += ` ${line}`;
+      if (line.includes(') {') && currentMethodSignature.includes('(')) {
+        // Method signature is complete
+        if (isEligible) {
+          isEligible = false;
+          const methodRegex = /\b(public|private|protected|global)\s+(static\s+)?([\w<>\[\]]+)\s+(\w+)\s*\((.*?)\)/s;
+          const match = methodRegex.exec(currentMethodSignature);
+          if (match) {
+            const returnType = match[3];
+            const methodName = match[4];
+            const parametersRaw = match[5] ? match[5].split(',').map(param => param.trim()) : [];
+
+            // Map parameters to the desired structure
+            const parameters = parametersRaw.map(param => {
+              const [type, name] = param.split(/\s+/);
+              return {
+                name: name || '',
+                in: 'query', // Assuming query parameters; adjust as needed
+                required: true, // Assuming all parameters are required; adjust as needed
+                description: `The ${name || 'parameter'} of type ${type}.`, // Generic description
+                schema: { type: this.mapApexTypeToJsonType(type || '') }
+              };
+            });
+
+            metadataList.push({
+              name: methodName,
+              parameters,
+              returnType,
+              isAuraEnabled,
+              className
+            });
+          }
+        }
+
+        // Reset for the next method
+        currentMethodSignature = '';
+        isAuraEnabled = false;
+      }
+    }
+
+    if (metadataList.length === 0) {
+      notificationService.showWarningMessage('No methods found in the active file.');
+      return;
+    }
+
+    return metadataList;
+  };
+
   private mapApexTypeToJsonType = (apexType: string): string => {
     switch (apexType.toLowerCase()) {
       case 'string':

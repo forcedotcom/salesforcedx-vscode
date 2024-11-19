@@ -14,3 +14,8 @@ export const createApexActionFromMethod = async (): Promise<void> => {
   // Call Controller
   await controller.createApexActionFromMethod();
 };
+
+export const createApexActionFromClass = async (): Promise<void> => {
+  // Call Controller
+  await controller.createApexActionFromClass();
+};

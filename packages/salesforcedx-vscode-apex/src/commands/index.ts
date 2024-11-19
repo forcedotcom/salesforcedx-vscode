@@ -18,5 +18,5 @@ export {
   apexTestMethodRunCodeActionDelegate
 } from './apexTestRunCodeAction';
 export { apexTestSuiteAdd, apexTestSuiteCreate, apexTestSuiteRun } from './apexTestSuite';
-export { createApexActionFromMethod } from './createApexAction';
+export { createApexActionFromMethod, createApexActionFromClass } from './createApexAction';
 export { launchApexReplayDebuggerWithCurrentFile } from './launchApexReplayDebuggerWithCurrentFile';

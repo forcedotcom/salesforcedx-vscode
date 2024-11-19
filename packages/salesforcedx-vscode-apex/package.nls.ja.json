@@ -20,6 +20,7 @@
   "configuration_title": "Salesforce Apex Configuration",
   "collapse_tests_title": "SFDX: Apex テストを隠す",
   "create_apex_action_method": "SFDX: Create Apex Action from Selected Method",
+  "create_apex_action_class": "SFDX: Create Apex Action from This Class",
   "go_to_definition_title": "定義に移動",
   "java_home_description": "Specifies the folder path to the Java 11, Java 17, or Java 21 runtime used to launch the Apex Language Server. Note on Windows the backslashes must be escaped.\n\nMac Example: `/Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home`\n\nWindows Example: `C:\\\\Program Files\\\\Zulu\\\\zulu-17`\n\nLinux Example: `/usr/lib/jvm/java-21-openjdk-amd64`",
   "refresh_test_title": "テストを更新",
