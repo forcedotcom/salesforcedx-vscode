@@ -135,11 +135,11 @@ export class MetadataOrchestrator {
             const parameters = parametersRaw.map(param => {
               const [type, name] = param.split(/\s+/);
               return {
-                name: name || '',
-                in: 'query', // Assuming query parameters; adjust as needed
-                required: true, // Assuming all parameters are required; adjust as needed
-                description: `The ${name || 'parameter'} of type ${type}.`, // Generic description
-                schema: { type: this.mapApexTypeToJsonType(type || '') }
+                name,
+                in: 'query',
+                required: true,
+                description: `The ${name} parameter of type ${type}.`,
+                schema: { type: this.mapApexTypeToJsonType(type) }
               };
             });
 
@@ -160,8 +160,10 @@ export class MetadataOrchestrator {
     }
 
     if (metadataList.length === 0) {
-      notificationService.showWarningMessage('No methods found in the active file.');
-      return;
+      notificationService.showWarningMessage(
+        'No eligible methods found in the open editor. Eligible methods are annotated with @AuraEnabled.'
+      );
+      return metadataList;
     }
 
     return metadataList;

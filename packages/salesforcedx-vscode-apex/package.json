@@ -247,6 +247,10 @@
           "when": "sf:project_opened"
         },
         {
+          "command": "sf.create.apex.action.method",
+          "when": "false"
+        },
+        {
           "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org"
         }

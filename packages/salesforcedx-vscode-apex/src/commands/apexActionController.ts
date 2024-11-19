@@ -51,7 +51,7 @@ export class ApexActionController {
       // Step 2: Validate Method
       if (!this.metadataOrchestrator.validateAuraEnabledMethod(metadata.isAuraEnabled)) {
         throw new Error(
-          `Method ${metadata.name} is not eligible for Apex Action creation. It is NOT annotated with @AuraEnabled.`
+          `Method ${metadata.name} is not eligible for Apex Action creation. It is not annotated with @AuraEnabled.`
         );
       }
 
@@ -68,7 +68,7 @@ export class ApexActionController {
       telemetryService.sendEventData('ApexActionCreated', { method: metadata.name });
     } catch (error) {
       // Error Handling
-      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}.`);
+      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}`);
       telemetryService.sendException('ApexActionCreationFailed', error);
       throw error;
     }
@@ -97,22 +97,22 @@ export class ApexActionController {
       const metadata = this.metadataOrchestrator.extractAllMethodsMetadata();
       if (!metadata) {
         throw new Error('Failed to extract metadata from class.');
+      } else if (metadata.length > 0) {
+        // Step 2: Generate OpenAPI Document
+        progressReporter.report({ message: 'Generating OpenAPI document.' });
+        const openApiDocument = this.generateOpenAPIDocument(metadata);
+
+        // Step 3: Write OpenAPI Document to File
+        const openApiFilePath = `${metadata[0].name}_openapi.yml`;
+        await this.saveDocument(openApiFilePath, openApiDocument);
+
+        // Step 4: Notify Success
+        notificationService.showInformationMessage(`Apex Action created for class: ${metadata[0].name}.`);
+        telemetryService.sendEventData('ApexActionCreated', { method: metadata[0].name });
       }
-
-      // Step 2: Generate OpenAPI Document
-      progressReporter.report({ message: 'Generating OpenAPI document.' });
-      const openApiDocument = this.generateOpenAPIDocument(metadata);
-
-      // Step 3: Write OpenAPI Document to File
-      const openApiFilePath = `${metadata[0].name}_openapi.yml`;
-      await this.saveDocument(openApiFilePath, openApiDocument);
-
-      // Step 4: Notify Success
-      notificationService.showInformationMessage(`Apex Action created for class: ${metadata[0].name}.`);
-      telemetryService.sendEventData('ApexActionCreated', { method: metadata[0].name });
     } catch (error) {
       // Error Handling
-      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}.`);
+      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}`);
       telemetryService.sendException('ApexActionCreationFailed', error);
       throw error;
     }
