@@ -136,6 +136,12 @@
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
         }
       ],
+      "explorer/context": [
+        {
+          "command": "sf.create.apex.action.class",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/"
+        }
+      ],
       "view/title": [
         {
           "command": "sf.test.view.run",

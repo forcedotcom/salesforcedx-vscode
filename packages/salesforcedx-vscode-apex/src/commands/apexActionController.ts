@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Progress } from '@salesforce/apex-node-bundle';
 import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
@@ -22,7 +21,7 @@ export class ApexActionController {
    * Creates an Apex Action.
    * @param isClass - Indicates if the action is for a class or a method.
    */
-  public createApexAction = async (isClass: boolean): Promise<void> => {
+  public createApexAction = async (isClass: boolean, sourceUri?: vscode.Uri): Promise<void> => {
     const type = isClass ? 'Class' : 'Method';
     const command = isClass
       ? 'SFDX: Create Apex Action from This Class'
@@ -41,7 +40,7 @@ export class ApexActionController {
           // Step 1: Extract Metadata
           progress.report({ message: nls.localize('extract_metadata') });
           metadata = isClass
-            ? this.metadataOrchestrator.extractAllMethodsMetadata()
+            ? await this.metadataOrchestrator.extractAllMethodsMetadata(sourceUri)
             : this.metadataOrchestrator.extractMethodMetadata();
           if (!metadata) {
             throw new Error(nls.localize('extraction_failed', type));

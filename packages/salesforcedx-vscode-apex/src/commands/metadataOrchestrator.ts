@@ -86,20 +86,35 @@ export class MetadataOrchestrator {
     return methodMetadata;
   };
 
-  public extractAllMethodsMetadata = (): MethodMetadata[] | undefined => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      notificationService.showErrorMessage(nls.localize('no_active_editor'));
-      return;
-    }
+  public extractAllMethodsMetadata = async (
+    sourceUri: vscode.Uri | undefined
+  ): Promise<MethodMetadata[] | undefined> => {
+    let lines;
+    let className;
+    if (sourceUri) {
+      const path = sourceUri?.path.toString();
+      className = path!
+        .substring(path!.lastIndexOf(process.platform === 'win32' ? '\\' : '/') + 1)
+        .split('.')
+        .shift();
+      const fileContent = await vscode.workspace.fs.readFile(sourceUri!);
+      const fileText = Buffer.from(fileContent).toString('utf-8');
+      lines = fileText.split('\n');
+    } else {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        notificationService.showErrorMessage(nls.localize('no_active_editor'));
+        return;
+      }
 
-    const document = editor.document;
-    const filePath = document.fileName;
-    const className = filePath
-      .substring(filePath.lastIndexOf(process.platform === 'win32' ? '\\' : '/') + 1)
-      .split('.')
-      .shift();
-    const lines = document.getText().split('\n');
+      const document = editor.document;
+      const filePath = document.fileName;
+      className = filePath
+        .substring(filePath.lastIndexOf(process.platform === 'win32' ? '\\' : '/') + 1)
+        .split('.')
+        .shift();
+      lines = document.getText().split('\n');
+    }
     const metadataList: MethodMetadata[] = [];
     let currentMethodSignature = '';
     let isAuraEnabled = false;

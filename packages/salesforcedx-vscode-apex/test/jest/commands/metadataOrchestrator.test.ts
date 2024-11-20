@@ -83,14 +83,14 @@ describe('MetadataOrchestrator', () => {
   });
 
   describe('extractAllMethodsMetadata', () => {
-    it('should return undefined if no active editor', () => {
+    it('should return undefined if no active editor', async () => {
       (vscode.window as any).activeTextEditor = undefined;
-      const result = orchestrator.extractAllMethodsMetadata();
+      const result = await orchestrator.extractAllMethodsMetadata(undefined);
       expect(result).toBeUndefined();
       expect(showErrorMessageMock).toHaveBeenCalledTimes(1);
     });
 
-    it('should return metadata for all methods', () => {
+    it('should return metadata for all methods from active editor', async () => {
       const editorStub = {
         document: {
           uri: { path: 'someClass.cls' } as vscode.Uri,
@@ -103,7 +103,7 @@ describe('MetadataOrchestrator', () => {
       } as vscode.TextEditor;
       (vscode.window as any).activeTextEditor = editorStub;
 
-      const result = orchestrator.extractAllMethodsMetadata();
+      const result = await orchestrator.extractAllMethodsMetadata(undefined);
       expect(result).toEqual([
         {
           name: 'methodOne',
@@ -122,7 +122,7 @@ describe('MetadataOrchestrator', () => {
       ]);
     });
 
-    it('should throw an error if no eligible methods are found', () => {
+    it('should throw an error if no eligible methods are found', async () => {
       const editorStub = {
         document: {
           uri: { path: 'someClass.cls' } as vscode.Uri,
@@ -135,7 +135,7 @@ describe('MetadataOrchestrator', () => {
       } as vscode.TextEditor;
       (vscode.window as any).activeTextEditor = editorStub;
 
-      expect(() => orchestrator.extractAllMethodsMetadata()).toThrow();
+      await expect(() => orchestrator.extractAllMethodsMetadata(undefined)).rejects.toThrow();
     });
   });
 
