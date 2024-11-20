@@ -10,12 +10,18 @@ import { MetadataOrchestrator } from './metadataOrchestrator';
 const metadataOrchestrator = new MetadataOrchestrator();
 const controller = new ApexActionController(metadataOrchestrator);
 
+/**
+ * Creates an Apex Action from the method at the current cursor position.
+ */
 export const createApexActionFromMethod = async (): Promise<void> => {
   // Call Controller
-  await controller.createApexActionFromMethod();
+  await controller.createApexAction(false);
 };
 
+/**
+ * Creates Apex Actions from all methods in the current class.
+ */
 export const createApexActionFromClass = async (): Promise<void> => {
   // Call Controller
-  await controller.createApexActionFromClass();
+  await controller.createApexAction(true);
 };

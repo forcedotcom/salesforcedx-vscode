@@ -7,139 +7,92 @@
 import { Progress } from '@salesforce/apex-node-bundle';
 import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
-import { OpenAPIV3 } from 'openapi-types'; // Adjust the import path as necessary
+import { OpenAPIV3 } from 'openapi-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
+import { nls } from '../messages';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator, MethodMetadata } from './metadataOrchestrator';
 
 export class ApexActionController {
-  constructor(
-    private metadataOrchestrator: MetadataOrchestrator, // Dependency Injection
-    private progress?: Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>
-  ) {}
+  constructor(private metadataOrchestrator: MetadataOrchestrator) {}
 
-  public createApexActionFromMethod = async (): Promise<void> => {
+  /**
+   * Creates an Apex Action.
+   * @param isClass - Indicates if the action is for a class or a method.
+   */
+  public createApexAction = async (isClass: boolean): Promise<void> => {
+    const type = isClass ? 'Class' : 'Method';
+    const command = isClass
+      ? 'SFDX: Create Apex Action from This Class'
+      : 'SFDX: Create Apex Action from Selected Method';
+    let metadata;
+    let name;
     const telemetryService = await getTelemetryService();
-    const progressReporter: Progress<any> = {
-      report: value => {
-        if (value.type === 'StreamingClientProgress' || value.type === 'FormatTestResultProgress') {
-          this.progress?.report({ message: value.message });
-        }
-      }
-    };
     try {
-      // // Step 0: Validate Method
-      // if (!this.isMethodEligible(methodIdentifier)) {
-      //   void notificationService.showErrorMessage(
-      //     '`Method ${methodIdentifier} is not eligible for Apex Action creation.`'
-      //   );
-      //   throw new Error(`Method ${methodIdentifier} is not eligible for Apex Action creation.`);
-      // }
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: command,
+          cancellable: true
+        },
+        async progress => {
+          // Step 1: Extract Metadata
+          progress.report({ message: nls.localize('extract_metadata') });
+          metadata = isClass
+            ? this.metadataOrchestrator.extractAllMethodsMetadata()
+            : this.metadataOrchestrator.extractMethodMetadata();
+          if (!metadata) {
+            throw new Error(nls.localize('extraction_failed', type));
+          }
 
-      // Step 1: Extract Metadata
-      progressReporter.report({ message: 'Extracting metadata.' });
-      const metadata = this.metadataOrchestrator.extractMethodMetadata();
-      if (!metadata) {
-        throw new Error('Failed to extract metadata from selected method.');
-      }
+          // Step 3: Generate OpenAPI Document
+          progress.report({ message: nls.localize('generate_openapi_document') });
+          const openApiDocument = this.generateOpenAPIDocument(Array.isArray(metadata) ? metadata : [metadata]);
 
-      // Step 2: Validate Method
-      if (!this.metadataOrchestrator.validateAuraEnabledMethod(metadata.isAuraEnabled)) {
-        throw new Error(
-          `Method ${metadata.name} is not eligible for Apex Action creation. It is not annotated with @AuraEnabled.`
-        );
-      }
+          // Step 4: Write OpenAPI Document to File
+          name = Array.isArray(metadata) ? metadata[0].className : metadata.name;
+          const openApiFileName = `${name}_openapi.yml`;
+          progress.report({ message: nls.localize('write_openapi_document_to_file') });
+          await this.saveAndOpenDocument(openApiFileName, openApiDocument);
+        }
+      );
 
-      // Step 3: Generate OpenAPI Document
-      progressReporter.report({ message: 'Generating OpenAPI document.' });
-      const openApiDocument = this.generateOpenAPIDocument([metadata]);
-
-      // Step 4: Write OpenAPI Document to File
-      const openApiFilePath = `${metadata.name}_openapi.yml`;
-      await this.saveDocument(openApiFilePath, openApiDocument);
-
-      // Step 6: Notify Success
-      notificationService.showInformationMessage(`Apex Action created for method: ${metadata.name}.`);
-      telemetryService.sendEventData('ApexActionCreated', { method: metadata.name });
-    } catch (error) {
-      // Error Handling
-      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}`);
-      telemetryService.sendException('ApexActionCreationFailed', error);
-      throw error;
+      // Step 5: Notify Success
+      notificationService.showInformationMessage(nls.localize('apex_action_created', type.toLowerCase(), name));
+      telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+    } catch (error: any) {
+      void this.handleError(error, `ApexAction${type}CreationFailed`);
     }
   };
 
-  public createApexActionFromClass = async (): Promise<void> => {
-    const telemetryService = await getTelemetryService();
-    const progressReporter: Progress<any> = {
-      report: value => {
-        if (value.type === 'StreamingClientProgress' || value.type === 'FormatTestResultProgress') {
-          this.progress?.report({ message: value.message });
-        }
-      }
-    };
-    try {
-      // // Step 0: Validate Method
-      // if (!this.isMethodEligible(methodIdentifier)) {
-      //   void notificationService.showErrorMessage(
-      //     '`Method ${methodIdentifier} is not eligible for Apex Action creation.`'
-      //   );
-      //   throw new Error(`Method ${methodIdentifier} is not eligible for Apex Action creation.`);
-      // }
-
-      // Step 1: Extract Metadata
-      progressReporter.report({ message: 'Extracting metadata.' });
-      const metadata = this.metadataOrchestrator.extractAllMethodsMetadata();
-      if (!metadata) {
-        throw new Error('Failed to extract metadata from class.');
-      } else if (metadata.length > 0) {
-        // Step 2: Generate OpenAPI Document
-        progressReporter.report({ message: 'Generating OpenAPI document.' });
-        const openApiDocument = this.generateOpenAPIDocument(metadata);
-
-        // Step 3: Write OpenAPI Document to File
-        const openApiFilePath = `${metadata[0].name}_openapi.yml`;
-        await this.saveDocument(openApiFilePath, openApiDocument);
-
-        // Step 4: Notify Success
-        notificationService.showInformationMessage(`Apex Action created for class: ${metadata[0].name}.`);
-        telemetryService.sendEventData('ApexActionCreated', { method: metadata[0].name });
-      }
-    } catch (error) {
-      // Error Handling
-      notificationService.showErrorMessage(`Failed to create Apex Action: ${error.message}`);
-      telemetryService.sendException('ApexActionCreationFailed', error);
-      throw error;
-    }
-  };
-
-  public isMethodEligible = (methodIdentifier: string): boolean => {
-    // Placeholder for eligibility logic
-    return true;
-  };
-
-  private saveDocument = async (fileName: string, content: any): Promise<void> => {
+  /**
+   * Saves and opens the OpenAPI document to a file.
+   * @param fileName - The name of the file.
+   * @param content - The content of the file.
+   */
+  private saveAndOpenDocument = async (fileName: string, content: string): Promise<void> => {
     const openAPIdocumentsPath = path.join(workspaceUtils.getRootWorkspacePath(), 'OpenAPIdocuments');
     if (!fs.existsSync(openAPIdocumentsPath)) {
       fs.mkdirSync(openAPIdocumentsPath);
     }
     const saveLocation = path.join(openAPIdocumentsPath, fileName);
     fs.writeFileSync(saveLocation, content);
-    await vscode.workspace.openTextDocument(saveLocation).then((newDocument: any) => {
+    await vscode.workspace.openTextDocument(saveLocation).then((newDocument: vscode.TextDocument) => {
       void vscode.window.showTextDocument(newDocument);
     });
   };
 
-  public generateOpenAPIDocument = (metadata: MethodMetadata[]): string => {
-    // Placeholder for OpenAPI generation logic
+  /**
+   * Generates an OpenAPI document from the provided metadata.
+   * @param metadata - The metadata of the methods.
+   * @returns The OpenAPI document as a string.
+   */
+  private generateOpenAPIDocument = (metadata: MethodMetadata[]): string => {
     const paths: OpenAPIV3.PathsObject = {};
 
-    metadata.forEach(method => {
+    metadata?.forEach(method => {
       paths[`/apex/${method.name}`] = {
         post: {
           operationId: method.name,
@@ -164,5 +117,17 @@ export class ApexActionController {
     };
     // Convert the OpenAPI document to YAML
     return stringify(openAPIDocument);
+  };
+
+  /**
+   * Handles errors by showing a notification and sending telemetry data.
+   * @param error - The error to handle.
+   * @param telemetryEvent - The telemetry event name.
+   */
+  private handleError = async (error: any, telemetryEvent: string): Promise<void> => {
+    const telemetryService = await getTelemetryService();
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    notificationService.showErrorMessage(`${nls.localize('create_apex_action_failed')}: ${errorMessage}`);
+    telemetryService.sendException(telemetryEvent, errorMessage);
   };
 }

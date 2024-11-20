@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import { stringify } from 'querystring';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
+
+/**
+ * Interface representing the metadata of a method.
+ */
 export interface MethodMetadata {
   name: string;
   parameters: Parameter[];
@@ -14,6 +18,10 @@ export interface MethodMetadata {
   isAuraEnabled: boolean;
   className?: string;
 }
+
+/**
+ * Interface representing a parameter of a method.
+ */
 export interface Parameter {
   name: string;
   in: string;
@@ -21,15 +29,29 @@ export interface Parameter {
   description: string;
   schema: { type: string };
 }
-export class MetadataOrchestrator {
-  constructor() {
-    // Initialization code here
-  }
 
+/**
+ * Class responsible for orchestrating metadata operations.
+ */
+export class MetadataOrchestrator {
+  /**
+   * Checks if a method is eligible for Apex Action creation.
+   * @param methodIdentifier - The identifier of the method.
+   * @returns True if the method is eligible, false otherwise.
+   */
+  public isMethodEligible = (methodIdentifier: string): boolean => {
+    // Placeholder for eligibility logic
+    return true;
+  };
+
+  /**
+   * Extracts metadata for the method at the current cursor position.
+   * @returns The metadata of the method, or undefined if no method is found.
+   */
   public extractMethodMetadata = (): MethodMetadata | undefined => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      notificationService.showErrorMessage('No active editor detected.');
+      notificationService.showErrorMessage(nls.localize('no_active_editor'));
       return;
     }
 
@@ -47,53 +69,27 @@ export class MetadataOrchestrator {
     }
 
     // Traverse lines starting from the cursor position to construct the method signature
-    for (let i = currentLineIndex; i < lines.length; i++) {
-      const line = lines[i].trim();
+    for (let line of lines) {
+      line = line.trim();
       methodSignature += ` ${line}`;
 
       // Stop once the closing parenthesis is reached
-      if (line.includes(')')) {
+      if (line.includes(') {')) {
         break;
       }
     }
 
-    if (!methodSignature) {
-      notificationService.showWarningMessage('No valid method found at cursor position.');
-      return;
+    const methodMetadata = this.parseMethodSignature(methodSignature, isAuraEnabled);
+    if (!methodMetadata.isAuraEnabled) {
+      throw new Error(nls.localize('not_aura_enabled', methodMetadata.name));
     }
-
-    // Parse the method signature
-    const methodRegex = /\b(public|private|protected|global)\s+(static\s+)?([\w<>\[\]]+)\s+(\w+)\s*\((.*?)\)/s;
-    const match = methodRegex.exec(methodSignature);
-    if (!match) {
-      notificationService.showWarningMessage('Failed to parse method signature.');
-      throw Error('Failed to parse method signature.');
-    }
-    const returnType = match[3];
-    const methodName = match[4];
-    const parametersRaw = match[5] ? match[5].split(',').map(param => param.trim()) : [];
-    const parameters = parametersRaw.map(param => {
-      const [type, name] = param.split(/\s+/);
-      return {
-        name,
-        in: 'query',
-        required: true,
-        description: `The ${name} parameter of type ${type}.`,
-        schema: { type: this.mapApexTypeToJsonType(type) }
-      };
-    });
-    return {
-      name: methodName,
-      parameters,
-      returnType,
-      isAuraEnabled
-    };
+    return methodMetadata;
   };
 
   public extractAllMethodsMetadata = (): MethodMetadata[] | undefined => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      notificationService.showErrorMessage('No active editor detected.');
+      notificationService.showErrorMessage(nls.localize('no_active_editor'));
       return;
     }
 
@@ -107,68 +103,80 @@ export class MetadataOrchestrator {
     const metadataList: MethodMetadata[] = [];
     let currentMethodSignature = '';
     let isAuraEnabled = false;
-    let isEligible = false;
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+    for (let line of lines) {
+      line = line.trim();
 
       // Detect @AuraEnabled annotation
       if (line.includes('@AuraEnabled')) {
         isAuraEnabled = true;
-        isEligible = true;
       }
 
       // Build the method signature
       currentMethodSignature += ` ${line}`;
       if (line.includes(') {') && currentMethodSignature.includes('(')) {
         // Method signature is complete
-        if (isEligible) {
-          isEligible = false;
-          const methodRegex = /\b(public|private|protected|global)\s+(static\s+)?([\w<>\[\]]+)\s+(\w+)\s*\((.*?)\)/s;
-          const match = methodRegex.exec(currentMethodSignature);
-          if (match) {
-            const returnType = match[3];
-            const methodName = match[4];
-            const parametersRaw = match[5] ? match[5].split(',').map(param => param.trim()) : [];
-
-            // Map parameters to the desired structure
-            const parameters = parametersRaw.map(param => {
-              const [type, name] = param.split(/\s+/);
-              return {
-                name,
-                in: 'query',
-                required: true,
-                description: `The ${name} parameter of type ${type}.`,
-                schema: { type: this.mapApexTypeToJsonType(type) }
-              };
-            });
-
-            metadataList.push({
-              name: methodName,
-              parameters,
-              returnType,
-              isAuraEnabled,
-              className
-            });
+        if (isAuraEnabled) {
+          const methodMetadata = this.parseMethodSignature(currentMethodSignature, isAuraEnabled, className);
+          if (methodMetadata) {
+            metadataList.push(methodMetadata);
           }
+          isAuraEnabled = false;
         }
 
         // Reset for the next method
         currentMethodSignature = '';
-        isAuraEnabled = false;
       }
     }
 
     if (metadataList.length === 0) {
-      notificationService.showWarningMessage(
-        'No eligible methods found in the open editor. Eligible methods are annotated with @AuraEnabled.'
-      );
-      return metadataList;
+      throw new Error(nls.localize('no_eligible_methods_found'));
     }
 
     return metadataList;
   };
+  /**
+   * Parses a method signature and returns the method metadata.
+   * @param methodSignature - The method signature to parse.
+   * @param isAuraEnabled - Indicates if the method is Aura-enabled.
+   * @param className - The name of the class containing the method.
+   * @returns The metadata of the method, or undefined if parsing fails.
+   */
+  private parseMethodSignature(methodSignature: string, isAuraEnabled: boolean, className?: string): MethodMetadata {
+    const methodRegex = /\b(public|private|protected|global)\s+(static\s+)?([\w<>\[\]]+)\s+(\w+)\s*\((.*?)\)/s;
+    const match = methodRegex.exec(methodSignature);
+    if (!match) {
+      throw Error(nls.localize('no_valid_method_found'));
+    }
 
+    const returnType = match[3];
+    const methodName = match[4];
+    const parametersRaw = match[5] ? match[5].split(',').map(param => param.trim()) : [];
+    const parameters = parametersRaw.map(param => {
+      const [type, name] = param.split(/\s+/);
+      return {
+        name,
+        in: 'query',
+        required: true,
+        description: `The ${name} parameter of type ${type}.`,
+        schema: { type: this.mapApexTypeToJsonType(type) }
+      };
+    });
+
+    return {
+      name: methodName,
+      parameters,
+      returnType,
+      isAuraEnabled,
+      className
+    };
+  }
+
+  /**
+   * Maps an Apex type to a JSON type.
+   * @param apexType - The Apex type to map.
+   * @returns The corresponding JSON type.
+   */
   private mapApexTypeToJsonType = (apexType: string): string => {
     switch (apexType.toLowerCase()) {
       case 'string':
@@ -186,9 +194,5 @@ export class MetadataOrchestrator {
       default:
         return 'string';
     }
-  };
-
-  public validateAuraEnabledMethod = (isAuraEnabled: boolean): boolean => {
-    return isAuraEnabled;
   };
 }
