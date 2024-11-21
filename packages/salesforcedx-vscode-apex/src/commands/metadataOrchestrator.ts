@@ -6,7 +6,14 @@
  */
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
+import {
+  ApexClassOASEligibleRequest,
+  ApexClassOASEligibleResponses,
+  ApexOASEligiblePayload
+} from '../openApiUtilities/schemas';
+import { getTelemetryService } from '../telemetry/telemetry';
 
 /**
  * Interface representing the metadata of a method.
@@ -210,4 +217,70 @@ export class MetadataOrchestrator {
         return 'string';
     }
   };
+
+  private eligibilityDelegate = async (
+    requests: ApexOASEligiblePayload,
+    maxRetries: number = 3
+  ): Promise<ApexClassOASEligibleResponses> => {
+    const telemetryService = await getTelemetryService();
+    let response = {};
+    let attempt = 0;
+    const languageClient = languageClientUtils.getClientInstance();
+    if (languageClient) {
+      while (attempt < maxRetries) {
+        try {
+          attempt++;
+          response = await languageClient?.sendRequest('apexoas/isEligible', requests);
+          telemetryService.sendEventData('isEligibleResponseSucceeded', {
+            classNumbers: requests.payload.length.toString()
+          });
+          break;
+        } catch (error) {
+          telemetryService.sendException('isEligibleResponseFailed', `${error} after trying ${attempt} times.`);
+
+          if (attempt >= maxRetries) {
+            // fallback TBD after we understand it better
+            throw new Error(nls.localize('cannot_get_apexoaseligibility_response'));
+          }
+        }
+      }
+    }
+    return response as ApexClassOASEligibleResponses;
+  };
+
+  public validateEligibility = async (
+    sourceUri: vscode.Uri | vscode.Uri[],
+    isMethodSelected: boolean = false
+  ): Promise<ApexClassOASEligibleResponses> => {
+    const telemetryService = await getTelemetryService();
+    if (Array.isArray(sourceUri)) {
+      throw new Error('We do not consider list of src files now');
+    }
+    let cursorPosition;
+    if (isMethodSelected) {
+      const editor = vscode.window.activeTextEditor;
+      if (editor && this.getFileExtension(editor.document) === 'cls') {
+        cursorPosition = editor.selection.active;
+      } else {
+        telemetryService.sendException('activeTextEditorNotApex', nls.localize('active_text_editor_not_apex'));
+        throw new Error(nls.localize('invalid_active_text_editor'));
+      }
+    }
+    // generate the payload
+    const request: ApexClassOASEligibleRequest = {
+      resourceUri: sourceUri.toString(),
+      includeAllMethods: !isMethodSelected,
+      includeAllProperties: !isMethodSelected,
+      positions: cursorPosition ? [cursorPosition] : null,
+      methodNames: [],
+      propertyNames: []
+    };
+    const responses = await this.eligibilityDelegate({ payload: [request] });
+    return responses;
+  };
+
+  private getFileExtension(document: vscode.TextDocument): string {
+    const filePath = document.fileName; // Full file path
+    return filePath.substring(filePath.lastIndexOf('.') + 1).toLowerCase(); // Extract the file extension
+  }
 }

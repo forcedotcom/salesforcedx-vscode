@@ -16,6 +16,7 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
+  active_text_editor_not_apex: 'The active text editor is not on an apex class file',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
@@ -25,6 +26,7 @@ export const messages = {
   apex_language_server_failed_activate: 'Unable to activate the Apex Language Server',
   apex_language_server_quit_and_restarting: 'Apex Language Server has stopped. Restarting… %d of 5',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
+  cannot_get_apexoaseligibility_response: 'Fail to get response through apexoas/isEligible from apex language server',
   channel_name: 'Apex',
   client_name: 'Apex Language Server',
   colorizer_no_code_coverage_on_project:
