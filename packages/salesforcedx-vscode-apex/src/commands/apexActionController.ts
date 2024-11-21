@@ -41,7 +41,7 @@ export class ApexActionController {
           progress.report({ message: nls.localize('extract_metadata') });
           metadata = isClass
             ? await this.metadataOrchestrator.extractAllMethodsMetadata(sourceUri)
-            : this.metadataOrchestrator.extractMethodMetadata();
+            : await this.metadataOrchestrator.extractMethodMetadata();
           if (!metadata) {
             throw new Error(nls.localize('extraction_failed', type));
           }

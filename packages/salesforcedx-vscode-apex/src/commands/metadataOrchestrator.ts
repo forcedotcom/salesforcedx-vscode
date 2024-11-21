@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
+import { LanguageClientUtils } from '../languageUtils/languageClientUtils';
 import { nls } from '../messages';
 
 /**
@@ -30,10 +33,40 @@ export interface Parameter {
   schema: { type: string };
 }
 
+type ApexOASEligiblePayload = {
+  payload: ApexClassOASEligibleRequest[];
+};
+
+type ApexClassOASEligibleRequest = {
+  resourceUri: string;
+  includeAllMethods: boolean;
+  includeAllProperties: boolean;
+  positions: vscode.Position[] | null;
+  methodNames: string[] | null;
+  propertyNames: string[] | null;
+};
+
+interface SymbolEligibility {
+  isEligible: boolean;
+  docSymbol: vscode.DocumentSymbol;
+}
+
+type ApexClassOASEligibleResponse = {
+  isEligible: boolean;
+  resourceUri: string;
+  symbols?: SymbolEligibility[];
+};
+
+type ApexClassOASEligibleRequests = ApexClassOASEligibleRequest[];
+type ApexClassOASEligibleResponses = ApexClassOASEligibleResponse[] | undefined;
 /**
  * Class responsible for orchestrating metadata operations.
  */
 export class MetadataOrchestrator {
+  private writeEligibleResponse(isEligibleResponses: ApexClassOASEligibleResponse[]) {
+    fs.writeFileSync(path.join(process.cwd(), 'eligible.json'), JSON.stringify(isEligibleResponses, undefined, 2));
+  }
+
   /**
    * Checks if a method is eligible for Apex Action creation.
    * @param methodIdentifier - The identifier of the method.
@@ -48,12 +81,37 @@ export class MetadataOrchestrator {
    * Extracts metadata for the method at the current cursor position.
    * @returns The metadata of the method, or undefined if no method is found.
    */
-  public extractMethodMetadata = (): MethodMetadata | undefined => {
+  public extractMethodMetadata = async (): Promise<MethodMetadata | undefined> => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
       notificationService.showErrorMessage(nls.localize('no_active_editor'));
       return;
     }
+
+    const isEligibleRequest: ApexClassOASEligibleRequest = {
+      resourceUri: editor.document.uri.toString(),
+      includeAllMethods: false,
+      includeAllProperties: false,
+      positions: [editor.selection.active],
+      methodNames: [],
+      propertyNames: []
+    };
+
+    const languageClient = LanguageClientUtils.getInstance().getClientInstance();
+
+    const oasEligiblePayload: ApexOASEligiblePayload = {
+      payload: [isEligibleRequest]
+    };
+
+    const isEligibleResponses: ApexClassOASEligibleResponses = await languageClient?.sendRequest(
+      'apexoas/isEligible',
+      oasEligiblePayload
+    );
+    if (!isEligibleResponses) {
+      notificationService.showWarningMessage('No valid method found at cursor position.');
+      return;
+    }
+    this.writeEligibleResponse(isEligibleResponses);
 
     const document = editor.document;
     const cursorPosition = editor.selection.active;
@@ -89,59 +147,81 @@ export class MetadataOrchestrator {
   public extractAllMethodsMetadata = async (
     sourceUri: vscode.Uri | undefined
   ): Promise<MethodMetadata[] | undefined> => {
-    let lines;
-    let className;
-    if (sourceUri) {
-      const path = sourceUri?.path.toString();
-      className = path!
-        .substring(path!.lastIndexOf(process.platform === 'win32' ? '\\' : '/') + 1)
-        .split('.')
-        .shift();
-      const fileContent = await vscode.workspace.fs.readFile(sourceUri!);
-      const fileText = Buffer.from(fileContent).toString('utf-8');
-      lines = fileText.split('\n');
-    } else {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        notificationService.showErrorMessage(nls.localize('no_active_editor'));
-        return;
-      }
+    const uri: vscode.Uri | undefined = sourceUri
+      ? sourceUri
+      : vscode.window.activeTextEditor
+        ? vscode.window.activeTextEditor.document.uri
+        : undefined;
 
-      const document = editor.document;
-      const filePath = document.fileName;
-      className = filePath
-        .substring(filePath.lastIndexOf(process.platform === 'win32' ? '\\' : '/') + 1)
-        .split('.')
-        .shift();
-      lines = document.getText().split('\n');
+    if (!uri) {
+      notificationService.showErrorMessage(nls.localize('no_active_editor'));
+      return;
     }
+
+    const isEligibleRequest: ApexClassOASEligibleRequest = {
+      resourceUri: uri.toString(),
+      includeAllMethods: true,
+      includeAllProperties: true,
+      positions: [],
+      methodNames: [],
+      propertyNames: []
+    };
+
+    const languageClient = LanguageClientUtils.getInstance().getClientInstance();
+
+    const oasEligiblePayload: ApexOASEligiblePayload = {
+      payload: [isEligibleRequest]
+    };
+
+    const isEligibleResponses: ApexClassOASEligibleResponses = await languageClient?.sendRequest(
+      'apexoas/isEligible',
+      oasEligiblePayload
+    );
+
+    if (!isEligibleResponses) {
+      notificationService.showWarningMessage('No valid method found at cursor position.');
+      return;
+    }
+
+    this.writeEligibleResponse(isEligibleResponses);
+
+    const className = path.basename(uri.fsPath, '.cls');
+    const fileContent = await vscode.workspace.fs.readFile(uri);
+    const fileText = Buffer.from(fileContent).toString('utf-8');
+    const lines = fileText.split('\n');
+
     const metadataList: MethodMetadata[] = [];
     let currentMethodSignature = '';
     let isAuraEnabled = false;
 
-    for (let line of lines) {
-      line = line.trim();
+    try {
+      for (let line of lines) {
+        line = line.trim();
 
-      // Detect @AuraEnabled annotation
-      if (line.includes('@AuraEnabled')) {
-        isAuraEnabled = true;
-      }
-
-      // Build the method signature
-      currentMethodSignature += ` ${line}`;
-      if (line.includes(') {') && currentMethodSignature.includes('(')) {
-        // Method signature is complete
-        if (isAuraEnabled) {
-          const methodMetadata = this.parseMethodSignature(currentMethodSignature, isAuraEnabled, className);
-          if (methodMetadata) {
-            metadataList.push(methodMetadata);
-          }
-          isAuraEnabled = false;
+        // Detect @AuraEnabled annotation
+        if (line.includes('@AuraEnabled')) {
+          isAuraEnabled = true;
         }
 
-        // Reset for the next method
-        currentMethodSignature = '';
+        // Build the method signature
+        currentMethodSignature += ` ${line}`;
+        if (line.includes(') {') && currentMethodSignature.includes('(')) {
+          // Method signature is complete
+          if (isAuraEnabled) {
+            const methodMetadata = this.parseMethodSignature(currentMethodSignature, isAuraEnabled, className);
+            if (methodMetadata) {
+              metadataList.push(methodMetadata);
+            }
+            isAuraEnabled = false;
+          }
+
+          // Reset for the next method
+          currentMethodSignature = '';
+        }
       }
+    } catch (e) {
+      console.log(e);
+      throw e;
     }
 
     if (metadataList.length === 0) {
