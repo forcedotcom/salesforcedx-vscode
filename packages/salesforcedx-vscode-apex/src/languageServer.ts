@@ -55,6 +55,37 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
       .getConfiguration()
       .get<boolean>('salesforcedx-vscode-apex.advanced.enable-completion-statistics', false);
 
+    // Configurations of the definitions of eligible apex classes/methods/properties
+    const classAccessModifiers: string[] = vscode.workspace
+      .getConfiguration()
+      .get<string[]>('salesforcsalesforcedx-vscode-apex.apexoas.eligibility.class.access-modifiers', ['public']);
+
+    const classDefinitionModifiers: string[] = vscode.workspace
+      .getConfiguration()
+      .get<
+        string[]
+      >('salesforcsalesforcedx-vscode-apex.apexoas.eligibility.class.definition-modifiers', ['with sharing']);
+
+    const methodModifiers: string[] = vscode.workspace
+      .getConfiguration()
+      .get<string[]>('salesforcedx-vscode-apex.apexoas.eligibility.method.modifiers', ['global', 'public']);
+
+    const methodAnnotations: string[] = vscode.workspace
+      .getConfiguration()
+      .get<
+        string[]
+      >('salesforcedx-vscode-apex.apexoas.eligibility.method.annotations', ['AuraEnabled', 'RestResource']);
+
+    const propertyModifiers: string[] = vscode.workspace
+      .getConfiguration()
+      .get<string[]>('salesforcedx-vscode-apex.apexoas.eligibility.property.modifiers', ['global', 'public']);
+
+    const propertyAnnotations: string[] = vscode.workspace
+      .getConfiguration()
+      .get<
+        string[]
+      >('salesforcedx-vscode-apex.apexoas.eligibility.property.annotations', ['AuraEnabled', 'RestResource']);
+
     const args: string[] = [
       '-cp',
       uberJar,
@@ -75,8 +106,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
       args.push(
         '-Dtrace.protocol=false',
         `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
-          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
         },address=*:${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
@@ -88,6 +118,15 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     }
 
     args.push(APEX_LANGUAGE_SERVER_MAIN);
+
+    args.push(
+      `-classAccessOAS=${classAccessModifiers.join(',')}`,
+      `-classDefinitionOAS=${classDefinitionModifiers.join(',')}`,
+      `-methodModifiers=${methodModifiers.join(',')}`,
+      `-methodAnnotations=${methodAnnotations.join(',')}`,
+      `-propertyModifiers=${propertyModifiers.join(',')}`,
+      `-propertyAnnotations=${propertyAnnotations.join(',')}`
+    );
 
     return {
       options: {
