@@ -31,13 +31,11 @@ describe('UserService', () => {
 
     beforeEach(() => {
       cliCommandExecution = {
-        // Add appropriate properties/methods for CliCommandExecution mock
         processExitCode: Promise.resolve(0),
         processError: Promise.resolve(undefined),
         processStdout: Promise.resolve(''),
         processStderr: Promise.resolve('')
       } as unknown as CliCommandExecution;
-
       getRootWorkspacePathSpy = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('abc');
       executionSpy = jest.spyOn(CliCommandExecutor.prototype, 'execute').mockReturnValue(cliCommandExecution);
       getCmdResultSpy = jest
