@@ -218,7 +218,7 @@ export class MetadataOrchestrator {
     }
   };
 
-  private eligibilityDelegate = async (
+  public eligibilityDelegate = async (
     requests: ApexOASEligiblePayload,
     maxRetries: number = 3
   ): Promise<ApexClassOASEligibleResponses> => {
@@ -268,7 +268,7 @@ export class MetadataOrchestrator {
     }
     // generate the payload
     const request: ApexClassOASEligibleRequest = {
-      resourceUri: sourceUri.toString(),
+      resourceUri: sourceUri.path,
       includeAllMethods: !isMethodSelected,
       includeAllProperties: !isMethodSelected,
       positions: cursorPosition ? [cursorPosition] : null,

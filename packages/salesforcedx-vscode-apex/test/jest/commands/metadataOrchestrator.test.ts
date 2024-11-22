@@ -7,6 +7,14 @@
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { MetadataOrchestrator } from '../../../src/commands/metadataOrchestrator';
+import { languageClientUtils } from '../../../src/languageUtils';
+import { ApexOASEligiblePayload, ApexClassOASEligibleResponses } from '../../../src/openApiUtilities/schemas';
+import { getTelemetryService } from '../../../src/telemetry/telemetry';
+import { MockTelemetryService } from '../telemetry/mockTelemetryService';
+
+jest.mock('../../../src/telemetry/telemetry', () => ({
+  getTelemetryService: jest.fn()
+}));
 
 describe('MetadataOrchestrator', () => {
   let orchestrator: MetadataOrchestrator;
@@ -173,6 +181,61 @@ describe('MetadataOrchestrator', () => {
       expect(orchestrator['mapApexTypeToJsonType']('Boolean')).toEqual('boolean');
       expect(orchestrator['mapApexTypeToJsonType']('Double')).toEqual('number');
       expect(orchestrator['mapApexTypeToJsonType']('UnknownType')).toEqual('string');
+    });
+  });
+
+  describe('validateEligibility', () => {
+    let eligibilityDelegateSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
+    });
+    it('should get error when sourceUri is an array', async () => {
+      await expect(orchestrator.validateEligibility([], true)).rejects.toThrow(
+        'We do not consider list of src files now'
+      );
+    });
+
+    it('should throw an error when method is selected but the active editor is not available', async () => {
+      (vscode.window as any).activeTextEditor = undefined;
+      const uri = vscode.Uri.file('/hello/world.js');
+      await expect(orchestrator.validateEligibility(uri, true)).rejects.toThrow();
+    });
+
+    it('should throw an error when method is selected but the active editor is not on an apex source file', async () => {
+      const mockEditor = {
+        document: { fileName: 'file.cls' },
+        selection: { active: new vscode.Position(3, 5) } // Mocked cursor position
+      };
+
+      (vscode.window as any).activeTextEditor = mockEditor;
+      const uri = vscode.Uri.file('/hello/world.js');
+      await expect(orchestrator.validateEligibility(uri, true)).rejects.toThrow();
+    });
+
+    it('should call eligibilityDelegate with expected parameter', async () => {
+      const responses = [{ isEligible: true, resourceUri: 'file.cls' }];
+      eligibilityDelegateSpy = jest.spyOn(orchestrator, 'eligibilityDelegate').mockResolvedValue(responses);
+      const mockEditor = {
+        document: { fileName: 'file.cls' }
+      };
+      // with no method selected
+      const request = {
+        resourceUri: 'file.cls',
+        includeAllMethods: true,
+        includeAllProperties: true,
+        positions: null,
+        methodNames: [],
+        propertyNames: []
+      };
+
+      const payload = {
+        payload: [request]
+      };
+
+      (vscode.window as any).activeTextEditor = mockEditor;
+      await orchestrator.validateEligibility({ path: 'file.cls' } as vscode.Uri, false);
+      await expect(eligibilityDelegateSpy).toHaveBeenCalledWith(payload);
     });
   });
 });

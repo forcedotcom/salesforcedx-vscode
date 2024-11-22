@@ -106,5 +106,6 @@ export const messages = {
   terminate_processes_title: 'Terminate Orphaned Processes',
   orphan_process_advice:
     "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
-  unknown: 'Unknown'
+  unknown: 'Unknown',
+  invalid_active_text_editor: 'The active text editor is missing or on an invalid file.'
 };

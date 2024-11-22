@@ -424,54 +424,100 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["public", "private", "global"]
+            "enum": [
+              "public",
+              "private",
+              "global"
+            ]
           },
-          "default": ["public", "global"],
+          "default": [
+            "public",
+            "global"
+          ],
           "description": "The eligible access modifiers of a class to generate an open api doc for apex actions."
         },
         "salesforcedx-vscode-apex.apexoas.eligibility.class.definition-modifiers": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["virtual", "abstract", "with sharing", "without sharing"]
+            "enum": [
+              "virtual",
+              "abstract",
+              "with sharing",
+              "without sharing"
+            ]
           },
-          "default": ["with sharing"],
+          "default": [
+            "with sharing"
+          ],
           "description": "The eligible definition modifiers of a class to generate an open api doc for apex actions."
         },
         "salesforcedx-vscode-apex.apexoas.eligibility.method.modifiers": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["public", "private", "protected", "global", "static", "override"]
+            "enum": [
+              "public",
+              "private",
+              "protected",
+              "global",
+              "static",
+              "override"
+            ]
           },
-          "default": ["global", "public"],
+          "default": [
+            "global",
+            "public"
+          ],
           "description": "The eligible modifiers of a method to generate an open api doc for apex actions."
         },
         "salesforcedx-vscode-apex.apexoas.eligibility.method.annotations": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["AuraEnabled", "RestResource"]
+            "enum": [
+              "AuraEnabled",
+              "RestResource"
+            ]
           },
-          "default": ["AuraEnabled", "RestResource"],
+          "default": [
+            "AuraEnabled",
+            "RestResource"
+          ],
           "description": "The eligible annotations of a method to generate an open api doc for apex actions."
         },
         "salesforcedx-vscode-apex.apexoas.eligibility.property.modifiers": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["public", "private", "protected", "global", "static", "override"]
+            "enum": [
+              "public",
+              "private",
+              "protected",
+              "global",
+              "static",
+              "override"
+            ]
           },
-          "default": ["global", "public"],
+          "default": [
+            "global",
+            "public"
+          ],
           "description": "The eligible modifiers of a property to generate an open api doc for apex actions."
         },
         "salesforcedx-vscode-apex.apexoas.eligibility.property.annotations": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["AuraEnabled", "RestResource"]
+            "enum": [
+              "AuraEnabled",
+              "RestResource"
+            ]
           },
-          "default": ["AuraEnabled", "RestResource"],
+          "default": [
+            "AuraEnabled",
+            "RestResource"
+          ],
           "description": "The eligible annotations of a property to generate an open api doc for apex actions."
         }
       }
