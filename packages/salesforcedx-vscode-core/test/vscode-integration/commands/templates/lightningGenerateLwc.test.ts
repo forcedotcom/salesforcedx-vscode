@@ -31,6 +31,7 @@ describe('Generate Lightning Web Component', () => {
   let getConfiguration: SinonStub;
 
   beforeEach(() => {
+    settingStub = stub();
     getInternalDevStub = stub(SalesforceCoreSettings.prototype, 'getInternalDev');
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
