@@ -158,7 +158,7 @@ export class MetadataOrchestrator {
    * @returns The metadata of the method, or undefined if parsing fails.
    */
   private parseMethodSignature(methodSignature: string, isAuraEnabled: boolean, className?: string): MethodMetadata {
-    const methodRegex = /\b(public|private|protected|global)\s+(static\s+)?([\w<>\[\]]+)\s+(\w+)\s*\((.*?)\)/s;
+    const methodRegex = /\b(public|private|protected|global)\s+(static)\s+?([\w<>\[\]]+)\s+(\w+)\s*\((.*?)\)/s;
     const match = methodRegex.exec(methodSignature);
     if (!match) {
       throw Error(nls.localize('no_valid_method_found'));
