@@ -63,8 +63,8 @@ type ApexClassOASEligibleResponses = ApexClassOASEligibleResponse[] | undefined;
  * Class responsible for orchestrating metadata operations.
  */
 export class MetadataOrchestrator {
-  private writeEligibleResponse(isEligibleResponses: ApexClassOASEligibleResponse[]) {
-    fs.writeFileSync(path.join(process.cwd(), 'eligible.json'), JSON.stringify(isEligibleResponses, undefined, 2));
+  private writeEligibleResponse(isEligibleResponses: ApexClassOASEligibleResponses, fileName = 'eligible.json') {
+    fs.writeFileSync(path.join(process.cwd(), fileName), JSON.stringify(isEligibleResponses, undefined, 2));
   }
 
   /**
@@ -158,7 +158,7 @@ export class MetadataOrchestrator {
       return;
     }
 
-    const isEligibleRequest: ApexClassOASEligibleRequest = {
+    let isEligibleRequest: ApexClassOASEligibleRequest = {
       resourceUri: uri.toString(),
       includeAllMethods: true,
       includeAllProperties: true,
@@ -169,21 +169,43 @@ export class MetadataOrchestrator {
 
     const languageClient = LanguageClientUtils.getInstance().getClientInstance();
 
-    const oasEligiblePayload: ApexOASEligiblePayload = {
+    let oasEligiblePayload: ApexOASEligiblePayload = {
       payload: [isEligibleRequest]
     };
 
-    const isEligibleResponses: ApexClassOASEligibleResponses = await languageClient?.sendRequest(
+    let isEligibleResponses: ApexClassOASEligibleResponses = await languageClient?.sendRequest(
       'apexoas/isEligible',
       oasEligiblePayload
     );
 
     if (!isEligibleResponses) {
       notificationService.showWarningMessage('No valid method found at cursor position.');
-      return;
+    } else {
+      this.writeEligibleResponse(isEligibleResponses);
     }
 
-    this.writeEligibleResponse(isEligibleResponses);
+    const parent = path.dirname(uri.fsPath);
+
+    isEligibleRequest = {
+      resourceUri: `file://${path.resolve(parent)}`,
+      includeAllMethods: true,
+      includeAllProperties: true,
+      positions: [],
+      methodNames: [],
+      propertyNames: []
+    };
+
+    oasEligiblePayload = {
+      payload: [isEligibleRequest]
+    };
+
+    isEligibleResponses = await languageClient?.sendRequest('apexoas/isEligible', oasEligiblePayload);
+
+    if (!isEligibleResponses) {
+      notificationService.showWarningMessage('No valid method found at cursor position.');
+    }
+
+    this.writeEligibleResponse(isEligibleResponses, `${path.basename(parent)}-all-isEligible-response.json`);
 
     const className = path.basename(uri.fsPath, '.cls');
     const fileContent = await vscode.workspace.fs.readFile(uri);
