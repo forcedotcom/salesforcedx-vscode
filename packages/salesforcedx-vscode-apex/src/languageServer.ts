@@ -14,7 +14,13 @@ import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
-import { retrieveEnableSyncInitJobs } from './settings';
+import {
+  retrieveClassAccessModifiers,
+  retrieveClassDefinitionModifiers,
+  retrieveEnableSyncInitJobs,
+  retrieveMethodAndPropertyAnnotations,
+  retrieveMethodAndPropertyModifiers
+} from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
@@ -55,37 +61,6 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
       .getConfiguration()
       .get<boolean>('salesforcedx-vscode-apex.advanced.enable-completion-statistics', false);
 
-    // Configurations of the definitions of eligible apex classes/methods/properties
-    const classAccessModifiers: string[] = vscode.workspace
-      .getConfiguration()
-      .get<string[]>('salesforcsalesforcedx-vscode-apex.apexoas.eligibility.class.access-modifiers', ['public']);
-
-    const classDefinitionModifiers: string[] = vscode.workspace
-      .getConfiguration()
-      .get<
-        string[]
-      >('salesforcsalesforcedx-vscode-apex.apexoas.eligibility.class.definition-modifiers', ['with sharing']);
-
-    const methodModifiers: string[] = vscode.workspace
-      .getConfiguration()
-      .get<string[]>('salesforcedx-vscode-apex.apexoas.eligibility.method.modifiers', ['global', 'public']);
-
-    const methodAnnotations: string[] = vscode.workspace
-      .getConfiguration()
-      .get<
-        string[]
-      >('salesforcedx-vscode-apex.apexoas.eligibility.method.annotations', ['AuraEnabled', 'RestResource']);
-
-    const propertyModifiers: string[] = vscode.workspace
-      .getConfiguration()
-      .get<string[]>('salesforcedx-vscode-apex.apexoas.eligibility.property.modifiers', ['global', 'public']);
-
-    const propertyAnnotations: string[] = vscode.workspace
-      .getConfiguration()
-      .get<
-        string[]
-      >('salesforcedx-vscode-apex.apexoas.eligibility.property.annotations', ['AuraEnabled', 'RestResource']);
-
     const args: string[] = [
       '-cp',
       uberJar,
@@ -117,15 +92,6 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     }
 
     args.push(APEX_LANGUAGE_SERVER_MAIN);
-
-    args.push(
-      `-classAccessOAS=${classAccessModifiers.join(',')}`,
-      `-classDefinitionOAS=${classDefinitionModifiers.join(',')}`,
-      `-methodModifiers=${methodModifiers.join(',')}`,
-      `-methodAnnotations=${methodAnnotations.join(',')}`,
-      `-propertyModifiers=${propertyModifiers.join(',')}`,
-      `-propertyAnnotations=${propertyAnnotations.join(',')}`
-    );
 
     return {
       options: {
@@ -191,7 +157,11 @@ export const buildClientOptions = (): LanguageClientOptions => {
     },
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs()
+      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
+      apexOASClassAccessModifiers: retrieveClassAccessModifiers().join(','),
+      apexOASClassDefinitionModifiers: retrieveClassDefinitionModifiers().join(','),
+      apexOASMethodAndPropertyModifiers: retrieveMethodAndPropertyModifiers().join(','),
+      apexOASMethodAndPropertyAnnotations: retrieveMethodAndPropertyAnnotations().join(',')
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()

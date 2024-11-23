@@ -30,6 +30,12 @@ export type ApexOASEligiblePayload = {
 };
 export type ApexClassOASEligibleResponses = ApexClassOASEligibleResponse[];
 
+export enum ApexOASResource {
+  class = 'CLASS',
+  multiClass = 'MULTI CLASSES',
+  singleMethodOrProp = 'METHOD or PROPERTY',
+  folder = 'FOLDER'
+}
 // export interface ApexClassOASFilter {
 //   modifiers: string[] | null;
 // }

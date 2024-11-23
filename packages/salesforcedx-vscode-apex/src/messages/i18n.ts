@@ -60,7 +60,6 @@ export const messages = {
   apex_action_created: 'Apex Action created for %s: %s.',
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document_to_file: 'Writing OpenAPI document to file.',
-  no_active_editor: 'No active editor detected.',
   not_aura_enabled: 'Method %s is not eligible for Apex Action creation. It is not annotated with @AuraEnabled.',
   no_valid_method_found: 'No valid method found at cursor position.',
   no_eligible_methods_found:

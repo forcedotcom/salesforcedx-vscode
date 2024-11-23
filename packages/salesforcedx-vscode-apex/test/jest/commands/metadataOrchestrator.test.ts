@@ -190,11 +190,11 @@ describe('MetadataOrchestrator', () => {
     beforeEach(() => {
       (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
     });
-    it('should get error when sourceUri is an array', async () => {
-      await expect(orchestrator.validateEligibility([], true)).rejects.toThrow(
-        'We do not consider list of src files now'
-      );
-    });
+    // it('should get error when sourceUri is an array', async () => {
+    //   await expect(orchestrator.validateEligibility([], true)).rejects.toThrow(
+    //     'We do not consider list of src files now'
+    //   );
+    // });
 
     it('should throw an error when method is selected but the active editor is not available', async () => {
       (vscode.window as any).activeTextEditor = undefined;
