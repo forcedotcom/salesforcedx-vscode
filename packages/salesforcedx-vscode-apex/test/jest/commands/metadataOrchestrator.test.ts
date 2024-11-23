@@ -8,7 +8,11 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { MetadataOrchestrator } from '../../../src/commands/metadataOrchestrator';
 import { languageClientUtils } from '../../../src/languageUtils';
-import { ApexOASEligiblePayload, ApexClassOASEligibleResponses } from '../../../src/openApiUtilities/schemas';
+import {
+  ApexOASEligiblePayload,
+  ApexClassOASEligibleResponses,
+  ApexOASResource
+} from '../../../src/openApiUtilities/schemas';
 import { getTelemetryService } from '../../../src/telemetry/telemetry';
 import { MockTelemetryService } from '../telemetry/mockTelemetryService';
 
@@ -237,5 +241,79 @@ describe('MetadataOrchestrator', () => {
       await orchestrator.validateEligibility({ path: 'file.cls' } as vscode.Uri, false);
       await expect(eligibilityDelegateSpy).toHaveBeenCalledWith(payload);
     });
+  });
+
+  describe('requestTarget', () => {
+    it('request for a folder', () => {
+      const sampleRequest = {
+        payload: [
+          {
+            resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes',
+            includeAllMethods: true,
+            includeAllProperties: true,
+            positions: [],
+            methodNames: [],
+            propertyNames: []
+          }
+        ]
+      };
+      expect(orchestrator.requestTarget(sampleRequest)).toBe(ApexOASResource.folder);
+    });
+  });
+
+  it('request for a single class', () => {
+    const sampleRequest = {
+      payload: [
+        {
+          resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file.cls',
+          includeAllMethods: true,
+          includeAllProperties: true,
+          positions: [],
+          methodNames: [],
+          propertyNames: []
+        }
+      ]
+    };
+    expect(orchestrator.requestTarget(sampleRequest)).toBe(ApexOASResource.class);
+  });
+
+  it('request for a single method or property', () => {
+    const sampleRequest = {
+      payload: [
+        {
+          resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file.cls',
+          includeAllMethods: false,
+          includeAllProperties: false,
+          positions: [new vscode.Position(3, 5)],
+          methodNames: [],
+          propertyNames: []
+        }
+      ]
+    };
+    expect(orchestrator.requestTarget(sampleRequest)).toBe(ApexOASResource.singleMethodOrProp);
+  });
+
+  it('request for multiple classes', () => {
+    const sampleRequest = {
+      payload: [
+        {
+          resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file1.cls',
+          includeAllMethods: true,
+          includeAllProperties: true,
+          positions: null,
+          methodNames: [],
+          propertyNames: []
+        },
+        {
+          resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file2.cls',
+          includeAllMethods: true,
+          includeAllProperties: true,
+          positions: null,
+          methodNames: [],
+          propertyNames: []
+        }
+      ]
+    };
+    expect(orchestrator.requestTarget(sampleRequest)).toBe(ApexOASResource.multiClass);
   });
 });
