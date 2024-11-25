@@ -2,9 +2,7 @@
 
 ## Pre-requisites
 
-1.  We are requiring Node 16 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
-    1. npm v6 is declared as a dependency in the workspace root and gets used by vsce packaging due to [issues with vsce packaging and npm v7/8](https://github.com/forcedotcom/salesforcedx-vscode/pull/4092)
-    1. npm v8 that comes installed with node 16 would be used when npm is invoked via npm run scripts or manually via shell. Hence the new lock file format of npm v8 with workspaces support is used by `npm install`.
+1.  We are requiring Node 20 and npm v10 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
 1.  This repository uses [Lerna](https://lerna.js.org) to manage it as a
     _monorepo_. Please install Lerna globally using `npm install --global lerna`.
 1.  We use `eslint` so please install it using `npm install --global eslint`.
