@@ -16,7 +16,7 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  active_text_editor_not_apex: 'The active text editor is not on an apex class file',
+  active_text_editor_not_apex: 'The active text editor is not an Apex Class file',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
