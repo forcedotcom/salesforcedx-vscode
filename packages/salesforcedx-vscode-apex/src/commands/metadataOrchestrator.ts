@@ -219,32 +219,37 @@ export class MetadataOrchestrator {
     }
   };
 
-  public eligibilityDelegate = async (requests: ApexOASEligiblePayload): Promise<ApexClassOASEligibleResponses> => {
+  public eligibilityDelegate = async (
+    requests: ApexOASEligiblePayload
+  ): Promise<ApexClassOASEligibleResponses | undefined> => {
     const telemetryService = await getTelemetryService();
-    let response = {};
-    let attempt = 0;
+    let response;
     const languageClient = languageClientUtils.getClientInstance();
     if (languageClient) {
+      const classNumbers = requests.payload.length.toString();
+      const requestTarget = this.requestTarget(requests);
       try {
-        attempt++;
-        response = await languageClient?.sendRequest('apexoas/isEligible', requests);
+        response = (await languageClient?.sendRequest('apexoas/isEligible', requests)) as ApexClassOASEligibleResponses;
         telemetryService.sendEventData('isEligibleResponseSucceeded', {
-          classNumbers: requests.payload.length.toString(),
-          requestTarget: this.requestTarget(requests)
+          classNumbers,
+          requestTarget
         });
       } catch (error) {
-        telemetryService.sendException('isEligibleResponseFailed', `${error} after trying ${attempt} times.`);
+        telemetryService.sendException(
+          'isEligibleResponseFailed',
+          `${error} failed to send request to language server with ${classNumbers} classes and target of request for ${requestTarget}`
+        );
         // fallback TBD after we understand it better
         throw new Error(nls.localize('cannot_get_apexoaseligibility_response'));
       }
     }
-    return response as ApexClassOASEligibleResponses;
+    return response;
   };
 
   public validateEligibility = async (
     sourceUri: vscode.Uri | vscode.Uri[],
     isMethodSelected: boolean = false
-  ): Promise<ApexClassOASEligibleResponses> => {
+  ): Promise<ApexClassOASEligibleResponses | undefined> => {
     const telemetryService = await getTelemetryService();
     const requests = [];
     if (Array.isArray(sourceUri)) {
@@ -253,7 +258,10 @@ export class MetadataOrchestrator {
         const request = {
           resourceUri: uri.path,
           includeAllMethods: true,
-          includeAllProperties: true
+          includeAllProperties: true,
+          methodNames: [],
+          positions: null,
+          propertyNames: []
         } as ApexClassOASEligibleRequest;
         requests.push(request);
       }
