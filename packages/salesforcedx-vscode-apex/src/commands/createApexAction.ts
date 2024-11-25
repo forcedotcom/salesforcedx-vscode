@@ -14,9 +14,9 @@ const controller = new ApexActionController(metadataOrchestrator);
 /**
  * Creates an Apex Action from the method at the current cursor position.
  */
-export const createApexActionFromMethod = async (): Promise<void> => {
+export const createApexActionFromMethod = async (sourceUri: vscode.Uri | undefined): Promise<void> => {
   // Call Controller
-  await controller.createApexAction(false);
+  await controller.createApexAction(false, sourceUri);
 };
 
 /**

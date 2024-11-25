@@ -13,6 +13,7 @@ import { stringify } from 'yaml';
 import { nls } from '../messages';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator, MethodMetadata } from './metadataOrchestrator';
+import { ApexClassOASEligibleResponse } from '../openApiUtilities/schemas';
 
 export class ApexActionController {
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}
@@ -21,7 +22,7 @@ export class ApexActionController {
    * Creates an Apex Action.
    * @param isClass - Indicates if the action is for a class or a method.
    */
-  public createApexAction = async (isClass: boolean, sourceUri?: vscode.Uri): Promise<void> => {
+  public createApexAction = async (isClass: boolean, sourceUri: vscode.Uri | undefined): Promise<void> => {
     const type = isClass ? 'Class' : 'Method';
     const command = isClass
       ? 'SFDX: Create Apex Action from This Class'
@@ -40,18 +41,20 @@ export class ApexActionController {
           // Step 1: Extract Metadata
           progress.report({ message: nls.localize('extract_metadata') });
           metadata = isClass
-            ? await this.metadataOrchestrator.extractAllMethodsMetadata(sourceUri)
-            : this.metadataOrchestrator.extractMethodMetadata();
+            ? await this.metadataOrchestrator.extractMetadata(sourceUri)
+            : await this.metadataOrchestrator.extractMetadata(sourceUri, true);
           if (!metadata) {
             throw new Error(nls.localize('extraction_failed', type));
           }
 
           // Step 3: Generate OpenAPI Document
           progress.report({ message: nls.localize('generate_openapi_document') });
-          const openApiDocument = this.generateOpenAPIDocument(Array.isArray(metadata) ? metadata : [metadata]);
+          const openApiDocument = await this.generateOpenAPIDocument(metadata);
 
           // Step 4: Write OpenAPI Document to File
-          name = Array.isArray(metadata) ? metadata[0].className : metadata.name;
+          name = isClass
+            ? path.basename(metadata.resourceUri, '.cls')
+            : metadata && metadata.symbols![0].docSymbol.name;
           const openApiFileName = `${name}_openapi.yml`;
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
           await this.saveAndOpenDocument(openApiFileName, openApiDocument);
@@ -88,34 +91,17 @@ export class ApexActionController {
    * @param metadata - The metadata of the methods.
    * @returns The OpenAPI document as a string.
    */
-  private generateOpenAPIDocument = (metadata: MethodMetadata[]): string => {
-    const paths: OpenAPIV3.PathsObject = {};
+  private generateOpenAPIDocument = async (metadata: ApexClassOASEligibleResponse): Promise<string> => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      throw new Error(nls.localize('no_active_editor'));
+    }
+    const document = editor?.document;
+    const lines = document?.getText();
+    const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(lines);
 
-    metadata?.forEach(method => {
-      paths[`/apex/${method.name}`] = {
-        post: {
-          operationId: method.name,
-          summary: `Invoke ${method.name}`,
-          parameters: method.parameters as unknown as (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[],
-          responses: {
-            200: {
-              description: 'Success',
-              content: {
-                'application/json': { schema: { type: method.returnType as OpenAPIV3.NonArraySchemaObjectType } }
-              }
-            }
-          }
-        }
-      };
-    });
-
-    const openAPIDocument: OpenAPIV3.Document = {
-      openapi: '3.0.0',
-      info: { title: 'Apex Actions', version: '1.0.0' },
-      paths
-    };
     // Convert the OpenAPI document to YAML
-    return stringify(openAPIDocument);
+    return stringify(openAPIdocument);
   };
 
   /**
