@@ -6,14 +6,13 @@
  */
 import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
-import { OpenAPIV3 } from 'openapi-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
 import { nls } from '../messages';
-import { getTelemetryService } from '../telemetry/telemetry';
-import { MetadataOrchestrator, MethodMetadata } from './metadataOrchestrator';
 import { ApexClassOASEligibleResponse } from '../openApiUtilities/schemas';
+import { getTelemetryService } from '../telemetry/telemetry';
+import { MetadataOrchestrator } from './metadataOrchestrator';
 
 export class ApexActionController {
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}

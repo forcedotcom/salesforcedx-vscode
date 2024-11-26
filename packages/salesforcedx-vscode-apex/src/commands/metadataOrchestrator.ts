@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AiApiClient, CommandSource, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
+import path from 'path';
 import * as vscode from 'vscode';
 import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
@@ -14,9 +16,7 @@ import {
   ApexOASEligiblePayload,
   ApexOASResource
 } from '../openApiUtilities/schemas';
-import { ServiceProvider, ServiceType, AiApiClient, CommandSource } from '@salesforce/vscode-service-provider';
 import { getTelemetryService } from '../telemetry/telemetry';
-import path from 'path';
 
 /**
  * Interface representing the metadata of a method.
