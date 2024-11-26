@@ -22,7 +22,7 @@ export class ApexActionController {
    * Creates an Apex Action.
    * @param isClass - Indicates if the action is for a class or a method.
    */
-  public createApexAction = async (isClass: boolean, sourceUri: vscode.Uri | undefined): Promise<void> => {
+  public createApexAction = async (isClass: boolean, sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
     const type = isClass ? 'Class' : 'Method';
     const command = isClass
       ? 'SFDX: Create Apex Action from This Class'
@@ -96,9 +96,13 @@ export class ApexActionController {
     if (!editor) {
       throw new Error(nls.localize('no_active_editor'));
     }
-    const document = editor?.document;
-    const lines = document?.getText();
-    const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(lines);
+    const documentText = editor?.document?.getText();
+    const className = path.basename(metadata.resourceUri, '.cls');
+    const methodNames = (metadata.symbols || [])
+      .filter((symbol: any) => symbol.isEligible)
+      .map((symbol: any) => symbol?.docSymbol?.name)
+      .filter((name: string | undefined) => name);
+    const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, methodNames, className);
 
     // Convert the OpenAPI document to YAML
     return stringify(openAPIdocument);

@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
@@ -17,6 +16,7 @@ import {
 } from '../openApiUtilities/schemas';
 import { ServiceProvider, ServiceType, AiApiClient, CommandSource } from '@salesforce/vscode-service-provider';
 import { getTelemetryService } from '../telemetry/telemetry';
+import path from 'path';
 
 /**
  * Interface representing the metadata of a method.
@@ -45,28 +45,27 @@ export interface Parameter {
  */
 export class MetadataOrchestrator {
   /**
-   * Checks if a method is eligible for Apex Action creation.
-   * @param methodIdentifier - The identifier of the method.
-   * @returns True if the method is eligible, false otherwise.
-   */
-  public isMethodEligible = (methodIdentifier: string): boolean => {
-    // Placeholder for eligibility logic
-    return true;
-  };
-
-  /**
    * Extracts metadata for the method at the current cursor position.
    * @returns The metadata of the method, or undefined if no method is found.
    */
   public extractMetadata = async (
-    sourceUri: vscode.Uri | undefined,
+    sourceUri: vscode.Uri | vscode.Uri[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponse | undefined> => {
-    const isEligibleResponses = await this.validateEligibility(sourceUri as vscode.Uri, isMethodSelected);
-    const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
-
-    if (!isEligibleResponses || !isEligibleResponses[0].isEligible) {
-      throw new Error(nls.localize('not_aura_enabled', name));
+    const isEligibleResponses = await this.validateEligibility(sourceUri, isMethodSelected);
+    if (!isEligibleResponses || isEligibleResponses.length === 0) {
+      throw new Error('Failed to validate metadata.');
+    }
+    if (!isEligibleResponses[0].isEligible) {
+      if (isMethodSelected) {
+        const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
+        throw new Error(nls.localize('not_aura_enabled', name));
+      }
+      throw new Error(
+        nls.localize(
+          `The Apex Class ${path.basename(isEligibleResponses[0].resourceUri, '.cls')} is not valid for Open AI document generation.`
+        )
+      );
     }
     return isEligibleResponses[0];
   };
@@ -130,7 +129,7 @@ export class MetadataOrchestrator {
       }
       // generate the payload
       const request: ApexClassOASEligibleRequest = {
-        resourceUri: sourceUri?.path ?? vscode.window.activeTextEditor?.document.fileName!,
+        resourceUri: sourceUri ? sourceUri.toString() : vscode.window.activeTextEditor?.document.uri.toString() || '',
         includeAllMethods: !isMethodSelected,
         includeAllProperties: !isMethodSelected,
         positions: cursorPosition ? [cursorPosition] : null,
@@ -155,14 +154,14 @@ export class MetadataOrchestrator {
       } else return ApexOASResource.class;
     }
   }
-  sendPromptToLLM = async (editorText: string): Promise<string> => {
+  sendPromptToLLM = async (editorText: string, methods: string[], className: string): Promise<string> => {
     console.log('This is the sendPromptToLLM() method');
     console.log('document text = ' + editorText);
 
     const systemPrompt = 'abc';
 
     const userPrompt =
-      'Generate an OpenAPI v3 specification for my current Apex class. The OpenAPI v3 specification should be in YAML. The paths should be in the format of /{ClassName}/{MethodName} for the @AuraEnabled methods. When you return Id in a SOQL query, it has `type: Id`. For every `type: object`, generate a `#/components/schemas` entry for that object. The method should have a $ref entry pointing to the generated `#/components/schemas` entry. Only include methods that have the @AuraEnabled annotation in the paths of the OpenAPI v3 specification.';
+      'Generate an OpenAPI v3 specification for the following Apex class. The OpenAPI v3 specification should be a YAML file. The paths should be in the format of /{ClassName}/{MethodName} for all the @AuraEnabled methods specified. When you return Id in a SOQL query, it has `type: Id`. For every `type: object`, generate a `#/components/schemas` entry for that object. The method should have a $ref entry pointing to the generated `#/components/schemas` entry. Only include methods that have the @AuraEnabled annotation in the paths of the OpenAPI v3 specification. I do not want AUTHOR_PLACEHOLDER in the result.';
 
     const systemTag = '<|system|>';
     const endOfPromptTag = '<|endofprompt|>';
@@ -174,6 +173,7 @@ export class MetadataOrchestrator {
       userPrompt +
       `\n\n***Code Context***\n\`\`\`\n` +
       editorText +
+      `\nClass name: ${className}, methods: ${methods.join(',')}\n` +
       `\n\`\`\`\n${endOfPromptTag}\n${assistantTag}`;
     console.log('input = ' + input);
     let result;
