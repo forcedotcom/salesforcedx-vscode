@@ -110,7 +110,7 @@ export class MetadataOrchestrator {
       lines = fileText.split('\n');
     } else {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || !editor.document.fileName.endsWith('cls')) {
+      if (!editor || !editor.document.fileName.endsWith('.cls')) {
         notificationService.showErrorMessage(nls.localize('invalid_active_text_editor'));
         return;
       }
