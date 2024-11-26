@@ -58,7 +58,7 @@ export class MetadataOrchestrator {
    */
   public extractMethodMetadata = (): MethodMetadata | undefined => {
     const editor = vscode.window.activeTextEditor;
-    if (!editor || !editor.document.fileName.endsWith('cls')) {
+    if (!editor || !editor.document.fileName.endsWith('.cls')) {
       notificationService.showErrorMessage(nls.localize('invalid_active_text_editor'));
       return;
     }
