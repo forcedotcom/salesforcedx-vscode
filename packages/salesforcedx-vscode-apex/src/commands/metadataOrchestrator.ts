@@ -269,7 +269,7 @@ export class MetadataOrchestrator {
       let cursorPosition;
       if (isMethodSelected) {
         const editor = vscode.window.activeTextEditor;
-        if (editor && editor.document.fileName.endsWith('cls')) {
+        if (editor && editor.document.fileName.endsWith('.cls')) {
           cursorPosition = editor.selection.active;
         } else {
           telemetryService.sendException('activeTextEditorNotApex', nls.localize('active_text_editor_not_apex'));
