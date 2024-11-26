@@ -177,14 +177,15 @@ export class MetadataOrchestrator {
         schema: { type: this.mapApexTypeToJsonType(type) }
       };
     });
-
-    return {
+    const metadata = {
       name: methodName,
       parameters,
       returnType,
-      isAuraEnabled,
-      className
-    };
+      isAuraEnabled
+    } as MethodMetadata;
+    if (className) metadata.className = className;
+
+    return metadata;
   }
 
   /**
