@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AiApiClient, CommandSource, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
-import path from 'path';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
@@ -54,18 +54,14 @@ export class MetadataOrchestrator {
   ): Promise<ApexClassOASEligibleResponse | undefined> => {
     const isEligibleResponses = await this.validateEligibility(sourceUri, isMethodSelected);
     if (!isEligibleResponses || isEligibleResponses.length === 0) {
-      throw new Error('Failed to validate metadata.');
+      throw new Error(nls.localize('validation_failed'));
     }
     if (!isEligibleResponses[0].isEligible) {
       if (isMethodSelected) {
         const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
         throw new Error(nls.localize('not_aura_enabled', name));
       }
-      throw new Error(
-        nls.localize(
-          `The Apex Class ${path.basename(isEligibleResponses[0].resourceUri, '.cls')} is not valid for Open AI document generation.`
-        )
-      );
+      throw new Error(nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri, '.cls')));
     }
     return isEligibleResponses[0];
   };
@@ -107,7 +103,7 @@ export class MetadataOrchestrator {
       // if sourceUri is an array, then multiple classes/folders are selected
       for (const uri of sourceUri) {
         const request = {
-          resourceUri: uri.path,
+          resourceUri: uri.toString(),
           includeAllMethods: true,
           includeAllProperties: true,
           methodNames: [],
@@ -120,7 +116,7 @@ export class MetadataOrchestrator {
       let cursorPosition;
       if (isMethodSelected) {
         const editor = vscode.window.activeTextEditor;
-        if (editor && editor.document.fileName.endsWith('cls')) {
+        if (editor && editor.document.fileName.endsWith('.cls')) {
           cursorPosition = editor.selection.active;
         } else {
           telemetryService.sendException('activeTextEditorNotApex', nls.localize('active_text_editor_not_apex'));
@@ -177,18 +173,22 @@ export class MetadataOrchestrator {
       `\n\`\`\`\n${endOfPromptTag}\n${assistantTag}`;
     console.log('input = ' + input);
     let result;
-    let documentContents;
+    let documentContents = '';
+    let tries = 0;
     try {
       const apiClient = await this.getAiApiClient();
-      result = await apiClient.naturalLanguageQuery({
-        prefix: '',
-        suffix: '',
-        input,
-        commandSource: CommandSource.NLtoCodeGen,
-        promptId: 'generateOpenAPIv3Specifications'
-      });
-      documentContents = result[0].completion;
-      if (documentContents.includes('try again')) throw new Error(documentContents);
+      while (!documentContents.startsWith('yaml') && tries < 10) {
+        result = await apiClient.naturalLanguageQuery({
+          prefix: '',
+          suffix: '',
+          input,
+          commandSource: CommandSource.NLtoCodeGen,
+          promptId: 'generateOpenAPIv3Specifications'
+        });
+        documentContents = result[0].completion;
+        if (documentContents.includes('try again')) tries++;
+      }
+      if (tries === 10) throw new Error(documentContents);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(errorMessage);

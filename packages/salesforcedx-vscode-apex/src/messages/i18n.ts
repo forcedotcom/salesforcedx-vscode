@@ -57,6 +57,8 @@ export const messages = {
   create_apex_action_failed: 'Failed to create Apex Action',
   extract_metadata: 'Extracting metadata.',
   extraction_failed: 'Failed to extract metadata from %s',
+  validation_failed: 'Failed to validate metadata.',
+  apex_class_not_valid: 'The Apex Class %s is not valid for Open AI document generation.',
   apex_action_created: 'Apex Action created for %s: %s.',
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document_to_file: 'Writing OpenAPI document to file.',
