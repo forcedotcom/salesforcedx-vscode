@@ -171,7 +171,7 @@ export class MetadataOrchestrator {
     const input =
       `${systemTag}\n${systemPrompt}\n\n${endOfPromptTag}\n${userTag}\n` +
       userPrompt +
-      `\n\n***Code Context***\n\`\`\`\n` +
+      '\n\n***Code Context***\n```\n' +
       editorText +
       `\nClass name: ${className}, methods: ${methods.join(',')}\n` +
       `\n\`\`\`\n${endOfPromptTag}\n${assistantTag}`;
@@ -183,7 +183,7 @@ export class MetadataOrchestrator {
       result = await apiClient.naturalLanguageQuery({
         prefix: '',
         suffix: '',
-        input: input,
+        input,
         commandSource: CommandSource.NLtoCodeGen,
         promptId: 'generateOpenAPIv3Specifications'
       });
