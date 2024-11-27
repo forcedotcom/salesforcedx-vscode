@@ -258,7 +258,7 @@
         },
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/"
         }
       ]
     },

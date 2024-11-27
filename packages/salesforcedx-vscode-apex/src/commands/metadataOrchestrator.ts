@@ -6,7 +6,15 @@
  */
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
+import {
+  ApexClassOASEligibleRequest,
+  ApexClassOASEligibleResponses,
+  ApexOASEligiblePayload,
+  ApexOASResource
+} from '../openApiUtilities/schemas';
+import { getTelemetryService } from '../telemetry/telemetry';
 
 /**
  * Interface representing the metadata of a method.
@@ -50,8 +58,8 @@ export class MetadataOrchestrator {
    */
   public extractMethodMetadata = (): MethodMetadata | undefined => {
     const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      notificationService.showErrorMessage(nls.localize('no_active_editor'));
+    if (!editor || !editor.document.fileName.endsWith('.cls')) {
+      notificationService.showErrorMessage(nls.localize('invalid_active_text_editor'));
       return;
     }
 
@@ -102,8 +110,8 @@ export class MetadataOrchestrator {
       lines = fileText.split('\n');
     } else {
       const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        notificationService.showErrorMessage(nls.localize('no_active_editor'));
+      if (!editor || !editor.document.fileName.endsWith('.cls')) {
+        notificationService.showErrorMessage(nls.localize('invalid_active_text_editor'));
         return;
       }
 
@@ -211,4 +219,89 @@ export class MetadataOrchestrator {
         return 'string';
     }
   };
+
+  public eligibilityDelegate = async (
+    requests: ApexOASEligiblePayload
+  ): Promise<ApexClassOASEligibleResponses | undefined> => {
+    const telemetryService = await getTelemetryService();
+    let response;
+    const languageClient = languageClientUtils.getClientInstance();
+    if (languageClient) {
+      const classNumbers = requests.payload.length.toString();
+      const requestTarget = this.requestTarget(requests);
+      try {
+        response = (await languageClient?.sendRequest('apexoas/isEligible', requests)) as ApexClassOASEligibleResponses;
+        telemetryService.sendEventData('isEligibleResponseSucceeded', {
+          classNumbers,
+          requestTarget
+        });
+      } catch (error) {
+        telemetryService.sendException(
+          'isEligibleResponseFailed',
+          `${error} failed to send request to language server with ${classNumbers} classes and target of request for ${requestTarget}`
+        );
+        // fallback TBD after we understand it better
+        throw new Error(nls.localize('cannot_get_apexoaseligibility_response'));
+      }
+    }
+    return response;
+  };
+
+  public validateEligibility = async (
+    sourceUri: vscode.Uri | vscode.Uri[],
+    isMethodSelected: boolean = false
+  ): Promise<ApexClassOASEligibleResponses | undefined> => {
+    const telemetryService = await getTelemetryService();
+    const requests = [];
+    if (Array.isArray(sourceUri)) {
+      // if sourceUri is an array, then multiple classes/folders are selected
+      for (const uri of sourceUri) {
+        const request = {
+          resourceUri: uri.path,
+          includeAllMethods: true,
+          includeAllProperties: true,
+          methodNames: [],
+          positions: null,
+          propertyNames: []
+        } as ApexClassOASEligibleRequest;
+        requests.push(request);
+      }
+    } else {
+      let cursorPosition;
+      if (isMethodSelected) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor && editor.document.fileName.endsWith('.cls')) {
+          cursorPosition = editor.selection.active;
+        } else {
+          telemetryService.sendException('activeTextEditorNotApex', nls.localize('active_text_editor_not_apex'));
+          throw new Error(nls.localize('invalid_active_text_editor'));
+        }
+      }
+      // generate the payload
+      const request: ApexClassOASEligibleRequest = {
+        resourceUri: sourceUri.path,
+        includeAllMethods: !isMethodSelected,
+        includeAllProperties: !isMethodSelected,
+        positions: cursorPosition ? [cursorPosition] : null,
+        methodNames: [],
+        propertyNames: []
+      };
+      requests.push(request);
+    }
+
+    const responses = await this.eligibilityDelegate({ payload: requests });
+    return responses;
+  };
+
+  public requestTarget(requestPayload: ApexOASEligiblePayload): ApexOASResource {
+    const payload = requestPayload.payload;
+    if (payload.length > 1) return ApexOASResource.multiClass;
+    else {
+      const request = payload[0];
+      if (!request.includeAllMethods && !request.includeAllProperties) return ApexOASResource.singleMethodOrProp;
+      if (!request.resourceUri.endsWith('.cls')) {
+        return ApexOASResource.folder;
+      } else return ApexOASResource.class;
+    }
+  }
 }
