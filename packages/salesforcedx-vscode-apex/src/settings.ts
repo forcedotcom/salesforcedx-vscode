@@ -29,9 +29,7 @@ export const retrieveClassAccessModifiers = (): string[] =>
 export const retrieveClassDefinitionModifiers = (): string[] =>
   vscode.workspace
     .getConfiguration()
-    .get<
-      string[]
-    >('salesforcsalesforcedx-vscode-apex.apexoas.eligibility.class.definition-modifiers', ['with sharing']);
+    .get<string[]>('salesforcsalesforcedx-vscode-apex.apexoas.eligibility.class.definition-modifiers', ['withsharing']);
 
 export const retrieveMethodAndPropertyModifiers = (): string[] =>
   vscode.workspace
