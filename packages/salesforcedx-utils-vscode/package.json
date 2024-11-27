@@ -15,12 +15,12 @@
     "@salesforce/source-tracking-bundle": "7.1.17",
     "@salesforce/vscode-service-provider": "1.2.1",
     "applicationinsights": "1.0.7",
-    "cross-spawn": "7.0.3",
+    "cross-spawn": "7.0.6",
     "rxjs": "^5.4.1",
     "tree-kill": "^1.1.0"
   },
   "devDependencies": {
-    "@types/cross-spawn": "6.0.0",
+    "@types/cross-spawn": "6.0.6",
     "@types/jest": "^29.5.5",
     "@types/node": "^20.0.0",
     "@types/shelljs": "0.7.9",

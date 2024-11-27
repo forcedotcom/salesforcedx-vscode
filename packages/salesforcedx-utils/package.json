@@ -16,7 +16,7 @@
     "coverage": "jest --coverage"
   },
   "dependencies": {
-    "cross-spawn": "7.0.3",
+    "cross-spawn": "7.0.6",
     "request-light": "^0.7.0",
     "rxjs": "^5.4.1",
     "semver": "^7.5.4",
