@@ -33,9 +33,9 @@ export const deployOAS = async (sourceUri: vscode.Uri | vscode.Uri[] | undefined
 
     // Notify Success
     notificationService.showInformationMessage('SFDX: Deploy This Open API Spec to Org successfully ran.');
-    telemetryService.sendEventData(`Deploy_OAS_Succeeded`, { method: name! });
+    telemetryService.sendEventData('Deploy_OAS_Succeeded', { method: name! });
   } catch (error: any) {
-    void handleError(error, `Deploy_OAS_Failed`);
+    void handleError(error, 'Deploy_OAS_Failed');
   }
 };
 

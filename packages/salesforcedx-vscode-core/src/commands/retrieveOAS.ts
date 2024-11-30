@@ -15,11 +15,11 @@ export const retrieveOAS = async (sourceUri: vscode.Uri | undefined, uris: vscod
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'SFDX: Retrieve This Open API Spec to Org',
+        title: 'SFDX: Retrieve This Open API Spec from Org',
         cancellable: true
       },
       async progress => {
-        progress.report({ message: 'Running SFDX: Retrieve This Open API Spec to Org' });
+        progress.report({ message: 'Running SFDX: Retrieve This Open API Spec from Org' });
         if (!sourceUri) {
           // When the source is Retrieved via the command palette, sourceUri is undefined,
           // and needs to be obtained from the active text editor.
@@ -32,10 +32,10 @@ export const retrieveOAS = async (sourceUri: vscode.Uri | undefined, uris: vscod
     );
 
     // Notify Success
-    notificationService.showInformationMessage('SFDX: Retrieve This Open API Spec to Org successfully ran.');
-    telemetryService.sendEventData(`Retrieve_OAS_Succeeded`, { method: name! });
+    notificationService.showInformationMessage('SFDX: Retrieve This Open API Spec from Org successfully ran.');
+    telemetryService.sendEventData('Retrieve_OAS_Succeeded', { method: name! });
   } catch (error: any) {
-    void handleError(error, `Retrieve_OAS_Failed`);
+    void handleError(error, 'Retrieve_OAS_Failed');
   }
 };
 
