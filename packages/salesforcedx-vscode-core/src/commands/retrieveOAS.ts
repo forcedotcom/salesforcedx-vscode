@@ -15,11 +15,10 @@ export const retrieveOAS = async (sourceUri: vscode.Uri | undefined, uris: vscod
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'SFDX: Retrieve This Open API Spec from Org',
         cancellable: true
       },
       async progress => {
-        progress.report({ message: 'Running SFDX: Retrieve This Open API Spec from Org' });
+        progress.report({ message: nls.localize('progress_notification_text', nls.localize('retrieve_oas_title')) });
         if (!sourceUri) {
           // When the source is Retrieved via the command palette, sourceUri is undefined,
           // and needs to be obtained from the active text editor.
@@ -32,21 +31,21 @@ export const retrieveOAS = async (sourceUri: vscode.Uri | undefined, uris: vscod
     );
 
     // Notify Success
-    notificationService.showInformationMessage('SFDX: Retrieve This Open API Spec from Org successfully ran.');
-    telemetryService.sendEventData('Retrieve_OAS_Succeeded', { method: name! });
+    notificationService.showInformationMessage(nls.localize('retrieve_oas_succeeded'));
+    telemetryService.sendEventData('retrieve_oas_succeeded', undefined);
   } catch (error: any) {
-    void handleError(error, 'Retrieve_OAS_Failed');
+    void handleError(error, 'retrieve_oas_failed');
   }
 };
 
 export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
   const editor = vscode.window.activeTextEditor;
-  if (editor && editor.document.languageId === 'yaml') {
+  if (editor?.document.languageId === 'yaml') {
     return editor.document.uri;
   }
 
-  const errorMessage = nls.localize('Retrieve_OAS_Failed');
-  telemetryService.sendException('Retrieve_OAS_Failed', errorMessage);
+  const errorMessage = nls.localize('retrieve_oas_failed');
+  telemetryService.sendException('retrieve_oas_failed', errorMessage);
   notificationService.showErrorMessage(errorMessage);
   channelService.appendLine(errorMessage);
   channelService.showChannelOutput();
@@ -61,6 +60,6 @@ export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
  */
 const handleError = async (error: any, telemetryEvent: string): Promise<void> => {
   const errorMessage = error instanceof Error ? error.message : String(error);
-  notificationService.showErrorMessage(`${nls.localize('Retrieve_OAS_Failed')}: ${errorMessage}`);
+  notificationService.showErrorMessage(`${nls.localize('retrieve_oas_failed')}: ${errorMessage}`);
   telemetryService.sendException(telemetryEvent, errorMessage);
 };
