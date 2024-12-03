@@ -11,7 +11,7 @@ import { URL } from 'url';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
 import { nls } from '../messages';
-import { ApexClassOASEligibleResponse } from '../openApiUtilities/schemas';
+import { ApexClassOASEligibleResponse, SymbolEligibility } from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 
@@ -91,8 +91,8 @@ export class ApexActionController {
     const documentText = fs.readFileSync(new URL(metadata.resourceUri.toString()), 'utf8');
     const className = path.basename(metadata.resourceUri, '.cls');
     const methodNames = (metadata.symbols || [])
-      .filter((symbol: any) => symbol.isEligible)
-      .map((symbol: any) => symbol.docSymbol?.name)
+      .filter((symbol: SymbolEligibility) => symbol.isEligible)
+      .map((symbol: SymbolEligibility) => symbol.docSymbol?.name)
       .filter((name: string | undefined) => name);
     const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, methodNames, className);
 
