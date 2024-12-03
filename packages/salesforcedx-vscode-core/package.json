@@ -194,7 +194,7 @@
       "editor/context": [
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -202,7 +202,7 @@
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -219,6 +219,14 @@
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
           "when": "sf:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
+        },
+        {
+          "command": "sf.deploy.oas",
+          "when": "sf:project_opened && resource =~ /.\\.yml$/ && resourcePath =~ /OpenAPIdocuments/ && editorIsOpen && sf:has_target_org"
+        },
+        {
+          "command": "sf.retrieve.oas",
+          "when": "sf:project_opened && resource =~ /.\\.yml$/ && resourcePath =~ /OpenAPIdocuments/ && editorIsOpen && sf:has_target_org"
         }
       ],
       "explorer/context": [
@@ -296,7 +304,7 @@
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -304,7 +312,7 @@
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -321,6 +329,14 @@
         {
           "command": "sf.rename.lightning.component",
           "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
+        },
+        {
+          "command": "sf.deploy.oas",
+          "when": "sf:project_opened && resourcePath =~ /OpenAPIdocuments/ && sf:has_target_org"
+        },
+        {
+          "command": "sf.retrieve.oas",
+          "when": "sf:project_opened && resourcePath =~ /OpenAPIdocuments/ && sf:has_target_org"
         }
       ],
       "commandPalette": [
@@ -490,7 +506,7 @@
         },
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -498,7 +514,7 @@
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -603,6 +619,14 @@
         {
           "command": "sf.vscode.core.logger.get.instance",
           "when": "false"
+        },
+        {
+          "command": "sf.deploy.oas",
+          "when": "sf:project_opened && resource =~ /.\\.yml$/ && resourcePath =~ /OpenAPIdocuments/ && editorIsOpen && sf:has_target_org"
+        },
+        {
+          "command": "sf.retrieve.oas",
+          "when": "sf:project_opened && resource =~ /.\\.yml$/ && resourcePath =~ /OpenAPIdocuments/ && editorIsOpen && sf:has_target_org"
         }
       ]
     },
@@ -906,6 +930,14 @@
       {
         "command": "sf.vscode.core.logger.get.instance",
         "title": "%vscode_core_services_get_logger%"
+      },
+      {
+        "command": "sf.deploy.oas",
+        "title": "%deploy_oas_text%"
+      },
+      {
+        "command": "sf.retrieve.oas",
+        "title": "%retrieve_oas_text%"
       }
     ],
     "configuration": {

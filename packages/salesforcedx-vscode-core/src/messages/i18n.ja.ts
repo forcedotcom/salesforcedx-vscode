@@ -263,6 +263,12 @@ export const messages = {
   error_org_browser_init: '組織ブラウザが初期化されませんでした。',
   error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
   list_metadata: 'SFDX: Force List Metadata',
+  deploy_oas_title: 'SFDX: Deploy This Open API Spec to Org',
+  retrieve_oas_title: 'SFDX: Retrieve This Open API Spec from Org',
+  deploy_oas_succeeded: 'SFDX: Deploy This Open API Spec to Org command successfully ran',
+  retrieve_oas_succeeded: 'SFDX: Retrieve This Open API Spec from Org command successfully ran',
+  deploy_oas_failed: 'SFDX: Deploy This Open API Spec to Org command failed',
+  retrieve_oas_failed: 'SFDX: Retrieve This Open API Spec from Org command failed',
 
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
