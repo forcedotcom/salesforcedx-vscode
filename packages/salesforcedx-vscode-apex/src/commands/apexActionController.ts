@@ -7,6 +7,7 @@
 import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { URL } from 'url';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
 import { nls } from '../messages';
@@ -91,11 +92,7 @@ export class ApexActionController {
    * @returns The OpenAPI document as a string.
    */
   private generateOpenAPIDocument = async (metadata: ApexClassOASEligibleResponse): Promise<string> => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      throw new Error(nls.localize('no_active_editor'));
-    }
-    const documentText = editor?.document?.getText();
+    const documentText = fs.readFileSync(new URL(metadata.resourceUri.toString()), 'utf8');
     const className = path.basename(metadata.resourceUri, '.cls');
     const methodNames = (metadata.symbols || [])
       .filter((symbol: any) => symbol.isEligible)
