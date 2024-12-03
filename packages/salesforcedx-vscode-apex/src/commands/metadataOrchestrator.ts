@@ -4,12 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { AiApiClient, CommandSource, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
 import {
   ApexClassOASEligibleRequest,
+  ApexClassOASEligibleResponse,
   ApexClassOASEligibleResponses,
   ApexOASEligiblePayload,
   ApexOASResource
@@ -43,181 +45,25 @@ export interface Parameter {
  */
 export class MetadataOrchestrator {
   /**
-   * Checks if a method is eligible for Apex Action creation.
-   * @param methodIdentifier - The identifier of the method.
-   * @returns True if the method is eligible, false otherwise.
-   */
-  public isMethodEligible = (methodIdentifier: string): boolean => {
-    // Placeholder for eligibility logic
-    return true;
-  };
-
-  /**
    * Extracts metadata for the method at the current cursor position.
    * @returns The metadata of the method, or undefined if no method is found.
    */
-  public extractMethodMetadata = (): MethodMetadata | undefined => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor || !editor.document.fileName.endsWith('.cls')) {
-      notificationService.showErrorMessage(nls.localize('invalid_active_text_editor'));
-      return;
+  public extractMetadata = async (
+    sourceUri: vscode.Uri | vscode.Uri[],
+    isMethodSelected: boolean = false
+  ): Promise<ApexClassOASEligibleResponse | undefined> => {
+    const isEligibleResponses = await this.validateEligibility(sourceUri, isMethodSelected);
+    if (!isEligibleResponses || isEligibleResponses.length === 0) {
+      throw new Error(nls.localize('validation_failed'));
     }
-
-    const document = editor.document;
-    const cursorPosition = editor.selection.active;
-    const lines = document.getText().split('\n');
-    const currentLineIndex = cursorPosition.line;
-
-    let methodSignature = '';
-    let isAuraEnabled = false;
-
-    // Check if the preceding line contains @AuraEnabled
-    if (currentLineIndex > 0 && lines[currentLineIndex - 1].includes('@AuraEnabled')) {
-      isAuraEnabled = true;
-    }
-
-    // Traverse lines starting from the cursor position to construct the method signature
-    for (let line of lines) {
-      line = line.trim();
-      methodSignature += ` ${line}`;
-
-      // Stop once the closing parenthesis is reached
-      if (line.includes(') {')) {
-        break;
+    if (!isEligibleResponses[0].isEligible) {
+      if (isMethodSelected) {
+        const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
+        throw new Error(nls.localize('not_eligible_method', name));
       }
+      throw new Error(nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri, '.cls')));
     }
-
-    const methodMetadata = this.parseMethodSignature(methodSignature, isAuraEnabled);
-    if (!methodMetadata.isAuraEnabled) {
-      throw new Error(nls.localize('not_aura_enabled', methodMetadata.name));
-    }
-    return methodMetadata;
-  };
-
-  public extractAllMethodsMetadata = async (
-    sourceUri: vscode.Uri | undefined
-  ): Promise<MethodMetadata[] | undefined> => {
-    let lines;
-    let className;
-    if (sourceUri) {
-      const path = sourceUri?.path.toString();
-      className = path!
-        .substring(path!.lastIndexOf(process.platform === 'win32' ? '\\' : '/') + 1)
-        .split('.')
-        .shift();
-      const fileContent = await vscode.workspace.fs.readFile(sourceUri!);
-      const fileText = Buffer.from(fileContent).toString('utf-8');
-      lines = fileText.split('\n');
-    } else {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor || !editor.document.fileName.endsWith('.cls')) {
-        notificationService.showErrorMessage(nls.localize('invalid_active_text_editor'));
-        return;
-      }
-
-      const document = editor.document;
-      const filePath = document.fileName;
-      className = filePath
-        .substring(filePath.lastIndexOf(process.platform === 'win32' ? '\\' : '/') + 1)
-        .split('.')
-        .shift();
-      lines = document.getText().split('\n');
-    }
-    const metadataList: MethodMetadata[] = [];
-    let currentMethodSignature = '';
-    let isAuraEnabled = false;
-
-    for (let line of lines) {
-      line = line.trim();
-
-      // Detect @AuraEnabled annotation
-      if (line.includes('@AuraEnabled')) {
-        isAuraEnabled = true;
-      }
-
-      // Build the method signature
-      currentMethodSignature += ` ${line}`;
-      if (line.includes(') {') && currentMethodSignature.includes('(')) {
-        // Method signature is complete
-        if (isAuraEnabled) {
-          const methodMetadata = this.parseMethodSignature(currentMethodSignature, isAuraEnabled, className);
-          if (methodMetadata) {
-            metadataList.push(methodMetadata);
-          }
-          isAuraEnabled = false;
-        }
-
-        // Reset for the next method
-        currentMethodSignature = '';
-      }
-    }
-
-    if (metadataList.length === 0) {
-      throw new Error(nls.localize('no_eligible_methods_found'));
-    }
-
-    return metadataList;
-  };
-  /**
-   * Parses a method signature and returns the method metadata.
-   * @param methodSignature - The method signature to parse.
-   * @param isAuraEnabled - Indicates if the method is Aura-enabled.
-   * @param className - The name of the class containing the method.
-   * @returns The metadata of the method, or undefined if parsing fails.
-   */
-  private parseMethodSignature(methodSignature: string, isAuraEnabled: boolean, className?: string): MethodMetadata {
-    const methodRegex = /\b(public|private|protected|global)\s+(static\s+)?([\w<>\[\]]+)\s+(\w+)\s*\((.*?)\)/s;
-    const match = methodRegex.exec(methodSignature);
-    if (!match) {
-      throw Error(nls.localize('no_valid_method_found'));
-    }
-
-    const returnType = match[3];
-    const methodName = match[4];
-    const parametersRaw = match[5] ? match[5].split(',').map(param => param.trim()) : [];
-    const parameters = parametersRaw.map(param => {
-      const [type, name] = param.split(/\s+/);
-      return {
-        name,
-        in: 'query',
-        required: true,
-        description: `The ${name} parameter of type ${type}.`,
-        schema: { type: this.mapApexTypeToJsonType(type) }
-      };
-    });
-    const metadata = {
-      name: methodName,
-      parameters,
-      returnType,
-      isAuraEnabled
-    } as MethodMetadata;
-    if (className) metadata.className = className;
-
-    return metadata;
-  }
-
-  /**
-   * Maps an Apex type to a JSON type.
-   * @param apexType - The Apex type to map.
-   * @returns The corresponding JSON type.
-   */
-  private mapApexTypeToJsonType = (apexType: string): string => {
-    switch (apexType.toLowerCase()) {
-      case 'string':
-        return 'string';
-      case 'integer':
-      case 'int':
-      case 'long':
-        return 'integer';
-      case 'boolean':
-        return 'boolean';
-      case 'decimal':
-      case 'double':
-      case 'float':
-        return 'number';
-      default:
-        return 'string';
-    }
+    return isEligibleResponses[0];
   };
 
   public eligibilityDelegate = async (
@@ -257,7 +103,7 @@ export class MetadataOrchestrator {
       // if sourceUri is an array, then multiple classes/folders are selected
       for (const uri of sourceUri) {
         const request = {
-          resourceUri: uri.path,
+          resourceUri: uri.toString(),
           includeAllMethods: true,
           includeAllProperties: true,
           methodNames: [],
@@ -270,7 +116,7 @@ export class MetadataOrchestrator {
       let cursorPosition;
       if (isMethodSelected) {
         const editor = vscode.window.activeTextEditor;
-        if (editor && editor.document.fileName.endsWith('.cls')) {
+        if (editor?.document.fileName.endsWith('.cls')) {
           cursorPosition = editor.selection.active;
         } else {
           telemetryService.sendException('activeTextEditorNotApex', nls.localize('active_text_editor_not_apex'));
@@ -279,7 +125,7 @@ export class MetadataOrchestrator {
       }
       // generate the payload
       const request: ApexClassOASEligibleRequest = {
-        resourceUri: sourceUri.path,
+        resourceUri: sourceUri ? sourceUri.toString() : vscode.window.activeTextEditor?.document.uri.toString() || '',
         includeAllMethods: !isMethodSelected,
         includeAllProperties: !isMethodSelected,
         positions: cursorPosition ? [cursorPosition] : null,
@@ -304,4 +150,54 @@ export class MetadataOrchestrator {
       } else return ApexOASResource.class;
     }
   }
+  sendPromptToLLM = async (editorText: string, methods: string[], className: string): Promise<string> => {
+    console.log('This is the sendPromptToLLM() method');
+    console.log('document text = ' + editorText);
+
+    const systemPrompt = 'abc';
+
+    const userPrompt =
+      'Generate an OpenAPI v3 specification for the following Apex class. The OpenAPI v3 specification should be a YAML file. The paths should be in the format of /{ClassName}/{MethodName} for all the @AuraEnabled methods specified. When you return Id in a SOQL query, it has `type: Id`. For every `type: object`, generate a `#/components/schemas` entry for that object. The method should have a $ref entry pointing to the generated `#/components/schemas` entry. Only include methods that have the @AuraEnabled annotation in the paths of the OpenAPI v3 specification. I do not want AUTHOR_PLACEHOLDER in the result.';
+
+    const systemTag = '<|system|>';
+    const endOfPromptTag = '<|endofprompt|>';
+    const userTag = '<|user|>';
+    const assistantTag = '<|assistant|>';
+
+    const input =
+      `${systemTag}\n${systemPrompt}\n\n${endOfPromptTag}\n${userTag}\n` +
+      userPrompt +
+      '\n\n***Code Context***\n```\n' +
+      editorText +
+      `\nClass name: ${className}, methods: ${methods.join(',')}\n` +
+      `\n\`\`\`\n${endOfPromptTag}\n${assistantTag}`;
+    console.log('input = ' + input);
+    let result;
+    let documentContents = '';
+    let tries = 0;
+    try {
+      const apiClient = await this.getAiApiClient();
+      while (!documentContents.startsWith('yaml') && tries < 10) {
+        result = await apiClient.naturalLanguageQuery({
+          prefix: '',
+          suffix: '',
+          input,
+          commandSource: CommandSource.NLtoCodeGen,
+          promptId: 'generateOpenAPIv3Specifications'
+        });
+        documentContents = result[0].completion;
+        if (documentContents.includes('try again')) tries++;
+      }
+      if (tries === 10) throw new Error(documentContents);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(errorMessage);
+    }
+
+    return documentContents;
+  };
+
+  getAiApiClient = async (): Promise<AiApiClient> => {
+    return ServiceProvider.getService(ServiceType.AiApiClient);
+  };
 }

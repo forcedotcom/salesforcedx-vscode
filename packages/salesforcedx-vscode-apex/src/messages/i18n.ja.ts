@@ -51,6 +51,18 @@ export const messages = {
     'テストメソッドがありません. @isTest アノテーションまたは testMethod キーワードのあるメソッドでコードアクションを実行してください。',
   apex_test_run_description_text: 'Apex テストを実行',
   apex_test_run_text: 'SFDX: Apex テストを呼び出す',
+  create_apex_action_failed: 'Failed to create Apex Action',
+  extract_metadata: 'Extracting metadata.',
+  extraction_failed: 'Failed to extract metadata from %s',
+  validation_failed: 'Failed to validate metadata.',
+  apex_class_not_valid: 'The Apex Class %s is not valid for Open AI document generation.',
+  apex_action_created: 'Apex Action created for %s: %s.',
+  generate_openapi_document: 'Generating OpenAPI document.',
+  write_openapi_document_to_file: 'Writing OpenAPI document to file.',
+  not_eligible_method:
+    'Method %s is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.',
+  unknown: 'Unknown',
+  invalid_active_text_editor: 'The active text editor is missing or is an invalid file.',
   sobjects_no_refresh_if_already_active_error_text:
     'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   test_view_loading_message: 'Apex テストを読み込んでいます...',
