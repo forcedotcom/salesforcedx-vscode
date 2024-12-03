@@ -59,7 +59,7 @@ export class MetadataOrchestrator {
     if (!isEligibleResponses[0].isEligible) {
       if (isMethodSelected) {
         const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
-        throw new Error(nls.localize('not_aura_enabled', name));
+        throw new Error(nls.localize('not_eligible_method', name));
       }
       throw new Error(nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri, '.cls')));
     }

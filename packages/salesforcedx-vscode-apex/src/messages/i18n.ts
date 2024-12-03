@@ -62,10 +62,8 @@ export const messages = {
   apex_action_created: 'Apex Action created for %s: %s.',
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document_to_file: 'Writing OpenAPI document to file.',
-  not_aura_enabled: 'Method %s is not eligible for Apex Action creation. It is not annotated with @AuraEnabled.',
-  no_valid_method_found: 'No valid method found at cursor position.',
-  no_eligible_methods_found:
-    'No eligible methods found in the open editor. Eligible methods are annotated with @AuraEnabled.',
+  not_eligible_method:
+    'Method %s is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.',
   apex_test_run_text: 'SFDX: Run Apex Tests',
   test_view_loading_message: 'Loading Apex tests ...',
   test_view_no_tests_message: 'No Apex Tests Found',

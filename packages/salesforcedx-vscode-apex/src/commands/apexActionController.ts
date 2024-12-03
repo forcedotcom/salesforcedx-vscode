@@ -40,9 +40,7 @@ export class ApexActionController {
         async progress => {
           // Step 1: Extract Metadata
           progress.report({ message: nls.localize('extract_metadata') });
-          metadata = isClass
-            ? await this.metadataOrchestrator.extractMetadata(sourceUri)
-            : await this.metadataOrchestrator.extractMetadata(sourceUri, true);
+          metadata = await this.metadataOrchestrator.extractMetadata(sourceUri, !isClass);
           if (!metadata) {
             throw new Error(nls.localize('extraction_failed', type));
           }
@@ -52,9 +50,7 @@ export class ApexActionController {
           const openApiDocument = await this.generateOpenAPIDocument(metadata);
 
           // Step 4: Write OpenAPI Document to File
-          name = isClass
-            ? path.basename(metadata.resourceUri, '.cls')
-            : metadata && metadata.symbols![0].docSymbol.name;
+          name = isClass ? path.basename(metadata.resourceUri, '.cls') : metadata?.symbols?.[0]?.docSymbol?.name;
           const openApiFileName = `${name}_openapi.yml`;
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
           await this.saveAndOpenDocument(openApiFileName, openApiDocument);
@@ -96,7 +92,7 @@ export class ApexActionController {
     const className = path.basename(metadata.resourceUri, '.cls');
     const methodNames = (metadata.symbols || [])
       .filter((symbol: any) => symbol.isEligible)
-      .map((symbol: any) => symbol?.docSymbol?.name)
+      .map((symbol: any) => symbol.docSymbol?.name)
       .filter((name: string | undefined) => name);
     const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, methodNames, className);
 
