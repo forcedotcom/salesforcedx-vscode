@@ -54,7 +54,7 @@ describe('MetadataOrchestrator', () => {
       const mockResponse: any = [{ isEligible: false, symbols: [{ docSymbol: { name: 'someMethod' } }] }];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
       await expect(orchestrator.extractMetadata(editorStub.document.uri, true)).rejects.toThrow(
-        'Method someMethod is not eligible for Apex Action creation. It is not annotated with @AuraEnabled.'
+        'Method someMethod is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.'
       );
     });
 
