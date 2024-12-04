@@ -419,6 +419,33 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_code_disable-warnings-for-missing-coverage%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.class.access-modifiers": {
+          "type":"array",
+          "items": {
+            "type":"string",
+            "enum": ["global", "public"]
+          },
+          "default": ["global", "public"],
+          "description": "%apex_oas_general_class_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.method.access-modifiers": {
+          "type":"array",
+          "items": {
+            "type":"string",
+            "enum": ["global", "public"]
+          },
+          "default": ["global", "public"],
+          "description": "%apex_oas_general_method_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.property.access-modifiers": {
+          "type":"array",
+          "items": {
+            "type":"string",
+            "enum": ["global", "public"]
+          },
+          "default": ["global", "public"],
+          "description": "%apex_oas_general_property_access-modifiers%"
         }
       }
     },

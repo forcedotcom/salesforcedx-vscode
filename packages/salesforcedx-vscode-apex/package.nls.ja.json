@@ -3,6 +3,7 @@
   "anon_apex_execute_selection_text": "SFDX: 現在選択されているテキストを使用して匿名 Apex を実行",
   "apex_code_completion_stats_description": "Allow the Apex Language Server to collect telemetry on code completion usage",
   "apex_code_disable-warnings-for-missing-coverage": "Disable UI warning when Apex test coverage is missing.",
+  "apex_oas_general_class_access-modifiers": "The general eligibility of class access modifiers for the generation of Apex Open API specifications.",
   "apex_log_get_text": "SFDX: Apex デバッグログを取得",
   "apex_messages_level_trace_description": "Only output high-level messages of notifications and responses received by the client, and requests sent by the server.",
   "apex_off_level_trace_description": "Don't generate any output. Turn off all tracing.",
