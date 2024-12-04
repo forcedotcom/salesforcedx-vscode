@@ -15,11 +15,17 @@ import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import {
-  retrieveClassAccessModifiers,
-  retrieveClassDefinitionModifiers,
   retrieveEnableSyncInitJobs,
-  retrieveMethodAndPropertyAnnotations,
-  retrieveMethodAndPropertyModifiers
+  retrieveAAClassDefModifiers,
+  retrieveAAClassAccessModifiers,
+  retrieveAAMethodDefModifiers,
+  retrieveAAMethodAccessModifiers,
+  retrieveAAPropDefModifiers,
+  retrieveAAPropAccessModifiers,
+  retrieveAAAnnotations,
+  retrieveGeneralClassAccessModifiers,
+  retrieveGeneralMethodAccessModifiers,
+  retrieveGeneralPropAccessModifiers
 } from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 
@@ -158,10 +164,16 @@ export const buildClientOptions = (): LanguageClientOptions => {
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
       enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
-      apexOASClassAccessModifiers: retrieveClassAccessModifiers().join(','),
-      apexOASClassDefinitionModifiers: retrieveClassDefinitionModifiers().join(','),
-      apexOASMethodAndPropertyModifiers: retrieveMethodAndPropertyModifiers().join(','),
-      apexOASMethodAndPropertyAnnotations: retrieveMethodAndPropertyAnnotations().join(',')
+      apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
+      apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
+      apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
+      apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
+      apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
+      apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
+      apexActionAnnotations: retrieveAAAnnotations().join(','),
+      apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
+      apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
+      apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()
