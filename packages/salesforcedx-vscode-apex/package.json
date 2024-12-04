@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "62.7.0",
+  "version": "62.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,7 @@
     "@salesforce/apex-node-bundle": "8.1.12",
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core-bundle": "8.6.1",
-    "@salesforce/salesforcedx-utils-vscode": "62.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "62.8.0",
     "@salesforce/vscode-service-provider": "^1.3.0-rc.1",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
@@ -36,7 +36,7 @@
     "vscode-languageclient": "8.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "62.7.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "62.8.0",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
@@ -126,22 +126,6 @@
       ]
     },
     "menus": {
-      "editor/context": [
-        {
-          "command": "sf.create.apex.action.method",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
-        },
-        {
-          "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
-        }
-      ],
-      "explorer/context": [
-        {
-          "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/"
-        }
-      ],
       "view/title": [
         {
           "command": "sf.test.view.run",
@@ -251,14 +235,6 @@
         {
           "command": "sf.test.view.collapseAll",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.create.apex.action.method",
-          "when": "false"
-        },
-        {
-          "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/"
         }
       ]
     },
@@ -362,14 +338,6 @@
       {
         "command": "sf.apex.test.last.method.run",
         "title": "%apex_test_last_method_run_text%"
-      },
-      {
-        "command": "sf.create.apex.action.method",
-        "title": "%create_apex_action_method%"
-      },
-      {
-        "command": "sf.create.apex.action.class",
-        "title": "%create_apex_action_class%"
       }
     ],
     "configuration": {
