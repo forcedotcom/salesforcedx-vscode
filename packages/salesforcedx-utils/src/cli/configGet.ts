@@ -13,19 +13,13 @@ import { SfCommandBuilder } from './sfCommandBuilder';
  * NOTE: This code is deprecated in favor of using ConfigUtil.ts
  */
 export class ConfigGet {
-  public async getConfig(
-    projectPath: string,
-    ...keys: string[]
-  ): Promise<Map<string, string>> {
+  public async getConfig(projectPath: string, ...keys: string[]): Promise<Map<string, string>> {
     const commandBuilder = new SfCommandBuilder().withArg('config:get');
     keys.forEach(key => commandBuilder.withArg(key));
 
-    const execution = new CliCommandExecutor(
-      commandBuilder.withJson().build(),
-      {
-        cwd: projectPath
-      }
-    ).execute();
+    const execution = new CliCommandExecutor(commandBuilder.withJson().build(), {
+      cwd: projectPath
+    }).execute();
 
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);

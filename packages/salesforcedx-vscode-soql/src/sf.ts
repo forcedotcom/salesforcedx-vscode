@@ -7,18 +7,13 @@
 
 import { DescribeSObjectResult } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core-bundle';
-import {
-  ChannelService,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ChannelService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from './messages';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debounce = require('debounce');
-export const channelService = ChannelService.getInstance(
-  nls.localize('soql_channel_name')
-);
+export const channelService = ChannelService.getInstance(nls.localize('soql_channel_name'));
 
 export const workspaceContext = WorkspaceContextUtil.getInstance();
 
@@ -28,15 +23,9 @@ const showChannelAndErrorMessage = (e: string) => {
   void vscode.window.showErrorMessage(message);
 };
 
-export const debouncedShowChannelAndErrorMessage = debounce(
-  showChannelAndErrorMessage,
-  1000
-);
+export const debouncedShowChannelAndErrorMessage = debounce(showChannelAndErrorMessage, 1000);
 
-export const withSFConnection = async (
-  f: (conn: Connection) => void,
-  showErrorMessage = true
-): Promise<void> => {
+export const withSFConnection = async (f: (conn: Connection) => void, showErrorMessage = true): Promise<void> => {
   try {
     const conn = await workspaceContext.getConnection();
     return f(conn as unknown as Connection);
@@ -52,9 +41,7 @@ export const retrieveSObjects = async (): Promise<string[]> => {
   await withSFConnection(async conn => {
     const describeGlobalResult = await conn.describeGlobal$();
     if (describeGlobalResult) {
-      const sobjectNames: string[] = describeGlobalResult.sobjects
-        .filter(o => o.queryable)
-        .map(o => o.name);
+      const sobjectNames: string[] = describeGlobalResult.sobjects.filter(o => o.queryable).map(o => o.name);
       foundSObjectNames = sobjectNames;
     }
   });
@@ -62,9 +49,7 @@ export const retrieveSObjects = async (): Promise<string[]> => {
   return foundSObjectNames;
 };
 
-export const retrieveSObject = async (
-  sobjectName: string
-): Promise<DescribeSObjectResult> => {
+export const retrieveSObject = async (sobjectName: string): Promise<DescribeSObjectResult> => {
   let name: DescribeSObjectResult;
   await withSFConnection(async conn => {
     name = await conn.describe$(sobjectName);
@@ -72,9 +57,7 @@ export const retrieveSObject = async (
   return name;
 };
 
-export const onOrgChangeDefaultHandler = async (
-  orgInfo: any
-): Promise<void> => {
+export const onOrgChangeDefaultHandler = async (orgInfo: any): Promise<void> => {
   const showErrorMessage = !!orgInfo.username;
   await withSFConnection(conn => {
     conn.describeGlobal$.clear();

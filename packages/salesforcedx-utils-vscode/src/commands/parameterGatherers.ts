@@ -16,9 +16,7 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
     for (const gatherer of this.gatherers) {
       const input = await gatherer.gather();
       if (input.type === 'CONTINUE') {
-        Object.keys(input.data).map(
-          key => (aggregatedData[key] = input.data[key])
-        );
+        Object.keys(input.data).map(key => (aggregatedData[key] = input.data[key]));
       } else {
         return {
           type: 'CANCEL'

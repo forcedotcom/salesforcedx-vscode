@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  DirFileNameSelection,
-  LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode';
+import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
@@ -25,10 +22,7 @@ import {
 import { LwcAuraDuplicateComponentCheckerForCreate } from '../util/lwcAuraDuplicateComponentCheckers';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { SelectLwcComponentType } from '../util/parameterGatherers';
-import {
-  FileInternalPathGatherer,
-  InternalDevWorkspaceChecker
-} from './internalCommandUtils';
+import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
@@ -72,10 +66,7 @@ export const lightningGenerateLwc = (): void => {
       new SelectOutputDir(LWC_DIRECTORY, true)
     ),
     createTemplateExecutor,
-    new CompositePostconditionChecker(
-      new LwcAuraDuplicateComponentCheckerForCreate(),
-      new OverwriteComponentPrompt()
-    )
+    new CompositePostconditionChecker(new LwcAuraDuplicateComponentCheckerForCreate(), new OverwriteComponentPrompt())
   );
   void commandlet.run();
 };
@@ -84,10 +75,7 @@ export const internalLightningGenerateLwc = (sourceUri: Uri): void => {
   const createTemplateExecutor = new LibraryLightningGenerateLwcExecutor();
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
-    new CompositeParametersGatherer(
-      new SelectFileName(),
-      new FileInternalPathGatherer(sourceUri)
-    ),
+    new CompositeParametersGatherer(new SelectFileName(), new FileInternalPathGatherer(sourceUri)),
     createTemplateExecutor
   );
   void commandlet.run();

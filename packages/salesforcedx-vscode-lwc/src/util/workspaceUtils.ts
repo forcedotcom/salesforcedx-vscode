@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ExtensionContext,
-  Memento,
-  workspace,
-  WorkspaceConfiguration
-} from 'vscode';
+import { ExtensionContext, Memento, workspace, WorkspaceConfiguration } from 'vscode';
 
 export class WorkspaceUtils {
   private extensionContext: ExtensionContext | undefined;

@@ -29,15 +29,9 @@ export const getRootWorkspacePath = (): string => {
   return getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '';
 };
 
-export const trackErrorWithTelemetry = (
-  problemId: string,
-  error: string
-): Promise<void> => {
+export const trackErrorWithTelemetry = (problemId: string, error: string): Promise<void> => {
   try {
-    telemetryService.sendException(
-      `soql_error_${problemId.toLocaleLowerCase()}`,
-      error
-    );
+    telemetryService.sendException(`soql_error_${problemId.toLocaleLowerCase()}`, error);
   } catch (err) {
     channelService.appendLine(`soql_error_telemetry:  ${error.toString()}`);
   }

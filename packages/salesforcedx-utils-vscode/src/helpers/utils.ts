@@ -51,10 +51,7 @@ export const flushFilePath = (filePath: string): string => {
 
   // check if the native path is the same case insensitive and then case sensitive
   // so that condition can be reported via telemetry
-  if (
-    filePath !== nativePath &&
-    filePath.toLowerCase() === nativePath.toLowerCase()
-  ) {
+  if (filePath !== nativePath && filePath.toLowerCase() === nativePath.toLowerCase()) {
     telemetryService.sendEventData('FilePathCaseMismatch', {
       originalPath: basename(filePath),
       nativePath: basename(nativePath)
@@ -71,10 +68,7 @@ export const flushFilePaths = (filePaths: string[]): string[] => {
   return filePaths;
 };
 
-export const asyncFilter = async <T>(
-  arr: T[],
-  callback: (value: T, index: number, array: T[]) => unknown
-) => {
+export const asyncFilter = async <T>(arr: T[], callback: (value: T, index: number, array: T[]) => unknown) => {
   const results = await Promise.all(arr.map(callback));
 
   return arr.filter((_v, index) => results[index]);

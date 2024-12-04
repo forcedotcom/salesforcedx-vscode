@@ -25,24 +25,12 @@ export {
   GlobalCliEnvironment
 } from './commandExecutor';
 export { CommandOutput } from './commandOutput';
-export {
-  DiffErrorResponse,
-  DiffResultParser,
-  DiffSuccessResponse
-} from './diffResultParser';
+export { DiffErrorResponse, DiffResultParser, DiffSuccessResponse } from './diffResultParser';
 export { ConfigGet } from './configGet';
 export { LocalCommandExecution } from './localCommandExecutor';
-export {
-  OrgCreateErrorResult,
-  OrgCreateResultParser,
-  OrgCreateSuccessResult
-} from './orgCreateResultParser';
+export { OrgCreateErrorResult, OrgCreateResultParser, OrgCreateSuccessResult } from './orgCreateResultParser';
 export { OrgDisplay, OrgInfo } from './orgDisplay';
-export {
-  OrgOpenContainerResultParser,
-  OrgOpenErrorResult,
-  OrgOpenSuccessResult
-} from './orgOpenContainerResultParser';
+export { OrgOpenContainerResultParser, OrgOpenErrorResult, OrgOpenSuccessResult } from './orgOpenContainerResultParser';
 export {
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult

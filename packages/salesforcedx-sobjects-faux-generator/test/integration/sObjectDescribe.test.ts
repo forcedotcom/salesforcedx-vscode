@@ -58,16 +58,12 @@ describe('Fetch sObjects', () => {
   afterEach(() => env.restore());
 
   it('Should throw exception when describeGlobal fails', async () => {
-    describeGlobalStub.throws(
-      new Error('Unexpected error when running describeGlobal')
-    );
+    describeGlobalStub.throws(new Error('Unexpected error when running describeGlobal'));
     try {
       await sobjectdescribe.describeGlobal();
       fail('test should have failed with an api exception');
     } catch (e) {
-      expect(e.message).contains(
-        'Unexpected error when running describeGlobal'
-      );
+      expect(e.message).contains('Unexpected error when running describeGlobal');
     }
   });
 
@@ -92,9 +88,7 @@ describe('Fetch sObjects', () => {
   });
 
   it('Should build the sobject describe url', () => {
-    expect(sobjectdescribe.buildSObjectDescribeURL('testObject')).to.equal(
-      'v50.0/sobjects/testObject/describe'
-    );
+    expect(sobjectdescribe.buildSObjectDescribeURL('testObject')).to.equal('v50.0/sobjects/testObject/describe');
   });
 
   it('Should build the batch request url', async () => {
@@ -145,9 +139,7 @@ describe('Fetch sObjects', () => {
     const sobjectTypes = ['ApexPageInfo'];
     env.stub(connection, 'request').resolves(mockAPIResponse);
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(1);
     expect(batchResponse[0]).to.deep.equal(mockMinimizedResponseResult);
@@ -159,9 +151,7 @@ describe('Fetch sObjects', () => {
       results: undefined
     });
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(0);
   });
@@ -170,9 +160,7 @@ describe('Fetch sObjects', () => {
     const sobjectTypes = ['ApexPageInfo'];
     env.stub(connection, 'request').resolves({});
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(0);
   });

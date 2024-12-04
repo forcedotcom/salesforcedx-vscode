@@ -9,13 +9,11 @@ import { GlobPattern } from 'vscode';
 /**
  * SFDX Project JSON glob pattern
  */
-export const SFDX_PROJECT_JSON_GLOB_PATTERN: GlobPattern =
-  '**/sfdx-project.json';
+export const SFDX_PROJECT_JSON_GLOB_PATTERN: GlobPattern = '**/sfdx-project.json';
 /**
  * LWC Jest Test glob pattern
  */
-export const LWC_TEST_GLOB_PATTERN: GlobPattern =
-  '**/{lwc,modules}/**/*.test.js';
+export const LWC_TEST_GLOB_PATTERN: GlobPattern = '**/{lwc,modules}/**/*.test.js';
 /**
  * LWC Jest Test document selector
  */
@@ -30,8 +28,7 @@ export const SF_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sf:lwc_jest_file_focused';
 /**
  * Context when LWC Jest Test file is focused and user is currently watching the test
  */
-export const SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT =
-  'sf:lwc_jest_is_watching_focused_file';
+export const SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT = 'sf:lwc_jest_is_watching_focused_file';
 
 /**
  * Run LWC test telemetry log name

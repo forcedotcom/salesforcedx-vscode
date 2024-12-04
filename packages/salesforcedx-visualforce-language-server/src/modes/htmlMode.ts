@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -16,9 +15,7 @@ import { Position, Range, TextDocument } from 'vscode-languageserver-types';
 import { getLanguageModelCache } from '../languageModelCache';
 import { LanguageMode, Settings } from './languageModes';
 
-export const getHTMLMode = (
-  htmlLanguageService: HTMLLanguageService
-): LanguageMode => {
+export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageMode => {
   let globalSettings: Settings = {};
   const htmlDocuments = getLanguageModelCache<HTMLDocument>(10, 60, document =>
     htmlLanguageService.parseHTMLDocument(document)
@@ -30,52 +27,25 @@ export const getHTMLMode = (
     configure: (options: any) => {
       globalSettings = options;
     },
-    doComplete: (
-      document: TextDocument,
-      position: Position,
-      settings: Settings = globalSettings
-    ) => {
-      const options =
-        settings && settings.visualforce && settings.visualforce.suggest;
-      const doAutoComplete =
-        settings &&
-        settings.visualforce &&
-        settings.visualforce.autoClosingTags;
+    doComplete: (document: TextDocument, position: Position, settings: Settings = globalSettings) => {
+      const options = settings && settings.visualforce && settings.visualforce.suggest;
+      const doAutoComplete = settings && settings.visualforce && settings.visualforce.autoClosingTags;
       if (doAutoComplete) {
         options.hideAutoCompleteProposals = true;
       }
-      return htmlLanguageService.doComplete(
-        document,
-        position,
-        htmlDocuments.get(document),
-        options
-      );
+      return htmlLanguageService.doComplete(document, position, htmlDocuments.get(document), options);
     },
     doHover: (document: TextDocument, position: Position) => {
-      return htmlLanguageService.doHover(
-        document,
-        position,
-        htmlDocuments.get(document)
-      );
+      return htmlLanguageService.doHover(document, position, htmlDocuments.get(document));
     },
     findDocumentHighlight: (document: TextDocument, position: Position) => {
-      return htmlLanguageService.findDocumentHighlights(
-        document,
-        position,
-        htmlDocuments.get(document)
-      );
+      return htmlLanguageService.findDocumentHighlights(document, position, htmlDocuments.get(document));
     },
-    findDocumentLinks: (
-      document: TextDocument,
-      documentContext: DocumentContext
-    ) => {
+    findDocumentLinks: (document: TextDocument, documentContext: DocumentContext) => {
       return htmlLanguageService.findDocumentLinks(document, documentContext);
     },
     findDocumentSymbols: (document: TextDocument) => {
-      return htmlLanguageService.findDocumentSymbols(
-        document,
-        htmlDocuments.get(document)
-      );
+      return htmlLanguageService.findDocumentSymbols(document, htmlDocuments.get(document));
     },
     format: (
       document: TextDocument,
@@ -83,16 +53,14 @@ export const getHTMLMode = (
       formatParams: FormattingOptions,
       settings: Settings = globalSettings
     ) => {
-      let formatSettings: HTMLFormatConfiguration =
-        settings && settings.visualforce && settings.visualforce.format;
+      let formatSettings: HTMLFormatConfiguration = settings && settings.visualforce && settings.visualforce.format;
       if (formatSettings) {
         formatSettings = merge(formatSettings, {});
       } else {
         formatSettings = {};
       }
       if (formatSettings.contentUnformatted) {
-        formatSettings.contentUnformatted =
-          formatSettings.contentUnformatted + ',script';
+        formatSettings.contentUnformatted = formatSettings.contentUnformatted + ',script';
       } else {
         formatSettings.contentUnformatted = 'script';
       }
@@ -103,11 +71,7 @@ export const getHTMLMode = (
       const offset = document.offsetAt(position);
       const text = document.getText();
       if (offset > 0 && text.charAt(offset - 1).match(/[>\/]/g)) {
-        return htmlLanguageService.doTagComplete(
-          document,
-          position,
-          htmlDocuments.get(document)
-        );
+        return htmlLanguageService.doTagComplete(document, position, htmlDocuments.get(document));
       }
       return null;
     },

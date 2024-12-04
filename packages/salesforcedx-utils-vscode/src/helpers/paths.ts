@@ -32,13 +32,7 @@ export const ensureDirectoryExists = (filePath: string): void => {
 };
 
 export const getTestResultsFolder = (vscodePath: string, testType: string) => {
-  const pathToTestResultsFolder = path.join(
-    vscodePath,
-    Global.STATE_FOLDER,
-    TOOLS,
-    TEST_RESULTS,
-    testType
-  );
+  const pathToTestResultsFolder = path.join(vscodePath, Global.STATE_FOLDER, TOOLS, TEST_RESULTS, testType);
 
   ensureDirectoryExists(pathToTestResultsFolder);
   return pathToTestResultsFolder;
@@ -51,10 +45,7 @@ export const getTestResultsFolder = (vscodePath: string, testType: string) => {
  * @param packageDirs Package directory paths
  * @returns Relative path for the project
  */
-export const getRelativeProjectPath = (
-  fsPath: string = '',
-  packageDirs: string[]
-) => {
+export const getRelativeProjectPath = (fsPath: string = '', packageDirs: string[]) => {
   let packageDirIndex;
   for (let packageDir of packageDirs) {
     if (!packageDir.startsWith(path.sep)) {
@@ -72,10 +63,7 @@ export const getRelativeProjectPath = (
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
 };
 
-export const fileExtensionsMatch = (
-  sourceUri: vscode.Uri,
-  targetExtension: string
-): boolean => {
+export const fileExtensionsMatch = (sourceUri: vscode.Uri, targetExtension: string): boolean => {
   const extension = sourceUri.path.split('.').pop()?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 };
@@ -88,21 +76,12 @@ const stateFolder = (): string => {
 
 const metadataFolder = (): string => {
   const username = WorkspaceContextUtil.getInstance().username;
-  const pathToMetadataFolder = path.join(
-    projectPaths.stateFolder(),
-    ORGS,
-    String(username),
-    METADATA
-  );
+  const pathToMetadataFolder = path.join(projectPaths.stateFolder(), ORGS, String(username), METADATA);
   return pathToMetadataFolder;
 };
 
 const apexTestResultsFolder = (): string => {
-  const pathToApexTestResultsFolder = path.join(
-    toolsFolder(),
-    TEST_RESULTS,
-    APEX
-  );
+  const pathToApexTestResultsFolder = path.join(toolsFolder(), TEST_RESULTS, APEX);
   return pathToApexTestResultsFolder;
 };
 
@@ -127,10 +106,7 @@ const debugLogsFolder = (): string => {
 };
 
 const salesforceProjectConfig = (): string => {
-  const pathToSalesforceProjectConfig = path.join(
-    projectPaths.stateFolder(),
-    SFDX_CONFIG_FILE
-  );
+  const pathToSalesforceProjectConfig = path.join(projectPaths.stateFolder(), SFDX_CONFIG_FILE);
   return pathToSalesforceProjectConfig;
 };
 
@@ -144,10 +120,7 @@ const relativeStateFolder = (): string => {
 };
 
 const relativeToolsFolder = (): string => {
-  const relativePathToToolsFolder = path.join(
-    projectPaths.relativeStateFolder(),
-    TOOLS
-  );
+  const relativePathToToolsFolder = path.join(projectPaths.relativeStateFolder(), TOOLS);
   return relativePathToToolsFolder;
 };
 

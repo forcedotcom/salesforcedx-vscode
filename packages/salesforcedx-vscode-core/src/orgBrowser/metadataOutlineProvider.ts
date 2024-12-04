@@ -4,33 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  extractJsonObject,
-  isNullOrUndefined
-} from '@salesforce/salesforcedx-utils-vscode';
+import { extractJsonObject, isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { OrgAuthInfo, workspaceUtils } from '../util';
-import {
-  BrowserNode,
-  ComponentUtils,
-  CUSTOMOBJECTS_FULLNAME,
-  MetadataObject,
-  NodeType,
-  TypeUtils
-} from './index';
+import { BrowserNode, ComponentUtils, CUSTOMOBJECTS_FULLNAME, MetadataObject, NodeType, TypeUtils } from './index';
 
-export class MetadataOutlineProvider
-  implements vscode.TreeDataProvider<BrowserNode>
-{
+export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserNode> {
   private defaultOrg: string | undefined;
   private toRefresh: boolean = false;
 
-  private internalOnDidChangeTreeData: vscode.EventEmitter<
+  private internalOnDidChangeTreeData: vscode.EventEmitter<BrowserNode | undefined> = new vscode.EventEmitter<
     BrowserNode | undefined
-  > = new vscode.EventEmitter<BrowserNode | undefined>();
-  public readonly onDidChangeTreeData: vscode.Event<BrowserNode | undefined> =
-    this.internalOnDidChangeTreeData.event;
+  >();
+  public readonly onDidChangeTreeData: vscode.Event<BrowserNode | undefined> = this.internalOnDidChangeTreeData.event;
 
   constructor(defaultOrg: string | undefined) {
     this.defaultOrg = defaultOrg;
@@ -65,10 +52,7 @@ export class MetadataOutlineProvider
 
   public async getChildren(element?: BrowserNode): Promise<BrowserNode[]> {
     if (isNullOrUndefined(this.defaultOrg)) {
-      const emptyDefault = new BrowserNode(
-        nls.localize('missing_default_org'),
-        NodeType.EmptyNode
-      );
+      const emptyDefault = new BrowserNode(nls.localize('missing_default_org'), NodeType.EmptyNode);
       return Promise.resolve([emptyDefault]);
     }
 
@@ -88,10 +72,7 @@ export class MetadataOutlineProvider
         let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
-        } else if (
-          element.parent &&
-          element.parent.fullName === CUSTOMOBJECTS_FULLNAME
-        ) {
+        } else if (element.parent && element.parent.fullName === CUSTOMOBJECTS_FULLNAME) {
           nodeType = NodeType.MetadataField;
         }
 
@@ -131,12 +112,7 @@ export class MetadataOutlineProvider
           typeName = node.fullName;
       }
 
-      const components = await cmpUtils.loadComponents(
-        this.defaultOrg!,
-        typeName,
-        folder,
-        node.toRefresh
-      );
+      const components = await cmpUtils.loadComponents(this.defaultOrg!, typeName, folder, node.toRefresh);
 
       return components;
     } catch (e) {

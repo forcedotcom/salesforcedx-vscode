@@ -11,6 +11,7 @@ import { channelService } from '../channels';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './retrieveSourcePath';
@@ -19,15 +20,13 @@ import { CompositePostconditionChecker } from './util/compositePostconditionChec
 import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
 export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
-  constructor() {
+  constructor(showChannelOutput: boolean = true) {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_sourcepath');
+    this.showChannelOutput = showChannelOutput;
   }
 
-  public async getComponents(
-    response: ContinueResponse<string[]>
-  ): Promise<ComponentSet> {
-    const paths =
-      typeof response.data === 'string' ? [response.data] : response.data;
+  public async getComponents(response: ContinueResponse<string[]>): Promise<ComponentSet> {
+    const paths = typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
 
     return componentSet;
@@ -36,7 +35,8 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
 
 export const deploySourcePaths = async (
   sourceUri: vscode.Uri | vscode.Uri[] | undefined,
-  uris: vscode.Uri[] | undefined
+  uris: vscode.Uri[] | undefined,
+  isDeployOnSave?: boolean | undefined
 ) => {
   if (!sourceUri) {
     // When the source is deployed via the command palette, both sourceUri and uris are
@@ -70,14 +70,13 @@ export const deploySourcePaths = async (
   const messages = getConflictMessagesFor('deploy_with_sourcepath');
 
   if (messages) {
+    const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
+
     const commandlet = new SfCommandlet<string[]>(
       new SfWorkspaceChecker(),
       new LibraryPathsGatherer(uris),
-      new LibraryDeploySourcePathExecutor(),
-      new CompositePostconditionChecker(
-        new SourcePathChecker(),
-        new TimestampConflictChecker(false, messages)
-      )
+      new LibraryDeploySourcePathExecutor(showOutputPanel),
+      new CompositePostconditionChecker(new SourcePathChecker(), new TimestampConflictChecker(false, messages))
     );
 
     await commandlet.run();

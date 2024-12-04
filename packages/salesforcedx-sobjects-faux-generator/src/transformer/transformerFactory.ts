@@ -5,26 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection, SfProject } from '@salesforce/core-bundle';
-import {
-  ConfigUtil,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
-import {
-  MinObjectRetriever,
-  OrgObjectDetailRetriever,
-  OrgObjectRetriever
-} from '../retriever';
-import {
-  SObjectCategory,
-  SObjectDefinitionRetriever,
-  SObjectGenerator,
-  SObjectRefreshSource
-} from '../types';
+import { MinObjectRetriever, OrgObjectDetailRetriever, OrgObjectRetriever } from '../retriever';
+import { SObjectCategory, SObjectDefinitionRetriever, SObjectGenerator, SObjectRefreshSource } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
 
 export type CancellationToken = {
@@ -40,14 +28,8 @@ export class SObjectTransformerFactory {
   ): Promise<SObjectTransformer> {
     const retrievers: SObjectDefinitionRetriever[] = [];
     const generators: SObjectGenerator[] = [];
-    const standardGenerator = new FauxClassGenerator(
-      SObjectCategory.STANDARD,
-      STANDARDOBJECTS_DIR
-    );
-    const customGenerator = new FauxClassGenerator(
-      SObjectCategory.CUSTOM,
-      CUSTOMOBJECTS_DIR
-    );
+    const standardGenerator = new FauxClassGenerator(SObjectCategory.STANDARD, STANDARDOBJECTS_DIR);
+    const customGenerator = new FauxClassGenerator(SObjectCategory.CUSTOM, CUSTOMOBJECTS_DIR);
 
     if (source === SObjectRefreshSource.StartupMin) {
       retrievers.push(new MinObjectRetriever());
@@ -57,23 +39,14 @@ export class SObjectTransformerFactory {
 
       retrievers.push(
         new OrgObjectRetriever(connection),
-        new OrgObjectDetailRetriever(
-          connection,
-          new GeneralSObjectSelector(category, source)
-        )
+        new OrgObjectDetailRetriever(connection, new GeneralSObjectSelector(category, source))
       );
 
-      if (
-        category === SObjectCategory.STANDARD ||
-        category === SObjectCategory.ALL
-      ) {
+      if (category === SObjectCategory.STANDARD || category === SObjectCategory.ALL) {
         generators.push(standardGenerator);
       }
 
-      if (
-        category === SObjectCategory.CUSTOM ||
-        category === SObjectCategory.ALL
-      ) {
+      if (category === SObjectCategory.CUSTOM || category === SObjectCategory.ALL) {
         generators.push(customGenerator);
       }
     }
@@ -81,24 +54,17 @@ export class SObjectTransformerFactory {
     generators.push(new TypingGenerator());
     generators.push(new SOQLMetadataGenerator(category));
 
-    return new SObjectTransformer(
-      emitter,
-      retrievers,
-      generators,
-      cancellationToken
-    );
+    return new SObjectTransformer(emitter, retrievers, generators, cancellationToken);
   }
 
   public static async createConnection(): Promise<Connection> {
-    const userApiVersionOverride =
-      await ConfigUtil.getUserConfiguredApiVersion();
+    const userApiVersionOverride = await ConfigUtil.getUserConfiguredApiVersion();
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     const connection = await workspaceContextUtil.getConnection();
     const connectionForSourceApiVersion = await Connection.create({
       authInfo: await AuthInfo.create({ username: connection.getUsername() })
     });
-    const sourceApiVersion =
-      await SObjectTransformerFactory.getSourceApiVersion();
+    const sourceApiVersion = await SObjectTransformerFactory.getSourceApiVersion();
     // precedence user override > project config > connection default
     connectionForSourceApiVersion.setApiVersion(
       userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
@@ -128,20 +94,14 @@ export class GeneralSObjectSelector implements SObjectSelector {
   }
 
   public select(sobject: SObjectShortDescription): boolean {
-    const isCustomObject =
-      sobject.custom === true && this.category === SObjectCategory.CUSTOM;
-    const isStandardObject =
-      sobject.custom === false && this.category === SObjectCategory.STANDARD;
+    const isCustomObject = sobject.custom === true && this.category === SObjectCategory.CUSTOM;
+    const isStandardObject = sobject.custom === false && this.category === SObjectCategory.STANDARD;
 
-    if (
-      this.category === SObjectCategory.ALL &&
-      this.source === SObjectRefreshSource.Manual
-    ) {
+    if (this.category === SObjectCategory.ALL && this.source === SObjectRefreshSource.Manual) {
       return true;
     } else if (
       this.category === SObjectCategory.ALL &&
-      (this.source === SObjectRefreshSource.StartupMin ||
-        this.source === SObjectRefreshSource.Startup) &&
+      (this.source === SObjectRefreshSource.StartupMin || this.source === SObjectRefreshSource.Startup) &&
       this.isRequiredSObject(sobject.name)
     ) {
       return true;

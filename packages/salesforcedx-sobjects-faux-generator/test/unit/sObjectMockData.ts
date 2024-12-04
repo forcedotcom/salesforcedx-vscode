@@ -786,8 +786,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
       highScaleNumber: false,
       htmlFormatted: false,
       idLookup: false,
-      inlineHelpText:
-        'User field expected value. If using a regex you can test it ...',
+      inlineHelpText: 'User field expected value. If using a regex you can test it ...',
       label: 'Field Value',
       length: 255,
       mask: null,
@@ -895,8 +894,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
       name: 'Master',
       recordTypeId: '0120000000000xxxxx',
       urls: {
-        layout:
-          '/services/data/v46.0/sobjects/Test_Object__c/describe/layouts/0120000000000xxxxx'
+        layout: '/services/data/v46.0/sobjects/Test_Object__c/describe/layouts/0120000000000xxxxx'
       }
     }
   ],
@@ -930,15 +928,12 @@ export const apiCustomSObject: DescribeSObjectResult = {
   undeletable: true,
   updateable: true,
   urls: {
-    compactLayouts:
-      '/services/data/v46.0/sobjects/Test_Object__c/describe/compactLayouts',
+    compactLayouts: '/services/data/v46.0/sobjects/Test_Object__c/describe/compactLayouts',
     rowTemplate: '/services/data/v46.0/sobjects/Test_Object__c/{ID}',
-    approvalLayouts:
-      '/services/data/v46.0/sobjects/Test_Object__c/describe/approvalLayouts',
+    approvalLayouts: '/services/data/v46.0/sobjects/Test_Object__c/describe/approvalLayouts',
     uiDetailTemplate: 'https://na96.salesforce.com/{ID}',
     uiEditTemplate: 'https://na96.salesforce.com/{ID}/e',
-    defaultValues:
-      '/services/data/v46.0/sobjects/Test_Object__c/defaultValues?recordTypeId&fields',
+    defaultValues: '/services/data/v46.0/sobjects/Test_Object__c/defaultValues?recordTypeId&fields',
     describe: '/services/data/v46.0/sobjects/Test_Object__c/describe',
     uiNewRecord: 'https://na96.salesforce.com/a07/e',
     quickActions: '/services/data/v46.0/sobjects/Test_Object__c/quickActions',
@@ -1201,8 +1196,7 @@ export const minimalCustomSObject: SObject = {
       extraTypeInfo: null,
       filterable: true,
       groupable: true,
-      inlineHelpText:
-        'User field expected value. If using a regex you can test it ...',
+      inlineHelpText: 'User field expected value. If using a regex you can test it ...',
       label: 'Field Value',
       name: 'Field_Value__c',
       nillable: false,

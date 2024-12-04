@@ -6,10 +6,7 @@
  */
 
 import { LogService, TestService } from '@salesforce/apex-node-bundle';
-import {
-  TestLevel,
-  TestResult
-} from '@salesforce/apex-node-bundle/lib/src/tests/types';
+import { TestLevel, TestResult } from '@salesforce/apex-node-bundle/lib/src/tests/types';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core-bundle';
 import { MockTestOrgData, TestContext } from '@salesforce/core-bundle';
 import {
@@ -52,11 +49,9 @@ describe('Quick launch apex tests', () => {
 
   beforeEach(async () => {
     settingStub = sb.stub();
-    sb.stub(vscode.workspace, 'getConfiguration')
-      .withArgs(SFDX_CORE_CONFIGURATION_NAME)
-      .returns({
-        get: settingStub
-      });
+    sb.stub(vscode.workspace, 'getConfiguration').withArgs(SFDX_CORE_CONFIGURATION_NAME).returns({
+      get: settingStub
+    });
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -65,9 +60,7 @@ describe('Quick launch apex tests', () => {
         username: testData.username
       })
     });
-    sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('target-org')
-      .returns(testData.username);
+    sb.stub(ConfigAggregator.prototype, 'getPropertyValue').withArgs('target-org').returns(testData.username);
     notificationServiceStub = sb.stub(notificationService, 'showErrorMessage');
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
     testServiceStub = sb
@@ -76,10 +69,7 @@ describe('Quick launch apex tests', () => {
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
     createCheckpointStub = sb.stub(CheckpointService, 'sfCreateCheckpoints');
-    oneOrMoreActiveCheckpointsStub = sb.stub(
-      CheckpointService.prototype,
-      'hasOneOrMoreActiveCheckpoints'
-    );
+    oneOrMoreActiveCheckpointsStub = sb.stub(CheckpointService.prototype, 'hasOneOrMoreActiveCheckpoints');
     testDebuggerExec = new TestDebuggerExecutor();
   });
 
@@ -95,9 +85,7 @@ describe('Quick launch apex tests', () => {
       tests: [{ className: 'MyClass' }],
       testLevel: 'RunSpecifiedTests'
     });
-    traceFlagsStub = sb
-      .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags').returns(true);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
@@ -134,11 +122,7 @@ describe('Quick launch apex tests', () => {
     expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
     expect(launcherArgs[1]).to.equal(false);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'MyClass'
-    ]);
+    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, undefined, 'MyClass']);
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({
@@ -159,9 +143,7 @@ describe('Quick launch apex tests', () => {
       tests: [{ className: 'MyClass' }],
       testLevel: 'RunSpecifiedTests'
     });
-    traceFlagsStub = sb
-      .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags').returns(true);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
@@ -198,11 +180,7 @@ describe('Quick launch apex tests', () => {
     expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
     expect(launcherArgs[1]).to.equal(false);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'MyClass'
-    ]);
+    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, undefined, 'MyClass']);
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({
@@ -223,9 +201,7 @@ describe('Quick launch apex tests', () => {
       tests: [{ className: 'MyClass' }],
       testLevel: 'RunSpecifiedTests'
     });
-    traceFlagsStub = sb
-      .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags').returns(true);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
@@ -253,9 +229,7 @@ describe('Quick launch apex tests', () => {
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
     });
-    traceFlagsStub = sb
-      .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags').returns(true);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
@@ -271,11 +245,7 @@ describe('Quick launch apex tests', () => {
     expect(oneOrMoreActiveCheckpointsStub.called).to.equal(true);
     expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([
-      TestLevel.RunSpecifiedTests,
-      'MyClass.testSomeCode',
-      'MyClass'
-    ]);
+    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, 'MyClass.testSomeCode', 'MyClass']);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -319,9 +289,7 @@ describe('Quick launch apex tests', () => {
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
     });
-    traceFlagsStub = sb
-      .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags').returns(true);
     testServiceStub.resolves({} as TestResult);
     sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
@@ -338,11 +306,7 @@ describe('Quick launch apex tests', () => {
     expect(oneOrMoreActiveCheckpointsStub.called).to.equal(true);
     expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([
-      TestLevel.RunSpecifiedTests,
-      'MyClass.testSomeCode',
-      'MyClass'
-    ]);
+    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, 'MyClass.testSomeCode', 'MyClass']);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -363,9 +327,7 @@ describe('Quick launch apex tests', () => {
     // Seems that there are two different error msgs:
     // On Windows: "Cannot read property 'length' of undefined"
     // On Mac: "Cannot read properties of undefined (reading 'length')"
-    expect(notificationArgs[0].startsWith('Cannot read propert')).to.equal(
-      true
-    );
+    expect(notificationArgs[0].startsWith('Cannot read propert')).to.equal(true);
     expect(notificationArgs[0]).to.contain('undefined');
     expect(notificationArgs[0]).to.contain('length');
     expect(writeResultFilesStub.called).to.equal(true);
@@ -382,9 +344,7 @@ describe('Quick launch apex tests', () => {
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
     });
-    traceFlagsStub = sb
-      .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags').returns(true);
     testServiceStub.resolves({ tests: [] });
 
     const response: ContinueResponse<string[]> = {
@@ -398,11 +358,7 @@ describe('Quick launch apex tests', () => {
     expect(oneOrMoreActiveCheckpointsStub.called).to.equal(true);
     expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([
-      TestLevel.RunSpecifiedTests,
-      'MyClass.testSomeCode',
-      'MyClass'
-    ]);
+    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, 'MyClass.testSomeCode', 'MyClass']);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -417,9 +373,7 @@ describe('Quick launch apex tests', () => {
 
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
-    expect(notificationArgs[0]).to.equal(
-      nls.localize('debug_test_no_results_found')
-    );
+    expect(notificationArgs[0]).to.equal(nls.localize('debug_test_no_results_found'));
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({
@@ -436,9 +390,7 @@ describe('Quick launch apex tests', () => {
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
     });
-    traceFlagsStub = sb
-      .stub(TraceFlags.prototype, 'ensureTraceFlags')
-      .returns(true);
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags').returns(true);
     testServiceStub.resolves({ tests: [{}] });
 
     const response: ContinueResponse<string[]> = {
@@ -452,11 +404,7 @@ describe('Quick launch apex tests', () => {
     expect(oneOrMoreActiveCheckpointsStub.called).to.equal(true);
     expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([
-      TestLevel.RunSpecifiedTests,
-      'MyClass.testSomeCode',
-      'MyClass'
-    ]);
+    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, 'MyClass.testSomeCode', 'MyClass']);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -471,9 +419,7 @@ describe('Quick launch apex tests', () => {
 
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
-    expect(notificationArgs[0]).to.equal(
-      nls.localize('debug_test_no_debug_log')
-    );
+    expect(notificationArgs[0]).to.equal(nls.localize('debug_test_no_debug_log'));
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({

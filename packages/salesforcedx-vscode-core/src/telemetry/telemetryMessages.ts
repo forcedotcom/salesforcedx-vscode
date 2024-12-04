@@ -11,25 +11,17 @@ import { nls } from '../messages';
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export const internalTelemetryMessage = async () => {
-    const internalMessage = nls.localize('telemetry_internal_user_message');
-    void window.showInformationMessage(internalMessage);
+  const internalMessage = nls.localize('telemetry_internal_user_message');
+  void window.showInformationMessage(internalMessage);
 };
 
 export const telemetryWithOptOutMessage = async () => {
   const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
-  const showMessage = nls.localize(
-    'telemetry_legal_dialog_message',
-    TELEMETRY_OPT_OUT_LINK
-  );
-  await window
-    .showInformationMessage(showMessage, showButtonText)
-    .then(selection => {
-      // Open disable telemetry link
-      if (selection && selection === showButtonText) {
-        void commands.executeCommand(
-          'vscode.open',
-          Uri.parse(TELEMETRY_OPT_OUT_LINK)
-        );
-      }
-    });
+  const showMessage = nls.localize('telemetry_legal_dialog_message', TELEMETRY_OPT_OUT_LINK);
+  await window.showInformationMessage(showMessage, showButtonText).then(selection => {
+    // Open disable telemetry link
+    if (selection && selection === showButtonText) {
+      void commands.executeCommand('vscode.open', Uri.parse(TELEMETRY_OPT_OUT_LINK));
+    }
+  });
 };

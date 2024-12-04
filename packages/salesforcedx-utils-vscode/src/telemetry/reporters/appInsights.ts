@@ -38,21 +38,13 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     }
     this.setTelemetryTag();
     this.updateUserOptIn(key);
-    this.toDispose.push(
-      workspace.onDidChangeConfiguration(() => this.updateUserOptIn(key))
-    );
+    this.toDispose.push(workspace.onDidChangeConfiguration(() => this.updateUserOptIn(key)));
   }
 
   private updateUserOptIn(key: string): void {
     const config = workspace.getConfiguration(AppInsights.TELEMETRY_CONFIG_ID);
-    if (
-      this.userOptIn !==
-      config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true)
-    ) {
-      this.userOptIn = config.get<boolean>(
-        AppInsights.TELEMETRY_CONFIG_ENABLED_ID,
-        true
-      );
+    if (this.userOptIn !== config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true)) {
+      this.userOptIn = config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true);
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
@@ -86,28 +78,20 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     if (this.uniqueUserMetrics && env) {
       this.appInsightsClient.context.tags['ai.user.id'] = this.userId;
       this.appInsightsClient.context.tags['ai.session.id'] = env.sessionId;
-      this.appInsightsClient.context.tags['ai.cloud.roleInstance'] =
-        'DEPRECATED';
+      this.appInsightsClient.context.tags['ai.cloud.roleInstance'] = 'DEPRECATED';
     }
 
     // check if it's an Asimov key to change the endpoint
     if (key && key.indexOf('AIF-') === 0) {
-      this.appInsightsClient.config.endpointUrl =
-        'https://vortex.data.microsoft.com/collect/v1';
+      this.appInsightsClient.config.endpointUrl = 'https://vortex.data.microsoft.com/collect/v1';
     }
   }
 
   private getCommonProperties(): CommonProperties {
     const commonProperties: CommonProperties = {
       'common.os': os.platform(),
-      'common.platformversion': (os.release() || '').replace(
-        /^(\d+)(\.\d+)?(\.\d+)?(.*)/,
-        '$1$2$3'
-      ),
-      'common.systemmemory': `${(
-        os.totalmem() /
-        (1024 * 1024 * 1024)
-      ).toFixed(2)} GB`,
+      'common.platformversion': (os.release() || '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
+      'common.systemmemory': `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`,
       'common.extname': this.extensionId,
       'common.extversion': this.extensionVersion
     };
@@ -131,14 +115,14 @@ export class AppInsights extends Disposable implements TelemetryReporter {
 
   private getInternalProperties(): InternalProperties {
     return {
-     'sfInternal.hostname': os.hostname(),
-     'sfInternal.username': os.userInfo().username
+      'sfInternal.hostname': os.hostname(),
+      'sfInternal.username': os.userInfo().username
     };
   }
 
   private aggregateLoggingProperties() {
     const commonProperties = this.getCommonProperties();
-    return isInternalHost() ? {...commonProperties,...this.getInternalProperties() } : commonProperties;
+    return isInternalHost() ? { ...commonProperties, ...this.getInternalProperties() } : commonProperties;
   }
 
   public sendTelemetryEvent(
@@ -148,8 +132,10 @@ export class AppInsights extends Disposable implements TelemetryReporter {
   ): void {
     if (this.userOptIn && eventName && this.appInsightsClient) {
       const orgId = WorkspaceContextUtil.getInstance().orgId;
+      const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
+      const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
       let props = properties ? properties : {};
-      props = this.applyTelemetryTag(orgId ? { ...props, orgId } : props);
+      props = this.applyTelemetryTag(orgId ? { ...props, orgId, orgShape, devHubId } : props);
 
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
@@ -173,7 +159,9 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       error.stack = 'DEPRECATED';
 
       const orgId = WorkspaceContextUtil.getInstance().orgId || '';
-      const properties = this.applyTelemetryTag({ orgId });
+      const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
+      const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
+      const properties = this.applyTelemetryTag({ orgId, orgShape, devHubId });
       this.appInsightsClient.trackException({
         exception: error,
         properties,
@@ -205,8 +193,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
    */
   private setTelemetryTag(): void {
     const config = workspace.getConfiguration();
-    this.telemetryTag =
-      config?.get('salesforcedx-vscode-core.telemetry-tag') || undefined;
+    this.telemetryTag = config?.get('salesforcedx-vscode-core.telemetry-tag') || undefined;
   }
 
   /**
@@ -219,8 +206,6 @@ export class AppInsights extends Disposable implements TelemetryReporter {
   private applyTelemetryTag(properties: { [key: string]: string }): {
     [key: string]: string;
   } {
-    return this.telemetryTag
-      ? { ...properties, telemetryTag: this.telemetryTag }
-      : properties;
+    return this.telemetryTag ? { ...properties, telemetryTag: this.telemetryTag } : properties;
   }
 }
