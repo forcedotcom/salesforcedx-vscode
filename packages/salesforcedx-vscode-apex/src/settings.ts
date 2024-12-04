@@ -35,40 +35,55 @@ export const retrieveEnableSyncInitJobs = (): boolean => {
 // Configurations of the definitions of eligible apex classes/methods/properties
 // We want to lock the eligibility criteria for apexoas, so we do not expose the settings to customer
 // But we can still modify the config through settings.json
-export const retrieveAAClassDefModifiers = (): string[] =>
-  vscode.workspace
+export const retrieveAAClassDefModifiers = (): string[] => {
+  const userDefinedModifiers = vscode.workspace
     .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.definition-modifiers', APEX_ACTION_CLASS_DEF_MODIFIERS);
+    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.definition-modifiers', []);
 
-export const retrieveAAClassAccessModifiers = (): string[] =>
-  vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.access-modifiers', APEX_ACTION_CLASS_ACCESS_MODIFIERS);
+  return [...new Set([...APEX_ACTION_CLASS_DEF_MODIFIERS, ...userDefinedModifiers])];
+};
 
-export const retrieveAAMethodDefModifiers = (): string[] =>
-  vscode.workspace
+export const retrieveAAClassAccessModifiers = (): string[] => {
+  const userDefinedModifiers = vscode.workspace
     .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.definition-modifiers', APEX_ACTION_METHOD_DEF_MODIFIERS);
+    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.access-modifiers', []);
+  return [...new Set([...APEX_ACTION_CLASS_ACCESS_MODIFIERS, ...userDefinedModifiers])];
+};
 
-export const retrieveAAMethodAccessModifiers = (): string[] =>
-  vscode.workspace
+export const retrieveAAMethodDefModifiers = (): string[] => {
+  const userDefinedModifiers = vscode.workspace
     .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.access-modifiers', APEX_ACTION_METHOD_ACCESS_MODIFIERS);
+    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.definition-modifiers', []);
+  return [...new Set([...APEX_ACTION_METHOD_DEF_MODIFIERS, ...userDefinedModifiers])];
+};
 
-export const retrieveAAPropDefModifiers = (): string[] =>
-  vscode.workspace
+export const retrieveAAMethodAccessModifiers = (): string[] => {
+  const userDefinedModifiers = vscode.workspace
     .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.prop.definition-modifiers', APEX_ACTION_PROP_DEF_MODIFIERS);
+    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.access-modifiers', []);
+  return [...new Set([...APEX_ACTION_METHOD_ACCESS_MODIFIERS, ...userDefinedModifiers])];
+};
 
-export const retrieveAAPropAccessModifiers = (): string[] =>
-  vscode.workspace
+export const retrieveAAPropDefModifiers = (): string[] => {
+  const userDefinedModifiers = vscode.workspace
     .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.prop.definition-modifiers', APEX_ACTION_PROP_ACCESS_MODIFIERS);
+    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.prop.definition-modifiers', []);
+  return [...new Set([...APEX_ACTION_PROP_DEF_MODIFIERS, ...userDefinedModifiers])];
+};
 
-export const retrieveAAAnnotations = (): string[] =>
-  vscode.workspace
+export const retrieveAAPropAccessModifiers = (): string[] => {
+  const userDefinedModifiers = vscode.workspace
     .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.annotations', APEX_ACTION_ANNOTATIONS);
+    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.prop.definition-modifiers', []);
+  return [...new Set([...APEX_ACTION_PROP_ACCESS_MODIFIERS, ...userDefinedModifiers])];
+};
+
+export const retrieveAAAnnotations = (): string[] => {
+  const userDefinedModifiers = vscode.workspace
+    .getConfiguration()
+    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.annotations', []);
+  return [...new Set([...APEX_ACTION_ANNOTATIONS, ...userDefinedModifiers])];
+};
 
 export const retrieveGeneralClassAccessModifiers = (): string[] =>
   vscode.workspace
