@@ -28,7 +28,6 @@ export class ListMetadataExecutor extends SfCommandletExecutor<string> {
     this.folder = folder;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfCommandBuilder()
       .withArg('org:list:metadata')

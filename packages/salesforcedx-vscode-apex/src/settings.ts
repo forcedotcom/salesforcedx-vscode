@@ -17,3 +17,9 @@ export const retrieveTestCodeCoverage = (): boolean => {
 export const retrieveEnableSyncInitJobs = (): boolean => {
   return vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
 };
+
+export const retrieveEnableApexLSErrorToTelemetry = (): boolean => {
+  return vscode.workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry', false);
+};

@@ -14,7 +14,6 @@ import { nls } from '../messages';
 import { IconsEnum, iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 const safeLocalize = (val: string) => nls.localize(val);
 
 // Message
@@ -161,7 +160,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
           this.apexTestMap.set(test.definingType, apexGroup);
         }
         const apexTest = new ApexTestNode(test.methodName, test.location);
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+
         apexTest.name = apexGroup.label + '.' + apexTest.label;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);
@@ -240,7 +239,7 @@ export abstract class TestNode extends vscode.TreeItem {
   };
 
   // TODO: create a ticket to address this particular issue.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
   // @ts-ignore
   get tooltip(): string {
     return this.description;

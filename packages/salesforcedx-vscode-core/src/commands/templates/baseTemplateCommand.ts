@@ -49,7 +49,6 @@ export abstract class BaseTemplateCommand extends SfCommandletExecutor<DirFileNa
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected runPostCommandTasks(data: DirFileNameSelection) {
     // By default do nothing
     // This method is overridden in child classes to run any post command tasks
