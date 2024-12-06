@@ -387,6 +387,11 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_code_disable-warnings-for-missing-coverage%"
+        },
+        "salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry": {
+          "type": "boolean",
+          "default": false,
+          "description": "%enable-apex-ls-error-to-telemetry%"
         }
       }
     },

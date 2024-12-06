@@ -14,7 +14,7 @@ import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
-import { retrieveEnableSyncInitJobs } from './settings';
+import { retrieveEnableApexLSErrorToTelemetry, retrieveEnableSyncInitJobs } from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
@@ -75,8 +75,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
       args.push(
         '-Dtrace.protocol=false',
         `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
-          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
         },address=*:${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
@@ -153,7 +152,8 @@ export const buildClientOptions = (): LanguageClientOptions => {
     },
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs()
+      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
+      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry()
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()
