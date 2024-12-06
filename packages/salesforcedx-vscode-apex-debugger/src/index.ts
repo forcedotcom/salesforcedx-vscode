@@ -185,7 +185,7 @@ export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointIt
 
 const registerFileWatchers = (): vscode.Disposable => {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
-  /* eslint-disable @typescript-eslint/no-unused-vars */
+
   clsWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
   clsWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
   clsWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
@@ -193,7 +193,7 @@ const registerFileWatchers = (): vscode.Disposable => {
   trgWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
   trgWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
   trgWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+
   return vscode.Disposable.from(clsWatcher, trgWatcher);
 };
 
