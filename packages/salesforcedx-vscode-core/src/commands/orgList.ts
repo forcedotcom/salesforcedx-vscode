@@ -10,7 +10,6 @@ import { nls } from '../messages';
 import { PromptConfirmGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class OrgListExecutor extends SfCommandletExecutor<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: { choice?: string }): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_list_clean_text'))

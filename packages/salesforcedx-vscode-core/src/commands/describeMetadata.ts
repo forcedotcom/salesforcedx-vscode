@@ -23,7 +23,6 @@ export class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
     super();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withArg('org:list:metadata-types')
