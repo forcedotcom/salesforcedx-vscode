@@ -9,18 +9,20 @@ export type ApexClassOASEligibleRequest = {
   resourceUri: string;
   includeAllMethods: boolean;
   includeAllProperties: boolean;
-  positions: vscode.Position[] | null;
+  position: vscode.Position | null;
   methodNames: string[] | null;
   propertyNames: string[] | null;
 };
 
 export interface SymbolEligibility {
   isEligible: boolean;
+  isApexOasEligible: boolean;
   docSymbol: DocumentSymbol;
 }
 
 export type ApexClassOASEligibleResponse = {
   isEligible: boolean;
+  isApexOasEligible: boolean;
   resourceUri: string;
   symbols?: SymbolEligibility[];
 };

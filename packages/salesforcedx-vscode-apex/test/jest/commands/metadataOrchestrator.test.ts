@@ -51,7 +51,9 @@ describe('MetadataOrchestrator', () => {
     });
 
     it('should throw an error if the first eligible response is not eligible and method is selected', async () => {
-      const mockResponse: any = [{ isEligible: false, symbols: [{ docSymbol: { name: 'someMethod' } }] }];
+      const mockResponse: any = [
+        { isApexOasEligible: false, isEligible: false, symbols: [{ docSymbol: { name: 'someMethod' } }] }
+      ];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
       await expect(orchestrator.extractMetadata(editorStub.document.uri, true)).rejects.toThrow(
         'Method someMethod is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.'
@@ -59,7 +61,7 @@ describe('MetadataOrchestrator', () => {
     });
 
     it('should throw an error if the first eligible response is not eligible and method is not selected', async () => {
-      const mockResponse: any = [{ isEligible: false, resourceUri: '/hello/world.cls' }];
+      const mockResponse: any = [{ isApexOasEligible: false, isEligible: false, resourceUri: '/hello/world.cls' }];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
       await expect(orchestrator.extractMetadata(editorStub.document.uri)).rejects.toThrow(
         'The Apex Class world is not valid for Open AI document generation.'
@@ -67,7 +69,13 @@ describe('MetadataOrchestrator', () => {
     });
 
     it('should return the first eligible response if it is eligible', async () => {
-      const mockResponse: any = [{ isEligible: true }];
+      const mockResponse: any = [
+        {
+          isApexOasEligible: true,
+          isEligible: true,
+          symbols: [{ isApexOasEligible: true, docSymbol: { name: 'someMethod' } }]
+        }
+      ];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
       const result = await orchestrator.extractMetadata(editorStub.document.uri);
       expect(result).toEqual(mockResponse[0]);
@@ -81,7 +89,7 @@ describe('MetadataOrchestrator', () => {
       (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
     });
     it('should call eligibilityDelegate with expected parameter when there are multiple uris (requests)', async () => {
-      const responses = [{ isEligible: true, resourceUri: 'file.cls' }];
+      const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: 'file.cls' }];
       const uris = [{ path: '/hello/world.cls' } as vscode.Uri, { path: 'hola/world.cls' } as vscode.Uri];
       const expectedRequest = {
         payload: [
@@ -89,7 +97,7 @@ describe('MetadataOrchestrator', () => {
             resourceUri: uris[0].toString(),
             includeAllMethods: true,
             includeAllProperties: true,
-            positions: null,
+            position: null,
             methodNames: [],
             propertyNames: []
           },
@@ -97,7 +105,7 @@ describe('MetadataOrchestrator', () => {
             resourceUri: uris[1].toString(),
             includeAllMethods: true,
             includeAllProperties: true,
-            positions: null,
+            position: null,
             methodNames: [],
             propertyNames: []
           }
@@ -126,7 +134,7 @@ describe('MetadataOrchestrator', () => {
     });
 
     it('should call eligibilityDelegate with expected parameter when there is single request', async () => {
-      const responses = [{ isEligible: true, resourceUri: 'file.cls' }];
+      const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: 'file.cls' }];
       const uri = { path: '/file.cls' } as vscode.Uri;
       eligibilityDelegateSpy = jest.spyOn(orchestrator, 'eligibilityDelegate').mockResolvedValue(responses);
       const mockEditor = {
@@ -137,7 +145,7 @@ describe('MetadataOrchestrator', () => {
         resourceUri: uri.toString(),
         includeAllMethods: true,
         includeAllProperties: true,
-        positions: null,
+        position: null,
         methodNames: [],
         propertyNames: []
       };
@@ -165,7 +173,7 @@ describe('MetadataOrchestrator', () => {
             resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes',
             includeAllMethods: true,
             includeAllProperties: true,
-            positions: [],
+            position: null,
             methodNames: [],
             propertyNames: []
           }
@@ -185,7 +193,7 @@ describe('MetadataOrchestrator', () => {
             resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes',
             includeAllMethods: true,
             includeAllProperties: true,
-            positions: [],
+            position: null,
             methodNames: [],
             propertyNames: []
           }
@@ -201,7 +209,7 @@ describe('MetadataOrchestrator', () => {
             resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file.cls',
             includeAllMethods: true,
             includeAllProperties: true,
-            positions: [],
+            position: null,
             methodNames: [],
             propertyNames: []
           }
@@ -217,7 +225,7 @@ describe('MetadataOrchestrator', () => {
             resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file.cls',
             includeAllMethods: false,
             includeAllProperties: false,
-            positions: [new vscode.Position(3, 5)],
+            position: new vscode.Position(3, 5),
             methodNames: [],
             propertyNames: []
           }
@@ -233,7 +241,7 @@ describe('MetadataOrchestrator', () => {
             resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file1.cls',
             includeAllMethods: true,
             includeAllProperties: true,
-            positions: null,
+            position: null,
             methodNames: [],
             propertyNames: []
           },
@@ -241,7 +249,7 @@ describe('MetadataOrchestrator', () => {
             resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file2.cls',
             includeAllMethods: true,
             includeAllProperties: true,
-            positions: null,
+            position: null,
             methodNames: [],
             propertyNames: []
           }

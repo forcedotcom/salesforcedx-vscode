@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
-import { stringify } from 'yaml';
+import { parse, stringify } from 'yaml';
 import { nls } from '../messages';
 import { ApexClassOASEligibleResponse, SymbolEligibility } from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
@@ -91,13 +91,13 @@ export class ApexActionController {
     const documentText = fs.readFileSync(new URL(metadata.resourceUri.toString()), 'utf8');
     const className = path.basename(metadata.resourceUri, '.cls');
     const methodNames = (metadata.symbols || [])
-      .filter((symbol: SymbolEligibility) => symbol.isEligible)
+      .filter((symbol: SymbolEligibility) => symbol.isApexOasEligible)
       .map((symbol: SymbolEligibility) => symbol.docSymbol?.name)
       .filter((name: string | undefined) => name);
     const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, methodNames, className);
 
     // Convert the OpenAPI document to YAML
-    return stringify(openAPIdocument);
+    return this.cleanupYaml(openAPIdocument);
   };
 
   /**
@@ -111,4 +111,18 @@ export class ApexActionController {
     notificationService.showErrorMessage(`${nls.localize('create_apex_action_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
+
+  private cleanupYaml(doc: string): string {
+    // Remove the first line of the document
+    const openApiIndex = doc.indexOf('openapi');
+    if (openApiIndex === -1) {
+      throw new Error('Could not find openapi line in document:\n' + doc);
+    }
+    const theDoc = doc
+      .substring(openApiIndex)
+      .split('\n')
+      .filter((line: string) => !line.includes('{AUTHOR_PLACEHOLDER}'))
+      .join('\n');
+    return stringify(parse(theDoc));
+  }
 }
