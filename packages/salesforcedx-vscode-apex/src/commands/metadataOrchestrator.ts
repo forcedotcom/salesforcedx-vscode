@@ -56,11 +56,16 @@ export class MetadataOrchestrator {
     if (!isEligibleResponses || isEligibleResponses.length === 0) {
       throw new Error(nls.localize('validation_failed'));
     }
-    if (!isEligibleResponses[0].isEligible) {
+    if (!isEligibleResponses[0].isApexOasEligible) {
       if (isMethodSelected) {
         const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
         throw new Error(nls.localize('not_eligible_method', name));
       }
+      throw new Error(nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri, '.cls')));
+    }
+    const symbols = isEligibleResponses[0].symbols ?? [];
+    const eligibleSymbols = symbols.filter(s => s.isApexOasEligible);
+    if (eligibleSymbols.length === 0) {
       throw new Error(nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri, '.cls')));
     }
     return isEligibleResponses[0];
@@ -107,7 +112,7 @@ export class MetadataOrchestrator {
           includeAllMethods: true,
           includeAllProperties: true,
           methodNames: [],
-          positions: null,
+          position: null,
           propertyNames: []
         } as ApexClassOASEligibleRequest;
         requests.push(request);
@@ -128,7 +133,7 @@ export class MetadataOrchestrator {
         resourceUri: sourceUri ? sourceUri.toString() : vscode.window.activeTextEditor?.document.uri.toString() || '',
         includeAllMethods: !isMethodSelected,
         includeAllProperties: !isMethodSelected,
-        positions: cursorPosition ? [cursorPosition] : null,
+        position: cursorPosition ?? null,
         methodNames: [],
         propertyNames: []
       };
