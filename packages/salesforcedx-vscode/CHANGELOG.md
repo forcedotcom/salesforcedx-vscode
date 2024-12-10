@@ -1,3 +1,11 @@
+# 62.9.1 - December 12, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Update some md labels for org browser ([PR #5967](https://github.com/forcedotcom/salesforcedx-vscode/pull/5967))
+
 # 62.5.1 - November 14, 2024
 
 ## Added
