@@ -18,7 +18,7 @@ import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
  */
 export const provideLwcTestCodeLens = async (
   document: TextDocument,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   token: CancellationToken
 ): Promise<CodeLens[]> => {
   const fsPath = document.uri.fsPath;

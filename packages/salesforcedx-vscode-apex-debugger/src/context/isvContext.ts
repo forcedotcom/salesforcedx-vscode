@@ -27,11 +27,11 @@ export const registerIsvAuthWatcher = (extensionContext: vscode.ExtensionContext
   if (vscode.workspace.workspaceFolders instanceof Array && vscode.workspace.workspaceFolders.length > 0) {
     const configPath = projectPaths.salesforceProjectConfig();
     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
-    /* eslint-disable @typescript-eslint/no-unused-vars */
+
     isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
     isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
     isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+
     extensionContext.subscriptions.push(isvAuthWatcher);
   }
 };

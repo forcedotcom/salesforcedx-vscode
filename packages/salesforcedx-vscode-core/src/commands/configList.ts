@@ -10,7 +10,6 @@ import { nls } from '../messages';
 import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class ConfigList extends SfCommandletExecutor<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('config_list_text'))

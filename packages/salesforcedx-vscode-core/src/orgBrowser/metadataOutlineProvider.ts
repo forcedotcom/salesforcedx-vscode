@@ -68,7 +68,6 @@ export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserN
         break;
       case NodeType.Folder:
       case NodeType.MetadataType:
-        // eslint-disable-next-line no-case-declarations
         let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;

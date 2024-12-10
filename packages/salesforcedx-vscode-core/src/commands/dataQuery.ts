@@ -87,7 +87,6 @@ export enum ApiType {
 
 const workspaceChecker = new SfWorkspaceChecker();
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const dataQuery = (explorerDir?: any): void => {
   const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new DataQueryExecutor());

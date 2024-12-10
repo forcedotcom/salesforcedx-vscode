@@ -35,7 +35,6 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
     return instance;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_logout_all_text'))
@@ -61,7 +60,6 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
     super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async run(
     response: ContinueResponse<string>,
     progress?: Progress<{
@@ -69,7 +67,6 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
       increment?: number | undefined;
     }>,
     token?: CancellationToken
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     try {
       await removeUsername(response.data);

@@ -25,7 +25,6 @@ import {
   ColorInformation,
   ColorPresentationRequest,
   DocumentColorRequest,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ServerCapabilities as CPServerCapabilities
 } from 'vscode-languageserver-protocol';
 import { ConfigurationParams, ConfigurationRequest } from 'vscode-languageserver-protocol';
