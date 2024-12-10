@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We added a new VSCode configuration of enabling error telemetry from Apex Language Server and no error telemetry from Apex Language Server is reported by default to help us reduce noise. ([PR #5969](https://github.com/forcedotcom/salesforcedx-vscode/pull/5969))
+- We've added a new Visual Studio Code configuration that lets you enable error telemetry from the Apex Language Server. We turned off this feature by default so that we can reduce noise. ([PR #5969](https://github.com/forcedotcom/salesforcedx-vscode/pull/5969))
 
 ## Fixed
 
