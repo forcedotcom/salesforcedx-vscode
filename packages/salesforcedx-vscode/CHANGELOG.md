@@ -1,5 +1,11 @@
 # 62.9.1 - December 12, 2024
 
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We added a new VSCode configuration of enabling error telemetry from Apex Language Server and no error telemetry from Apex Language Server is reported by default to help us reduce noise.
+
 ## Fixed
 
 #### salesforcedx-vscode-core
