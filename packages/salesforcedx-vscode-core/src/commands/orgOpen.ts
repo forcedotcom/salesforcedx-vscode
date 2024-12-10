@@ -24,7 +24,6 @@ import { workspaceUtils } from '../util';
 import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
@@ -94,7 +93,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
 
 export class OrgOpenExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))

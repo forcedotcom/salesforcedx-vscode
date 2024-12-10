@@ -35,7 +35,7 @@ import {
 } from '../projectGenerate';
 import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
 // below uses require due to bundling restrictions
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const AdmZip = require('adm-zip');
 
 export type InstalledPackageInfo = {
@@ -56,7 +56,6 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   public readonly relativeApexPackageXmlPath = path.join(this.relativeMetadataTempPath, PACKAGE_XML);
   public readonly relativeInstalledPackagesPath = path.join(projectPaths.relativeToolsFolder(), INSTALLED_PACKAGES);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     throw new Error('not in use');
   }
@@ -349,12 +348,10 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     return result;
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();

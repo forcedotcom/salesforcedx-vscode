@@ -101,12 +101,10 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     return parsed;
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected getTelemetryData(
     success: boolean,
     response: ContinueResponse<T>,
     output: string
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): TelemetryData | undefined {
     return;
   }
@@ -117,7 +115,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   protected updateCache(result: any): void {}
 
   public abstract build(data: T): Command;

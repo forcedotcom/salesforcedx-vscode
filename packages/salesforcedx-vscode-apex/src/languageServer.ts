@@ -14,7 +14,7 @@ import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
-import { retrieveEnableSyncInitJobs } from './settings';
+import { retrieveEnableApexLSErrorToTelemetry, retrieveEnableSyncInitJobs } from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
@@ -153,7 +153,8 @@ export const buildClientOptions = (): LanguageClientOptions => {
     },
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs()
+      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
+      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry()
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()

@@ -60,7 +60,6 @@ async function filterByContext(
   return filteredItems;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isString(x: any): x is string {
   return typeof x === 'string';
 }
@@ -208,7 +207,7 @@ const expandFunctions: {
             .map(v =>
               newCompletionItem(
                 v.value,
-                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+
                 "'" + v.value + "'",
                 CompletionItemKind.Value
               )
