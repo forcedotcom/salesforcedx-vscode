@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-core
 
-- Update some md labels for org browser ([PR #5967](https://github.com/forcedotcom/salesforcedx-vscode/pull/5967))
+- We fixed some labels in the Org Browser.([PR #5967](https://github.com/forcedotcom/salesforcedx-vscode/pull/5967))
 
 # 62.5.1 - November 14, 2024
 
