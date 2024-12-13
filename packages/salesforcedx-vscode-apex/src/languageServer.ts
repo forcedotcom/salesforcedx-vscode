@@ -22,7 +22,8 @@ import {
   retrieveAAMethodAccessModifiers,
   retrieveAAPropDefModifiers,
   retrieveAAPropAccessModifiers,
-  retrieveAAAnnotations,
+  retrieveAAClassAnnotations,
+  retrieveAAMethodAnnotations,
   retrieveGeneralClassAccessModifiers,
   retrieveGeneralMethodAccessModifiers,
   retrieveGeneralPropAccessModifiers
@@ -170,7 +171,8 @@ export const buildClientOptions = (): LanguageClientOptions => {
       apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
       apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
       apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
-      apexActionAnnotations: retrieveAAAnnotations().join(','),
+      apexActionClassAnnotations: retrieveAAClassAnnotations().join(','),
+      apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
       apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
       apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
       apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
