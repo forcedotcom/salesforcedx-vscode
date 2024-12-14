@@ -234,10 +234,11 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
     findDocumentHighlight: (document: TextDocument, position: Position): DocumentHighlight[] => {
       updateCurrentTextDocument(document);
       const highlights = jsLanguageService.getDocumentHighlights(FILE_NAME, currentTextDocument.offsetAt(position), [
+        FILE_NAME,
         document.uri
       ]);
 
-      if (highlights.length > 0) {
+      if (highlights?.length > 0) {
         // Only one file to search above so there should only be one result
         return highlights[0].highlightSpans.map(entry => {
           return {
