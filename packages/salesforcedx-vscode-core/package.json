@@ -222,11 +222,11 @@
         },
         {
           "command": "sf.deploy.oas",
-          "when": "sf:project_opened && resource =~ /.\\.yml$/ && resourcePath =~ /OpenAPIdocuments/ && editorIsOpen && sf:has_target_org"
+          "when": "false"
         },
         {
           "command": "sf.retrieve.oas",
-          "when": "sf:project_opened && resource =~ /.\\.yml$/ && resourcePath =~ /OpenAPIdocuments/ && editorIsOpen && sf:has_target_org"
+          "when": "false"
         }
       ],
       "explorer/context": [
@@ -332,11 +332,11 @@
         },
         {
           "command": "sf.deploy.oas",
-          "when": "sf:project_opened && resourcePath =~ /OpenAPIdocuments/ && sf:has_target_org"
+          "when": "false"
         },
         {
           "command": "sf.retrieve.oas",
-          "when": "sf:project_opened && resourcePath =~ /OpenAPIdocuments/ && sf:has_target_org"
+          "when": "false"
         }
       ],
       "commandPalette": [
@@ -622,11 +622,11 @@
         },
         {
           "command": "sf.deploy.oas",
-          "when": "sf:project_opened && resource =~ /.\\.yml$/ && resourcePath =~ /OpenAPIdocuments/ && editorIsOpen && sf:has_target_org"
+          "when": "false"
         },
         {
           "command": "sf.retrieve.oas",
-          "when": "sf:project_opened && resource =~ /.\\.yml$/ && resourcePath =~ /OpenAPIdocuments/ && editorIsOpen && sf:has_target_org"
+          "when": "false"
         }
       ]
     },
