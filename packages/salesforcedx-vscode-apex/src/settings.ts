@@ -15,8 +15,7 @@ const APEX_ACTION_METHOD_DEF_MODIFIERS = ['static'];
 const APEX_ACTION_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
 const APEX_ACTION_PROP_DEF_MODIFIERS = ['static'];
 const APEX_ACTION_PROP_ACCESS_MODIFIERS = ['global', 'public'];
-const APEX_ACTION_CLASS_ANNOTATION = ['AuraEnabled', 'RestResource'];
-const APEX_ACTION_METHOD_ANNOTATION = ['AuraEnabled', 'HttpDelete', 'HttpGet', 'HttpPatch', 'HttpPost', 'HttpPut'];
+const APEX_ACTION_ANNOTATIONS = ['AuraEnabled', 'RestResource'];
 
 // Default eligibility for general OAS generation. Users can changed the setting through VSCode configurations
 const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
@@ -79,18 +78,11 @@ export const retrieveAAPropAccessModifiers = (): string[] => {
   return [...new Set([...APEX_ACTION_PROP_ACCESS_MODIFIERS, ...userDefinedModifiers])];
 };
 
-export const retrieveAAClassAnnotations = (): string[] => {
+export const retrieveAAAnnotations = (): string[] => {
   const userDefinedModifiers = vscode.workspace
     .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.class.annotations', []);
-  return [...new Set([...APEX_ACTION_CLASS_ANNOTATION, ...userDefinedModifiers])];
-};
-
-export const retrieveAAMethodAnnotations = (): string[] => {
-  const userDefinedModifiers = vscode.workspace
-    .getConfiguration()
-    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.method.annotations', []);
-  return [...new Set([...APEX_ACTION_METHOD_ANNOTATION, ...userDefinedModifiers])];
+    .get<string[]>('salesforcedx-vscode-apex.apexoas.aa.annotations', []);
+  return [...new Set([...APEX_ACTION_ANNOTATIONS, ...userDefinedModifiers])];
 };
 
 export const retrieveGeneralClassAccessModifiers = (): string[] =>
