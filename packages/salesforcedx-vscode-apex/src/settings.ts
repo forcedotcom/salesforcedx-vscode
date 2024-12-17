@@ -8,6 +8,21 @@
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
+export const retrieveTestCodeCoverage = (): boolean => {
+  return vscode.workspace
+    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+    .get<boolean>('retrieve-test-code-coverage', false);
+};
+
+export const retrieveEnableSyncInitJobs = (): boolean => {
+  return vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
+};
+
+export const retrieveEnableApexLSErrorToTelemetry = (): boolean => {
+  return vscode.workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry', false);
+};
 // Eligibility for apex action ONLY, should not be changed by users unless overwriting in settings.json
 const APEX_ACTION_CLASS_DEF_MODIFIERS = ['withsharing'];
 const APEX_ACTION_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
@@ -21,16 +36,6 @@ const APEX_ACTION_ANNOTATIONS = ['AuraEnabled', 'RestResource'];
 const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_PROP_ACCESS_MODIFIERS = ['global', 'public'];
-
-export const retrieveTestCodeCoverage = (): boolean => {
-  return vscode.workspace
-    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-    .get<boolean>('retrieve-test-code-coverage', false);
-};
-
-export const retrieveEnableSyncInitJobs = (): boolean => {
-  return vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
-};
 
 // Configurations of the definitions of eligible apex classes/methods/properties
 // We want to lock the eligibility criteria for apexoas, so we do not expose the settings to customer

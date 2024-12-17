@@ -74,7 +74,6 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
       stdOut += realData.toString();
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       try {
