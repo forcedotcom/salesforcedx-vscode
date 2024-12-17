@@ -238,7 +238,7 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
         document.uri
       ]);
 
-      if (highlights && highlights.length > 0) {
+      if (highlights?.length > 0) {
         // Only one file to search above so there should only be one result
         return highlights[0].highlightSpans.map(entry => {
           return {
