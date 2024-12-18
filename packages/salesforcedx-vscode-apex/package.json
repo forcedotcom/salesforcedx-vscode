@@ -470,50 +470,50 @@
           "default": false,
           "description": "%enable-apex-ls-error-to-telemetry%"
         }
+      }
+    },
+    "languages": [
+      {
+        "id": "apex",
+        "aliases": [
+          "Apex",
+          "apex"
+        ],
+        "extensions": [
+          ".cls",
+          ".trigger",
+          ".soql"
+        ],
+        "configuration": "./syntaxes/apex.configuration.json"
       },
-      "languages": [
-        {
-          "id": "apex",
-          "aliases": [
-            "Apex",
-            "apex"
-          ],
-          "extensions": [
-            ".cls",
-            ".trigger",
-            ".soql"
-          ],
-          "configuration": "./syntaxes/apex.configuration.json"
-        },
-        {
-          "id": "apex-anon",
-          "aliases": [
-            "Anonymous Apex"
-          ],
-          "extensions": [
-            ".apex"
-          ],
-          "configuration": "./syntaxes/apex.configuration.json"
-        }
-      ],
-      "grammars": [
-        {
-          "language": "apex",
-          "scopeName": "source.apex",
-          "path": "./grammars/apex.tmLanguage"
-        },
-        {
-          "language": "apex-anon",
-          "scopeName": "source.apex",
-          "path": "./grammars/apex.tmLanguage"
-        }
-      ],
-      "snippets": [
-        {
-          "language": "apex",
-          "path": "./snippets/apex.json"
-        }
-      ]
-    }
+      {
+        "id": "apex-anon",
+        "aliases": [
+          "Anonymous Apex"
+        ],
+        "extensions": [
+          ".apex"
+        ],
+        "configuration": "./syntaxes/apex.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "apex",
+        "scopeName": "source.apex",
+        "path": "./grammars/apex.tmLanguage"
+      },
+      {
+        "language": "apex-anon",
+        "scopeName": "source.apex",
+        "path": "./grammars/apex.tmLanguage"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "apex",
+        "path": "./snippets/apex.json"
+      }
+    ]
   }
 }
