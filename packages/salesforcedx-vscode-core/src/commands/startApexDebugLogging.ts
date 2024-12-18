@@ -37,7 +37,6 @@ export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
     channelService.streamCommandOutput(execution);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async execute(response: ContinueResponse<{}>): Promise<void> {
     const startTime = process.hrtime();
     const executionWrapper = new CompositeCliCommandExecutor(this.build()).execute(this.cancellationToken);

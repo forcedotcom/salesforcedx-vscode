@@ -19,7 +19,6 @@ export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<Acces
     super(nls.localize('org_login_access_token_text'), 'org_login_access_token', OUTPUT_CHANNEL);
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async run(
     response: ContinueResponse<AccessTokenParams>,
     progress?: vscode.Progress<{
@@ -27,7 +26,6 @@ export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<Acces
       increment?: number | undefined;
     }>,
     token?: vscode.CancellationToken
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
     try {

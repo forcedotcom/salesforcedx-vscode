@@ -14,7 +14,6 @@ import { nls } from '../messages';
 import { workspaceUtils } from '../util';
 
 export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public apply(item: typeof workspace): PredicateResponse {
     if (!workspaceUtils.hasRootWorkspace()) {
       return PredicateResponse.of(false, nls.localize('predicates_no_folder_opened_text'));

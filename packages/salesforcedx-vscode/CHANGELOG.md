@@ -1,3 +1,17 @@
+# 62.9.1 - December 12, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We've added a new Visual Studio Code configuration that lets you enable error telemetry from the Apex Language Server. We turned off this feature by default so that we can reduce noise. ([PR #5969](https://github.com/forcedotcom/salesforcedx-vscode/pull/5969))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some labels in the Org Browser.([PR #5967](https://github.com/forcedotcom/salesforcedx-vscode/pull/5967))
+
 # 62.5.1 - November 14, 2024
 
 ## Added

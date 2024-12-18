@@ -115,17 +115,14 @@ const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'
 };
 
-const registerCommands = (
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  extensionContext: vscode.ExtensionContext
-): vscode.Disposable => {
+const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
   // Customer-facing commands
   const orgLoginAccessTokenCmd = vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken);
   const orgLoginWebCmd = vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb);
   const orgLoginWebDevHubCmd = vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const orgLogoutAllCmd = vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const orgLogoutDefaultCmd = vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault);
   const openDocumentationCmd = vscode.commands.registerCommand('sf.open.documentation', openDocumentation);
   const orgCreateCmd = vscode.commands.registerCommand('sf.org.create', orgCreate);
@@ -243,12 +240,10 @@ const registerCommands = (
 
   const diffFile = vscode.commands.registerCommand('sf.diff', sourceDiff);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const diffFolder = vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff);
 
   const forceRefreshSObjectsCmd = vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const renameLightningComponentCmd = vscode.commands.registerCommand(
     'sf.rename.lightning.component',
     renameLightningComponent
@@ -330,10 +325,7 @@ const registerCommands = (
   );
 };
 
-const registerInternalDevCommands = (
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  extensionContext: vscode.ExtensionContext
-): vscode.Disposable => {
+const registerInternalDevCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
   const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
     'sf.internal.lightning.generate.app',
     internalLightningGenerateApp

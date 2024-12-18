@@ -22,6 +22,7 @@
   "apex_verbose_level_trace_description": "Output everything, including details about notifications and responses received by the client, and requests sent by the server.",
   "configuration_title": "Salesforce Apex Configuration",
   "collapse_tests_title": "SFDX: Collapse All Apex Tests",
+  "enable-apex-ls-error-to-telemetry": "Allow the Apex Language Server to collect telemetry of errors",
   "create_apex_action_method": "SFDX: Create Apex Action from Selected Method",
   "create_apex_action_class": "SFDX: Create Apex Action from This Class",
   "go_to_definition_title": "Go to Definition",
