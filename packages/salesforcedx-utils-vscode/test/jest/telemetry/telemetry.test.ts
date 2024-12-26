@@ -88,9 +88,9 @@ describe('Telemetry', () => {
       ['off', false, false]
     ])(
       'should return true if telemetryLevel is %s and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is %s',
-      (first, second, expectedResult) => {
-        mockConfiguration.get.mockReturnValueOnce(first);
-        mockConfiguration.get.mockReturnValueOnce(second);
+      (firstReturnValue, secondReturnValue, expectedResult) => {
+        mockConfiguration.get.mockReturnValueOnce(firstReturnValue);
+        mockConfiguration.get.mockReturnValueOnce(secondReturnValue);
 
         const result = instance.isTelemetryExtensionConfigurationEnabled();
 
