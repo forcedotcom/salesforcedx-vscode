@@ -82,9 +82,9 @@ describe('Telemetry', () => {
     });
 
     it.each([
-      ['on', true, true],
+      ['all', true, true],
       ['off', true, false],
-      ['on', false, false],
+      ['all', false, false],
       ['off', false, false]
     ])(
       'should return true if telemetryLevel is %s and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is %s',
