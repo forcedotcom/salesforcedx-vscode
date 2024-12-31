@@ -63,6 +63,7 @@ export const messages = {
     'Method %s is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.',
   unknown: 'Unknown',
   invalid_active_text_editor: 'The active text editor is missing or is an invalid file.',
+  cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
   sobjects_no_refresh_if_already_active_error_text:
     'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   test_view_loading_message: 'Apex テストを読み込んでいます...',

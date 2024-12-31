@@ -98,6 +98,26 @@ export class MetadataOrchestrator {
     return response;
   };
 
+  public gatherContext = async (
+    sourceUri: vscode.Uri | vscode.Uri[]
+  ): Promise<ApexClassOASEligibleResponses | undefined> => {
+    const telemetryService = await getTelemetryService();
+    let response;
+    const languageClient = languageClientUtils.getClientInstance();
+    if (languageClient) {
+      try {
+        response = (await languageClient?.sendRequest(
+          'apexoas/gatherContext',
+          sourceUri?.toString() ?? vscode.window.activeTextEditor?.document.uri.toString()
+        )) as ApexClassOASEligibleResponses;
+      } catch (error) {
+        // fallback TBD after we understand it better
+        throw new Error(nls.localize('cannot_gather_context'));
+      }
+    }
+    return response;
+  };
+
   public validateEligibility = async (
     sourceUri: vscode.Uri | vscode.Uri[],
     isMethodSelected: boolean = false
@@ -140,6 +160,7 @@ export class MetadataOrchestrator {
       requests.push(request);
     }
 
+    const response = this.gatherContext(sourceUri);
     const responses = await this.eligibilityDelegate({ payload: requests });
     return responses;
   };
