@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import { workspace } from 'vscode';
 import { TelemetryService } from '../../../src';
-import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
+import { SFDX_CORE_CONFIGURATION_NAME, SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryServiceProvider } from '../../../src/services/telemetry';
 
 describe('Telemetry', () => {
@@ -62,6 +63,40 @@ describe('Telemetry', () => {
       const secondInstance = TelemetryServiceProvider.getInstance(extensionName);
       expect(secondInstance).toBe(firstInstance);
     });
+  });
+  describe('Telemetry Service - isTelemetryExtensionConfigurationEnabled', () => {
+    const mockedWorkspace = jest.mocked(workspace);
+    let instance: TelemetryServiceInterface;
+
+    const mockConfiguration = {
+      get: jest.fn().mockReturnValue('true')
+    };
+
+    beforeEach(() => {
+      jest.spyOn(mockedWorkspace, 'getConfiguration').mockReturnValue(mockConfiguration as any);
+      instance = TelemetryService.getInstance();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it.each([
+      ['all', true, true],
+      ['off', true, false],
+      ['all', false, false],
+      ['off', false, false]
+    ])(
+      'should return true if telemetryLevel is %s and SFDX_CORE_CONFIGURATION_NAME.telemetry.enabled is %s',
+      (firstReturnValue, secondReturnValue, expectedResult) => {
+        mockConfiguration.get.mockReturnValueOnce(firstReturnValue);
+        mockConfiguration.get.mockReturnValueOnce(secondReturnValue);
+
+        const result = instance.isTelemetryExtensionConfigurationEnabled();
+
+        expect(result).toBe(expectedResult);
+      }
+    );
   });
   describe('Telemetry Service - isTelemetryEnabled', () => {
     let spyIsTelemetryExtensionConfigurationEnabled: jest.SpyInstance;
