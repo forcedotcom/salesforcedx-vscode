@@ -13,6 +13,7 @@ import {
   ApexClassOASEligibleRequest,
   ApexClassOASEligibleResponse,
   ApexClassOASEligibleResponses,
+  ApexClassOASGatherContextResponse,
   ApexOASEligiblePayload,
   ApexOASResource
 } from '../openApiUtilities/schemas';
@@ -100,7 +101,7 @@ export class MetadataOrchestrator {
 
   public gatherContext = async (
     sourceUri: vscode.Uri | vscode.Uri[]
-  ): Promise<ApexClassOASEligibleResponses | undefined> => {
+  ): Promise<ApexClassOASGatherContextResponse | undefined> => {
     const telemetryService = await getTelemetryService();
     let response;
     const languageClient = languageClientUtils.getClientInstance();
@@ -109,8 +110,13 @@ export class MetadataOrchestrator {
         response = (await languageClient?.sendRequest(
           'apexoas/gatherContext',
           sourceUri?.toString() ?? vscode.window.activeTextEditor?.document.uri.toString()
-        )) as ApexClassOASEligibleResponses;
+        )) as ApexClassOASGatherContextResponse;
+        telemetryService.sendEventData('gatherContextSucceeded', { context: JSON.stringify(response) });
       } catch (error) {
+        telemetryService.sendException(
+          'gatherContextFailed',
+          `${error} failed to send request to language server for ${path.basename(sourceUri.toString())}`
+        );
         // fallback TBD after we understand it better
         throw new Error(nls.localize('cannot_gather_context'));
       }
@@ -160,7 +166,6 @@ export class MetadataOrchestrator {
       requests.push(request);
     }
 
-    const response = this.gatherContext(sourceUri);
     const responses = await this.eligibilityDelegate({ payload: requests });
     return responses;
   };
@@ -176,7 +181,7 @@ export class MetadataOrchestrator {
       } else return ApexOASResource.class;
     }
   }
-  sendPromptToLLM = async (editorText: string, methods: string[], className: string): Promise<string> => {
+  sendPromptToLLM = async (editorText: string, context: ApexClassOASGatherContextResponse): Promise<string> => {
     console.log('This is the sendPromptToLLM() method');
     console.log('document text = ' + editorText);
 
@@ -195,7 +200,7 @@ export class MetadataOrchestrator {
       userPrompt +
       '\n\n***Code Context***\n```\n' +
       editorText +
-      `\nClass name: ${className}, methods: ${methods.join(',')}\n` +
+      `\nClass name: ${context.classDetail.name}, methods: ${context.methods.map(method => method.name).join(',')}\n` +
       `\n\`\`\`\n${endOfPromptTag}\n${assistantTag}`;
     console.log('input = ' + input);
     let result;
