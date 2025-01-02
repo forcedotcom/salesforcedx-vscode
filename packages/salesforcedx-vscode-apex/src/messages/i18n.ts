@@ -55,9 +55,9 @@ export const messages = {
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
   create_apex_action_failed: 'Failed to create Apex Action',
-  extract_metadata: 'Extracting metadata.',
-  extraction_failed: 'Failed to extract metadata from %s',
-  validation_failed: 'Failed to validate metadata.',
+  validate_eligibility: 'Validating eligibility.',
+  class_validation_failed: 'Failed to validate eligibility from %s',
+  validation_failed: 'Failed to validate eligibility.',
   apex_class_not_valid: 'The Apex Class %s is not valid for Open AI document generation.',
   apex_action_created: 'Apex Action created for %s: %s.',
   generate_openapi_document: 'Generating OpenAPI document.',
@@ -106,5 +106,6 @@ export const messages = {
   orphan_process_advice:
     "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
   unknown: 'Unknown',
-  invalid_active_text_editor: 'The active text editor is missing or is an invalid file.'
+  invalid_active_text_editor: 'The active text editor is missing or is an invalid file.',
+  cannot_gather_context: 'An error occurred while gathering context for the Apex class.'
 };

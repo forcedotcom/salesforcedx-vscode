@@ -11,7 +11,7 @@ import { URL } from 'url';
 import * as vscode from 'vscode';
 import { parse, stringify } from 'yaml';
 import { nls } from '../messages';
-import { ApexClassOASEligibleResponse, SymbolEligibility } from '../openApiUtilities/schemas';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 
@@ -27,7 +27,8 @@ export class ApexActionController {
     const command = isClass
       ? 'SFDX: Create Apex Action from This Class'
       : 'SFDX: Create Apex Action from Selected Method';
-    let metadata;
+    let eligibilityResult;
+    let context;
     let name;
     const telemetryService = await getTelemetryService();
     try {
@@ -38,19 +39,27 @@ export class ApexActionController {
           cancellable: true
         },
         async progress => {
-          // Step 1: Extract Metadata
-          progress.report({ message: nls.localize('extract_metadata') });
-          metadata = await this.metadataOrchestrator.extractMetadata(sourceUri, !isClass);
-          if (!metadata) {
-            throw new Error(nls.localize('extraction_failed', type));
+          // Step 1: Validate eligibility
+          progress.report({ message: nls.localize('validate_eligibility') });
+          eligibilityResult = await this.metadataOrchestrator.validateMetadata(sourceUri, !isClass);
+          if (!eligibilityResult) {
+            throw new Error(nls.localize('class_validation_failed', type));
+          }
+
+          // Step 2: Gather context
+          context = await this.metadataOrchestrator.gatherContext(sourceUri);
+          if (!context) {
+            throw new Error(nls.localize('cannot_gather_context'));
           }
 
           // Step 3: Generate OpenAPI Document
           progress.report({ message: nls.localize('generate_openapi_document') });
-          const openApiDocument = await this.generateOpenAPIDocument(metadata);
+          const openApiDocument = await this.generateOpenAPIDocument(eligibilityResult, context);
 
           // Step 4: Write OpenAPI Document to File
-          name = isClass ? path.basename(metadata.resourceUri, '.cls') : metadata?.symbols?.[0]?.docSymbol?.name;
+          name = isClass
+            ? path.basename(eligibilityResult.resourceUri, '.cls')
+            : eligibilityResult?.symbols?.[0]?.docSymbol?.name;
           const openApiFileName = `${name}_openapi.yml`;
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
           await this.saveAndOpenDocument(openApiFileName, openApiDocument);
@@ -87,14 +96,12 @@ export class ApexActionController {
    * @param metadata - The metadata of the methods.
    * @returns The OpenAPI document as a string.
    */
-  private generateOpenAPIDocument = async (metadata: ApexClassOASEligibleResponse): Promise<string> => {
+  private generateOpenAPIDocument = async (
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse
+  ): Promise<string> => {
     const documentText = fs.readFileSync(new URL(metadata.resourceUri.toString()), 'utf8');
-    const className = path.basename(metadata.resourceUri, '.cls');
-    const methodNames = (metadata.symbols || [])
-      .filter((symbol: SymbolEligibility) => symbol.isApexOasEligible)
-      .map((symbol: SymbolEligibility) => symbol.docSymbol?.name)
-      .filter((name: string | undefined) => name);
-    const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, methodNames, className);
+    const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, context);
 
     // Convert the OpenAPI document to YAML
     return this.cleanupYaml(openAPIdocument);

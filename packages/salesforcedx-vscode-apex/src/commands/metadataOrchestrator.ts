@@ -13,6 +13,7 @@ import {
   ApexClassOASEligibleRequest,
   ApexClassOASEligibleResponse,
   ApexClassOASEligibleResponses,
+  ApexClassOASGatherContextResponse,
   ApexOASEligiblePayload,
   ApexOASResource
 } from '../openApiUtilities/schemas';
@@ -45,10 +46,10 @@ export interface Parameter {
  */
 export class MetadataOrchestrator {
   /**
-   * Extracts metadata for the method at the current cursor position.
+   * Validates and extracts metadata for the method at the current cursor position.
    * @returns The metadata of the method, or undefined if no method is found.
    */
-  public extractMetadata = async (
+  public validateMetadata = async (
     sourceUri: vscode.Uri | vscode.Uri[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponse | undefined> => {
@@ -93,6 +94,31 @@ export class MetadataOrchestrator {
         );
         // fallback TBD after we understand it better
         throw new Error(nls.localize('cannot_get_apexoaseligibility_response'));
+      }
+    }
+    return response;
+  };
+
+  public gatherContext = async (
+    sourceUri: vscode.Uri | vscode.Uri[]
+  ): Promise<ApexClassOASGatherContextResponse | undefined> => {
+    const telemetryService = await getTelemetryService();
+    let response;
+    const languageClient = languageClientUtils.getClientInstance();
+    if (languageClient) {
+      try {
+        response = (await languageClient?.sendRequest(
+          'apexoas/gatherContext',
+          sourceUri?.toString() ?? vscode.window.activeTextEditor?.document.uri.toString()
+        )) as ApexClassOASGatherContextResponse;
+        telemetryService.sendEventData('gatherContextSucceeded', { context: JSON.stringify(response) });
+      } catch (error) {
+        telemetryService.sendException(
+          'gatherContextFailed',
+          `${error} failed to send request to language server for ${path.basename(sourceUri.toString())}`
+        );
+        // fallback TBD after we understand it better
+        throw new Error(nls.localize('cannot_gather_context'));
       }
     }
     return response;
@@ -155,7 +181,7 @@ export class MetadataOrchestrator {
       } else return ApexOASResource.class;
     }
   }
-  sendPromptToLLM = async (editorText: string, methods: string[], className: string): Promise<string> => {
+  sendPromptToLLM = async (editorText: string, context: ApexClassOASGatherContextResponse): Promise<string> => {
     console.log('This is the sendPromptToLLM() method');
     console.log('document text = ' + editorText);
 
@@ -174,7 +200,7 @@ export class MetadataOrchestrator {
       userPrompt +
       '\n\n***Code Context***\n```\n' +
       editorText +
-      `\nClass name: ${className}, methods: ${methods.join(',')}\n` +
+      `\nClass name: ${context.classDetail.name}, methods: ${context.methods.map(method => method.name).join(',')}\n` +
       `\n\`\`\`\n${endOfPromptTag}\n${assistantTag}`;
     console.log('input = ' + input);
     let result;

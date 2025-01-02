@@ -6,8 +6,10 @@
  */
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import { MetadataOrchestrator } from '../../../src/commands/metadataOrchestrator';
 import { languageClientUtils } from '../../../src/languageUtils';
+import { nls } from '../../../src/messages';
 import { ApexOASResource } from '../../../src/openApiUtilities/schemas';
 import { getTelemetryService } from '../../../src/telemetry/telemetry';
 import { MockTelemetryService } from '../telemetry/mockTelemetryService';
@@ -45,8 +47,8 @@ describe('MetadataOrchestrator', () => {
     });
     it('should throw an error if no eligible responses are returned', async () => {
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(undefined);
-      await expect(orchestrator.extractMetadata(editorStub.document.uri)).rejects.toThrow(
-        'Failed to validate metadata.'
+      await expect(orchestrator.validateMetadata(editorStub.document.uri)).rejects.toThrow(
+        'Failed to validate eligibility.'
       );
     });
 
@@ -55,7 +57,7 @@ describe('MetadataOrchestrator', () => {
         { isApexOasEligible: false, isEligible: false, symbols: [{ docSymbol: { name: 'someMethod' } }] }
       ];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
-      await expect(orchestrator.extractMetadata(editorStub.document.uri, true)).rejects.toThrow(
+      await expect(orchestrator.validateMetadata(editorStub.document.uri, true)).rejects.toThrow(
         'Method someMethod is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.'
       );
     });
@@ -63,7 +65,7 @@ describe('MetadataOrchestrator', () => {
     it('should throw an error if the first eligible response is not eligible and method is not selected', async () => {
       const mockResponse: any = [{ isApexOasEligible: false, isEligible: false, resourceUri: '/hello/world.cls' }];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
-      await expect(orchestrator.extractMetadata(editorStub.document.uri)).rejects.toThrow(
+      await expect(orchestrator.validateMetadata(editorStub.document.uri)).rejects.toThrow(
         'The Apex Class world is not valid for Open AI document generation.'
       );
     });
@@ -77,8 +79,54 @@ describe('MetadataOrchestrator', () => {
         }
       ];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
-      const result = await orchestrator.extractMetadata(editorStub.document.uri);
+      const result = await orchestrator.validateMetadata(editorStub.document.uri);
       expect(result).toEqual(mockResponse[0]);
+    });
+  });
+
+  describe('gatherContext', () => {
+    let getClientInstanceSpy;
+    let mockTelemetryService: any;
+
+    beforeEach(() => {
+      (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should send a request and return the response when successful', async () => {
+      const mockLanguageClient = {
+        sendRequest: jest.fn().mockResolvedValue({ some: 'response' })
+      } as unknown as ApexLanguageClient;
+
+      getClientInstanceSpy = jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(mockLanguageClient);
+
+      const mockUri = { path: '/hello/world.cls' } as vscode.Uri;
+      const response = await orchestrator.gatherContext(mockUri);
+
+      expect(mockLanguageClient.sendRequest).toHaveBeenCalledWith('apexoas/gatherContext', mockUri.toString());
+      expect(response).toEqual({ some: 'response' });
+    });
+
+    it('should handle language client being unavailable', async () => {
+      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(undefined);
+
+      const response = await orchestrator.gatherContext(vscode.Uri.file('/path/to/source'));
+      expect(response).toBeUndefined();
+    });
+
+    it('should handle errors and throw a localized error', async () => {
+      const mockLanguageClient = {
+        sendRequest: jest.fn().mockRejectedValue(new Error('Some error'))
+      } as unknown as ApexLanguageClient;
+
+      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(mockLanguageClient);
+
+      const mockUri = { path: '/hello/world.cls' } as vscode.Uri;
+
+      expect(orchestrator.gatherContext(mockUri)).rejects.toThrow(nls.localize('cannot_gather_context'));
     });
   });
 
@@ -161,7 +209,6 @@ describe('MetadataOrchestrator', () => {
   });
 
   describe('eligibilityDelegate', () => {
-    let mockLanguageClient;
     let getClientInstanceSpy;
     beforeEach(() => {
       (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());

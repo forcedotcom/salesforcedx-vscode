@@ -32,6 +32,46 @@ export type ApexOASEligiblePayload = {
 };
 export type ApexClassOASEligibleResponses = ApexClassOASEligibleResponse[];
 
+export type ApexClassOASGatherContextResponse = {
+  classDetail: ApexOASClassDetail;
+  properties: ApexOASPropertyDetail[];
+  methods: ApexOASMethodDetail[];
+  relationships: Map<string, Map<string, string[]>>; // Map<methodName, Map<srcClassUri, List<methodOrPropName>>>
+  documentations: Map<string, string[]>; // Map<method/prop/class name, each line of documentation>
+};
+
+export type ApexOASClassDetail = {
+  name: string;
+  interfaces: ApexOASInterface[];
+  extendedClass: ApexOASClassDetail | null;
+  annotations: string[];
+  definitionModifiers: string[];
+  accessModifiers: string[];
+  innerClasses: DocumentSymbol[];
+};
+
+export type ApexOASPropertyDetail = {
+  name: string;
+  type: string;
+  documentSymbol: DocumentSymbol;
+  modifiers: string[];
+  annotations: string[];
+};
+
+export type ApexOASMethodDetail = {
+  name: string;
+  returnType: string;
+  parameterTypes: string[];
+  modifiers: string[];
+  annotations: string[];
+};
+
+export type ApexOASInterface = {
+  name: string;
+  uri: string;
+  methods: DocumentSymbol[];
+};
+
 export enum ApexOASResource {
   class = 'CLASS',
   multiClass = 'MULTI CLASSES',
