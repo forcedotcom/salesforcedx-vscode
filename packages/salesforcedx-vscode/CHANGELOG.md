@@ -4,7 +4,7 @@
 
 #### salesforcedx-visualforce-language-server
 
-- Prevent `Request textDocument/documentHighlight failed with message: Debug Failure. False expression. Code: -32603` error when selecting Javascript code in the embedded `<script>` tag ([PR #5975](https://github.com/forcedotcom/salesforcedx-vscode/pull/5975))
+- Prevent `Request textDocument/documentHighlight failed with message: Debug Failure. False expression. Code: -32603` error when selecting Javascript code in the embedded `<script>` tag. Thank you [AndrewStopchenko-SO](https://github.com/AndrewStopchenko-SO) for this contribution. ([PR #5975](https://github.com/forcedotcom/salesforcedx-vscode/pull/5975))
 
 # 62.9.1 - December 12, 2024
 
