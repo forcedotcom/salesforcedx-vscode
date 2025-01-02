@@ -46,10 +46,10 @@ export interface Parameter {
  */
 export class MetadataOrchestrator {
   /**
-   * Extracts metadata for the method at the current cursor position.
+   * Validates and extracts metadata for the method at the current cursor position.
    * @returns The metadata of the method, or undefined if no method is found.
    */
-  public extractMetadata = async (
+  public validateMetadata = async (
     sourceUri: vscode.Uri | vscode.Uri[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponse | undefined> => {

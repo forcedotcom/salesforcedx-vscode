@@ -55,9 +55,9 @@ export const messages = {
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
   create_apex_action_failed: 'Failed to create Apex Action',
-  extract_metadata: 'Extracting metadata.',
-  extraction_failed: 'Failed to extract metadata from %s',
-  validation_failed: 'Failed to validate metadata.',
+  validate_eligibility: 'Validating eligibility.',
+  class_validation_failed: 'Failed to validate eligibility from %s',
+  validation_failed: 'Failed to validate eligibility.',
   apex_class_not_valid: 'The Apex Class %s is not valid for Open AI document generation.',
   apex_action_created: 'Apex Action created for %s: %s.',
   generate_openapi_document: 'Generating OpenAPI document.',

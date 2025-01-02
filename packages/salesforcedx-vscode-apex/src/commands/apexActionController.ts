@@ -27,7 +27,7 @@ export class ApexActionController {
     const command = isClass
       ? 'SFDX: Create Apex Action from This Class'
       : 'SFDX: Create Apex Action from Selected Method';
-    let metadata;
+    let eligibilityResult;
     let context;
     let name;
     const telemetryService = await getTelemetryService();
@@ -39,12 +39,14 @@ export class ApexActionController {
           cancellable: true
         },
         async progress => {
-          // Step 1: Extract Metadata
-          progress.report({ message: nls.localize('extract_metadata') });
-          metadata = await this.metadataOrchestrator.extractMetadata(sourceUri, !isClass);
-          if (!metadata) {
-            throw new Error(nls.localize('extraction_failed', type));
+          // Step 1: Validate eligibility
+          progress.report({ message: nls.localize('validate_eligibility') });
+          eligibilityResult = await this.metadataOrchestrator.validateMetadata(sourceUri, !isClass);
+          if (!eligibilityResult) {
+            throw new Error(nls.localize('class_validation_failed', type));
           }
+
+          // Step 2: Gather context
           context = await this.metadataOrchestrator.gatherContext(sourceUri);
           if (!context) {
             throw new Error(nls.localize('cannot_gather_context'));
@@ -52,10 +54,12 @@ export class ApexActionController {
 
           // Step 3: Generate OpenAPI Document
           progress.report({ message: nls.localize('generate_openapi_document') });
-          const openApiDocument = await this.generateOpenAPIDocument(metadata, context);
+          const openApiDocument = await this.generateOpenAPIDocument(eligibilityResult, context);
 
           // Step 4: Write OpenAPI Document to File
-          name = isClass ? path.basename(metadata.resourceUri, '.cls') : metadata?.symbols?.[0]?.docSymbol?.name;
+          name = isClass
+            ? path.basename(eligibilityResult.resourceUri, '.cls')
+            : eligibilityResult?.symbols?.[0]?.docSymbol?.name;
           const openApiFileName = `${name}_openapi.yml`;
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
           await this.saveAndOpenDocument(openApiFileName, openApiDocument);

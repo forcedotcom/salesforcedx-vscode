@@ -47,8 +47,8 @@ describe('MetadataOrchestrator', () => {
     });
     it('should throw an error if no eligible responses are returned', async () => {
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(undefined);
-      await expect(orchestrator.extractMetadata(editorStub.document.uri)).rejects.toThrow(
-        'Failed to validate metadata.'
+      await expect(orchestrator.validateMetadata(editorStub.document.uri)).rejects.toThrow(
+        'Failed to validate eligibility.'
       );
     });
 
@@ -57,7 +57,7 @@ describe('MetadataOrchestrator', () => {
         { isApexOasEligible: false, isEligible: false, symbols: [{ docSymbol: { name: 'someMethod' } }] }
       ];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
-      await expect(orchestrator.extractMetadata(editorStub.document.uri, true)).rejects.toThrow(
+      await expect(orchestrator.validateMetadata(editorStub.document.uri, true)).rejects.toThrow(
         'Method someMethod is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.'
       );
     });
@@ -65,7 +65,7 @@ describe('MetadataOrchestrator', () => {
     it('should throw an error if the first eligible response is not eligible and method is not selected', async () => {
       const mockResponse: any = [{ isApexOasEligible: false, isEligible: false, resourceUri: '/hello/world.cls' }];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
-      await expect(orchestrator.extractMetadata(editorStub.document.uri)).rejects.toThrow(
+      await expect(orchestrator.validateMetadata(editorStub.document.uri)).rejects.toThrow(
         'The Apex Class world is not valid for Open AI document generation.'
       );
     });
@@ -79,7 +79,7 @@ describe('MetadataOrchestrator', () => {
         }
       ];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
-      const result = await orchestrator.extractMetadata(editorStub.document.uri);
+      const result = await orchestrator.validateMetadata(editorStub.document.uri);
       expect(result).toEqual(mockResponse[0]);
     });
   });
