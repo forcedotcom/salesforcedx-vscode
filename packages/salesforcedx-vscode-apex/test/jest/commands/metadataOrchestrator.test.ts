@@ -6,13 +6,13 @@
  */
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import { MetadataOrchestrator } from '../../../src/commands/metadataOrchestrator';
 import { languageClientUtils } from '../../../src/languageUtils';
+import { nls } from '../../../src/messages';
 import { ApexOASResource } from '../../../src/openApiUtilities/schemas';
 import { getTelemetryService } from '../../../src/telemetry/telemetry';
 import { MockTelemetryService } from '../telemetry/mockTelemetryService';
-import { ApexLanguageClient } from '../../../src/apexLanguageClient';
-import { nls } from '../../../src/messages';
 
 jest.mock('../../../src/telemetry/telemetry', () => ({
   getTelemetryService: jest.fn()
