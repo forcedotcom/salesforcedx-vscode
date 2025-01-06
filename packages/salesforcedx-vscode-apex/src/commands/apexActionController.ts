@@ -142,19 +142,19 @@ export class ApexActionController {
     const updatedContent = existingContent
       ? existingContent.replace(/<schema>([\s\S]*?)<\/schema>/, `<schema>${oasSpec.replaceAll('"', '&apos;')}</schema>`)
       : [
-          `<?xml version="1.0" encoding="UTF-8"?>`,
-          `<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">`,
+          '<?xml version="1.0" encoding="UTF-8"?>',
+          '<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">',
           `\t<description>${path.basename(fullPath).split('.')[0]} External Service</description>`,
           `\t<label>${path.basename(fullPath).split('.')[0]}</label>`,
           `\t<namedCredentialReference>${namedCredential}</namedCredentialReference>`,
-          `\t<registrationProviderType>Custom</registrationProviderType>`,
+          '\t<registrationProviderType>Custom</registrationProviderType>',
           `\t<schema>${oasSpec.replaceAll('"', '&apos;')}</schema>`,
-          `\t<schemaType>OpenApi3</schemaType>`,
-          `\t<schemaUploadFileExtension>yaml</schemaUploadFileExtension>`,
+          '\t<schemaType>OpenApi3</schemaType>',
+          '\t<schemaUploadFileExtension>yaml</schemaUploadFileExtension>',
           `\t<schemaUploadFileName>${path.basename(fullPath).split('.')[0].toLowerCase()}_openapi</schemaUploadFileName>`,
-          `\t<status>Complete</status>`,
-          `\t<systemVersion>5</systemVersion>`,
-          `</ExternalServiceRegistration>`
+          '\t<status>Complete</status>',
+          '\t<systemVersion>5</systemVersion>',
+          '</ExternalServiceRegistration>'
         ].join('\n');
     try {
       // Step 3: Write File
