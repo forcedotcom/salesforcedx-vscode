@@ -1,3 +1,11 @@
+# 62.13.0 - January 8, 2025
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- Use correct telemetry enable setting ([PR #5986](https://github.com/forcedotcom/salesforcedx-vscode/pull/5986))
+
 # 62.12.0 - January 1, 2025
 
 ## Fixed
