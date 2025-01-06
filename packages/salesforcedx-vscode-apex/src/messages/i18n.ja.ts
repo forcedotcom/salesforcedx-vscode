@@ -86,5 +86,16 @@ export const messages = {
   unable_to_locate_editor: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unable_to_locate_document: 'ソースファイルに対してのみこのコマンドを実行できます。',
   launch_apex_replay_debugger_unsupported_file:
-    '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。'
+    '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。',
+  cancel: 'Cancel',
+  overwrite: 'Overwrite',
+  file_exists: 'The file already exists. Do you want to overwrite it?',
+  no_folder_selected: 'Operation canceled: No folder selected.',
+  operation_cancelled: 'Operation canceled',
+  enter_esr_path: 'Enter the folder path to store the ESR metadata artifact',
+  select_named_credential: 'Select a Named Credential',
+  error_parsing_nc: 'Error parsing named credentials result',
+  artifact_failed: 'Failed to save the artifact: %s',
+  enter_new_nc: 'Enter a custom Named Credential...',
+  enter_nc_name: 'Enter the name of the Named Credential'
 };

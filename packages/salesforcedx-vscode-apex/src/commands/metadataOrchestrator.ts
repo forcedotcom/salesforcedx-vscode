@@ -200,7 +200,7 @@ export class MetadataOrchestrator {
       userPrompt +
       '\n\n***Code Context***\n```\n' +
       editorText +
-      `\nClass name: ${context.classDetail.name}, methods: ${context.methods.map(method => method.name).join(',')}\n` +
+      `\nClass name: ${context.classDetail.name}, methods: ${context.methods.map(method => method.name).join(', ')}\n` +
       `\n\`\`\`\n${endOfPromptTag}\n${assistantTag}`;
     console.log('input = ' + input);
     let result;
