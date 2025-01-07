@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { create } from 'xmlbuilder2';
 import { parse, stringify } from 'yaml';
 import { workspaceContext } from '../context';
@@ -186,12 +187,14 @@ export class ApexActionController {
   };
 
   private getFolderForArtifact = async (): Promise<string | undefined> => {
+    const registryAccess = new RegistryAccess();
+
     const defaultESRFolder = path.join(
       workspaceUtils.getRootWorkspacePath(),
       'force-app',
       'main',
       'default',
-      'externalServiceRegistrations'
+      registryAccess.getTypeByName('ExternalServiceRegistration').directoryName
     );
     const folderUri = await vscode.window.showInputBox({
       prompt: nls.localize('enter_esr_path'),
