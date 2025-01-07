@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
+import { create } from 'xmlbuilder2';
 import { parse, stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -139,23 +140,7 @@ export class ApexActionController {
     }
     const namedCredential = await this.showNamedCredentialsQuickPick();
 
-    const updatedContent = existingContent
-      ? existingContent.replace(/<schema>([\s\S]*?)<\/schema>/, `<schema>${oasSpec.replaceAll('"', '&apos;')}</schema>`)
-      : [
-          '<?xml version="1.0" encoding="UTF-8"?>',
-          '<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">',
-          `\t<description>${path.basename(fullPath).split('.')[0]} External Service</description>`,
-          `\t<label>${path.basename(fullPath).split('.')[0]}</label>`,
-          `\t<namedCredentialReference>${namedCredential}</namedCredentialReference>`,
-          '\t<registrationProviderType>Custom</registrationProviderType>',
-          `\t<schema>${oasSpec.replaceAll('"', '&apos;')}</schema>`,
-          '\t<schemaType>OpenApi3</schemaType>',
-          '\t<schemaUploadFileExtension>yaml</schemaUploadFileExtension>',
-          `\t<schemaUploadFileName>${path.basename(fullPath).split('.')[0].toLowerCase()}_openapi</schemaUploadFileName>`,
-          '\t<status>Complete</status>',
-          '\t<systemVersion>5</systemVersion>',
-          '</ExternalServiceRegistration>'
-        ].join('\n');
+    const updatedContent = this.buildESRXml(existingContent, fullPath, namedCredential, oasSpec);
     try {
       // Step 3: Write File
       fs.writeFileSync(fullPath, updatedContent);
@@ -217,7 +202,7 @@ export class ApexActionController {
   };
   private showNamedCredentialsQuickPick = async (): Promise<string | undefined> => {
     let namedCredentials;
-    let selectedNamedCredential;
+    let selectedNamedCredential: string | undefined;
     let finalNamedCredential: string | undefined;
     try {
       const rawQueryData = await (
@@ -239,7 +224,7 @@ export class ApexActionController {
       });
     }
 
-    if (selectedNamedCredential === nls.localize('enter_new_nc')) {
+    if (!selectedNamedCredential || selectedNamedCredential === nls.localize('enter_new_nc')) {
       finalNamedCredential = await vscode.window.showInputBox({
         prompt: nls.localize('enter_nc_name')
       });
@@ -253,4 +238,64 @@ export class ApexActionController {
     // filter out the attributes key
     return rawQueryRecords.map(({ attributes, ...cleanRecords }) => cleanRecords);
   }
+
+  private buildESRXml = (
+    existingContent: string | undefined,
+    fullPath: string,
+    namedCredential: string | undefined,
+    oasSpec: string
+  ) => {
+    const baseName = path.basename(fullPath).split('.')[0];
+    const safeOasSpec = oasSpec.replaceAll('"', '&apos;');
+
+    if (existingContent) {
+      const doc = create(existingContent);
+
+      // Correctly update the <schema> tag content
+      const schemaElement = doc.find((node: any) => node.node.nodeName === 'schema');
+      if (schemaElement) {
+        schemaElement.txt(safeOasSpec);
+      } else {
+        throw new Error('The <schema> element was not found in the provided XML.');
+      }
+
+      return doc.end({ prettyPrint: true });
+    }
+
+    const newDoc = create({ version: '1.0', encoding: 'UTF-8' })
+      .ele('ExternalServiceRegistration', { xmlns: 'http://soap.sforce.com/2006/04/metadata' })
+      .ele('description')
+      .txt(`${baseName} External Service`)
+      .up()
+      .ele('label')
+      .txt(baseName)
+      .up()
+      .ele('namedCredentialReference')
+      .txt(namedCredential ?? 'Type here the Named Credential')
+      .up()
+      .ele('registrationProviderType')
+      .txt('Custom')
+      .up()
+      .ele('schema')
+      .txt(safeOasSpec)
+      .up()
+      .ele('schemaType')
+      .txt('OpenApi3')
+      .up()
+      .ele('schemaUploadFileExtension')
+      .txt('yaml')
+      .up()
+      .ele('schemaUploadFileName')
+      .txt(`${baseName}_openapi`)
+      .up()
+      .ele('status')
+      .txt('Complete')
+      .up()
+      .ele('systemVersion')
+      .txt('5')
+      .up()
+      .end({ prettyPrint: true });
+
+    return newDoc;
+  };
 }
