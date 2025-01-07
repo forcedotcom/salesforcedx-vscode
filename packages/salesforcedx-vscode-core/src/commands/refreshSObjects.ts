@@ -83,7 +83,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
   public static readonly onRefreshSObjectsCommandCompletion =
     RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.event;
   private static isActive = false;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('sobjects_refresh'))

@@ -114,7 +114,6 @@ const getActivationMode = (): string => {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
   return Disposable.from(
     commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),

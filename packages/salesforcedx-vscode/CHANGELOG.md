@@ -1,3 +1,25 @@
+# 62.12.0 - January 1, 2025
+
+## Fixed
+
+#### salesforcedx-visualforce-language-server
+
+- We fixed an issue where the Visualforce Language Server threw a `Request textDocument/documentHighlight failed with message: Debug Failure. False expression. Code: -32603` error when JavaScript code in the embedded `<script>` tag was selected. Thank you [AndrewStopchenko-SO](https://github.com/AndrewStopchenko-SO) for this contribution. ([PR #5975](https://github.com/forcedotcom/salesforcedx-vscode/pull/5975))
+
+# 62.9.1 - December 12, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We've added a new VS Code configuration that lets you enable error telemetry from the Apex Language Server. We turned off this feature by default so that we can reduce noise. ([PR #5969](https://github.com/forcedotcom/salesforcedx-vscode/pull/5969))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some labels in the Org Browser.([PR #5967](https://github.com/forcedotcom/salesforcedx-vscode/pull/5967))
+
 # 62.5.1 - November 14, 2024
 
 ## Added

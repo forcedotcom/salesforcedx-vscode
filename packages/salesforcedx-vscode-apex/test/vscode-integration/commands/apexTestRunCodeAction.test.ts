@@ -375,33 +375,30 @@ describe('Apex Test Run - Code Action', () => {
         testLevel: TestLevel.RunSpecifiedTests
       });
       const apexLibExecutor = new ApexLibraryTestRunExecutor(['testClass', 'secondTestClass'], 'path/to/dir', false);
-      runTestStub.callsFake(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (payload, codecoverage, exitEarly, progressReporter, token) => {
-          progressReporter.report({
-            type: 'StreamingClientProgress',
-            value: 'streamingTransportUp',
-            message: 'Listening for streaming state changes...'
-          });
-          progressReporter.report({
-            type: 'StreamingClientProgress',
-            value: 'streamingProcessingTestRun',
-            message: 'Processing test run 707500000000000001',
-            testRunId: '707500000000000001'
-          });
-          progressReporter.report({
-            type: 'FormatTestResultProgress',
-            value: 'retrievingTestRunSummary',
-            message: 'Retrieving test run summary record'
-          });
-          progressReporter.report({
-            type: 'FormatTestResultProgress',
-            value: 'queryingForAggregateCodeCoverage',
-            message: 'Querying for aggregate code coverage results'
-          });
-          return passingResult;
-        }
-      );
+      runTestStub.callsFake((payload, codecoverage, exitEarly, progressReporter, token) => {
+        progressReporter.report({
+          type: 'StreamingClientProgress',
+          value: 'streamingTransportUp',
+          message: 'Listening for streaming state changes...'
+        });
+        progressReporter.report({
+          type: 'StreamingClientProgress',
+          value: 'streamingProcessingTestRun',
+          message: 'Processing test run 707500000000000001',
+          testRunId: '707500000000000001'
+        });
+        progressReporter.report({
+          type: 'FormatTestResultProgress',
+          value: 'retrievingTestRunSummary',
+          message: 'Retrieving test run summary record'
+        });
+        progressReporter.report({
+          type: 'FormatTestResultProgress',
+          value: 'queryingForAggregateCodeCoverage',
+          message: 'Querying for aggregate code coverage results'
+        });
+        return passingResult;
+      });
 
       await apexLibExecutor.run(undefined, progress, cancellationToken);
 

@@ -15,6 +15,7 @@ import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import {
+  retrieveEnableApexLSErrorToTelemetry,
   retrieveEnableSyncInitJobs,
   retrieveAAClassDefModifiers,
   retrieveAAClassAccessModifiers,
@@ -165,6 +166,7 @@ export const buildClientOptions = (): LanguageClientOptions => {
     },
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
+      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
       enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
       apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
       apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
