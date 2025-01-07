@@ -34,6 +34,12 @@ export const retrieveEnableSyncInitJobs = (): boolean => {
   return vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
 };
 
+export const retrieveEnableApexLSErrorToTelemetry = (): boolean => {
+  return vscode.workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry', false);
+};
+
 // Configurations of the definitions of eligible apex classes/methods/properties
 // We want to lock the eligibility criteria for apexoas, so we do not expose the settings to customer
 // But we can still modify the config through settings.json

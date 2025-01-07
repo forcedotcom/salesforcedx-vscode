@@ -173,7 +173,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
-      workspace.getConfiguration('telemetry').get<boolean>('enableTelemetry', true) &&
+      workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
       workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('telemetry.enabled', true)
     );
   }

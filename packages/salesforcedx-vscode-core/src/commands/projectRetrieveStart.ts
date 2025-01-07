@@ -50,7 +50,6 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     this.flag = flag;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
