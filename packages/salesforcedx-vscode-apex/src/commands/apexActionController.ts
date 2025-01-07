@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { JsonMap } from '@salesforce/ts-types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { create } from 'xmlbuilder2';
 import { parse, stringify } from 'yaml';
 import { workspaceContext } from '../context';
