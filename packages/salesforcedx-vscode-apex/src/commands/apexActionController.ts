@@ -6,12 +6,11 @@
  */
 import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
-import { JsonMap } from '@salesforce/ts-types';
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
-import { create } from 'xmlbuilder2';
 import { parse, stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -242,54 +241,38 @@ export class ApexActionController {
     const baseName = path.basename(fullPath).split('.')[0];
     const safeOasSpec = oasSpec.replaceAll('"', '&apos;');
 
+    const parser = new XMLParser({ ignoreAttributes: false });
+    let jsonObj;
+
+    // If existing XML content, parse and update
     if (existingContent) {
-      const doc = create(existingContent);
-
-      // Correctly update the <schema> tag content
-      const schemaElement = doc.find((node: any) => node.node.nodeName === 'schema', true, true);
-      if (schemaElement) {
-        schemaElement.node.textContent = safeOasSpec;
+      jsonObj = parser.parse(existingContent);
+      if (jsonObj.ExternalServiceRegistration?.schema) {
+        jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
       } else {
-        throw new Error(nls.localize('schema_element_not_found'));
+        throw new Error('schema_element_not_found');
       }
-
-      return doc.end({ prettyPrint: true });
+    } else {
+      // Create a new XML structure
+      jsonObj = {
+        ExternalServiceRegistration: {
+          '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+          description: `${baseName} External Service`,
+          label: baseName,
+          namedCredentialReference: namedCredential ?? 'Type here the Named Credential',
+          registrationProviderType: 'Custom',
+          schema: safeOasSpec,
+          schemaType: 'OpenApi3',
+          schemaUploadFileExtension: 'yaml',
+          schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
+          status: 'Complete',
+          systemVersion: '3'
+        }
+      };
     }
 
-    const newDoc = create({ version: '1.0', encoding: 'UTF-8' })
-      .ele('ExternalServiceRegistration', { xmlns: 'http://soap.sforce.com/2006/04/metadata' })
-      .ele('description')
-      .txt(`${baseName} External Service`)
-      .up()
-      .ele('label')
-      .txt(baseName)
-      .up()
-      .ele('namedCredentialReference')
-      .txt(namedCredential ?? 'Type here the Named Credential')
-      .up()
-      .ele('registrationProviderType')
-      .txt('Custom')
-      .up()
-      .ele('schema')
-      .txt(safeOasSpec)
-      .up()
-      .ele('schemaType')
-      .txt('OpenApi3')
-      .up()
-      .ele('schemaUploadFileExtension')
-      .txt('yaml')
-      .up()
-      .ele('schemaUploadFileName')
-      .txt(`${baseName}_openapi`)
-      .up()
-      .ele('status')
-      .txt('Complete')
-      .up()
-      .ele('systemVersion')
-      .txt('3')
-      .up()
-      .end({ prettyPrint: true });
-
-    return newDoc;
+    // Convert back to XML
+    const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
+    return builder.build(jsonObj);
   };
 }
