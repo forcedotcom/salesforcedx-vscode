@@ -4,7 +4,7 @@
 
 #### salesforcedx-utils-vscode
 
-- Use correct telemetry enable setting ([PR #5986](https://github.com/forcedotcom/salesforcedx-vscode/pull/5986))
+- We updated the configuration used to check if telemetry is enabled from `enableTelemetry` to `telemetryLevel`. ([PR #5986](https://github.com/forcedotcom/salesforcedx-vscode/pull/5986))
 
 # 62.12.0 - January 1, 2025
 
