@@ -102,10 +102,23 @@ export const messages = {
   terminate_processes_confirm: 'Terminate %d Orphaned Processes',
   yes: 'Yes',
   cancel: 'Cancel',
+  overwrite: 'Overwrite',
+  file_exists: 'The file already exists. Do you want to overwrite it?',
   terminate_processes_title: 'Terminate Orphaned Processes',
   orphan_process_advice:
     "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
   unknown: 'Unknown',
   invalid_active_text_editor: 'The active text editor is missing or is an invalid file.',
-  cannot_gather_context: 'An error occurred while gathering context for the Apex class.'
+  cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
+  no_folder_selected: 'Operation canceled: No folder selected.',
+  operation_cancelled: 'Operation canceled',
+  enter_esr_path: 'Enter the folder path to store the ESR metadata artifact',
+  select_named_credential: 'Select a Named Credential',
+  error_parsing_nc: 'Error parsing named credentials result',
+  artifact_failed: 'Failed to save the artifact: %s',
+  enter_new_nc: 'Enter a custom Named Credential...',
+  enter_nc_name: 'Enter the name of the Named Credential',
+  registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
+  full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
+  schema_element_not_found: 'The <schema> element was not found in the provided XML.'
 };

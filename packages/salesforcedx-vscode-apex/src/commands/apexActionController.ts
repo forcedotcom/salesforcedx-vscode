@@ -5,11 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
 import { parse, stringify } from 'yaml';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
@@ -52,17 +55,21 @@ export class ApexActionController {
             throw new Error(nls.localize('cannot_gather_context'));
           }
 
-          // Step 3: Generate OpenAPI Document
-          progress.report({ message: nls.localize('generate_openapi_document') });
-          const openApiDocument = await this.generateOpenAPIDocument(eligibilityResult, context);
-
-          // Step 4: Write OpenAPI Document to File
+          // Step 3: Determine filename
           name = isClass
             ? path.basename(eligibilityResult.resourceUri, '.cls')
             : eligibilityResult?.symbols?.[0]?.docSymbol?.name;
-          const openApiFileName = `${name}_openapi.yml`;
+          const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
+          // Step 4: Check if the file already exists
+          const fullPath = await this.pathExists(openApiFileName);
+          if (!fullPath) throw new Error(nls.localize('full_path_failed'));
+          // Step 5: Generate OpenAPI Document
+          progress.report({ message: nls.localize('generate_openapi_document') });
+          const openApiDocument = await this.generateOpenAPIDocument(eligibilityResult, context);
+
+          // Step 6: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          await this.saveAndOpenDocument(openApiFileName, openApiDocument);
+          await this.saveOasAsErsMetadata(openApiDocument, fullPath);
         }
       );
 
@@ -72,23 +79,6 @@ export class ApexActionController {
     } catch (error: any) {
       void this.handleError(error, `ApexAction${type}CreationFailed`);
     }
-  };
-
-  /**
-   * Saves and opens the OpenAPI document to a file.
-   * @param fileName - The name of the file.
-   * @param content - The content of the file.
-   */
-  private saveAndOpenDocument = async (fileName: string, content: string): Promise<void> => {
-    const openAPIdocumentsPath = path.join(workspaceUtils.getRootWorkspacePath(), 'OpenAPIdocuments');
-    if (!fs.existsSync(openAPIdocumentsPath)) {
-      fs.mkdirSync(openAPIdocumentsPath);
-    }
-    const saveLocation = path.join(openAPIdocumentsPath, fileName);
-    fs.writeFileSync(saveLocation, content);
-    await vscode.workspace.openTextDocument(saveLocation).then((newDocument: vscode.TextDocument) => {
-      void vscode.window.showTextDocument(newDocument);
-    });
   };
 
   /**
@@ -132,4 +122,157 @@ export class ApexActionController {
       .join('\n');
     return stringify(parse(theDoc));
   }
+
+  private saveOasAsErsMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
+    // Replace the schema section in the ESR file if it already exists
+    let existingContent;
+    if (fs.existsSync(fullPath)) {
+      existingContent = fs.readFileSync(fullPath, 'utf8');
+    }
+    const namedCredential = await this.showNamedCredentialsQuickPick();
+
+    const updatedContent = this.buildESRXml(existingContent, fullPath, namedCredential, oasSpec);
+    try {
+      // Step 3: Write File
+      fs.writeFileSync(fullPath, updatedContent);
+      await vscode.workspace.openTextDocument(fullPath).then((newDocument: vscode.TextDocument) => {
+        void vscode.window.showTextDocument(newDocument);
+      });
+    } catch (error) {
+      throw new Error(nls.localize('artifact_failed', error.message));
+    }
+  };
+
+  private pathExists = async (filename: string): Promise<string> => {
+    // Step 1: Prompt for Folder
+    const folder = await this.getFolderForArtifact();
+    if (!folder) {
+      throw new Error(nls.localize('no_folder_selected'));
+    }
+
+    // Step 2: Verify folder exists and if not create it
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder);
+    }
+
+    // Step 2: Check if File Exists
+    const fullPath = path.join(folder, filename);
+    if (fs.existsSync(fullPath)) {
+      const shouldOverwrite = await this.confirmOverwrite();
+      if (!shouldOverwrite) {
+        throw new Error(nls.localize('operation_cancelled'));
+      }
+    }
+    return fullPath;
+  };
+
+  private confirmOverwrite = async (): Promise<boolean> => {
+    const response = await vscode.window.showWarningMessage(
+      nls.localize('file_exists'),
+      { modal: true },
+      nls.localize('overwrite'),
+      nls.localize('cancel')
+    );
+    return response === nls.localize('overwrite');
+  };
+
+  private getFolderForArtifact = async (): Promise<string | undefined> => {
+    const registryAccess = new RegistryAccess();
+    let esrDefaultDirectoryName;
+    let folderUri;
+    try {
+      esrDefaultDirectoryName = registryAccess.getTypeByName('ExternalServiceRegistration').directoryName;
+    } catch (error) {
+      throw new Error(nls.localize('registry_access_failed'));
+    }
+
+    if (esrDefaultDirectoryName) {
+      const defaultESRFolder = path.join(
+        workspaceUtils.getRootWorkspacePath(),
+        'force-app',
+        'main',
+        'default',
+        esrDefaultDirectoryName
+      );
+      folderUri = await vscode.window.showInputBox({
+        prompt: nls.localize('enter_esr_path'),
+        value: defaultESRFolder
+      });
+    }
+
+    return folderUri ? path.resolve(folderUri) : undefined;
+  };
+  private showNamedCredentialsQuickPick = async (): Promise<string | undefined> => {
+    let namedCredentials;
+    let selectedNamedCredential: string | undefined;
+    let finalNamedCredential: string | undefined;
+    try {
+      namedCredentials = await (
+        await workspaceContext.getConnection()
+      ).query('SELECT MasterLabel FROM NamedCredential');
+    } catch (parseError) {
+      throw new Error(nls.localize('error_parsing_nc'));
+    }
+
+    if (namedCredentials) {
+      const quickPicks = namedCredentials.records.map(nc => nc.MasterLabel as string);
+      quickPicks.push(nls.localize('enter_new_nc'));
+      selectedNamedCredential = await vscode.window.showQuickPick(quickPicks, {
+        placeHolder: nls.localize('select_named_credential')
+      });
+    }
+
+    if (!selectedNamedCredential || selectedNamedCredential === nls.localize('enter_new_nc')) {
+      finalNamedCredential = await vscode.window.showInputBox({
+        prompt: nls.localize('enter_nc_name')
+      });
+    } else {
+      finalNamedCredential = selectedNamedCredential;
+    }
+    return finalNamedCredential;
+  };
+
+  private buildESRXml = (
+    existingContent: string | undefined,
+    fullPath: string,
+    namedCredential: string | undefined,
+    oasSpec: string
+  ) => {
+    const baseName = path.basename(fullPath).split('.')[0];
+    const safeOasSpec = oasSpec.replaceAll('"', '&apos;');
+
+    const parser = new XMLParser({ ignoreAttributes: false });
+    let jsonObj;
+
+    // If existing XML content, parse and update
+    if (existingContent) {
+      jsonObj = parser.parse(existingContent);
+      if (jsonObj.ExternalServiceRegistration?.schema) {
+        jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
+      } else {
+        throw new Error('schema_element_not_found');
+      }
+    } else {
+      // Create a new XML structure
+      jsonObj = {
+        ExternalServiceRegistration: {
+          '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+          description: `${baseName} External Service`,
+          label: baseName,
+          namedCredentialReference: namedCredential ?? 'Type here the Named Credential',
+          registrationProviderType: 'Custom',
+          schema: safeOasSpec,
+          schemaType: 'OpenApi3',
+          schemaUploadFileExtension: 'yaml',
+          schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
+          status: 'Complete',
+          systemVersion: '3'
+        }
+      };
+    }
+
+    // Convert back to XML
+    const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
+    return builder.build(jsonObj);
+  };
 }
