@@ -117,5 +117,8 @@ export const messages = {
   error_parsing_nc: 'Error parsing named credentials result',
   artifact_failed: 'Failed to save the artifact: %s',
   enter_new_nc: 'Enter a custom Named Credential...',
-  enter_nc_name: 'Enter the name of the Named Credential'
+  enter_nc_name: 'Enter the name of the Named Credential',
+  registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
+  full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
+  schema_element_not_found: 'The <schema> element was not found in the provided XML.'
 };

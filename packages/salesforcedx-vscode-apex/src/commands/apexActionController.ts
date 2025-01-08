@@ -61,25 +61,16 @@ export class ApexActionController {
             ? path.basename(eligibilityResult.resourceUri, '.cls')
             : eligibilityResult?.symbols?.[0]?.docSymbol?.name;
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
-          let fullPath;
           // Step 4: Check if the file already exists
-          try {
-            fullPath = await this.pathExists(openApiFileName);
-          } catch (error) {
-            vscode.window.showErrorMessage(error);
-          }
-
+          const fullPath = await this.pathExists(openApiFileName);
+          if (!fullPath) throw new Error(nls.localize('full_path_failed'));
           // Step 5: Generate OpenAPI Document
           progress.report({ message: nls.localize('generate_openapi_document') });
           const openApiDocument = await this.generateOpenAPIDocument(eligibilityResult, context);
 
           // Step 6: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          if (fullPath) {
-            await this.saveOasAsErsMetadata(openApiDocument, fullPath);
-          } else {
-            throw new Error('Failed to determine the full path for the OpenAPI document.');
-          }
+          await this.saveOasAsErsMetadata(openApiDocument, fullPath);
         }
       );
 
@@ -188,18 +179,27 @@ export class ApexActionController {
 
   private getFolderForArtifact = async (): Promise<string | undefined> => {
     const registryAccess = new RegistryAccess();
+    let esrDefaultDirectoryName;
+    let folderUri;
+    try {
+      esrDefaultDirectoryName = registryAccess.getTypeByName('ExternalServiceRegistration').directoryName;
+    } catch (error) {
+      throw new Error(nls.localize('registry_access_failed'));
+    }
 
-    const defaultESRFolder = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      'force-app',
-      'main',
-      'default',
-      registryAccess.getTypeByName('ExternalServiceRegistration').directoryName
-    );
-    const folderUri = await vscode.window.showInputBox({
-      prompt: nls.localize('enter_esr_path'),
-      value: defaultESRFolder
-    });
+    if (esrDefaultDirectoryName) {
+      const defaultESRFolder = path.join(
+        workspaceUtils.getRootWorkspacePath(),
+        'force-app',
+        'main',
+        'default',
+        esrDefaultDirectoryName
+      );
+      folderUri = await vscode.window.showInputBox({
+        prompt: nls.localize('enter_esr_path'),
+        value: defaultESRFolder
+      });
+    }
 
     return folderUri ? path.resolve(folderUri) : undefined;
   };
@@ -208,13 +208,9 @@ export class ApexActionController {
     let selectedNamedCredential: string | undefined;
     let finalNamedCredential: string | undefined;
     try {
-      const rawQueryData = await (
+      namedCredentials = await (
         await workspaceContext.getConnection()
       ).query('SELECT MasterLabel FROM NamedCredential');
-      namedCredentials = {
-        ...rawQueryData,
-        records: this.flattenQueryRecords(rawQueryData.records)
-      };
     } catch (parseError) {
       throw new Error(nls.localize('error_parsing_nc'));
     }
@@ -237,11 +233,6 @@ export class ApexActionController {
     return finalNamedCredential;
   };
 
-  private flattenQueryRecords(rawQueryRecords: JsonMap[]) {
-    // filter out the attributes key
-    return rawQueryRecords.map(({ attributes, ...cleanRecords }) => cleanRecords);
-  }
-
   private buildESRXml = (
     existingContent: string | undefined,
     fullPath: string,
@@ -255,11 +246,11 @@ export class ApexActionController {
       const doc = create(existingContent);
 
       // Correctly update the <schema> tag content
-      const schemaElement = doc.find((node: any) => node.node.nodeName === 'schema');
+      const schemaElement = doc.find((node: any) => node.node.nodeName === 'schema', true, true);
       if (schemaElement) {
-        schemaElement.txt(safeOasSpec);
+        schemaElement.node.textContent = safeOasSpec;
       } else {
-        throw new Error('The <schema> element was not found in the provided XML.');
+        throw new Error(nls.localize('schema_element_not_found'));
       }
 
       return doc.end({ prettyPrint: true });
@@ -295,7 +286,7 @@ export class ApexActionController {
       .txt('Complete')
       .up()
       .ele('systemVersion')
-      .txt('5')
+      .txt('3')
       .up()
       .end({ prettyPrint: true });
 
