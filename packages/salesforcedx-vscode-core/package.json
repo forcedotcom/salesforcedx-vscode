@@ -90,7 +90,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "shelljs": "0.8.5",
-        "@salesforce/schemas": "*"
+        "@salesforce/schemas": "1.9.0"
       },
       "devDependencies": {}
     }
