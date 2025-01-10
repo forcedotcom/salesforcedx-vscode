@@ -114,11 +114,6 @@ export class ApexActionController {
     if (openApiIndex === -1) {
       throw new Error('Could not find openapi line in document:\n' + doc);
     }
-    // const theDoc = doc
-    //   .substring(openApiIndex)
-    //   .split('\n')
-    //   .filter(line => !/^```$/.test(line))
-    //   .join('\n');
     return doc
       .substring(openApiIndex)
       .split('\n')
