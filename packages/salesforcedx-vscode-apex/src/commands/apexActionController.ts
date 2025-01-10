@@ -11,7 +11,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
-import { parse, stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../openApiUtilities/schemas';
@@ -115,12 +114,16 @@ export class ApexActionController {
     if (openApiIndex === -1) {
       throw new Error('Could not find openapi line in document:\n' + doc);
     }
-    const theDoc = doc
+    // const theDoc = doc
+    //   .substring(openApiIndex)
+    //   .split('\n')
+    //   .filter(line => !/^```$/.test(line))
+    //   .join('\n');
+    return doc
       .substring(openApiIndex)
       .split('\n')
-      .filter((line: string) => !line.includes('{AUTHOR_PLACEHOLDER}'))
+      .filter(line => !/^```$/.test(line))
       .join('\n');
-    return stringify(parse(theDoc));
   }
 
   private saveOasAsErsMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
@@ -239,7 +242,7 @@ export class ApexActionController {
     oasSpec: string
   ) => {
     const baseName = path.basename(fullPath).split('.')[0];
-    const safeOasSpec = oasSpec.replaceAll('"', '&apos;');
+    const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
 
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
@@ -255,6 +258,7 @@ export class ApexActionController {
     } else {
       // Create a new XML structure
       jsonObj = {
+        '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
         ExternalServiceRegistration: {
           '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
           description: `${baseName} External Service`,

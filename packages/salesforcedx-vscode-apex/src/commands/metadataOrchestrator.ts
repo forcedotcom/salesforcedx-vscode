@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AiApiClient, CommandSource, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
+import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { languageClientUtils } from '../languageUtils';
@@ -198,28 +198,16 @@ export class MetadataOrchestrator {
     const input =
       `${systemTag}\n${systemPrompt}\n\n${endOfPromptTag}\n${userTag}\n` +
       userPrompt +
-      '\n\n***Code Context***\n```\n' +
+      '\nThis is the Apex class the OpenAPI v3 specification should be generated for:\n```\n' +
       editorText +
       `\nClass name: ${context.classDetail.name}, methods: ${context.methods.map(method => method.name).join(', ')}\n` +
       `\n\`\`\`\n${endOfPromptTag}\n${assistantTag}`;
+
     console.log('input = ' + input);
-    let result;
     let documentContents = '';
-    let tries = 0;
     try {
-      const apiClient = await this.getAiApiClient();
-      while (!documentContents.startsWith('yaml') && tries < 10) {
-        result = await apiClient.naturalLanguageQuery({
-          prefix: '',
-          suffix: '',
-          input,
-          commandSource: CommandSource.NLtoCodeGen,
-          promptId: 'generateOpenAPIv3Specifications'
-        });
-        documentContents = result[0].completion;
-        if (documentContents.includes('try again')) tries++;
-      }
-      if (tries === 10) throw new Error(documentContents);
+      const llmService = await this.getLLMServiceInterface();
+      documentContents = await llmService.callLLM(input);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(errorMessage);
@@ -228,7 +216,7 @@ export class MetadataOrchestrator {
     return documentContents;
   };
 
-  getAiApiClient = async (): Promise<AiApiClient> => {
-    return ServiceProvider.getService(ServiceType.AiApiClient);
+  getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
+    return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode');
   };
 }
