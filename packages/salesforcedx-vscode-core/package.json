@@ -241,7 +241,7 @@
         },
         {
           "command": "sf.folder.diff",
-          "when": "explorerResourceIsFolder && sf:project_opened && sf:has_target_org"
+          "when": "explorerResourceIsFolder && sf:project_opened && sf:has_target_org && resourcePath =~ /force-app\\/main\\/default/"
         },
         {
           "command": "sf.analytics.generate.template",
@@ -293,11 +293,11 @@
         },
         {
           "command": "sf.diff",
-          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && resourcePath =~ /force-app\\/main\\/default/"
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && resourcePath =~ /force-app\\/main\\/default/"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -305,7 +305,7 @@
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && resourcePath =~ /force-app\\/main\\/default/"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -313,15 +313,15 @@
         },
         {
           "command": "sf.delete.source",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && resourcePath =~ /force-app\\/main\\/default/"
         },
         {
           "command": "sf.project.generate.manifest",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourcePath =~ /force-app\\/main\\/default/"
         },
         {
           "command": "sf.rename.lightning.component",
-          "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
+          "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/ && resourcePath =~ /force-app\\/main\\/default/"
         }
       ],
       "commandPalette": [
