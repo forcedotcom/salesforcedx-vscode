@@ -1,3 +1,17 @@
+# 62.14.1 - January 15, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Revert " hide commands outside of forceapp main default " (#6004) ([PR #6003](https://github.com/forcedotcom/salesforcedx-vscode/pull/6003))
+
+- Hide commands outside of forceapp main default ([PR #6003](https://github.com/forcedotcom/salesforcedx-vscode/pull/6003))
+
+- Excluding schema from bundling to avoid warning ([PR #6000](https://github.com/forcedotcom/salesforcedx-vscode/pull/6000))
+
+- Fix MD labels in org browser ([PR #5996](https://github.com/forcedotcom/salesforcedx-vscode/pull/5996))
+
 # 62.13.0 - January 8, 2025
 
 ## Fixed
