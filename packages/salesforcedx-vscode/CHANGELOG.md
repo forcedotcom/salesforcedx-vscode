@@ -4,13 +4,10 @@
 
 #### salesforcedx-vscode-core
 
-- Revert " hide commands outside of forceapp main default " (#6004) ([PR #6003](https://github.com/forcedotcom/salesforcedx-vscode/pull/6003))
+- We made some changes under the hood. ([PR #5996](https://github.com/forcedotcom/salesforcedx-vscode/pull/5996), [PR #6003](https://github.com/forcedotcom/salesforcedx-vscode/pull/6003))
 
-- Hide commands outside of forceapp main default ([PR #6003](https://github.com/forcedotcom/salesforcedx-vscode/pull/6003))
+- We got rid of that pesky warning that you saw every time you opened the `sfdx-project.json` file in your project. ([PR #6000](https://github.com/forcedotcom/salesforcedx-vscode/pull/6000))
 
-- Excluding schema from bundling to avoid warning ([PR #6000](https://github.com/forcedotcom/salesforcedx-vscode/pull/6000))
-
-- Fix MD labels in org browser ([PR #5996](https://github.com/forcedotcom/salesforcedx-vscode/pull/5996))
 
 # 62.13.0 - January 8, 2025
 
