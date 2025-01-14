@@ -16,6 +16,7 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
+  active_text_editor_not_apex: 'The active text editor is not an Apex Class file',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
@@ -25,6 +26,7 @@ export const messages = {
   apex_language_server_failed_activate: 'Unable to activate the Apex Language Server',
   apex_language_server_quit_and_restarting: 'Apex Language Server has stopped. Restarting… %d of 5',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
+  cannot_get_apexoaseligibility_response: 'Failed to get response through apexoas/isEligible from Apex Language Server',
   channel_name: 'Apex',
   client_name: 'Apex Language Server',
   colorizer_no_code_coverage_on_project:
@@ -52,6 +54,16 @@ export const messages = {
     'Test class not provided. Run the code action on a class annotated with @isTest.',
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
+  create_apex_action_failed: 'Failed to create Apex Action',
+  validate_eligibility: 'Validating eligibility.',
+  class_validation_failed: 'Failed to validate eligibility from %s',
+  validation_failed: 'Failed to validate eligibility.',
+  apex_class_not_valid: 'The Apex Class %s is not valid for Open AI document generation.',
+  apex_action_created: 'Apex Action created for %s: %s.',
+  generate_openapi_document: 'Generating OpenAPI document.',
+  write_openapi_document_to_file: 'Writing OpenAPI document to file.',
+  not_eligible_method:
+    'Method %s is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.',
   apex_test_run_text: 'SFDX: Run Apex Tests',
   test_view_loading_message: 'Loading Apex tests ...',
   test_view_no_tests_message: 'No Apex Tests Found',
@@ -90,8 +102,23 @@ export const messages = {
   terminate_processes_confirm: 'Terminate %d Orphaned Processes',
   yes: 'Yes',
   cancel: 'Cancel',
+  overwrite: 'Overwrite',
+  file_exists: 'The file already exists. Do you want to overwrite it?',
   terminate_processes_title: 'Terminate Orphaned Processes',
   orphan_process_advice:
     "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
-  unknown: 'Unknown'
+  unknown: 'Unknown',
+  invalid_active_text_editor: 'The active text editor is missing or is an invalid file.',
+  cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
+  no_folder_selected: 'Operation canceled: No folder selected.',
+  operation_cancelled: 'Operation canceled',
+  enter_esr_path: 'Enter the folder path to store the ESR metadata artifact',
+  select_named_credential: 'Select a Named Credential',
+  error_parsing_nc: 'Error parsing named credentials result',
+  artifact_failed: 'Failed to save the artifact: %s',
+  enter_new_nc: 'Enter a custom Named Credential...',
+  enter_nc_name: 'Enter the name of the Named Credential',
+  registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
+  full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
+  schema_element_not_found: 'The <schema> element was not found in the provided XML.'
 };

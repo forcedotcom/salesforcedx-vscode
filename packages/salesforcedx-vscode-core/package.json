@@ -32,7 +32,7 @@
     "@salesforce/source-deploy-retrieve-bundle": "12.7.4",
     "@salesforce/templates": "62.0.1",
     "@salesforce/ts-types": "2.0.12",
-    "@salesforce/vscode-service-provider": "1.2.1",
+    "@salesforce/vscode-service-provider": "1.3.0-rc.6.3",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -195,7 +195,7 @@
       "editor/context": [
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -203,7 +203,7 @@
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -220,6 +220,14 @@
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
           "when": "sf:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
+        },
+        {
+          "command": "sf.deploy.oas",
+          "when": "false"
+        },
+        {
+          "command": "sf.retrieve.oas",
+          "when": "false"
         }
       ],
       "explorer/context": [
@@ -297,7 +305,7 @@
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -305,7 +313,7 @@
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -322,6 +330,14 @@
         {
           "command": "sf.rename.lightning.component",
           "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
+        },
+        {
+          "command": "sf.deploy.oas",
+          "when": "false"
+        },
+        {
+          "command": "sf.retrieve.oas",
+          "when": "false"
         }
       ],
       "commandPalette": [
@@ -491,7 +507,7 @@
         },
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -499,7 +515,7 @@
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -603,6 +619,14 @@
         },
         {
           "command": "sf.vscode.core.logger.get.instance",
+          "when": "false"
+        },
+        {
+          "command": "sf.deploy.oas",
+          "when": "false"
+        },
+        {
+          "command": "sf.retrieve.oas",
           "when": "false"
         }
       ]
@@ -907,6 +931,14 @@
       {
         "command": "sf.vscode.core.logger.get.instance",
         "title": "%vscode_core_services_get_logger%"
+      },
+      {
+        "command": "sf.deploy.oas",
+        "title": "%deploy_oas_text%"
+      },
+      {
+        "command": "sf.retrieve.oas",
+        "title": "%retrieve_oas_text%"
       }
     ],
     "configuration": {

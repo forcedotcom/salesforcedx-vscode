@@ -29,6 +29,7 @@ import {
   deleteSource,
   deployManifest,
   deploySourcePaths,
+  deployOAS,
   forceLightningLwcTestCreate,
   initSObjectDefinitions,
   internalLightningGenerateApp,
@@ -62,6 +63,7 @@ import {
   retrieveComponent,
   retrieveManifest,
   retrieveSourcePaths,
+  retrieveOAS,
   sfProjectGenerate,
   sourceDiff,
   sourceFolderDiff,
@@ -252,6 +254,9 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     getCoreLoggerService
   );
 
+  const deployOASCmd = vscode.commands.registerCommand('sf.deploy.oas', deployOAS);
+  const retrieveOASCmd = vscode.commands.registerCommand('sf.retrieve.oas', retrieveOAS);
+
   const getTelemetryServiceForKeyCmd = registerGetTelemetryServiceCommand();
 
   return vscode.Disposable.from(
@@ -272,12 +277,14 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     deployInManifestCmd,
     deployMultipleSourcePathsCmd,
     deploySourcePathCmd,
+    deployOASCmd,
     projectDeployStartCmd,
     projectDeployStartIgnoreConflictsCmd,
     projectRetrieveStartCmd,
     projectRetrieveStartIgnoreConflictsCmd,
     retrieveCmd,
     retrieveCurrentFileCmd,
+    retrieveOASCmd,
     retrieveInManifestCmd,
     forceSourceStatusCmd,
     forceSourceStatusLocalCmd,

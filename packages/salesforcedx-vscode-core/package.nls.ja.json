@@ -17,6 +17,8 @@
   "delete_source_this_source_text": "SFDX: このソースをプロジェクトと組織から削除",
   "deploy_in_manifest_text": "SFDX: マニフェストファイルのソースを組織へデプロイ",
   "deploy_this_source_text": "SFDX: このソースを組織へデプロイ",
+  "deploy_oas_text": "SFDX: Deploy This Open API Spec to Org",
+  "retrieve_oas_text": "SFDX: Retrieve This Open API Spec from Org",
   "diff_against_org": "SFDX: ファイルと組織の差分を表示",
   "diff_folder_against_org": "SFDX: フォルダと組織の差分を表示",
   "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。",

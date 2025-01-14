@@ -51,6 +51,19 @@ export const messages = {
     'テストメソッドがありません. @isTest アノテーションまたは testMethod キーワードのあるメソッドでコードアクションを実行してください。',
   apex_test_run_description_text: 'Apex テストを実行',
   apex_test_run_text: 'SFDX: Apex テストを呼び出す',
+  create_apex_action_failed: 'Failed to create Apex Action',
+  validate_eligibility: 'Validating eligibility.',
+  class_validation_failed: 'Failed to validate eligibility from %s',
+  validation_failed: 'Failed to validate eligibility.',
+  apex_class_not_valid: 'The Apex Class %s is not valid for Open AI document generation.',
+  apex_action_created: 'Apex Action created for %s: %s.',
+  generate_openapi_document: 'Generating OpenAPI document.',
+  write_openapi_document_to_file: 'Writing OpenAPI document to file.',
+  not_eligible_method:
+    'Method %s is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.',
+  unknown: 'Unknown',
+  invalid_active_text_editor: 'The active text editor is missing or is an invalid file.',
+  cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
   sobjects_no_refresh_if_already_active_error_text:
     'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   test_view_loading_message: 'Apex テストを読み込んでいます...',
@@ -73,5 +86,19 @@ export const messages = {
   unable_to_locate_editor: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unable_to_locate_document: 'ソースファイルに対してのみこのコマンドを実行できます。',
   launch_apex_replay_debugger_unsupported_file:
-    '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。'
+    '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。',
+  cancel: 'Cancel',
+  overwrite: 'Overwrite',
+  file_exists: 'The file already exists. Do you want to overwrite it?',
+  no_folder_selected: 'Operation canceled: No folder selected.',
+  operation_cancelled: 'Operation canceled',
+  enter_esr_path: 'Enter the folder path to store the ESR metadata artifact',
+  select_named_credential: 'Select a Named Credential',
+  error_parsing_nc: 'Error parsing named credentials result',
+  artifact_failed: 'Failed to save the artifact: %s',
+  enter_new_nc: 'Enter a custom Named Credential...',
+  enter_nc_name: 'Enter the name of the Named Credential',
+  registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
+  full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
+  schema_element_not_found: 'The <schema> element was not found in the provided XML.'
 };
