@@ -31,13 +31,13 @@ export class LogStream extends Disposable implements TelemetryReporter {
       encoding: 'utf8',
       autoClose: true
     });
-    this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
+    this.toDispose.push(workspace.onDidChangeConfiguration(() => () => { }));
     console.log(
       'VS Code telemetry event logging enabled for: ' +
-        this.extensionId +
-        '. Telemetry events will be written via write stream to a file at: ' +
-        this.logFilePath +
-        '.'
+      this.extensionId +
+      '. Telemetry events will be written via write stream to a file at: ' +
+      this.logFilePath +
+      '.'
     );
   }
 
@@ -88,6 +88,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
         return resolve(void 0);
       }
       this.stream.on('finish', resolve);
+
       this.stream.end();
     });
 
