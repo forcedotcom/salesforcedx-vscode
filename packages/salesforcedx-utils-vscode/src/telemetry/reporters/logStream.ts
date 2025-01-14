@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable prettier/prettier */
 'use strict';
 
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
@@ -31,13 +32,13 @@ export class LogStream extends Disposable implements TelemetryReporter {
       encoding: 'utf8',
       autoClose: true
     });
-    this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
+    this.toDispose.push(workspace.onDidChangeConfiguration(() => () => { }));
     console.log(
       'VS Code telemetry event logging enabled for: ' +
-        this.extensionId +
-        '. Telemetry events will be written via write stream to a file at: ' +
-        this.logFilePath +
-        '.'
+      this.extensionId +
+      '. Telemetry events will be written via write stream to a file at: ' +
+      this.logFilePath +
+      '.'
     );
   }
 
@@ -87,7 +88,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
       if (!this.stream) {
         return resolve(void 0);
       }
-      this.stream.on('finish', resolve);
+      this.stream.on('finish', () => resolve(void 0));
       this.stream.end();
     });
 
