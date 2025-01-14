@@ -87,8 +87,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
       if (!this.stream) {
         return resolve(void 0);
       }
-      this.stream.on('finish', resolve);
-
+      this.stream.on('finish', () => resolve(void 0));
       this.stream.end();
     });
 
