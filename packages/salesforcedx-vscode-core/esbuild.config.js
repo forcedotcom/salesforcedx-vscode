@@ -12,7 +12,7 @@ const sharedConfig = {
   bundle: true,
   format: 'cjs',
   platform: 'node',
-  external: ['vscode', 'applicationinsights', 'shelljs'],
+  external: ['vscode', 'applicationinsights', 'shelljs', '@salesforce/schemas'],
   minify: true,
   keepNames: true,
   plugins: [esbuildPluginPino({ transports: ['pino-pretty'] })],
