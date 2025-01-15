@@ -1,3 +1,22 @@
+# 62.14.1 - January 15, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5996](https://github.com/forcedotcom/salesforcedx-vscode/pull/5996), [PR #6003](https://github.com/forcedotcom/salesforcedx-vscode/pull/6003))
+
+- We got rid of that pesky warning that you saw every time you opened the `sfdx-project.json` file in your project. ([PR #6000](https://github.com/forcedotcom/salesforcedx-vscode/pull/6000))
+
+
+# 62.13.0 - January 8, 2025
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- We updated the configuration used to check if telemetry is enabled from `enableTelemetry` to `telemetryLevel`. ([PR #5986](https://github.com/forcedotcom/salesforcedx-vscode/pull/5986))
+
 # 62.12.0 - January 1, 2025
 
 ## Fixed
