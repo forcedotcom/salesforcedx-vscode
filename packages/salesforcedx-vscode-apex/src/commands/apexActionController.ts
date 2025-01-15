@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
@@ -13,9 +13,14 @@ import { URL } from 'url';
 import * as vscode from 'vscode';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../openApiUtilities/schemas';
+import {
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse,
+  ApexOASInfo
+} from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
+import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
 
 export class ApexActionController {
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}
@@ -129,7 +134,7 @@ export class ApexActionController {
     }
     const namedCredential = await this.showNamedCredentialsQuickPick();
 
-    const updatedContent = this.buildESRXml(existingContent, fullPath, namedCredential, oasSpec);
+    const updatedContent = await this.buildESRXml(existingContent, fullPath, namedCredential, oasSpec);
     try {
       // Step 3: Write File
       fs.writeFileSync(fullPath, updatedContent);
@@ -230,11 +235,12 @@ export class ApexActionController {
     return finalNamedCredential;
   };
 
-  private buildESRXml = (
+  private buildESRXml = async (
     existingContent: string | undefined,
     fullPath: string,
     namedCredential: string | undefined,
-    oasSpec: string
+    oasSpec: string,
+    oasInfo?: ApexOASInfo
   ) => {
     const baseName = path.basename(fullPath).split('.')[0];
     const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
@@ -256,10 +262,12 @@ export class ApexActionController {
         '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
         ExternalServiceRegistration: {
           '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-          description: `${baseName} External Service`,
+          description: oasInfo?.description,
           label: baseName,
-          namedCredentialReference: namedCredential ?? 'Type here the Named Credential',
-          registrationProviderType: 'Custom',
+          namedCredential: null,
+          namedCredentialReferenceId: null,
+          registrationProviderType: 'ApexRest',
+          registrationProvider: baseName,
           schema: safeOasSpec,
           schemaType: 'OpenApi3',
           schemaUploadFileExtension: 'yaml',
@@ -268,10 +276,80 @@ export class ApexActionController {
           systemVersion: '3'
         }
       };
+      // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
+      const orgVersion = await this.getOrgVersion();
+      if (!orgVersion) {
+        throw new Error(nls.localize('error_retrieving_org_version'));
+      }
+      if (this.isVersionGte(orgVersion, '63.0')) {
+        jsonObj = {
+          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
+          ExternalServiceRegistration: {
+            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+            description: oasInfo?.description,
+            label: baseName,
+            namedCredential: null,
+            namedCredentialReferenceId: null,
+            registrationProviderType: 'ApexRest',
+            registrationProvider: baseName,
+            catalogedApiVersion: oasInfo?.version,
+            isStartSchemaVersion: true,
+            isHeadSchemaVersion: true,
+            schemaArtifactVersion: oasInfo?.version,
+            schema: safeOasSpec,
+            schemaType: 'OpenApi3',
+            schemaUploadFileExtension: 'yaml',
+            schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
+            status: 'Complete',
+            systemVersion: '3'
+          }
+        };
+      } else {
+        jsonObj = {
+          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
+          ExternalServiceRegistration: {
+            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+            description: oasInfo?.description,
+            label: baseName,
+            namedCredentialReference: namedCredential,
+            registrationProviderType: 'Custom',
+            registrationProvider: baseName,
+            schema: safeOasSpec,
+            schemaType: 'OpenApi3',
+            schemaUploadFileExtension: 'yaml',
+            schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
+            status: 'Complete',
+            systemVersion: '3'
+          }
+        };
+      }
     }
 
     // Convert back to XML
     const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
     return builder.build(jsonObj);
+  };
+
+  private getOrgVersion = async (): Promise<string | undefined> => {
+    const username = await ConfigUtil.getUsername();
+    if (!username) {
+      throw new Error(nls.localize('error_retrieving_target_org'));
+    }
+    const authFields = await this.getAuthFieldsFor(username);
+    return authFields.instanceApiVersion;
+  };
+
+  private getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
+    const authInfo: AuthInfo = await AuthInfo.create({
+      username
+    });
+
+    return authInfo.getFields();
+  };
+
+  private isVersionGte = (version: string, targetVersion: string): boolean => {
+    const major = parseInt(version.split('.')[0], 10);
+    const targetMajor = parseInt(targetVersion.split('.')[0], 10);
+    return major >= targetMajor;
   };
 }

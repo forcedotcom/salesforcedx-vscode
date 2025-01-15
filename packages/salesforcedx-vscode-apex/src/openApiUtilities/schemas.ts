@@ -78,6 +78,11 @@ export enum ApexOASResource {
   singleMethodOrProp = 'METHOD or PROPERTY',
   folder = 'FOLDER'
 }
+
+export type ApexOASInfo = {
+  description: string;
+  version: string;
+};
 // export interface ApexClassOASFilter {
 //   modifiers: string[] | null;
 // }
