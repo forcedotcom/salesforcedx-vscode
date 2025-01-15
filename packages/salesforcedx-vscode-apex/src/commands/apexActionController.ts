@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
 import { ConfigUtil, notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
@@ -20,7 +21,6 @@ import {
 } from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
-import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
 
 export class ApexActionController {
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}
