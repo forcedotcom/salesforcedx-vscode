@@ -101,5 +101,6 @@ export const messages = {
   registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
   full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
   schema_element_not_found: 'The <schema> element was not found in the provided XML.',
+  error_retrieving_org_version: 'Failed to retrieve org version',
   error_parsing_yaml: 'Error parsing YAML'
 };
