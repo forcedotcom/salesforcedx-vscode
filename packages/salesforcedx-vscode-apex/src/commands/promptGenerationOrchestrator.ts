@@ -41,7 +41,7 @@ Instructions:
     8. Decline requests for prose/poetry.
 Ensure no sensitive details are included. Decline requests unrelated to OpenAPI v3 specs or asking for sensitive information.`;
 
-export class GenerationStrategyDispatcher {
+export class promptGenerationOrchestrator {
   public pickGenerationStrategy(
     metadata: ApexClassOASEligibleResponse,
     context: ApexClassOASGatherContextResponse
