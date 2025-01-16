@@ -203,7 +203,7 @@ export class MetadataOrchestrator {
   Ensure no sensitive details are included. Decline requests unrelated to OpenAPI v3 specs or asking for sensitive information.`;
 
     const userPrompt =
-      'Generate an OpenAPI v3 specification for the following Apex class. The OpenAPI v3 specification should be a YAML file. The paths should be in the format of /{ClassName}/{MethodName} for all the @AuraEnabled methods specified. For every `type: object`, generate a `#/components/schemas` entry for that object. The method should have a $ref entry pointing to the generated `#/components/schemas` entry. Only include methods that have the @AuraEnabled annotation in the paths of the OpenAPI v3 specification. I do not want AUTHOR_PLACEHOLDER in the result.';
+      'Generate an OpenAPI v3 specification for the following Apex class. The OpenAPI v3 specification should be a YAML file. The paths should be in the format of /{ClassName}/{MethodName} for all the @AuraEnabled methods specified. For every `type: object`, generate a `#/components/schemas` entry for that object. The method should have a $ref entry pointing to the generated `#/components/schemas` entry. Only include methods that have the @AuraEnabled annotation in the paths of the OpenAPI v3 specification. I do not want AUTHOR_PLACEHOLDER in the result. Do not forget info.description property';
 
     const systemTag = '<|system|>';
     const endOfPromptTag = '<|endofprompt|>';

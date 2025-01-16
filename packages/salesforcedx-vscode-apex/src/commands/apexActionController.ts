@@ -12,6 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
+import { parse } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import {
@@ -239,11 +240,15 @@ export class ApexActionController {
     existingContent: string | undefined,
     fullPath: string,
     namedCredential: string | undefined,
-    oasSpec: string,
-    oasInfo?: ApexOASInfo
+    oasSpec: string
   ) => {
     const baseName = path.basename(fullPath).split('.')[0];
     const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
+    const { description, version } = this.extractInfoProperties(safeOasSpec);
+    const orgVersion = await this.getOrgVersion();
+    if (!orgVersion) {
+      throw new Error(nls.localize('error_retrieving_org_version'));
+    }
 
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
@@ -262,67 +267,31 @@ export class ApexActionController {
         '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
         ExternalServiceRegistration: {
           '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-          description: oasInfo?.description,
+          description: description,
           label: baseName,
-          namedCredential: null,
-          namedCredentialReferenceId: null,
-          registrationProviderType: 'ApexRest',
-          registrationProvider: baseName,
           schema: safeOasSpec,
           schemaType: 'OpenApi3',
           schemaUploadFileExtension: 'yaml',
           schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
           status: 'Complete',
-          systemVersion: '3'
+          systemVersion: '3',
+          registrationProvider: baseName,
+          ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
+            ? {
+                registrationProviderType: 'ApexRest',
+                namedCredential: null,
+                namedCredentialReferenceId: null,
+                catalogedApiVersion: version,
+                isStartSchemaVersion: true,
+                isHeadSchemaVersion: true,
+                schemaArtifactVersion: version
+              }
+            : {
+                registrationProviderType: 'Custom',
+                namedCredentialReference: namedCredential
+              })
         }
       };
-      // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
-      const orgVersion = await this.getOrgVersion();
-      if (!orgVersion) {
-        throw new Error(nls.localize('error_retrieving_org_version'));
-      }
-      if (this.isVersionGte(orgVersion, '63.0')) {
-        jsonObj = {
-          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
-          ExternalServiceRegistration: {
-            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-            description: oasInfo?.description,
-            label: baseName,
-            namedCredential: null,
-            namedCredentialReferenceId: null,
-            registrationProviderType: 'ApexRest',
-            registrationProvider: baseName,
-            catalogedApiVersion: oasInfo?.version,
-            isStartSchemaVersion: true,
-            isHeadSchemaVersion: true,
-            schemaArtifactVersion: oasInfo?.version,
-            schema: safeOasSpec,
-            schemaType: 'OpenApi3',
-            schemaUploadFileExtension: 'yaml',
-            schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
-            status: 'Complete',
-            systemVersion: '3'
-          }
-        };
-      } else {
-        jsonObj = {
-          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
-          ExternalServiceRegistration: {
-            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-            description: oasInfo?.description,
-            label: baseName,
-            namedCredentialReference: namedCredential,
-            registrationProviderType: 'Custom',
-            registrationProvider: baseName,
-            schema: safeOasSpec,
-            schemaType: 'OpenApi3',
-            schemaUploadFileExtension: 'yaml',
-            schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
-            status: 'Complete',
-            systemVersion: '3'
-          }
-        };
-      }
     }
 
     // Convert back to XML
@@ -351,5 +320,16 @@ export class ApexActionController {
     const major = parseInt(version.split('.')[0], 10);
     const targetMajor = parseInt(targetVersion.split('.')[0], 10);
     return major >= targetMajor;
+  };
+
+  private extractInfoProperties = (oasSpec: string): ApexOASInfo => {
+    const parsed = parse(oasSpec);
+    if (!parsed?.info?.description || !parsed?.info?.version) {
+      throw new Error(nls.localize('error_parsing_yaml'));
+    }
+    return {
+      description: parsed?.info?.description,
+      version: parsed?.info?.version
+    };
   };
 }
