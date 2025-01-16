@@ -281,7 +281,7 @@ export class ApexActionController {
                 registrationProviderType: 'ApexRest',
                 namedCredential: null,
                 namedCredentialReferenceId: null,
-                catalogedApiVersion: version,
+                catalogedApiVersion: null,
                 isStartSchemaVersion: true,
                 isHeadSchemaVersion: true,
                 schemaArtifactVersion: version
