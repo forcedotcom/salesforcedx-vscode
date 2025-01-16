@@ -267,7 +267,7 @@ export class ApexActionController {
         '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
         ExternalServiceRegistration: {
           '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-          description: description,
+          description,
           label: baseName,
           schema: safeOasSpec,
           schemaType: 'OpenApi3',
