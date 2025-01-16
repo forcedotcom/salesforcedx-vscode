@@ -43,13 +43,8 @@ jobs:
           echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
       - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
 
-  ctc-open:
-    needs: [prepare-environment-from-main]
-    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
-    secrets: inherit
-
   publish:
-    needs: ['ctc-open', 'prepare-environment-from-main']
+    needs: ['prepare-environment-from-main']
     runs-on: ubuntu-latest
     env:
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
@@ -73,20 +68,3 @@ jobs:
       - run: npm ci
       - run: |
           cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish --skip-duplicate "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
-
-  ctcCloseSuccess:
-    needs: [ctc-open, publish]
-    if: needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
-    secrets: inherit
-    with:
-      changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
-
-  ctcCloseFail:
-    needs: [ctc-open, publish]
-    if: always() && inputs.ctc && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
-    secrets: inherit
-    with:
-      changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
-      status: Not Implemented
