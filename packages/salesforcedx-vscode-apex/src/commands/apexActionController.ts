@@ -326,9 +326,9 @@ export class ApexActionController {
       throw new Error(nls.localize('error_parsing_yaml'));
     }
     const operations = parsed.paths
-      ? Object.keys(parsed.paths).flatMap(path =>
-          Object.keys(parsed.paths[path]).map(operation => ({
-            name: parsed.paths[path][operation].operationId,
+      ? Object.keys(parsed.paths).flatMap(p =>
+          Object.keys(parsed.paths[p]).map(operation => ({
+            name: parsed.paths[p][operation].operationId,
             active: true
           }))
         )
