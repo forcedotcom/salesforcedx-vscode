@@ -13,9 +13,8 @@ import {
   PromptGenerationStrategyBid
 } from '../../openApiUtilities/schemas';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
-import generalPrompt from './generalPrompt.json';
 import { GenerationStrategy } from './generationStrategy';
-import wholeClassPrompt from './wholeClassPrompt.json';
+import prompts from './prompts.json';
 export const WHOLE_CLASS_STRATEGY_NAME = 'WholeClass';
 export class WholeClassStrategy extends GenerationStrategy {
   metadata: ApexClassOASEligibleResponse;
@@ -46,12 +45,12 @@ export class WholeClassStrategy extends GenerationStrategy {
   public generate(): PromptGenerationResult {
     const documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
     const input =
-      `${generalPrompt.SYSTEM_TAG}\n${generalPrompt.systemPrompt}\n${generalPrompt.END_OF_PROMPT_TAG}\n${generalPrompt.USER_TAG}\n` +
-      wholeClassPrompt.USER_PROMPT +
+      `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n${prompts.USER_TAG}\n` +
+      prompts['WHOLE_CLASS.USER_PROMPT'] +
       '\nThis is the Apex class the OpenAPI v3 specification should be generated for:\n```\n' +
       documentText +
       `\nClass name: ${this.context.classDetail.name}, methods: ${this.context.methods.map(method => method.name).join(', ')}\n` +
-      `\n\`\`\`\n${generalPrompt.END_OF_PROMPT_TAG}\n${generalPrompt.ASSISTANT_TAG}\n`;
+      `\n\`\`\`\n${prompts.END_OF_PROMPT_TAG}\n${prompts.ASSISTANT_TAG}\n`;
     const tokenCount = this.getPromptTokenCount(input);
     if (tokenCount <= PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
       this.prompts.push(input);

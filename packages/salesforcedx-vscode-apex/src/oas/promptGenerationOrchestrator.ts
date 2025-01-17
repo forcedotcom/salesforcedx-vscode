@@ -38,7 +38,7 @@ export class PromptGenerationOrchestrator {
 
   applyRule(rule: BidRule, bids: PromptGenerationStrategyBid[]): string {
     switch (rule) {
-      case BidRule.LEAST_CALLs:
+      case BidRule.LEAST_CALLS:
         return this.getLeastCalls(bids);
       case BidRule.MAX_RESPONSE_TOKENS:
         return this.getMaxResponseTokens(bids);
