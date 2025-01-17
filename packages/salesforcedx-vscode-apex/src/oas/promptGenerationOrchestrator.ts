@@ -13,7 +13,7 @@ import { GenerationStrategy } from './generationStrategy/generationStrategy';
 import { GenerationStrategyFactory } from './generationStrategy/generationStrategyFactory';
 
 enum BidRule {
-  LEAST_CALLs,
+  LEAST_CALLS,
   MAX_RESPONSE_TOKENS
 }
 
