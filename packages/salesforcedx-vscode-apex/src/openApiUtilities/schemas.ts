@@ -78,25 +78,6 @@ export enum ApexOASResource {
   singleMethodOrProp = 'METHOD or PROPERTY',
   folder = 'FOLDER'
 }
-// export interface ApexClassOASFilter {
-//   modifiers: string[] | null;
-// }
-
-// export interface ApexMethodOASFilter {
-//   annotations: string[] | null;
-//   modifiers: string[] | null;
-// }
-
-// export interface ApexPropertyOASFilter {
-//   annotations: string[] | null;
-//   modifiers: string[] | null;
-// }
-
-// export type Filter = {
-//   class: ApexClassOASFilter;
-//   method: ApexMethodOASFilter;
-//   property: ApexPropertyOASFilter;
-// };
 
 export type PromptGenerationResult = {
   callCounts: number;
