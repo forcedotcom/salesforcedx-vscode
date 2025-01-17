@@ -97,3 +97,13 @@ export enum ApexOASResource {
 //   method: ApexMethodOASFilter;
 //   property: ApexPropertyOASFilter;
 // };
+
+export type PromptGenerationResult = {
+  callCounts: number;
+  maxBudget: number;
+};
+
+export type PromptGenerationStrategyBid = {
+  strategy: string;
+  result: PromptGenerationResult;
+};

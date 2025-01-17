@@ -4,6 +4,10 @@
     "rootDir": ".",
     "outDir": "out",
   },
+  "include": [
+    "src/**/*.ts",
+    "src/oas/generationStrategy/*.json"
+  ],
   "exclude": [
     "node_modules",
     ".vscode-test",
