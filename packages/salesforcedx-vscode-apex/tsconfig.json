@@ -6,7 +6,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/oas/generationStrategy/*.json"
+    "src/oas/generationStrategy/*.json",
+    "test/**/*.ts"
   ],
   "exclude": [
     "node_modules",
