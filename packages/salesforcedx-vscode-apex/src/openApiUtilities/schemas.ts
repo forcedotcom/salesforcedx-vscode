@@ -83,6 +83,11 @@ export type ApexOASInfo = {
   description: string;
   version: string;
 };
+
+export type ExternalServiceOperation = {
+  name: string;
+  active: boolean;
+};
 // export interface ApexClassOASFilter {
 //   modifiers: string[] | null;
 // }

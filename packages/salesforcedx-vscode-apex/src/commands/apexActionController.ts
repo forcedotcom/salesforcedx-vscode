@@ -17,7 +17,8 @@ import { nls } from '../messages';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
-  ApexOASInfo
+  ApexOASInfo,
+  ExternalServiceOperation
 } from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
@@ -244,6 +245,7 @@ export class ApexActionController {
     const baseName = path.basename(fullPath).split('.')[0];
     const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
     const { description, version } = this.extractInfoProperties(safeOasSpec);
+    const operations = this.getOperationsFromYaml(safeOasSpec);
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     if (!orgVersion) {
       throw new Error(nls.localize('error_retrieving_org_version'));
@@ -274,6 +276,9 @@ export class ApexActionController {
           schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
           status: 'Complete',
           systemVersion: '3',
+          operations: {
+            ExternalServiceOperation: operations
+          },
           registrationProvider: baseName,
           ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
             ? {
@@ -309,9 +314,26 @@ export class ApexActionController {
     if (!parsed?.info?.description || !parsed?.info?.version) {
       throw new Error(nls.localize('error_parsing_yaml'));
     }
+
     return {
       description: parsed?.info?.description,
       version: parsed?.info?.version
     };
+  };
+  private getOperationsFromYaml = (oasSpec: string): ExternalServiceOperation[] => {
+    const parsed = parse(oasSpec);
+    if (!parsed?.paths) {
+      throw new Error(nls.localize('error_parsing_yaml'));
+    }
+    const operations = parsed.paths
+      ? Object.keys(parsed.paths).flatMap(path =>
+          Object.keys(parsed.paths[path]).map(operation => ({
+            name: parsed.paths[path][operation].operationId,
+            active: true
+          }))
+        )
+      : [];
+
+    return operations;
   };
 }
