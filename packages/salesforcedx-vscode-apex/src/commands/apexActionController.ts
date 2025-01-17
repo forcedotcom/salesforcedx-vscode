@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
-import { ConfigUtil, notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
@@ -245,7 +244,7 @@ export class ApexActionController {
     const baseName = path.basename(fullPath).split('.')[0];
     const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
     const { description, version } = this.extractInfoProperties(safeOasSpec);
-    const orgVersion = await this.getOrgVersion();
+    const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     if (!orgVersion) {
       throw new Error(nls.localize('error_retrieving_org_version'));
     }
@@ -297,23 +296,6 @@ export class ApexActionController {
     // Convert back to XML
     const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
     return builder.build(jsonObj);
-  };
-
-  private getOrgVersion = async (): Promise<string | undefined> => {
-    const username = await ConfigUtil.getUsername();
-    if (!username) {
-      throw new Error(nls.localize('error_retrieving_target_org'));
-    }
-    const authFields = await this.getAuthFieldsFor(username);
-    return authFields.instanceApiVersion;
-  };
-
-  private getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
-    const authInfo: AuthInfo = await AuthInfo.create({
-      username
-    });
-
-    return authInfo.getFields();
   };
 
   private isVersionGte = (version: string, targetVersion: string): boolean => {
