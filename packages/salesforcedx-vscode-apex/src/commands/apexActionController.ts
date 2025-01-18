@@ -260,7 +260,12 @@ export class ApexActionController {
       if (jsonObj.ExternalServiceRegistration?.schema) {
         jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
       } else {
-        throw new Error('schema_element_not_found');
+        throw new Error(nls.localize('schema_element_not_found'));
+      }
+      if (jsonObj.ExternalServiceRegistration?.operations.ExternalServiceOperation) {
+        jsonObj.ExternalServiceRegistration.operations.ExternalServiceOperation = operations;
+      } else {
+        throw new Error(nls.localize('operations_element_not_found'));
       }
     } else {
       // Create a new XML structure
