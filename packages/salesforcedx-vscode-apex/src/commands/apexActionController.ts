@@ -262,7 +262,7 @@ export class ApexActionController {
       } else {
         throw new Error(nls.localize('schema_element_not_found'));
       }
-      if (jsonObj.ExternalServiceRegistration?.operations.ExternalServiceOperation) {
+      if (jsonObj.ExternalServiceRegistration?.operations?.ExternalServiceOperation) {
         jsonObj.ExternalServiceRegistration.operations.ExternalServiceOperation = operations;
       } else {
         throw new Error(nls.localize('operations_element_not_found'));
