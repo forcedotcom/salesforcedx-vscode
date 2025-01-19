@@ -6,18 +6,58 @@
  */
 
 import { window } from 'vscode';
+import { retrieveApexCodeCoverageColorTheme } from '../settings';
 
-const lime = (opacity: number): string => `rgba(45, 121, 11, ${opacity})`;
-const red = (opacity: number): string => `rgba(253, 72, 73, ${opacity})`;
+enum CoverageColorsTheme {
+  RED_GREEN,
+  RED_BLUE
+}
+
+interface CoverageColors {
+  colorCovered: string;
+  colorUncovered: string;
+}
+
+const getSelectedColorTheme = (): CoverageColorsTheme => {
+  const configColorTheme = retrieveApexCodeCoverageColorTheme();
+  switch (configColorTheme) {
+    case 'red_blue': {
+      return CoverageColorsTheme.RED_BLUE;
+    }
+    default:
+      return CoverageColorsTheme.RED_GREEN;
+  }
+};
+
+// const colorCovered = (opacity: number): string => `rgba(45, 121, 11, ${opacity})`;
+// const colorUncovered = (opacity: number): string => `rgba(253, 72, 73, ${opacity})`;
+const CoverageColorsService = (colorType: CoverageColorsTheme) => {
+  return {
+    [CoverageColorsTheme.RED_GREEN]: (opacity: number): CoverageColors => ({
+      colorCovered: `rgba(45, 121, 11, ${opacity})`,
+      colorUncovered: `rgba(253, 72, 73, ${opacity})`
+    }),
+    [CoverageColorsTheme.RED_BLUE]: (opacity: number): CoverageColors => ({
+      colorCovered: `rgba(45, 121, 255, ${opacity})`,
+      colorUncovered: `rgba(253, 72, 73, ${opacity})`
+    })
+  }[colorType];
+};
+
+const getCoverageColors = (opacity: number) => {
+  return CoverageColorsService(getSelectedColorTheme())(opacity);
+};
+
+const selectedCoverageColors = getCoverageColors(0.5);
 
 export const coveredLinesDecorationType = window.createTextEditorDecorationType({
-  backgroundColor: lime(0.5),
+  backgroundColor: selectedCoverageColors.colorCovered,
   borderRadius: '.2em',
-  overviewRulerColor: lime(0.5)
+  overviewRulerColor: selectedCoverageColors.colorCovered
 });
 
 export const uncoveredLinesDecorationType = window.createTextEditorDecorationType({
-  backgroundColor: red(0.5),
+  backgroundColor: selectedCoverageColors.colorUncovered,
   borderRadius: '.2em',
-  overviewRulerColor: red(0.5)
+  overviewRulerColor: selectedCoverageColors.colorUncovered
 });

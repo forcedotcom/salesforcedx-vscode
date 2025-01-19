@@ -519,6 +519,19 @@
           "type": "number",
           "default": 750,
           "description": "%apex_generation_output_token_limit%"
+        },
+        "salesforcedx-vscode-apex.apex-code-coverage-color-theme": {
+          "type": "string",
+          "enum": [
+            "red_green",
+            "red_blue"
+          ],
+          "default": "red_green",
+          "description": "%apex_code_coverage_color_theme%",
+          "enumDescriptions": [
+            "%apex_code_coverage_color_theme-red_green_description%",
+            "%apex_code_coverage_color_theme-red_blue_description%"
+          ]
         }
       }
     },

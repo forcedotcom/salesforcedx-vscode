@@ -25,6 +25,8 @@ const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_PROP_ACCESS_MODIFIERS = ['global', 'public'];
 
+const DEFAULT_CODE_COVERAGE_COLOR_THEME = 'red_green';
+
 export const retrieveTestCodeCoverage = (): boolean => {
   return vscode.workspace
     .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
@@ -117,3 +119,9 @@ export const retrieveGeneralPropAccessModifiers = (): string[] =>
   vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.general.prop.access-modifiers', DEFAULT_PROP_ACCESS_MODIFIERS);
+
+export const retrieveApexCodeCoverageColorTheme = (): string => {
+  return vscode.workspace
+    .getConfiguration()
+    .get<string>('salesforcedx-vscode-apex.apex-code-coverage-color-theme', DEFAULT_CODE_COVERAGE_COLOR_THEME);
+};
