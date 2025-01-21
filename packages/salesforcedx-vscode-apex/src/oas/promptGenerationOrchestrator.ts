@@ -17,25 +17,30 @@ enum BidRule {
   MAX_RESPONSE_TOKENS
 }
 
+// An orchestrator that coordinates the generation of prompts for Apex classes.
 export class PromptGenerationOrchestrator {
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
   strategies: GenerationStrategy[];
+  // The orchestrator is initialized with metadata and context.
   constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     this.metadata = metadata;
     this.context = context;
     this.strategies = [];
   }
 
+  // Initialize all available strategies with the provided metadata and context.
   public initializeStrategyBidder() {
     this.strategies = GenerationStrategyFactory.initializeAllStrategies(this.metadata, this.context);
   }
 
+  // Make each strategy bid on the given class information and return a list of bids.
   public bid(): PromptGenerationStrategyBid[] {
     const bids = this.strategies.map(strategy => strategy.bid());
     return bids;
   }
 
+  // Apply a specific rule to select the name of the best strategy from the list of bids.
   applyRule(rule: BidRule, bids: PromptGenerationStrategyBid[]): string {
     switch (rule) {
       case BidRule.LEAST_CALLS:
