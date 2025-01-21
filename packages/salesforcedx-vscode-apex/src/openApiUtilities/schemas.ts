@@ -79,6 +79,16 @@ export enum ApexOASResource {
   folder = 'FOLDER'
 }
 
+export type ApexOASInfo = {
+  description: string;
+  version: string;
+};
+
+export type ExternalServiceOperation = {
+  name: string;
+  active: boolean;
+};
+
 export type PromptGenerationResult = {
   callCounts: number;
   maxBudget: number;
