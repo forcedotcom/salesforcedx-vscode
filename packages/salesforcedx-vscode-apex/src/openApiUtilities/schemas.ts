@@ -88,22 +88,13 @@ export type ExternalServiceOperation = {
   name: string;
   active: boolean;
 };
-// export interface ApexClassOASFilter {
-//   modifiers: string[] | null;
-// }
 
-// export interface ApexMethodOASFilter {
-//   annotations: string[] | null;
-//   modifiers: string[] | null;
-// }
+export type PromptGenerationResult = {
+  callCounts: number;
+  maxBudget: number;
+};
 
-// export interface ApexPropertyOASFilter {
-//   annotations: string[] | null;
-//   modifiers: string[] | null;
-// }
-
-// export type Filter = {
-//   class: ApexClassOASFilter;
-//   method: ApexMethodOASFilter;
-//   property: ApexPropertyOASFilter;
-// };
+export type PromptGenerationStrategyBid = {
+  strategy: string;
+  result: PromptGenerationResult;
+};
