@@ -128,12 +128,14 @@ export class ApexActionController {
   }
 
   private saveOasAsErsMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
+    const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     // Replace the schema section in the ESR file if it already exists
     let existingContent;
+    let namedCredential;
     if (fs.existsSync(fullPath)) {
       existingContent = fs.readFileSync(fullPath, 'utf8');
     }
-    const namedCredential = await this.showNamedCredentialsQuickPick();
+    if (!this.isVersionGte(orgVersion, '63.0')) namedCredential = await this.showNamedCredentialsQuickPick();
 
     const updatedContent = await this.buildESRXml(existingContent, fullPath, namedCredential, oasSpec);
     try {
@@ -262,8 +264,8 @@ export class ApexActionController {
       } else {
         throw new Error(nls.localize('schema_element_not_found'));
       }
-      if (jsonObj.ExternalServiceRegistration?.operations?.ExternalServiceOperation) {
-        jsonObj.ExternalServiceRegistration.operations.ExternalServiceOperation = operations;
+      if (jsonObj.ExternalServiceRegistration?.operations) {
+        jsonObj.ExternalServiceRegistration.operations = operations;
       } else {
         throw new Error(nls.localize('operations_element_not_found'));
       }
@@ -281,9 +283,7 @@ export class ApexActionController {
           schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
           status: 'Complete',
           systemVersion: '3',
-          operations: {
-            ExternalServiceOperation: operations
-          },
+          operations,
           registrationProvider: baseName,
           ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
             ? {
