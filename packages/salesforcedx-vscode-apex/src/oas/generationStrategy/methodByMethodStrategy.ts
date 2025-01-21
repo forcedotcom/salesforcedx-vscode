@@ -44,7 +44,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   }
   public generate(): PromptGenerationResult {
     const methodsMap = new Map();
-    for (const symbol of this.metadata.symbols ?? []) {
+    for (const symbol of (this.metadata.symbols ?? []).filter(symbol => symbol.isApexOasEligible)) {
       if (symbol.isApexOasEligible) {
         const methodName = symbol.docSymbol.name;
         methodsMap.set(methodName, symbol.docSymbol); // docSymbol might be useful for generating prompts
