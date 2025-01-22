@@ -6,9 +6,12 @@
  */
 import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
+import { Spectral } from '@stoplight/spectral-core';
+import { bundleAndLoadRuleset } from '@stoplight/spectral-ruleset-bundler/with-loader';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
+import { join } from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
 import { parse } from 'yaml';
@@ -72,7 +75,10 @@ export class ApexActionController {
           progress.report({ message: nls.localize('generate_openapi_document') });
           const openApiDocument = await this.generateOpenAPIDocument(eligibilityResult, context);
 
-          // Step 6: Write OpenAPI Document to File
+          // Step 6: Validate OpenAPI Document
+          await this.validateOpenApiDocument(openApiDocument);
+
+          // Step 7: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
           await this.saveOasAsErsMetadata(openApiDocument, fullPath);
         }
@@ -113,6 +119,18 @@ export class ApexActionController {
     notificationService.showErrorMessage(`${nls.localize('create_apex_action_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
+
+  private async validateOpenApiDocument(openapiDocument: string) {
+    const spectral = new Spectral();
+
+    const ruleset = await bundleAndLoadRuleset(join(__dirname, './ruleset.spectral.yaml'), { fs, fetch });
+    spectral.setRuleset(ruleset);
+
+    // we lint our document using the ruleset
+    await spectral.run(openapiDocument).then(result => {
+      console.log('spectral results:', JSON.stringify(result));
+    });
+  }
 
   private cleanupYaml(doc: string): string {
     // Remove the first line of the document
