@@ -103,5 +103,6 @@ export const messages = {
   schema_element_not_found: 'The <schema> element was not found in the provided XML.',
   operations_element_not_found: 'The <operations> element was not found in the provided XML.',
   error_retrieving_org_version: 'Failed to retrieve org version',
-  error_parsing_yaml: 'Error parsing YAML'
+  error_parsing_yaml: 'Error parsing YAML',
+  invalid_class_annotation_for_generating_oas_doc: 'Invalid class annotation for generating OAS doc'
 };
