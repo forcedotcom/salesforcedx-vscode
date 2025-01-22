@@ -94,7 +94,7 @@ export type PromptGenerationResult = {
   maxBudget: number;
 };
 
+// to be populated with more discussed metrics
 export type PromptGenerationStrategyBid = {
-  strategy: string;
   result: PromptGenerationResult;
 };

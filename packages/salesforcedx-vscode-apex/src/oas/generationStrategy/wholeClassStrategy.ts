@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { nls } from '../../messages';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -23,6 +24,7 @@ export class WholeClassStrategy extends GenerationStrategy {
   strategyName: string;
   callCounts: number;
   maxBudget: number;
+  llmResponses: string[];
 
   public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     super();
@@ -32,12 +34,12 @@ export class WholeClassStrategy extends GenerationStrategy {
     this.strategyName = WHOLE_CLASS_STRATEGY_NAME;
     this.callCounts = 0;
     this.maxBudget = 0;
+    this.llmResponses = [];
   }
 
   public bid(): PromptGenerationStrategyBid {
     const generationResult = this.generate();
     return {
-      strategy: this.strategyName,
       result: generationResult
     };
   }
@@ -65,5 +67,26 @@ export class WholeClassStrategy extends GenerationStrategy {
         callCounts: 0
       };
     }
+  }
+
+  async callLLMWithPrompts(): Promise<string[]> {
+    let documentContent = '';
+    try {
+      const llmService = await this.getLLMServiceInterface();
+      documentContent = await llmService.callLLM(this.prompts[0]);
+      this.llmResponses.push(documentContent);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      throw new Error(errorMessage);
+    }
+    return this.llmResponses;
+  }
+
+  async generateOAS(): Promise<string> {
+    const oas = await this.callLLMWithPrompts();
+    if (oas.length > 0 && oas[0]) {
+      return oas[0];
+    }
+    throw new Error(nls.localize('llm_bad_response'));
   }
 }

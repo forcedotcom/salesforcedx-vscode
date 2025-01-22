@@ -16,6 +16,28 @@ import { GenerationStrategy } from './generationStrategy';
 
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
+  callLLMWithPrompts(): Promise<string[]> {
+    throw new Error('Method not implemented.');
+  }
+  generateOAS(): Promise<string> {
+    throw new Error('Method not implemented.');
+  }
+  llmResponses: string[];
+  public async callLLMWithGivenPrompts(): Promise<string[]> {
+    let documentContent = '';
+    try {
+      const llmService = await this.getLLMServiceInterface();
+      documentContent = await llmService.callLLM(this.prompts[0]);
+      this.llmResponses.push(documentContent);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      throw new Error(errorMessage);
+    }
+    return this.llmResponses;
+  }
+  saveOasAsErsMetadata(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
   prompts: string[];
@@ -33,12 +55,12 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     this.callCounts = 0;
     this.maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
     this.methodsList = [];
+    this.llmResponses = [];
   }
 
   public bid(): PromptGenerationStrategyBid {
     const generationResult = this.generate();
     return {
-      strategy: this.strategyName,
       result: generationResult
     };
   }
