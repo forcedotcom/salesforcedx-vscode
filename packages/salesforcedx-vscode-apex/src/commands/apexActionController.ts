@@ -100,8 +100,8 @@ export class ApexActionController {
     const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, context);
 
     // hand off the validation and correction to processor.
-    const processor = new OasProcessor(context, openAPIdocument);
-    const processorResult = await processor.process();
+    const oasProcessor = new OasProcessor(context, openAPIdocument);
+    const processorResult = await oasProcessor.process();
 
     return processorResult.yaml;
   };
