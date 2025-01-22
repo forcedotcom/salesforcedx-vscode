@@ -6,11 +6,9 @@
  */
 import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
-import { Spectral } from '@stoplight/spectral-core';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { join } from 'path';
 import { URL } from 'url';
 import * as vscode from 'vscode';
 import { parse } from 'yaml';
