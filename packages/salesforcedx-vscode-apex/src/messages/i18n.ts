@@ -103,6 +103,7 @@ export const messages = {
   yes: 'Yes',
   cancel: 'Cancel',
   overwrite: 'Overwrite',
+  merge: 'Manually merge with existing ESR',
   file_exists: 'The file already exists. Do you want to overwrite it?',
   terminate_processes_title: 'Terminate Orphaned Processes',
   orphan_process_advice:

@@ -162,22 +162,25 @@ export class ApexActionController {
     // Step 2: Check if File Exists
     const fullPath = path.join(folder, filename);
     if (fs.existsSync(fullPath)) {
-      const shouldOverwrite = await this.confirmOverwrite();
-      if (!shouldOverwrite) {
+      const whatToDo = await this.handleExistingESR();
+      if (whatToDo === nls.localize('cancel')) {
         throw new Error(nls.localize('operation_cancelled'));
+      } else if (whatToDo === nls.localize('merge')) {
+        throw new Error('MERGE!!!');
       }
     }
     return fullPath;
   };
 
-  private confirmOverwrite = async (): Promise<boolean> => {
+  private handleExistingESR = async (): Promise<string> => {
     const response = await vscode.window.showWarningMessage(
       nls.localize('file_exists'),
       { modal: true },
       nls.localize('overwrite'),
+      nls.localize('merge'),
       nls.localize('cancel')
     );
-    return response === nls.localize('overwrite');
+    return response || 'cancel';
   };
 
   private getFolderForArtifact = async (): Promise<string | undefined> => {
