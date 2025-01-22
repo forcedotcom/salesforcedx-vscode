@@ -123,5 +123,7 @@ export const messages = {
   schema_element_not_found: 'The <schema> element was not found in the provided XML.',
   operations_element_not_found: 'The <operations> element was not found in the provided XML.',
   error_retrieving_org_version: 'Failed to retrieve org version',
-  error_parsing_yaml: 'Error parsing YAML'
+  error_parsing_yaml: 'Error parsing YAML',
+  no_oas_generated: 'LLM did not return any content.',
+  strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.'
 };

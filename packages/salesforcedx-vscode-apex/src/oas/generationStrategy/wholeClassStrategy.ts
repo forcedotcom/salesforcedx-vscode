@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { nls } from '../../messages';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -86,6 +87,6 @@ export class WholeClassStrategy extends GenerationStrategy {
     if (oas.length > 0 && oas[0]) {
       return oas[0];
     }
-    throw new Error('LLM did not return any content');
+    throw new Error(nls.localize('llm_bad_response'));
   }
 }

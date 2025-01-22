@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { nls } from '../messages';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -58,7 +59,7 @@ export class PromptGenerationOrchestrator {
     if (strategy) {
       return await strategy.generateOAS();
     }
-    throw new Error('No strategy found');
+    throw new Error(nls.localize('strategy_not_qualified'));
   }
 
   // Apply a specific rule to select the name of the best strategy from the list of bids.
