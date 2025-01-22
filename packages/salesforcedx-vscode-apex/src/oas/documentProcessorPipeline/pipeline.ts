@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ProcessorStep } from './processorStep';
+import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class Pipeline {
   private steps: ProcessorStep[] = [];
@@ -15,10 +15,11 @@ export class Pipeline {
 
   addStep(newStep: ProcessorStep) {
     this.steps.push(newStep);
+    return this;
   }
 
-  async execute(input: string) {
-    let output: string = input;
+  async execute(input: ProcessorInputOutput) {
+    let output: ProcessorInputOutput = input;
     for (const step of this.steps) {
       output = await step.process(output);
     }

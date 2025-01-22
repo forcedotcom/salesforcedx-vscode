@@ -99,12 +99,11 @@ export class ApexActionController {
     const documentText = fs.readFileSync(new URL(metadata.resourceUri.toString()), 'utf8');
     const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, context);
 
-    // Convert the OpenAPI document to YAML
-    const cleanedUpYaml = this.cleanupYaml(openAPIdocument);
-
     // hand off the validation and correction to processor.
-    const processor = new OasProcessor(context, cleanedUpYaml);
-    return await processor.process();
+    const processor = new OasProcessor(context, openAPIdocument);
+    const processorResult = await processor.process();
+
+    return processorResult.yaml;
   };
 
   /**
@@ -118,19 +117,6 @@ export class ApexActionController {
     notificationService.showErrorMessage(`${nls.localize('create_apex_action_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
-
-  private cleanupYaml(doc: string): string {
-    // Remove the first line of the document
-    const openApiIndex = doc.indexOf('openapi');
-    if (openApiIndex === -1) {
-      throw new Error('Could not find openapi line in document:\n' + doc);
-    }
-    return doc
-      .substring(openApiIndex)
-      .split('\n')
-      .filter(line => !/^```$/.test(line))
-      .join('\n');
-  }
 
   private saveOasAsErsMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();

@@ -6,19 +6,20 @@
  */
 
 import { Spectral } from '@stoplight/spectral-core';
-import { ProcessorStep } from './processorStep';
+import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 import ruleset from './ruleset.spectral';
 
 export class OasValidationStep implements ProcessorStep {
-  async process(input: string): Promise<string> {
+  async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     const spectral = new Spectral();
 
     spectral.setRuleset(ruleset);
 
     // we lint our document using the ruleset
-    await spectral.run(input).then(result => {
+    await spectral.run(input.yaml).then(result => {
       // the validation should be shown in problems tab, this will be covered by W-17656525
       console.log('spectral results:', JSON.stringify(result));
+      input.errors = result;
     });
 
     // Since this step doesn't perform convertions we return the input for future processing

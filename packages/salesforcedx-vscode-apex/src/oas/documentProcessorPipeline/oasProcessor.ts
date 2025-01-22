@@ -7,8 +7,10 @@
 
 import { nls } from '../../messages';
 import { ApexClassOASGatherContextResponse } from '../../openApiUtilities/schemas';
+import { CleanupYamlStep } from './cleanupYamlStep';
 import { OasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';
+import { ProcessorInputOutput } from './processorStep';
 
 export class OasProcessor {
   private context: ApexClassOASGatherContextResponse;
@@ -19,15 +21,15 @@ export class OasProcessor {
     this.document = document;
   }
 
-  async process(): Promise<string> {
+  async process(): Promise<ProcessorInputOutput> {
     if (this.context.classDetail.annotations.includes('RestResource')) {
       // currently only OasValidation exists, in future this would have converters too
-      const pipeline = new Pipeline(new OasValidationStep());
+      const pipeline = new Pipeline(new CleanupYamlStep()).addStep(new OasValidationStep());
 
       console.log('Executing pipeline with input:');
       console.log('context: ', JSON.stringify(this.context));
-      console.log('document: ', JSON.stringify(this.document));
-      const output = await pipeline.execute(this.document);
+      console.log('document: ', this.document);
+      const output = await pipeline.execute({ yaml: this.document });
       console.log('Pipeline output:', output);
       return output;
     }
