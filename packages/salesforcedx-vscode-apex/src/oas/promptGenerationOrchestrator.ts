@@ -50,14 +50,13 @@ export class PromptGenerationOrchestrator {
     return bids;
   }
 
-  public async callLLMWithStrategySelectedByBidRule(rule: BidRule) {
+  // after best strategy is determined, call the LLM with the selected strategy and return the result.
+  public async generateOASWithStrategySelectedByBidRule(rule: BidRule) {
     const bids = this.bid();
     const bestStrategy = this.applyRule(rule, bids);
     const strategy = this.strategies.get(bestStrategy);
     if (strategy) {
-      await strategy.callLLMWithGivenPrompts();
-      await strategy.saveOasAsErsMetadata();
-      return;
+      return await strategy.generateOAS();
     }
     throw new Error('No strategy found');
   }

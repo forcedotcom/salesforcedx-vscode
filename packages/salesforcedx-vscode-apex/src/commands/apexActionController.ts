@@ -72,10 +72,13 @@ export class ApexActionController {
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
           // Step 5:Initialize the strategy orchestrator
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
-          // Step 6: bid on the strategy
-          const bids = promptGenerationOrchestrator.bid();
+          // Step 6: bid on the strategy, and the best one is available
+          promptGenerationOrchestrator.bid();
           // Step 7: use the strateg to generate the OAS
-          const bestStrategy = promptGenerationOrchestrator.callLLMWithStrategySelectedByBidRule(BidRule.MOST_CALLS);
+          const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(BidRule.MOST_CALLS);
+          // Step 8: Write OpenAPI Document to File
+          progress.report({ message: nls.localize('write_openapi_document_to_file') });
+          await this.saveOasAsErsMetadata(openApiDocument, fullPath);
         }
       );
 
