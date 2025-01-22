@@ -55,7 +55,7 @@ export const messages = {
   validate_eligibility: 'Validating eligibility.',
   class_validation_failed: 'Failed to validate eligibility from %s',
   validation_failed: 'Failed to validate eligibility.',
-  apex_class_not_valid: 'The Apex Class %s is not valid for Open AI document generation.',
+  apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
   apex_action_created: 'Apex Action created for %s: %s.',
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document_to_file: 'Writing OpenAPI document to file.',

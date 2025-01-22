@@ -66,7 +66,7 @@ describe('MetadataOrchestrator', () => {
       const mockResponse: any = [{ isApexOasEligible: false, isEligible: false, resourceUri: '/hello/world.cls' }];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
       await expect(orchestrator.validateMetadata(editorStub.document.uri)).rejects.toThrow(
-        'The Apex Class world is not valid for Open AI document generation.'
+        'The Apex Class world is not valid for OpenAPI document generation.'
       );
     });
 
