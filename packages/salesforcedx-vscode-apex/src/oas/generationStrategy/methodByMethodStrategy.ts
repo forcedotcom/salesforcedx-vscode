@@ -16,6 +16,13 @@ import { GenerationStrategy } from './generationStrategy';
 
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
+  llmResponses: string[];
+  callLLMWithGivenPrompts(): Promise<string[]> {
+    throw new Error('Method not implemented.');
+  }
+  saveOasAsErsMetadata(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
   prompts: string[];
@@ -33,12 +40,12 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     this.callCounts = 0;
     this.maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
     this.methodsList = [];
+    this.llmResponses = [];
   }
 
   public bid(): PromptGenerationStrategyBid {
     const generationResult = this.generate();
     return {
-      strategy: this.strategyName,
       result: generationResult
     };
   }

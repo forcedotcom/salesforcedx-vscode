@@ -9,60 +9,96 @@ import {
   ApexClassOASGatherContextResponse,
   PromptGenerationStrategyBid
 } from '../openApiUtilities/schemas';
-import { GenerationStrategy } from './generationStrategy/generationStrategy';
-import { GenerationStrategyFactory } from './generationStrategy/generationStrategyFactory';
+import {
+  GenerationStrategyFactory,
+  Strategy,
+  GenerationStrategy
+} from './generationStrategy/generationStrategyFactory';
 
-enum BidRule {
+export enum BidRule {
   LEAST_CALLS,
-  MAX_RESPONSE_TOKENS
+  MOST_CALLS
 }
 
 // An orchestrator that coordinates the generation of prompts for Apex classes.
 export class PromptGenerationOrchestrator {
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
-  strategies: GenerationStrategy[];
+  strategies: Map<GenerationStrategy, Strategy>;
   // The orchestrator is initialized with metadata and context.
   constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     this.metadata = metadata;
     this.context = context;
-    this.strategies = [];
+    this.strategies = new Map<GenerationStrategy, Strategy>();
+    this.initializeStrategyBidder();
   }
 
   // Initialize all available strategies with the provided metadata and context.
-  public initializeStrategyBidder() {
+  initializeStrategyBidder() {
     this.strategies = GenerationStrategyFactory.initializeAllStrategies(this.metadata, this.context);
   }
 
   // Make each strategy bid on the given class information and return a list of bids.
-  public bid(): PromptGenerationStrategyBid[] {
-    const bids = this.strategies.map(strategy => strategy.bid());
+  public bid(): Map<GenerationStrategy, PromptGenerationStrategyBid> {
+    const bids = new Map<GenerationStrategy, PromptGenerationStrategyBid>();
+    for (const strategyName of this.strategies.keys()) {
+      const strategy = this.strategies.get(strategyName);
+      if (strategy) {
+        bids.set(strategyName, strategy.bid());
+      }
+    }
     return bids;
   }
 
+  public async callLLMWithStrategySelectedByBidRule(rule: BidRule) {
+    const bids = this.bid();
+    const bestStrategy = this.applyRule(rule, bids);
+    const strategy = this.strategies.get(bestStrategy);
+    if (strategy) {
+      await strategy.callLLMWithGivenPrompts();
+      await strategy.saveOasAsErsMetadata();
+      return;
+    }
+    throw new Error('No strategy found');
+  }
+
   // Apply a specific rule to select the name of the best strategy from the list of bids.
-  applyRule(rule: BidRule, bids: PromptGenerationStrategyBid[]): string {
+  applyRule(rule: BidRule, bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
     switch (rule) {
       case BidRule.LEAST_CALLS:
         return this.getLeastCalls(bids);
-      case BidRule.MAX_RESPONSE_TOKENS:
-        return this.getMaxResponseTokens(bids);
+      case BidRule.MOST_CALLS:
+        return this.getMostCalls(bids);
     }
   }
 
-  getLeastCalls(bids: PromptGenerationStrategyBid[]): string {
-    return bids
-      .filter(bid => bid.result.callCounts > 0)
-      .reduce((prev, current) => {
-        return prev.result.callCounts < current.result.callCounts ? prev : current;
-      }).strategy;
+  getLeastCalls(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
+    let maxCallCount = 0;
+    let bestStrategy: GenerationStrategy = GenerationStrategy.METHOD_BY_METHOD; // fallback
+    for (const strategyName of bids.keys()) {
+      const bid = bids.get(strategyName);
+      if (bid && bid.result.callCounts > 0) {
+        if (maxCallCount === 0 || bid.result.callCounts > maxCallCount) {
+          maxCallCount = bid.result.callCounts;
+          bestStrategy = strategyName;
+        }
+      }
+    }
+    return bestStrategy ?? GenerationStrategy.METHOD_BY_METHOD;
   }
 
-  getMaxResponseTokens(bids: PromptGenerationStrategyBid[]): string {
-    return bids
-      .filter(bid => bid.result.callCounts > 0)
-      .reduce((prev, current) => {
-        return prev.result.maxBudget > current.result.maxBudget ? prev : current;
-      }).strategy;
+  getMostCalls(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
+    let maxCallCount = 0;
+    let bestStrategy: GenerationStrategy = GenerationStrategy.METHOD_BY_METHOD; // fallback
+    for (const strategyName of bids.keys()) {
+      const bid = bids.get(strategyName);
+      if (bid && bid.result.callCounts > 0) {
+        if (maxCallCount === 0 || bid.result.callCounts > maxCallCount) {
+          maxCallCount = bid.result.callCounts;
+          bestStrategy = strategyName;
+        }
+      }
+    }
+    return bestStrategy ?? GenerationStrategy.METHOD_BY_METHOD;
   }
 }
