@@ -72,7 +72,17 @@ export class ApexActionController {
 
           // Step 6: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          await this.saveOasAsErsMetadata(openApiDocument, fullPath);
+          await this.saveOasAsErsMetadata(openApiDocument, fullPath[1]);
+
+          // Step 7: If the user chose to merge, open a diff between the original and new ESR files
+          if (fullPath[0] !== fullPath[1]) {
+            await vscode.commands.executeCommand(
+              'vscode.diff',
+              vscode.Uri.file(fullPath[0]),
+              vscode.Uri.file(fullPath[1]),
+              'Manual Diff of ESR Files'
+            );
+          }
         }
       );
 
@@ -147,7 +157,12 @@ export class ApexActionController {
     }
   };
 
-  private pathExists = async (filename: string): Promise<string> => {
+  /**
+   * Checks if the ESR file already exists and prompts the user on what to do.
+   * @param filename
+   * @returns Promise<[string, string, boolean]> - [className.externalServiceRegistration-meta.xml, the file name of the generated ESR, a boolean indicating if the file already exists]
+   */
+  private pathExists = async (filename: string): Promise<[string, string, boolean]> => {
     // Step 1: Prompt for Folder
     const folder = await this.getFolderForArtifact();
     if (!folder) {
@@ -159,8 +174,9 @@ export class ApexActionController {
       fs.mkdirSync(folder);
     }
 
-    // Step 2: Check if File Exists
-    let fullPath = path.join(folder, filename);
+    // Step 3: Check if File Exists
+    const fullPath = path.join(folder, filename);
+    let esrExists = false;
     if (fs.existsSync(fullPath)) {
       const whatToDo = await this.handleExistingESR();
       if (whatToDo === nls.localize('cancel')) {
@@ -169,10 +185,12 @@ export class ApexActionController {
         const currentTimestamp = this.getCurrentTimestamp();
         const namePart = filename.split('.externalServiceRegistration-meta.xml')[0];
         const newFileName = namePart + '_' + currentTimestamp + '.externalServiceRegistration-meta.xml';
-        fullPath = path.join(folder, newFileName);
+        const newFullPath = path.join(folder, newFileName);
+        esrExists = true;
+        return [fullPath, newFullPath, esrExists];
       }
     }
-    return fullPath;
+    return [fullPath, fullPath, esrExists];
   };
 
   private getCurrentTimestamp = (): string => {
@@ -224,6 +242,7 @@ export class ApexActionController {
 
     return folderUri ? path.resolve(folderUri) : undefined;
   };
+
   private showNamedCredentialsQuickPick = async (): Promise<string | undefined> => {
     let namedCredentials;
     let selectedNamedCredential: string | undefined;
