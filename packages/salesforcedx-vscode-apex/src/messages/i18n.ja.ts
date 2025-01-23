@@ -57,6 +57,8 @@ export const messages = {
   validation_failed: 'Failed to validate eligibility.',
   apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
   apex_action_created: 'Apex Action created for %s: %s.',
+  apex_action_created_merge:
+    'A new Apex Action %s %s is created for %s. Manually merge the two files using the diff editor.',
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document_to_file: 'Writing OpenAPI document to file.',
   not_eligible_method:

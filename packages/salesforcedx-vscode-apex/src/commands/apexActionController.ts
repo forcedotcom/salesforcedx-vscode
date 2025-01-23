@@ -39,7 +39,9 @@ export class ApexActionController {
     let context;
     let name;
     const telemetryService = await getTelemetryService();
+
     try {
+      let fullPath: [string, string, boolean] = ['', '', false];
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -64,7 +66,7 @@ export class ApexActionController {
           name = path.basename(eligibilityResult.resourceUri, '.cls');
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
           // Step 4: Check if the file already exists
-          const fullPath = await this.pathExists(openApiFileName);
+          fullPath = await this.pathExists(openApiFileName);
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
           // Step 5: Generate OpenAPI Document
           progress.report({ message: nls.localize('generate_openapi_document') });
@@ -87,8 +89,21 @@ export class ApexActionController {
       );
 
       // Step 5: Notify Success
-      notificationService.showInformationMessage(nls.localize('apex_action_created', type.toLowerCase(), name));
-      telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+      if (fullPath[0] === fullPath[1]) {
+        // Case 1: User decided to overwrite the original ESR file
+        notificationService.showInformationMessage(nls.localize('apex_action_created', type.toLowerCase(), name));
+        telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+      } else {
+        // Case 2: User decided to manually merge the original and new ESR files
+        const message = nls.localize(
+          'apex_action_created_merge',
+          type.toLowerCase(),
+          path.basename(fullPath[1], '.externalServiceRegistration-meta.xml'),
+          name
+        );
+        await notificationService.showInformationMessage(message);
+        telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+      }
     } catch (error: any) {
       void this.handleError(error, `ApexAction${type}CreationFailed`);
     }
