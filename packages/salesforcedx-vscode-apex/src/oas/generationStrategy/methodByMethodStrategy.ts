@@ -39,12 +39,6 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     }
   }
 
-  decodeHtmlEntities(str: string): string {
-    return str
-      .replace(/&apos;/g, "'") // Convert HTML-encoded apostrophe to a single quote
-      .replace(/&quot;/g, '"') // Convert HTML-encoded double quotes
-      .replace(/&amp;/g, '&'); // Convert HTML-encoded ampersand
-  }
   public async generateOAS(): Promise<string> {
     const oas = await this.callLLMWithPrompts();
     if (oas.length > 0) {
@@ -60,13 +54,11 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   }
 
   cleanYamlString(input: string): string {
-    return this.decodeHtmlEntities(
-      input
-        .replace(/^```yaml\n/, '') // Remove leading triple backtick (if any)
-        .replace(/\n```$/, '') // Remove trailing triple backtick (if any)
-        .replace(/```\n\s*$/, '') // Remove trailing triple backtick with new line (if any)
-        .trim() // Ensure no extra spaces
-    );
+    return input
+      .replace(/^```yaml\n/, '') // Remove leading triple backtick (if any)
+      .replace(/\n```$/, '') // Remove trailing triple backtick (if any)
+      .replace(/```\n\s*$/, '') // Remove trailing triple backtick with new line (if any)
+      .trim(); // Ensure no extra spaces
   }
 
   combineYamlByMethod(docs: string[]) {
@@ -74,7 +66,8 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       openapi: '3.0.0',
       info: {
         title: this.context.classDetail.name,
-        version: '1.0.0'
+        version: '1.0.0',
+        description: `This is auto-generated OpenAPI v3 spec for ${this.context.classDetail.name}.`
       },
       paths: {},
       components: { schemas: {} }

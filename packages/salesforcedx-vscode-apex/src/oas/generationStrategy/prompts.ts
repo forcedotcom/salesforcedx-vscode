@@ -45,5 +45,6 @@ export const prompts = {
   Ensure no sensitive details are included. Decline requests unrelated to OpenAPI v3 specs or asking for sensitive information.`,
   METHOD_BY_METHOD_USER_PROMPT:
     'Generate an OpenAPI v3 specification for the following Apex method. The OpenAPI v3 specification should be a YAML file. The path should be /' +
-    '{ClassName}/{MethodName}. For every `type: object`, generate a `#/components/schemas` entry for that object. The method should have a $ref entry pointing to the generated `#/components/schemas` entry. I do not want AUTHOR_PLACEHOLDER in the result.'
+    '{ClassName}/{MethodName}. For every `type: object`, generate a `#/components/schemas` entry for that object. The method should have a $ref entry pointing to the generated `#/components/schemas` entry. I do not want AUTHOR_PLACEHOLDER in the result.' +
+    'For each path, you define operations (HTTP methods) that can be used to access that path. Make sure that each operation includes a mandatory operationId property, which should be a unique string matching the operations name.'
 };
