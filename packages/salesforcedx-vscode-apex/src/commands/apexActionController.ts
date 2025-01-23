@@ -183,7 +183,7 @@ export class ApexActionController {
         throw new Error(nls.localize('operation_cancelled'));
       } else if (whatToDo === nls.localize('merge')) {
         const currentTimestamp = this.getCurrentTimestamp();
-        const namePart = filename.split('.externalServiceRegistration-meta.xml')[0];
+        const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
         const newFileName = namePart + '_' + currentTimestamp + '.externalServiceRegistration-meta.xml';
         const newFullPath = path.join(folder, newFileName);
         esrExists = true;
