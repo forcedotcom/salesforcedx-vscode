@@ -6,7 +6,6 @@
  */
 
 import * as fs from 'fs';
-import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { nls } from '../../messages';
 import {
   ApexClassOASEligibleResponse,
@@ -14,6 +13,7 @@ import {
   PromptGenerationResult,
   PromptGenerationStrategyBid
 } from '../../openApiUtilities/schemas';
+import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
 import { prompts } from './prompts';
 export const WHOLE_CLASS_STRATEGY_NAME = 'WholeClass';
