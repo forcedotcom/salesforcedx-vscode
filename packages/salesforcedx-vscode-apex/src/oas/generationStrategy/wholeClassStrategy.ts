@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { nls } from '../../messages';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -68,7 +69,7 @@ export class WholeClassStrategy extends GenerationStrategy {
     }
   }
 
-  public async callLLMWithGivenPrompts(): Promise<string[]> {
+  async callLLMWithPrompts(): Promise<string[]> {
     let documentContent = '';
     try {
       const llmService = await this.getLLMServiceInterface();
@@ -81,7 +82,11 @@ export class WholeClassStrategy extends GenerationStrategy {
     return this.llmResponses;
   }
 
-  public async saveOasAsErsMetadata(): Promise<void> {
-    throw new Error('Method not implemented.');
+  async generateOAS(): Promise<string> {
+    const oas = await this.callLLMWithPrompts();
+    if (oas.length > 0 && oas[0]) {
+      return oas[0];
+    }
+    throw new Error(nls.localize('llm_bad_response'));
   }
 }

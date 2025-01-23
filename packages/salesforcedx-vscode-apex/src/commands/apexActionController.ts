@@ -26,7 +26,7 @@ import {
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
-  constructor(private metadataOrchestrator: MetadataOrchestrator) { }
+  constructor(private metadataOrchestrator: MetadataOrchestrator) {}
 
   /**
    * Creates an Apex Action.
@@ -72,10 +72,15 @@ export class ApexActionController {
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
           // Step 5:Initialize the strategy orchestrator
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
-          // Step 6: bid on the strategy
-          const bids = promptGenerationOrchestrator.bid();
+          // Step 6: bid on the strategy, and the best one is available
+          promptGenerationOrchestrator.bid();
           // Step 7: use the strateg to generate the OAS
-          const bestStrategy = promptGenerationOrchestrator.callLLMWithStrategySelectedByBidRule(BidRule.MOST_CALLS);
+          const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
+            BidRule.MOST_CALLS
+          );
+          // Step 8: Write OpenAPI Document to File
+          progress.report({ message: nls.localize('write_openapi_document_to_file') });
+          await this.saveOasAsErsMetadata(openApiDocument, fullPath);
         }
       );
 
@@ -288,18 +293,18 @@ export class ApexActionController {
           registrationProvider: baseName,
           ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
             ? {
-              registrationProviderType: 'ApexRest',
-              namedCredential: null,
-              namedCredentialReferenceId: null,
-              catalogedApiVersion: null,
-              isStartSchemaVersion: true,
-              isHeadSchemaVersion: true,
-              schemaArtifactVersion: version
-            }
+                registrationProviderType: 'ApexRest',
+                namedCredential: null,
+                namedCredentialReferenceId: null,
+                catalogedApiVersion: null,
+                isStartSchemaVersion: true,
+                isHeadSchemaVersion: true,
+                schemaArtifactVersion: version
+              }
             : {
-              registrationProviderType: 'Custom',
-              namedCredentialReference: namedCredential
-            })
+                registrationProviderType: 'Custom',
+                namedCredentialReference: namedCredential
+              })
         }
       };
     }
@@ -333,11 +338,11 @@ export class ApexActionController {
     }
     const operations = parsed.paths
       ? Object.keys(parsed.paths).flatMap(p =>
-        Object.keys(parsed.paths[p]).map(operation => ({
-          name: parsed.paths[p][operation].operationId,
-          active: true
-        }))
-      )
+          Object.keys(parsed.paths[p]).map(operation => ({
+            name: parsed.paths[p][operation].operationId,
+            active: true
+          }))
+        )
       : [];
 
     return operations;

@@ -58,7 +58,7 @@ export const messages = {
   validate_eligibility: 'Validating eligibility.',
   class_validation_failed: 'Failed to validate eligibility from %s',
   validation_failed: 'Failed to validate eligibility.',
-  apex_class_not_valid: 'The Apex Class %s is not valid for Open AI document generation.',
+  apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
   apex_action_created: 'Apex Action created for %s: %s.',
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document_to_file: 'Writing OpenAPI document to file.',
@@ -123,5 +123,7 @@ export const messages = {
   schema_element_not_found: 'The <schema> element was not found in the provided XML.',
   operations_element_not_found: 'The <operations> element was not found in the provided XML.',
   error_retrieving_org_version: 'Failed to retrieve org version',
-  error_parsing_yaml: 'Error parsing YAML'
+  error_parsing_yaml: 'Error parsing YAML',
+  no_oas_generated: 'LLM did not return any content.',
+  strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.'
 };

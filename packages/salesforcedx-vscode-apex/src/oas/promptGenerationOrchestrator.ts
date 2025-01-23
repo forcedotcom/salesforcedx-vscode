@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { nls } from '../messages';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -50,16 +51,15 @@ export class PromptGenerationOrchestrator {
     return bids;
   }
 
-  public async callLLMWithStrategySelectedByBidRule(rule: BidRule) {
+  // after best strategy is determined, call the LLM with the selected strategy and return the result.
+  public async generateOASWithStrategySelectedByBidRule(rule: BidRule) {
     const bids = this.bid();
     const bestStrategy = this.applyRule(rule, bids);
     const strategy = this.strategies.get(bestStrategy);
     if (strategy) {
-      await strategy.callLLMWithGivenPrompts();
-      await strategy.saveOasAsErsMetadata();
-      return;
+      return await strategy.generateOAS();
     }
-    throw new Error('No strategy found');
+    throw new Error(nls.localize('strategy_not_qualified'));
   }
 
   // Apply a specific rule to select the name of the best strategy from the list of bids.
