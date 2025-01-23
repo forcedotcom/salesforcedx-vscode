@@ -292,7 +292,7 @@ export class ApexActionController {
     }
 
     // Convert back to XML
-    const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
+    const builder = new XMLBuilder({ ignoreAttributes: false, format: true, processEntities: false });
     return builder.build(jsonObj);
   };
 
