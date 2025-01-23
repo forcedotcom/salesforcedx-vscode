@@ -160,16 +160,31 @@ export class ApexActionController {
     }
 
     // Step 2: Check if File Exists
-    const fullPath = path.join(folder, filename);
+    let fullPath = path.join(folder, filename);
     if (fs.existsSync(fullPath)) {
       const whatToDo = await this.handleExistingESR();
       if (whatToDo === nls.localize('cancel')) {
         throw new Error(nls.localize('operation_cancelled'));
       } else if (whatToDo === nls.localize('merge')) {
-        throw new Error('MERGE!!!');
+        const currentTimestamp = this.getCurrentTimestamp();
+        const namePart = filename.split('.externalServiceRegistration-meta.xml')[0];
+        const newFileName = namePart + '_' + currentTimestamp + '.externalServiceRegistration-meta.xml';
+        fullPath = path.join(folder, newFileName);
       }
     }
     return fullPath;
+  };
+
+  private getCurrentTimestamp = (): string => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const formattedDate = `${month}${day}${year}_${hours}:${minutes}:${seconds}`;
+    return formattedDate;
   };
 
   private handleExistingESR = async (): Promise<string> => {
