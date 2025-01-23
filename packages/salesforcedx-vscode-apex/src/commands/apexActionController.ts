@@ -4,25 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable prettier/prettier */
 
 import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { URL } from 'url';
 import * as vscode from 'vscode';
 import { parse } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
-import {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  ApexOASInfo,
-  ExternalServiceOperation
-} from '../openApiUtilities/schemas';
+import { ApexOASInfo, ExternalServiceOperation } from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
@@ -67,20 +60,25 @@ export class ApexActionController {
             ? path.basename(eligibilityResult.resourceUri, '.cls')
             : eligibilityResult?.symbols?.[0]?.docSymbol?.name;
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
+
           // Step 4: Check if the file already exists
           const fullPath = await this.pathExists(openApiFileName);
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
-          // Step 5:Initialize the strategy orchestrator
+
+          // Step 5: Initialize the strategy orchestrator
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
+
           // Step 6: bid on the strategy, and the best one is available
           promptGenerationOrchestrator.bid();
-          // Step 7: use the strateg to generate the OAS
+
+          // Step 7: use the strategy to generate the OAS
           const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
             BidRule.MOST_CALLS
           );
+
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          await this.saveOasAsErsMetadata(openApiDocument, fullPath);
+          await this.saveOasAsErsMetadata(this.cleanupYaml(openApiDocument), fullPath);
         }
       );
 
@@ -90,22 +88,6 @@ export class ApexActionController {
     } catch (error: any) {
       void this.handleError(error, `ApexAction${type}CreationFailed`);
     }
-  };
-
-  /**
-   * Generates an OpenAPI document from the provided metadata.
-   * @param metadata - The metadata of the methods.
-   * @returns The OpenAPI document as a string.
-   */
-  private generateOpenAPIDocument = async (
-    metadata: ApexClassOASEligibleResponse,
-    context: ApexClassOASGatherContextResponse
-  ): Promise<string> => {
-    const documentText = fs.readFileSync(new URL(metadata.resourceUri.toString()), 'utf8');
-    const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, context);
-
-    // Convert the OpenAPI document to YAML
-    return this.cleanupYaml(openAPIdocument);
   };
 
   /**
