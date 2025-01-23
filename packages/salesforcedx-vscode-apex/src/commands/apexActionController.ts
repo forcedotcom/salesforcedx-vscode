@@ -73,7 +73,7 @@ export class ApexActionController {
           // Step 5:Initialize the strategy orchestrator
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
           // Step 6: bid on the strategy, and the best one is available
-          promptGenerationOrchestrator.bid();
+          // promptGenerationOrchestrator.bid();
           // Step 7: use the strateg to generate the OAS
           const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(BidRule.MOST_CALLS);
           // Step 8: Write OpenAPI Document to File

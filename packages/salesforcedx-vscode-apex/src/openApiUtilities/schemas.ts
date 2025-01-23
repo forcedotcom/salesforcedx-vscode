@@ -98,3 +98,10 @@ export type PromptGenerationResult = {
 export type PromptGenerationStrategyBid = {
   result: PromptGenerationResult;
 };
+
+export interface OpenAPIDoc {
+  openapi: string;
+  info: { title: string; version: string };
+  paths: Record<string, any>;
+  components?: { schemas?: Record<string, any> };
+}

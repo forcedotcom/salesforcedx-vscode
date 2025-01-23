@@ -15,7 +15,7 @@ import {
 } from '../../openApiUtilities/schemas';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
-import prompts from './prompts.json';
+import { prompts } from './prompts';
 export const WHOLE_CLASS_STRATEGY_NAME = 'WholeClass';
 export class WholeClassStrategy extends GenerationStrategy {
   metadata: ApexClassOASEligibleResponse;

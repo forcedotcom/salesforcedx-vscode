@@ -5,23 +5,106 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
+import { DocumentSymbol } from 'vscode';
+import * as yaml from 'yaml';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
+  ApexOASClassDetail,
+  ApexOASMethodDetail,
   PromptGenerationResult,
-  PromptGenerationStrategyBid
+  PromptGenerationStrategyBid,
+  OpenAPIDoc
 } from '../../openApiUtilities/schemas';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, RESPONSE_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
-
+import { prompts } from './prompts';
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
-  callLLMWithPrompts(): Promise<string[]> {
-    throw new Error('Method not implemented.');
+  async callLLMWithPrompts(): Promise<string[]> {
+    try {
+      const llmService = await this.getLLMServiceInterface();
+
+      // Filter valid prompts and map them to promises
+      const responsePromises = this.prompts.filter(p => p?.length > 0).map(prompt => llmService.callLLM(prompt));
+
+      // Execute all LLM calls in parallel and store responses
+      this.llmResponses = await Promise.all(responsePromises);
+
+      return this.llmResponses;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(errorMessage);
+    }
   }
-  generateOAS(): Promise<string> {
-    throw new Error('Method not implemented.');
+
+  decodeHtmlEntities(str: string): string {
+    return str
+      .replace(/&apos;/g, "'") // Convert HTML-encoded apostrophe to a single quote
+      .replace(/&quot;/g, '"') // Convert HTML-encoded double quotes
+      .replace(/&amp;/g, '&'); // Convert HTML-encoded ampersand
   }
+  public async generateOAS(): Promise<string> {
+    const oas = await this.callLLMWithPrompts();
+    if (oas.length > 0) {
+      try {
+        const combinedText = this.combineYamlByMethod(oas);
+        return combinedText;
+      } catch (e) {
+        throw new Error(`Failed to parse OAS: ${e}`);
+      }
+    } else {
+      throw new Error('No OAS generated');
+    }
+  }
+
+  cleanYamlString(input: string): string {
+    return this.decodeHtmlEntities(
+      input
+        .replace(/^```yaml\n/, '') // Remove leading triple backtick (if any)
+        .replace(/\n```$/, '') // Remove trailing triple backtick (if any)
+        .replace(/```\n\s*$/, '') // Remove trailing triple backtick with new line (if any)
+        .trim() // Ensure no extra spaces
+    );
+  }
+
+  combineYamlByMethod(docs: string[]) {
+    const combined: OpenAPIDoc = {
+      openapi: '3.0.0',
+      info: {
+        title: this.context.classDetail.name,
+        version: '1.0.0'
+      },
+      paths: {},
+      components: { schemas: {} }
+    };
+
+    for (const doc of docs) {
+      const yamlCleanDoc = this.cleanYamlString(doc);
+      let parsed = null;
+      try {
+        parsed = yaml.parse(yamlCleanDoc) as OpenAPIDoc;
+      } catch (error) {
+        throw new Error(`Failed to parse YAML: ${error}`);
+      }
+      // Merge paths
+      for (const [path, methods] of Object.entries(parsed.paths)) {
+        if (!combined.paths[path]) {
+          combined.paths[path] = {};
+        }
+        Object.assign(combined.paths[path], methods);
+      }
+      // Merge components
+      if (parsed.components?.schemas) {
+        for (const [schema, definition] of Object.entries(parsed.components.schemas)) {
+          combined.components!.schemas![schema] = definition as Record<string, any>;
+        }
+      }
+    }
+    return yaml.stringify(combined);
+  }
+
   llmResponses: string[];
   public async callLLMWithGivenPrompts(): Promise<string[]> {
     let documentContent = '';
@@ -45,6 +128,10 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   callCounts: number;
   maxBudget: number;
   methodsList: string[];
+  methodsDocSymbolMap: Map<string, DocumentSymbol>;
+  methodsContextMap: Map<string, ApexOASMethodDetail>;
+  documentText: string;
+  classPrompt: string; // The prompt for the entire class
 
   public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     super();
@@ -56,6 +143,16 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     this.maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
     this.methodsList = [];
     this.llmResponses = [];
+    this.methodsDocSymbolMap = new Map();
+    this.methodsContextMap = new Map();
+    this.documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
+    this.classPrompt = this.buildClassPrompt(this.context.classDetail);
+  }
+
+  buildClassPrompt(classDetail: ApexOASClassDetail): string {
+    let prompt = '';
+    prompt += `The class name of the given method is ${classDetail.name}.\n`;
+    return prompt;
   }
 
   public bid(): PromptGenerationStrategyBid {
@@ -65,10 +162,15 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     };
   }
   public generate(): PromptGenerationResult {
-    const methodsMap = new Map();
-    for (const symbol of (this.metadata.symbols ?? []).filter(s => s.isApexOasEligible)) {
+    const list = (this.metadata.symbols ?? []).filter(s => s.isApexOasEligible);
+    for (const symbol of list) {
       const methodName = symbol.docSymbol.name;
-      methodsMap.set(methodName, symbol.docSymbol); // docSymbol might be useful for generating prompts
+      this.methodsDocSymbolMap.set(methodName, symbol.docSymbol);
+      const methodDetail = this.context.methods.find(m => m.name === methodName);
+      if (methodDetail) {
+        this.methodsContextMap.set(methodName, methodDetail);
+      }
+
       const input = this.generatePromptForMethod(methodName);
       const tokenCount = this.getPromptTokenCount(input);
       if (tokenCount <= PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
@@ -96,6 +198,42 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   }
 
   generatePromptForMethod(methodName: string): string {
-    return 'to be fine tuned';
+    let input = '';
+    const methodContext = this.methodsContextMap.get(methodName);
+    input += `${prompts.SYSTEM_TAG}\n${prompts['METHOD_BY_METHOD.systemPrompt']}\n${prompts.END_OF_PROMPT_TAG}\n`;
+    input += `${prompts.USER_TAG}\n${prompts.METHOD_BY_METHOD_USER_PROMPT}\n`;
+    input += '\nThis is the Apex method the OpenAPI v3 specification should be generated for:\n```\n';
+    const documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
+    input += this.getMethodImplementation(methodName, documentText);
+    input += `The method name is ${methodName}.\n`;
+    if (methodContext?.returnType !== undefined) {
+      input += `The return type of the method is ${methodContext.returnType}.\n`;
+    }
+    if (methodContext?.parameterTypes && methodContext.parameterTypes.length > 0) {
+      input += `The parameter types of the method are ${methodContext.parameterTypes.join(', ')}.\n`;
+    }
+    if (methodContext?.modifiers && methodContext.modifiers.length > 0) {
+      input += `The modifiers of the method are ${methodContext.modifiers.join(', ')}.\n`;
+    }
+    if (methodContext?.annotations && methodContext.annotations.length > 0) {
+      input += `The annotations of the method are ${methodContext.annotations.join(', ')}.\n`;
+    }
+    input += this.classPrompt;
+    input += `\n\`\`\`\n${prompts.END_OF_PROMPT_TAG}\n${prompts.ASSISTANT_TAG}\n`;
+
+    return input;
+  }
+
+  getMethodImplementation(methodName: string, doc: string): string {
+    const methodSymbol = this.methodsDocSymbolMap.get(methodName);
+    if (methodSymbol) {
+      const startLine = methodSymbol.range.start.line;
+      const endLine = methodSymbol.range.end.line;
+      const lines = doc.split('\n').map(line => line.trim());
+      const method = lines.slice(startLine - 1, endLine + 1).join('\n');
+      return method;
+    } else {
+      throw new Error(`Method ${methodName} not found in document symbols`);
+    }
   }
 }
