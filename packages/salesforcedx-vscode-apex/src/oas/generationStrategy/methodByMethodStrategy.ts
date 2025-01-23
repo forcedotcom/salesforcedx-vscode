@@ -30,7 +30,15 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       const responsePromises = this.prompts.filter(p => p?.length > 0).map(prompt => llmService.callLLM(prompt));
 
       // Execute all LLM calls in parallel and store responses
-      this.llmResponses = await Promise.all(responsePromises);
+      await Promise.allSettled(responsePromises).then(results => {
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            this.llmResponses.push(result.value);
+          } else if (result.status === 'rejected') {
+            console.log(`Promise ${index} rejected with reason:`, result.reason);
+          }
+        });
+      });
 
       return this.llmResponses;
     } catch (error) {
@@ -87,11 +95,19 @@ export class MethodByMethodStrategy extends GenerationStrategy {
           combined.paths[path] = {};
         }
         Object.assign(combined.paths[path], methods);
+        // explicitly define openrationId if missing
+        for (const [method, props] of Object.entries(combined.paths[path] as object)) {
+          if (props?.operationId === undefined) {
+            combined.paths[path][method].operationId = path.split('/').pop() + '_' + method;
+          }
+        }
       }
       // Merge components
       if (parsed.components?.schemas) {
         for (const [schema, definition] of Object.entries(parsed.components.schemas)) {
-          combined.components!.schemas![schema] = definition as Record<string, any>;
+          if (!combined.components!.schemas![schema]) {
+            combined.components!.schemas![schema] = definition as Record<string, any>;
+          }
         }
       }
     }
@@ -193,23 +209,22 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   generatePromptForMethod(methodName: string): string {
     let input = '';
     const methodContext = this.methodsContextMap.get(methodName);
-    input += `${prompts.SYSTEM_TAG}\n${prompts['METHOD_BY_METHOD.systemPrompt']}\n${prompts.END_OF_PROMPT_TAG}\n`;
+    input += `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n`;
     input += `${prompts.USER_TAG}\n${prompts.METHOD_BY_METHOD_USER_PROMPT}\n`;
     input += '\nThis is the Apex method the OpenAPI v3 specification should be generated for:\n```\n';
-    const documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
-    input += this.getMethodImplementation(methodName, documentText);
+    input += this.getMethodImplementation(methodName, this.documentText);
     input += `The method name is ${methodName}.\n`;
     if (methodContext?.returnType !== undefined) {
       input += `The return type of the method is ${methodContext.returnType}.\n`;
     }
-    if (methodContext?.parameterTypes && methodContext.parameterTypes.length > 0) {
-      input += `The parameter types of the method are ${methodContext.parameterTypes.join(', ')}.\n`;
+    if (methodContext?.parameterTypes?.length ?? 0 > 0) {
+      input += `The parameter types of the method are ${methodContext!.parameterTypes.join(', ')}.\n`;
     }
-    if (methodContext?.modifiers && methodContext.modifiers.length > 0) {
-      input += `The modifiers of the method are ${methodContext.modifiers.join(', ')}.\n`;
+    if (methodContext?.modifiers?.length ?? 0 > 0) {
+      input += `The modifiers of the method are ${methodContext!.modifiers.join(', ')}.\n`;
     }
-    if (methodContext?.annotations && methodContext.annotations.length > 0) {
-      input += `The annotations of the method are ${methodContext.annotations.join(', ')}.\n`;
+    if (methodContext?.annotations?.length ?? 0 > 0) {
+      input += `The annotations of the method are ${methodContext!.annotations.join(', ')}.\n`;
     }
     input += this.classPrompt;
     input += `\n\`\`\`\n${prompts.END_OF_PROMPT_TAG}\n${prompts.ASSISTANT_TAG}\n`;

@@ -48,7 +48,7 @@ export class WholeClassStrategy extends GenerationStrategy {
     const documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
     const input =
       `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n${prompts.USER_TAG}\n` +
-      prompts['WHOLE_CLASS.USER_PROMPT'] +
+      prompts.WHOLE_CLASS_USER_PROMPT +
       '\nThis is the Apex class the OpenAPI v3 specification should be generated for:\n```\n' +
       documentText +
       `\nClass name: ${this.context.classDetail.name}, methods: ${this.context.methods.map(method => method.name).join(', ')}\n` +
