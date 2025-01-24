@@ -11,7 +11,7 @@
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^5.1.1",
-    "node": "^20.9.0",
+    "node": "^20.17.0",
     "npm": "^10",
     "semver": "^7.5.4",
     "ts-node": "10.9.2"
