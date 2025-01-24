@@ -200,7 +200,11 @@ export class ApexActionController {
         const currentTimestamp = this.getCurrentTimestamp();
         const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
         const newFileName = namePart + '_' + currentTimestamp + '.externalServiceRegistration-meta.xml';
-        const newFullPath = path.join(folder, newFileName);
+        const esr_files_for_merge_folder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
+        if (!fs.existsSync(esr_files_for_merge_folder)) {
+          fs.mkdirSync(esr_files_for_merge_folder);
+        }
+        const newFullPath = path.join(esr_files_for_merge_folder, newFileName);
         esrExists = true;
         return [fullPath, newFullPath, esrExists];
       }
