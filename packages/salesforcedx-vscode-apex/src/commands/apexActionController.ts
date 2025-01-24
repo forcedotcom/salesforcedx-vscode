@@ -319,6 +319,11 @@ export class ApexActionController {
       } else {
         throw new Error(nls.localize('operations_element_not_found'));
       }
+      if (jsonObj.ExternalServiceRegistration?.namedCredentialReference) {
+        jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
+      } else {
+        throw new Error(nls.localize('named_credential_element_not_found'));
+      }
     } else {
       // Create a new XML structure
       jsonObj = {

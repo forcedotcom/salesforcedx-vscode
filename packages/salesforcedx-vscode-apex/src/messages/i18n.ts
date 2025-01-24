@@ -125,6 +125,7 @@ export const messages = {
   full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
   schema_element_not_found: 'The <schema> element was not found in the provided XML.',
   operations_element_not_found: 'The <operations> element was not found in the provided XML.',
+  named_credential_element_not_found: 'The <namedCredentialReference> element was not found in the provided XML.',
   error_retrieving_org_version: 'Failed to retrieve org version',
   error_parsing_yaml: 'Error parsing YAML'
 };
