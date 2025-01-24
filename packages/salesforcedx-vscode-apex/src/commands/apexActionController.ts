@@ -194,7 +194,7 @@ export class ApexActionController {
     let esrExists = false;
     if (fs.existsSync(fullPath)) {
       const whatToDo = await this.handleExistingESR();
-      if (whatToDo === nls.localize('cancel')) {
+      if (whatToDo === 'cancel') {
         throw new Error(nls.localize('operation_cancelled'));
       } else if (whatToDo === nls.localize('merge')) {
         const currentTimestamp = this.getCurrentTimestamp();
@@ -225,8 +225,7 @@ export class ApexActionController {
       nls.localize('file_exists'),
       { modal: true },
       nls.localize('overwrite'),
-      nls.localize('merge'),
-      nls.localize('cancel')
+      nls.localize('merge')
     );
     return response || 'cancel';
   };
