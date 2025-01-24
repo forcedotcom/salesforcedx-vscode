@@ -129,7 +129,7 @@
       "editor/context": [
         {
           "command": "sf.create.apex.action.method",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
+          "when": "false"
         },
         {
           "command": "sf.create.apex.action.class",
