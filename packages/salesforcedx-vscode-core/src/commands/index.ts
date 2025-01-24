@@ -53,12 +53,10 @@ export { RefreshSObjectsExecutor, refreshSObjects, initSObjectDefinitions } from
 export { renameLightningComponent } from './renameLightningComponent';
 export { deployManifest } from './deployManifest';
 export { LibraryDeploySourcePathExecutor, deploySourcePaths } from './deploySourcePath';
-export { deployOAS } from './deployOAS';
 export { sourceDiff, sourceFolderDiff, handleCacheResults } from './sourceDiff';
 export { retrieveManifest } from './retrieveManifest';
 export { retrieveComponent } from './retrieveMetadata';
 export { LibraryRetrieveSourcePathExecutor, SourcePathChecker, retrieveSourcePaths } from './retrieveSourcePath';
-export { retrieveOAS } from './retrieveOAS';
 export { openDocumentation } from './openDocumentation';
 export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';
