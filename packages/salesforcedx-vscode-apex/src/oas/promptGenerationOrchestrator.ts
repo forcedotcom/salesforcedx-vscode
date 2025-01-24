@@ -52,14 +52,14 @@ export class PromptGenerationOrchestrator {
   }
 
   // after best strategy is determined, call the LLM with the selected strategy and return the result.
-  public async generateOASWithStrategySelectedByBidRule(rule: BidRule) {
+  public async generateOASWithStrategySelectedByBidRule(rule: BidRule): Promise<string> {
     const bids = this.bid();
     const bestStrategy = this.applyRule(rule, bids);
     const strategy = this.strategies.get(bestStrategy);
-    if (strategy) {
-      return await strategy.generateOAS();
+    if (!strategy) {
+      throw new Error(nls.localize('strategy_not_qualified'));
     }
-    throw new Error(nls.localize('strategy_not_qualified'));
+    return await strategy.generateOAS();
   }
 
   // Apply a specific rule to select the name of the best strategy from the list of bids.
