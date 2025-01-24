@@ -14,6 +14,7 @@ import * as vscode from 'vscode';
 import { parse } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
+import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -121,8 +122,11 @@ export class ApexActionController {
     const documentText = fs.readFileSync(new URL(metadata.resourceUri.toString()), 'utf8');
     const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, context);
 
-    // Convert the OpenAPI document to YAML
-    return this.cleanupYaml(openAPIdocument);
+    // hand off the validation and correction to processor.
+    const oasProcessor = new OasProcessor(context, openAPIdocument);
+    const processorResult = await oasProcessor.process();
+
+    return processorResult.yaml;
   };
 
   /**
