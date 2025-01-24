@@ -91,7 +91,7 @@ export const messages = {
     '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。',
   cancel: 'Cancel',
   overwrite: 'Overwrite',
-  file_exists: 'The file already exists. Do you want to overwrite it?',
+  file_exists: 'The file already exists. How do you want to proceed?',
   no_folder_selected: 'Operation canceled: No folder selected.',
   operation_cancelled: 'Operation canceled',
   enter_esr_path: 'Enter the folder path to store the ESR metadata artifact',

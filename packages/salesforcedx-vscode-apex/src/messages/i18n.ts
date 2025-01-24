@@ -106,7 +106,7 @@ export const messages = {
   cancel: 'Cancel',
   overwrite: 'Overwrite',
   merge: 'Manually merge with existing ESR',
-  file_exists: 'The file already exists. Do you want to overwrite it?',
+  file_exists: 'The file already exists. How do you want to proceed?',
   terminate_processes_title: 'Terminate Orphaned Processes',
   orphan_process_advice:
     "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
