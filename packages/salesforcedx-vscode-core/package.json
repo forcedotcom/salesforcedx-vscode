@@ -220,14 +220,6 @@
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
           "when": "sf:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
-        },
-        {
-          "command": "sf.deploy.oas",
-          "when": "false"
-        },
-        {
-          "command": "sf.retrieve.oas",
-          "when": "false"
         }
       ],
       "explorer/context": [
@@ -330,14 +322,6 @@
         {
           "command": "sf.rename.lightning.component",
           "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
-        },
-        {
-          "command": "sf.deploy.oas",
-          "when": "false"
-        },
-        {
-          "command": "sf.retrieve.oas",
-          "when": "false"
         }
       ],
       "commandPalette": [
@@ -619,14 +603,6 @@
         },
         {
           "command": "sf.vscode.core.logger.get.instance",
-          "when": "false"
-        },
-        {
-          "command": "sf.deploy.oas",
-          "when": "false"
-        },
-        {
-          "command": "sf.retrieve.oas",
           "when": "false"
         }
       ]
@@ -931,14 +907,6 @@
       {
         "command": "sf.vscode.core.logger.get.instance",
         "title": "%vscode_core_services_get_logger%"
-      },
-      {
-        "command": "sf.deploy.oas",
-        "title": "%deploy_oas_text%"
-      },
-      {
-        "command": "sf.retrieve.oas",
-        "title": "%retrieve_oas_text%"
       }
     ],
     "configuration": {

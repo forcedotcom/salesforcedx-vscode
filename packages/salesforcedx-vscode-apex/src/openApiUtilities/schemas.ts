@@ -37,7 +37,6 @@ export type ApexClassOASGatherContextResponse = {
   properties: ApexOASPropertyDetail[];
   methods: ApexOASMethodDetail[];
   relationships: Map<string, Map<string, string[]>>; // Map<methodName, Map<srcClassUri, List<methodOrPropName>>>
-  documentations: Map<string, string[]>; // Map<method/prop/class name, each line of documentation>
 };
 
 export type ApexOASClassDetail = {
@@ -48,6 +47,7 @@ export type ApexOASClassDetail = {
   definitionModifiers: string[];
   accessModifiers: string[];
   innerClasses: DocumentSymbol[];
+  comment: string;
 };
 
 export type ApexOASPropertyDetail = {
@@ -56,6 +56,7 @@ export type ApexOASPropertyDetail = {
   documentSymbol: DocumentSymbol;
   modifiers: string[];
   annotations: string[];
+  comment: string;
 };
 
 export type ApexOASMethodDetail = {
@@ -64,6 +65,7 @@ export type ApexOASMethodDetail = {
   parameterTypes: string[];
   modifiers: string[];
   annotations: string[];
+  comment: string;
 };
 
 export type ApexOASInterface = {
