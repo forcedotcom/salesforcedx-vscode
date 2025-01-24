@@ -305,6 +305,11 @@ export class ApexActionController {
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
 
+    // Ensure namedCredential is provided and not blank
+    if (!namedCredential || namedCredential.trim() === '') {
+      throw new Error(nls.localize('invalid_named_credential'));
+    }
+
     // If existing XML content, parse and update
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
@@ -318,11 +323,7 @@ export class ApexActionController {
       } else {
         throw new Error(nls.localize('operations_element_not_found'));
       }
-      if (jsonObj.ExternalServiceRegistration?.namedCredentialReference) {
-        jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
-      } else {
-        throw new Error(nls.localize('named_credential_element_not_found'));
-      }
+      jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
       // Create a new XML structure
       jsonObj = {
