@@ -6,12 +6,12 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=20.17"
   },
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^5.1.1",
-    "node": "^20.9.0",
+    "node": "^20.17.0",
     "npm": "^10",
     "semver": "^7.5.4",
     "ts-node": "10.9.2"
@@ -35,7 +35,7 @@
     "@vscode/test-electron": "2.3.0",
     "@vscode/vsce": "2.21.1",
     "acorn": "8.8.2",
-    "ajv": "6.12.6",
+    "ajv": "8.17.1",
     "check-peer-dependencies": "4.1.0",
     "commitizen": "^4.2.5",
     "cz-conventional-changelog": "3.3.0",
