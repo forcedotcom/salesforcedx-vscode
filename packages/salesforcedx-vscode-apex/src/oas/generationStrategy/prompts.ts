@@ -31,6 +31,7 @@ export const prompts = {
       '{ClassName}/{MethodName}. For every `type: object`, generate a `#/components/schemas` entry for that object. The method should have a $ref entry pointing to the generated `#/components/schemas` entry. I do not want AUTHOR_PLACEHOLDER in the result.' +
       'For each path, you define operations (HTTP methods) that can be used to access that path.' +
       'IMPORTANT: Each operation includes a MANDATORY *operationId* property, which should be a unique string matching the operations name.' +
+      'The comment of the method can be used as the description of the operation. If the description is missing, use the method name as the description. The summary of the operation is good to have.' +
       'Do NOT add any explanations of your answer that are not able to be parsed as YAML!',
     systemPrompt: `
   You are Dev Assistant, an AI coding assistant by Salesforce.

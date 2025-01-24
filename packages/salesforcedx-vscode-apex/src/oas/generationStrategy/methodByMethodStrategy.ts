@@ -161,6 +161,9 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   buildClassPrompt(classDetail: ApexOASClassDetail): string {
     let prompt = '';
     prompt += `The class name of the given method is ${classDetail.name}.\n`;
+    if (classDetail.comment !== undefined) {
+      prompt += `The comment of the class is ${classDetail.comment}.\n`;
+    }
     return prompt;
   }
 
@@ -225,6 +228,9 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     }
     if (methodContext?.annotations?.length ?? 0 > 0) {
       input += `The annotations of the method are ${methodContext!.annotations.join(', ')}.\n`;
+    }
+    if (methodContext?.comment !== undefined) {
+      input += `The comment of the method is ${methodContext!.comment}.\n`;
     }
     input += this.classPrompt;
     input += `\n\`\`\`\n${prompts.END_OF_PROMPT_TAG}\n${prompts.ASSISTANT_TAG}\n`;
