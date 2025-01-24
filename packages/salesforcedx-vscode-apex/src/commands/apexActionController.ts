@@ -74,7 +74,7 @@ export class ApexActionController {
 
           // Step 6: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          await this.saveOasAsErsMetadata(openApiDocument, fullPath[1]);
+          await this.saveOasAsEsrMetadata(openApiDocument, fullPath[1]);
 
           // Step 7: If the user chose to merge, open a diff between the original and new ESR files
           if (fullPath[0] !== fullPath[1]) {
@@ -150,7 +150,7 @@ export class ApexActionController {
       .join('\n');
   }
 
-  private saveOasAsErsMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
+  private saveOasAsEsrMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     // Replace the schema section in the ESR file if it already exists
     let existingContent;
