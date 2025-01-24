@@ -298,6 +298,14 @@ export class ApexActionController {
     oasSpec: string
   ) => {
     const baseName = path.basename(fullPath).split('.')[0];
+    let className;
+    if (fullPath.includes('esr_files_for_merge')) {
+      // The class name is the part before the second to last underscore
+      const parts = baseName.split('_');
+      className = parts.slice(0, -2).join('_');
+    } else {
+      className = baseName;
+    }
     const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
     const { description, version } = this.extractInfoProperties(safeOasSpec);
     const operations = this.getOperationsFromYaml(safeOasSpec);
@@ -335,15 +343,15 @@ export class ApexActionController {
         ExternalServiceRegistration: {
           '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
           description,
-          label: baseName,
+          label: className,
           schema: safeOasSpec,
           schemaType: 'OpenApi3',
           schemaUploadFileExtension: 'yaml',
-          schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
+          schemaUploadFileName: `${className.toLowerCase()}_openapi`,
           status: 'Complete',
           systemVersion: '3',
           operations,
-          registrationProvider: baseName,
+          registrationProvider: className,
           ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
             ? {
                 registrationProviderType: 'ApexRest',
