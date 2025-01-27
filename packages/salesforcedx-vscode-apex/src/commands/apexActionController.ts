@@ -298,7 +298,12 @@ export class ApexActionController {
     } else {
       className = baseName;
     }
-    const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
+    let safeOasSpec = '';
+    if (this.isESRDecomposed()) {
+      safeOasSpec = oasSpec.replaceAll('"', "'").replaceAll('type: Id', 'type: string');
+    } else {
+      safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
+    }
     const { description, version } = this.extractInfoProperties(safeOasSpec);
     const operations = this.getOperationsFromYaml(safeOasSpec);
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
