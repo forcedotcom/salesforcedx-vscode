@@ -60,6 +60,8 @@ export const messages = {
   validation_failed: 'Failed to validate eligibility.',
   apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
   apex_action_created: 'Apex Action created for %s: %s.',
+  apex_action_created_merge:
+    'A new Apex Action %s %s is created for %s. Manually merge the two files using the diff editor.',
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document_to_file: 'Writing OpenAPI document to file.',
   not_eligible_method:
@@ -103,7 +105,8 @@ export const messages = {
   yes: 'Yes',
   cancel: 'Cancel',
   overwrite: 'Overwrite',
-  file_exists: 'The file already exists. Do you want to overwrite it?',
+  merge: 'Manually merge with existing ESR',
+  file_exists: 'The file already exists. How do you want to proceed?',
   terminate_processes_title: 'Terminate Orphaned Processes',
   orphan_process_advice:
     "The list of processes below are Apex Language Server instances that didn't properly shutdown. These\nprocesses can be stopped from the warning message that brought you here, or you can handle this\ntask yourself. If you choose to terminate these processes yourself, refer to relevant documentation\nto stop these processes.",
@@ -122,6 +125,7 @@ export const messages = {
   full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
   schema_element_not_found: 'The <schema> element was not found in the provided XML.',
   operations_element_not_found: 'The <operations> element was not found in the provided XML.',
+  invalid_named_credential: 'The named credential is either not provided or invalid.',
   error_retrieving_org_version: 'Failed to retrieve org version',
   error_parsing_yaml: 'Error parsing YAML',
   no_oas_generated: 'LLM did not return any content.',
