@@ -95,12 +95,6 @@ export class MethodByMethodStrategy extends GenerationStrategy {
           combined.paths[path] = {};
         }
         Object.assign(combined.paths[path], methods);
-        // explicitly define openrationId if missing
-        for (const [method, props] of Object.entries(combined.paths[path] as object)) {
-          if (props?.operationId === undefined) {
-            combined.paths[path][method].operationId = path.split('/').pop() + '_' + method;
-          }
-        }
       }
       // Merge components
       if (parsed.components?.schemas) {
