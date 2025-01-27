@@ -16,7 +16,7 @@ import {
   ApexClassOASGatherContextResponse,
   ApexOASEligiblePayload,
   ApexOASResource
-} from '../openApiUtilities/schemas';
+} from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 
 /**

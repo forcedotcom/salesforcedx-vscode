@@ -4,26 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
-import { URL } from 'url';
 import * as vscode from 'vscode';
 import { parse } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
-import {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  ApexOASInfo,
-  ExternalServiceOperation
-} from '../openApiUtilities/schemas';
+import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
+import { ApexClassOASGatherContextResponse, ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
-
 export class ApexActionController {
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}
 
@@ -66,16 +61,25 @@ export class ApexActionController {
           // Step 3: Determine filename
           name = path.basename(eligibilityResult.resourceUri, '.cls');
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
+
           // Step 4: Check if the file already exists
           fullPath = await this.pathExists(openApiFileName);
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
-          // Step 5: Generate OpenAPI Document
-          progress.report({ message: nls.localize('generate_openapi_document') });
-          const openApiDocument = await this.generateOpenAPIDocument(eligibilityResult, context);
 
-          // Step 6: Write OpenAPI Document to File
+          // Step 5: Initialize the strategy orchestrator
+          const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
+
+          // Step 6: use the strategy to generate the OAS
+          const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
+            BidRule.MOST_CALLS
+          );
+
+          // Step 7: Process the OAS document
+          const processedOasDoc = await this.processOasDocument(openApiDocument, context);
+
+          // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          await this.saveOasAsEsrMetadata(openApiDocument, fullPath[1]);
+          await this.saveOasAsEsrMetadata(processedOasDoc, fullPath[1]);
 
           // Step 7: If the user chose to merge, open a diff between the original and new ESR files
           if (fullPath[0] !== fullPath[1]) {
@@ -110,23 +114,10 @@ export class ApexActionController {
     }
   };
 
-  /**
-   * Generates an OpenAPI document from the provided metadata.
-   * @param metadata - The metadata of the methods.
-   * @returns The OpenAPI document as a string.
-   */
-  private generateOpenAPIDocument = async (
-    metadata: ApexClassOASEligibleResponse,
-    context: ApexClassOASGatherContextResponse
-  ): Promise<string> => {
-    const documentText = fs.readFileSync(new URL(metadata.resourceUri.toString()), 'utf8');
-    const openAPIdocument = await this.metadataOrchestrator.sendPromptToLLM(documentText, context);
-
-    // hand off the validation and correction to processor.
-    const oasProcessor = new OasProcessor(context, openAPIdocument);
-    const processorResult = await oasProcessor.process();
-
-    return processorResult.yaml;
+  private processOasDocument = async (oasDoc: string, context: ApexClassOASGatherContextResponse): Promise<string> => {
+    const oasProcessor = new OasProcessor(context, oasDoc);
+    const processResult = await oasProcessor.process();
+    return processResult.yaml;
   };
 
   /**
@@ -362,7 +353,7 @@ export class ApexActionController {
     }
 
     // Convert back to XML
-    const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
+    const builder = new XMLBuilder({ ignoreAttributes: false, format: true, processEntities: false });
     return builder.build(jsonObj);
   };
 

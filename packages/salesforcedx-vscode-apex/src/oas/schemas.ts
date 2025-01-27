@@ -96,7 +96,14 @@ export type PromptGenerationResult = {
   maxBudget: number;
 };
 
+// to be populated with more discussed metrics
 export type PromptGenerationStrategyBid = {
-  strategy: string;
   result: PromptGenerationResult;
 };
+
+export interface OpenAPIDoc {
+  openapi: string;
+  info: { title: string; version: string; description: string };
+  paths: Record<string, any>;
+  components?: { schemas?: Record<string, any> };
+}
