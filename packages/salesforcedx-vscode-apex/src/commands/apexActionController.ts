@@ -15,8 +15,9 @@ import * as vscode from 'vscode';
 import { parse } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
+import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
-import { ApexOASInfo, ExternalServiceOperation } from '../openApiUtilities/schemas';
+import { ApexClassOASGatherContextResponse, ApexOASInfo, ExternalServiceOperation } from '../openApiUtilities/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
@@ -68,16 +69,16 @@ export class ApexActionController {
 
           // Step 5: Initialize the strategy orchestrator
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
-
-          // Step 6: bid on the strategy, and the best one is available
-          // promptGenerationOrchestrator.bid();
-          // Step 7: use the strateg to generate the OAS
+          // Step 6: use the strategy to generate the OAS
           const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
             BidRule.MOST_CALLS
           );
+
+          // Step 7: Process the OAS document
+          const processedOasDoc = await this.processOasDocument(openApiDocument, context);
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          await this.saveOasAsErsMetadata(this.cleanupYaml(openApiDocument), fullPath);
+          await this.saveOasAsErsMetadata(processedOasDoc, fullPath);
         }
       );
 
@@ -87,6 +88,12 @@ export class ApexActionController {
     } catch (error: any) {
       void this.handleError(error, `ApexAction${type}CreationFailed`);
     }
+  };
+
+  private processOasDocument = async (oasDoc: string, context: ApexClassOASGatherContextResponse): Promise<string> => {
+    const oasProcessor = new OasProcessor(context, oasDoc);
+    const processResult = await oasProcessor.process();
+    return processResult.yaml;
   };
 
   /**
@@ -100,19 +107,6 @@ export class ApexActionController {
     notificationService.showErrorMessage(`${nls.localize('create_apex_action_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
-
-  private cleanupYaml(doc: string): string {
-    // Remove the first line of the document
-    const openApiIndex = doc.indexOf('openapi');
-    if (openApiIndex === -1) {
-      throw new Error('Could not find openapi line in document:\n' + doc);
-    }
-    return doc
-      .substring(openApiIndex)
-      .split('\n')
-      .filter(line => !/^```$/.test(line))
-      .join('\n');
-  }
 
   private saveOasAsErsMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();

@@ -38,6 +38,8 @@
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "62.14.1",
     "@salesforce/ts-sinon": "1.4.0",
+    "@stoplight/spectral-core": "1.19.4",
+    "@stoplight/spectral-rulesets": "1.21.3",
     "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "^20.0.0",
@@ -129,7 +131,7 @@
       "editor/context": [
         {
           "command": "sf.create.apex.action.method",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
+          "when": "false"
         },
         {
           "command": "sf.create.apex.action.class",
