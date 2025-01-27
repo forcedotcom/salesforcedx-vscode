@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable prettier/prettier */
 
 import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
@@ -69,6 +68,7 @@ export class ApexActionController {
 
           // Step 5: Initialize the strategy orchestrator
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
+
           // Step 6: use the strategy to generate the OAS
           const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
             BidRule.MOST_CALLS
@@ -76,6 +76,7 @@ export class ApexActionController {
 
           // Step 7: Process the OAS document
           const processedOasDoc = await this.processOasDocument(openApiDocument, context);
+
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
           await this.saveOasAsErsMetadata(processedOasDoc, fullPath);
