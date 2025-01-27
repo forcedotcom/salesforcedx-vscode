@@ -57,6 +57,8 @@ export const messages = {
   validation_failed: 'Failed to validate eligibility.',
   apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
   apex_action_created: 'Apex Action created for %s: %s.',
+  apex_action_created_merge:
+    'A new Apex Action %s %s is created for %s. Manually merge the two files using the diff editor.',
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document_to_file: 'Writing OpenAPI document to file.',
   not_eligible_method:
@@ -89,7 +91,7 @@ export const messages = {
     '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。',
   cancel: 'Cancel',
   overwrite: 'Overwrite',
-  file_exists: 'The file already exists. Do you want to overwrite it?',
+  file_exists: 'The file already exists. How do you want to proceed?',
   no_folder_selected: 'Operation canceled: No folder selected.',
   operation_cancelled: 'Operation canceled',
   enter_esr_path: 'Enter the folder path to store the ESR metadata artifact',
@@ -102,6 +104,7 @@ export const messages = {
   full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
   schema_element_not_found: 'The <schema> element was not found in the provided XML.',
   operations_element_not_found: 'The <operations> element was not found in the provided XML.',
+  invalid_named_credential: 'The named credential is either not provided or invalid.',
   error_retrieving_org_version: 'Failed to retrieve org version',
   error_parsing_yaml: 'Error parsing YAML',
   invalid_class_annotation_for_generating_oas_doc: 'Invalid class annotation for generating OAS doc'
