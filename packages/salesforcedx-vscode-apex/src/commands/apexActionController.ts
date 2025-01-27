@@ -141,19 +141,6 @@ export class ApexActionController {
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
-  private cleanupYaml(doc: string): string {
-    // Remove the first line of the document
-    const openApiIndex = doc.indexOf('openapi');
-    if (openApiIndex === -1) {
-      throw new Error('Could not find openapi line in document:\n' + doc);
-    }
-    return doc
-      .substring(openApiIndex)
-      .split('\n')
-      .filter(line => !/^```$/.test(line))
-      .join('\n');
-  }
-
   private saveOasAsEsrMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     // Replace the schema section in the ESR file if it already exists
