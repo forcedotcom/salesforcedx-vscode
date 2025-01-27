@@ -6,8 +6,9 @@
  */
 
 import { nls } from '../../messages';
-import { ApexClassOASGatherContextResponse } from '../schemas';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 import { CleanupYamlStep } from './cleanupYamlStep';
+import { MethodValidationStep } from './methodValidationStep';
 import { OasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';
 import { ProcessorInputOutput } from './processorStep';
@@ -15,21 +16,28 @@ import { ProcessorInputOutput } from './processorStep';
 export class OasProcessor {
   private context: ApexClassOASGatherContextResponse;
   private document: string;
-
-  constructor(context: ApexClassOASGatherContextResponse, document: string) {
+  private eligibilityResult: ApexClassOASEligibleResponse;
+  constructor(
+    context: ApexClassOASGatherContextResponse,
+    document: string,
+    eligibilityResult: ApexClassOASEligibleResponse
+  ) {
     this.context = context;
     this.document = document;
+    this.eligibilityResult = eligibilityResult;
   }
 
   async process(): Promise<ProcessorInputOutput> {
     if (this.context.classDetail.annotations.includes('RestResource')) {
       // currently only OasValidation exists, in future this would have converters too
-      const pipeline = new Pipeline(new CleanupYamlStep()).addStep(new OasValidationStep());
+      const pipeline = new Pipeline(new CleanupYamlStep())
+        .addStep(new OasValidationStep())
+        .addStep(new MethodValidationStep());
 
       console.log('Executing pipeline with input:');
       console.log('context: ', JSON.stringify(this.context));
       console.log('document: ', this.document);
-      const output = await pipeline.execute({ yaml: this.document });
+      const output = await pipeline.execute({ yaml: this.document, eligibilityResult: this.eligibilityResult });
       console.log('Pipeline output:', output);
       return output;
     }

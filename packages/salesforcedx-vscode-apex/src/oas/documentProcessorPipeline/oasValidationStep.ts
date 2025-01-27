@@ -22,7 +22,7 @@ export class OasValidationStep implements ProcessorStep {
       input.errors = result;
     });
 
-    // Since this step doesn't perform convertions we return the input for future processing
+    // Since this step doesn't perform conversions we return the input for future processing
     return input;
   }
 }

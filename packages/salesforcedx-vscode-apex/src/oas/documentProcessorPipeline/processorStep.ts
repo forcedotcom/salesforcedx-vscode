@@ -6,10 +6,12 @@
  */
 
 import { ISpectralDiagnostic } from '@stoplight/spectral-core';
+import { ApexClassOASEligibleResponse } from '../schemas';
 
 export interface ProcessorInputOutput {
   yaml: string;
   errors?: ISpectralDiagnostic[];
+  eligibilityResult: ApexClassOASEligibleResponse;
 }
 
 export interface ProcessorStep {

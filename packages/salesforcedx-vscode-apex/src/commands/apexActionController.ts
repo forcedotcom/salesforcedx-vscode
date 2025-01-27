@@ -16,11 +16,16 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
-import { ApexClassOASGatherContextResponse, ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
+import {
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse,
+  ApexOASInfo,
+  ExternalServiceOperation
+} from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
-  constructor(private metadataOrchestrator: MetadataOrchestrator) {}
+  constructor(private metadataOrchestrator: MetadataOrchestrator) { }
 
   /**
    * Creates an Apex Action.
@@ -75,7 +80,7 @@ export class ApexActionController {
           );
 
           // Step 7: Process the OAS document
-          const processedOasDoc = await this.processOasDocument(openApiDocument, context);
+          const processedOasDoc = await this.processOasDocument(openApiDocument, context, eligibilityResult);
 
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
@@ -114,8 +119,12 @@ export class ApexActionController {
     }
   };
 
-  private processOasDocument = async (oasDoc: string, context: ApexClassOASGatherContextResponse): Promise<string> => {
-    const oasProcessor = new OasProcessor(context, oasDoc);
+  private processOasDocument = async (
+    oasDoc: string,
+    context: ApexClassOASGatherContextResponse,
+    eligibleResult: ApexClassOASEligibleResponse
+  ): Promise<string> => {
+    const oasProcessor = new OasProcessor(context, oasDoc, eligibleResult);
     const processResult = await oasProcessor.process();
     return processResult.yaml;
   };
@@ -336,18 +345,18 @@ export class ApexActionController {
           registrationProvider: className,
           ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
             ? {
-                registrationProviderType: 'ApexRest',
-                namedCredential: null,
-                namedCredentialReferenceId: null,
-                catalogedApiVersion: null,
-                isStartSchemaVersion: true,
-                isHeadSchemaVersion: true,
-                schemaArtifactVersion: version
-              }
+              registrationProviderType: 'ApexRest',
+              namedCredential: null,
+              namedCredentialReferenceId: null,
+              catalogedApiVersion: null,
+              isStartSchemaVersion: true,
+              isHeadSchemaVersion: true,
+              schemaArtifactVersion: version
+            }
             : {
-                registrationProviderType: 'Custom',
-                namedCredentialReference: namedCredential
-              })
+              registrationProviderType: 'Custom',
+              namedCredentialReference: namedCredential
+            })
         }
       };
     }
@@ -381,11 +390,11 @@ export class ApexActionController {
     }
     const operations = parsed.paths
       ? Object.keys(parsed.paths).flatMap(p =>
-          Object.keys(parsed.paths[p]).map(operation => ({
-            name: parsed.paths[p][operation].operationId,
-            active: true
-          }))
-        )
+        Object.keys(parsed.paths[p]).map(operation => ({
+          name: parsed.paths[p][operation].operationId,
+          active: true
+        }))
+      )
       : [];
 
     return operations;
