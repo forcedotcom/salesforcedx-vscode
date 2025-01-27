@@ -298,12 +298,15 @@ export class ApexActionController {
     } else {
       className = baseName;
     }
+
+    // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
     let safeOasSpec = '';
     if (this.isESRDecomposed()) {
       safeOasSpec = oasSpec.replaceAll('"', "'").replaceAll('type: Id', 'type: string');
     } else {
       safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
     }
+
     const { description, version } = this.extractInfoProperties(safeOasSpec);
     const operations = this.getOperationsFromYaml(safeOasSpec);
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
@@ -423,6 +426,7 @@ export class ApexActionController {
       version: parsed?.info?.version
     };
   };
+
   private getOperationsFromYaml = (oasSpec: string): ExternalServiceOperation[] => {
     const parsed = parse(oasSpec);
     if (!parsed?.paths) {
@@ -440,6 +444,10 @@ export class ApexActionController {
     return operations;
   };
 
+  /**
+   * Reads sfdx-project.json and checks if decomposeExternalServiceRegistrationBeta is enabled.
+   * @returns boolean - true if sfdx-project.json contains decomposeExternalServiceRegistrationBeta
+   */
   private isESRDecomposed = (): boolean => {
     const projectConfigPath = path.join(workspaceUtils.getRootWorkspacePath(), 'sfdx-project.json');
 
@@ -456,6 +464,11 @@ export class ApexActionController {
     return false;
   };
 
+  /**
+   * Builds the YAML file for the ESR using safeOasSpec as the contents.
+   * @param esrXmlPath - The path to the ESR XML file.
+   * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
+   */
   private buildESRYaml = (esrXmlPath: string, safeOasSpec: string) => {
     const esrYamlPath = esrXmlPath.replace('.externalServiceRegistration-meta.xml', '.yaml');
     try {
