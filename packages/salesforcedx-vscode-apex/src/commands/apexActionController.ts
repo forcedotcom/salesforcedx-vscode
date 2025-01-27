@@ -87,8 +87,18 @@ export class ApexActionController {
               'vscode.diff',
               vscode.Uri.file(fullPath[0]),
               vscode.Uri.file(fullPath[1]),
-              'Manual Diff of ESR Files'
+              'Manual Diff of ESR XML Files'
             );
+
+            // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
+            if (this.isESRDecomposed()) {
+              await vscode.commands.executeCommand(
+                'vscode.diff',
+                vscode.Uri.file(fullPath[0].replace('.externalServiceRegistration-meta.xml', '.yaml')),
+                vscode.Uri.file(fullPath[1].replace('.externalServiceRegistration-meta.xml', '.yaml')),
+                'Manual Diff of ESR YAML Files'
+              );
+            }
           }
         }
       );
