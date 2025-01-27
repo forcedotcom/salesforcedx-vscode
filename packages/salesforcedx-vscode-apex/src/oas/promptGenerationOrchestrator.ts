@@ -6,15 +6,15 @@
  */
 import { nls } from '../messages';
 import {
+  GenerationStrategy,
+  GenerationStrategyFactory,
+  Strategy
+} from './generationStrategy/generationStrategyFactory';
+import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   PromptGenerationStrategyBid
 } from './schemas';
-import {
-  GenerationStrategyFactory,
-  Strategy,
-  GenerationStrategy
-} from './generationStrategy/generationStrategyFactory';
 
 export enum BidRule {
   LEAST_CALLS,
