@@ -350,6 +350,7 @@ export class ApexActionController {
                 })
           }
         };
+        this.buildESRYaml(fullPath, safeOasSpec);
       } else {
         // Create a new XML structure with schema
         jsonObj = {
@@ -438,5 +439,15 @@ export class ApexActionController {
     }
 
     return false;
+  };
+
+  private buildESRYaml = (esrXmlPath: string, safeOasSpec: string) => {
+    const esrYamlPath = esrXmlPath.replace('.externalServiceRegistration-meta.xml', '.yaml');
+    try {
+      fs.writeFileSync(esrYamlPath, safeOasSpec, 'utf8');
+      console.log(`File created at ${esrYamlPath}`);
+    } catch (err) {
+      console.error('Error writing file:', err);
+    }
   };
 }
