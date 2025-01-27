@@ -1,3 +1,11 @@
+# 62.15.0 - January 29, 2025
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- Resolve call ([PR #6006](https://github.com/forcedotcom/salesforcedx-vscode/pull/6006))
+
 # 62.14.1 - January 15, 2025
 
 ## Fixed
