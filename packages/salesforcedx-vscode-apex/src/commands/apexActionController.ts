@@ -475,7 +475,7 @@ export class ApexActionController {
       fs.writeFileSync(esrYamlPath, safeOasSpec, 'utf8');
       console.log(`File created at ${esrYamlPath}`);
     } catch (err) {
-      console.error('Error writing file:', err);
+      throw new Error('Error writing file:', err);
     }
   };
 }
