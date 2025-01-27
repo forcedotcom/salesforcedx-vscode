@@ -9,7 +9,7 @@ import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   PromptGenerationStrategyBid
-} from '../openApiUtilities/schemas';
+} from './schemas';
 import {
   GenerationStrategyFactory,
   Strategy,

@@ -6,7 +6,7 @@
  */
 
 import { nls } from '../../messages';
-import { ApexClassOASGatherContextResponse } from '../../openApiUtilities/schemas';
+import { ApexClassOASGatherContextResponse } from '../schemas';
 import { CleanupYamlStep } from './cleanupYamlStep';
 import { OasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';

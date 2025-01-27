@@ -16,7 +16,7 @@ import {
   PromptGenerationResult,
   PromptGenerationStrategyBid,
   OpenAPIDoc
-} from '../../openApiUtilities/schemas';
+} from '../schemas';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, RESPONSE_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
 import { prompts } from './prompts';

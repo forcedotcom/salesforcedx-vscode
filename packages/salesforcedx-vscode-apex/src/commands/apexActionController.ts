@@ -16,7 +16,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
-import { ApexClassOASGatherContextResponse, ApexOASInfo, ExternalServiceOperation } from '../openApiUtilities/schemas';
+import { ApexClassOASGatherContextResponse, ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {

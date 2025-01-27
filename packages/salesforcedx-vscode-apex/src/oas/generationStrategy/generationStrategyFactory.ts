@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../../openApiUtilities/schemas';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 import { MethodByMethodStrategy } from './methodByMethodStrategy';
 import { WholeClassStrategy } from './wholeClassStrategy';
 export enum GenerationStrategy {

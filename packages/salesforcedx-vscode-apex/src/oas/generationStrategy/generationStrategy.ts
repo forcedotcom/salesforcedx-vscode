@@ -10,7 +10,7 @@ import {
   ApexClassOASGatherContextResponse,
   PromptGenerationResult,
   PromptGenerationStrategyBid
-} from '../../openApiUtilities/schemas';
+} from '../schemas';
 
 export abstract class GenerationStrategy {
   abstract metadata: ApexClassOASEligibleResponse;
