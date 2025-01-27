@@ -40,7 +40,9 @@ export class ApexActionController {
     let context;
     let name;
     const telemetryService = await getTelemetryService();
+
     try {
+      let fullPath: [string, string, boolean] = ['', '', false];
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -62,12 +64,10 @@ export class ApexActionController {
           }
 
           // Step 3: Determine filename
-          name = isClass
-            ? path.basename(eligibilityResult.resourceUri, '.cls')
-            : eligibilityResult?.symbols?.[0]?.docSymbol?.name;
+          name = path.basename(eligibilityResult.resourceUri, '.cls');
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
           // Step 4: Check if the file already exists
-          const fullPath = await this.pathExists(openApiFileName);
+          fullPath = await this.pathExists(openApiFileName);
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
           // Step 5: Generate OpenAPI Document
           progress.report({ message: nls.localize('generate_openapi_document') });
@@ -75,13 +75,36 @@ export class ApexActionController {
 
           // Step 6: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          await this.saveOasAsErsMetadata(openApiDocument, fullPath);
+          await this.saveOasAsEsrMetadata(openApiDocument, fullPath[1]);
+
+          // Step 7: If the user chose to merge, open a diff between the original and new ESR files
+          if (fullPath[0] !== fullPath[1]) {
+            await vscode.commands.executeCommand(
+              'vscode.diff',
+              vscode.Uri.file(fullPath[0]),
+              vscode.Uri.file(fullPath[1]),
+              'Manual Diff of ESR Files'
+            );
+          }
         }
       );
 
       // Step 5: Notify Success
-      notificationService.showInformationMessage(nls.localize('apex_action_created', type.toLowerCase(), name));
-      telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+      if (fullPath[0] === fullPath[1]) {
+        // Case 1: User decided to overwrite the original ESR file
+        notificationService.showInformationMessage(nls.localize('apex_action_created', type.toLowerCase(), name));
+        telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+      } else {
+        // Case 2: User decided to manually merge the original and new ESR files
+        const message = nls.localize(
+          'apex_action_created_merge',
+          type.toLowerCase(),
+          path.basename(fullPath[1], '.externalServiceRegistration-meta.xml'),
+          name
+        );
+        await notificationService.showInformationMessage(message);
+        telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+      }
     } catch (error: any) {
       void this.handleError(error, `ApexAction${type}CreationFailed`);
     }
@@ -118,7 +141,7 @@ export class ApexActionController {
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
-  private saveOasAsErsMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
+  private saveOasAsEsrMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     // Replace the schema section in the ESR file if it already exists
     let existingContent;
@@ -140,7 +163,12 @@ export class ApexActionController {
     }
   };
 
-  private pathExists = async (filename: string): Promise<string> => {
+  /**
+   * Checks if the ESR file already exists and prompts the user on what to do.
+   * @param filename
+   * @returns Promise<[string, string, boolean]> - [className.externalServiceRegistration-meta.xml, the file name of the generated ESR, a boolean indicating if the file already exists]
+   */
+  private pathExists = async (filename: string): Promise<[string, string, boolean]> => {
     // Step 1: Prompt for Folder
     const folder = await this.getFolderForArtifact();
     if (!folder) {
@@ -152,25 +180,49 @@ export class ApexActionController {
       fs.mkdirSync(folder);
     }
 
-    // Step 2: Check if File Exists
+    // Step 3: Check if File Exists
     const fullPath = path.join(folder, filename);
+    let esrExists = false;
     if (fs.existsSync(fullPath)) {
-      const shouldOverwrite = await this.confirmOverwrite();
-      if (!shouldOverwrite) {
+      const whatToDo = await this.handleExistingESR();
+      if (whatToDo === 'cancel') {
         throw new Error(nls.localize('operation_cancelled'));
+      } else if (whatToDo === nls.localize('merge')) {
+        const currentTimestamp = this.getCurrentTimestamp();
+        const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
+        const newFileName = namePart + '_' + currentTimestamp + '.externalServiceRegistration-meta.xml';
+        const esr_files_for_merge_folder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
+        if (!fs.existsSync(esr_files_for_merge_folder)) {
+          fs.mkdirSync(esr_files_for_merge_folder);
+        }
+        const newFullPath = path.join(esr_files_for_merge_folder, newFileName);
+        esrExists = true;
+        return [fullPath, newFullPath, esrExists];
       }
     }
-    return fullPath;
+    return [fullPath, fullPath, esrExists];
   };
 
-  private confirmOverwrite = async (): Promise<boolean> => {
+  private getCurrentTimestamp = (): string => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const formattedDate = `${month}${day}${year}_${hours}:${minutes}:${seconds}`;
+    return formattedDate;
+  };
+
+  private handleExistingESR = async (): Promise<string> => {
     const response = await vscode.window.showWarningMessage(
       nls.localize('file_exists'),
       { modal: true },
       nls.localize('overwrite'),
-      nls.localize('cancel')
+      nls.localize('merge')
     );
-    return response === nls.localize('overwrite');
+    return response || 'cancel';
   };
 
   private getFolderForArtifact = async (): Promise<string | undefined> => {
@@ -199,6 +251,7 @@ export class ApexActionController {
 
     return folderUri ? path.resolve(folderUri) : undefined;
   };
+
   private showNamedCredentialsQuickPick = async (): Promise<string | undefined> => {
     let namedCredentials;
     let selectedNamedCredential: string | undefined;
@@ -236,6 +289,14 @@ export class ApexActionController {
     oasSpec: string
   ) => {
     const baseName = path.basename(fullPath).split('.')[0];
+    let className;
+    if (fullPath.includes('esr_files_for_merge')) {
+      // The class name is the part before the second to last underscore
+      const parts = baseName.split('_');
+      className = parts.slice(0, -2).join('_');
+    } else {
+      className = baseName;
+    }
     const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
     const { description, version } = this.extractInfoProperties(safeOasSpec);
     const operations = this.getOperationsFromYaml(safeOasSpec);
@@ -246,6 +307,11 @@ export class ApexActionController {
 
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
+
+    // Ensure namedCredential is provided and not blank
+    if (!namedCredential || namedCredential.trim() === '') {
+      throw new Error(nls.localize('invalid_named_credential'));
+    }
 
     // If existing XML content, parse and update
     if (existingContent) {
@@ -260,6 +326,7 @@ export class ApexActionController {
       } else {
         throw new Error(nls.localize('operations_element_not_found'));
       }
+      jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
       // Create a new XML structure
       jsonObj = {
@@ -267,15 +334,15 @@ export class ApexActionController {
         ExternalServiceRegistration: {
           '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
           description,
-          label: baseName,
+          label: className,
           schema: safeOasSpec,
           schemaType: 'OpenApi3',
           schemaUploadFileExtension: 'yaml',
-          schemaUploadFileName: `${baseName.toLowerCase()}_openapi`,
+          schemaUploadFileName: `${className.toLowerCase()}_openapi`,
           status: 'Complete',
           systemVersion: '3',
           operations,
-          registrationProvider: baseName,
+          registrationProvider: className,
           ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
             ? {
                 registrationProviderType: 'ApexRest',
