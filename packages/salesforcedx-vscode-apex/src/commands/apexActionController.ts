@@ -319,37 +319,70 @@ export class ApexActionController {
       }
       jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
-      // Create a new XML structure
-      jsonObj = {
-        '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
-        ExternalServiceRegistration: {
-          '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-          description,
-          label: className,
-          schema: safeOasSpec,
-          schemaType: 'OpenApi3',
-          schemaUploadFileExtension: 'yaml',
-          schemaUploadFileName: `${className.toLowerCase()}_openapi`,
-          status: 'Complete',
-          systemVersion: '3',
-          operations,
-          registrationProvider: className,
-          ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
-            ? {
-                registrationProviderType: 'ApexRest',
-                namedCredential: null,
-                namedCredentialReferenceId: null,
-                catalogedApiVersion: null,
-                isStartSchemaVersion: true,
-                isHeadSchemaVersion: true,
-                schemaArtifactVersion: version
-              }
-            : {
-                registrationProviderType: 'Custom',
-                namedCredentialReference: namedCredential
-              })
-        }
-      };
+      if (this.isESRDecomposed()) {
+        // Create a new XML structure without schema
+        jsonObj = {
+          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
+          ExternalServiceRegistration: {
+            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+            description,
+            label: className,
+            schemaType: 'OpenApi3',
+            schemaUploadFileExtension: 'yaml',
+            schemaUploadFileName: `${className.toLowerCase()}_openapi`,
+            status: 'Complete',
+            systemVersion: '3',
+            operations,
+            registrationProvider: className,
+            ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
+              ? {
+                  registrationProviderType: 'ApexRest',
+                  namedCredential: null,
+                  namedCredentialReferenceId: null,
+                  catalogedApiVersion: null,
+                  isStartSchemaVersion: true,
+                  isHeadSchemaVersion: true,
+                  schemaArtifactVersion: version
+                }
+              : {
+                  registrationProviderType: 'Custom',
+                  namedCredentialReference: namedCredential
+                })
+          }
+        };
+      } else {
+        // Create a new XML structure with schema
+        jsonObj = {
+          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
+          ExternalServiceRegistration: {
+            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+            description,
+            label: className,
+            schema: safeOasSpec,
+            schemaType: 'OpenApi3',
+            schemaUploadFileExtension: 'yaml',
+            schemaUploadFileName: `${className.toLowerCase()}_openapi`,
+            status: 'Complete',
+            systemVersion: '3',
+            operations,
+            registrationProvider: className,
+            ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
+              ? {
+                  registrationProviderType: 'ApexRest',
+                  namedCredential: null,
+                  namedCredentialReferenceId: null,
+                  catalogedApiVersion: null,
+                  isStartSchemaVersion: true,
+                  isHeadSchemaVersion: true,
+                  schemaArtifactVersion: version
+                }
+              : {
+                  registrationProviderType: 'Custom',
+                  namedCredentialReference: namedCredential
+                })
+          }
+        };
+      }
     }
 
     // Convert back to XML
@@ -389,5 +422,21 @@ export class ApexActionController {
       : [];
 
     return operations;
+  };
+
+  private isESRDecomposed = (): boolean => {
+    const projectConfigPath = path.join(workspaceUtils.getRootWorkspacePath(), 'sfdx-project.json');
+
+    try {
+      const data = fs.readFileSync(projectConfigPath, 'utf8');
+      const projectConfig = JSON.parse(data);
+      if (projectConfig.sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
+        return true;
+      }
+    } catch (err) {
+      console.error('Error reading or parsing sfdx-project.json:', err);
+    }
+
+    return false;
   };
 }
