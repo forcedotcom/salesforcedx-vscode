@@ -12,7 +12,7 @@ const metadataOrchestrator = new MetadataOrchestrator();
 const controller = new ApexActionController(metadataOrchestrator);
 
 /**
- * Creates an Apex Action from the method at the current cursor position.
+ * Creates an OpenAPI Document from the method at the current cursor position.
  */
 export const createApexActionFromMethod = async (sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
   // Call Controller
@@ -20,7 +20,7 @@ export const createApexActionFromMethod = async (sourceUri: vscode.Uri | vscode.
 };
 
 /**
- * Creates Apex Actions from all methods in the current class.
+ * Creates an OpenAPI Document from all methods in the current class.
  */
 export const createApexActionFromClass = async (sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
   // Call Controller
