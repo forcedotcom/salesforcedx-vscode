@@ -345,7 +345,7 @@ export class ApexActionController {
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
       if (await this.isESRDecomposed()) {
-        // Remove the <schema> element if it exists in the XML
+        // Create a new XML structure without schema
         jsonObj = {
           '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
           ExternalServiceRegistration: {
@@ -380,7 +380,37 @@ export class ApexActionController {
         if (jsonObj.ExternalServiceRegistration?.schema) {
           jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
         } else {
-          throw new Error(nls.localize('schema_element_not_found'));
+          // Create a new XML structure with schema
+          jsonObj = {
+            '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
+            ExternalServiceRegistration: {
+              '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+              description,
+              label: className,
+              schema: safeOasSpec,
+              schemaType: 'OpenApi3',
+              schemaUploadFileExtension: 'yaml',
+              schemaUploadFileName: `${className.toLowerCase()}_openapi`,
+              status: 'Complete',
+              systemVersion: '3',
+              operations,
+              registrationProvider: className,
+              ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
+                ? {
+                    registrationProviderType: 'ApexRest',
+                    namedCredential: null,
+                    namedCredentialReferenceId: null,
+                    catalogedApiVersion: null,
+                    isStartSchemaVersion: true,
+                    isHeadSchemaVersion: true,
+                    schemaArtifactVersion: version
+                  }
+                : {
+                    registrationProviderType: 'Custom',
+                    namedCredentialReference: namedCredential
+                  })
+            }
+          };
         }
       }
       if (jsonObj.ExternalServiceRegistration?.operations) {
