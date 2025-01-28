@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfProject } from '@salesforce/core-bundle';
 import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
@@ -91,7 +92,7 @@ export class ApexActionController {
             );
 
             // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
-            if (this.isESRDecomposed()) {
+            if (await this.isESRDecomposed()) {
               await vscode.commands.executeCommand(
                 'vscode.diff',
                 vscode.Uri.file(fullPath[0].replace('.externalServiceRegistration-meta.xml', '.yaml')),
@@ -159,7 +160,7 @@ export class ApexActionController {
       await vscode.workspace.openTextDocument(fullPath).then((newDocument: vscode.TextDocument) => {
         void vscode.window.showTextDocument(newDocument);
       });
-      if (this.isESRDecomposed()) {
+      if (await this.isESRDecomposed()) {
         await vscode.workspace
           .openTextDocument(fullPath.replace('.externalServiceRegistration-meta.xml', '.yaml'))
           .then((newDocument: vscode.TextDocument) => {
@@ -319,7 +320,7 @@ export class ApexActionController {
 
     // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
     let safeOasSpec = '';
-    if (this.isESRDecomposed()) {
+    if (await this.isESRDecomposed()) {
       safeOasSpec = oasSpec.replaceAll('"', "'").replaceAll('type: Id', 'type: string');
     } else {
       safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
@@ -343,7 +344,7 @@ export class ApexActionController {
     // If existing XML content, parse and update
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
-      if (this.isESRDecomposed()) {
+      if (await this.isESRDecomposed()) {
         // Remove the <schema> element if it exists in the XML
         jsonObj = {
           '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
@@ -389,7 +390,7 @@ export class ApexActionController {
       }
       jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
-      if (this.isESRDecomposed()) {
+      if (await this.isESRDecomposed()) {
         // Create a new XML structure without schema
         jsonObj = {
           '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
@@ -500,17 +501,12 @@ export class ApexActionController {
    * Reads sfdx-project.json and checks if decomposeExternalServiceRegistrationBeta is enabled.
    * @returns boolean - true if sfdx-project.json contains decomposeExternalServiceRegistrationBeta
    */
-  private isESRDecomposed = (): boolean => {
-    const projectConfigPath = path.join(workspaceUtils.getRootWorkspacePath(), 'sfdx-project.json');
-
-    try {
-      const data = fs.readFileSync(projectConfigPath, 'utf8');
-      const projectConfig = JSON.parse(data);
-      if (projectConfig.sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
-        return true;
-      }
-    } catch (err) {
-      console.error('Error reading or parsing sfdx-project.json:', err);
+  private isESRDecomposed = async (): Promise<boolean> => {
+    const projectPath = workspaceUtils.getRootWorkspacePath();
+    const sfProject = await SfProject.resolve(projectPath);
+    const sfdxProjectJson = sfProject.getSfProjectJson();
+    if (sfdxProjectJson.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
+      return true;
     }
 
     return false;
