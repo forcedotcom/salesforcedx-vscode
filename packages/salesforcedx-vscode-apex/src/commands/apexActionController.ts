@@ -24,14 +24,14 @@ export class ApexActionController {
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}
 
   /**
-   * Creates an Apex Action.
+   * Creates an OpenAPI Document.
    * @param isClass - Indicates if the action is for a class or a method.
    */
   public createApexAction = async (isClass: boolean, sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
     const type = isClass ? 'Class' : 'Method';
     const command = isClass
-      ? 'SFDX: Create Apex Action from This Class'
-      : 'SFDX: Create Apex Action from Selected Method';
+      ? 'SFDX: Create OpenAPI Document from This Class'
+      : 'SFDX: Create OpenAPI Document from Selected Method';
     let eligibilityResult;
     let context;
     let name;
@@ -79,7 +79,7 @@ export class ApexActionController {
           const processedOasDoc = await this.processOasDocument(openApiDocument, context);
 
           // Step 8: Write OpenAPI Document to File
-          progress.report({ message: nls.localize('write_openapi_document_to_file') });
+          progress.report({ message: nls.localize('write_openapi_document') });
           await this.saveOasAsEsrMetadata(processedOasDoc, fullPath[1]);
 
           // Step 7: If the user chose to merge, open a diff between the original and new ESR files
@@ -97,12 +97,12 @@ export class ApexActionController {
       // Step 5: Notify Success
       if (fullPath[0] === fullPath[1]) {
         // Case 1: User decided to overwrite the original ESR file
-        notificationService.showInformationMessage(nls.localize('apex_action_created', type.toLowerCase(), name));
+        notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
         telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
       } else {
         // Case 2: User decided to manually merge the original and new ESR files
         const message = nls.localize(
-          'apex_action_created_merge',
+          'openapi_doc_created_merge',
           type.toLowerCase(),
           path.basename(fullPath[1], '.externalServiceRegistration-meta.xml'),
           name
@@ -133,7 +133,7 @@ export class ApexActionController {
   private handleError = async (error: any, telemetryEvent: string): Promise<void> => {
     const telemetryService = await getTelemetryService();
     const errorMessage = error instanceof Error ? error.message : String(error);
-    notificationService.showErrorMessage(`${nls.localize('create_apex_action_failed')}: ${errorMessage}`);
+    notificationService.showErrorMessage(`${nls.localize('create_openapi_doc_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
@@ -240,7 +240,7 @@ export class ApexActionController {
         esrDefaultDirectoryName
       );
       folderUri = await vscode.window.showInputBox({
-        prompt: nls.localize('enter_esr_path'),
+        prompt: nls.localize('select_folder_for_oas'),
         value: defaultESRFolder
       });
     }

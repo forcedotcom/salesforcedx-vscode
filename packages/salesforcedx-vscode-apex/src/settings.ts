@@ -8,7 +8,7 @@
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
-// Eligibility for apex action ONLY, should not be changed by users unless overwriting in settings.json
+// Eligibility for OpenAPI Document ONLY, should not be changed by users unless overwriting in settings.json
 const APEX_ACTION_CLASS_DEF_MODIFIERS = ['withsharing'];
 const APEX_ACTION_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const APEX_ACTION_METHOD_DEF_MODIFIERS = ['static'];

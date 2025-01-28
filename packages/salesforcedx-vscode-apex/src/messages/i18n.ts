@@ -54,18 +54,18 @@ export const messages = {
     'Test class not provided. Run the code action on a class annotated with @isTest.',
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
-  create_apex_action_failed: 'Failed to create Apex Action',
+  create_openapi_doc_failed: 'Failed to create OpenAPI Document',
   validate_eligibility: 'Validating eligibility.',
   class_validation_failed: 'Failed to validate eligibility from %s',
   validation_failed: 'Failed to validate eligibility.',
   apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
-  apex_action_created: 'Apex Action created for %s: %s.',
-  apex_action_created_merge:
-    'A new Apex Action %s %s is created for %s. Manually merge the two files using the diff editor.',
+  openapi_doc_created: 'OpenAPI Document created for %s: %s.',
+  openapi_doc_created_merge:
+    'A new OpenAPI Document %s %s is created for %s. Manually merge the two files using the diff editor.',
   generate_openapi_document: 'Generating OpenAPI document.',
-  write_openapi_document_to_file: 'Writing OpenAPI document to file.',
+  write_openapi_document: 'Writing OpenAPI Document.',
   not_eligible_method:
-    'Method %s is not eligible for Apex Action creation. It is not annotated with @AuraEnabled or has wrong access modifiers.',
+    'Method %s is not eligible for OpenAPI Document creation. It is not annotated with @AuraEnabled or has wrong access modifiers.',
   apex_test_run_text: 'SFDX: Run Apex Tests',
   test_view_loading_message: 'Loading Apex tests ...',
   test_view_no_tests_message: 'No Apex Tests Found',
@@ -115,7 +115,7 @@ export const messages = {
   cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
   no_folder_selected: 'Operation canceled: No folder selected.',
   operation_cancelled: 'Operation canceled',
-  enter_esr_path: 'Enter the folder path to store the ESR metadata artifact',
+  select_folder_for_oas: 'Select folder to store OpenAPI Document',
   select_named_credential: 'Select a Named Credential',
   error_parsing_nc: 'Error parsing named credentials result',
   artifact_failed: 'Failed to save the artifact: %s',
