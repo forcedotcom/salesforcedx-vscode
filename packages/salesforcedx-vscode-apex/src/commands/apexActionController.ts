@@ -341,76 +341,50 @@ export class ApexActionController {
       throw new Error(nls.localize('invalid_named_credential'));
     }
 
+    const createESRObject = (isESRDecomposed: boolean) => ({
+      '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
+      ExternalServiceRegistration: {
+        '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+        description,
+        label: className,
+        ...(isESRDecomposed ? {} : { schema: safeOasSpec }),
+        schemaType: 'OpenApi3',
+        schemaUploadFileExtension: 'yaml',
+        schemaUploadFileName: `${className.toLowerCase()}_openapi`,
+        status: 'Complete',
+        systemVersion: '3',
+        operations,
+        registrationProvider: className,
+        ...(this.isVersionGte(orgVersion, '63.0')
+          ? {
+              registrationProviderType: 'ApexRest',
+              namedCredential: null,
+              namedCredentialReferenceId: null,
+              catalogedApiVersion: null,
+              isStartSchemaVersion: true,
+              isHeadSchemaVersion: true,
+              schemaArtifactVersion: version
+            }
+          : {
+              registrationProviderType: 'Custom',
+              namedCredentialReference: namedCredential
+            })
+      }
+    });
+
     // If existing XML content, parse and update
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
       if (await this.isESRDecomposed()) {
         // Create a new XML structure without schema
-        jsonObj = {
-          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
-          ExternalServiceRegistration: {
-            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-            description,
-            label: className,
-            schemaType: 'OpenApi3',
-            schemaUploadFileExtension: 'yaml',
-            schemaUploadFileName: `${className.toLowerCase()}_openapi`,
-            status: 'Complete',
-            systemVersion: '3',
-            operations,
-            registrationProvider: className,
-            ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
-              ? {
-                  registrationProviderType: 'ApexRest',
-                  namedCredential: null,
-                  namedCredentialReferenceId: null,
-                  catalogedApiVersion: null,
-                  isStartSchemaVersion: true,
-                  isHeadSchemaVersion: true,
-                  schemaArtifactVersion: version
-                }
-              : {
-                  registrationProviderType: 'Custom',
-                  namedCredentialReference: namedCredential
-                })
-          }
-        };
+        jsonObj = createESRObject(true);
         this.buildESRYaml(fullPath, safeOasSpec);
       } else {
         if (jsonObj.ExternalServiceRegistration?.schema) {
           jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
         } else {
           // Create a new XML structure with schema
-          jsonObj = {
-            '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
-            ExternalServiceRegistration: {
-              '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-              description,
-              label: className,
-              schema: safeOasSpec,
-              schemaType: 'OpenApi3',
-              schemaUploadFileExtension: 'yaml',
-              schemaUploadFileName: `${className.toLowerCase()}_openapi`,
-              status: 'Complete',
-              systemVersion: '3',
-              operations,
-              registrationProvider: className,
-              ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
-                ? {
-                    registrationProviderType: 'ApexRest',
-                    namedCredential: null,
-                    namedCredentialReferenceId: null,
-                    catalogedApiVersion: null,
-                    isStartSchemaVersion: true,
-                    isHeadSchemaVersion: true,
-                    schemaArtifactVersion: version
-                  }
-                : {
-                    registrationProviderType: 'Custom',
-                    namedCredentialReference: namedCredential
-                  })
-            }
-          };
+          jsonObj = createESRObject(false);
         }
       }
       if (jsonObj.ExternalServiceRegistration?.operations) {
@@ -422,68 +396,11 @@ export class ApexActionController {
     } else {
       if (await this.isESRDecomposed()) {
         // Create a new XML structure without schema
-        jsonObj = {
-          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
-          ExternalServiceRegistration: {
-            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-            description,
-            label: className,
-            schemaType: 'OpenApi3',
-            schemaUploadFileExtension: 'yaml',
-            schemaUploadFileName: `${className.toLowerCase()}_openapi`,
-            status: 'Complete',
-            systemVersion: '3',
-            operations,
-            registrationProvider: className,
-            ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
-              ? {
-                  registrationProviderType: 'ApexRest',
-                  namedCredential: null,
-                  namedCredentialReferenceId: null,
-                  catalogedApiVersion: null,
-                  isStartSchemaVersion: true,
-                  isHeadSchemaVersion: true,
-                  schemaArtifactVersion: version
-                }
-              : {
-                  registrationProviderType: 'Custom',
-                  namedCredentialReference: namedCredential
-                })
-          }
-        };
+        jsonObj = createESRObject(true);
         this.buildESRYaml(fullPath, safeOasSpec);
       } else {
         // Create a new XML structure with schema
-        jsonObj = {
-          '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
-          ExternalServiceRegistration: {
-            '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-            description,
-            label: className,
-            schema: safeOasSpec,
-            schemaType: 'OpenApi3',
-            schemaUploadFileExtension: 'yaml',
-            schemaUploadFileName: `${className.toLowerCase()}_openapi`,
-            status: 'Complete',
-            systemVersion: '3',
-            operations,
-            registrationProvider: className,
-            ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
-              ? {
-                  registrationProviderType: 'ApexRest',
-                  namedCredential: null,
-                  namedCredentialReferenceId: null,
-                  catalogedApiVersion: null,
-                  isStartSchemaVersion: true,
-                  isHeadSchemaVersion: true,
-                  schemaArtifactVersion: version
-                }
-              : {
-                  registrationProviderType: 'Custom',
-                  namedCredentialReference: namedCredential
-                })
-          }
-        };
+        jsonObj = createESRObject(false);
       }
     }
 
