@@ -90,7 +90,7 @@ export class ApexActionController {
 
           // Step 7: If the user chose to merge, open a diff between the original and new ESR files
           if (fullPath[0] !== fullPath[1]) {
-            this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
+            void this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
 
             // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
             if (this.isESRDecomposed) {
