@@ -95,8 +95,8 @@ export class ApexActionController {
             if (await this.isESRDecomposed()) {
               await vscode.commands.executeCommand(
                 'vscode.diff',
-                vscode.Uri.file(fullPath[0].replace('.externalServiceRegistration-meta.xml', '.yaml')),
-                vscode.Uri.file(fullPath[1].replace('.externalServiceRegistration-meta.xml', '.yaml')),
+                vscode.Uri.file(this.replaceXmlToYaml(fullPath[0])),
+                vscode.Uri.file(this.replaceXmlToYaml(fullPath[1])),
                 'Manual Diff of ESR YAML Files'
               );
             }
@@ -162,7 +162,7 @@ export class ApexActionController {
       });
       if (await this.isESRDecomposed()) {
         await vscode.workspace
-          .openTextDocument(fullPath.replace('.externalServiceRegistration-meta.xml', '.yaml'))
+          .openTextDocument(this.replaceXmlToYaml(fullPath))
           .then((newDocument: vscode.TextDocument) => {
             void vscode.window.showTextDocument(newDocument);
           });
@@ -469,12 +469,21 @@ export class ApexActionController {
    * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
    */
   private buildESRYaml = (esrXmlPath: string, safeOasSpec: string) => {
-    const esrYamlPath = esrXmlPath.replace('.externalServiceRegistration-meta.xml', '.yaml');
+    const esrYamlPath = this.replaceXmlToYaml(esrXmlPath);
     try {
       fs.writeFileSync(esrYamlPath, safeOasSpec, 'utf8');
       console.log(`File created at ${esrYamlPath}`);
     } catch (err) {
       throw new Error('Error writing file:', err);
     }
+  };
+
+  /**
+   * Gets the filepath for the YAML file of the ESR.
+   * @param filePath - The path to the ESR XML file.
+   * @returns A string with the YAML filepath.
+   */
+  private replaceXmlToYaml = (filePath: string): string => {
+    return filePath.replace('.externalServiceRegistration-meta.xml', '.yaml');
   };
 }
