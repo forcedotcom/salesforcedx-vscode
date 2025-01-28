@@ -56,46 +56,46 @@ const ruleset = {
         }
       ]
     },
-    'paths-description': {
-      description: 'paths.description is required',
-      given: '$.paths',
-      message: 'paths.description is required',
+    'paths-method-description': {
+      description: 'paths.<method>.description is required',
+      given: '$.paths.*',
+      message: 'paths.<method>.description is required',
       then: {
         field: 'description',
         function: truthy
       }
     },
-    'paths-servers': {
-      description: 'paths.servers should not be present',
+    'paths-method-servers': {
+      description: 'paths.<method>.servers should not be present',
       given: '$.paths.*.',
-      message: 'paths.servers should not be present',
+      message: 'paths.<method>.servers should not be present',
       then: {
         field: 'servers',
         function: undefined
       }
     },
-    'paths-options': {
-      description: 'paths.options should not be present',
+    'paths-method-options': {
+      description: 'paths.<method>.options should not be present',
       given: '$.paths.*.',
-      message: 'paths.options should not be present',
+      message: 'paths.<method>.options should not be present',
       then: {
         field: 'options',
         function: undefined
       }
     },
-    'paths-head': {
-      description: 'paths.head should not be present',
+    'paths-method-head': {
+      description: 'paths.<method>.head should not be present',
       given: '$.paths.*.',
-      message: 'paths.head should not be present',
+      message: 'paths.<method>.head should not be present',
       then: {
         field: 'head',
         function: undefined
       }
     },
-    'paths-trace': {
-      description: 'paths.trace should not be present',
+    'paths-method-trace': {
+      description: 'paths.<method>.trace should not be present',
       given: '$.paths.*.',
-      message: 'paths.trace should not be present',
+      message: 'paths.<method>.trace should not be present',
       then: {
         field: 'trace',
         function: undefined

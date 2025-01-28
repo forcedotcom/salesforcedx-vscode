@@ -74,7 +74,7 @@ components:
     expect(JSON.stringify(result)).toMatch(/security-schemes/);
   });
 
-  it('path.description is required', async () => {
+  it('paths.<method>.description is required', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
   title: demoClass API
@@ -98,10 +98,10 @@ components:
 
     const result = await runRulesetAgainstYaml(inputYaml);
 
-    expect(JSON.stringify(result)).toMatch(/paths-description/);
+    expect(JSON.stringify(result)).toMatch(/paths-method-description/);
   });
 
-  it('path.servers should not be present', async () => {
+  it('paths.<method>.servers should not be present', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
   title: demoClass API
@@ -127,10 +127,10 @@ components:
 
     const result = await runRulesetAgainstYaml(inputYaml);
 
-    expect(JSON.stringify(result)).toMatch(/paths-servers/);
+    expect(JSON.stringify(result)).toMatch(/paths-method-servers/);
   });
 
-  it('path.options should not be present', async () => {
+  it('paths.<method>.options should not be present', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
   title: demoClass API
@@ -154,10 +154,10 @@ components:
 
     const result = await runRulesetAgainstYaml(inputYaml);
 
-    expect(JSON.stringify(result)).toMatch(/paths-options/);
+    expect(JSON.stringify(result)).toMatch(/paths-method-options/);
   });
 
-  it('path.head should not be present', async () => {
+  it('paths.<method>.head should not be present', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
   title: demoClass API
@@ -181,10 +181,10 @@ components:
 
     const result = await runRulesetAgainstYaml(inputYaml);
 
-    expect(JSON.stringify(result)).toMatch(/paths-head/);
+    expect(JSON.stringify(result)).toMatch(/paths-method-head/);
   });
 
-  it('path.trace should not be present', async () => {
+  it('paths.<method>.trace should not be present', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
   title: demoClass API
@@ -208,7 +208,7 @@ components:
 
     const result = await runRulesetAgainstYaml(inputYaml);
 
-    expect(JSON.stringify(result)).toMatch(/paths-trace/);
+    expect(JSON.stringify(result)).toMatch(/paths-method-trace/);
   });
 });
 
