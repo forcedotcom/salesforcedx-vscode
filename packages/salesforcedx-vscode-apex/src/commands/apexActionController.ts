@@ -504,11 +504,6 @@ export class ApexActionController {
     const projectConfigPath = path.join(workspaceUtils.getRootWorkspacePath(), 'sfdx-project.json');
 
     try {
-      if (!fs.existsSync(projectConfigPath)) {
-        console.error('sfdx-project.json does not exist at path:', projectConfigPath);
-        return false;
-      }
-
       const data = fs.readFileSync(projectConfigPath, 'utf8');
       const projectConfig = JSON.parse(data);
       if (projectConfig.sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
