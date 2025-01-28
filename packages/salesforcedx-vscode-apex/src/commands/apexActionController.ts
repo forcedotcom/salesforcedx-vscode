@@ -325,10 +325,14 @@ export class ApexActionController {
     // If existing XML content, parse and update
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
-      if (jsonObj.ExternalServiceRegistration?.schema) {
-        jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
+      if (this.isESRDecomposed()) {
+        this.buildESRYaml(fullPath, safeOasSpec);
       } else {
-        throw new Error(nls.localize('schema_element_not_found'));
+        if (jsonObj.ExternalServiceRegistration?.schema) {
+          jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
+        } else {
+          throw new Error(nls.localize('schema_element_not_found'));
+        }
       }
       if (jsonObj.ExternalServiceRegistration?.operations) {
         jsonObj.ExternalServiceRegistration.operations = operations;
