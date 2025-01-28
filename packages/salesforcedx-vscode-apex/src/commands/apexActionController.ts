@@ -378,20 +378,24 @@ export class ApexActionController {
       if (await this.isESRDecomposed()) {
         // Create a new XML structure without schema
         jsonObj = createESRObject(true);
+        // Replace the contents of the YAML file with the new OAS spec
         this.buildESRYaml(fullPath, safeOasSpec);
       } else {
         if (jsonObj.ExternalServiceRegistration?.schema) {
+          // Replace the schema content with the new OAS spec
           jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
         } else {
           // Create a new XML structure with schema
           jsonObj = createESRObject(false);
         }
       }
+      // Replace the operations with the new methods
       if (jsonObj.ExternalServiceRegistration?.operations) {
         jsonObj.ExternalServiceRegistration.operations = operations;
       } else {
         throw new Error(nls.localize('operations_element_not_found'));
       }
+      // Replace the named credential with the one from the input
       jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
       if (await this.isESRDecomposed()) {
