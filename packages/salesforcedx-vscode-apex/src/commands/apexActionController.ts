@@ -84,19 +84,13 @@ export class ApexActionController {
 
           // Step 7: If the user chose to merge, open a diff between the original and new ESR files
           if (fullPath[0] !== fullPath[1]) {
-            await vscode.commands.executeCommand(
-              'vscode.diff',
-              vscode.Uri.file(fullPath[0]),
-              vscode.Uri.file(fullPath[1]),
-              'Manual Diff of ESR XML Files'
-            );
+            this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
 
             // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
             if (await this.isESRDecomposed()) {
-              await vscode.commands.executeCommand(
-                'vscode.diff',
-                vscode.Uri.file(this.replaceXmlToYaml(fullPath[0])),
-                vscode.Uri.file(this.replaceXmlToYaml(fullPath[1])),
+              this.openDiffFile(
+                this.replaceXmlToYaml(fullPath[0]),
+                this.replaceXmlToYaml(fullPath[1]),
                 'Manual Diff of ESR YAML Files'
               );
             }
@@ -485,5 +479,20 @@ export class ApexActionController {
    */
   private replaceXmlToYaml = (filePath: string): string => {
     return filePath.replace('.externalServiceRegistration-meta.xml', '.yaml');
+  };
+
+  /**
+   * Opens a diff editor for the two files.
+   * @param filepath1 The file on the left side of the diff editor.
+   * @param filepath2 The file on the right side of the diff editor.
+   * @param diffWindowName The title of the diff editor.
+   */
+  private openDiffFile = async (filepath1: string, filepath2: string, diffWindowName: string): Promise<void> => {
+    await vscode.commands.executeCommand(
+      'vscode.diff',
+      vscode.Uri.file(filepath1),
+      vscode.Uri.file(filepath2),
+      diffWindowName
+    );
   };
 }
