@@ -223,6 +223,10 @@ export class ApexActionController {
     return formattedDate;
   };
 
+  /**
+   * Handles the scenario where an ESR file already exists.
+   * @returns A string indicating the user's choice: 'overwrite', 'merge', or 'cancel'.
+   */
   private handleExistingESR = async (): Promise<string> => {
     const response = await vscode.window.showWarningMessage(
       nls.localize('file_exists'),
@@ -290,6 +294,13 @@ export class ApexActionController {
     return finalNamedCredential;
   };
 
+  /**
+   * Builds the ESR XML content.
+   * @param existingContent - The existing XML content, if any.
+   * @param fullPath - The full path to the ESR file.
+   * @param namedCredential - The named credential to be used.
+   * @param oasSpec - The OpenAPI specification.
+   */
   private buildESRXml = async (
     existingContent: string | undefined,
     fullPath: string,
@@ -493,6 +504,11 @@ export class ApexActionController {
     const projectConfigPath = path.join(workspaceUtils.getRootWorkspacePath(), 'sfdx-project.json');
 
     try {
+      if (!fs.existsSync(projectConfigPath)) {
+        console.error('sfdx-project.json does not exist at path:', projectConfigPath);
+        return false;
+      }
+
       const data = fs.readFileSync(projectConfigPath, 'utf8');
       const projectConfig = JSON.parse(data);
       if (projectConfig.sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
