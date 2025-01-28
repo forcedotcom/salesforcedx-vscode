@@ -37,7 +37,11 @@ export class OasProcessor {
       console.log('Executing pipeline with input:');
       console.log('context: ', JSON.stringify(this.context));
       console.log('document: ', this.document);
-      const output = await pipeline.execute({ yaml: this.document, eligibilityResult: this.eligibilityResult });
+      const output = await pipeline.execute({
+        yaml: this.document,
+        eligibilityResult: this.eligibilityResult,
+        context: this.context
+      });
       console.log('Pipeline output:', output);
       return output;
     }

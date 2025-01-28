@@ -5,13 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as vscode from 'vscode';
 import * as yaml from 'yaml';
+import { nls } from '../../messages';
 import { ApexClassOASEligibleResponse, OpenAPIDoc } from '../schemas';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 export class MethodValidationStep implements ProcessorStep {
+  private diagnosticCollection: vscode.DiagnosticCollection;
+  private className: string = '';
+  private virtualUri: vscode.Uri | null = null; // the url of the virtual YAML file
+  private diagnostics: vscode.Diagnostic[] = [];
+  constructor() {
+    this.diagnosticCollection = vscode.languages.createDiagnosticCollection('OAS Method Validations');
+  }
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+    this.className = input.context.classDetail.name;
+    this.virtualUri = vscode.Uri.parse(`untitled:${this.className}_OAS_temp.yaml`);
+    this.diagnosticCollection.clear();
     const cleanedupYaml = this.validateMethods(input.yaml, input.eligibilityResult);
-
+    this.diagnosticCollection.set(this.virtualUri, this.diagnostics);
     return new Promise(resolve => {
       resolve({ ...input, yaml: cleanedupYaml });
     });
@@ -20,7 +32,7 @@ export class MethodValidationStep implements ProcessorStep {
   private validateMethods(doc: string, eligibilityResult: ApexClassOASEligibleResponse): string {
     const symbols = eligibilityResult.symbols;
     if (!symbols || symbols.length === 0) {
-      throw new Error('No eligible methods found in the class');
+      throw new Error(nls.localize('no_eligible_method'));
     }
     const methodNames = new Set(
       symbols.filter(symbol => symbol.isApexOasEligible).map(symbol => symbol.docSymbol.name)
@@ -30,25 +42,38 @@ export class MethodValidationStep implements ProcessorStep {
     try {
       parsed = yaml.parse(doc) as OpenAPIDoc;
     } catch (e) {
-      throw new Error('Failed to parse the document as JSON');
+      this.diagnostics.push(
+        new vscode.Diagnostic(
+          new vscode.Range(0, 0, 0, 0),
+          nls.localize('failed_to_parse_yaml', e),
+          vscode.DiagnosticSeverity.Error
+        )
+      );
     }
 
-    for (const [path, methods] of Object.entries(parsed.paths)) {
+    for (const [path, methods] of Object.entries(parsed?.paths || {})) {
       const methodName = path.split('/').pop();
       // make sure all eligible methods are present in the document
       if (!methodName || !methodNames.has(methodName)) {
-        throw new Error(`Method ${methodName} is not eligible for OAS generation, but present in the document`);
-      }
-      methodNames.delete(methodName);
-      // only one operation is allowed per path
-      if (Object.keys(methods).length !== 1) {
-        throw new Error(`Method ${methodName} does not have exactly one operation`);
+        this.diagnostics.push(
+          new vscode.Diagnostic(
+            new vscode.Range(0, 0, 0, 0),
+            nls.localize('ineligible_method_in_doc', methodName),
+            vscode.DiagnosticSeverity.Error
+          )
+        );
+      } else {
+        methodNames.delete(methodName);
       }
     }
 
     if (methodNames.size > 0) {
-      throw new Error(
-        `Methods ${Array.from(methodNames).join(', ')} are eligible for OAS generation, but missing in the document`
+      this.diagnostics.push(
+        new vscode.Diagnostic(
+          new vscode.Range(0, 0, 0, 0),
+          nls.localize('eligible_method_not_in_doc', Array.from(methodNames).join(', ')),
+          vscode.DiagnosticSeverity.Error
+        )
       );
     }
     return doc;
