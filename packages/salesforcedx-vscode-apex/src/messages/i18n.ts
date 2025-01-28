@@ -65,7 +65,7 @@ export const messages = {
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document: 'Writing OpenAPI Document.',
   not_eligible_method:
-    'Method %s is not eligible for Apex Action creation. It is not annotated with an http annotator or has wrong access modifiers.',
+    'Method %s is not eligible for OpenAPI Document creation. It is not annotated with an http annotator or has wrong access modifiers.',
   apex_test_run_text: 'SFDX: Run Apex Tests',
   test_view_loading_message: 'Loading Apex tests ...',
   test_view_no_tests_message: 'No Apex Tests Found',
