@@ -21,7 +21,14 @@ import { ApexClassOASGatherContextResponse, ApexOASInfo, ExternalServiceOperatio
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
-  constructor(private metadataOrchestrator: MetadataOrchestrator) {}
+  private isESRDecomposed: boolean = false;
+  constructor(private metadataOrchestrator: MetadataOrchestrator) {
+    this.initialize();
+  }
+
+  private async initialize() {
+    this.isESRDecomposed = await this.checkIfESRIsDecomposed();
+  }
 
   /**
    * Creates an Apex Action.
@@ -36,8 +43,6 @@ export class ApexActionController {
     let context;
     let name;
     const telemetryService = await getTelemetryService();
-    const isESRDecomposed = await this.isESRDecomposed();
-
     try {
       let fullPath: [string, string, boolean] = ['', '', false];
       await vscode.window.withProgress(
@@ -81,14 +86,14 @@ export class ApexActionController {
 
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document_to_file') });
-          await this.saveOasAsEsrMetadata(processedOasDoc, fullPath[1], isESRDecomposed);
+          await this.saveOasAsEsrMetadata(processedOasDoc, fullPath[1]);
 
           // Step 7: If the user chose to merge, open a diff between the original and new ESR files
           if (fullPath[0] !== fullPath[1]) {
             this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
 
             // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
-            if (isESRDecomposed) {
+            if (this.isESRDecomposed) {
               this.openDiffFile(
                 this.replaceXmlToYaml(fullPath[0]),
                 this.replaceXmlToYaml(fullPath[1]),
@@ -138,7 +143,7 @@ export class ApexActionController {
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
-  private saveOasAsEsrMetadata = async (oasSpec: string, fullPath: string, isESRDecomposed: boolean): Promise<void> => {
+  private saveOasAsEsrMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     // Replace the schema section in the ESR file if it already exists
     let existingContent;
@@ -148,14 +153,14 @@ export class ApexActionController {
     }
     if (!this.isVersionGte(orgVersion, '63.0')) namedCredential = await this.showNamedCredentialsQuickPick();
 
-    const updatedContent = await this.buildESRXml(existingContent, fullPath, namedCredential, oasSpec, isESRDecomposed);
+    const updatedContent = await this.buildESRXml(existingContent, fullPath, namedCredential, oasSpec);
     try {
       // Step 3: Write File
       fs.writeFileSync(fullPath, updatedContent);
       await vscode.workspace.openTextDocument(fullPath).then((newDocument: vscode.TextDocument) => {
         void vscode.window.showTextDocument(newDocument);
       });
-      if (isESRDecomposed) {
+      if (this.isESRDecomposed) {
         await vscode.workspace
           .openTextDocument(this.replaceXmlToYaml(fullPath))
           .then((newDocument: vscode.TextDocument) => {
@@ -301,8 +306,7 @@ export class ApexActionController {
     existingContent: string | undefined,
     fullPath: string,
     namedCredential: string | undefined,
-    oasSpec: string,
-    isESRDecomposed: boolean
+    oasSpec: string
   ) => {
     const baseName = path.basename(fullPath).split('.')[0];
     let className;
@@ -316,7 +320,7 @@ export class ApexActionController {
 
     // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
     let safeOasSpec = '';
-    if (isESRDecomposed) {
+    if (this.isESRDecomposed) {
       safeOasSpec = oasSpec.replaceAll('"', "'").replaceAll('type: Id', 'type: string');
     } else {
       safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
@@ -343,7 +347,7 @@ export class ApexActionController {
         '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
         description,
         label: className,
-        ...(isESRDecomposed ? {} : { schema: safeOasSpec }),
+        ...(this.isESRDecomposed ? {} : { schema: safeOasSpec }),
         schemaType: 'OpenApi3',
         schemaUploadFileExtension: 'yaml',
         schemaUploadFileName: `${className.toLowerCase()}_openapi`,
@@ -371,7 +375,7 @@ export class ApexActionController {
     // If existing XML content, parse and update
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
-      if (isESRDecomposed) {
+      if (this.isESRDecomposed) {
         // Create a new XML structure without schema
         jsonObj = createESRObject();
         // Replace the contents of the YAML file with the new OAS spec
@@ -394,7 +398,7 @@ export class ApexActionController {
       // Replace the named credential with the one from the input
       jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
-      if (isESRDecomposed) {
+      if (this.isESRDecomposed) {
         // Create a new XML structure without schema
         jsonObj = createESRObject();
         this.buildESRYaml(fullPath, safeOasSpec);
@@ -448,7 +452,7 @@ export class ApexActionController {
    * Reads sfdx-project.json and checks if decomposeExternalServiceRegistrationBeta is enabled.
    * @returns boolean - true if sfdx-project.json contains decomposeExternalServiceRegistrationBeta
    */
-  private isESRDecomposed = async (): Promise<boolean> => {
+  private checkIfESRIsDecomposed = async (): Promise<boolean> => {
     const projectPath = workspaceUtils.getRootWorkspacePath();
     const sfProject = await SfProject.resolve(projectPath);
     const sfdxProjectJson = sfProject.getSfProjectJson();
