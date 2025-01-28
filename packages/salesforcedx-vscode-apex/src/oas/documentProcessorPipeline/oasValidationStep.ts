@@ -7,6 +7,7 @@
 
 import { Spectral } from '@stoplight/spectral-core';
 import * as vscode from 'vscode';
+import { stringify } from 'yaml';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 import ruleset from './ruleset.spectral';
 
@@ -29,7 +30,7 @@ export class OasValidationStep implements ProcessorStep {
     this.diagnosticCollection.clear();
 
     // Run validation using Spectral
-    await spectral.run(input.yaml).then(results => {
+    await spectral.run(stringify(input.yaml)).then(results => {
       const diagnostics: vscode.Diagnostic[] = results.map(result => {
         const range = new vscode.Range(
           result.range.start.line,
