@@ -159,6 +159,13 @@ export class ApexActionController {
       await vscode.workspace.openTextDocument(fullPath).then((newDocument: vscode.TextDocument) => {
         void vscode.window.showTextDocument(newDocument);
       });
+      if (this.isESRDecomposed()) {
+        await vscode.workspace
+          .openTextDocument(fullPath.replace('.externalServiceRegistration-meta.xml', '.yaml'))
+          .then((newDocument: vscode.TextDocument) => {
+            void vscode.window.showTextDocument(newDocument);
+          });
+      }
     } catch (error) {
       throw new Error(nls.localize('artifact_failed', error.message));
     }
