@@ -94,7 +94,7 @@ export class ApexActionController {
 
             // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
             if (this.isESRDecomposed) {
-              this.openDiffFile(
+              void this.openDiffFile(
                 this.replaceXmlToYaml(fullPath[0]),
                 this.replaceXmlToYaml(fullPath[1]),
                 'Manual Diff of ESR YAML Files'
