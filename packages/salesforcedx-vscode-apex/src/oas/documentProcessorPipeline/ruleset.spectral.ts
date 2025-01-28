@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { enumeration, pattern, truthy, undefined } from '@stoplight/spectral-functions';
+import { enumeration, pattern, schema, truthy, undefined } from '@stoplight/spectral-functions';
 import { oas } from '@stoplight/spectral-rulesets';
 
 const ruleset = {
@@ -23,15 +23,28 @@ const ruleset = {
         }
       }
     },
-    'servers-required': {
+    'oas3-api-servers': {
       description: 'servers should always be a single ‘/services/apexrest’ URL',
       given: '$',
       message: 'servers should always be a single ‘/services/apexrest’ URL',
       then: {
         field: 'servers',
-        function: pattern,
+        function: schema,
         functionOptions: {
-          match: '/^/services/aeeprstx$/'
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              patternProperties: {
+                url: {
+                  type: 'string',
+                  pattern: '/services/apexrest'
+                }
+              }
+            },
+            minItems: 1,
+            maxItems: 1
+          }
         }
       }
     },
@@ -99,6 +112,15 @@ const ruleset = {
       then: {
         field: 'trace',
         function: undefined
+      }
+    },
+    'info-description': {
+      description: 'info.description is required',
+      given: '$.info',
+      message: 'info.description is required',
+      then: {
+        field: 'description',
+        function: truthy
       }
     }
   }

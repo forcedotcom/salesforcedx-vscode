@@ -210,6 +210,74 @@ components:
 
     expect(JSON.stringify(result)).toMatch(/paths-method-trace/);
   });
+
+  it('info.description is required', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    trace:
+      summary: delete method
+      operationId: doDelete
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/info-description/);
+  });
+
+  it('should not log errors when all rules are met', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+  description: 'great description'
+servers:
+  - url: /services/apexrest
+    description: 'description at its best'
+paths:
+  /demoClass/doDelete:
+    description: 'great path description'
+    delete:
+      summary: delete method
+      operationId: doDelete
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).not.toMatch(/openapi-version/);
+    expect(JSON.stringify(result)).not.toMatch(/oas3-api-servers/);
+    expect(JSON.stringify(result)).not.toMatch(/security-schemes/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-method-description/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-method-servers/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-method-options/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-method-head/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-method-trace/);
+    expect(JSON.stringify(result)).not.toMatch(/info-description/);
+  });
 });
 
 const runRulesetAgainstYaml = async (inputYaml: string) => {
