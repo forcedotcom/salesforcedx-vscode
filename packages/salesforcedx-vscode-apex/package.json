@@ -367,11 +367,11 @@
       },
       {
         "command": "sf.create.apex.action.method",
-        "title": "%create_apex_action_method%"
+        "title": "%create_openapi_doc_method%"
       },
       {
         "command": "sf.create.apex.action.class",
-        "title": "%create_apex_action_class%"
+        "title": "%create_openapi_doc_class%"
       }
     ],
     "configuration": {
