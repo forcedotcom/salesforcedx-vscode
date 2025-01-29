@@ -22,11 +22,10 @@ import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
-  constructor(private metadataOrchestrator: MetadataOrchestrator) {
-    this.initialize();
-  }
+  constructor(private metadataOrchestrator: MetadataOrchestrator) {}
 
-  private async initialize() {
+  public async initialize(extensionContext: vscode.ExtensionContext) {
+    await WorkspaceContextUtil.getInstance().initialize(extensionContext);
     this.isESRDecomposed = await this.checkIfESRIsDecomposed();
   }
 
@@ -43,6 +42,7 @@ export class ApexActionController {
     let context;
     let name;
     const telemetryService = await getTelemetryService();
+
     try {
       let fullPath: [string, string, boolean] = ['', '', false];
       await vscode.window.withProgress(

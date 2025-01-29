@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
-
 import {
   anonApexDebug,
   anonApexExecute,
@@ -28,8 +27,10 @@ import {
   apexTestSuiteRun,
   createApexActionFromMethod,
   createApexActionFromClass,
-  launchApexReplayDebuggerWithCurrentFile
+  launchApexReplayDebuggerWithCurrentFile,
+  ApexActionController
 } from './commands';
+import { MetadataOrchestrator } from './commands/metadataOrchestrator';
 import { API, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
@@ -48,6 +49,10 @@ import { retrieveEnableSyncInitJobs } from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
+
+// Apex Action Controller
+const metadataOrchestrator = new MetadataOrchestrator();
+export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const telemetryService = await getTelemetryService();
@@ -83,6 +88,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Javadoc support
   enableJavaDocSymbols();
+
+  // Initialize the apexActionController
+  await apexActionController.initialize(extensionContext);
 
   // Commands
   const commands = registerCommands();
