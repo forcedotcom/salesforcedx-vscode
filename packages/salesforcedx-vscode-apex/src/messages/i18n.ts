@@ -130,5 +130,6 @@ export const messages = {
   error_parsing_yaml: 'Error parsing YAML',
   no_oas_generated: 'LLM did not return any content.',
   strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.',
-  invalid_class_annotation_for_generating_oas_doc: 'Invalid class annotation for generating OAS doc'
+  invalid_class_annotation_for_generating_oas_doc: 'Invalid class annotation for generating OAS doc',
+  cleanup_yaml_failed: 'Could not find openapi line in document:\n'
 };

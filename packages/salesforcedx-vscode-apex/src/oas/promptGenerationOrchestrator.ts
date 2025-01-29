@@ -59,7 +59,8 @@ export class PromptGenerationOrchestrator {
     if (!strategy) {
       throw new Error(nls.localize('strategy_not_qualified'));
     }
-    return await strategy.generateOAS();
+    const oas = await strategy.generateOAS();
+    return this.cleanupYaml(oas);
   }
 
   // Apply a specific rule to select the name of the best strategy from the list of bids.
@@ -100,5 +101,18 @@ export class PromptGenerationOrchestrator {
       }
     }
     return bestStrategy ?? GenerationStrategy.METHOD_BY_METHOD;
+  }
+
+  private cleanupYaml(doc: string): string {
+    // Remove the first line of the document
+    const openApiIndex = doc.indexOf('openapi');
+    if (openApiIndex === -1) {
+      throw new Error(nls.localize('cleanup_yaml_failed') + doc);
+    }
+    return doc
+      .substring(openApiIndex)
+      .split('\n')
+      .filter(line => !/^```$/.test(line))
+      .join('\n');
   }
 }

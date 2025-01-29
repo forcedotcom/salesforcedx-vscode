@@ -10,9 +10,10 @@ import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@sale
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
+import { OpenAPIV3 } from 'openapi-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
@@ -125,8 +126,12 @@ export class ApexActionController {
     }
   };
 
-  private processOasDocument = async (oasDoc: string, context: ApexClassOASGatherContextResponse): Promise<string> => {
-    const oasProcessor = new OasProcessor(context, oasDoc);
+  private processOasDocument = async (
+    oasDoc: string,
+    context: ApexClassOASGatherContextResponse
+  ): Promise<OpenAPIV3.Document> => {
+    const parsed = parse(oasDoc);
+    const oasProcessor = new OasProcessor(context, parsed);
     const processResult = await oasProcessor.process();
     return processResult.yaml;
   };
@@ -143,7 +148,7 @@ export class ApexActionController {
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
-  private saveOasAsEsrMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
+  private saveOasAsEsrMetadata = async (oasSpec: OpenAPIV3.Document, fullPath: string): Promise<void> => {
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     // Replace the schema section in the ESR file if it already exists
     let existingContent;
@@ -306,7 +311,7 @@ export class ApexActionController {
     existingContent: string | undefined,
     fullPath: string,
     namedCredential: string | undefined,
-    oasSpec: string
+    oasSpec: OpenAPIV3.Document
   ) => {
     const baseName = path.basename(fullPath).split('.')[0];
     let className;
@@ -318,16 +323,17 @@ export class ApexActionController {
       className = baseName;
     }
 
+    const { description, version } = this.extractInfoProperties(oasSpec);
+    const operations = this.getOperationsFromYaml(oasSpec);
+
     // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
-    let safeOasSpec = '';
+    let safeOasSpec = stringify(oasSpec);
     if (this.isESRDecomposed) {
-      safeOasSpec = oasSpec.replaceAll('"', "'").replaceAll('type: Id', 'type: string');
+      safeOasSpec = safeOasSpec.replaceAll('"', "'").replaceAll('type: Id', 'type: string');
     } else {
-      safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
+      safeOasSpec = safeOasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
     }
 
-    const { description, version } = this.extractInfoProperties(safeOasSpec);
-    const operations = this.getOperationsFromYaml(safeOasSpec);
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     if (!orgVersion) {
       throw new Error(nls.localize('error_retrieving_org_version'));
@@ -419,33 +425,28 @@ export class ApexActionController {
     return major >= targetMajor;
   };
 
-  private extractInfoProperties = (oasSpec: string): ApexOASInfo => {
-    const parsed = parse(oasSpec);
-    if (!parsed?.info?.description || !parsed?.info?.version) {
-      throw new Error(nls.localize('error_parsing_yaml'));
-    }
-
+  private extractInfoProperties = (oasSpec: OpenAPIV3.Document): ApexOASInfo => {
     return {
-      description: parsed?.info?.description,
-      version: parsed?.info?.version
+      description: oasSpec?.info?.description || '',
+      version: oasSpec?.info?.version
     };
   };
 
-  private getOperationsFromYaml = (oasSpec: string): ExternalServiceOperation[] => {
-    const parsed = parse(oasSpec);
-    if (!parsed?.paths) {
-      throw new Error(nls.localize('error_parsing_yaml'));
-    }
-    const operations = parsed.paths
-      ? Object.keys(parsed.paths).flatMap(p =>
-          Object.keys(parsed.paths[p]).map(operation => ({
-            name: parsed.paths[p][operation].operationId,
+  private getOperationsFromYaml = (oasSpec: OpenAPIV3.Document): ExternalServiceOperation[] | [] => {
+    const operations = Object.entries(oasSpec.paths).flatMap(([p, pathItem]) => {
+      if (!pathItem || typeof pathItem !== 'object') return [];
+      return Object.entries(pathItem).map(([method, operation]) => {
+        if ((operation as OpenAPIV3.OperationObject).operationId) {
+          return {
+            name: (operation as OpenAPIV3.OperationObject).operationId,
             active: true
-          }))
-        )
-      : [];
+          };
+        }
+        return null;
+      });
+    });
 
-    return operations;
+    return operations.filter((operation): operation is ExternalServiceOperation => operation !== null);
   };
 
   /**

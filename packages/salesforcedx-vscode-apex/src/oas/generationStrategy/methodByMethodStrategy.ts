@@ -7,19 +7,20 @@
 
 import * as fs from 'fs';
 import { DocumentSymbol } from 'vscode';
-import * as yaml from 'yaml';
+import { parse, stringify } from 'yaml';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   ApexOASClassDetail,
   ApexOASMethodDetail,
+  OpenAPIDoc,
   PromptGenerationResult,
-  PromptGenerationStrategyBid,
-  OpenAPIDoc
+  PromptGenerationStrategyBid
 } from '../schemas';
-import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, RESPONSE_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
+import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
 import { prompts } from './prompts';
+
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
   async callLLMWithPrompts(): Promise<string[]> {
@@ -83,24 +84,13 @@ export class MethodByMethodStrategy extends GenerationStrategy {
 
     for (const doc of docs) {
       const yamlCleanDoc = this.cleanYamlString(doc);
-      let parsed = null;
-      try {
-        parsed = yaml.parse(yamlCleanDoc) as OpenAPIDoc;
-      } catch (error) {
-        throw new Error(`Failed to parse YAML: ${error}`);
-      }
+      const parsed = parse(yamlCleanDoc) as OpenAPIDoc;
       // Merge paths
       for (const [path, methods] of Object.entries(parsed.paths)) {
         if (!combined.paths[path]) {
           combined.paths[path] = {};
         }
         Object.assign(combined.paths[path], methods);
-        // explicitly define openrationId if missing
-        for (const [method, props] of Object.entries(combined.paths[path] as object)) {
-          if (props?.operationId === undefined) {
-            combined.paths[path][method].operationId = path.split('/').pop() + '_' + method;
-          }
-        }
       }
       // Merge components
       if (parsed.components?.schemas) {
@@ -111,7 +101,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
         }
       }
     }
-    return yaml.stringify(combined);
+    return stringify(combined);
   }
 
   llmResponses: string[];
@@ -126,9 +116,6 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       throw new Error(errorMessage);
     }
     return this.llmResponses;
-  }
-  saveOasAsErsMetadata(): Promise<void> {
-    throw new Error('Method not implemented.');
   }
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
