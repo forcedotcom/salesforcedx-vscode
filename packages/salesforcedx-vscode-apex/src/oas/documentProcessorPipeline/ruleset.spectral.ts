@@ -176,6 +176,33 @@ const ruleset = {
         field: 'servers',
         function: undefined
       }
+    },
+    'request-body-description': {
+      description: 'requestBody description is required',
+      given: '$.paths[*][get,post,put,delete,patch].requestBody',
+      message: 'requestBody description is required',
+      then: {
+        field: 'description',
+        function: truthy
+      }
+    },
+    'request-body-content': {
+      description: 'requestBody content must be /application/json',
+      given: '$.paths[*][get,post,put,delete,patch].requestBody',
+      message: 'requestBody content must be /application/json',
+      then: {
+        field: 'content',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'object',
+            properties: {
+              'application/xml': { type: 'object' }
+            },
+            additionalProperties: false
+          }
+        }
+      }
     }
   }
 };

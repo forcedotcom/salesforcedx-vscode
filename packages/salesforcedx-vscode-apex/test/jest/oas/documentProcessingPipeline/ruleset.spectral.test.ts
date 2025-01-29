@@ -435,6 +435,75 @@ components:
     expect(JSON.stringify(result)).toMatch(/operations-servers/);
   });
 
+  it('request body description is required', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/request-body-description/);
+  });
+
+  it('requestBody content must be /application/json', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/request-body-content/);
+  });
+
   it('should not log errors when all rules are met', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
@@ -479,6 +548,8 @@ components:
     expect(JSON.stringify(result)).not.toMatch(/operations-deprecated/);
     expect(JSON.stringify(result)).not.toMatch(/operations-security/);
     expect(JSON.stringify(result)).not.toMatch(/operations-servers/);
+    expect(JSON.stringify(result)).not.toMatch(/request-body-description/);
+    expect(JSON.stringify(result)).not.toMatch(/request-body-content/);
   });
 });
 
