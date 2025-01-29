@@ -25,7 +25,7 @@ import {
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
-  constructor(private metadataOrchestrator: MetadataOrchestrator) { }
+  constructor(private metadataOrchestrator: MetadataOrchestrator) {}
 
   /**
    * Creates an OpenAPI Document.
@@ -345,18 +345,18 @@ export class ApexActionController {
           registrationProvider: className,
           ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
             ? {
-              registrationProviderType: 'ApexRest',
-              namedCredential: null,
-              namedCredentialReferenceId: null,
-              catalogedApiVersion: null,
-              isStartSchemaVersion: true,
-              isHeadSchemaVersion: true,
-              schemaArtifactVersion: version
-            }
+                registrationProviderType: 'ApexRest',
+                namedCredential: null,
+                namedCredentialReferenceId: null,
+                catalogedApiVersion: null,
+                isStartSchemaVersion: true,
+                isHeadSchemaVersion: true,
+                schemaArtifactVersion: version
+              }
             : {
-              registrationProviderType: 'Custom',
-              namedCredentialReference: namedCredential
-            })
+                registrationProviderType: 'Custom',
+                namedCredentialReference: namedCredential
+              })
         }
       };
     }
@@ -390,11 +390,11 @@ export class ApexActionController {
     }
     const operations = parsed.paths
       ? Object.keys(parsed.paths).flatMap(p =>
-        Object.keys(parsed.paths[p]).map(operation => ({
-          name: parsed.paths[p][operation].operationId,
-          active: true
-        }))
-      )
+          Object.keys(parsed.paths[p]).map(operation => ({
+            name: parsed.paths[p][operation].operationId,
+            active: true
+          }))
+        )
       : [];
 
     return operations;
