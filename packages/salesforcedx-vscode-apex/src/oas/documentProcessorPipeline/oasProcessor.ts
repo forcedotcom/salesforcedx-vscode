@@ -40,6 +40,7 @@ export class OasProcessor {
       console.log('document: ', this.document);
       const output = await pipeline.execute({
         yaml: this.document,
+        errors: [],
         eligibilityResult: this.eligibilityResult,
         context: this.context
       });
