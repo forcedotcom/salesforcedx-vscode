@@ -5,21 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { OpenAPIV3 } from 'openapi-types';
 import { nls } from '../../messages';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
-import { CleanupYamlStep } from './cleanupYamlStep';
 import { MethodValidationStep } from './methodValidationStep';
+import { MissingPropertiesInjectorStep } from './missingPropertiesInjectorStep';
 import { OasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';
 import { ProcessorInputOutput } from './processorStep';
 
 export class OasProcessor {
   private context: ApexClassOASGatherContextResponse;
-  private document: string;
+  private document: OpenAPIV3.Document;
   private eligibilityResult: ApexClassOASEligibleResponse;
   constructor(
     context: ApexClassOASGatherContextResponse,
-    document: string,
+    document: OpenAPIV3.Document
     eligibilityResult: ApexClassOASEligibleResponse
   ) {
     this.context = context;
@@ -30,9 +31,11 @@ export class OasProcessor {
   async process(): Promise<ProcessorInputOutput> {
     if (this.context.classDetail.annotations.includes('RestResource')) {
       // currently only OasValidation exists, in future this would have converters too
-      const pipeline = new Pipeline(new CleanupYamlStep())
-        .addStep(new MethodValidationStep())
-        .addStep(new OasValidationStep());
+      const pipeline = new Pipeline(new MissingPropertiesInjectorStep()).
+        addStep(new MethodValidationStep()).
+        addStep(
+        new OasValidationStep(this.context.classDetail.name)
+      );
 
       console.log('Executing pipeline with input:');
       console.log('context: ', JSON.stringify(this.context));

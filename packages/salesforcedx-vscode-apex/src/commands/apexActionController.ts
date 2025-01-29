@@ -5,13 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfProject } from '@salesforce/core-bundle';
 import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
+import { OpenAPIV3 } from 'openapi-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
@@ -25,7 +27,13 @@ import {
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
+  private isESRDecomposed: boolean = false;
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}
+
+  public async initialize(extensionContext: vscode.ExtensionContext) {
+    await WorkspaceContextUtil.getInstance().initialize(extensionContext);
+    this.isESRDecomposed = await this.checkIfESRIsDecomposed();
+  }
 
   /**
    * Creates an OpenAPI Document.
@@ -88,12 +96,16 @@ export class ApexActionController {
 
           // Step 7: If the user chose to merge, open a diff between the original and new ESR files
           if (fullPath[0] !== fullPath[1]) {
-            await vscode.commands.executeCommand(
-              'vscode.diff',
-              vscode.Uri.file(fullPath[0]),
-              vscode.Uri.file(fullPath[1]),
-              'Manual Diff of ESR Files'
-            );
+            void this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
+
+            // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
+            if (this.isESRDecomposed) {
+              void this.openDiffFile(
+                this.replaceXmlToYaml(fullPath[0]),
+                this.replaceXmlToYaml(fullPath[1]),
+                'Manual Diff of ESR YAML Files'
+              );
+            }
           }
         }
       );
@@ -124,7 +136,8 @@ export class ApexActionController {
     context: ApexClassOASGatherContextResponse,
     eligibleResult: ApexClassOASEligibleResponse
   ): Promise<string> => {
-    const oasProcessor = new OasProcessor(context, oasDoc, eligibleResult);
+    const parsed = parse(oasDoc);
+    const oasProcessor = new OasProcessor(context, parsed, eligibleResult);
     const processResult = await oasProcessor.process();
     return processResult.yaml;
   };
@@ -141,7 +154,7 @@ export class ApexActionController {
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
-  private saveOasAsEsrMetadata = async (oasSpec: string, fullPath: string): Promise<void> => {
+  private saveOasAsEsrMetadata = async (oasSpec: OpenAPIV3.Document, fullPath: string): Promise<void> => {
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     // Replace the schema section in the ESR file if it already exists
     let existingContent;
@@ -158,6 +171,13 @@ export class ApexActionController {
       await vscode.workspace.openTextDocument(fullPath).then((newDocument: vscode.TextDocument) => {
         void vscode.window.showTextDocument(newDocument);
       });
+      if (this.isESRDecomposed) {
+        await vscode.workspace
+          .openTextDocument(this.replaceXmlToYaml(fullPath))
+          .then((newDocument: vscode.TextDocument) => {
+            void vscode.window.showTextDocument(newDocument);
+          });
+      }
     } catch (error) {
       throw new Error(nls.localize('artifact_failed', error.message));
     }
@@ -215,6 +235,10 @@ export class ApexActionController {
     return formattedDate;
   };
 
+  /**
+   * Handles the scenario where an ESR file already exists.
+   * @returns A string indicating the user's choice: 'overwrite', 'merge', or 'cancel'.
+   */
   private handleExistingESR = async (): Promise<string> => {
     const response = await vscode.window.showWarningMessage(
       nls.localize('file_exists'),
@@ -282,11 +306,18 @@ export class ApexActionController {
     return finalNamedCredential;
   };
 
+  /**
+   * Builds the ESR XML content.
+   * @param existingContent - The existing XML content, if any.
+   * @param fullPath - The full path to the ESR file.
+   * @param namedCredential - The named credential to be used.
+   * @param oasSpec - The OpenAPI specification.
+   */
   private buildESRXml = async (
     existingContent: string | undefined,
     fullPath: string,
     namedCredential: string | undefined,
-    oasSpec: string
+    oasSpec: OpenAPIV3.Document
   ) => {
     const baseName = path.basename(fullPath).split('.')[0];
     let className;
@@ -297,9 +328,18 @@ export class ApexActionController {
     } else {
       className = baseName;
     }
-    const safeOasSpec = oasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
-    const { description, version } = this.extractInfoProperties(safeOasSpec);
-    const operations = this.getOperationsFromYaml(safeOasSpec);
+
+    const { description, version } = this.extractInfoProperties(oasSpec);
+    const operations = this.getOperationsFromYaml(oasSpec);
+
+    // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
+    let safeOasSpec = stringify(oasSpec);
+    if (this.isESRDecomposed) {
+      safeOasSpec = safeOasSpec.replaceAll('"', "'").replaceAll('type: Id', 'type: string');
+    } else {
+      safeOasSpec = safeOasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
+    }
+
     const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
     if (!orgVersion) {
       throw new Error(nls.localize('error_retrieving_org_version'));
@@ -313,52 +353,71 @@ export class ApexActionController {
       throw new Error(nls.localize('invalid_named_credential'));
     }
 
+    const createESRObject = () => ({
+      '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
+      ExternalServiceRegistration: {
+        '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
+        description,
+        label: className,
+        ...(this.isESRDecomposed ? {} : { schema: safeOasSpec }),
+        schemaType: 'OpenApi3',
+        schemaUploadFileExtension: 'yaml',
+        schemaUploadFileName: `${className.toLowerCase()}_openapi`,
+        status: 'Complete',
+        systemVersion: '3',
+        operations,
+        registrationProvider: className,
+        ...(this.isVersionGte(orgVersion, '63.0')
+          ? {
+              registrationProviderType: 'ApexRest',
+              namedCredential: null,
+              namedCredentialReferenceId: null,
+              catalogedApiVersion: null,
+              isStartSchemaVersion: true,
+              isHeadSchemaVersion: true,
+              schemaArtifactVersion: version
+            }
+          : {
+              registrationProviderType: 'Custom',
+              namedCredentialReference: namedCredential
+            })
+      }
+    });
+
     // If existing XML content, parse and update
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
-      if (jsonObj.ExternalServiceRegistration?.schema) {
-        jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
+      if (this.isESRDecomposed) {
+        // Create a new XML structure without schema
+        jsonObj = createESRObject();
+        // Replace the contents of the YAML file with the new OAS spec
+        this.buildESRYaml(fullPath, safeOasSpec);
       } else {
-        throw new Error(nls.localize('schema_element_not_found'));
+        if (jsonObj.ExternalServiceRegistration?.schema) {
+          // Replace the schema content with the new OAS spec
+          jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
+        } else {
+          // Create a new XML structure with schema
+          jsonObj = createESRObject();
+        }
       }
+      // Replace the operations with the new methods
       if (jsonObj.ExternalServiceRegistration?.operations) {
         jsonObj.ExternalServiceRegistration.operations = operations;
       } else {
         throw new Error(nls.localize('operations_element_not_found'));
       }
+      // Replace the named credential with the one from the input
       jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
-      // Create a new XML structure
-      jsonObj = {
-        '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
-        ExternalServiceRegistration: {
-          '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
-          description,
-          label: className,
-          schema: safeOasSpec,
-          schemaType: 'OpenApi3',
-          schemaUploadFileExtension: 'yaml',
-          schemaUploadFileName: `${className.toLowerCase()}_openapi`,
-          status: 'Complete',
-          systemVersion: '3',
-          operations,
-          registrationProvider: className,
-          ...(this.isVersionGte(orgVersion, '63.0') // Guarded inclusion for API version 254 and above (instance api version 63.0 and above)
-            ? {
-                registrationProviderType: 'ApexRest',
-                namedCredential: null,
-                namedCredentialReferenceId: null,
-                catalogedApiVersion: null,
-                isStartSchemaVersion: true,
-                isHeadSchemaVersion: true,
-                schemaArtifactVersion: version
-              }
-            : {
-                registrationProviderType: 'Custom',
-                namedCredentialReference: namedCredential
-              })
-        }
-      };
+      if (this.isESRDecomposed) {
+        // Create a new XML structure without schema
+        jsonObj = createESRObject();
+        this.buildESRYaml(fullPath, safeOasSpec);
+      } else {
+        // Create a new XML structure with schema
+        jsonObj = createESRObject();
+      }
     }
 
     // Convert back to XML
@@ -372,31 +431,81 @@ export class ApexActionController {
     return major >= targetMajor;
   };
 
-  private extractInfoProperties = (oasSpec: string): ApexOASInfo => {
-    const parsed = parse(oasSpec);
-    if (!parsed?.info?.description || !parsed?.info?.version) {
-      throw new Error(nls.localize('error_parsing_yaml'));
-    }
-
+  private extractInfoProperties = (oasSpec: OpenAPIV3.Document): ApexOASInfo => {
     return {
-      description: parsed?.info?.description,
-      version: parsed?.info?.version
+      description: oasSpec?.info?.description || '',
+      version: oasSpec?.info?.version
     };
   };
-  private getOperationsFromYaml = (oasSpec: string): ExternalServiceOperation[] => {
-    const parsed = parse(oasSpec);
-    if (!parsed?.paths) {
-      throw new Error(nls.localize('error_parsing_yaml'));
-    }
-    const operations = parsed.paths
-      ? Object.keys(parsed.paths).flatMap(p =>
-          Object.keys(parsed.paths[p]).map(operation => ({
-            name: parsed.paths[p][operation].operationId,
-            active: true
-          }))
-        )
-      : [];
 
-    return operations;
+  private getOperationsFromYaml = (oasSpec: OpenAPIV3.Document): ExternalServiceOperation[] | [] => {
+    const operations = Object.entries(oasSpec.paths).flatMap(([p, pathItem]) => {
+      if (!pathItem || typeof pathItem !== 'object') return [];
+      return Object.entries(pathItem).map(([method, operation]) => {
+        if ((operation as OpenAPIV3.OperationObject).operationId) {
+          return {
+            name: (operation as OpenAPIV3.OperationObject).operationId,
+            active: true
+          };
+        }
+        return null;
+      });
+    });
+
+    return operations.filter((operation): operation is ExternalServiceOperation => operation !== null);
+  };
+
+  /**
+   * Reads sfdx-project.json and checks if decomposeExternalServiceRegistrationBeta is enabled.
+   * @returns boolean - true if sfdx-project.json contains decomposeExternalServiceRegistrationBeta
+   */
+  private checkIfESRIsDecomposed = async (): Promise<boolean> => {
+    const projectPath = workspaceUtils.getRootWorkspacePath();
+    const sfProject = await SfProject.resolve(projectPath);
+    const sfdxProjectJson = sfProject.getSfProjectJson();
+    if (sfdxProjectJson.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
+      return true;
+    }
+
+    return false;
+  };
+
+  /**
+   * Builds the YAML file for the ESR using safeOasSpec as the contents.
+   * @param esrXmlPath - The path to the ESR XML file.
+   * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
+   */
+  private buildESRYaml = (esrXmlPath: string, safeOasSpec: string) => {
+    const esrYamlPath = this.replaceXmlToYaml(esrXmlPath);
+    try {
+      fs.writeFileSync(esrYamlPath, safeOasSpec, 'utf8');
+      console.log(`File created at ${esrYamlPath}`);
+    } catch (err) {
+      throw new Error('Error writing file:', err);
+    }
+  };
+
+  /**
+   * Gets the filepath for the YAML file of the ESR.
+   * @param filePath - The path to the ESR XML file.
+   * @returns A string with the YAML filepath.
+   */
+  private replaceXmlToYaml = (filePath: string): string => {
+    return filePath.replace('.externalServiceRegistration-meta.xml', '.yaml');
+  };
+
+  /**
+   * Opens a diff editor for the two files.
+   * @param filepath1 The file on the left side of the diff editor.
+   * @param filepath2 The file on the right side of the diff editor.
+   * @param diffWindowName The title of the diff editor.
+   */
+  private openDiffFile = async (filepath1: string, filepath2: string, diffWindowName: string): Promise<void> => {
+    await vscode.commands.executeCommand(
+      'vscode.diff',
+      vscode.Uri.file(filepath1),
+      vscode.Uri.file(filepath2),
+      diffWindowName
+    );
   };
 }

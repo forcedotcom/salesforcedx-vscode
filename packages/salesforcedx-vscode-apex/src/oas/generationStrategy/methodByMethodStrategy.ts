@@ -14,13 +14,14 @@ import {
   ApexClassOASGatherContextResponse,
   ApexOASClassDetail,
   ApexOASMethodDetail,
+  OpenAPIDoc,
   PromptGenerationResult,
-  PromptGenerationStrategyBid,
-  OpenAPIDoc
+  PromptGenerationStrategyBid
 } from '../schemas';
-import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, RESPONSE_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
+import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
 import { prompts } from './prompts';
+
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
   async callLLMWithPrompts(): Promise<string[]> {
@@ -96,12 +97,6 @@ export class MethodByMethodStrategy extends GenerationStrategy {
           combined.paths[path] = {};
         }
         Object.assign(combined.paths[path], methods);
-        // explicitly define openrationId if missing
-        for (const [method, props] of Object.entries(combined.paths[path] as object)) {
-          if (props?.operationId === undefined) {
-            combined.paths[path][method].operationId = path.split('/').pop() + '_' + method;
-          }
-        }
       }
       // Merge components
       if (parsed.components?.schemas) {

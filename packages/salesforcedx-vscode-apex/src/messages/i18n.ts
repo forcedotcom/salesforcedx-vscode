@@ -135,5 +135,6 @@ export const messages = {
   failed_to_parse_yaml: 'Failed to parse the document as YAML: %s',
   ineligible_method_in_doc: 'Method %s is not eligible for OAS generation, but present in the document',
   eligible_method_not_in_doc: 'Methods %s are eligible for OAS generation, but not present in the document',
-  method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols'
+  method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
+  cleanup_yaml_failed: 'Could not find openapi line in document:\n'
 };
