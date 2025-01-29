@@ -122,6 +122,60 @@ const ruleset = {
         field: 'description',
         function: truthy
       }
+    },
+    'operations-description': {
+      description: 'operations.description is required',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.description is required',
+      then: {
+        field: 'description',
+        function: truthy
+      }
+    },
+    'operations-operationId': {
+      description: 'operations.operationId is required',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.operationId is required',
+      then: {
+        field: 'operationId',
+        function: truthy
+      }
+    },
+    'operations-callbacks': {
+      description: 'operations.callbacks should not be present',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.callbacks should not be present',
+      then: {
+        field: 'callbacks',
+        function: undefined
+      }
+    },
+    'operations-deprecated': {
+      description: 'operations.deprecated should not be present',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.deprecated should not be present',
+      then: {
+        field: 'deprecated',
+        function: undefined
+      }
+    },
+    'operations-security': {
+      description: 'operations.security should not be present',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.security should not be present',
+      then: {
+        field: 'security',
+        function: undefined
+      }
+    },
+    'operations-servers': {
+      description: 'operations.servers should not be present',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.servers should not be present',
+      then: {
+        field: 'servers',
+        function: undefined
+      }
     }
   }
 };
