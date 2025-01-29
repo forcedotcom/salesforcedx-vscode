@@ -31,8 +31,8 @@ export class OasProcessor {
     if (this.context.classDetail.annotations.includes('RestResource')) {
       // currently only OasValidation exists, in future this would have converters too
       const pipeline = new Pipeline(new CleanupYamlStep())
-        .addStep(new MethodValidationStep());
-        .addStep(new OasValidationStep())
+        .addStep(new MethodValidationStep())
+        .addStep(new OasValidationStep());
 
       console.log('Executing pipeline with input:');
       console.log('context: ', JSON.stringify(this.context));

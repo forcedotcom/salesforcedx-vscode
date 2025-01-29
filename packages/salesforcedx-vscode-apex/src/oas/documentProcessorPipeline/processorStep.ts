@@ -11,8 +11,8 @@ import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 
 export interface ProcessorInputOutput {
   yaml: string;
   errors?: ISpectralDiagnostic[];
-  eligibilityResult: ApexClassOASEligibleResponse;
-  context: ApexClassOASGatherContextResponse;
+  readonly eligibilityResult: ApexClassOASEligibleResponse;
+  readonly context: ApexClassOASGatherContextResponse;
 }
 
 export interface ProcessorStep {
