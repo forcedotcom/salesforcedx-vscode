@@ -47,7 +47,6 @@ export class OasValidationStep implements ProcessorStep {
       input.errors = results;
     });
 
-
     // Return the input for future processing
     return input;
   }

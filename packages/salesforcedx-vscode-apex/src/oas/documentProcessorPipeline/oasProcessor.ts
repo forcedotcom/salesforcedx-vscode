@@ -20,7 +20,7 @@ export class OasProcessor {
   private eligibilityResult: ApexClassOASEligibleResponse;
   constructor(
     context: ApexClassOASGatherContextResponse,
-    document: OpenAPIV3.Document
+    document: OpenAPIV3.Document,
     eligibilityResult: ApexClassOASEligibleResponse
   ) {
     this.context = context;
@@ -31,11 +31,9 @@ export class OasProcessor {
   async process(): Promise<ProcessorInputOutput> {
     if (this.context.classDetail.annotations.includes('RestResource')) {
       // currently only OasValidation exists, in future this would have converters too
-      const pipeline = new Pipeline(new MissingPropertiesInjectorStep()).
-        addStep(new MethodValidationStep()).
-        addStep(
-        new OasValidationStep(this.context.classDetail.name)
-      );
+      const pipeline = new Pipeline(new MissingPropertiesInjectorStep())
+        .addStep(new MethodValidationStep())
+        .addStep(new OasValidationStep(this.context.classDetail.name));
 
       console.log('Executing pipeline with input:');
       console.log('context: ', JSON.stringify(this.context));

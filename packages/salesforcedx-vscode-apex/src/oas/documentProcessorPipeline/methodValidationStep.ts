@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
-import * as yaml from 'yaml';
 import { nls } from '../../messages';
 import { ApexClassOASEligibleResponse, OpenAPIDoc } from '../schemas';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
@@ -29,7 +29,10 @@ export class MethodValidationStep implements ProcessorStep {
     });
   }
 
-  private validateMethods(doc: string, eligibilityResult: ApexClassOASEligibleResponse): string {
+  private validateMethods(
+    parsed: OpenAPIV3.Document,
+    eligibilityResult: ApexClassOASEligibleResponse
+  ): OpenAPIV3.Document {
     const symbols = eligibilityResult.symbols;
     if (!symbols || symbols.length === 0) {
       throw new Error(nls.localize('no_eligible_method'));
@@ -37,19 +40,6 @@ export class MethodValidationStep implements ProcessorStep {
     const methodNames = new Set(
       symbols.filter(symbol => symbol.isApexOasEligible).map(symbol => symbol.docSymbol.name)
     );
-
-    let parsed = null;
-    try {
-      parsed = yaml.parse(doc) as OpenAPIDoc;
-    } catch (e) {
-      this.diagnostics.push(
-        new vscode.Diagnostic(
-          new vscode.Range(0, 0, 0, 0),
-          nls.localize('failed_to_parse_yaml', e),
-          vscode.DiagnosticSeverity.Error
-        )
-      );
-    }
 
     for (const [path, methods] of Object.entries(parsed?.paths || {})) {
       const methodName = path.split('/').pop();
@@ -76,6 +66,6 @@ export class MethodValidationStep implements ProcessorStep {
         )
       );
     }
-    return doc;
+    return parsed;
   }
 }

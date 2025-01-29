@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ISpectralDiagnostic } from '@stoplight/spectral-core';
-import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 import { OpenAPIV3 } from 'openapi-types';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 
 export interface ProcessorInputOutput {
   yaml: OpenAPIV3.Document;

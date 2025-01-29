@@ -135,7 +135,7 @@ export class ApexActionController {
     oasDoc: string,
     context: ApexClassOASGatherContextResponse,
     eligibleResult: ApexClassOASEligibleResponse
-  ): Promise<string> => {
+  ): Promise<OpenAPIV3.Document> => {
     const parsed = parse(oasDoc);
     const oasProcessor = new OasProcessor(context, parsed, eligibleResult);
     const processResult = await oasProcessor.process();
