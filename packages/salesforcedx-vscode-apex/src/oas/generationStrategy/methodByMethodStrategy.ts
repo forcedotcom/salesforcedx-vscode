@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { OpenAPIV3 } from 'openapi-types';
 import { DocumentSymbol } from 'vscode';
 import { parse, stringify } from 'yaml';
 import {
@@ -20,7 +21,6 @@ import {
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
 import { getPrompts } from './promptsHandler';
-import { OpenAPIV3 } from 'openapi-types';
 
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
