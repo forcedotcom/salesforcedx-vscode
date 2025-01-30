@@ -11,19 +11,18 @@ import { nls } from '../../messages';
 import { ApexClassOASEligibleResponse, OpenAPIDoc } from '../schemas';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 export class MethodValidationStep implements ProcessorStep {
-  private diagnosticCollection: vscode.DiagnosticCollection;
+  static diagnosticCollection: vscode.DiagnosticCollection =
+    vscode.languages.createDiagnosticCollection('OAS Method Validations');
   private className: string = '';
   private virtualUri: vscode.Uri | null = null; // the url of the virtual YAML file
   private diagnostics: vscode.Diagnostic[] = [];
-  constructor() {
-    this.diagnosticCollection = vscode.languages.createDiagnosticCollection('OAS Method Validations');
-  }
+  constructor() {}
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
-    this.className = input.context.classDetail.name;
+    this.className = input.context.classDetail.name as string;
     this.virtualUri = vscode.Uri.parse(`untitled:${this.className}_OAS_temp.yaml`);
-    this.diagnosticCollection.clear();
+    MethodValidationStep.diagnosticCollection.clear();
     const cleanedupYaml = this.validateMethods(input.yaml, input.eligibilityResult);
-    this.diagnosticCollection.set(this.virtualUri, this.diagnostics);
+    MethodValidationStep.diagnosticCollection.set(this.virtualUri, this.diagnostics);
     input.errors = [...input.errors, ...this.diagnostics];
     return new Promise(resolve => {
       resolve({ ...input, yaml: cleanedupYaml });

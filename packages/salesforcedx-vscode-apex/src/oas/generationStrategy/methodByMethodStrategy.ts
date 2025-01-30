@@ -86,7 +86,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
 
     for (const doc of docs) {
       const yamlCleanDoc = this.cleanYamlString(doc);
-      const parsed = parse(yamlCleanDoc) as OpenAPIV3.Document;
+      const parsed = yaml.parse(yamlCleanDoc) as OpenAPIV3.Document;
       // Merge paths
       if (parsed.paths) {
         for (const [path, methods] of Object.entries(parsed.paths)) {
