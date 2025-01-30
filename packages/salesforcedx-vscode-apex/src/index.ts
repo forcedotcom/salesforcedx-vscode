@@ -58,6 +58,10 @@ const onA4DExtensionActivated = () => {
   setA4dActivatedContext(true);
 };
 
+const onA4DExtensionDeactivated = () => {
+  setA4dActivatedContext(false);
+};
+
 const setA4dActivatedContext = (val: boolean) => {
   vscode.commands.executeCommand('setContext', 'sf:a4d_detected', val);
 };
@@ -187,6 +191,10 @@ const registerCommands = (): vscode.Disposable => {
     onA4DExtensionActivated()
   ); // the command is only used by the a4d extension to notify us that it has been activated
 
+  const notifyA4DExtensionDeactivated = vscode.commands.registerCommand('sf.notify.a4d.extension.deactivated', () =>
+    onA4DExtensionDeactivated()
+  ); // the command is only used by the a4d extension to notify us that it has been deactivated
+
   return vscode.Disposable.from(
     anonApexDebugDelegateCmd,
     anonApexDebugDocumentCmd,
@@ -210,7 +218,8 @@ const registerCommands = (): vscode.Disposable => {
     createApexActionFromMethodCmd,
     createApexActionFromClassCmd,
     launchApexReplayDebuggerWithCurrentFileCmd,
-    notifyA4DExtensionActivated
+    notifyA4DExtensionActivated,
+    notifyA4DExtensionDeactivated
   );
 };
 
