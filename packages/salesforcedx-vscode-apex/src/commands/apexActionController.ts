@@ -349,7 +349,7 @@ export class ApexActionController {
     let jsonObj;
 
     // Ensure namedCredential is provided and not blank
-    if (!namedCredential || namedCredential.trim() === '') {
+    if (!this.isVersionGte(orgVersion, '63.0') && (!namedCredential || namedCredential.trim() === '')) {
       throw new Error(nls.localize('invalid_named_credential'));
     }
 
