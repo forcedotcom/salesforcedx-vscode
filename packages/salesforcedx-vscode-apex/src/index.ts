@@ -54,6 +54,14 @@ import { ApexTestRunner, TestRunType } from './views/testRunner';
 const metadataOrchestrator = new MetadataOrchestrator();
 export const apexActionController = new ApexActionController(metadataOrchestrator);
 
+const onA4DExtensionActivated = () => {
+  setA4dActivatedContext(true);
+};
+
+const setA4dActivatedContext = (val: boolean) => {
+  vscode.commands.executeCommand('setContext', 'sf:a4d_detected', val);
+};
+
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const telemetryService = await getTelemetryService();
   if (!telemetryService) {
@@ -175,6 +183,9 @@ const registerCommands = (): vscode.Disposable => {
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
   );
+  const notifyA4DExtensionActivated = vscode.commands.registerCommand('sf.notify.a4d.extension.activated', () =>
+    onA4DExtensionActivated()
+  ); // the command is only used by the a4d extension to notify us that it has been activated
 
   return vscode.Disposable.from(
     anonApexDebugDelegateCmd,
@@ -198,7 +209,8 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteAddCmd,
     createApexActionFromMethodCmd,
     createApexActionFromClassCmd,
-    launchApexReplayDebuggerWithCurrentFileCmd
+    launchApexReplayDebuggerWithCurrentFileCmd,
+    notifyA4DExtensionActivated
   );
 };
 

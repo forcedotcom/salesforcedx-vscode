@@ -135,13 +135,13 @@
         },
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && sf:a4d_detected"
         }
       ],
       "explorer/context": [
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && sf:a4d_detected"
         }
       ],
       "view/title": [
@@ -260,7 +260,7 @@
         },
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && sf:a4d_detected"
         }
       ]
     },
@@ -372,6 +372,10 @@
       {
         "command": "sf.create.apex.action.class",
         "title": "%create_openapi_doc_class%"
+      },
+      {
+        "command": "sf.a4d.notify.activated",
+        "title": "%a4d_notify_activated%"
       }
     ],
     "configuration": {

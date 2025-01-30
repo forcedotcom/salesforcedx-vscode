@@ -33,5 +33,6 @@
   "run_tests_title": "Run Tests",
   "show_error_title": "Display Error",
   "test_view_container_title": "Test Viewer",
-  "test_view_name": "Apex Tests"
+  "test_view_name": "Apex Tests",
+  "a4d_notify_activated": "Agentforce for Developer is activated."
 }
