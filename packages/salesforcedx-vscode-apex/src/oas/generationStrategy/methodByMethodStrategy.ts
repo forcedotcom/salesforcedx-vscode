@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { OpenAPIV3 } from 'openapi-types';
 import { DocumentSymbol } from 'vscode';
 import { parse, stringify } from 'yaml';
 import {
@@ -19,7 +20,7 @@ import {
 } from '../schemas';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
-import { prompts } from './prompts';
+import { getPrompts } from './promptsHandler';
 
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
@@ -84,13 +85,15 @@ export class MethodByMethodStrategy extends GenerationStrategy {
 
     for (const doc of docs) {
       const yamlCleanDoc = this.cleanYamlString(doc);
-      const parsed = parse(yamlCleanDoc) as OpenAPIDoc;
+      const parsed = parse(yamlCleanDoc) as OpenAPIV3.Document;
       // Merge paths
-      for (const [path, methods] of Object.entries(parsed.paths)) {
-        if (!combined.paths[path]) {
-          combined.paths[path] = {};
+      if (parsed.paths) {
+        for (const [path, methods] of Object.entries(parsed.paths)) {
+          if (!combined.paths[path]) {
+            combined.paths[path] = {};
+          }
+          Object.assign(combined.paths[path], methods);
         }
-        Object.assign(combined.paths[path], methods);
       }
       // Merge components
       if (parsed.components?.schemas) {
@@ -197,6 +200,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   }
 
   generatePromptForMethod(methodName: string): string {
+    const prompts = getPrompts();
     let input = '';
     const methodContext = this.methodsContextMap.get(methodName);
     input += `${prompts.SYSTEM_TAG}\n${prompts.METHOD_BY_METHOD.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n`;

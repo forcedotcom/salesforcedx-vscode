@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export const prompts = {
+import { Prompts } from '../schemas';
+
+export const sourcePrompts: Prompts = {
   SYSTEM_TAG: '<|system|>',
   END_OF_PROMPT_TAG: '<|endofprompt|>',
   USER_TAG: '<|user|>',
