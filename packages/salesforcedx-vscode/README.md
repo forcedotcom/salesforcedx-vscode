@@ -21,7 +21,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 
   If you also use other versions of the JDK, set your VS Code user setting `salesforcedx-vscode-apex.java.home` to point to the location where you installed Java 11, 17, or 21.
 
-- **[Visual Studio Code](https://code.visualstudio.com/download) v1.86 or later**. We recommend that you use Salesforce Extension Pack versions earlier than 59.15.0 if you aren't able to update your version of VS Code. Note that we aren't able to support fixes for these earlier versions.
+- **[Visual Studio Code](https://code.visualstudio.com/download) v1.90.0 or later**
 
 ## Documentation
 
