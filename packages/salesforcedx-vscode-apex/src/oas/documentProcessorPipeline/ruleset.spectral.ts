@@ -203,6 +203,286 @@ const ruleset = {
           }
         }
       }
+    },
+    'paths-parameters-in': {
+      description: 'paths.parameters in `cookie` is not allowed',
+      given: '$.paths[*]',
+      message: 'paths.parameters in `cookie` is not allowed',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              patternProperties: {
+                in: {
+                  type: 'string',
+                  pattern: 'query|header|path'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    'operations-parameters-in': {
+      description: 'operations.parameters in `cookie` is not allowed',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.parameters in `cookie` is not allowed',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              patternProperties: {
+                in: {
+                  type: 'string',
+                  pattern: 'query|header|path'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    'paths-parameters-description': {
+      description: 'paths.parameters.description is required',
+      given: '$.paths[*]',
+      message: 'paths.parameters.description is required',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                description: {
+                  type: 'string'
+                }
+              },
+              required: ['description']
+            }
+          }
+        }
+      }
+    },
+    'operations-parameters-description': {
+      description: 'operations.parameters.description is required',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.parameters.description is required',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                description: {
+                  type: 'string'
+                }
+              },
+              required: ['description']
+            }
+          }
+        }
+      }
+    },
+    'paths-parameters-deprecated': {
+      description: 'path.parameters.deprecated is not allowed',
+      given: '$.paths[*]',
+      message: 'path.parameters.deprecated is not allowed',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                in: { type: 'string' },
+                description: {
+                  type: 'string'
+                },
+                required: { type: 'boolean' },
+                allowEmptyValue: { type: 'boolean' },
+                style: { type: 'string' },
+                explode: { type: 'boolean' },
+                allowReserved: { type: 'boolean' },
+                schema: { type: 'object' },
+                example: {},
+                examples: { type: 'object' },
+                content: { type: 'object' }
+              },
+              additionalProperties: false
+            }
+          }
+        }
+      }
+    },
+    'operations-parameters-deprecated': {
+      description: 'operations.parameters.deprecated is not allowed',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.parameters.deprecated is not allowed',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                in: { type: 'string' },
+                description: {
+                  type: 'string'
+                },
+                required: { type: 'boolean' },
+                allowEmptyValue: { type: 'boolean' },
+                style: { type: 'string' },
+                explode: { type: 'boolean' },
+                allowReserved: { type: 'boolean' },
+                schema: { type: 'object' },
+                example: {},
+                examples: { type: 'object' },
+                content: { type: 'object' }
+              },
+              additionalProperties: false
+            }
+          }
+        }
+      }
+    },
+    'paths-parameters-explode': {
+      description: 'path.parameters.explode should be set to false',
+      given: '$.paths[*]',
+      message: 'path.parameters.explode should be set to false',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                explode: { enum: [false] }
+              }
+            }
+          }
+        }
+      }
+    },
+    'operations-parameters-explode': {
+      description: 'operations.parameters.explode should be set to false',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.parameters.explode should be set to false',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                explode: { enum: [false] }
+              }
+            }
+          }
+        }
+      }
+    },
+    'paths-parameters-allowReserved': {
+      description: 'path.parameters.allowReserved should be set to false',
+      given: '$.paths[*]',
+      message: 'path.parameters.allowReserved should be set to false',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                allowReserved: { enum: [false] }
+              }
+            }
+          }
+        }
+      }
+    },
+    'operations-parameters-allowReserved': {
+      description: 'operations.parameters.allowReserved should be set to false',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.parameters.allowReserved should be set to false',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                allowReserved: { enum: [false] }
+              }
+            }
+          }
+        }
+      }
+    },
+    'paths-parameters-content': {
+      description: 'path.parameters.content should be `application/json`',
+      given: '$.paths[*]',
+      message: 'path.parameters.content should be `application/json`',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                content: { enum: ['application/json'] }
+              }
+            }
+          }
+        }
+      }
+    },
+    'operations-parameters-content': {
+      description: 'operations.parameters.content should be `application/json`',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operations.parameters.content should be `application/json`',
+      then: {
+        field: 'parameters',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                content: { enum: ['application/json'] }
+              }
+            }
+          }
+        }
+      }
     }
   }
 };

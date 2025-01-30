@@ -504,6 +504,515 @@ components:
     expect(JSON.stringify(result)).toMatch(/request-body-content/);
   });
 
+  it('paths.parameters in `cookie` is not allowed', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    parameters:
+      - in: cookie
+        name: csrftoken
+        schema:
+          type: string
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/paths-parameters-in/);
+  });
+
+  it('operations.parameters in `cookie` is not allowed', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      operationId: doDelete
+      description: 'great op description'
+      parameters:
+        - in: cookie
+          name: csrftoken
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/operations-parameters-in/);
+  });
+
+  it('paths.parameters description is required', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    parameters:
+      - in: path
+        name: id # Note the name is the same as in the path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/paths-parameters-description/);
+  });
+
+  it('operations.parameters description is required', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+  description: info description
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      operationId: doDelete
+      description: 'great op description'
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/operations-parameters-description/);
+  });
+
+  it('paths.parameters deprecated is not allowed', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    parameters:
+      - in: path
+        name: id # Note the name is the same as in the path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: desc
+        deprecated: true
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/paths-parameters-deprecated/);
+  });
+
+  it('operations.parameters deprecated is not allowed', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: desc
+          deprecated: true
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/operations-parameters-deprecated/);
+  });
+
+  it('paths.parameters explode should be false', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    parameters:
+      - in: path
+        name: id # Note the name is the same as in the path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: desc
+        explode: true
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/paths-parameters-explode/);
+  });
+
+  it('operations.parameters explode should be false', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: desc
+          explode: true
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/operations-parameters-explode/);
+  });
+
+  it('paths.parameters allowReserved should be false', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    parameters:
+      - in: path
+        name: id # Note the name is the same as in the path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: desc
+        allowReserved: true
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/paths-parameters-allowReserved/);
+  });
+
+  it('operations.parameters allowReserved should be false', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: desc
+          allowReserved: true
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/operations-parameters-allowReserved/);
+  });
+
+  it('paths.parameters content should be `application/json`', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    parameters:
+      - in: path
+        name: id # Note the name is the same as in the path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: desc
+        content:
+          text/plain
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/paths-parameters-content/);
+  });
+
+  it('operations.parameters content should be `application/json`', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: desc
+          content:
+            text/plain
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/operations-parameters-content/);
+  });
+
   it('should not log errors when all rules are met', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
@@ -516,10 +1025,26 @@ servers:
 paths:
   /demoClass/doDelete:
     description: 'great path description'
+    parameters:
+      - in: path
+        name: id # Note the name is the same as in the path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: The user ID
     delete:
       summary: delete method
       operationId: doDelete
       description: 'great op description'
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The user ID
       responses:
         '200':
           description: OK
@@ -550,6 +1075,18 @@ components:
     expect(JSON.stringify(result)).not.toMatch(/operations-servers/);
     expect(JSON.stringify(result)).not.toMatch(/request-body-description/);
     expect(JSON.stringify(result)).not.toMatch(/request-body-content/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-parameters-in/);
+    expect(JSON.stringify(result)).not.toMatch(/operations-parameters-in/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-parameters-description/);
+    expect(JSON.stringify(result)).not.toMatch(/operations-parameters-description/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-parameters-deprecated/);
+    expect(JSON.stringify(result)).not.toMatch(/operations-parameters-deprecated/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-parameters-explode/);
+    expect(JSON.stringify(result)).not.toMatch(/operations-parameters-explode/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-parameters-allowReserved/);
+    expect(JSON.stringify(result)).not.toMatch(/operations-parameters-allowReserved/);
+    expect(JSON.stringify(result)).not.toMatch(/paths-parameters-content/);
+    expect(JSON.stringify(result)).not.toMatch(/operations-parameters-content/);
   });
 });
 
