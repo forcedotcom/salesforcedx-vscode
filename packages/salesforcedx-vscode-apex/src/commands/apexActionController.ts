@@ -370,12 +370,7 @@ export class ApexActionController {
         ...(this.isVersionGte(orgVersion, '63.0')
           ? {
               registrationProviderType: 'ApexRest',
-              namedCredential: null,
-              namedCredentialReferenceId: null,
-              catalogedApiVersion: null,
-              isStartSchemaVersion: true,
-              isHeadSchemaVersion: true,
-              schemaArtifactVersion: version
+              namedCredential: 'null'
             }
           : {
               registrationProviderType: 'Custom',
