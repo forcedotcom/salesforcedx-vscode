@@ -197,7 +197,7 @@ const ruleset = {
           schema: {
             type: 'object',
             properties: {
-              'application/xml': { type: 'object' }
+              'application/json': { type: 'object' }
             },
             additionalProperties: false
           }
@@ -482,6 +482,51 @@ const ruleset = {
             }
           }
         }
+      }
+    },
+    'response-headers': {
+      description: 'operations.responses.headers are not allowed',
+      given: '$.paths[*][get,post,put,delete,patch].responses.*',
+      message: 'operations.responses.headers are not allowed',
+      then: {
+        field: 'headers',
+        function: undefined
+      }
+    },
+    'response-content': {
+      description: 'operations.responses.content should be application/json',
+      given: '$.paths[*][get,post,put,delete,patch].responses.*',
+      message: 'operations.responses.content should be application/json',
+      then: {
+        field: 'content',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'object',
+            properties: {
+              'application/json': { type: 'object' }
+            },
+            additionalProperties: false
+          }
+        }
+      }
+    },
+    'request-media-encoding': {
+      description: 'request-media-encoding is not allowed',
+      given: '$.paths[*][get,post,put,delete,patch].requestBody.content.*',
+      message: 'request-media-encoding is not allowed',
+      then: {
+        field: 'encoding',
+        function: undefined
+      }
+    },
+    'response-media-encoding': {
+      description: 'response-media-encoding is not allowed',
+      given: '$.paths[*][get,post,put,delete,patch].responses.*.content.*',
+      message: 'response-media-encoding is not allowed',
+      then: {
+        field: 'encoding',
+        function: undefined
       }
     }
   }

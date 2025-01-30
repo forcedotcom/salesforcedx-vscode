@@ -1013,6 +1013,207 @@ components:
     expect(JSON.stringify(result)).toMatch(/operations-parameters-content/);
   });
 
+  it('operations.responses.headers are not allowed', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: desc
+          content:
+            text/plain
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+              description: Request limit per hour.
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/response-headers/);
+  });
+
+  it('operations.responses.content should be application/json', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: desc
+          content:
+            text/plain
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/response-content/);
+  });
+
+  it('request-media-encoding is not allowed', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                color:
+                  type: array
+                  items:
+                    type: string
+            encoding:
+              color: # color=red,green,blue
+                style: form
+                explode: false
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/request-media-encoding/);
+  });
+
+  it('response-media-encoding is not allowed', async () => {
+    const inputYaml = `openapi: 3.0.0
+info:
+  title: demoClass API
+  version: '1.0.0'
+servers:
+  - url: https://files.example.com
+    description: Optional server description, e.g. Main (production) server
+paths:
+  /demoClass/doDelete:
+    delete:
+      summary: delete method
+      parameters:
+        - in: path
+          name: id # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: desc
+          content:
+            text/plain
+      requestBody:
+        required: true
+        description: 'truly great requestBody description'
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/x-www-form-urlencoded:
+              schema:
+                type: object
+                properties:
+                  color:
+                    type: array
+                    items:
+                      type: string
+              encoding:
+                color: # color=red,green,blue
+                  style: form
+                  explode: false
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string`;
+
+    const result = await runRulesetAgainstYaml(inputYaml);
+
+    expect(JSON.stringify(result)).toMatch(/response-media-encoding/);
+  });
+
   it('should not log errors when all rules are met', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
@@ -1048,6 +1249,10 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
 components:
   schemas:
     Account:
@@ -1087,6 +1292,10 @@ components:
     expect(JSON.stringify(result)).not.toMatch(/operations-parameters-allowReserved/);
     expect(JSON.stringify(result)).not.toMatch(/paths-parameters-content/);
     expect(JSON.stringify(result)).not.toMatch(/operations-parameters-content/);
+    expect(JSON.stringify(result)).not.toMatch(/response-headers/);
+    expect(JSON.stringify(result)).not.toMatch(/response-content/);
+    expect(JSON.stringify(result)).not.toMatch(/request-media-encoding/);
+    expect(JSON.stringify(result)).not.toMatch(/response-media-encoding/);
   });
 });
 
