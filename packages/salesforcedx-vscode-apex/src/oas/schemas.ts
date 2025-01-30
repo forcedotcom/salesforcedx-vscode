@@ -107,3 +107,18 @@ export interface OpenAPIDoc {
   paths: Record<string, any>;
   components?: { schemas?: Record<string, any> };
 }
+
+export interface Prompts {
+  SYSTEM_TAG: string;
+  END_OF_PROMPT_TAG: string;
+  USER_TAG: string;
+  ASSISTANT_TAG: string;
+  systemPrompt: string;
+  METHOD_BY_METHOD: {
+    systemPrompt: string;
+    USER_PROMPT: string;
+  };
+  wholeClass: {
+    userPrompt: string;
+  };
+}

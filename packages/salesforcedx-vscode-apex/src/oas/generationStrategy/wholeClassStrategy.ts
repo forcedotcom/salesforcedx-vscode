@@ -15,7 +15,7 @@ import {
 } from '../schemas';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
-import { prompts } from './prompts';
+import { getPrompts } from './promptsHandler';
 export const WHOLE_CLASS_STRATEGY_NAME = 'WholeClass';
 export class WholeClassStrategy extends GenerationStrategy {
   metadata: ApexClassOASEligibleResponse;
@@ -45,6 +45,7 @@ export class WholeClassStrategy extends GenerationStrategy {
   }
 
   public generate(): PromptGenerationResult {
+    const prompts = getPrompts();
     const documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
     const input =
       `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n${prompts.USER_TAG}\n` +
