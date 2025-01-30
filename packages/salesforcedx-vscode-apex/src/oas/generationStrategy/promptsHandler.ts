@@ -7,11 +7,12 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { parse, stringify } from 'yaml';
 import { Prompts } from '../schemas';
 import { sourcePrompts } from './prompts';
 
 const PROMPTS_DIR = path.join('.sfdx', 'oas_prompts');
-const PROMPTS_FILE = path.join(PROMPTS_DIR, 'prompts.json');
+const PROMPTS_FILE = path.join(PROMPTS_DIR, 'prompts.yaml');
 
 const getPromptsFromSource = (): Record<string, any> => {
   return sourcePrompts;
@@ -24,17 +25,17 @@ export const ensurePromptsExist = (): void => {
 
   if (!fs.existsSync(PROMPTS_FILE)) {
     const extractedPrompts = getPromptsFromSource();
-    fs.writeFileSync(PROMPTS_FILE, JSON.stringify(extractedPrompts, null, 2), 'utf8');
+    fs.writeFileSync(PROMPTS_FILE, stringify(extractedPrompts), 'utf8');
   }
 };
 
 export const getPrompts = (): Prompts => {
   ensurePromptsExist();
   const data = fs.readFileSync(PROMPTS_FILE, 'utf8');
-  return JSON.parse(data) as Prompts;
+  return parse(data) as Prompts;
 };
 
 // For future use cases (if needed)
 export const updatePrompts = (newPrompts: Record<string, any>): void => {
-  fs.writeFileSync(PROMPTS_FILE, JSON.stringify(newPrompts, null, 2), 'utf8');
+  fs.writeFileSync(PROMPTS_FILE, stringify(newPrompts, null, 2), 'utf8');
 };
