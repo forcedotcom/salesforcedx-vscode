@@ -58,7 +58,7 @@ describe('MetadataOrchestrator', () => {
       ];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
       await expect(orchestrator.validateMetadata(editorStub.document.uri, true)).rejects.toThrow(
-        'Method someMethod is not eligible for OpenAPI Document creation. It is not annotated with @AuraEnabled or has wrong access modifiers.'
+        'Method someMethod is not eligible for OpenAPI Document creation. It is not annotated with an http annotator or has wrong access modifiers.'
       );
     });
 

@@ -18,7 +18,12 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
-import { ApexClassOASGatherContextResponse, ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
+import {
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse,
+  ApexOASInfo,
+  ExternalServiceOperation
+} from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
@@ -83,7 +88,7 @@ export class ApexActionController {
           );
 
           // Step 7: Process the OAS document
-          const processedOasDoc = await this.processOasDocument(openApiDocument, context);
+          const processedOasDoc = await this.processOasDocument(openApiDocument, context, eligibilityResult);
 
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
@@ -128,10 +133,11 @@ export class ApexActionController {
 
   private processOasDocument = async (
     oasDoc: string,
-    context: ApexClassOASGatherContextResponse
+    context: ApexClassOASGatherContextResponse,
+    eligibleResult: ApexClassOASEligibleResponse
   ): Promise<OpenAPIV3.Document> => {
     const parsed = parse(oasDoc);
-    const oasProcessor = new OasProcessor(context, parsed);
+    const oasProcessor = new OasProcessor(context, parsed, eligibleResult);
     const processResult = await oasProcessor.process();
     return processResult.yaml;
   };

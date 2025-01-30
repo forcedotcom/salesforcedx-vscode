@@ -65,7 +65,7 @@ export const messages = {
   generate_openapi_document: 'Generating OpenAPI document.',
   write_openapi_document: 'Writing OpenAPI Document.',
   not_eligible_method:
-    'Method %s is not eligible for OpenAPI Document creation. It is not annotated with @AuraEnabled or has wrong access modifiers.',
+    'Method %s is not eligible for OpenAPI Document creation. It is not annotated with an http annotator or has wrong access modifiers.',
   apex_test_run_text: 'SFDX: Run Apex Tests',
   test_view_loading_message: 'Loading Apex tests ...',
   test_view_no_tests_message: 'No Apex Tests Found',
@@ -131,5 +131,10 @@ export const messages = {
   no_oas_generated: 'LLM did not return any content.',
   strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.',
   invalid_class_annotation_for_generating_oas_doc: 'Invalid class annotation for generating OAS doc',
+  no_eligible_method: 'No eligible methods found in the class',
+  failed_to_parse_yaml: 'Failed to parse the document as YAML: %s',
+  ineligible_method_in_doc: 'Method %s is not eligible for OAS generation, but present in the document',
+  eligible_method_not_in_doc: 'Methods %s are eligible for OAS generation, but not present in the document',
+  method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
   cleanup_yaml_failed: 'Could not find openapi line in document:\n'
 };

@@ -4,12 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ISpectralDiagnostic } from '@stoplight/spectral-core';
 import { OpenAPIV3 } from 'openapi-types';
+import * as vscode from 'vscode';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 
 export interface ProcessorInputOutput {
   yaml: OpenAPIV3.Document;
-  errors?: ISpectralDiagnostic[];
+  errors: vscode.Diagnostic[];
+  readonly eligibilityResult: ApexClassOASEligibleResponse;
+  readonly context: ApexClassOASGatherContextResponse;
 }
 
 export interface ProcessorStep {

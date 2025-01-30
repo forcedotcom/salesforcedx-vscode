@@ -44,7 +44,7 @@ export class OasValidationStep implements ProcessorStep {
 
       // Add diagnostics to the Problems tab for the virtual document
       OasValidationStep.diagnosticCollection.set(virtualUri, diagnostics);
-      input.errors = results;
+      input.errors = [...input.errors, ...diagnostics];
     });
 
     // Return the input for future processing

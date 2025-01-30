@@ -8,7 +8,8 @@
 import * as fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
 import { DocumentSymbol } from 'vscode';
-import { parse, stringify } from 'yaml';
+import * as yaml from 'yaml';
+import { nls } from '../../messages';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -56,10 +57,10 @@ export class MethodByMethodStrategy extends GenerationStrategy {
         const combinedText = this.combineYamlByMethod(oas);
         return combinedText;
       } catch (e) {
-        throw new Error(`Failed to parse OAS: ${e}`);
+        throw new Error(nls.localize('failed_to_combine_oas', e));
       }
     } else {
-      throw new Error('No OAS generated');
+      throw new Error(nls.localize('no_oas_generated'));
     }
   }
 
@@ -85,7 +86,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
 
     for (const doc of docs) {
       const yamlCleanDoc = this.cleanYamlString(doc);
-      const parsed = parse(yamlCleanDoc) as OpenAPIV3.Document;
+      const parsed = yaml.parse(yamlCleanDoc) as OpenAPIV3.Document;
       // Merge paths
       if (parsed.paths) {
         for (const [path, methods] of Object.entries(parsed.paths)) {
@@ -104,7 +105,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
         }
       }
     }
-    return stringify(combined);
+    return yaml.stringify(combined);
   }
 
   llmResponses: string[];
@@ -120,6 +121,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     }
     return this.llmResponses;
   }
+
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
   prompts: string[];
@@ -238,7 +240,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       const method = lines.slice(startLine - 1, endLine + 1).join('\n');
       return method;
     } else {
-      throw new Error(`Method ${methodName} not found in document symbols`);
+      throw new Error(nls.localize('method_not_found_in_doc_symbols', methodName));
     }
   }
 }

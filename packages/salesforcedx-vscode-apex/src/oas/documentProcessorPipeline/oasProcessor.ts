@@ -7,7 +7,8 @@
 
 import { OpenAPIV3 } from 'openapi-types';
 import { nls } from '../../messages';
-import { ApexClassOASGatherContextResponse } from '../schemas';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
+import { MethodValidationStep } from './methodValidationStep';
 import { MissingPropertiesInjectorStep } from './missingPropertiesInjectorStep';
 import { OasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';
@@ -16,23 +17,33 @@ import { ProcessorInputOutput } from './processorStep';
 export class OasProcessor {
   private context: ApexClassOASGatherContextResponse;
   private document: OpenAPIV3.Document;
-
-  constructor(context: ApexClassOASGatherContextResponse, document: OpenAPIV3.Document) {
+  private eligibilityResult: ApexClassOASEligibleResponse;
+  constructor(
+    context: ApexClassOASGatherContextResponse,
+    document: OpenAPIV3.Document,
+    eligibilityResult: ApexClassOASEligibleResponse
+  ) {
     this.context = context;
     this.document = document;
+    this.eligibilityResult = eligibilityResult;
   }
 
   async process(): Promise<ProcessorInputOutput> {
     if (this.context.classDetail.annotations.includes('RestResource')) {
       // currently only OasValidation exists, in future this would have converters too
-      const pipeline = new Pipeline(new MissingPropertiesInjectorStep()).addStep(
-        new OasValidationStep(this.context.classDetail.name)
-      );
+      const pipeline = new Pipeline(new MissingPropertiesInjectorStep())
+        .addStep(new MethodValidationStep())
+        .addStep(new OasValidationStep(this.context.classDetail.name));
 
       console.log('Executing pipeline with input:');
       console.log('context: ', JSON.stringify(this.context));
       console.log('document: ', this.document);
-      const output = await pipeline.execute({ yaml: this.document });
+      const output = await pipeline.execute({
+        yaml: this.document,
+        errors: [],
+        eligibilityResult: this.eligibilityResult,
+        context: this.context
+      });
       console.log('Pipeline output:', output);
       return output;
     }
