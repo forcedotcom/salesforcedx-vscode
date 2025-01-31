@@ -109,21 +109,22 @@ export class ApexActionController {
           }
 
           // Step 8: Call Mulesoft extension if installed
-          if (await this.isCommandAvailable('mule-dx-api.open-api-project')) {
-            try {
-              const yamlUri = vscode.Uri.file(this.replaceXmlToYaml(fullPath[1]));
-              await vscode.commands.executeCommand('mule-dx-api.open-api-project', yamlUri);
-              console.log('mule-dx-api.open-api-project command executed successfully');
-            } catch (error) {
-              telemetryService.sendEventData('mule-dx-api.open-api-project command could not be executed', {
-                error: error.message
-              });
-              console.error('mule-dx-api.open-api-project command could not be executed', error);
+          const callMulesoftExtension = async () => {
+            if (await this.isCommandAvailable('mule-dx-api.open-api-project')) {
+              try {
+                const yamlUri = vscode.Uri.file(this.replaceXmlToYaml(fullPath[1]));
+                await vscode.commands.executeCommand('mule-dx-api.open-api-project', yamlUri);
+              } catch (error) {
+                telemetryService.sendEventData('mule-dx-api.open-api-project command could not be executed', {
+                  error: error.message
+                });
+                console.error('mule-dx-api.open-api-project command could not be executed', error);
+              }
+            } else {
+              telemetryService.sendEventData('mule-dx-api.open-api-project command not found');
             }
-          } else {
-            telemetryService.sendEventData('mule-dx-api.open-api-project command not found');
-            console.log('mule-dx-api.open-api-project command not found');
-          }
+          };
+          await callMulesoftExtension();
         }
       );
 
