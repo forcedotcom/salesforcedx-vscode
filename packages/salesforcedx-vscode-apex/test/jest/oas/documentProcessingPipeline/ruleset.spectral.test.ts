@@ -1299,6 +1299,78 @@ components:
   });
 });
 
+it('should not throw false positives when `parameters` property is missing', async () => {
+  const inputYaml = `openapi: 3.0.0
+info:
+  title: MyRestResource
+  version: 1.0.0
+  description: This is auto-generated OpenAPI v3 spec for MyRestResource.
+paths:
+  /MyRestResource/doGet:
+    get:
+      summary: Retrieves an Account record by ID.
+      description: >-
+        This method handles HTTP GET requests to this endpoint. It parses the
+
+        request URL to extract the Account ID, and then queries the database to
+        fetch the
+
+        corresponding Account record. The record is then returned as a JSON
+        response.
+      operationId: getAccountById
+      responses:
+        '200':
+          description: The requested Account record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+  /MyRestResource/doPut:
+    put:
+      summary: doPut
+      description: Creates a new Account record
+      operationId: doPut
+      responses:
+        '200':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                type: string
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        Id:
+          type: string
+          description: The unique identifier of the Account.
+        Name:
+          type: string
+          description: The name of the Account.
+        Phone:
+          type: string
+          description: The phone number of the Account.
+        Website:
+          type: string
+          description: The website URL of the Account.`;
+
+  const result = await runRulesetAgainstYaml(inputYaml);
+
+  expect(JSON.stringify(result)).not.toMatch(/paths-parameters-in/);
+  expect(JSON.stringify(result)).not.toMatch(/operations-parameters-in/);
+  expect(JSON.stringify(result)).not.toMatch(/paths-parameters-description/);
+  expect(JSON.stringify(result)).not.toMatch(/operations-parameters-description/);
+  expect(JSON.stringify(result)).not.toMatch(/paths-parameters-deprecated/);
+  expect(JSON.stringify(result)).not.toMatch(/operations-parameters-deprecated/);
+  expect(JSON.stringify(result)).not.toMatch(/paths-parameters-explode/);
+  expect(JSON.stringify(result)).not.toMatch(/operations-parameters-explode/);
+  expect(JSON.stringify(result)).not.toMatch(/paths-parameters-allowReserved/);
+  expect(JSON.stringify(result)).not.toMatch(/operations-parameters-allowReserved/);
+  expect(JSON.stringify(result)).not.toMatch(/paths-parameters-content/);
+  expect(JSON.stringify(result)).not.toMatch(/operations-parameters-content/);
+});
+
 const runRulesetAgainstYaml = async (inputYaml: string) => {
   const spectral = new Spectral();
 
