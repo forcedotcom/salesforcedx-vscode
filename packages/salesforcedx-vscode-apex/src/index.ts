@@ -75,31 +75,53 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Workspace Context
   await workspaceContext.initialize(extensionContext);
+  try {
+    // start the language server and client
+    await createLanguageClient(extensionContext, languageServerStatusBarItem);
+  } catch (error) {
+    console.log('Error creating language client', error);
+  }
 
-  // start the language server and client
-  await createLanguageClient(extensionContext, languageServerStatusBarItem);
+  try {
+    // Javadoc support
+    enableJavaDocSymbols();
+  } catch (error) {
+    console.log('Error enabling java doc symbols', error);
+  }
+  let commands;
+  try {
+    // Commands
+    commands = registerCommands();
+  } catch (error) {
+    console.log('Error registering commands', error);
+  }
+  try {
+    extensionContext.subscriptions.push(commands!);
 
-  // Javadoc support
-  enableJavaDocSymbols();
-
-  // Commands
-  const commands = registerCommands();
-  extensionContext.subscriptions.push(commands);
-
-  extensionContext.subscriptions.push(registerTestView());
-
-  const exportedApi = {
-    getLineBreakpointInfo,
-    getExceptionBreakpointInfo,
-    getApexTests,
-    languageClientUtils
-  };
-
+    extensionContext.subscriptions.push(registerTestView());
+  } catch (error) {
+    console.log('Error pushing commands', error);
+  }
+  let exportedApi;
+  try {
+    exportedApi = {
+      getLineBreakpointInfo,
+      getExceptionBreakpointInfo,
+      getApexTests,
+      languageClientUtils
+    };
+  } catch (error) {
+    console.log('Error exported Api', error);
+  }
   void activationTracker.markActivationStop(new Date());
 
   setImmediate(() => {
     // Resolve any found orphan language servers in the background
-    void lsoh.resolveAnyFoundOrphanLanguageServers();
+    try {
+      void lsoh.resolveAnyFoundOrphanLanguageServers();
+    } catch (error) {
+      console.log('Error resolving orphans', error);
+    }
   });
 
   return exportedApi;
