@@ -205,7 +205,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     const prompts = getPrompts();
     let input = '';
     const methodContext = this.methodsContextMap.get(methodName);
-    input += `${prompts.SYSTEM_TAG}\n${prompts.METHOD_BY_METHOD.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n`;
+    input += `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n`;
     input += `${prompts.USER_TAG}\n${prompts.METHOD_BY_METHOD.USER_PROMPT}\n`;
     input += '\nThis is the Apex method the OpenAPI v3 specification should be generated for:\n```\n';
     input += this.getMethodImplementation(methodName, this.documentText);

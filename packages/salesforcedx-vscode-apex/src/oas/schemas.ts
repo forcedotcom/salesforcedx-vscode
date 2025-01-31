@@ -115,7 +115,6 @@ export interface Prompts {
   ASSISTANT_TAG: string;
   systemPrompt: string;
   METHOD_BY_METHOD: {
-    systemPrompt: string;
     USER_PROMPT: string;
   };
   wholeClass: {

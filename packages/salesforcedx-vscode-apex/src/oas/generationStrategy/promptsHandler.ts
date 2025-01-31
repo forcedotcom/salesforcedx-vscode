@@ -37,5 +37,5 @@ export const getPrompts = (): Prompts => {
 
 // For future use cases (if needed)
 export const updatePrompts = (newPrompts: Record<string, any>): void => {
-  fs.writeFileSync(PROMPTS_FILE, stringify(newPrompts, null, 2), 'utf8');
+  fs.writeFileSync(PROMPTS_FILE, stringify(newPrompts), 'utf8');
 };
