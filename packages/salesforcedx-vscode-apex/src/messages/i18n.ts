@@ -129,6 +129,7 @@ export const messages = {
   error_retrieving_org_version: 'Failed to retrieve org version',
   error_parsing_yaml: 'Error parsing YAML',
   no_oas_generated: 'LLM did not return any content.',
+  failed_to_combine_oas: 'Failed to combine yaml docs',
   strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.',
   invalid_class_annotation_for_generating_oas_doc: 'Invalid class annotation for generating OAS doc',
   no_eligible_method: 'No eligible methods found in the class',
