@@ -135,13 +135,13 @@
         },
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && sf:a4d_detected"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && salesforcedx-einstein-gpt.isEnabled"
         }
       ],
       "explorer/context": [
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && sf:a4d_detected"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
         }
       ],
       "view/title": [
@@ -260,7 +260,7 @@
         },
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && sf:a4d_detected"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
         }
       ]
     },
