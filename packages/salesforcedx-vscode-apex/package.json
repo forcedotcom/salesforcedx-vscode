@@ -372,10 +372,6 @@
       {
         "command": "sf.create.apex.action.class",
         "title": "%create_openapi_doc_class%"
-      },
-      {
-        "command": "sf.a4d.notify.activated",
-        "title": "%a4d_notify_activated%"
       }
     ],
     "configuration": {

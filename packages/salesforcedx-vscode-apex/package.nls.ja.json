@@ -30,6 +30,5 @@
   "run_tests_title": "テストを実行",
   "show_error_title": "エラーを表示",
   "test_view_container_title": "テストビューア",
-  "test_view_name": "Apex テスト",
-  "a4d_notify_activated": "Agentforce for Developer is activated."
+  "test_view_name": "Apex テスト"
 }
