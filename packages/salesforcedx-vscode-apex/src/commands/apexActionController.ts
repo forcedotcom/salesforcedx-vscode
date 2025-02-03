@@ -107,6 +107,24 @@ export class ApexActionController {
               );
             }
           }
+
+          // Step 8: Call Mulesoft extension if installed
+          const callMulesoftExtension = async () => {
+            if (await this.isCommandAvailable('mule-dx-api.open-api-project')) {
+              try {
+                const yamlUri = vscode.Uri.file(this.replaceXmlToYaml(fullPath[1]));
+                await vscode.commands.executeCommand('mule-dx-api.open-api-project', yamlUri);
+              } catch (error) {
+                telemetryService.sendEventData('mule-dx-api.open-api-project command could not be executed', {
+                  error: error.message
+                });
+                console.error('mule-dx-api.open-api-project command could not be executed', error);
+              }
+            } else {
+              telemetryService.sendEventData('mule-dx-api.open-api-project command not found');
+            }
+          };
+          await callMulesoftExtension();
         }
       );
 
@@ -502,5 +520,15 @@ export class ApexActionController {
       vscode.Uri.file(filepath2),
       diffWindowName
     );
+  };
+
+  /**
+   * Checks if a VSCode command is available.
+   * @param commandId Command ID of the VSCode command to check
+   * @returns boolean - true if the command is available, false otherwise
+   */
+  private isCommandAvailable = async (commandId: string): Promise<boolean> => {
+    const commands = await vscode.commands.getCommands(true);
+    return commands.includes(commandId);
   };
 }
