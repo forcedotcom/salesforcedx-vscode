@@ -4,13 +4,46 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { enumeration, pattern, schema, truthy, undefined } from '@stoplight/spectral-functions';
+import { enumeration, schema, truthy, undefined } from '@stoplight/spectral-functions';
 import { oas } from '@stoplight/spectral-rulesets';
 
 const ruleset = {
   extends: [oas],
   // the rules defined below are based on recommendations from https://docs.google.com/document/d/1WwfAPlB4YKHyRhLm1g_hHZja4hjbYkoTrIqIZvGxE5s/edit?tab=t.0
   rules: {
+    'info-contact': {
+      description: 'info-contact rule disabled',
+      given: '$',
+      message: 'info-contact rule disabled',
+      then: {
+        field: 'info',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'object',
+            properties: {
+              contact: {}
+            }
+          }
+        }
+      }
+    },
+    'operation-tag-defined': {
+      description: 'operation-tag-defined rule disabled',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operation-tag-defined rule disabled',
+      then: {
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'object',
+            properties: {
+              tags: {}
+            }
+          }
+        }
+      }
+    },
     'openapi-version': {
       description: 'openapi version must be 3.0.0',
       given: '$',
@@ -209,17 +242,31 @@ const ruleset = {
       given: '$.paths[*]',
       message: 'paths.parameters in `cookie` is not allowed',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
-              patternProperties: {
-                in: {
-                  type: 'string',
-                  pattern: 'query|header|path'
+            if: {
+              properties: {
+                parameters: {
+                  type: 'array'
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    patternProperties: {
+                      in: {
+                        not: {
+                          type: 'string',
+                          enum: ['cookie']
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -232,17 +279,29 @@ const ruleset = {
       given: '$.paths[*][get,post,put,delete,patch]',
       message: 'operations.parameters in `cookie` is not allowed',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
-              patternProperties: {
-                in: {
-                  type: 'string',
-                  pattern: 'query|header|path'
+            if: {
+              properties: {
+                parameters: {
+                  type: 'array'
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    patternProperties: {
+                      in: {
+                        type: 'string',
+                        enum: ['query', 'header', 'path']
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -255,19 +314,31 @@ const ruleset = {
       given: '$.paths[*]',
       message: 'paths.parameters.description is required',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                description: {
-                  type: 'string'
+                parameters: {
+                  type: 'array'
                 }
-              },
-              required: ['description']
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      description: {
+                        type: 'string'
+                      }
+                    },
+                    required: ['description']
+                  }
+                }
+              }
             }
           }
         }
@@ -278,19 +349,31 @@ const ruleset = {
       given: '$.paths[*][get,post,put,delete,patch]',
       message: 'operations.parameters.description is required',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                description: {
-                  type: 'string'
+                parameters: {
+                  type: 'array'
                 }
-              },
-              required: ['description']
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      description: {
+                        type: 'string'
+                      }
+                    },
+                    required: ['description']
+                  }
+                }
+              }
             }
           }
         }
@@ -301,30 +384,42 @@ const ruleset = {
       given: '$.paths[*]',
       message: 'path.parameters.deprecated is not allowed',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                name: { type: 'string' },
-                in: { type: 'string' },
-                description: {
-                  type: 'string'
-                },
-                required: { type: 'boolean' },
-                allowEmptyValue: { type: 'boolean' },
-                style: { type: 'string' },
-                explode: { type: 'boolean' },
-                allowReserved: { type: 'boolean' },
-                schema: { type: 'object' },
-                example: {},
-                examples: { type: 'object' },
-                content: { type: 'object' }
-              },
-              additionalProperties: false
+                parameters: {
+                  type: 'array'
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      in: { type: 'string' },
+                      description: {
+                        type: 'string'
+                      },
+                      required: { type: 'boolean' },
+                      allowEmptyValue: { type: 'boolean' },
+                      style: { type: 'string' },
+                      explode: { type: 'boolean' },
+                      allowReserved: { type: 'boolean' },
+                      schema: { type: 'object' },
+                      example: {},
+                      examples: { type: 'object' },
+                      content: { type: 'object' }
+                    },
+                    additionalProperties: false
+                  }
+                }
+              }
             }
           }
         }
@@ -335,30 +430,42 @@ const ruleset = {
       given: '$.paths[*][get,post,put,delete,patch]',
       message: 'operations.parameters.deprecated is not allowed',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                name: { type: 'string' },
-                in: { type: 'string' },
-                description: {
-                  type: 'string'
-                },
-                required: { type: 'boolean' },
-                allowEmptyValue: { type: 'boolean' },
-                style: { type: 'string' },
-                explode: { type: 'boolean' },
-                allowReserved: { type: 'boolean' },
-                schema: { type: 'object' },
-                example: {},
-                examples: { type: 'object' },
-                content: { type: 'object' }
-              },
-              additionalProperties: false
+                parameters: {
+                  type: 'array'
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      in: { type: 'string' },
+                      description: {
+                        type: 'string'
+                      },
+                      required: { type: 'boolean' },
+                      allowEmptyValue: { type: 'boolean' },
+                      style: { type: 'string' },
+                      explode: { type: 'boolean' },
+                      allowReserved: { type: 'boolean' },
+                      schema: { type: 'object' },
+                      example: {},
+                      examples: { type: 'object' },
+                      content: { type: 'object' }
+                    },
+                    additionalProperties: false
+                  }
+                }
+              }
             }
           }
         }
@@ -369,15 +476,33 @@ const ruleset = {
       given: '$.paths[*]',
       message: 'path.parameters.explode should be set to false',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                explode: { enum: [false] }
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      explode: { type: 'boolean' }
+                    }
+                  }
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      explode: { enum: [false] }
+                    }
+                  }
+                }
               }
             }
           }
@@ -389,15 +514,33 @@ const ruleset = {
       given: '$.paths[*][get,post,put,delete,patch]',
       message: 'operations.parameters.explode should be set to false',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                explode: { enum: [false] }
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      explode: { type: 'boolean' }
+                    }
+                  }
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      explode: { enum: [false] }
+                    }
+                  }
+                }
               }
             }
           }
@@ -409,15 +552,33 @@ const ruleset = {
       given: '$.paths[*]',
       message: 'path.parameters.allowReserved should be set to false',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                allowReserved: { enum: [false] }
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      allowReserved: { type: 'boolean' }
+                    }
+                  }
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      allowReserved: { enum: [false] }
+                    }
+                  }
+                }
               }
             }
           }
@@ -429,15 +590,33 @@ const ruleset = {
       given: '$.paths[*][get,post,put,delete,patch]',
       message: 'operations.parameters.allowReserved should be set to false',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                allowReserved: { enum: [false] }
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      allowReserved: { type: 'boolean' }
+                    }
+                  }
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      allowReserved: { enum: [false] }
+                    }
+                  }
+                }
               }
             }
           }
@@ -449,15 +628,33 @@ const ruleset = {
       given: '$.paths[*]',
       message: 'path.parameters.content should be `application/json`',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                content: { enum: ['application/json'] }
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      content: { type: 'string' }
+                    }
+                  }
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      content: { enum: ['application/json'] }
+                    }
+                  }
+                }
               }
             }
           }
@@ -469,15 +666,33 @@ const ruleset = {
       given: '$.paths[*][get,post,put,delete,patch]',
       message: 'operations.parameters.content should be `application/json`',
       then: {
-        field: 'parameters',
         function: schema,
         functionOptions: {
           schema: {
-            type: 'array',
-            items: {
-              type: 'object',
+            if: {
               properties: {
-                content: { enum: ['application/json'] }
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      content: { type: 'string' }
+                    }
+                  }
+                }
+              }
+            },
+            then: {
+              properties: {
+                parameters: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      content: { enum: ['application/json'] }
+                    }
+                  }
+                }
               }
             }
           }
