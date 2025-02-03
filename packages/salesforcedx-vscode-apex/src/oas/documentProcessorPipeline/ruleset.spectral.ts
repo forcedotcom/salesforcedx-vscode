@@ -11,6 +11,39 @@ const ruleset = {
   extends: [oas],
   // the rules defined below are based on recommendations from https://docs.google.com/document/d/1WwfAPlB4YKHyRhLm1g_hHZja4hjbYkoTrIqIZvGxE5s/edit?tab=t.0
   rules: {
+    'info-contact': {
+      description: 'info-contact rule disabled',
+      given: '$',
+      message: 'info-contact rule disabled',
+      then: {
+        field: 'info',
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'object',
+            properties: {
+              contact: {}
+            }
+          }
+        }
+      }
+    },
+    'operation-tag-defined': {
+      description: 'operation-tag-defined rule disabled',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operation-tag-defined rule disabled',
+      then: {
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'object',
+            properties: {
+              tags: {}
+            }
+          }
+        }
+      }
+    },
     'openapi-version': {
       description: 'openapi version must be 3.0.0',
       given: '$',
