@@ -1,3 +1,15 @@
+# 62.16.0 - February 5, 2025
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- Resolve call ([PR #6006](https://github.com/forcedotcom/salesforcedx-vscode/pull/6006))
+
+#### salesforcedx-vscode
+
+- Update Microsoft Marketplace page for Salesforce Extension Pack ([PR #6044](https://github.com/forcedotcom/salesforcedx-vscode/pull/6044))
+
 # 62.14.1 - January 15, 2025
 
 ## Fixed
