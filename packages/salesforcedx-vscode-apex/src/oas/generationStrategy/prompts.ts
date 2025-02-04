@@ -29,11 +29,10 @@ export const sourcePrompts: Prompts = {
     ' 9. Do not include AUTHOR_PLACEHOLDER in the result.\n' +
     ' 10. The OpenAPI v3 specification should be a YAML file.\n' +
     ' 11. Do NOT add any explanations of your answer that are not able to be parsed as YAML!\n' +
-    " 12. IMPORTANT: For each path /{urlMapping OR ClassName}/{MethodName}, you define operations (HTTP methods) that can be used to access that path. These operations MUST have description and a MANDATORY *operationId* property, which should be a unique string matching the operation's name. Don't use placeholders for parameter as operationId, just the name of the method.\n" +
-    ' 13. Only include HTTP Methods with annotations @HttpGet, @HttpPost, @HttpPut, @HttpDelete\n' +
-    ' 14. For every non-primitive type (object, list, or map), generate a #/components/schemas entry.\n' +
-    ' 15. The method must have a $ref entry pointing to the corresponding #/components/schemas entry.\n' +
-    " 16. Ensure the 'info.description' property is present.\n" +
+    ' 12. Only include HTTP Methods with annotations @HttpGet, @HttpPost, @HttpPut, @HttpDelete\n' +
+    ' 13. For every non-primitive type (object, list, or map), generate a #/components/schemas entry.\n' +
+    ' 14. The method must have a $ref entry pointing to the corresponding #/components/schemas entry.\n' +
+    " 15. Ensure the 'info.description' property is present.\n" +
     ' Ensure no sensitive details are included. Decline requests unrelated to OpenAPI v3 specs or asking for sensitive information.\n' +
     ' Return only valid YAML output without additional explanations.\n' +
     ' Ensure compliance with OpenAPI v3 validation rules:\n' +
@@ -50,7 +49,10 @@ export const sourcePrompts: Prompts = {
     " - Response headers are not allowed, and response content must be 'application/json'.\n" +
     ' - Request and response media encoding is not allowed.',
   METHOD_BY_METHOD: {
-    USER_PROMPT: 'Generate an OpenAPI v3 specification for the following Apex method.'
+    USER_PROMPT:
+      'Generate an OpenAPI v3 specification for the following Apex method. Ensure\n' +
+      '- IMPORTANT: For each path /{urlMapping OR ClassName}/{MethodName}, you define operations (HTTP methods) that can be used to access that path.\n' +
+      '- parameters field is included in each HTTP GET method if applicable, which could be in query or path or both.'
   },
   wholeClass: {
     userPrompt: 'Generate an OpenAPI v3 specification for the following Apex class.'
