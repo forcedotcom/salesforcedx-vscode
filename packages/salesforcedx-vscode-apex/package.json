@@ -99,7 +99,8 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "shelljs": "0.8.5",
-        "jsonpath": "1.1.1"
+        "jsonpath": "1.1.1",
+        "jsonc-parser": "2.2.1"
       },
       "devDependencies": {}
     }
