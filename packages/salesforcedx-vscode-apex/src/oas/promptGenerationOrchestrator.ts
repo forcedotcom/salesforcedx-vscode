@@ -18,7 +18,8 @@ import {
 
 export enum BidRule {
   LEAST_CALLS,
-  MOST_CALLS
+  MOST_CALLS,
+  METHOD_BY_METHOD
 }
 
 // An orchestrator that coordinates the generation of prompts for Apex classes.
@@ -70,6 +71,8 @@ export class PromptGenerationOrchestrator {
         return this.getLeastCalls(bids);
       case BidRule.MOST_CALLS:
         return this.getMostCalls(bids);
+      case BidRule.METHOD_BY_METHOD:
+        return this.getMethodByMethod(bids);
     }
   }
 
@@ -101,7 +104,11 @@ export class PromptGenerationOrchestrator {
         }
       }
     }
-    return bestStrategy ?? GenerationStrategy.METHOD_BY_METHOD;
+    return GenerationStrategy.METHOD_BY_METHOD;
+  }
+
+  getMethodByMethod(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
+    return GenerationStrategy.METHOD_BY_METHOD;
   }
 
   private cleanupYaml(doc: string): string {

@@ -84,7 +84,7 @@ export class ApexActionController {
 
           // Step 6: use the strategy to generate the OAS
           const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
-            BidRule.MOST_CALLS
+            BidRule.METHOD_BY_METHOD
           );
 
           // Step 7: Process the OAS document
