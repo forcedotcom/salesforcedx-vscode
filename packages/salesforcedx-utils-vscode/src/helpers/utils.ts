@@ -129,3 +129,13 @@ export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
 
   return new RegExp(pattern, onlyFirst ? undefined : 'g');
 };
+
+/**
+ * Calculates the differences found between two sets
+ * @param setA
+ * @param setB
+ * @returns
+ */
+export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => {
+  return new Set([...setA].filter(x => !setB.has(x)));
+};
