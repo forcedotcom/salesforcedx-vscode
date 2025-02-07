@@ -9,10 +9,11 @@ import { OpenAPIV3 } from 'openapi-types';
 import { nls } from '../../messages';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 import { MethodValidationStep } from './methodValidationStep';
-import { MissingPropertiesInjectorStep } from './missingPropertiesInjectorStep';
 import { OasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';
 import { ProcessorInputOutput } from './processorStep';
+import { PropertyCorrectionStep } from './propertyCorrectionStep';
+import { ReconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
 export class OasProcessor {
   private context: ApexClassOASGatherContextResponse;
@@ -29,9 +30,10 @@ export class OasProcessor {
   }
 
   async process(): Promise<ProcessorInputOutput> {
-    if (this.context.classDetail.annotations.includes('RestResource')) {
+    if (this.context.classDetail.annotations.find(a => a.name === 'RestResource')) {
       // currently only OasValidation exists, in future this would have converters too
-      const pipeline = new Pipeline(new MissingPropertiesInjectorStep())
+      const pipeline = new Pipeline(new PropertyCorrectionStep())
+        .addStep(new ReconcileDuplicateSemanticPathsStep())
         .addStep(new MethodValidationStep())
         .addStep(new OasValidationStep(this.context.classDetail.name));
 

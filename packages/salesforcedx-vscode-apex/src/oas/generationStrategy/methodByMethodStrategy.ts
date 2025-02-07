@@ -11,6 +11,7 @@ import { DocumentSymbol } from 'vscode';
 import * as yaml from 'yaml';
 import { nls } from '../../messages';
 import {
+  ApexAnnotationDetail,
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   ApexOASClassDetail,
@@ -25,6 +26,19 @@ import { getPrompts } from './promptsHandler';
 
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
+  llmResponses: string[];
+  metadata: ApexClassOASEligibleResponse;
+  context: ApexClassOASGatherContextResponse;
+  prompts: string[];
+  strategyName: string;
+  callCounts: number;
+  maxBudget: number;
+  methodsList: string[];
+  methodsDocSymbolMap: Map<string, DocumentSymbol>;
+  methodsContextMap: Map<string, ApexOASMethodDetail>;
+  documentText: string;
+  classPrompt: string; // The prompt for the entire class
+
   async callLLMWithPrompts(): Promise<string[]> {
     try {
       const llmService = await this.getLLMServiceInterface();
@@ -75,6 +89,12 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   combineYamlByMethod(docs: string[]) {
     const combined: OpenAPIDoc = {
       openapi: '3.0.0',
+      servers: [
+        {
+          url: '/servers/apexrest/'
+        }
+      ],
+
       info: {
         title: this.context.classDetail.name,
         version: '1.0.0',
@@ -86,53 +106,34 @@ export class MethodByMethodStrategy extends GenerationStrategy {
 
     for (const doc of docs) {
       const yamlCleanDoc = this.cleanYamlString(doc);
-      const parsed = yaml.parse(yamlCleanDoc) as OpenAPIV3.Document;
-      // Merge paths
-      if (parsed.paths) {
-        for (const [path, methods] of Object.entries(parsed.paths)) {
-          if (!combined.paths[path]) {
-            combined.paths[path] = {};
-          }
-          Object.assign(combined.paths[path], methods);
-        }
-      }
-      // Merge components
-      if (parsed.components?.schemas) {
-        for (const [schema, definition] of Object.entries(parsed.components.schemas)) {
-          if (!combined.components!.schemas![schema]) {
-            combined.components!.schemas![schema] = definition as Record<string, any>;
+      try {
+        const parsed = yaml.parse(yamlCleanDoc) as OpenAPIV3.Document;
+
+        // Merge paths
+        if (parsed.paths) {
+          for (const [path, methods] of Object.entries(parsed.paths)) {
+            if (!combined.paths[path]) {
+              combined.paths[path] = {};
+            }
+            Object.assign(combined.paths[path], methods);
           }
         }
+        // Merge components
+        if (parsed.components?.schemas) {
+          for (const [schema, definition] of Object.entries(parsed.components.schemas)) {
+            if (!combined.components!.schemas![schema]) {
+              combined.components!.schemas![schema] = definition as Record<string, any>;
+            }
+          }
+        }
+      } catch (e) {
+        console.debug(e);
+        throw e;
       }
     }
+
     return yaml.stringify(combined);
   }
-
-  llmResponses: string[];
-  public async callLLMWithGivenPrompts(): Promise<string[]> {
-    let documentContent = '';
-    try {
-      const llmService = await this.getLLMServiceInterface();
-      documentContent = await llmService.callLLM(this.prompts[0]);
-      this.llmResponses.push(documentContent);
-    } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : String(e);
-      throw new Error(errorMessage);
-    }
-    return this.llmResponses;
-  }
-
-  metadata: ApexClassOASEligibleResponse;
-  context: ApexClassOASGatherContextResponse;
-  prompts: string[];
-  strategyName: string;
-  callCounts: number;
-  maxBudget: number;
-  methodsList: string[];
-  methodsDocSymbolMap: Map<string, DocumentSymbol>;
-  methodsContextMap: Map<string, ApexOASMethodDetail>;
-  documentText: string;
-  classPrompt: string; // The prompt for the entire class
 
   public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     super();
@@ -150,21 +151,13 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     this.classPrompt = this.buildClassPrompt(this.context.classDetail);
   }
 
-  buildClassPrompt(classDetail: ApexOASClassDetail): string {
-    let prompt = '';
-    prompt += `The class name of the given method is ${classDetail.name}.\n`;
-    if (classDetail.comment !== undefined) {
-      prompt += `The comment of the class is ${classDetail.comment}.\n`;
-    }
-    return prompt;
-  }
-
   public bid(): PromptGenerationStrategyBid {
     const generationResult = this.generate();
     return {
       result: generationResult
     };
   }
+
   public generate(): PromptGenerationResult {
     const list = (this.metadata.symbols ?? []).filter(s => s.isApexOasEligible);
     for (const symbol of list) {
@@ -210,6 +203,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     input += '\nThis is the Apex method the OpenAPI v3 specification should be generated for:\n```\n';
     input += this.getMethodImplementation(methodName, this.documentText);
     input += `The method name is ${methodName}.\n`;
+    input += `The operationId in the OAS result must be ${methodName}.\n`;
     if (methodContext?.returnType !== undefined) {
       input += `The return type of the method is ${methodContext.returnType}.\n`;
     }
@@ -219,8 +213,8 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     if (methodContext?.modifiers?.length ?? 0 > 0) {
       input += `The modifiers of the method are ${methodContext!.modifiers.join(', ')}.\n`;
     }
-    if (methodContext?.annotations?.length ?? 0 > 0) {
-      input += `The annotations of the method are ${methodContext!.annotations.join(', ')}.\n`;
+    if (methodContext?.annotations && methodContext.annotations.length > 0) {
+      input += this.getAnnotationsWithParameters(methodContext.annotations);
     }
     if (methodContext?.comment !== undefined) {
       input += `The comment of the method is ${methodContext!.comment}.\n`;
@@ -229,6 +223,37 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     input += `\n\`\`\`\n${prompts.END_OF_PROMPT_TAG}\n${prompts.ASSISTANT_TAG}\n`;
 
     return input;
+  }
+
+  private buildClassPrompt(classDetail: ApexOASClassDetail): string {
+    let prompt = '';
+    prompt += `The class name of the given method is ${classDetail.name}.\n`;
+    if (classDetail.annotations.length > 0) {
+      prompt += `The class is annotated with ${this.getAnnotationsWithParameters(classDetail.annotations)}.\n`;
+    }
+
+    if (classDetail.comment !== undefined) {
+      prompt += `The comment of the class is ${classDetail.comment}.\n`;
+    }
+
+    return prompt;
+  }
+
+  private getAnnotationsWithParameters(annotations: ApexAnnotationDetail[]): string {
+    const annotationsStr =
+      annotations
+        .map(annotation => {
+          const paramsEntries = Object.entries(annotation.parameters);
+          const paramsAsStr =
+            paramsEntries.length > 0
+              ? paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ') + '\n'
+              : undefined;
+          return paramsAsStr
+            ? `Annotation name: ${annotation.name} , Parameters: ${paramsAsStr}`
+            : `Annotation name: ${annotation.name}`;
+        })
+        .join(', ') + '\n';
+    return annotationsStr;
   }
 
   getMethodImplementation(methodName: string, doc: string): string {

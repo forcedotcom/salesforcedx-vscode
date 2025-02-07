@@ -5,11 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { difference } from '@salesforce/salesforcedx-utils-vscode';
+import { JSONPath } from 'jsonpath-plus';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { ApexClassOASEligibleResponse, OpenAPIDoc } from '../schemas';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
+
 export class MethodValidationStep implements ProcessorStep {
   static diagnosticCollection: vscode.DiagnosticCollection =
     vscode.languages.createDiagnosticCollection('OAS Method Validations');
@@ -30,42 +33,40 @@ export class MethodValidationStep implements ProcessorStep {
   }
 
   private validateMethods(
-    parsed: OpenAPIV3.Document,
+    oasYaml: OpenAPIV3.Document,
     eligibilityResult: ApexClassOASEligibleResponse
   ): OpenAPIV3.Document {
     const symbols = eligibilityResult.symbols;
     if (!symbols || symbols.length === 0) {
       throw new Error(nls.localize('no_eligible_method'));
     }
-    const methodNames = new Set(
+    const methodNames = new Set<string>(
       symbols.filter(symbol => symbol.isApexOasEligible).map(symbol => symbol.docSymbol.name)
     );
 
-    for (const [path, methods] of Object.entries(parsed?.paths || {})) {
-      const methodName = path.split('/').pop();
-      // make sure all eligible methods are present in the document
-      if (!methodName || !methodNames.has(methodName)) {
-        this.diagnostics.push(
-          new vscode.Diagnostic(
-            new vscode.Range(0, 0, 0, 0),
-            nls.localize('ineligible_method_in_doc', methodName),
-            vscode.DiagnosticSeverity.Error
-          )
-        );
-      } else {
-        methodNames.delete(methodName);
-      }
-    }
+    // Use JSONPath to find all operationIds in the OAS document
+    const operationIds = new Set<string>(JSONPath({ path: '$..operationId', json: oasYaml }));
 
-    if (methodNames.size > 0) {
+    difference(methodNames, operationIds).forEach(methodName => {
       this.diagnostics.push(
         new vscode.Diagnostic(
           new vscode.Range(0, 0, 0, 0),
-          nls.localize('eligible_method_not_in_doc', Array.from(methodNames).join(', ')),
+          nls.localize('eligible_method_not_in_doc', methodName),
           vscode.DiagnosticSeverity.Error
         )
       );
-    }
-    return parsed;
+    });
+
+    difference(operationIds, methodNames).forEach(methodName => {
+      this.diagnostics.push(
+        new vscode.Diagnostic(
+          new vscode.Range(0, 0, 0, 0),
+          nls.localize('ineligible_method_in_doc', methodName),
+          vscode.DiagnosticSeverity.Error
+        )
+      );
+    });
+
+    return oasYaml;
   }
 }
