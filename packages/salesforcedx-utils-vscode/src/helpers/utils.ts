@@ -131,7 +131,7 @@ export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
 };
 
 /**
- * Calculates the differences found between two sets
+ * Returns elements that are in setA but not in setB.
  * @param setA
  * @param setB
  * @returns
