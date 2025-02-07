@@ -23,6 +23,6 @@ export class PropertyCorrectionStep implements ProcessorStep {
   }
 
   private ensureServersIsPresent(yaml: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    return { ...yaml, ...{ servers: [{ url: '/servers/apexrest' }] } };
+    return { ...yaml, ...{ servers: [{ url: '/services/apexrest' }] } };
   }
 }
