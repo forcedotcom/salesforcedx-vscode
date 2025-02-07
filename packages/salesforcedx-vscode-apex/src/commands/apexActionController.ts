@@ -42,7 +42,7 @@ export class ApexActionController {
   public createApexAction = async (isClass: boolean, sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
     const type = isClass ? 'Class' : 'Method';
     const command = isClass
-      ? 'SFDX: Create OpenAPI Document from This Class'
+      ? 'SFDX: Create OpenAPI Document from This Class (Beta)'
       : 'SFDX: Create OpenAPI Document from Selected Method';
     let eligibilityResult;
     let context;
