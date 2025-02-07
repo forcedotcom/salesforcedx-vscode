@@ -243,12 +243,14 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     const annotationsStr =
       annotations
         .map(annotation => {
+          const paramsEntries = Object.entries(annotation.parameters);
           const paramsAsStr =
-            Object.entries(annotation.parameters)
-              .map(([key, value]) => `${key}: ${value}`)
-              .join(', ') + '\n';
-
-          return `Annotation name: ${annotation.name} , Parameters: ${paramsAsStr}`;
+            paramsEntries.length > 0
+              ? paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ') + '\n'
+              : undefined;
+          return paramsAsStr
+            ? `Annotation name: ${annotation.name} , Parameters: ${paramsAsStr}`
+            : `Annotation name: ${annotation.name}`;
         })
         .join(', ') + '\n';
     return annotationsStr;
