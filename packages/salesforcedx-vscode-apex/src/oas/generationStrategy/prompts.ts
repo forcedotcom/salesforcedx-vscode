@@ -38,7 +38,7 @@ export const sourcePrompts: Prompts = {
     ' Return only valid YAML output without additional explanations.\n' +
     ' Ensure compliance with OpenAPI v3 validation rules:\n' +
     ' - OpenAPI version must be 3.0.0.\n' +
-    " - Servers should always be a single '/services/apexrest' URL.\n" +
+    " - The OpenAPI doc servers array property MUST '/services/apexrest' URL.\n" +
     ' - Security schemes must be either OAuth2 or HTTP (Bearer).\n' +
     ' - Paths.<method>.description is required.\n' +
     ' - Paths.<method>.servers, options, head, and trace should not be present.\n' +

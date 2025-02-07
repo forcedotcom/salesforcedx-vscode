@@ -39,11 +39,18 @@ export type ApexClassOASGatherContextResponse = {
   relationships: Map<string, Map<string, string[]>>; // Map<methodName, Map<srcClassUri, List<methodOrPropName>>>
 };
 
+export type ApexAnnotationDetail = {
+  name: string;
+  parameters: {
+    [key: string]: string;
+  };
+};
+
 export type ApexOASClassDetail = {
   name: string;
   interfaces: ApexOASInterface[];
   extendedClass: ApexOASClassDetail | null;
-  annotations: string[];
+  annotations: ApexAnnotationDetail[];
   definitionModifiers: string[];
   accessModifiers: string[];
   innerClasses: DocumentSymbol[];
@@ -55,7 +62,7 @@ export type ApexOASPropertyDetail = {
   type: string;
   documentSymbol: DocumentSymbol;
   modifiers: string[];
-  annotations: string[];
+  annotations: ApexAnnotationDetail[];
   comment: string;
 };
 
@@ -64,7 +71,7 @@ export type ApexOASMethodDetail = {
   returnType: string;
   parameterTypes: string[];
   modifiers: string[];
-  annotations: string[];
+  annotations: ApexAnnotationDetail[];
   comment: string;
 };
 
@@ -103,6 +110,7 @@ export type PromptGenerationStrategyBid = {
 
 export interface OpenAPIDoc {
   openapi: string;
+  servers?: { url: string }[];
   info: { title: string; version: string; description: string };
   paths: Record<string, any>;
   components?: { schemas?: Record<string, any> };
