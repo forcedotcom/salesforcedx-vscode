@@ -139,12 +139,20 @@
         {
           "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
         }
       ],
       "explorer/context": [
         {
           "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
         }
       ],
       "view/title": [
@@ -264,6 +272,10 @@
         {
           "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && (resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
         }
       ]
     },
@@ -375,6 +387,10 @@
       {
         "command": "sf.create.apex.action.class",
         "title": "%create_openapi_doc_class%"
+      },
+      {
+        "command": "sf.validate.oas.document",
+        "title": "%validate_oas_document%"
       }
     ],
     "configuration": {
