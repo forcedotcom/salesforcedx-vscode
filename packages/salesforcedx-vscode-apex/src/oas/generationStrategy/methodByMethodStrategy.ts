@@ -101,6 +101,8 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   /* Extracts parameters in path from the operation object */
   extractParametersInPath(oas: OpenAPIV3.Document): string[] {
     const parametersArray: string[] = [];
+    const requiredParameters: string[] = [];
+    const optionalParameters: string[] = [];
     if (oas.paths) {
       for (const path in oas.paths) {
         for (const method in oas.paths[path]) {
@@ -108,14 +110,18 @@ export class MethodByMethodStrategy extends GenerationStrategy {
           if (operation.parameters) {
             operation.parameters.forEach((param: any) => {
               if (param.in === 'path') {
-                parametersArray.push(param.name);
+                if (param.required) {
+                  requiredParameters.push(param.name);
+                } else {
+                  optionalParameters.push(param.name);
+                }
               }
             });
           }
         }
       }
     }
-
+    parametersArray.push(...requiredParameters, ...optionalParameters);
     return parametersArray;
   }
 
