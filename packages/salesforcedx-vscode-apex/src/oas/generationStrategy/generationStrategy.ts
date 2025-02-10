@@ -15,11 +15,11 @@ import {
 export abstract class GenerationStrategy {
   abstract metadata: ApexClassOASEligibleResponse;
   abstract context: ApexClassOASGatherContextResponse;
-  abstract prompts: string[];
+  abstract prompts: string[] | Map<string, string>; // Map<methodName, prompt>
   abstract strategyName: string;
   abstract callCounts: number;
   abstract maxBudget: number;
-  abstract llmResponses: string[];
+  abstract llmResponses: string[] | Map<string, string>; // Map<methodName, yaml response>
   abstract bid(): PromptGenerationStrategyBid;
   abstract generate(): PromptGenerationResult; // generate the prompt(s) to be sent to the LLM
   abstract callLLMWithPrompts(): Promise<string[]>;

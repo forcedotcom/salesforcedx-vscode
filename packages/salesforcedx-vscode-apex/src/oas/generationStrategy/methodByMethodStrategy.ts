@@ -26,10 +26,11 @@ import { getPrompts } from './promptsHandler';
 
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
-  llmResponses: string[];
+  llmRequests: Map<string, Promise<string>>;
+  llmResponses: Map<string, string>;
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
-  prompts: string[];
+  prompts: Map<string, string>;
   strategyName: string;
   callCounts: number;
   maxBudget: number;
@@ -38,26 +39,98 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   methodsContextMap: Map<string, ApexOASMethodDetail>;
   documentText: string;
   classPrompt: string; // The prompt for the entire class
+  urlMapping: string;
+
+  async resolveLLMResponses(llmRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
+    const methodNames = Array.from(llmRequests.keys());
+    const llmResponses = await Promise.allSettled(Array.from(llmRequests.values()));
+    return new Map(
+      methodNames.map((methodName, index) => {
+        const result = llmResponses[index];
+        if (result.status === 'fulfilled') {
+          return [methodName, result.value];
+        } else {
+          console.log(`Promise ${index} rejected with reason:`, result.reason);
+          return [methodName, ''];
+        }
+      })
+    );
+  }
+
+  prevalidateLLMResponse(): string[] {
+    const validResponses: string[] = [];
+    for (const [methodName, response] of this.llmResponses) {
+      if (response === '') {
+        console.log(`LLM response for ${methodName} is empty.`);
+        continue;
+      }
+      const parsed = yaml.parse(this.cleanYamlString(response)) as OpenAPIV3.Document;
+      // make sure parameters in path are in the request path, and the request path starts with the urlMapping
+      const parametersInPath = this.extractParametersInPath(parsed);
+      if (parsed.paths) {
+        for (const [path, methods] of Object.entries(parsed.paths)) {
+          const validatedPath = this.formatUrlPath(parametersInPath);
+          delete parsed.paths[path];
+          parsed.paths[validatedPath] = methods;
+        }
+      }
+      // update operationId with the methodName
+      if (parsed.paths) {
+        for (const path in parsed.paths) {
+          for (const method in parsed.paths[path]) {
+            const operation = parsed.paths[path][method as keyof (typeof parsed.paths)[string]] as any;
+            if (operation) {
+              operation.operationId = methodName;
+            }
+          }
+        }
+      }
+      validResponses.push(yaml.stringify(parsed));
+    }
+    return validResponses;
+  }
+
+  formatUrlPath(parametersInPath: string[]): string {
+    let updatedPath = this.urlMapping.replace(/\/$|\/\*$/, '').trim() || '/';
+    parametersInPath.forEach(parameter => {
+      updatedPath += `/{${parameter}}`;
+    });
+    return updatedPath;
+  }
+
+  /* Extracts parameters in path from the operation object */
+  extractParametersInPath(oas: OpenAPIV3.Document): string[] {
+    const parametersArray: string[] = [];
+    if (oas.paths) {
+      for (const path in oas.paths) {
+        for (const method in oas.paths[path]) {
+          const operation = oas.paths[path][method as keyof (typeof oas.paths)[string]] as any;
+          if (operation.parameters) {
+            operation.parameters.forEach((param: any) => {
+              if (param.in === 'path') {
+                parametersArray.push(param.name);
+              }
+            });
+          }
+        }
+      }
+    }
+
+    return parametersArray;
+  }
 
   async callLLMWithPrompts(): Promise<string[]> {
     try {
       const llmService = await this.getLLMServiceInterface();
 
       // Filter valid prompts and map them to promises
-      const responsePromises = this.prompts.filter(p => p?.length > 0).map(prompt => llmService.callLLM(prompt));
-
-      // Execute all LLM calls in parallel and store responses
-      await Promise.allSettled(responsePromises).then(results => {
-        results.forEach((result, index) => {
-          if (result.status === 'fulfilled') {
-            this.llmResponses.push(result.value);
-          } else if (result.status === 'rejected') {
-            console.log(`Promise ${index} rejected with reason:`, result.reason);
-          }
-        });
-      });
-
-      return this.llmResponses;
+      for (const [methodName, prompt] of this.prompts) {
+        if (prompt?.length > 0) {
+          this.llmRequests.set(methodName, llmService.callLLM(prompt));
+        }
+      }
+      this.llmResponses = await this.resolveLLMResponses(this.llmRequests);
+      return this.prevalidateLLMResponse();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(errorMessage);
@@ -91,7 +164,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       openapi: '3.0.0',
       servers: [
         {
-          url: '/servers/apexrest/'
+          url: '/services/apexrest/'
         }
       ],
 
@@ -139,16 +212,19 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     super();
     this.metadata = metadata;
     this.context = context;
-    this.prompts = [];
+    this.prompts = new Map();
     this.strategyName = 'MethodByMethod';
     this.callCounts = 0;
     this.maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
     this.methodsList = [];
-    this.llmResponses = [];
+    this.llmResponses = new Map();
     this.methodsDocSymbolMap = new Map();
     this.methodsContextMap = new Map();
+    this.llmRequests = new Map();
     this.documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
     this.classPrompt = this.buildClassPrompt(this.context.classDetail);
+    const restResourceAnnotation = this.context.classDetail.annotations.find(a => a.name === 'RestResource');
+    this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
   }
 
   public bid(): PromptGenerationStrategyBid {
@@ -171,7 +247,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       const input = this.generatePromptForMethod(methodName);
       const tokenCount = this.getPromptTokenCount(input);
       if (tokenCount <= PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
-        this.prompts.push(input);
+        this.prompts.set(methodName, input);
         this.callCounts++;
         const currentBudget = Math.floor((PROMPT_TOKEN_MAX_LIMIT - tokenCount) * IMPOSED_FACTOR);
         if (currentBudget < this.maxBudget) {
@@ -179,7 +255,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
         }
       } else {
         // as long as there is one failure, the strategy will be considered failed
-        this.prompts = [];
+        this.prompts.clear();
         this.callCounts = 0;
         this.maxBudget = 0;
         return {
