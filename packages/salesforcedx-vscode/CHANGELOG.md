@@ -1,3 +1,21 @@
+# 63.0.0 - February 13, 2025
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- [W-17722104]  Apex LSP Major Release Tasks 254 ([PR #6062](https://github.com/forcedotcom/salesforcedx-vscode/pull/6062))
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- Resolve call ([PR #6006](https://github.com/forcedotcom/salesforcedx-vscode/pull/6006))
+
+#### salesforcedx-vscode
+
+- Update Microsoft Marketplace page for Salesforce Extension Pack ([PR #6044](https://github.com/forcedotcom/salesforcedx-vscode/pull/6044))
+
 # 62.14.1 - January 15, 2025
 
 ## Fixed
