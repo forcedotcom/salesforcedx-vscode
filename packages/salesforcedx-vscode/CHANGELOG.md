@@ -4,17 +4,17 @@
 
 #### salesforcedx-vscode-apex
 
-- [W-17722104]  Apex LSP Major Release Tasks 254 ([PR #6062](https://github.com/forcedotcom/salesforcedx-vscode/pull/6062))
+- We've made some updates to the Apex LSP to prepare for an upcoming Salesforce release bump.([PR #6062](https://github.com/forcedotcom/salesforcedx-vscode/pull/6062))
 
 ## Fixed
 
 #### salesforcedx-utils-vscode
 
-- Resolve call ([PR #6006](https://github.com/forcedotcom/salesforcedx-vscode/pull/6006))
+- We fixed an under-the-hood issue with our telemetry. ([PR #6006](https://github.com/forcedotcom/salesforcedx-vscode/pull/6006))
 
 #### salesforcedx-vscode
 
-- Update Microsoft Marketplace page for Salesforce Extension Pack ([PR #6044](https://github.com/forcedotcom/salesforcedx-vscode/pull/6044))
+- Our VS Code Marketplace page now shows the minimum VS Code version that’s required by the Salesforce Extension Pack.([PR #6044](https://github.com/forcedotcom/salesforcedx-vscode/pull/6044))
 
 # 62.14.1 - January 15, 2025
 
