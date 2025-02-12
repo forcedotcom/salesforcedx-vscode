@@ -42,9 +42,12 @@ export class OasValidationStep implements ProcessorStep {
         return new vscode.Diagnostic(range, result.message, this.mapSeverity(result.severity));
       });
 
-      // Add diagnostics to the Problems tab for the virtual document
-      OasValidationStep.diagnosticCollection.set(virtualUri, diagnostics);
-      input.errors = [...input.errors, ...diagnostics];
+      const mulesoftExtension = vscode.extensions.getExtension('mulesoft.mulesoft-extension-id');
+      if (!mulesoftExtension || !mulesoftExtension.isActive) {
+        // Add diagnostics to the Problems tab for the virtual document
+        OasValidationStep.diagnosticCollection.set(virtualUri, diagnostics);
+        input.errors = [...input.errors, ...diagnostics];
+      }
     });
 
     // Return the input for future processing

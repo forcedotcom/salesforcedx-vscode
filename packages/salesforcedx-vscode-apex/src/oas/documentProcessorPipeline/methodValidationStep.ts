@@ -25,8 +25,11 @@ export class MethodValidationStep implements ProcessorStep {
     this.virtualUri = vscode.Uri.parse(`untitled:${this.className}_OAS_temp.yaml`);
     MethodValidationStep.diagnosticCollection.clear();
     const cleanedupYaml = this.validateMethods(input.yaml, input.eligibilityResult);
-    MethodValidationStep.diagnosticCollection.set(this.virtualUri, this.diagnostics);
-    input.errors = [...input.errors, ...this.diagnostics];
+    const mulesoftExtension = vscode.extensions.getExtension('mulesoft.mulesoft-extension-id');
+    if (!mulesoftExtension || !mulesoftExtension.isActive) {
+      MethodValidationStep.diagnosticCollection.set(this.virtualUri, this.diagnostics);
+      input.errors = [...input.errors, ...this.diagnostics];
+    }
     return new Promise(resolve => {
       resolve({ ...input, yaml: cleanedupYaml });
     });
