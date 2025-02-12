@@ -43,8 +43,13 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   urlMapping: string;
 
   async resolveLLMResponses(llmRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
-    const methodNames = Array.from(llmRequests.keys());
-    const llmResponses = await Promise.allSettled(Array.from(llmRequests.values()));
+    const methodNames: string[] = [];
+    const requests: Promise<string>[] = [];
+    llmRequests.forEach((request, methodName) => {
+      methodNames.push(methodName);
+      requests.push(request);
+    });
+    const llmResponses = await Promise.allSettled(requests);
     return new Map(
       methodNames.map((methodName, index) => {
         const result = llmResponses[index];
