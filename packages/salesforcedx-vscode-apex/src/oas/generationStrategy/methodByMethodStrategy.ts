@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { JSONPath } from 'jsonpath-plus';
 import { OpenAPIV3 } from 'openapi-types';
 import { DocumentSymbol } from 'vscode';
 import * as yaml from 'yaml';
@@ -76,14 +77,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       }
       // update operationId with the methodName
       if (parsed.paths) {
-        for (const path in parsed.paths) {
-          for (const method in parsed.paths[path]) {
-            const operation = parsed.paths[path][method as keyof (typeof parsed.paths)[string]] as any;
-            if (operation) {
-              operation.operationId = methodName;
-            }
-          }
-        }
+        this.updateOperationIds(parsed, methodName);
       }
       validResponses.push(yaml.stringify(parsed));
     }
@@ -100,29 +94,23 @@ export class MethodByMethodStrategy extends GenerationStrategy {
 
   /* Extracts parameters in path from the operation object */
   extractParametersInPath(oas: OpenAPIV3.Document): string[] {
-    const parametersArray: string[] = [];
-    const requiredParameters: string[] = [];
-    const optionalParameters: string[] = [];
-    if (oas.paths) {
-      for (const path in oas.paths) {
-        for (const method in oas.paths[path]) {
-          const operation = oas.paths[path][method as keyof (typeof oas.paths)[string]] as any;
-          if (operation.parameters) {
-            operation.parameters.forEach((param: any) => {
-              if (param.in === 'path') {
-                if (param.required) {
-                  requiredParameters.push(param.name);
-                } else {
-                  optionalParameters.push(param.name);
-                }
-              }
-            });
-          }
+    return JSONPath<OpenAPIV3.ParameterObject[]>({ path: '$..parameters[?(@.in=="path")]', json: oas })
+      .sort((param1, param2) => {
+        return param1.required === param2.required ? 0 : param1.required ? -1 : 1;
+      })
+      .map(param => param.name);
+  }
+
+  updateOperationIds(parsed: OpenAPIV3.Document, methodName: string) {
+    JSONPath({
+      path: '$.paths.*.*',
+      json: parsed,
+      callback: operation => {
+        if (operation) {
+          operation.operationId = methodName;
         }
       }
-    }
-    parametersArray.push(...requiredParameters, ...optionalParameters);
-    return parametersArray;
+    });
   }
 
   async callLLMWithPrompts(): Promise<string[]> {

@@ -415,11 +415,7 @@ export class ApexActionController {
         }
       }
       // Replace the operations with the new methods
-      if (jsonObj.ExternalServiceRegistration?.operations) {
-        jsonObj.ExternalServiceRegistration.operations = operations;
-      } else {
-        throw new Error(nls.localize('operations_element_not_found'));
-      }
+      jsonObj.ExternalServiceRegistration.operations = operations;
       // Replace the named credential with the one from the input
       jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
