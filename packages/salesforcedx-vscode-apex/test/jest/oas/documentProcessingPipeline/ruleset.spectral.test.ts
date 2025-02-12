@@ -269,34 +269,6 @@ components:
     expect(JSON.stringify(result)).toMatch(/operations-description/);
   });
 
-  it('operations-operationId is required', async () => {
-    const inputYaml = `openapi: 3.0.0
-info:
-  title: demoClass API
-  version: '1.0.0'
-servers:
-  - url: https://files.example.com
-    description: Optional server description, e.g. Main (production) server
-paths:
-  /demoClass/doDelete:
-    delete:
-      summary: delete method
-      responses:
-        '200':
-          description: OK
-components:
-  schemas:
-    Account:
-      type: object
-      properties:
-        Id:
-          type: string`;
-
-    const result = await runRulesetAgainstYaml(inputYaml);
-
-    expect(JSON.stringify(result)).toMatch(/operations-operationId/);
-  });
-
   it('operations-callbacks should not be present', async () => {
     const inputYaml = `openapi: 3.0.0
 info:
@@ -1273,7 +1245,6 @@ components:
     expect(JSON.stringify(result)).not.toMatch(/paths-method-trace/);
     expect(JSON.stringify(result)).not.toMatch(/info-description/);
     expect(JSON.stringify(result)).not.toMatch(/operations-description/);
-    expect(JSON.stringify(result)).not.toMatch(/operations-operationId/);
     expect(JSON.stringify(result)).not.toMatch(/operations-callbacks/);
     expect(JSON.stringify(result)).not.toMatch(/operations-deprecated/);
     expect(JSON.stringify(result)).not.toMatch(/operations-security/);

@@ -165,15 +165,6 @@ const ruleset = {
         function: truthy
       }
     },
-    'operations-operationId': {
-      description: 'operations.operationId is required',
-      given: '$.paths[*][get,post,put,delete,patch]',
-      message: 'operations.operationId is required',
-      then: {
-        field: 'operationId',
-        function: truthy
-      }
-    },
     'operations-callbacks': {
       description: 'operations.callbacks should not be present',
       given: '$.paths[*][get,post,put,delete,patch]',
