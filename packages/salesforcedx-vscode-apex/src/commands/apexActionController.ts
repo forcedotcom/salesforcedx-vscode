@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfProject } from '@salesforce/core-bundle';
 import { notificationService, WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
@@ -13,26 +12,21 @@ import * as fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { parse, stringify } from 'yaml';
+import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { OasProcessor } from '../oas/documentProcessorPipeline/oasProcessor';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
-import {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  ApexOASInfo,
-  ExternalServiceOperation
-} from '../oas/schemas';
+import { ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
+import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from './oasUtils';
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
     await WorkspaceContextUtil.getInstance().initialize(extensionContext);
-    this.isESRDecomposed = await this.checkIfESRIsDecomposed();
+    this.isESRDecomposed = await checkIfESRIsDecomposed();
   }
 
   /**
@@ -88,13 +82,13 @@ export class ApexActionController {
           );
 
           // Step 7: Process the OAS document
-          const processedOasDoc = await this.processOasDocument(openApiDocument, context, eligibilityResult);
+          const processedOasResult = await processOasDocument(openApiDocument, context, eligibilityResult);
 
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
-          await this.saveOasAsEsrMetadata(processedOasDoc, fullPath[1]);
+          await this.saveOasAsEsrMetadata(processedOasResult.yaml, fullPath[1]);
 
-          // Step 7: If the user chose to merge, open a diff between the original and new ESR files
+          // Step 9: If the user chose to merge, open a diff between the original and new ESR files
           if (fullPath[0] !== fullPath[1]) {
             void this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
 
@@ -108,7 +102,14 @@ export class ApexActionController {
             }
           }
 
-          // Step 8: Call Mulesoft extension if installed
+          // Step: 10 Create entries in problems tab for generated file
+          createProblemTabEntriesForOasDocument(
+            this.isESRDecomposed ? this.replaceXmlToYaml(fullPath[0]) : fullPath[0],
+            processedOasResult,
+            this.isESRDecomposed
+          );
+
+          // Step 11: Call Mulesoft extension if installed
           const callMulesoftExtension = async () => {
             if (await this.isCommandAvailable('mule-dx-api.open-api-project')) {
               try {
@@ -147,17 +148,6 @@ export class ApexActionController {
     } catch (error: any) {
       void this.handleError(error, `ApexAction${type}CreationFailed`);
     }
-  };
-
-  private processOasDocument = async (
-    oasDoc: string,
-    context: ApexClassOASGatherContextResponse,
-    eligibleResult: ApexClassOASEligibleResponse
-  ): Promise<OpenAPIV3.Document> => {
-    const parsed = parse(oasDoc);
-    const oasProcessor = new OasProcessor(context, parsed, eligibleResult);
-    const processResult = await oasProcessor.process();
-    return processResult.yaml;
   };
 
   /**
@@ -415,11 +405,7 @@ export class ApexActionController {
         }
       }
       // Replace the operations with the new methods
-      if (jsonObj.ExternalServiceRegistration?.operations) {
-        jsonObj.ExternalServiceRegistration.operations = operations;
-      } else {
-        throw new Error(nls.localize('operations_element_not_found'));
-      }
+      jsonObj.ExternalServiceRegistration.operations = operations;
       // Replace the named credential with the one from the input
       jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
@@ -466,21 +452,6 @@ export class ApexActionController {
     });
 
     return operations.filter((operation): operation is ExternalServiceOperation => operation !== null);
-  };
-
-  /**
-   * Reads sfdx-project.json and checks if decomposeExternalServiceRegistrationBeta is enabled.
-   * @returns boolean - true if sfdx-project.json contains decomposeExternalServiceRegistrationBeta
-   */
-  private checkIfESRIsDecomposed = async (): Promise<boolean> => {
-    const projectPath = workspaceUtils.getRootWorkspacePath();
-    const sfProject = await SfProject.resolve(projectPath);
-    const sfdxProjectJson = sfProject.getSfProjectJson();
-    if (sfdxProjectJson.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
-      return true;
-    }
-
-    return false;
   };
 
   /**

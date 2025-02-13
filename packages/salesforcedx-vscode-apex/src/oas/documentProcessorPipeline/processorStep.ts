@@ -11,8 +11,7 @@ import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 
 export interface ProcessorInputOutput {
   yaml: OpenAPIV3.Document;
   errors: vscode.Diagnostic[];
-  readonly eligibilityResult: ApexClassOASEligibleResponse;
-  readonly context: ApexClassOASGatherContextResponse;
+  readonly eligibilityResult?: ApexClassOASEligibleResponse;
 }
 
 export interface ProcessorStep {

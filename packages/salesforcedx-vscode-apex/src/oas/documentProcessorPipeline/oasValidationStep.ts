@@ -12,22 +12,9 @@ import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 import ruleset from './ruleset.spectral';
 
 export class OasValidationStep implements ProcessorStep {
-  public static diagnosticCollection: vscode.DiagnosticCollection =
-    vscode.languages.createDiagnosticCollection('OAS Validations');
-  private className: string;
-
-  constructor(className: string) {
-    // Initialize a diagnostic collection for in-memory YAML validation
-    this.className = className;
-  }
-
   async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     const spectral = new Spectral();
     spectral.setRuleset(ruleset);
-
-    // Create a virtual URI to represent the YAML
-    const virtualUri = vscode.Uri.parse(`untitled:${this.className}_OAS_temp.yaml`);
-    OasValidationStep.diagnosticCollection.clear();
 
     // Run validation using Spectral
     await spectral.run(stringify(input.yaml)).then(results => {
@@ -42,12 +29,7 @@ export class OasValidationStep implements ProcessorStep {
         return new vscode.Diagnostic(range, result.message, this.mapSeverity(result.severity));
       });
 
-      const mulesoftExtension = vscode.extensions.getExtension('mulesoft.mulesoft-extension-id');
-      if (!mulesoftExtension || !mulesoftExtension.isActive) {
-        // Add diagnostics to the Problems tab for the virtual document
-        OasValidationStep.diagnosticCollection.set(virtualUri, diagnostics);
-        input.errors = [...input.errors, ...diagnostics];
-      }
+      input.errors = [...input.errors, ...diagnostics];
     });
 
     // Return the input for future processing

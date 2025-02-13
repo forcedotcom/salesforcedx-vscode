@@ -6,8 +6,8 @@
  */
 
 import { OpenAPIV3 } from 'openapi-types';
-import { nls } from '../../messages';
-import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
+import * as vscode from 'vscode';
+import { ApexClassOASEligibleResponse } from '../schemas';
 import { MethodValidationStep } from './methodValidationStep';
 import { OasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';
@@ -16,39 +16,29 @@ import { PropertyCorrectionStep } from './propertyCorrectionStep';
 import { ReconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
 export class OasProcessor {
-  private context: ApexClassOASGatherContextResponse;
   private document: OpenAPIV3.Document;
-  private eligibilityResult: ApexClassOASEligibleResponse;
-  constructor(
-    context: ApexClassOASGatherContextResponse,
-    document: OpenAPIV3.Document,
-    eligibilityResult: ApexClassOASEligibleResponse
-  ) {
-    this.context = context;
+  private eligibilityResult?: ApexClassOASEligibleResponse;
+  static diagnosticCollection: vscode.DiagnosticCollection =
+    vscode.languages.createDiagnosticCollection('OAS Validations');
+  constructor(document: OpenAPIV3.Document, eligibilityResult?: ApexClassOASEligibleResponse) {
     this.document = document;
     this.eligibilityResult = eligibilityResult;
   }
 
   async process(): Promise<ProcessorInputOutput> {
-    if (this.context.classDetail.annotations.find(a => a.name === 'RestResource')) {
-      // currently only OasValidation exists, in future this would have converters too
-      const pipeline = new Pipeline(new PropertyCorrectionStep())
-        .addStep(new ReconcileDuplicateSemanticPathsStep())
-        .addStep(new MethodValidationStep())
-        .addStep(new OasValidationStep(this.context.classDetail.name));
+    const pipeline = new Pipeline(new PropertyCorrectionStep())
+      .addStep(new ReconcileDuplicateSemanticPathsStep())
+      .addStep(new MethodValidationStep())
+      .addStep(new OasValidationStep());
 
-      console.log('Executing pipeline with input:');
-      console.log('context: ', JSON.stringify(this.context));
-      console.log('document: ', this.document);
-      const output = await pipeline.execute({
-        yaml: this.document,
-        errors: [],
-        eligibilityResult: this.eligibilityResult,
-        context: this.context
-      });
-      console.log('Pipeline output:', output);
-      return output;
-    }
-    throw nls.localize('invalid_class_annotation_for_generating_oas_doc');
+    console.log('Executing pipeline with input:');
+    console.log('document: ', this.document);
+    const output = await pipeline.execute({
+      yaml: this.document,
+      errors: [],
+      eligibilityResult: this.eligibilityResult
+    });
+    console.log('Pipeline output:', output);
+    return output;
   }
 }

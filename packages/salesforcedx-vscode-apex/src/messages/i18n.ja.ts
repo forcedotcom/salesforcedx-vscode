@@ -110,6 +110,10 @@ export const messages = {
   no_oas_generated: 'LLM did not return any content.',
   failed_to_combine_oas: 'Failed to combine yaml docs',
   strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.',
-  invalid_class_annotation_for_generating_oas_doc: 'Invalid class annotation for generating OAS doc',
-  cleanup_yaml_failed: 'Could not find openapi line in document:\n'
+  invalid_file_for_generating_oas_doc: 'Invalid file for generating OAS doc',
+  cleanup_yaml_failed: 'Could not find openapi line in document:\n',
+  check_openapi_doc_failed: 'Failed to check OpenAPI Document',
+  check_openapi_doc_succeeded: 'Validated the OpenAPI Document successfully',
+  no_oas_doc_in_file: 'No OAS doc detected in the file',
+  invalid_file_for_processing_oas_doc: 'Invalid file for processing OAS doc'
 };

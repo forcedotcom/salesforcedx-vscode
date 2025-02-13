@@ -19,4 +19,5 @@ export {
 } from './apexTestRunCodeAction';
 export { apexTestSuiteAdd, apexTestSuiteCreate, apexTestSuiteRun } from './apexTestSuite';
 export { createApexActionFromMethod, createApexActionFromClass } from './createApexAction';
+export { validateOpenApiDocument } from './oasDocumentChecker';
 export { launchApexReplayDebuggerWithCurrentFile } from './launchApexReplayDebuggerWithCurrentFile';

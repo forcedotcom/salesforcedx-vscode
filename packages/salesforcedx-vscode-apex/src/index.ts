@@ -27,10 +27,12 @@ import {
   apexTestSuiteRun,
   createApexActionFromMethod,
   createApexActionFromClass,
+  validateOpenApiDocument,
   launchApexReplayDebuggerWithCurrentFile,
   ApexActionController
 } from './commands';
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
+import { checkIfESRIsDecomposed } from './commands/oasUtils';
 import { API, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
@@ -91,6 +93,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Initialize the apexActionController
   await apexActionController.initialize(extensionContext);
+
+  const isESRDecomposed = await checkIfESRIsDecomposed();
+  // Initialize if ESR xml is decomposed
+  void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', isESRDecomposed);
 
   // Commands
   const commands = registerCommands();
@@ -171,6 +177,10 @@ const registerCommands = (): vscode.Disposable => {
     'sf.create.apex.action.class',
     createApexActionFromClass
   );
+  const validateOpenApiDocumentCmd = vscode.commands.registerCommand(
+    'sf.validate.oas.document',
+    validateOpenApiDocument
+  );
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
@@ -198,6 +208,7 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteAddCmd,
     createApexActionFromMethodCmd,
     createApexActionFromClassCmd,
+    validateOpenApiDocumentCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
 };

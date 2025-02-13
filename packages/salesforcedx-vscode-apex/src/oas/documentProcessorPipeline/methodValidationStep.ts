@@ -16,20 +16,17 @@ import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 export class MethodValidationStep implements ProcessorStep {
   static diagnosticCollection: vscode.DiagnosticCollection =
     vscode.languages.createDiagnosticCollection('OAS Method Validations');
-  private className: string = '';
-  private virtualUri: vscode.Uri | null = null; // the url of the virtual YAML file
   private diagnostics: vscode.Diagnostic[] = [];
   constructor() {}
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
-    this.className = input.context.classDetail.name as string;
-    this.virtualUri = vscode.Uri.parse(`untitled:${this.className}_OAS_temp.yaml`);
+    if (!input.eligibilityResult) {
+      console.log('skipping methodValidationStep as no eligibility results passed');
+      return Promise.resolve(input);
+    }
+
     MethodValidationStep.diagnosticCollection.clear();
     const cleanedupYaml = this.validateMethods(input.yaml, input.eligibilityResult);
-    const mulesoftExtension = vscode.extensions.getExtension('mulesoft.mulesoft-extension-id');
-    if (!mulesoftExtension || !mulesoftExtension.isActive) {
-      MethodValidationStep.diagnosticCollection.set(this.virtualUri, this.diagnostics);
-      input.errors = [...input.errors, ...this.diagnostics];
-    }
+    input.errors = [...input.errors, ...this.diagnostics];
     return new Promise(resolve => {
       resolve({ ...input, yaml: cleanedupYaml });
     });
