@@ -53,7 +53,7 @@ export const createProblemTabEntriesForOasDocument = (
     return new vscode.Diagnostic(range, result.message, result.severity);
   });
   const mulesoftExtension = vscode.extensions.getExtension('mulesoft.mulesoft-extension-id');
-  if (!mulesoftExtension || !mulesoftExtension.isActive) {
+  if (!mulesoftExtension?.isActive) {
     OasProcessor.diagnosticCollection.set(uri, adjustErrors);
   }
 };
