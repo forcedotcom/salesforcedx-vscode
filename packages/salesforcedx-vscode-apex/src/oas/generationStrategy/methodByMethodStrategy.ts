@@ -65,7 +65,14 @@ export class MethodByMethodStrategy extends GenerationStrategy {
         console.log(`LLM response for ${methodName} is empty.`);
         continue;
       }
-      const parsed = yaml.parse(this.cleanYamlString(response)) as OpenAPIV3.Document;
+      let parsed: OpenAPIV3.Document;
+      try {
+        parsed = yaml.parse(this.cleanYamlString(response)) as OpenAPIV3.Document;
+      } catch (error) {
+        // if the response is not a valid yaml, skip it rather than throwing an error
+        console.log(`Failed to parse LLM response for ${methodName} as it is not a legit OpenAPIV3 Doc:`, error);
+        continue;
+      }
       // make sure parameters in path are in the request path, and the request path starts with the urlMapping
       const parametersInPath = this.extractParametersInPath(parsed);
       if (parsed.paths) {
@@ -147,7 +154,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
 
   cleanYamlString(input: string): string {
     return input
-      .replace(/^```yaml\n/, '') // Remove leading triple backtick (if any)
+      .replace(/^[\s\S]*?(?=openapi)/, '') // Remove leading chars before openapi (if any)
       .replace(/\n```$/, '') // Remove trailing triple backtick (if any)
       .replace(/```\n\s*$/, '') // Remove trailing triple backtick with new line (if any)
       .trim(); // Ensure no extra spaces
@@ -172,9 +179,8 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     };
 
     for (const doc of docs) {
-      const yamlCleanDoc = this.cleanYamlString(doc);
       try {
-        const parsed = yaml.parse(yamlCleanDoc) as OpenAPIV3.Document;
+        const parsed = yaml.parse(doc) as OpenAPIV3.Document;
 
         // Merge paths
         if (parsed.paths) {
