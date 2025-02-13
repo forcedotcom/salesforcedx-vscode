@@ -9,7 +9,7 @@ import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vsc
 import * as vscode from 'vscode';
 
 // Eligibility for OpenAPI Document ONLY, should not be changed by users unless overwriting in settings.json
-const APEX_ACTION_CLASS_DEF_MODIFIERS = ['withsharing'];
+const APEX_ACTION_CLASS_DEF_MODIFIERS = ['withsharing', 'withoutsharing', 'inheritedsharing'];
 const APEX_ACTION_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const APEX_ACTION_METHOD_DEF_MODIFIERS = ['static'];
 const APEX_ACTION_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
