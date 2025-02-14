@@ -12,7 +12,10 @@ import { parse } from 'yaml';
 import { nls } from '../messages';
 import OasProcessor from '../oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from '../oas/documentProcessorPipeline/processorStep';
+import GenerationInteractionLogger from '../oas/generationInterationsLogger';
 import { ApexClassOASGatherContextResponse, ApexClassOASEligibleResponse } from '../oas/schemas';
+
+const gil = GenerationInteractionLogger.getInstance();
 
 export const processOasDocument = async (
   oasDoc: string,
@@ -35,7 +38,7 @@ export const createProblemTabEntriesForOasDocument = (
   fullPath: string,
   processedOasResult: ProcessorInputOutput,
   isESRDecomposed: boolean
-) => {
+): void => {
   const uri = vscode.Uri.parse(fullPath);
   OasProcessor.diagnosticCollection.clear();
 
@@ -49,9 +52,11 @@ export const createProblemTabEntriesForOasDocument = (
       result.range.end.line + lineAdjustment,
       result.range.end.character + result.range.start.line <= 1 ? startCharacterAdjustment : 0
     );
-
     return new vscode.Diagnostic(range, result.message, result.severity);
   });
+
+  gil.addDiagnostics(adjustErrors);
+
   const mulesoftExtension = vscode.extensions.getExtension('mulesoft.mulesoft-extension-id');
   if (!mulesoftExtension?.isActive) {
     OasProcessor.diagnosticCollection.set(uri, adjustErrors);

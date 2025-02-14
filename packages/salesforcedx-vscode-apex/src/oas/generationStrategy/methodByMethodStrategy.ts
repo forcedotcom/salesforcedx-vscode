@@ -11,6 +11,7 @@ import { OpenAPIV3 } from 'openapi-types';
 import { DocumentSymbol } from 'vscode';
 import * as yaml from 'yaml';
 import { nls } from '../../messages';
+import GenerationInteractionLogger from '../generationInterationsLogger';
 import {
   ApexAnnotationDetail,
   ApexClassOASEligibleResponse,
@@ -24,6 +25,8 @@ import {
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
 import { getPrompts } from './promptsHandler';
+
+const gil = GenerationInteractionLogger.getInstance();
 
 export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
 export class MethodByMethodStrategy extends GenerationStrategy {
@@ -49,8 +52,10 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       methodNames.map((methodName, index) => {
         const result = llmResponses[index];
         if (result.status === 'fulfilled') {
+          gil.addRawResponse(result.value);
           return [methodName, result.value];
         } else {
+          gil.addRawResponse(`Promise ${index} rejected with reason: ${result.reason}`);
           console.log(`Promise ${index} rejected with reason:`, result.reason);
           return [methodName, ''];
         }
@@ -65,22 +70,31 @@ export class MethodByMethodStrategy extends GenerationStrategy {
         console.log(`LLM response for ${methodName} is empty.`);
         continue;
       }
-      const parsed = yaml.parse(this.cleanYamlString(response)) as OpenAPIV3.Document;
-      // make sure parameters in path are in the request path, and the request path starts with the urlMapping
-      const parametersInPath = this.extractParametersInPath(parsed);
-      if (parsed.paths) {
-        for (const [path, methods] of Object.entries(parsed.paths)) {
-          const validatedPath = this.formatUrlPath(parametersInPath);
-          delete parsed.paths[path];
-          parsed.paths[validatedPath] = methods;
+      const cleandYaml = this.cleanYamlString(response);
+      gil.addCleanedResponse(cleandYaml);
+      try {
+        const parsed = yaml.parse(cleandYaml) as OpenAPIV3.Document;
+        // make sure parameters in path are in the request path, and the request path starts with the urlMapping
+        const parametersInPath = this.extractParametersInPath(parsed);
+        if (parsed.paths) {
+          for (const [path, methods] of Object.entries(parsed.paths)) {
+            const validatedPath = this.formatUrlPath(parametersInPath);
+            delete parsed.paths[path];
+            parsed.paths[validatedPath] = methods;
+          }
         }
+        // update operationId with the methodName
+        if (parsed.paths) {
+          this.updateOperationIds(parsed, methodName);
+        }
+        gil.addYamlParseResult(yaml.stringify(parsed));
+        validResponses.push(yaml.stringify(parsed));
+      } catch (e) {
+        gil.addYamlParseResult(`Yaml parse failed with error ${e}`);
+        console.debug(`Yaml parse failed with error ${e}`);
       }
-      // update operationId with the methodName
-      if (parsed.paths) {
-        this.updateOperationIds(parsed, methodName);
-      }
-      validResponses.push(yaml.stringify(parsed));
     }
+
     return validResponses;
   }
 
@@ -120,6 +134,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       // Filter valid prompts and map them to promises
       for (const [methodName, prompt] of this.prompts) {
         if (prompt?.length > 0) {
+          gil.addPrompt(prompt);
           this.llmRequests.set(methodName, llmService.callLLM(prompt));
         }
       }

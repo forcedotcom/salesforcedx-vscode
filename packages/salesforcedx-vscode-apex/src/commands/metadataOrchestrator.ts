@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
+import GenerationInteractionLogger from '../oas/generationInterationsLogger';
 import {
   ApexClassOASEligibleRequest,
   ApexClassOASEligibleResponse,
@@ -18,7 +19,6 @@ import {
   ApexOASResource
 } from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
-
 /**
  * Interface representing the metadata of a method.
  */
@@ -41,6 +41,8 @@ export interface Parameter {
   schema: { type: string };
 }
 
+const gil = GenerationInteractionLogger.getInstance();
+
 /**
  * Class responsible for orchestrating metadata operations.
  */
@@ -53,7 +55,9 @@ export class MetadataOrchestrator {
     sourceUri: vscode.Uri | vscode.Uri[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponse | undefined> => {
+    await gil.addSourceUnderStudy(sourceUri);
     const isEligibleResponses = await this.validateEligibility(sourceUri, isMethodSelected);
+    gil.addApexClassOASEligibleResponse(isEligibleResponses);
     if (!isEligibleResponses || isEligibleResponses.length === 0) {
       throw new Error(nls.localize('validation_failed'));
     }
@@ -75,6 +79,7 @@ export class MetadataOrchestrator {
   public eligibilityDelegate = async (
     requests: ApexOASEligiblePayload
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
+    gil.addApexClassOASEligibleRequest(requests.payload);
     const telemetryService = await getTelemetryService();
     let response;
     const languageClient = languageClientUtils.getClientInstance();
@@ -121,6 +126,7 @@ export class MetadataOrchestrator {
         throw new Error(nls.localize('cannot_gather_context'));
       }
     }
+    gil.addApexClassOASGatherContextResponse(response);
     return response;
   };
 

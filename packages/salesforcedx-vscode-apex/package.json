@@ -490,6 +490,17 @@
             "public"
           ],
           "description": "%apex_oas_general_property_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.oas_generation_strategy": {
+          "type": "string",
+          "enum": [
+            "LEAST_CALLS",
+            "MOST_CALLS",
+            "METHOD_BY_METHOD",
+            "WHOLE_CLASS"
+          ],
+          "default": "METHOD_BY_METHOD",
+          "description": "%apex_oas_generation_strategy%"
         }
       }
     },
