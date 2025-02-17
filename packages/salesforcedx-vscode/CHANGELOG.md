@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We bumped our dependencies to catch up with latest metadata types in SDR. Now you're able to deploy all the latest metadata types from the VSCode extensions. ([PR #6083](https://github.com/forcedotcom/salesforcedx-vscode/pull/6083))
+- We updated our dependencies to support the latest metadata types. As a result, you can now deploy all the latest metadata types using the VSCode extensions. ([PR #6083](https://github.com/forcedotcom/salesforcedx-vscode/pull/6083))
 
 # 63.0.0 - February 13, 2025
 
