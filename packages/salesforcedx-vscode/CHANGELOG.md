@@ -1,3 +1,21 @@
+# 63.0.0 - February 13, 2025
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We've made some updates to the Apex LSP to prepare for an upcoming Salesforce release bump.([PR #6062](https://github.com/forcedotcom/salesforcedx-vscode/pull/6062))
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- We fixed an under-the-hood issue with our telemetry. ([PR #6006](https://github.com/forcedotcom/salesforcedx-vscode/pull/6006))
+
+#### salesforcedx-vscode
+
+- Our VS Code Marketplace page now shows the minimum VS Code version that’s required by the Salesforce Extension Pack.([PR #6044](https://github.com/forcedotcom/salesforcedx-vscode/pull/6044))
+
 # 62.14.1 - January 15, 2025
 
 ## Fixed
