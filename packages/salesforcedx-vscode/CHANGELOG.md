@@ -1,3 +1,11 @@
+# 63.1.1 - February 19, 2025
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Bump dependencies to catch up with latest md types in sdr ([PR #6083](https://github.com/forcedotcom/salesforcedx-vscode/pull/6083))
+
 # 63.0.0 - February 13, 2025
 
 ## Added
