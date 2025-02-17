@@ -7,6 +7,7 @@
 
 import * as fs from 'fs';
 import { nls } from '../../messages';
+import GenerationInteractionLogger from '../generationInterationsLogger';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -16,6 +17,9 @@ import {
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
 import { GenerationStrategy } from './generationStrategy';
 import { getPrompts } from './promptsHandler';
+
+const gil = GenerationInteractionLogger.getInstance();
+
 export const WHOLE_CLASS_STRATEGY_NAME = 'WholeClass';
 export class WholeClassStrategy extends GenerationStrategy {
   metadata: ApexClassOASEligibleResponse;
@@ -46,7 +50,7 @@ export class WholeClassStrategy extends GenerationStrategy {
 
   public generate(): PromptGenerationResult {
     const prompts = getPrompts();
-    const documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
+    const documentText = fs.readFileSync(new URL(this.metadata.resourceUri), 'utf8');
     const input =
       `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n${prompts.USER_TAG}\n` +
       prompts.wholeClass.userPrompt +
@@ -74,7 +78,9 @@ export class WholeClassStrategy extends GenerationStrategy {
     let documentContent = '';
     try {
       const llmService = await this.getLLMServiceInterface();
+      gil.addPrompt(this.prompts[0]);
       documentContent = await llmService.callLLM(this.prompts[0]);
+      gil.addRawResponse(documentContent);
       this.llmResponses.push(documentContent);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e);

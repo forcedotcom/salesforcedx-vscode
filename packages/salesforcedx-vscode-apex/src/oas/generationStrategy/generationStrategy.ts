@@ -22,6 +22,7 @@ export abstract class GenerationStrategy {
   abstract generate(): PromptGenerationResult; // generate the prompt(s) to be sent to the LLM
   abstract callLLMWithPrompts(): Promise<string[]>;
   abstract generateOAS(): Promise<string>; // generate OAS with the generated prompt(s)
+
   getPromptTokenCount(prompt: string): number {
     return Math.floor(prompt.length / 4);
   }

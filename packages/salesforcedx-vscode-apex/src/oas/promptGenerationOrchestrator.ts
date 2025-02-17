@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { nls } from '../messages';
+import GenerationInteractionLogger from './generationInterationsLogger';
 import {
   GenerationStrategy,
   GenerationStrategyFactory,
@@ -16,11 +17,9 @@ import {
   PromptGenerationStrategyBid
 } from './schemas';
 
-export enum BidRule {
-  LEAST_CALLS,
-  MOST_CALLS,
-  METHOD_BY_METHOD
-}
+export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS' | 'METHOD_BY_METHOD' | 'WHOLE_CLASS';
+
+const gil = GenerationInteractionLogger.getInstance();
 
 // An orchestrator that coordinates the generation of prompts for Apex classes.
 export class PromptGenerationOrchestrator {
@@ -60,19 +59,22 @@ export class PromptGenerationOrchestrator {
     if (!strategy) {
       throw new Error(nls.localize('strategy_not_qualified'));
     }
-    const oas = await strategy.generateOAS();
-    return this.cleanupYaml(oas);
+    const oas = await strategy.generateOAS().then(o => this.cleanupYaml(o));
+    gil.addPostGenYaml(oas);
+    return oas;
   }
 
   // Apply a specific rule to select the name of the best strategy from the list of bids.
   applyRule(rule: BidRule, bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
     switch (rule) {
-      case BidRule.LEAST_CALLS:
+      case 'LEAST_CALLS':
         return this.getLeastCalls(bids);
-      case BidRule.MOST_CALLS:
+      case 'MOST_CALLS':
         return this.getMostCalls(bids);
-      case BidRule.METHOD_BY_METHOD:
+      case 'METHOD_BY_METHOD':
         return this.getMethodByMethod(bids);
+      case 'WHOLE_CLASS':
+        return this.getWholeClass(bids);
     }
   }
 
@@ -109,6 +111,10 @@ export class PromptGenerationOrchestrator {
 
   getMethodByMethod(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
     return GenerationStrategy.METHOD_BY_METHOD;
+  }
+
+  getWholeClass(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
+    return GenerationStrategy.WHOLE_CLASS;
   }
 
   private cleanupYaml(doc: string): string {

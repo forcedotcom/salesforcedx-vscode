@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
+import GenerationInteractionLogger from '../oas/generationInterationsLogger';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import { ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
@@ -22,6 +23,7 @@ import { MetadataOrchestrator } from './metadataOrchestrator';
 import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from './oasUtils';
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
+  private gil = GenerationInteractionLogger.getInstance();
   constructor(private metadataOrchestrator: MetadataOrchestrator) {}
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
@@ -42,7 +44,7 @@ export class ApexActionController {
     let context;
     let name;
     const telemetryService = await getTelemetryService();
-
+    this.gil.clear();
     try {
       let fullPath: [string, string, boolean] = ['', '', false];
       await vscode.window.withProgress(
@@ -60,6 +62,7 @@ export class ApexActionController {
           }
 
           // Step 2: Gather context
+          progress.report({ message: nls.localize('gathering_context') });
           context = await this.metadataOrchestrator.gatherContext(sourceUri);
           if (!context) {
             throw new Error(nls.localize('cannot_gather_context'));
@@ -74,14 +77,16 @@ export class ApexActionController {
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
 
           // Step 5: Initialize the strategy orchestrator
+          progress.report({ message: nls.localize('generating_oas_doc') });
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
 
           // Step 6: use the strategy to generate the OAS
           const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
-            BidRule.METHOD_BY_METHOD
+            this.getConfigBidRule()
           );
 
           // Step 7: Process the OAS document
+          progress.report({ message: nls.localize('processing_generated_oas') });
           const processedOasResult = await processOasDocument(openApiDocument, context, eligibilityResult);
 
           // Step 8: Write OpenAPI Document to File
@@ -148,6 +153,7 @@ export class ApexActionController {
     } catch (error: any) {
       void this.handleError(error, `ApexAction${type}CreationFailed`);
     }
+    this.gil.writeLogs();
   };
 
   /**
@@ -173,6 +179,7 @@ export class ApexActionController {
     if (!this.isVersionGte(orgVersion, '63.0')) namedCredential = await this.showNamedCredentialsQuickPick();
 
     const updatedContent = await this.buildESRXml(existingContent, fullPath, namedCredential, oasSpec);
+
     try {
       // Step 3: Write File
       fs.writeFileSync(fullPath, updatedContent);
@@ -460,6 +467,7 @@ export class ApexActionController {
    * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
    */
   private buildESRYaml = (esrXmlPath: string, safeOasSpec: string) => {
+    this.gil.addFinalYaml(safeOasSpec);
     const esrYamlPath = this.replaceXmlToYaml(esrXmlPath);
     try {
       fs.writeFileSync(esrYamlPath, safeOasSpec, 'utf8');
@@ -502,4 +510,10 @@ export class ApexActionController {
     const commands = await vscode.commands.getCommands(true);
     return commands.includes(commandId);
   };
+
+  private getConfigBidRule(): BidRule {
+    return vscode.workspace
+      .getConfiguration()
+      .get('salesforcedx-vscode-apex.oas_generation_strategy', 'METHOD_BY_METHOD');
+  }
 }
