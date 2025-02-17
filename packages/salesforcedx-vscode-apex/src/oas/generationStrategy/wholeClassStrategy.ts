@@ -79,7 +79,11 @@ export class WholeClassStrategy extends GenerationStrategy {
     try {
       const llmService = await this.getLLMServiceInterface();
       gil.addPrompt(this.prompts[0]);
-      documentContent = await llmService.callLLM(this.prompts[0]);
+      documentContent = await (this.includesOASSchema()
+        ? llmService.callLLM(this.prompts[0], undefined, undefined, {
+            parameters: { guided_json: this.openAPISchema }
+          })
+        : llmService.callLLM(this.prompts[0]));
       gil.addRawResponse(documentContent);
       this.llmResponses.push(documentContent);
     } catch (e) {

@@ -18,10 +18,10 @@ export default class GenerationInteractionLogger {
   private prompts: string[] = [];
   private rawResponses: string[] = [];
   private cleanedResponses: string[] = [];
-  private yamlParseResults: string[] = [];
+  private parseResults: string[] = [];
   private diagnostics: vscode.Diagnostic[] = [];
-  private postGenYaml: string = '';
-  private finalYaml: string = '';
+  private postGenDoc: string = '';
+  private finalDoc: string = '';
   private sourceUnderStudy: string = '';
   private logLevel: string = 'fatal';
 
@@ -74,18 +74,18 @@ export default class GenerationInteractionLogger {
 
   public addYamlParseResult(yamlParseResult: string | string[]): void {
     if (Array.isArray(yamlParseResult)) {
-      this.yamlParseResults.push(...yamlParseResult);
+      this.parseResults.push(...yamlParseResult);
     } else {
-      this.yamlParseResults.push(yamlParseResult);
+      this.parseResults.push(yamlParseResult);
     }
   }
 
-  public addPostGenYaml(postGenYaml: string): void {
-    this.postGenYaml = postGenYaml;
+  public addPostGenDoc(postGenYaml: string): void {
+    this.postGenDoc = postGenYaml;
   }
 
-  public addFinalYaml(finalYaml: string): void {
-    this.finalYaml = finalYaml;
+  public addFinalDoc(finalYaml: string): void {
+    this.finalDoc = finalYaml;
   }
 
   public addDiagnostics(diagnostics: vscode.Diagnostic | vscode.Diagnostic[]): void {
@@ -96,8 +96,8 @@ export default class GenerationInteractionLogger {
     }
   }
 
-  public async addSourceUnderStudy(uri: vscode.Uri | vscode.Uri[]): Promise<void> {
-    if (this.okToLog()) {
+  public async addSourceUnderStudy(uri: vscode.Uri | vscode.Uri[] | undefined): Promise<void> {
+    if (this.okToLog() && uri) {
       try {
         if (Array.isArray(uri)) {
           // no-op
@@ -117,9 +117,9 @@ export default class GenerationInteractionLogger {
       prompts: this.prompts,
       rawResponses: this.rawResponses,
       cleanedResponses: this.cleanedResponses,
-      yamlParseResults: this.yamlParseResults,
-      postGenYaml: this.postGenYaml,
-      finalYaml: this.finalYaml,
+      parseResults: this.parseResults,
+      postGenDoc: this.postGenDoc,
+      finalDoc: this.finalDoc,
       diagnostics: this.diagnostics,
       apexClassOASEligibleRequest: this.apexClassOASEligibleRequest,
       apexClassOASEligibleResponse: this.apexClassOASEligibleResponse,
@@ -148,10 +148,10 @@ export default class GenerationInteractionLogger {
     this.prompts = [];
     this.rawResponses = [];
     this.cleanedResponses = [];
-    this.yamlParseResults = [];
+    this.parseResults = [];
     this.diagnostics = [];
-    this.postGenYaml = '';
-    this.finalYaml = '';
+    this.postGenDoc = '';
+    this.finalDoc = '';
     this.sourceUnderStudy = '';
   }
 

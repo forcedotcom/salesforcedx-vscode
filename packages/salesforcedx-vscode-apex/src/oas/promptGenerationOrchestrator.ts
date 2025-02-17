@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isJsonString, extractJsonString } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
+import { cleanupGeneratedDoc } from '../oasUtils';
 import GenerationInteractionLogger from './generationInterationsLogger';
 import {
   GenerationStrategy,
@@ -59,8 +61,8 @@ export class PromptGenerationOrchestrator {
     if (!strategy) {
       throw new Error(nls.localize('strategy_not_qualified'));
     }
-    const oas = await strategy.generateOAS().then(o => this.cleanupYaml(o));
-    gil.addPostGenYaml(oas);
+    const oas = await strategy.generateOAS().then(o => cleanupGeneratedDoc(o));
+    gil.addPostGenDoc(oas);
     return oas;
   }
 
@@ -115,18 +117,5 @@ export class PromptGenerationOrchestrator {
 
   getWholeClass(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
     return GenerationStrategy.WHOLE_CLASS;
-  }
-
-  private cleanupYaml(doc: string): string {
-    // Remove the first line of the document
-    const openApiIndex = doc.indexOf('openapi');
-    if (openApiIndex === -1) {
-      throw new Error(nls.localize('cleanup_yaml_failed') + doc);
-    }
-    return doc
-      .substring(openApiIndex)
-      .split('\n')
-      .filter(line => !/^```$/.test(line))
-      .join('\n');
   }
 }

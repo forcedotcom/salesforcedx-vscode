@@ -28,7 +28,7 @@
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core-bundle": "8.8.2",
     "@salesforce/salesforcedx-utils-vscode": "62.14.1",
-    "@salesforce/vscode-service-provider": "1.3.0-rc.6.4",
+    "@salesforce/vscode-service-provider": "1.3.0-rc.6.5",
     "@stoplight/spectral-core": "1.19.4",
     "@stoplight/spectral-functions": "1.9.3",
     "@stoplight/spectral-rulesets": "1.21.3",
@@ -501,6 +501,11 @@
           ],
           "default": "METHOD_BY_METHOD",
           "description": "%apex_oas_generation_strategy%"
+        },
+        "salesforcedx-vscode-apex.oas_generation_include_schema": {
+          "type": "boolean",
+          "default": true,
+          "description": "%apex_oas_generation_schema%"
         }
       }
     },

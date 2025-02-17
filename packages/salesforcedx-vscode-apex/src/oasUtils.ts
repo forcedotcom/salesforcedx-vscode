@@ -6,14 +6,14 @@
  */
 
 import { SfProject } from '@salesforce/core-bundle';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { extractJsonString, isJsonString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
-import { parse } from 'yaml';
-import { nls } from '../messages';
-import OasProcessor from '../oas/documentProcessorPipeline';
-import { ProcessorInputOutput } from '../oas/documentProcessorPipeline/processorStep';
-import GenerationInteractionLogger from '../oas/generationInterationsLogger';
-import { ApexClassOASGatherContextResponse, ApexClassOASEligibleResponse } from '../oas/schemas';
+import { nls } from './messages';
+import OasProcessor from './oas/documentProcessorPipeline';
+import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
+import GenerationInteractionLogger from './oas/generationInterationsLogger';
+import { ApexClassOASGatherContextResponse, ApexClassOASEligibleResponse } from './oas/schemas';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -24,7 +24,8 @@ export const processOasDocument = async (
   isRevalidation?: boolean
 ): Promise<ProcessorInputOutput> => {
   if (isRevalidation || context?.classDetail.annotations.find(a => a.name === 'RestResource')) {
-    const parsed = parse(oasDoc);
+    const parsed = parseOASDocFromJson(oasDoc);
+
     const oasProcessor = new OasProcessor(parsed, eligibleResult);
 
     const processResult = await oasProcessor.process();
@@ -76,4 +77,18 @@ export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
   }
 
   return false;
+};
+
+export const cleanupGeneratedDoc = (doc: string): string => {
+  if (isJsonString(doc)) {
+    const json = extractJsonString(doc);
+    if (json) {
+      return json;
+    }
+  }
+  throw new Error(nls.localize('cleanup_openapi_doc_failed') + doc);
+};
+
+export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => {
+  return JSON.parse(doc) as OpenAPIV3.Document;
 };

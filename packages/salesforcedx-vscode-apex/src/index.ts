@@ -32,7 +32,6 @@ import {
   ApexActionController
 } from './commands';
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
-import { checkIfESRIsDecomposed } from './commands/oasUtils';
 import { API, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
 import * as languageServer from './languageServer';
@@ -47,6 +46,7 @@ import {
   languageClientUtils
 } from './languageUtils';
 import { nls } from './messages';
+import { checkIfESRIsDecomposed } from './oasUtils';
 import { retrieveEnableSyncInitJobs } from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
