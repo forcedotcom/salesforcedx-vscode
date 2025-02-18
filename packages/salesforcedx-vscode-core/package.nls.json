@@ -18,8 +18,6 @@
   "delete_source_this_source_text": "SFDX: Delete This from Project and Org",
   "deploy_in_manifest_text": "SFDX: Deploy Source in Manifest to Org",
   "deploy_this_source_text": "SFDX: Deploy This Source to Org",
-  "deploy_oas_text": "SFDX: Deploy This Open API Spec to Org",
-  "retrieve_oas_text": "SFDX: Retrieve This Open API Spec from Org",
   "diff_against_org": "SFDX: Diff File Against Org",
   "diff_folder_against_org": "SFDX: Diff Folder Against Org",
   "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false).",
