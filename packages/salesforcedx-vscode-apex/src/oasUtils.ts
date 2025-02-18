@@ -6,7 +6,7 @@
  */
 
 import { SfProject } from '@salesforce/core-bundle';
-import { extractJsonString, isJsonString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { extractJsonString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { nls } from './messages';
@@ -80,13 +80,7 @@ export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
 };
 
 export const cleanupGeneratedDoc = (doc: string): string => {
-  if (isJsonString(doc)) {
-    const json = extractJsonString(doc);
-    if (json) {
-      return json;
-    }
-  }
-  throw new Error(nls.localize('cleanup_openapi_doc_failed') + doc);
+  return extractJsonString(doc);
 };
 
 export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => {

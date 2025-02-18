@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isJsonString, extractJsonString } from '@salesforce/salesforcedx-utils-vscode';
+import { containsJsonString, extractJsonString } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { cleanupGeneratedDoc } from '../oasUtils';
 import GenerationInteractionLogger from './generationInterationsLogger';

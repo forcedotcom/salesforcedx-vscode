@@ -10,11 +10,11 @@ import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class PropertyCorrectionStep implements ProcessorStep {
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
-    let fixedYaml = this.ensureServersIsPresent(input.openAPIDoc);
-    fixedYaml = this.ensureInfoVersionIsPresent(fixedYaml);
+    let fixedOASDoc = this.ensureServersIsPresent(input.openAPIDoc);
+    fixedOASDoc = this.ensureInfoVersionIsPresent(fixedOASDoc);
 
     return new Promise(resolve => {
-      resolve({ ...input, openAPIDoc: fixedYaml });
+      resolve({ ...input, openAPIDoc: fixedOASDoc });
     });
   }
 

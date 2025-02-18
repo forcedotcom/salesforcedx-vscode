@@ -22,7 +22,7 @@ export {
   extractJsonObject,
   extractJsonString,
   getMessageFromError,
-  isJsonString,
+  containsJsonString,
   isNullOrUndefined,
   fileUtils
 } from './utils';
