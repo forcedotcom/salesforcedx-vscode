@@ -87,7 +87,7 @@ export class CompositeCliCommandExecutor {
  * Represents a command execution (a process has already been spawned for it).
  * This is tightly coupled with the execution model (child_process).
  * If we ever use a different executor, this class should be refactored and abstracted
- * to take an event emitter/observable instead of child_proces.
+ * to take an event emitter/observable instead of child_process.
  */
 export type CommandExecution = {
   readonly command: Command;

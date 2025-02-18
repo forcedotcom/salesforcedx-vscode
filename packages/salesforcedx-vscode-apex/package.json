@@ -28,9 +28,13 @@
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core-bundle": "8.8.2",
     "@salesforce/salesforcedx-utils-vscode": "63.1.1",
-    "@salesforce/vscode-service-provider": "1.2.1",
+    "@salesforce/vscode-service-provider": "1.3.0-rc.6.4",
+    "@stoplight/spectral-core": "1.19.4",
+    "@stoplight/spectral-functions": "1.9.3",
+    "@stoplight/spectral-rulesets": "1.21.3",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
+    "jsonpath-plus": "10.2.0",
     "shelljs": "0.8.5",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "8.1.0"
@@ -96,7 +100,8 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "shelljs": "0.8.5",
-        "jsonpath": "1.1.1"
+        "jsonpath": "1.1.1",
+        "jsonc-parser": "2.2.1"
       },
       "devDependencies": {}
     }
@@ -126,6 +131,30 @@
       ]
     },
     "menus": {
+      "editor/context": [
+        {
+          "command": "sf.create.apex.action.method",
+          "when": "false"
+        },
+        {
+          "command": "sf.create.apex.action.class",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.create.apex.action.class",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
+        }
+      ],
       "view/title": [
         {
           "command": "sf.test.view.run",
@@ -235,6 +264,18 @@
         {
           "command": "sf.test.view.collapseAll",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.create.apex.action.method",
+          "when": "false"
+        },
+        {
+          "command": "sf.create.apex.action.class",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && (resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
         }
       ]
     },
@@ -338,6 +379,18 @@
       {
         "command": "sf.apex.test.last.method.run",
         "title": "%apex_test_last_method_run_text%"
+      },
+      {
+        "command": "sf.create.apex.action.method",
+        "title": "%create_openapi_doc_method%"
+      },
+      {
+        "command": "sf.create.apex.action.class",
+        "title": "%create_openapi_doc_class%"
+      },
+      {
+        "command": "sf.validate.oas.document",
+        "title": "%validate_oas_document%"
       }
     ],
     "configuration": {
@@ -392,6 +445,62 @@
           "type": "boolean",
           "default": false,
           "description": "%enable-apex-ls-error-to-telemetry%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.class.access-modifiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "global",
+              "public"
+            ]
+          },
+          "default": [
+            "global",
+            "public"
+          ],
+          "description": "%apex_oas_general_class_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.method.access-modifiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "global",
+              "public"
+            ]
+          },
+          "default": [
+            "global",
+            "public"
+          ],
+          "description": "%apex_oas_general_method_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.property.access-modifiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "global",
+              "public"
+            ]
+          },
+          "default": [
+            "global",
+            "public"
+          ],
+          "description": "%apex_oas_general_property_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.oas_generation_strategy": {
+          "type": "string",
+          "enum": [
+            "LEAST_CALLS",
+            "MOST_CALLS",
+            "METHOD_BY_METHOD",
+            "WHOLE_CLASS"
+          ],
+          "default": "METHOD_BY_METHOD",
+          "description": "%apex_oas_generation_strategy%"
         }
       }
     },

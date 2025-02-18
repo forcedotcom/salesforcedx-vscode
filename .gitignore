@@ -5,6 +5,7 @@
 # TypeScript generated files
 dist/
 out/
+.github/actions/*/lib/src/*.js
 
 # Logs
 logs
@@ -122,3 +123,4 @@ tsconfig.tsbuildinfo
 #Extensions folder for local E2E Testing
 extensions/
 /test-results
+/.codegenie
