@@ -84,7 +84,17 @@ export const sourceFolderDiff = async (explorerPath: vscode.Uri) => {
 export const handleCacheResults = async (username: string, cache?: MetadataCacheResult): Promise<void> => {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
-      await differ.diffOneFile(cache.selectedPath, cache.cache.components[0], username);
+      if (cache.selectedPath.endsWith('object-meta.xml')) {
+        // object-meta.xml files are listed as the last item in the cache.cache.components array
+        await differ.diffOneFile(
+          cache.selectedPath,
+          cache.cache.components[cache.cache.components.length - 1],
+          username
+        );
+      } else {
+        // all other metadata files are listed as the first item in the cache.cache.components array
+        await differ.diffOneFile(cache.selectedPath, cache.cache.components[0], username);
+      }
     } else if (cache.selectedType === PathType.Folder) {
       differ.diffFolder(cache, username);
     }
