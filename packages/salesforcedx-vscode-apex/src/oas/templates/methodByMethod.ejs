@@ -1,0 +1,13 @@
+[BEGIN OF TASK INSTRUCTION]
+Apex method the OpenAPI v3 specification should be generated for
+```apex
+<%= methodDefinition %>
+```
+You are an expert in writing OpenAPI v3 Specifications
+Generate OpenAPI v3 specs from Apex methods in JSON format
+[END OF TASK INSTRUCTION]
+
+[BEGIN OF QUERY]
+Generate OpenAPI v3 specification for the given Apex method.
+<%= additionalUserPrompts %>
+[END OF QUERY]

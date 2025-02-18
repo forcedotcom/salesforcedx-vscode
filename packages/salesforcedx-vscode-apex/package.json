@@ -32,6 +32,7 @@
     "@stoplight/spectral-core": "1.19.4",
     "@stoplight/spectral-functions": "1.9.3",
     "@stoplight/spectral-rulesets": "1.21.3",
+    "ejs": "3.1.10",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "jsonpath-plus": "10.2.0",

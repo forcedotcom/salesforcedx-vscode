@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as ejs from 'ejs';
 import * as fs from 'fs';
 import { JSONPath } from 'jsonpath-plus';
 import { OpenAPIV3 } from 'openapi-types';
+import path from 'path';
 import { DocumentSymbol } from 'vscode';
 import { nls } from '../../messages';
 import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
@@ -281,7 +283,40 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     };
   }
 
+  generatePromptForMethodOld(methodName: string): string {
+    const prompts = getPrompts();
+    let input = '';
+    const methodContext = this.methodsContextMap.get(methodName);
+    input += `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n`;
+    input += `${prompts.USER_TAG}\n${prompts.METHOD_BY_METHOD.USER_PROMPT}\n`;
+    input += '\nThis is the Apex method the OpenAPI v3 specification should be generated for:\n```\n';
+    input += this.getMethodImplementation(methodName, this.documentText);
+    input += `The method name is ${methodName}.\n`;
+    input += `The operationId in the OAS result must be ${methodName}.\n`;
+    if (methodContext?.returnType !== undefined) {
+      input += `The return type of the method is ${methodContext.returnType}.\n`;
+    }
+    if (methodContext?.parameterTypes?.length ?? 0 > 0) {
+      input += `The parameter types of the method are ${methodContext!.parameterTypes.join(', ')}.\n`;
+    }
+    if (methodContext?.modifiers?.length ?? 0 > 0) {
+      input += `The modifiers of the method are ${methodContext!.modifiers.join(', ')}.\n`;
+    }
+    if (methodContext?.annotations && methodContext.annotations.length > 0) {
+      input += this.getAnnotationsWithParameters(methodContext.annotations);
+    }
+    if (methodContext?.comment !== undefined) {
+      input += `The comment of the method is ${methodContext!.comment}.\n`;
+    }
+    input += this.classPrompt;
+    input += `\n\`\`\`\n${prompts.END_OF_PROMPT_TAG}\n${prompts.ASSISTANT_TAG}\n`;
+
+    return input;
+  }
   generatePromptForMethod(methodName: string): string {
+    const templatePath = path.join(__dirname, 'templates', 'methodByMethod.ejs');
+
+    const renderedTemplate = ejs.render(fs.readFileSync(templatePath, 'utf8'), templateData);
     const prompts = getPrompts();
     let input = '';
     const methodContext = this.methodsContextMap.get(methodName);
