@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=20.17"
+    "node": ">=20.17.0"
   },
   "dependencies": {
     "@actions/core": "^1.11.0",
