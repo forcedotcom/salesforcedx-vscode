@@ -10,7 +10,7 @@ on:
       automationRepo:
         description: 'Set the repo to use for automation tests'
         required: false
-        default: 'salesforcedx-vscode-automation-tests'
+        default: 'salesforcedx-vscode-automation-tests-redhat'
         type: string
       testToRun:
         description: 'Run this E2E test'
