@@ -133,5 +133,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests-redhat'
         with:
-          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}
+          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: ./salesforcedx-vscode/extensions/screenshots
