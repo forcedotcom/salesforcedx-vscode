@@ -58,7 +58,7 @@ The Salesforce Extension Pack installs these extensions.
   This extension (`salesforcedx-vscode-soql`) enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 - [Salesforce Lightning Design System (SLDS) Validator](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds)
   This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting, and validation with recommended tokens and utility classes.
-- [Agentforce for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) This extension (`salesforcedx-einstein-gpt`) uses generative AI to make Salesforce development in Visual Studio Code richer with features such as natural language to code generation, inline autocompletion for Apex and LWC code, and test case generation for Apex classes.
+- [Agentforce for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) This extension (`salesforcedx-einstein-gpt`) uses generative AI to make Salesforce development in Visual Studio Code richer with features such as a Dev Assistant that helps with writing, documenting, and understanding code. It also provides inline autocompletion, and test case generation for Apex and LWC code.
 
 ---
 
