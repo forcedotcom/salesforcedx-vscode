@@ -6,17 +6,17 @@
  */
 
 import * as fs from 'fs';
-import { nls } from '../../messages';
-import GenerationInteractionLogger from '../generationInterationsLogger';
+import { PROMPT_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, SUM_TOKEN_MAX_LIMIT } from '..';
+import { nls } from '../../../messages';
+import GenerationInteractionLogger from '../../generationInterationsLogger';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   PromptGenerationResult,
   PromptGenerationStrategyBid
-} from '../schemas';
-import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
-import { GenerationStrategy } from './generationStrategy';
-import { getPrompts } from './promptsHandler';
+} from '../../schemas';
+import { GenerationStrategy } from '../generationStrategy';
+import { getPrompts } from '../promptsHandler';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -79,11 +79,7 @@ export class WholeClassStrategy extends GenerationStrategy {
     try {
       const llmService = await this.getLLMServiceInterface();
       gil.addPrompt(this.prompts[0]);
-      documentContent = await (this.includesOASSchema()
-        ? llmService.callLLM(this.prompts[0], undefined, undefined, {
-            parameters: { guided_json: this.openAPISchema }
-          })
-        : llmService.callLLM(this.prompts[0]));
+      documentContent = await llmService.callLLM(this.prompts[0]);
       gil.addRawResponse(documentContent);
       this.llmResponses.push(documentContent);
     } catch (e) {

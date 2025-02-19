@@ -35,3 +35,5 @@ export const IS_TEST_REG_EXP = /@isTest/i;
 export const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
 export const APEX_CLASS_EXT = '.cls';
 export const APEX_TESTSUITE_EXT = '.testSuite-meta.xml';
+export const SF_LOG_LEVEL_SETTING = 'salesforcedx-vscode-core.SF_LOG_LEVEL';
+export const APEX_OAS_INCLUDE_GUIDED_JSON = 'salesforcedx-vscode-apex.oas_generation_include_schema';

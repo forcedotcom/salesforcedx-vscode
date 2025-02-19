@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { ApexClassOASEligibleRequest } from './schemas';
+import { SF_LOG_LEVEL_SETTING } from '../constants';
 
 export default class GenerationInteractionLogger {
   private static instance: GenerationInteractionLogger;
@@ -31,7 +31,7 @@ export default class GenerationInteractionLogger {
     if (!GenerationInteractionLogger.instance) {
       GenerationInteractionLogger.instance = new GenerationInteractionLogger();
       const config = vscode.workspace.getConfiguration();
-      GenerationInteractionLogger.instance.logLevel = config.get('salesforcedx-vscode-core.SF_LOG_LEVEL', 'fatal');
+      GenerationInteractionLogger.instance.logLevel = config.get(SF_LOG_LEVEL_SETTING, 'fatal');
     }
     return GenerationInteractionLogger.instance;
   }

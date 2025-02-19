@@ -44,6 +44,7 @@
     "@salesforce/salesforcedx-test-utils-vscode": "62.14.1",
     "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
+    "@types/ejs": "3.1.5",
     "@types/mocha": "^5",
     "@types/node": "^20.0.0",
     "@types/shelljs": "^0.7.8",
@@ -498,6 +499,7 @@
             "LEAST_CALLS",
             "MOST_CALLS",
             "METHOD_BY_METHOD",
+            "JSON_METHOD_BY_METHOD",
             "WHOLE_CLASS"
           ],
           "default": "METHOD_BY_METHOD",

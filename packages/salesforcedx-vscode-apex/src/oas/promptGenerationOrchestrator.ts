@@ -19,7 +19,7 @@ import {
   PromptGenerationStrategyBid
 } from './schemas';
 
-export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS' | 'METHOD_BY_METHOD' | 'WHOLE_CLASS';
+export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS' | 'METHOD_BY_METHOD' | 'WHOLE_CLASS' | 'JSON_METHOD_BY_METHOD';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -75,6 +75,8 @@ export class PromptGenerationOrchestrator {
         return this.getMostCalls(bids);
       case 'METHOD_BY_METHOD':
         return this.getMethodByMethod(bids);
+      case 'JSON_METHOD_BY_METHOD':
+        return this.getJsonMethodByMethod(bids);
       case 'WHOLE_CLASS':
         return this.getWholeClass(bids);
     }
@@ -113,6 +115,9 @@ export class PromptGenerationOrchestrator {
 
   getMethodByMethod(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
     return GenerationStrategy.METHOD_BY_METHOD;
+  }
+  getJsonMethodByMethod(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
+    return GenerationStrategy.JSON_METHOD_BY_METHOD;
   }
 
   getWholeClass(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {

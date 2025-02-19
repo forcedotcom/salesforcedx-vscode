@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as ejs from 'ejs';
 import * as fs from 'fs';
 import { JSONPath } from 'jsonpath-plus';
 import { OpenAPIV3 } from 'openapi-types';
-import path from 'path';
 import { DocumentSymbol } from 'vscode';
-import { nls } from '../../messages';
-import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
-import GenerationInteractionLogger from '../generationInterationsLogger';
+import * as yaml from 'yaml';
+import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
+import { nls } from '../../../messages';
+import GenerationInteractionLogger from '../../generationInterationsLogger';
 import {
   ApexAnnotationDetail,
   ApexClassOASEligibleResponse,
@@ -23,11 +22,9 @@ import {
   OpenAPIDoc,
   PromptGenerationResult,
   PromptGenerationStrategyBid
-} from '../schemas';
-import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
-import { GenerationStrategy } from './generationStrategy';
-import { openAPISchema_v3_0 } from './openapi-3.schema';
-import { getPrompts } from './promptsHandler';
+} from '../../schemas';
+import { GenerationStrategy } from '../generationStrategy';
+import { getPrompts } from '../promptsHandler';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -47,25 +44,6 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   documentText: string;
   classPrompt: string; // The prompt for the entire class
   urlMapping: string;
-
-  public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
-    super();
-    this.metadata = metadata;
-    this.context = context;
-    this.prompts = new Map();
-    this.strategyName = 'MethodByMethod';
-    this.callCounts = 0;
-    this.maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
-    this.methodsList = [];
-    this.llmResponses = new Map();
-    this.methodsDocSymbolMap = new Map();
-    this.methodsContextMap = new Map();
-    this.llmRequests = new Map();
-    this.documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
-    this.classPrompt = this.buildClassPrompt(this.context.classDetail);
-    const restResourceAnnotation = this.context.classDetail.annotations.find(a => a.name === 'RestResource');
-    this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
-  }
 
   async resolveLLMResponses(llmRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
     const methodNames = Array.from(llmRequests.keys());
@@ -92,32 +70,28 @@ export class MethodByMethodStrategy extends GenerationStrategy {
         console.log(`LLM response for ${methodName} is empty.`);
         continue;
       }
+      const cleandYaml = this.cleanYamlString(response);
+      gil.addCleanedResponse(cleandYaml);
       try {
-        const cleandResponse = cleanupGeneratedDoc(response);
-        gil.addCleanedResponse(cleandResponse);
-        try {
-          const parsed = parseOASDocFromJson(cleandResponse);
-          // make sure parameters in path are in the request path, and the request path starts with the urlMapping
-          const parametersInPath = this.extractParametersInPath(parsed);
-          if (parsed.paths) {
-            for (const [path, methods] of Object.entries(parsed.paths)) {
-              const validatedPath = this.formatUrlPath(parametersInPath);
-              delete parsed.paths[path];
-              parsed.paths[validatedPath] = methods;
-            }
+        const parsed = yaml.parse(cleandYaml) as OpenAPIV3.Document;
+        // make sure parameters in path are in the request path, and the request path starts with the urlMapping
+        const parametersInPath = this.extractParametersInPath(parsed);
+        if (parsed.paths) {
+          for (const [path, methods] of Object.entries(parsed.paths)) {
+            const validatedPath = this.formatUrlPath(parametersInPath);
+            delete parsed.paths[path];
+            parsed.paths[validatedPath] = methods;
           }
-          // update operationId with the methodName
-          if (parsed.paths) {
-            this.updateOperationIds(parsed, methodName);
-          }
-          gil.addYamlParseResult(JSON.stringify(parsed));
-          validResponses.push(JSON.stringify(parsed));
-        } catch (e) {
-          gil.addYamlParseResult(`Yaml parse failed with error ${e}`);
-          console.debug(`Yaml parse failed with error ${e}`);
         }
+        // update operationId with the methodName
+        if (parsed.paths) {
+          this.updateOperationIds(parsed, methodName);
+        }
+        gil.addYamlParseResult(yaml.stringify(parsed));
+        validResponses.push(yaml.stringify(parsed));
       } catch (e) {
-        gil.addCleanedResponse(`Cleanup failed with error ${e}`);
+        gil.addYamlParseResult(`Yaml parse failed with error ${e}`);
+        console.debug(`Yaml parse failed with error ${e}`);
       }
     }
 
@@ -161,12 +135,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       for (const [methodName, prompt] of this.prompts) {
         if (prompt?.length > 0) {
           gil.addPrompt(prompt);
-          this.llmRequests.set(
-            methodName,
-            this.includesOASSchema()
-              ? llmService.callLLM(prompt, undefined, undefined, { parameters: { guided_json: this.openAPISchema } })
-              : llmService.callLLM(prompt)
-          );
+          this.llmRequests.set(methodName, llmService.callLLM(prompt));
         }
       }
       this.llmResponses = await this.resolveLLMResponses(this.llmRequests);
@@ -191,6 +160,14 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     }
   }
 
+  cleanYamlString(input: string): string {
+    return input
+      .replace(/^```yaml\n/, '') // Remove leading triple backtick (if any)
+      .replace(/\n```$/, '') // Remove trailing triple backtick (if any)
+      .replace(/```\n\s*$/, '') // Remove trailing triple backtick with new line (if any)
+      .trim(); // Ensure no extra spaces
+  }
+
   combineYamlByMethod(docs: string[]) {
     const combined: OpenAPIDoc = {
       openapi: '3.0.0',
@@ -210,9 +187,9 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     };
 
     for (const doc of docs) {
+      const yamlCleanDoc = this.cleanYamlString(doc);
       try {
-        const cleanedOASDoc = cleanupGeneratedDoc(doc);
-        const parsed = parseOASDocFromJson(cleanedOASDoc);
+        const parsed = yaml.parse(yamlCleanDoc) as OpenAPIV3.Document;
 
         // Merge paths
         if (parsed.paths) {
@@ -237,7 +214,26 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       }
     }
 
-    return JSON.stringify(combined);
+    return yaml.stringify(combined);
+  }
+
+  public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
+    super();
+    this.metadata = metadata;
+    this.context = context;
+    this.prompts = new Map();
+    this.strategyName = 'MethodByMethod';
+    this.callCounts = 0;
+    this.maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
+    this.methodsList = [];
+    this.llmResponses = new Map();
+    this.methodsDocSymbolMap = new Map();
+    this.methodsContextMap = new Map();
+    this.llmRequests = new Map();
+    this.documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
+    this.classPrompt = this.buildClassPrompt(this.context.classDetail);
+    const restResourceAnnotation = this.context.classDetail.annotations.find(a => a.name === 'RestResource');
+    this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
   }
 
   public bid(): PromptGenerationStrategyBid {
@@ -283,40 +279,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     };
   }
 
-  generatePromptForMethodOld(methodName: string): string {
-    const prompts = getPrompts();
-    let input = '';
-    const methodContext = this.methodsContextMap.get(methodName);
-    input += `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n`;
-    input += `${prompts.USER_TAG}\n${prompts.METHOD_BY_METHOD.USER_PROMPT}\n`;
-    input += '\nThis is the Apex method the OpenAPI v3 specification should be generated for:\n```\n';
-    input += this.getMethodImplementation(methodName, this.documentText);
-    input += `The method name is ${methodName}.\n`;
-    input += `The operationId in the OAS result must be ${methodName}.\n`;
-    if (methodContext?.returnType !== undefined) {
-      input += `The return type of the method is ${methodContext.returnType}.\n`;
-    }
-    if (methodContext?.parameterTypes?.length ?? 0 > 0) {
-      input += `The parameter types of the method are ${methodContext!.parameterTypes.join(', ')}.\n`;
-    }
-    if (methodContext?.modifiers?.length ?? 0 > 0) {
-      input += `The modifiers of the method are ${methodContext!.modifiers.join(', ')}.\n`;
-    }
-    if (methodContext?.annotations && methodContext.annotations.length > 0) {
-      input += this.getAnnotationsWithParameters(methodContext.annotations);
-    }
-    if (methodContext?.comment !== undefined) {
-      input += `The comment of the method is ${methodContext!.comment}.\n`;
-    }
-    input += this.classPrompt;
-    input += `\n\`\`\`\n${prompts.END_OF_PROMPT_TAG}\n${prompts.ASSISTANT_TAG}\n`;
-
-    return input;
-  }
   generatePromptForMethod(methodName: string): string {
-    const templatePath = path.join(__dirname, 'templates', 'methodByMethod.ejs');
-
-    const renderedTemplate = ejs.render(fs.readFileSync(templatePath, 'utf8'), templateData);
     const prompts = getPrompts();
     let input = '';
     const methodContext = this.methodsContextMap.get(methodName);

@@ -516,6 +516,6 @@ export class ApexActionController {
   private getConfigBidRule(): BidRule {
     return vscode.workspace
       .getConfiguration()
-      .get('salesforcedx-vscode-apex.oas_generation_strategy', 'METHOD_BY_METHOD');
+      .get('salesforcedx-vscode-apex.oas_generation_strategy', 'JSON_METHOD_BY_METHOD');
   }
 }
