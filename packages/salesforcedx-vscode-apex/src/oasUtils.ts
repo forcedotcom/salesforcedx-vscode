@@ -6,12 +6,13 @@
  */
 
 import { SfProject } from '@salesforce/core-bundle';
-import { extractJsonString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { extractJsonString, isJsonString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
 import { join } from 'path';
 import * as vscode from 'vscode';
+import * as yaml from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { nls } from './messages';
 import OasProcessor from './oas/documentProcessorPipeline';
@@ -40,7 +41,7 @@ export const processOasDocument = async (
   isRevalidation?: boolean
 ): Promise<ProcessorInputOutput> => {
   if (isRevalidation || context?.classDetail.annotations.find(a => a.name === 'RestResource')) {
-    const parsed = parseOASDocFromJson(oasDoc);
+    const parsed = isJsonString(oasDoc) ? parseOASDocFromJson(oasDoc) : parseOASDocFromYaml(oasDoc);
 
     const oasProcessor = new OasProcessor(parsed, eligibleResult);
 
@@ -117,6 +118,15 @@ export const cleanupGeneratedDoc = (doc: string): string => {
  */
 export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => {
   return JSON.parse(doc) as OpenAPIV3.Document;
+};
+
+/**
+ * Parses an OAS document from a YAML string.
+ * @param {string} doc - The YAML string representing the OAS document.
+ * @returns {OpenAPIV3.Document} - The parsed OAS document.
+ */
+export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => {
+  return yaml.parse(doc) as OpenAPIV3.Document;
 };
 
 const PROMPT_TEMPLATES = {

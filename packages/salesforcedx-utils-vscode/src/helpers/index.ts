@@ -23,6 +23,7 @@ export {
   extractJsonString,
   getMessageFromError,
   containsJsonString,
+  isJsonString,
   isNullOrUndefined,
   fileUtils
 } from './utils';

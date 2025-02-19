@@ -23,6 +23,12 @@ export const containsJsonString = (str: string): boolean => {
   return firstCurly !== -1 && lastCurly !== -1 && firstCurly < lastCurly;
 };
 
+export const isJsonString = (str: string): boolean => {
+  const firstCurly = str.indexOf('{');
+  const lastCurly = str.lastIndexOf('}');
+  return firstCurly === 0 && lastCurly === str.trimEnd().length - 1;
+};
+
 export const extractJsonString = (str: string): string => {
   if (containsJsonString(str)) {
     return str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
