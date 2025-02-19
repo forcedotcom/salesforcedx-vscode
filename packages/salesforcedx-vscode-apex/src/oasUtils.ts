@@ -168,9 +168,9 @@ const resolveTemplateDir = (): vscode.Uri => {
   if (logLevel !== 'fatal') {
     if (!fs.existsSync(TEMPLATES_DIR)) {
       fs.mkdirSync(TEMPLATES_DIR, { recursive: true });
+      // copy contents of extensionDir to TEMPLATES_DIR
+      copyDirectorySync(join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
     }
-    // copy contents of extensionDir to TEMPLATES_DIR
-    copyDirectorySync(join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
     return vscode.Uri.file(join(process.cwd(), DOT_SFDX));
   }
   return extensionDir;
@@ -187,6 +187,6 @@ export const ejsTemplateHelpers = {
    */
   getTemplatePath: (key: ejsTemplateKey): vscode.Uri => {
     const baseExtensionPath = resolveTemplateDir();
-    return extensionUris.join(baseExtensionPath, PROMPT_TEMPLATES[key]);
+    return vscode.Uri.file(join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
   }
 };

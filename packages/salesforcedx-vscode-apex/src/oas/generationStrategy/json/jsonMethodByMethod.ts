@@ -112,8 +112,8 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
           gil.addYamlParseResult(JSON.stringify(parsed));
           validResponses.push(JSON.stringify(parsed));
         } catch (e) {
-          gil.addYamlParseResult(`Yaml parse failed with error ${e}`);
-          console.debug(`Yaml parse failed with error ${e}`);
+          gil.addYamlParseResult(`JSON parse failed with error ${e}`);
+          console.debug(`JSON parse failed with error ${e}`);
         }
       } catch (e) {
         gil.addCleanedResponse(`Cleanup failed with error ${e}`);
