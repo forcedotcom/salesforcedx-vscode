@@ -10,10 +10,10 @@ import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class ReconcileDuplicateSemanticPathsStep implements ProcessorStep {
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
-    const fixedYaml = this.resolvePathsThatAreSemanticallyEqual(input.yaml);
+    const fixedYaml = this.resolvePathsThatAreSemanticallyEqual(input.openAPIDoc);
 
     return new Promise(resolve => {
-      resolve({ ...input, yaml: fixedYaml });
+      resolve({ ...input, openAPIDoc: fixedYaml });
     });
   }
 

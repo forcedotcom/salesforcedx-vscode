@@ -34,7 +34,7 @@ export class OasProcessor {
     console.log('Executing pipeline with input:');
     console.log('document: ', this.document);
     const output = await pipeline.execute({
-      yaml: this.document,
+      openAPIDoc: this.document,
       errors: [],
       eligibilityResult: this.eligibilityResult
     });

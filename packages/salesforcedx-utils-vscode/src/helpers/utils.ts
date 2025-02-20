@@ -12,14 +12,28 @@ export const isNullOrUndefined = (object: any): object is null | undefined => {
   return object === null || object === undefined;
 };
 
-export const extractJsonObject = (str: string): any => {
-  const isJsonString = str.indexOf('{') !== -1 && str.lastIndexOf('}') !== -1;
-  let jsonString;
-  if (isJsonString) {
-    jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
-    return JSON.parse(jsonString);
+export const extractJsonObject = (str: string): Record<string, unknown> => {
+  const jsonString = extractJsonString(str);
+  return JSON.parse(jsonString) as Record<string, unknown>;
+};
+
+export const containsJsonString = (str: string): boolean => {
+  const firstCurly = str.indexOf('{');
+  const lastCurly = str.lastIndexOf('}');
+  return firstCurly !== -1 && lastCurly !== -1 && firstCurly < lastCurly;
+};
+
+export const isJsonString = (str: string): boolean => {
+  const firstCurly = str.indexOf('{');
+  const lastCurly = str.lastIndexOf('}');
+  return firstCurly === 0 && lastCurly === str.trimEnd().length - 1;
+};
+
+export const extractJsonString = (str: string): string => {
+  if (containsJsonString(str)) {
+    return str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
   }
-  throw new Error(`The string "${str}" is not a valid JSON string.`);
+  throw new Error(`The string "${str}" does not contain valid JSON.`);
 };
 
 // There's a bug in VS Code where, after a file has been renamed,

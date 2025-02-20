@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 
 export interface ProcessorInputOutput {
-  yaml: OpenAPIV3.Document;
+  openAPIDoc: OpenAPIV3.Document;
   errors: vscode.Diagnostic[];
   readonly eligibilityResult?: ApexClassOASEligibleResponse;
 }

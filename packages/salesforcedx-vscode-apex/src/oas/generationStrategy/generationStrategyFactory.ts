@@ -6,14 +6,16 @@
  */
 
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
-import { MethodByMethodStrategy } from './methodByMethodStrategy';
-import { WholeClassStrategy } from './wholeClassStrategy';
+import { JsonMethodByMethodStrategy } from './json/jsonMethodByMethod';
+import { MethodByMethodStrategy } from './yaml/methodByMethodStrategy';
+import { WholeClassStrategy } from './yaml/wholeClassStrategy';
 export enum GenerationStrategy {
   WHOLE_CLASS = 'WholeClass',
-  METHOD_BY_METHOD = 'MethodByMethod'
+  METHOD_BY_METHOD = 'MethodByMethod',
+  JSON_METHOD_BY_METHOD = 'JsonMethodByMethod'
 }
 
-export type Strategy = WholeClassStrategy | MethodByMethodStrategy;
+export type Strategy = WholeClassStrategy | MethodByMethodStrategy | JsonMethodByMethodStrategy;
 
 export class GenerationStrategyFactory {
   public static initializeAllStrategies(
@@ -23,6 +25,7 @@ export class GenerationStrategyFactory {
     const strategies = new Map<GenerationStrategy, Strategy>();
     strategies.set(GenerationStrategy.WHOLE_CLASS, new WholeClassStrategy(metadata, context));
     strategies.set(GenerationStrategy.METHOD_BY_METHOD, new MethodByMethodStrategy(metadata, context));
+    strategies.set(GenerationStrategy.JSON_METHOD_BY_METHOD, new JsonMethodByMethodStrategy(metadata, context));
     return strategies;
   }
 }

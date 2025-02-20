@@ -6,17 +6,17 @@
  */
 
 import * as fs from 'fs';
-import { nls } from '../../messages';
-import GenerationInteractionLogger from '../generationInterationsLogger';
+import { PROMPT_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, SUM_TOKEN_MAX_LIMIT } from '..';
+import { nls } from '../../../messages';
+import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   PromptGenerationResult,
   PromptGenerationStrategyBid
-} from '../schemas';
-import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
-import { GenerationStrategy } from './generationStrategy';
-import { getPrompts } from './promptsHandler';
+} from '../../schemas';
+import { GenerationStrategy } from '../generationStrategy';
+import { getPrompts } from '../promptsHandler';
 
 const gil = GenerationInteractionLogger.getInstance();
 
