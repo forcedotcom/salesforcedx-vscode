@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
-import GenerationInteractionLogger from '../oas/generationInterationsLogger';
+import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import {
   ApexClassOASEligibleRequest,
   ApexClassOASEligibleResponse,

@@ -8,7 +8,7 @@
 import * as fs from 'fs';
 import { PROMPT_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, SUM_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
-import GenerationInteractionLogger from '../../generationInterationsLogger';
+import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,

@@ -17,7 +17,7 @@ import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { nls } from './messages';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
-import GenerationInteractionLogger from './oas/generationInterationsLogger';
+import GenerationInteractionLogger from './oas/generationInteractionLogger';
 import { ApexClassOASGatherContextResponse, ApexClassOASEligibleResponse } from './oas/schemas';
 
 const DOT_SFDX = '.sfdx';

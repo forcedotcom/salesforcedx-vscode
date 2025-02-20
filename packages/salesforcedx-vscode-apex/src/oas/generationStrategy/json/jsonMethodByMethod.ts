@@ -13,7 +13,7 @@ import { DocumentSymbol } from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
 import { cleanupGeneratedDoc, ejsTemplateHelpers, EjsTemplatesEnum, parseOASDocFromJson } from '../../../oasUtils';
-import GenerationInteractionLogger from '../../generationInterationsLogger';
+import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
   ApexAnnotationDetail,
   ApexClassOASEligibleResponse,

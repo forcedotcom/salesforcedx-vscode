@@ -7,7 +7,7 @@
 import { containsJsonString, extractJsonString } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { cleanupGeneratedDoc } from '../oasUtils';
-import GenerationInteractionLogger from './generationInterationsLogger';
+import GenerationInteractionLogger from './generationInteractionLogger';
 import {
   GenerationStrategy,
   GenerationStrategyFactory,

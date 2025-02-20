@@ -15,7 +15,7 @@ import * as vscode from 'vscode';
 import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import GenerationInteractionLogger from '../oas/generationInterationsLogger';
+import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import { ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
 import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from '../oasUtils';
