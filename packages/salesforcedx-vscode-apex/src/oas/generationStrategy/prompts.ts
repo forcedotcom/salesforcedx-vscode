@@ -20,8 +20,7 @@ export const sourcePrompts: Prompts = {
     '- Include only methods annotated with `@HttpGet`, `@HttpPost`, `@HttpPut`, `HttpPatch` or `@HttpDelete`.\n' +
     '\n' +
     '### **Schema Generation**\n' +
-    '- **Non-primitive parameters and responses** (objects, lists, maps) **must have a `#/components/schemas` entry**.\n' +
-    '- Each method must include a `$ref` entry pointing to its corresponding schema.\n' +
+    '- **Non-primitive parameters and responses** (objects, lists, maps) **must be inlined. Do not produce a `#/components/schemas` entry**.\n' +
     '- Supported types:\n' +
     '  - Apex primitives (excluding `sObject` and `Blob`).\n' +
     '  - `sObjects`, lists/maps (with **String keys only**), and user-defined types containing these.\n' +
