@@ -29,7 +29,7 @@ import { openAPISchema_v3_0_guided } from '../openapi-3.schema';
 
 const gil = GenerationInteractionLogger.getInstance();
 
-export const METHOD_BY_METHOD_STRATEGY_NAME = 'MethodByMethod';
+export const METHOD_BY_METHOD_STRATEGY_NAME = 'JsonMethodByMethod';
 export class JsonMethodByMethodStrategy extends GenerationStrategy {
   llmRequests: Map<string, Promise<string>>;
   llmResponses: Map<string, string>;
@@ -153,30 +153,54 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
     });
   }
 
-  async callLLMWithPrompts(): Promise<string[]> {
+  async callLLMWithPrompts(retryLimit: number = 3): Promise<string[]> {
     try {
       const llmService = await this.getLLMServiceInterface();
 
-      // Filter valid prompts and map them to promises
       for (const [methodName, prompt] of this.prompts) {
         if (prompt?.length > 0) {
           gil.addPrompt(prompt);
           this.llmRequests.set(
             methodName,
-            this.includesOASSchema()
-              ? llmService.callLLM(prompt, undefined, this.outputTokenLimit, {
-                  parameters: { guided_json: this.openAPISchema }
-                })
-              : llmService.callLLM(prompt, undefined, this.outputTokenLimit)
+            this.executeWithRetry(
+              () =>
+                this.includesOASSchema()
+                  ? llmService.callLLM(prompt, undefined, this.outputTokenLimit, {
+                      parameters: { guided_json: this.openAPISchema }
+                    })
+                  : llmService.callLLM(prompt, undefined, this.outputTokenLimit),
+              retryLimit
+            )
           );
         }
       }
+
       this.llmResponses = await this.resolveLLMResponses(this.llmRequests);
       return this.prevalidateLLMResponse();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(errorMessage);
     }
+  }
+
+  private async executeWithRetry<T>(fn: () => Promise<T>, retryLimit: number): Promise<T> {
+    let attempts = 0;
+    while (attempts < retryLimit) {
+      try {
+        const result = await fn();
+        // Attempt to parse the result to ensure it's valid JSON
+        JSON.parse(JSON.stringify(result));
+        return result;
+      } catch (error) {
+        attempts++;
+        if (attempts >= retryLimit) {
+          throw new Error(
+            `Failed after ${retryLimit} attempts: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+    }
+    throw new Error('Unexpected error in executeWithRetry');
   }
 
   public async generateOAS(): Promise<string> {
