@@ -14,7 +14,22 @@ import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
-import { retrieveEnableApexLSErrorToTelemetry, retrieveEnableSyncInitJobs } from './settings';
+import {
+  retrieveEnableApexLSErrorToTelemetry,
+  retrieveEnableSyncInitJobs,
+  retrieveAAClassDefModifiers,
+  retrieveAAClassAccessModifiers,
+  retrieveAAMethodDefModifiers,
+  retrieveAAMethodAccessModifiers,
+  retrieveAAPropDefModifiers,
+  retrieveAAPropAccessModifiers,
+  retrieveAAClassRestAnnotations,
+  retrieveAAMethodRestAnnotations,
+  retrieveAAMethodAnnotations,
+  retrieveGeneralClassAccessModifiers,
+  retrieveGeneralMethodAccessModifiers,
+  retrieveGeneralPropAccessModifiers
+} from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
@@ -75,9 +90,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
       args.push(
         '-Dtrace.protocol=false',
         `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
-          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
-        },address=*:${JDWP_DEBUG_PORT},quiet=y`
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'},address=*:${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
         if (SUSPEND_LANGUAGE_SERVER_STARTUP) {
@@ -153,8 +166,20 @@ export const buildClientOptions = (): LanguageClientOptions => {
     },
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
+      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
       enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
-      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry()
+      apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
+      apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
+      apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
+      apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
+      apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
+      apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
+      apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
+      apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
+      apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
+      apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
+      apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
+      apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()
