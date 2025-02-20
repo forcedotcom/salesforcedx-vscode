@@ -81,7 +81,7 @@ export const createProblemTabEntriesForOasDocument = (
 
   gil.addDiagnostics(adjustErrors);
 
-  const mulesoftExtension = vscode.extensions.getExtension('mulesoft.mulesoft-extension-id');
+  const mulesoftExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
   if (!mulesoftExtension?.isActive) {
     OasProcessor.diagnosticCollection.set(uri, adjustErrors);
   }
