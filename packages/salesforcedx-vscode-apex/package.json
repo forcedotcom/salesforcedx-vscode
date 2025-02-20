@@ -509,6 +509,11 @@
           "type": "boolean",
           "default": true,
           "description": "%apex_oas_generation_schema%"
+        },
+        "salesforcedx-vscode-apex.oas_generation_output_token_limit": {
+          "type": "number",
+          "default": 750,
+          "description": "%apex_generation_output_token_limit%"
         }
       }
     },

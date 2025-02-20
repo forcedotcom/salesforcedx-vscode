@@ -63,6 +63,11 @@ export class PromptGenerationOrchestrator {
     }
     const oas = await strategy.generateOAS().then(o => cleanupGeneratedDoc(o));
     gil.addPostGenDoc(oas);
+    gil.addGenerationStrategy(rule);
+    gil.addOutputTokenLimit(strategy.outputTokenLimit);
+    if (strategy.includeOASSchema && strategy.openAPISchema) {
+      gil.addGuidedJson(strategy.openAPISchema);
+    }
     return oas;
   }
 

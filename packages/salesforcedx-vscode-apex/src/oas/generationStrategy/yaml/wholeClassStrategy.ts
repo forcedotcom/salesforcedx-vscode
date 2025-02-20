@@ -29,6 +29,7 @@ export class WholeClassStrategy extends GenerationStrategy {
   callCounts: number;
   maxBudget: number;
   llmResponses: string[];
+  openAPISchema: string | undefined;
 
   public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     super();

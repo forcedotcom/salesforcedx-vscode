@@ -44,6 +44,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   documentText: string;
   classPrompt: string; // The prompt for the entire class
   urlMapping: string;
+  openAPISchema: string | undefined;
 
   async resolveLLMResponses(llmRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
     const methodNames = Array.from(llmRequests.keys());
@@ -234,6 +235,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     this.classPrompt = this.buildClassPrompt(this.context.classDetail);
     const restResourceAnnotation = this.context.classDetail.annotations.find(a => a.name === 'RestResource');
     this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
+    this.openAPISchema = undefined;
   }
 
   public bid(): PromptGenerationStrategyBid {

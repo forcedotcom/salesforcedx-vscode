@@ -45,6 +45,7 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
   documentText: string;
   classPrompt: string; // The prompt for the entire class
   urlMapping: string;
+  openAPISchema: string;
 
   public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     super();
@@ -163,8 +164,10 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
           this.llmRequests.set(
             methodName,
             this.includesOASSchema()
-              ? llmService.callLLM(prompt, undefined, undefined, { parameters: { guided_json: this.openAPISchema } })
-              : llmService.callLLM(prompt)
+              ? llmService.callLLM(prompt, undefined, this.outputTokenLimit, {
+                  parameters: { guided_json: this.openAPISchema }
+                })
+              : llmService.callLLM(prompt, undefined, this.outputTokenLimit)
           );
         }
       }
@@ -285,15 +288,46 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
   generatePromptForMethod(methodName: string): string {
     const templatePath = ejsTemplateHelpers.getTemplatePath(EjsTemplatesEnum.METHOD_BY_METHOD);
 
-    const input = '';
-    const methodContext = this.methodsContextMap.get(methodName);
+    let additionalUserPrompts = '';
     const methodImplementation = this.getMethodImplementation(methodName, this.documentText);
-    const renderedTemplate = ejs.render(fs.readFileSync(templatePath.fsPath, 'utf8'), {
-      methodImplementation,
-      additionalUserPrompts: input
-    });
+    const methodContext = this.methodsContextMap.get(methodName);
+    additionalUserPrompts += this.getPromptForMethodContext(methodContext);
+    try {
+      const renderedTemplate = ejs.render(fs.readFileSync(templatePath.fsPath, 'utf8'), {
+        methodImplementation,
+        additionalUserPrompts
+      });
 
-    return renderedTemplate;
+      return renderedTemplate;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  private getPromptForMethodContext(methodContext: ApexOASMethodDetail | undefined): string {
+    if (!methodContext) return '';
+    let methodContextPrompt = '';
+    methodContext.annotations.forEach(annotation => {
+      switch (annotation.name) {
+        case 'HttpGet':
+          methodContextPrompt += 'For the given method only produce the GET verb.\n';
+          break;
+        case 'HttpPatch':
+          methodContextPrompt += 'For the given method only produce the PATCH verb.\n';
+          break;
+        case 'HttpPost':
+          methodContextPrompt += 'For the given method only produce the POST verb.\n';
+          break;
+        case 'HttpPut':
+          methodContextPrompt += 'For the given method only produce the PUT verb.\n';
+          break;
+        case 'HttpDelete':
+          methodContextPrompt += 'For the given method only produce the DELETE verb.\n';
+          break;
+      }
+    });
+    return methodContextPrompt;
   }
 
   private buildClassPrompt(classDetail: ApexOASClassDetail): string {

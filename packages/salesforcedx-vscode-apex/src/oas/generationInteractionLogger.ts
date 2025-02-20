@@ -24,6 +24,9 @@ export default class GenerationInteractionLogger {
   private finalDoc: string = '';
   private sourceUnderStudy: string = '';
   private logLevel: string = 'fatal';
+  private generationStrategy: string = '';
+  private guidedJson: string = '';
+  private outputTokenLimit: number = 0;
 
   private constructor() {}
 
@@ -111,9 +114,24 @@ export default class GenerationInteractionLogger {
     }
   }
 
+  public addGenerationStrategy(strategy: string): void {
+    this.generationStrategy = strategy;
+  }
+
+  public addGuidedJson(guidedJson: string): void {
+    this.guidedJson = guidedJson;
+  }
+
+  public addOutputTokenLimit(tokenLimit: number): void {
+    this.outputTokenLimit = tokenLimit;
+  }
+
   public gatherAllFields(): Record<string, any> {
     return {
       sourceUnderStudy: this.sourceUnderStudy,
+      generationStrategy: this.generationStrategy,
+      outputTokenLimit: this.outputTokenLimit,
+      guidedJson: this.guidedJson,
       prompts: this.prompts,
       rawResponses: this.rawResponses,
       cleanedResponses: this.cleanedResponses,
@@ -153,6 +171,8 @@ export default class GenerationInteractionLogger {
     this.postGenDoc = '';
     this.finalDoc = '';
     this.sourceUnderStudy = '';
+    this.generationStrategy = '';
+    this.guidedJson = '';
   }
 
   private okToLog(): boolean {
