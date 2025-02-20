@@ -13,7 +13,8 @@ export const DEBUGGER_EXCEPTION_BREAKPOINTS = 'debugger/exceptionBreakpoints';
 const startPos = new vscode.Position(0, 0);
 const endPos = new vscode.Position(0, 1);
 export const APEX_GROUP_RANGE = new vscode.Range(startPos, endPos);
-export const SET_JAVA_DOC_LINK = 'https://developer.salesforce.com/tools/vscode/en/vscode-desktop/java-setup';
+export const SET_JAVA_DOC_LINK =
+  'https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide/java-setup.html';
 export const SFDX_APEX_CONFIGURATION_NAME = 'salesforcedx-vscode-apex';
 export const APEX_EXTENSION_NAME = 'salesforcedx-vscode-apex';
 export const VSCODE_APEX_EXTENSION_NAME = `salesforce.${APEX_EXTENSION_NAME}`;
