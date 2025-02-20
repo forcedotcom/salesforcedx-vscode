@@ -6,7 +6,7 @@
  */
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
-import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
+import { ApexClassOASEligibleResponse } from '../schemas';
 
 export interface ProcessorInputOutput {
   openAPIDoc: OpenAPIV3.Document;
