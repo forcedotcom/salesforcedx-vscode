@@ -22,7 +22,9 @@ import {
   ApexOASMethodDetail,
   OpenAPIDoc,
   PromptGenerationResult,
-  PromptGenerationStrategyBid
+  PromptGenerationStrategyBid,
+  HttpRequestMethod,
+  httpMethodMap
 } from '../../schemas';
 import { GenerationStrategy } from '../generationStrategy';
 import { openAPISchema_v3_0_guided } from '../openapi-3.schema';
@@ -97,6 +99,10 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
         gil.addCleanedResponse(cleandResponse);
         try {
           const parsed = parseOASDocFromJson(cleandResponse);
+          // remove unrelated methods
+          this.excludeUnrelatedMethods(parsed, methodName);
+          // remove non-2xx responses
+          this.excludeNon2xxResponses(parsed);
           // make sure parameters in path are in the request path, and the request path starts with the urlMapping
           const parametersInPath = this.extractParametersInPath(parsed);
           if (parsed.paths) {
@@ -139,6 +145,37 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
         return param1.required === param2.required ? 0 : param1.required ? -1 : 1;
       })
       .map(param => param.name);
+  }
+
+  excludeNon2xxResponses(oas: OpenAPIV3.Document) {
+    JSONPath({
+      path: '$.paths.*.*.responses',
+      json: oas,
+      callback: operation => {
+        for (const [statusCode, response] of Object.entries(operation)) {
+          if (!statusCode.startsWith('2')) {
+            delete operation[statusCode];
+          }
+        }
+      }
+    });
+  }
+
+  // This check is compromised for TDX http deliverables
+  excludeUnrelatedMethods(oas: OpenAPIV3.Document, methodName: string) {
+    const httpMethod = this.getMethodTypeFromAnnotation(methodName);
+
+    JSONPath({
+      path: '$.paths.*', // Access each method under each path
+      json: oas,
+      callback: (operation, type, fullPath) => {
+        for (const [method, body] of Object.entries(operation)) {
+          if (method !== httpMethod) {
+            delete operation[method];
+          }
+        }
+      }
+    });
   }
 
   updateOperationIds(parsed: OpenAPIV3.Document, methodName: string) {
@@ -203,6 +240,19 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
     throw new Error('Unexpected error in executeWithRetry');
   }
 
+  getMethodTypeFromAnnotation(methodName: string): HttpRequestMethod {
+    const methodContext = this.methodsContextMap.get(methodName);
+    if (methodContext) {
+      const httpMethodAnnotation = methodContext.annotations.find(annotation =>
+        ['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete'].includes(annotation.name)
+      );
+      if (httpMethodAnnotation) {
+        return httpMethodMap.get(httpMethodAnnotation.name) as HttpRequestMethod;
+      }
+    }
+    throw new Error(nls.localize('method_not_found_in_doc_symbols', methodName));
+  }
+
   public async generateOAS(): Promise<string> {
     const oas = await this.callLLMWithPrompts();
     if (oas.length > 0) {
@@ -231,8 +281,7 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
         version: '1.0.0',
         description: `This is auto-generated OpenAPI v3 spec for ${this.context.classDetail.name}.`
       },
-      paths: {},
-      components: { schemas: {} }
+      paths: {}
     };
 
     for (const doc of docs) {
