@@ -367,6 +367,7 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
     additionalUserPrompts += this.getPromptForMethodContext(methodContext);
     try {
       const renderedTemplate = ejs.render(fs.readFileSync(templatePath.fsPath, 'utf8'), {
+        classPrompt: this.classPrompt,
         methodImplementation,
         additionalUserPrompts
       });
@@ -411,7 +412,7 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
     }
 
     if (classDetail.comment !== undefined) {
-      prompt += `The comment of the class is ${classDetail.comment}.\n`;
+      prompt += `The documentation of the class is ${classDetail.comment.replace(/\/\*\*([\s\S]*?)\*\//g, '').trim()}.\n`;
     }
 
     return prompt;
