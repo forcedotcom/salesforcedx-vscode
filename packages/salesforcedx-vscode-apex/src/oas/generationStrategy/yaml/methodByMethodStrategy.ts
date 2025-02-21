@@ -10,8 +10,9 @@ import { JSONPath } from 'jsonpath-plus';
 import { OpenAPIV3 } from 'openapi-types';
 import { DocumentSymbol } from 'vscode';
 import * as yaml from 'yaml';
-import { nls } from '../../messages';
-import GenerationInteractionLogger from '../generationInterationsLogger';
+import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
+import { nls } from '../../../messages';
+import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
   ApexAnnotationDetail,
   ApexClassOASEligibleResponse,
@@ -21,10 +22,9 @@ import {
   OpenAPIDoc,
   PromptGenerationResult,
   PromptGenerationStrategyBid
-} from '../schemas';
-import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '.';
-import { GenerationStrategy } from './generationStrategy';
-import { getPrompts } from './promptsHandler';
+} from '../../schemas';
+import { GenerationStrategy } from '../generationStrategy';
+import { getPrompts } from '../promptsHandler';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -44,6 +44,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   documentText: string;
   classPrompt: string; // The prompt for the entire class
   urlMapping: string;
+  openAPISchema: string | undefined;
 
   async resolveLLMResponses(llmRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
     const methodNames = Array.from(llmRequests.keys());
@@ -234,6 +235,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     this.classPrompt = this.buildClassPrompt(this.context.classDetail);
     const restResourceAnnotation = this.context.classDetail.annotations.find(a => a.name === 'RestResource');
     this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
+    this.openAPISchema = undefined;
   }
 
   public bid(): PromptGenerationStrategyBid {

@@ -10,8 +10,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
-import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from './oasUtils';
 // This class runs the validation and correction logic on Oas Documents
 export class OasDocumentChecker {
   private isESRDecomposed: boolean = false;

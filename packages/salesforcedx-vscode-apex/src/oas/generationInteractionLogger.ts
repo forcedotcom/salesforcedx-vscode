@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { ApexClassOASEligibleRequest } from './schemas';
+import { SF_LOG_LEVEL_SETTING } from '../constants';
 
 export default class GenerationInteractionLogger {
   private static instance: GenerationInteractionLogger;
@@ -18,12 +18,15 @@ export default class GenerationInteractionLogger {
   private prompts: string[] = [];
   private rawResponses: string[] = [];
   private cleanedResponses: string[] = [];
-  private yamlParseResults: string[] = [];
+  private parseResults: string[] = [];
   private diagnostics: vscode.Diagnostic[] = [];
-  private postGenYaml: string = '';
-  private finalYaml: string = '';
+  private postGenDoc: string = '';
+  private finalDoc: string = '';
   private sourceUnderStudy: string = '';
   private logLevel: string = 'fatal';
+  private generationStrategy: string = '';
+  private guidedJson: string = '';
+  private outputTokenLimit: number = 0;
 
   private constructor() {}
 
@@ -31,7 +34,7 @@ export default class GenerationInteractionLogger {
     if (!GenerationInteractionLogger.instance) {
       GenerationInteractionLogger.instance = new GenerationInteractionLogger();
       const config = vscode.workspace.getConfiguration();
-      GenerationInteractionLogger.instance.logLevel = config.get('salesforcedx-vscode-core.SF_LOG_LEVEL', 'fatal');
+      GenerationInteractionLogger.instance.logLevel = config.get(SF_LOG_LEVEL_SETTING, 'fatal');
     }
     return GenerationInteractionLogger.instance;
   }
@@ -74,18 +77,18 @@ export default class GenerationInteractionLogger {
 
   public addYamlParseResult(yamlParseResult: string | string[]): void {
     if (Array.isArray(yamlParseResult)) {
-      this.yamlParseResults.push(...yamlParseResult);
+      this.parseResults.push(...yamlParseResult);
     } else {
-      this.yamlParseResults.push(yamlParseResult);
+      this.parseResults.push(yamlParseResult);
     }
   }
 
-  public addPostGenYaml(postGenYaml: string): void {
-    this.postGenYaml = postGenYaml;
+  public addPostGenDoc(postGenYaml: string): void {
+    this.postGenDoc = postGenYaml;
   }
 
-  public addFinalYaml(finalYaml: string): void {
-    this.finalYaml = finalYaml;
+  public addFinalDoc(finalYaml: string): void {
+    this.finalDoc = finalYaml;
   }
 
   public addDiagnostics(diagnostics: vscode.Diagnostic | vscode.Diagnostic[]): void {
@@ -96,8 +99,8 @@ export default class GenerationInteractionLogger {
     }
   }
 
-  public async addSourceUnderStudy(uri: vscode.Uri | vscode.Uri[]): Promise<void> {
-    if (this.okToLog()) {
+  public async addSourceUnderStudy(uri: vscode.Uri | vscode.Uri[] | undefined): Promise<void> {
+    if (this.okToLog() && uri) {
       try {
         if (Array.isArray(uri)) {
           // no-op
@@ -111,15 +114,30 @@ export default class GenerationInteractionLogger {
     }
   }
 
+  public addGenerationStrategy(strategy: string): void {
+    this.generationStrategy = strategy;
+  }
+
+  public addGuidedJson(guidedJson: string): void {
+    this.guidedJson = guidedJson;
+  }
+
+  public addOutputTokenLimit(tokenLimit: number): void {
+    this.outputTokenLimit = tokenLimit;
+  }
+
   public gatherAllFields(): Record<string, any> {
     return {
       sourceUnderStudy: this.sourceUnderStudy,
+      generationStrategy: this.generationStrategy,
+      outputTokenLimit: this.outputTokenLimit,
+      guidedJson: this.guidedJson,
       prompts: this.prompts,
       rawResponses: this.rawResponses,
       cleanedResponses: this.cleanedResponses,
-      yamlParseResults: this.yamlParseResults,
-      postGenYaml: this.postGenYaml,
-      finalYaml: this.finalYaml,
+      parseResults: this.parseResults,
+      postGenDoc: this.postGenDoc,
+      finalDoc: this.finalDoc,
       diagnostics: this.diagnostics,
       apexClassOASEligibleRequest: this.apexClassOASEligibleRequest,
       apexClassOASEligibleResponse: this.apexClassOASEligibleResponse,
@@ -148,11 +166,13 @@ export default class GenerationInteractionLogger {
     this.prompts = [];
     this.rawResponses = [];
     this.cleanedResponses = [];
-    this.yamlParseResults = [];
+    this.parseResults = [];
     this.diagnostics = [];
-    this.postGenYaml = '';
-    this.finalYaml = '';
+    this.postGenDoc = '';
+    this.finalDoc = '';
     this.sourceUnderStudy = '';
+    this.generationStrategy = '';
+    this.guidedJson = '';
   }
 
   private okToLog(): boolean {

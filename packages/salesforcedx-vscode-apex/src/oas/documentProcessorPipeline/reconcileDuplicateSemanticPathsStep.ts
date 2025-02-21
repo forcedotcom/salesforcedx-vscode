@@ -10,22 +10,22 @@ import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class ReconcileDuplicateSemanticPathsStep implements ProcessorStep {
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
-    const fixedYaml = this.resolvePathsThatAreSemanticallyEqual(input.yaml);
+    const fixedOASDoc = this.resolvePathsThatAreSemanticallyEqual(input.openAPIDoc);
 
     return new Promise(resolve => {
-      resolve({ ...input, yaml: fixedYaml });
+      resolve({ ...input, openAPIDoc: fixedOASDoc });
     });
   }
 
-  private resolvePathsThatAreSemanticallyEqual(yaml: OpenAPIV3.Document): OpenAPIV3.Document {
+  private resolvePathsThatAreSemanticallyEqual(doc: OpenAPIV3.Document): OpenAPIV3.Document {
     const newPaths: Record<string, OpenAPIV3.PathItemObject> = {};
     const paramNames: Record<string, string> = {};
 
-    const pathsToFix = this.getPathsToFix(yaml);
+    const pathsToFix = this.getPathsToFix(doc);
 
     JSONPath({
       path: '$.paths',
-      json: yaml,
+      json: doc,
       resultType: 'all',
       callback: ({ value }: { value: Record<string, OpenAPIV3.PathItemObject> }) => {
         Object.entries(value).forEach(([methodPath, methodValues]) => {
@@ -54,8 +54,8 @@ export class ReconcileDuplicateSemanticPathsStep implements ProcessorStep {
       }
     });
 
-    yaml.paths = newPaths;
-    return yaml;
+    doc.paths = newPaths;
+    return doc;
   }
 
   private getPathsToFix(yaml: OpenAPIV3.Document): Record<string, string> {

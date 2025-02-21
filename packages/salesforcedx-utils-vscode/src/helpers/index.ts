@@ -16,7 +16,17 @@ export {
 export * from './extensionUris';
 export { TraceFlags } from './traceFlags';
 export { TraceFlagsRemover } from './traceFlagsRemover';
-export { asyncFilter, difference, extractJsonObject, getMessageFromError, isNullOrUndefined, fileUtils } from './utils';
+export {
+  asyncFilter,
+  difference,
+  extractJsonObject,
+  extractJsonString,
+  getMessageFromError,
+  containsJsonString,
+  isJsonString,
+  isNullOrUndefined,
+  fileUtils
+} from './utils';
 export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
 export { isSFContainerMode } from './env';
 export { ActivationTracker } from './activationTracker';

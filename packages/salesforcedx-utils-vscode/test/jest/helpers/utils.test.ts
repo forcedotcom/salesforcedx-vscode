@@ -20,15 +20,31 @@ describe('utils tests', () => {
       const result = extractJsonObject(jsonString);
       expect(result).toStrictEqual(initialValue);
     });
+    it('Should be able to parse a json string where valid json is embedded within.', () => {
+      const result = extractJsonObject(`now is the time${jsonString}for all good people`);
+      expect(result).toStrictEqual(initialValue);
+    });
 
     it('Should throw error if argument is a simple text', () => {
       const invalidJson = initialValue.how;
-      expect(() => extractJsonObject(invalidJson)).toThrow('The string "does" is not a valid JSON string.');
+      expect(() => extractJsonObject(invalidJson)).toThrow('The string "does" does not contain valid JSON.');
     });
 
     it('Should throw error if argument is invalid JSON string', () => {
       const invalidJson = jsonString.substring(10);
-      expect(() => extractJsonObject(invalidJson)).toThrow(`The string "${invalidJson}" is not a valid JSON string.`);
+      expect(() => extractJsonObject(invalidJson)).toThrow(`The string "${invalidJson}" does not contain valid JSON.`);
+    });
+    it('Should throw error not enough curly braces', () => {
+      const invalidJson = '}';
+      expect(() => extractJsonObject(invalidJson)).toThrow(`The string "${invalidJson}" does not contain valid JSON.`);
+    });
+    it('Should throw error when curly braces not in correct order', () => {
+      const invalidJson = '}{';
+      expect(() => extractJsonObject(invalidJson)).toThrow(`The string "${invalidJson}" does not contain valid JSON.`);
+    });
+    it('Should throw error if JSON is invalid', () => {
+      const invalidJson = '{invalid}';
+      expect(() => extractJsonObject(invalidJson)).toThrow("Expected property name or '}' in JSON at position 1");
     });
   });
   describe('stripAnsiInJson', () => {
