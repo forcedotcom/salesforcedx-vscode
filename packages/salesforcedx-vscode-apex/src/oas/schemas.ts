@@ -129,3 +129,19 @@ export interface Prompts {
     userPrompt: string;
   };
 }
+
+export enum HttpRequestMethod {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  PATCH = 'PATCH',
+  DELETE = 'DELETE'
+}
+
+export const httpMethodMap = new Map<string, string>([
+  ['HttpGet', 'get'],
+  ['HttpPost', 'post'],
+  ['HttpPut', 'put'],
+  ['HttpPatch', 'patch'],
+  ['HttpDelete', 'delete']
+]);
