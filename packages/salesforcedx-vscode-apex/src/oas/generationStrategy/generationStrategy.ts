@@ -5,12 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
+import * as vscode from 'vscode';
+import { APEX_OAS_INCLUDE_GUIDED_JSON, APEX_OAS_OUTPUT_TOKEN_LIMIT, SF_LOG_LEVEL_SETTING } from '../../constants';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   PromptGenerationResult,
   PromptGenerationStrategyBid
 } from '../schemas';
+import { openAPISchema_v3_0 } from './openapi-3.schema';
 
 export abstract class GenerationStrategy {
   abstract metadata: ApexClassOASEligibleResponse;
@@ -22,6 +25,16 @@ export abstract class GenerationStrategy {
   abstract generate(): PromptGenerationResult; // generate the prompt(s) to be sent to the LLM
   abstract callLLMWithPrompts(): Promise<string[]>;
   abstract generateOAS(): Promise<string>; // generate OAS with the generated prompt(s)
+  abstract openAPISchema: string | undefined;
+  includeOASSchema: boolean | undefined;
+  logLevel: string;
+  outputTokenLimit: number;
+
+  constructor() {
+    this.includeOASSchema = undefined;
+    this.logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
+    this.outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
+  }
 
   getPromptTokenCount(prompt: string): number {
     return Math.floor(prompt.length / 4);
@@ -30,4 +43,9 @@ export abstract class GenerationStrategy {
   getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
     return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
   };
+
+  protected includesOASSchema(): boolean {
+    this.includeOASSchema = vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, true);
+    return this.includeOASSchema;
+  }
 }

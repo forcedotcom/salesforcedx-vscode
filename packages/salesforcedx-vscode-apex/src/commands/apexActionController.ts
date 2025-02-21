@@ -15,12 +15,12 @@ import * as vscode from 'vscode';
 import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import GenerationInteractionLogger from '../oas/generationInterationsLogger';
+import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import { ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
+import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
-import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from './oasUtils';
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
   private gil = GenerationInteractionLogger.getInstance();
@@ -54,6 +54,7 @@ export class ApexActionController {
           cancellable: true
         },
         async progress => {
+          // Step0
           // Step 1: Validate eligibility
           progress.report({ message: nls.localize('validate_eligibility') });
           eligibilityResult = await this.metadataOrchestrator.validateMetadata(sourceUri, !isClass);
@@ -73,6 +74,7 @@ export class ApexActionController {
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
 
           // Step 4: Check if the file already exists
+          progress.report({ message: nls.localize('get_document_path') });
           fullPath = await this.pathExists(openApiFileName);
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
 
@@ -91,7 +93,7 @@ export class ApexActionController {
 
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
-          await this.saveOasAsEsrMetadata(processedOasResult.yaml, fullPath[1]);
+          await this.saveOasAsEsrMetadata(processedOasResult.openAPIDoc, fullPath[1]);
 
           // Step 9: If the user chose to merge, open a diff between the original and new ESR files
           if (fullPath[0] !== fullPath[1]) {
@@ -467,7 +469,7 @@ export class ApexActionController {
    * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
    */
   private buildESRYaml = (esrXmlPath: string, safeOasSpec: string) => {
-    this.gil.addFinalYaml(safeOasSpec);
+    this.gil.addFinalDoc(safeOasSpec);
     const esrYamlPath = this.replaceXmlToYaml(esrXmlPath);
     try {
       fs.writeFileSync(esrYamlPath, safeOasSpec, 'utf8');
@@ -514,6 +516,6 @@ export class ApexActionController {
   private getConfigBidRule(): BidRule {
     return vscode.workspace
       .getConfiguration()
-      .get('salesforcedx-vscode-apex.oas_generation_strategy', 'METHOD_BY_METHOD');
+      .get('salesforcedx-vscode-apex.oas_generation_strategy', 'JSON_METHOD_BY_METHOD');
   }
 }
