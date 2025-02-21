@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { languageClientUtils } from '../languageUtils';
 import { nls } from '../messages';
-import GenerationInteractionLogger from '../oas/generationInterationsLogger';
+import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import {
   ApexClassOASEligibleRequest,
   ApexClassOASEligibleResponse,
@@ -55,7 +55,6 @@ export class MetadataOrchestrator {
     sourceUri: vscode.Uri | vscode.Uri[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponse | undefined> => {
-    await gil.addSourceUnderStudy(sourceUri);
     const isEligibleResponses = await this.validateEligibility(sourceUri, isMethodSelected);
     gil.addApexClassOASEligibleResponse(isEligibleResponses);
     if (!isEligibleResponses || isEligibleResponses.length === 0) {
@@ -137,6 +136,7 @@ export class MetadataOrchestrator {
     const telemetryService = await getTelemetryService();
     const requests = [];
     if (Array.isArray(sourceUri)) {
+      await gil.addSourceUnderStudy(sourceUri);
       // if sourceUri is an array, then multiple classes/folders are selected
       for (const uri of sourceUri) {
         const request = {
@@ -161,6 +161,8 @@ export class MetadataOrchestrator {
         }
       }
       // generate the payload
+      await gil.addSourceUnderStudy(sourceUri ? sourceUri : vscode.window.activeTextEditor?.document.uri);
+
       const request: ApexClassOASEligibleRequest = {
         resourceUri: sourceUri ? sourceUri.toString() : vscode.window.activeTextEditor?.document.uri.toString() || '',
         includeAllMethods: !isMethodSelected,

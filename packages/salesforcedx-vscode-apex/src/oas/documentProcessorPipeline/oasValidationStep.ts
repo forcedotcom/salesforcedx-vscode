@@ -17,7 +17,7 @@ export class OasValidationStep implements ProcessorStep {
     spectral.setRuleset(ruleset);
 
     // Run validation using Spectral
-    await spectral.run(stringify(input.yaml)).then(results => {
+    await spectral.run(stringify(input.openAPIDoc)).then(results => {
       const diagnostics: vscode.Diagnostic[] = results.map(result => {
         const range = new vscode.Range(
           result.range.start.line,

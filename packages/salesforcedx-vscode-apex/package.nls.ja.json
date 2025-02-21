@@ -21,6 +21,8 @@
   "apex_trace_server_description": "Controls the level of detail for trace logs in the Apex Language Server",
   "apex_verbose_level_trace_description": "Output everything, including details about notifications and responses received by the client, and requests sent by the server.",
   "apex_oas_generation_strategy": "The strategy used to generate Apex Open API Specs.",
+  "apex_oas_generation_schema": "Include OpenAPI Schema in generation.",
+  "apex_generation_output_token_limit": "The maximum number of tokens to generate in the output.",
   "configuration_title": "Salesforce Apex Configuration",
   "collapse_tests_title": "SFDX: Apex テストを隠す",
   "create_openapi_doc_method": "SFDX: Create OpenAPI Document from Selected Method",

@@ -25,10 +25,10 @@ export class MethodValidationStep implements ProcessorStep {
     }
 
     MethodValidationStep.diagnosticCollection.clear();
-    const cleanedupYaml = this.validateMethods(input.yaml, input.eligibilityResult);
+    const cleanedupYaml = this.validateMethods(input.openAPIDoc, input.eligibilityResult);
     input.errors = [...input.errors, ...this.diagnostics];
     return new Promise(resolve => {
-      resolve({ ...input, yaml: cleanedupYaml });
+      resolve({ ...input, openAPIDoc: cleanedupYaml });
     });
   }
 
