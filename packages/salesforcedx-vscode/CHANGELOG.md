@@ -6,13 +6,13 @@
 
 #### salesforcedx-vscode-expanded
 
-- We have included Agentforce for Developers in standard pack. ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+- 🚀 Agentforce for Developers is now included in the standard Salesforce Extension Pack! ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- We corrected the url for 'set your java version' link. ([PR #6106](https://github.com/forcedotcom/salesforcedx-vscode/pull/6106))
+- We corrected the URL for the "Set your Java version" link. ([PR #6106](https://github.com/forcedotcom/salesforcedx-vscode/pull/6106))
 
 # 63.1.1 - February 19, 2025
 
