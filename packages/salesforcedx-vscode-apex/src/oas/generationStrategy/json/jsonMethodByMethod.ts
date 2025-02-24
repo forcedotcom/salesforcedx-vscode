@@ -234,7 +234,7 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
       } catch (error) {
         attempts++;
         telemetryService.sendException(
-          'OasLlmresultFailedParse',
+          'OasLlmResultFailedParse',
           `attempt: ${attempts} of ${retryLimit}: ${error instanceof Error ? error.message : String(error)}`
         );
         if (attempts >= retryLimit) {
