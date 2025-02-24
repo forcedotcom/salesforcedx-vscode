@@ -1,3 +1,21 @@
+# 63.2.0 - February 26, 2025
+
+## Added
+
+#### salesforcedx-vscode
+
+- @W-17646997 include A4D in standard pack ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+
+#### salesforcedx-vscode-expanded
+
+- @W-17646997 include A4D in standard pack ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- [W-17856593]  correct url for 'set your java version' link ([PR #6106](https://github.com/forcedotcom/salesforcedx-vscode/pull/6106))
+
 # 63.1.1 - February 19, 2025
 
 ## Added
