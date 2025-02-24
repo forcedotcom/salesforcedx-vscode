@@ -47,6 +47,7 @@ export class ApexActionController {
    */
   public createApexAction = async (isClass: boolean, sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
     const type = isClass ? 'Class' : 'Method';
+    const createdMessage = `OASDocumentFor${type}Created`;
     const command = isClass
       ? 'SFDX: Create OpenAPI Document from This Class (Beta)'
       : 'SFDX: Create OpenAPI Document from Selected Method';
@@ -193,7 +194,7 @@ export class ApexActionController {
       if (overwrite) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
-        telemetryService.sendCommandEvent(`ApexAction${type}Created`, hrStart, props, measures);
+        telemetryService.sendCommandEvent(createdMessage, hrStart, props, measures);
       } else {
         // Case 2: User decided to manually merge the original and new ESR files
         const message = nls.localize(
@@ -203,10 +204,10 @@ export class ApexActionController {
           name
         );
         await notificationService.showInformationMessage(message);
-        telemetryService.sendCommandEvent(`ApexAction${type}Created`, hrStart, props, measures);
+        telemetryService.sendCommandEvent(createdMessage, hrStart, props, measures);
       }
     } catch (error: any) {
-      void this.handleError(error, `ApexAction${type}CreationFailed`);
+      void this.handleError(error, `OASDocumentFor${type}CreationFailed`);
     }
     this.gil.writeLogs();
   };
