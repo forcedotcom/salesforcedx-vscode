@@ -23,12 +23,13 @@ import {
   summarizeDiagnostics
 } from '../oas/oasUtils';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
-import { ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
 import {
-  getTelemetryService,
+  ApexOASInfo,
+  ExternalServiceOperation,
   OASGenerationCommandMeasure,
   OASGenerationCommandProperties
-} from '../telemetry/telemetry';
+} from '../oas/schemas';
+import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
@@ -65,6 +66,7 @@ export class ApexActionController {
     let measures: OASGenerationCommandMeasure = {
       generationDuration: 0,
       llmCallCount: 0,
+      biddedCallCount: 0,
       generationSize: 0,
       documentTtlProblems: 0,
       documentErrors: 0,
@@ -135,7 +137,8 @@ export class ApexActionController {
 
           measures = {
             generationDuration: telemetryService.hrTimeToMilliseconds(generationHrDuration),
-            llmCallCount: promptGenerationOrchestrator.strategy?.callCounts,
+            biddedCallCount: promptGenerationOrchestrator.strategy?.biddedCallCount,
+            llmCallCount: promptGenerationOrchestrator.strategy?.llmCallCount,
             generationSize: promptGenerationOrchestrator.strategy?.maxBudget,
             documentTtlProblems: total,
             documentErrors: errors,
@@ -145,7 +148,7 @@ export class ApexActionController {
           };
 
           // Step 9: If the user chose to merge, open a diff between the original and new ESR files
-          if (overwrite) {
+          if (!overwrite) {
             void this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
 
             // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs

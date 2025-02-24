@@ -13,13 +13,15 @@ import {
   PromptGenerationResult,
   PromptGenerationStrategyBid
 } from '../schemas';
-import { openAPISchema_v3_0 } from './openapi-3.schema';
 
+// Below import has to be required for bundling
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const AsyncLock = require('async-lock');
 export abstract class GenerationStrategy {
   abstract metadata: ApexClassOASEligibleResponse;
   abstract context: ApexClassOASGatherContextResponse;
   abstract strategyName: string;
-  abstract callCounts: number;
+  abstract biddedCallCount: number;
   abstract maxBudget: number;
   abstract bid(): PromptGenerationStrategyBid;
   abstract generate(): PromptGenerationResult; // generate the prompt(s) to be sent to the LLM
@@ -30,6 +32,8 @@ export abstract class GenerationStrategy {
   logLevel: string;
   outputTokenLimit: number;
   llmCallCount: number;
+
+  private lock = new AsyncLock();
 
   constructor() {
     this.includeOASSchema = undefined;
@@ -46,8 +50,8 @@ export abstract class GenerationStrategy {
     return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
   };
 
-  incrementCallCount(): void {
-    this.llmCallCount++;
+  async incrementCallCount(): Promise<void> {
+    await this.lock.acquire(this.strategyName, () => this.llmCallCount++);
   }
 
   protected includesOASSchema(): boolean {
