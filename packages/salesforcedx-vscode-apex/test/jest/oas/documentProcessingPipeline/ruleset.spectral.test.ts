@@ -1351,13 +1351,20 @@ info:
 paths:
   /CaseManager/getCaseById:
     get:
-      summary: Retrieve a Case record using the provided Case ID.
-      description: Method to retrieve a Case record using the provided Case ID.
+      summary: Retrieve a Case by ID
+      description: Returns a Case based on the provided ID.
       tags:
         - Case Management
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          description: The ID of the Case to retrieve.
+          schema:
+            type: string
       responses:
         '200':
-          description: The Case record retrieved.
+          description: A Case with the provided ID.
           content:
             application/json:
               schema:
@@ -1365,8 +1372,8 @@ paths:
       operationId: getCaseById
   /CaseManager/createCase:
     post:
-      summary: Create a new Case record
-      description: Method to create a new Case record with the provided details.
+      summary: Create a new Case
+      description: Creates a new Case with the provided information.
       tags:
         - Case Management
       requestBody:
@@ -1385,26 +1392,31 @@ paths:
                   type: string
       responses:
         '200':
-          description: The newly created Case ID
+          description: The newly created Case ID.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Id'
+                type: string
       operationId: createCase
   /CaseManager/deleteCase:
     delete:
-      summary: Deletes a Case record using the provided Case ID.
-      description: Method to delete a Case record using the provided Case ID.
-      tags:
-        - Case Management
+      summary: Deletes a Case.
+      description: Deletes the Case with the specified Id.
+      operationId: deleteCase
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          description: The Id of the Case to delete.
+          schema:
+            type: string
       responses:
         '204':
-          description: Case record successfully deleted.
-      operationId: deleteCase
+          description: The Case was deleted successfully.
   /CaseManager/upsertCase:
     put:
-      summary: Upsert a Case record using the provided details and Case ID.
-      description: Method to upsert a Case record using the provided details and Case ID.
+      summary: Upsert a Case
+      description: Creates or updates a Case based on the provided information.
       tags:
         - Case Management
       parameters:
@@ -1435,7 +1447,7 @@ paths:
             type: string
       responses:
         '200':
-          description: The Case ID of the upserted Case.
+          description: The ID of the upserted Case.
           content:
             application/json:
               schema:
@@ -1458,12 +1470,13 @@ components:
           type: string
     Id:
       type: string
-      description: The unique identifier of the Case record.`;
+      description: The unique identifier of a Case.`;
 
   const result = await runRulesetAgainstYaml(inputYaml);
 
   expect(JSON.stringify(result)).not.toMatch(/info-contact/);
   expect(JSON.stringify(result)).not.toMatch(/operation-tag-defined/);
+  expect(JSON.stringify(result)).not.toMatch(/operation-tags/);
 });
 
 const runRulesetAgainstYaml = async (inputYaml: string) => {

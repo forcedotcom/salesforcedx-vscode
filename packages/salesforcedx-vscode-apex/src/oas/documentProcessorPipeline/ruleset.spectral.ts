@@ -44,6 +44,22 @@ const ruleset = {
         }
       }
     },
+    'operation-tags': {
+      description: 'operation-tags rule disabled',
+      given: '$.paths[*][get,post,put,delete,patch]',
+      message: 'operation-tags rule disabled',
+      then: {
+        function: schema,
+        functionOptions: {
+          schema: {
+            type: 'object',
+            properties: {
+              tags: {}
+            }
+          }
+        }
+      }
+    },
     'openapi-version': {
       description: 'openapi version must be 3.0.0',
       given: '$',
