@@ -16,10 +16,19 @@ import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
+import {
+  checkIfESRIsDecomposed,
+  createProblemTabEntriesForOasDocument,
+  processOasDocument,
+  summarizeDiagnostics
+} from '../oas/oasUtils';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import { ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
-import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from '../oasUtils';
-import { getTelemetryService } from '../telemetry/telemetry';
+import {
+  getTelemetryService,
+  OASGenerationCommandMeasure,
+  OASGenerationCommandProperties
+} from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
@@ -43,8 +52,27 @@ export class ApexActionController {
     let eligibilityResult;
     let context;
     let name;
+    let generationHrStart: [number, number] = [-1, -1];
+    let generationHrDuration: [number, number] = [-1, -1];
     const telemetryService = await getTelemetryService();
     this.gil.clear();
+    const hrStart = process.hrtime();
+    let props: OASGenerationCommandProperties = {
+      isClass: `${isClass}`,
+      overwrite: 'false'
+    };
+
+    let measures: OASGenerationCommandMeasure = {
+      generationDuration: 0,
+      llmCallCount: 0,
+      generationSize: 0,
+      documentTtlProblems: 0,
+      documentErrors: 0,
+      documentWarnings: 0,
+      documentInfo: 0,
+      documentHints: 0
+    };
+
     try {
       let fullPath: [string, string, boolean] = ['', '', false];
       await vscode.window.withProgress(
@@ -83,9 +111,11 @@ export class ApexActionController {
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
 
           // Step 6: use the strategy to generate the OAS
+          generationHrStart = process.hrtime();
           const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
             this.getConfigBidRule()
           );
+          generationHrDuration = process.hrtime(generationHrStart);
 
           // Step 7: Process the OAS document
           progress.report({ message: nls.localize('processing_generated_oas') });
@@ -94,9 +124,28 @@ export class ApexActionController {
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
           await this.saveOasAsEsrMetadata(processedOasResult.openAPIDoc, fullPath[1]);
+          const overwrite = fullPath[0] === fullPath[1];
+
+          props = {
+            isClass: `${isClass}`,
+            overwrite: `${overwrite}`
+          };
+
+          const [errors, warnings, infos, hints, total] = summarizeDiagnostics(processedOasResult.errors);
+
+          measures = {
+            generationDuration: telemetryService.hrTimeToMilliseconds(generationHrDuration),
+            llmCallCount: promptGenerationOrchestrator.strategy?.callCounts,
+            generationSize: promptGenerationOrchestrator.strategy?.maxBudget,
+            documentTtlProblems: total,
+            documentErrors: errors,
+            documentWarnings: warnings,
+            documentInfo: infos,
+            documentHints: hints
+          };
 
           // Step 9: If the user chose to merge, open a diff between the original and new ESR files
-          if (fullPath[0] !== fullPath[1]) {
+          if (overwrite) {
             void this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
 
             // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
@@ -140,7 +189,7 @@ export class ApexActionController {
       if (fullPath[0] === fullPath[1]) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
-        telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+        telemetryService.sendCommandEvent(`ApexAction${type}Created`, hrStart, props, measures);
       } else {
         // Case 2: User decided to manually merge the original and new ESR files
         const message = nls.localize(
@@ -150,7 +199,7 @@ export class ApexActionController {
           name
         );
         await notificationService.showInformationMessage(message);
-        telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+        telemetryService.sendCommandEvent(`ApexAction${type}Created`, hrStart, props, measures);
       }
     } catch (error: any) {
       void this.handleError(error, `ApexAction${type}CreationFailed`);

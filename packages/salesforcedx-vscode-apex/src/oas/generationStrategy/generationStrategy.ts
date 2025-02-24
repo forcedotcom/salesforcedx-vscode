@@ -29,11 +29,13 @@ export abstract class GenerationStrategy {
   includeOASSchema: boolean | undefined;
   logLevel: string;
   outputTokenLimit: number;
+  llmCallCount: number;
 
   constructor() {
     this.includeOASSchema = undefined;
     this.logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
     this.outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
+    this.llmCallCount = 0;
   }
 
   getPromptTokenCount(prompt: string): number {
@@ -43,6 +45,10 @@ export abstract class GenerationStrategy {
   getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
     return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
   };
+
+  incrementCallCount(): void {
+    this.llmCallCount++;
+  }
 
   protected includesOASSchema(): boolean {
     this.includeOASSchema = vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, true);

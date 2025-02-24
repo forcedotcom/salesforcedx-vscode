@@ -10,3 +10,19 @@ import { ServiceProvider, ServiceType, TelemetryServiceInterface } from '@salesf
 export const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   return ServiceProvider.getService(ServiceType.Telemetry, 'salesforcedx-vscode-apex');
 };
+
+export type OASGenerationCommandProperties = {
+  isClass: string;
+  overwrite: string;
+};
+
+export type OASGenerationCommandMeasure = {
+  llmCallCount?: number;
+  generationSize?: number;
+  generationDuration?: number;
+  documentTtlProblems?: number;
+  documentErrors?: number;
+  documentWarnings?: number;
+  documentInfo?: number;
+  documentHints?: number;
+};
