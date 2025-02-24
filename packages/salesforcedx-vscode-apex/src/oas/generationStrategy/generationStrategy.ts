@@ -33,6 +33,7 @@ export abstract class GenerationStrategy {
   outputTokenLimit: number;
   llmCallCount: number;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   private lock = new AsyncLock();
 
   constructor() {
@@ -51,6 +52,7 @@ export abstract class GenerationStrategy {
   };
 
   async incrementCallCount(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     await this.lock.acquire(this.strategyName, () => this.llmCallCount++);
   }
 

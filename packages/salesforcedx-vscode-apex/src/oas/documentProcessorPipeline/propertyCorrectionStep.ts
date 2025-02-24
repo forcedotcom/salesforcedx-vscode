@@ -61,7 +61,10 @@ export class PropertyCorrectionStep implements ProcessorStep {
   }
 
   private ensureRequestBodyDescriptionsArePresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    const requestBodies = JSONPath({ path: '$.paths[*][*].requestBody', json: oasDoc }) as OpenAPIV3.RequestBodyObject[];
+    const requestBodies = JSONPath({
+      path: '$.paths[*][*].requestBody',
+      json: oasDoc
+    }) as OpenAPIV3.RequestBodyObject[];
 
     requestBodies.forEach(requestBody => {
       if (requestBody && !requestBody.description) {

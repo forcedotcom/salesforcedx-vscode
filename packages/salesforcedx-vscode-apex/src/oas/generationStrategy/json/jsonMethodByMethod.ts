@@ -13,6 +13,7 @@ import { DocumentSymbol } from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
 import { cleanupGeneratedDoc, ejsTemplateHelpers, EjsTemplatesEnum, parseOASDocFromJson } from '../../../oasUtils';
+import { getTelemetryService } from '../../../telemetry/telemetry';
 import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
   ApexAnnotationDetail,
@@ -220,17 +221,22 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
     }
   }
 
-  private async executeWithRetry<T>(fn: () => Promise<T>, retryLimit: number): Promise<T> {
+  private async executeWithRetry(fn: () => Promise<string>, retryLimit: number): Promise<string> {
+    const telemetryService = await getTelemetryService();
     let attempts = 0;
     while (attempts < retryLimit) {
+      await this.incrementCallCount();
+      const result = await fn();
+      // Attempt to parse the result to ensure it's valid JSON
       try {
-        await this.incrementCallCount();
-        const result = await fn();
-        // Attempt to parse the result to ensure it's valid JSON
-        JSON.parse(JSON.stringify(result));
+        JSON.parse(result);
         return result;
       } catch (error) {
         attempts++;
+        telemetryService.sendException(
+          'OasLlmresultFailedParse',
+          `attempt: ${attempts} of ${retryLimit}: ${error instanceof Error ? error.message : String(error)}`
+        );
         if (attempts >= retryLimit) {
           throw new Error(
             `Failed after ${retryLimit} attempts: ${error instanceof Error ? error.message : String(error)}`

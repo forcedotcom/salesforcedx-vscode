@@ -8,6 +8,16 @@
 import { basename } from 'path';
 import { telemetryService } from '../telemetry';
 
+export const isDoubleQuotesBalanced = (str: string): boolean => {
+  let inQuotes = false;
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '"' && (i === 0 || str[i - 1] !== '\\')) {
+      inQuotes = !inQuotes;
+    }
+  }
+  return !inQuotes;
+};
+
 export const isNullOrUndefined = (object: any): object is null | undefined => {
   return object === null || object === undefined;
 };
@@ -20,13 +30,25 @@ export const extractJsonObject = (str: string): Record<string, unknown> => {
 export const containsJsonString = (str: string): boolean => {
   const firstCurly = str.indexOf('{');
   const lastCurly = str.lastIndexOf('}');
-  return firstCurly !== -1 && lastCurly !== -1 && firstCurly < lastCurly;
+  const curlyBracesBalanced = /{/g.exec(str)?.length === /}/g.exec(str)?.length;
+  const squareBracketsBalanced = /\[/g.exec(str)?.length === /\]/g.exec(str)?.length;
+  const doubleQuotesBalanced = isDoubleQuotesBalanced(str);
+
+  return (
+    firstCurly !== -1 &&
+    lastCurly !== -1 &&
+    firstCurly < lastCurly &&
+    curlyBracesBalanced &&
+    squareBracketsBalanced &&
+    isDoubleQuotesBalanced(str)
+  );
 };
 
 export const isJsonString = (str: string): boolean => {
+  const hasJsonString = containsJsonString(str);
   const firstCurly = str.indexOf('{');
   const lastCurly = str.lastIndexOf('}');
-  return firstCurly === 0 && lastCurly === str.trimEnd().length - 1;
+  return hasJsonString && firstCurly === 0 && lastCurly === str.trimEnd().length - 1;
 };
 
 export const extractJsonString = (str: string): string => {

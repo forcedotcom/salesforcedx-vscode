@@ -55,6 +55,7 @@ export class ApexActionController {
     let name;
     let generationHrStart: [number, number] = [-1, -1];
     let generationHrDuration: [number, number] = [-1, -1];
+    let overwrite = true;
     const telemetryService = await getTelemetryService();
     this.gil.clear();
     const hrStart = process.hrtime();
@@ -126,7 +127,7 @@ export class ApexActionController {
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
           await this.saveOasAsEsrMetadata(processedOasResult.openAPIDoc, fullPath[1]);
-          const overwrite = fullPath[0] === fullPath[1];
+          overwrite = fullPath[0] === fullPath[1];
 
           props = {
             isClass: `${isClass}`,
@@ -189,7 +190,7 @@ export class ApexActionController {
       );
 
       // Step 5: Notify Success
-      if (fullPath[0] === fullPath[1]) {
+      if (overwrite) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
         telemetryService.sendCommandEvent(`ApexAction${type}Created`, hrStart, props, measures);
