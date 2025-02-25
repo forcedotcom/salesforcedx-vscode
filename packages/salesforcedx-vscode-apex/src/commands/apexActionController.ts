@@ -16,12 +16,7 @@ import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
-import {
-  checkIfESRIsDecomposed,
-  createProblemTabEntriesForOasDocument,
-  processOasDocument,
-  summarizeDiagnostics
-} from '../oas/oasUtils';
+// import { checkIfESRIsDecomposed, summarizeDiagnostics } from '../oas/oasUtils';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import {
   ApexOASInfo,
@@ -29,6 +24,12 @@ import {
   OASGenerationCommandMeasure,
   OASGenerationCommandProperties
 } from '../oas/schemas';
+import {
+  checkIfESRIsDecomposed,
+  createProblemTabEntriesForOasDocument,
+  processOasDocument,
+  summarizeDiagnostics
+} from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {

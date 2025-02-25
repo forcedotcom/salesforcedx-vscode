@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { extractJsonObject, isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode';
+import { extractJson, isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { OrgAuthInfo, workspaceUtils } from '../util';
@@ -132,7 +132,7 @@ export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserN
 export const parseErrors = (error: any): Error => {
   try {
     const errMsg = typeof error === 'string' ? error : JSON.stringify(error);
-    const e = extractJsonObject(errMsg);
+    const e = extractJson(errMsg);
 
     let message: string;
 
