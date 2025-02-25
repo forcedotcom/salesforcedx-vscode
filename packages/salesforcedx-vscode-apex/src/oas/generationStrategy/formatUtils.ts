@@ -11,11 +11,11 @@ import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
 import { ApexOASMethodDetail, HttpRequestMethod, httpMethodMap, OpenAPIDoc } from '../schemas';
 
 export const formatUrlPath = (parametersInPath: string[], urlMapping: string): string => {
-  let updatedPath = urlMapping.replace(/\/$|\/\*$/, '').trim() || '/';
+  let updatedPath = urlMapping.replace(/\/$|\/\*$/, '').trim() || '';
   parametersInPath.forEach(parameter => {
     updatedPath += `/{${parameter}}`;
   });
-  return updatedPath;
+  return updatedPath !== '' ? updatedPath : '/';
 };
 
 export const extractParametersInPath = (oas: OpenAPIV3.Document): string[] => {
