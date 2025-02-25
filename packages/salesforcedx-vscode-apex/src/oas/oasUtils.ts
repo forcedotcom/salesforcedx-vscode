@@ -78,11 +78,11 @@ export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
   return false;
 };
 
-export const summarizeDiagnostics = (diagnostices: vscode.Diagnostic[]): number[] => {
-  return diagnostices.reduce(
+export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[] => {
+  return diagnostics.reduce(
     (acc, cur) => {
       acc[cur.severity] += 1;
-      acc[acc.length - 1] += 1; // [error, warning, info, hint, total
+      acc[acc.length - 1] += 1; // [error, warning, info, hint, total]
       return acc;
     },
     [0, 0, 0, 0, 0]
