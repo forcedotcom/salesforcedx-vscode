@@ -90,7 +90,7 @@ describe('getAnnotationsWithParameters', () => {
     ];
     const result = getAnnotationsWithParameters(annotations as any);
     expect(result).toBe(
-      'Annotation name: RestResource , Parameters: urlMapping: /test\n, Annotation name: AuraEnabled'
+      'Annotation name: RestResource , Parameters: urlMapping: /test\n, Annotation name: AuraEnabled.\n'
     );
   });
   it('should return the correct string with no annotations', () => {
