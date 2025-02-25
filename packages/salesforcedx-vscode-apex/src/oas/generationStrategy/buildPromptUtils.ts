@@ -29,19 +29,18 @@ export const getMethodImplementation = (
 };
 
 export const getAnnotationsWithParameters = (annotations: ApexAnnotationDetail[]): string => {
-  const annotationsStr =
-    annotations
-      .map(annotation => {
-        const paramsEntries = Object.entries(annotation.parameters);
-        const paramsAsStr =
-          paramsEntries.length > 0
-            ? paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ') + '\n'
-            : undefined;
-        return paramsAsStr
-          ? `Annotation name: ${annotation.name} , Parameters: ${paramsAsStr}`
-          : `Annotation name: ${annotation.name}`;
-      })
-      .join(', ') + '\n';
+  const annotationsStr = annotations
+    .map(annotation => {
+      const paramsEntries = Object.entries(annotation.parameters);
+      const paramsAsStr =
+        paramsEntries.length > 0
+          ? paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ') + '\n'
+          : undefined;
+      return paramsAsStr
+        ? `Annotation name: ${annotation.name} , Parameters: ${paramsAsStr}`
+        : `Annotation name: ${annotation.name}.\n`;
+    })
+    .join(', ');
   return annotationsStr;
 };
 
@@ -49,11 +48,17 @@ export const buildClassPrompt = (classDetail: ApexOASClassDetail): string => {
   let prompt = '';
   prompt += `The class name of the given method is ${classDetail.name}.\n`;
   if (classDetail.annotations.length > 0) {
-    prompt += `The class is annotated with ${getAnnotationsWithParameters(classDetail.annotations)}.\n`;
+    prompt += `The class is annotated with ${getAnnotationsWithParameters(classDetail.annotations)}`;
   }
 
   if (classDetail.comment !== undefined) {
-    prompt += `The documentation of the class is ${classDetail.comment.replace(/\/\*\*([\s\S]*?)\*\//g, '').trim()}.\n`;
+    const comment = classDetail.comment
+      .replace(/\/\*\*|\*\//g, '') // Remove opening and closing comment markers
+      .split('\n') // Split into lines
+      .map(line => line.trim().replace(/^\* ?/, '')) // Remove leading '*'
+      .filter(line => line.length > 0) // Remove empty lines
+      .join(' '); // Join into a single line
+    prompt += `The documentation of the class is ${comment}.\n`;
   }
 
   return prompt;
