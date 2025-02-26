@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJsonObject } from '../helpers';
+import { extractJson } from '../helpers';
 
 /**
  * Type that stores information about a successful diff operation
@@ -73,7 +73,7 @@ export class DiffResultParser {
 
   constructor(stdout: string) {
     try {
-      this.response = extractJsonObject(stdout);
+      this.response = extractJson(stdout);
     } catch (e) {
       const err = new Error('Error parsing diff result');
       err.name = 'DiffResultParserFail';

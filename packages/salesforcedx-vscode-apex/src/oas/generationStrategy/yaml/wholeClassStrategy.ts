@@ -26,7 +26,7 @@ export class WholeClassStrategy extends GenerationStrategy {
   context: ApexClassOASGatherContextResponse;
   prompts: string[];
   strategyName: string;
-  callCounts: number;
+  biddedCallCount: number;
   maxBudget: number;
   llmResponses: string[];
   openAPISchema: string | undefined;
@@ -37,7 +37,7 @@ export class WholeClassStrategy extends GenerationStrategy {
     this.context = context;
     this.prompts = [];
     this.strategyName = WHOLE_CLASS_STRATEGY_NAME;
-    this.callCounts = 0;
+    this.biddedCallCount = 0;
     this.maxBudget = 0;
     this.llmResponses = [];
   }
@@ -62,10 +62,10 @@ export class WholeClassStrategy extends GenerationStrategy {
     const tokenCount = this.getPromptTokenCount(input);
     if (tokenCount <= PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
       this.prompts.push(input);
-      this.callCounts++;
+      this.biddedCallCount++;
       return {
         maxBudget: Math.floor((SUM_TOKEN_MAX_LIMIT - tokenCount) * IMPOSED_FACTOR),
-        callCounts: this.callCounts
+        callCounts: this.biddedCallCount
       };
     } else {
       return {

@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from '../oasUtils';
+import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocumentFromYaml } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 // This class runs the validation and correction logic on Oas Documents
 export class OasDocumentChecker {
@@ -66,7 +66,7 @@ export class OasDocumentChecker {
             openApiDocument = fs.readFileSync(fullPath, 'utf8');
           }
           // Step 3: Process the OAS document
-          const processedOasResult = await processOasDocument(openApiDocument, undefined, undefined, true);
+          const processedOasResult = await processOasDocumentFromYaml(openApiDocument, undefined, undefined, true);
 
           // Step 4: Report/Refresh problems found
           createProblemTabEntriesForOasDocument(fullPath, processedOasResult, this.isESRDecomposed);

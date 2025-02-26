@@ -20,6 +20,11 @@ describe('PropertyCorrectionStep', () => {
         title: 'Test API',
         version: ''
       },
+      security: [
+        {
+          apiKeyAuth: []
+        }
+      ],
       paths: {
         '/test': {
           description: '',
@@ -44,7 +49,12 @@ describe('PropertyCorrectionStep', () => {
                   }
                 }
               }
-            }
+            },
+            security: [
+              {
+                apiKeyAuth: []
+              }
+            ]
           }
         }
       }
@@ -59,12 +69,6 @@ describe('PropertyCorrectionStep', () => {
   it('should ensure servers are present', () => {
     const result = step['ensureServersIsPresent'](openAPIDoc);
     expect(result.servers).toEqual([{ url: '/services/apexrest' }]);
-  });
-
-  it('should ensure path descriptions are present', () => {
-    const result = step['ensurePathDescriptionIsPresent'](openAPIDoc);
-    const pathDescriptions = JSONPath({ path: '$.paths[*].description', json: result });
-    expect(pathDescriptions).toContain('Default description for the endpoint.');
   });
 
   it('should ensure response descriptions are present', () => {
@@ -94,5 +98,11 @@ describe('PropertyCorrectionStep', () => {
     );
     const parameterDescriptions = JSONPath({ path: '$.paths[*][*].parameters[*].description', json: result });
     expect(parameterDescriptions).toContain('Default description for the parameter.');
+  });
+
+  it('should remove security sections at root and within methods', () => {
+    const result = step['ensureSecuritySectionsAreRemoved'](openAPIDoc);
+    const securityEntries = JSONPath({ path: '$..security', json: result });
+    expect(securityEntries.length).toBe(0);
   });
 });

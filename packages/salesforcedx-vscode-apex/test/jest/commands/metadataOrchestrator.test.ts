@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,6 +10,7 @@ import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import { MetadataOrchestrator } from '../../../src/commands/metadataOrchestrator';
 import { languageClientUtils } from '../../../src/languageUtils';
 import { nls } from '../../../src/messages';
+import GenerationInteractionLogger from '../../../src/oas/generationInteractionLogger';
 import { ApexOASResource } from '../../../src/oas/schemas';
 import { getTelemetryService } from '../../../src/telemetry/telemetry';
 import { MockTelemetryService } from '../telemetry/mockTelemetryService';
@@ -21,10 +22,14 @@ jest.mock('../../../src/telemetry/telemetry', () => ({
 describe('MetadataOrchestrator', () => {
   let orchestrator: MetadataOrchestrator;
   let showErrorMessageMock: jest.SpyInstance;
+  let addSourceUnderStudySpy: jest.SpyInstance;
 
   beforeEach(() => {
     orchestrator = new MetadataOrchestrator();
     showErrorMessageMock = jest.spyOn(notificationService, 'showErrorMessage').mockImplementation(jest.fn());
+    addSourceUnderStudySpy = jest
+      .spyOn(GenerationInteractionLogger.prototype, 'addSourceUnderStudy')
+      .mockImplementation(jest.fn());
   });
 
   afterEach(() => {
