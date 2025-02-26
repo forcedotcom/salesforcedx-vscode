@@ -16,7 +16,6 @@ import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
-// import { checkIfESRIsDecomposed, summarizeDiagnostics } from '../oas/oasUtils';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import {
   ApexOASInfo,

@@ -13,7 +13,6 @@ import { nls } from '../messages';
 import {
   checkIfESRIsDecomposed,
   createProblemTabEntriesForOasDocument,
-  processOasDocument,
   processOasDocumentFromYaml
 } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
