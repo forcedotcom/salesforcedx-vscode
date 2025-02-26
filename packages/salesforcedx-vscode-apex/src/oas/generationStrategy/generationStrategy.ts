@@ -13,13 +13,15 @@ import {
   PromptGenerationResult,
   PromptGenerationStrategyBid
 } from '../schemas';
-import { openAPISchema_v3_0 } from './openapi-3.schema';
 
+// Below import has to be required for bundling
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const AsyncLock = require('async-lock');
 export abstract class GenerationStrategy {
   abstract metadata: ApexClassOASEligibleResponse;
   abstract context: ApexClassOASGatherContextResponse;
   abstract strategyName: string;
-  abstract callCounts: number;
+  abstract biddedCallCount: number;
   abstract maxBudget: number;
   abstract bid(): PromptGenerationStrategyBid;
   abstract generate(): PromptGenerationResult; // generate the prompt(s) to be sent to the LLM
@@ -29,11 +31,16 @@ export abstract class GenerationStrategy {
   includeOASSchema: boolean | undefined;
   logLevel: string;
   outputTokenLimit: number;
+  llmCallCount: number;
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+  private lock = new AsyncLock();
 
   constructor() {
     this.includeOASSchema = undefined;
     this.logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
     this.outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
+    this.llmCallCount = 0;
   }
 
   getPromptTokenCount(prompt: string): number {
@@ -43,6 +50,11 @@ export abstract class GenerationStrategy {
   getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
     return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
   };
+
+  async incrementCallCount(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    await this.lock.acquire(this.strategyName, () => this.llmCallCount++);
+  }
 
   protected includesOASSchema(): boolean {
     this.includeOASSchema = vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, true);

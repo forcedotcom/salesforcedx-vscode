@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { containsJsonString, extractJsonString } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { cleanupGeneratedDoc } from '../oasUtils';
 import GenerationInteractionLogger from './generationInteractionLogger';
@@ -28,6 +27,7 @@ export class PromptGenerationOrchestrator {
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
   strategies: Map<GenerationStrategy, Strategy>;
+  strategy: Strategy | undefined = undefined;
   // The orchestrator is initialized with metadata and context.
   constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     this.metadata = metadata;
@@ -57,16 +57,16 @@ export class PromptGenerationOrchestrator {
   public async generateOASWithStrategySelectedByBidRule(rule: BidRule): Promise<string> {
     const bids = this.bid();
     const bestStrategy = this.applyRule(rule, bids);
-    const strategy = this.strategies.get(bestStrategy);
-    if (!strategy) {
+    this.strategy = this.strategies.get(bestStrategy);
+    if (!this.strategy) {
       throw new Error(nls.localize('strategy_not_qualified'));
     }
-    const oas = await strategy.generateOAS().then(o => cleanupGeneratedDoc(o));
+    const oas = await this.strategy.generateOAS().then(o => cleanupGeneratedDoc(o));
     gil.addPostGenDoc(oas);
     gil.addGenerationStrategy(rule);
-    gil.addOutputTokenLimit(strategy.outputTokenLimit);
-    if (strategy.includeOASSchema && strategy.openAPISchema) {
-      gil.addGuidedJson(strategy.openAPISchema);
+    gil.addOutputTokenLimit(this.strategy.outputTokenLimit);
+    if (this.strategy.includeOASSchema && this.strategy.openAPISchema) {
+      gil.addGuidedJson(this.strategy.openAPISchema);
     }
     return oas;
   }

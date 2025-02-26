@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJsonObject } from '../../helpers';
+import { extractJson } from '../../helpers';
 
 export const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
@@ -39,7 +39,7 @@ export class ProjectDeployStartResultParser {
 
   constructor(stdout: string) {
     try {
-      this.response = extractJsonObject(stdout);
+      this.response = extractJson(stdout);
     } catch (e) {
       const err = new Error('Error parsing project deploy start result');
       err.name = 'ProjectDeployStartParserFail';
