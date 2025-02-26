@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import { DocumentSymbol } from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
-import { cleanupGeneratedDoc, ejsTemplateHelpers, EjsTemplatesEnum, parseOASDocFromJson } from '../../../oasUtils';
+import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../../oasUtils';
 import { getTelemetryService } from '../../../telemetry/telemetry';
 import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
