@@ -113,13 +113,13 @@ export class MetadataOrchestrator {
       try {
         response = (await languageClient?.sendRequest(
           'apexoas/gatherContext',
-          sourceUri?.toString() ?? vscode.window.activeTextEditor?.document.uri.toString()
+          sourceUri?.toString(true) ?? vscode.window.activeTextEditor?.document.uri.toString(true)
         )) as ApexClassOASGatherContextResponse;
         telemetryService.sendEventData('gatherContextSucceeded', { context: JSON.stringify(response) });
       } catch (error) {
         telemetryService.sendException(
           'gatherContextFailed',
-          `${error} failed to send request to language server for ${path.basename(sourceUri.toString())}`
+          `${error} failed to send request to language server for ${path.basename(sourceUri.toString(true))}`
         );
         // fallback TBD after we understand it better
         throw new Error(nls.localize('cannot_gather_context'));
@@ -140,7 +140,7 @@ export class MetadataOrchestrator {
       // if sourceUri is an array, then multiple classes/folders are selected
       for (const uri of sourceUri) {
         const request = {
-          resourceUri: uri.toString(),
+          resourceUri: uri.toString(true),
           includeAllMethods: true,
           includeAllProperties: true,
           methodNames: [],
@@ -164,7 +164,9 @@ export class MetadataOrchestrator {
       await gil.addSourceUnderStudy(sourceUri ? sourceUri : vscode.window.activeTextEditor?.document.uri);
 
       const request: ApexClassOASEligibleRequest = {
-        resourceUri: sourceUri ? sourceUri.toString() : vscode.window.activeTextEditor?.document.uri.toString() || '',
+        resourceUri: sourceUri
+          ? sourceUri.toString(true)
+          : vscode.window.activeTextEditor?.document.uri.toString(true) || '',
         includeAllMethods: !isMethodSelected,
         includeAllProperties: !isMethodSelected,
         position: cursorPosition ?? null,

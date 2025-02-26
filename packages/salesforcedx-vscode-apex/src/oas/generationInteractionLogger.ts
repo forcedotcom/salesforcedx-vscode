@@ -109,7 +109,7 @@ export default class GenerationInteractionLogger {
           this.sourceUnderStudy = Buffer.from(fileContents).toString('utf8');
         }
       } catch (error) {
-        console.error(`Failed to read file(s) at ${uri.toString()}:`, error);
+        console.error(`Failed to read file(s) at ${uri.toString(true)}:`, error);
       }
     }
   }
