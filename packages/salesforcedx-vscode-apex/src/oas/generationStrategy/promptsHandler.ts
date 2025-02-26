@@ -11,10 +11,10 @@ import { parse, stringify } from 'yaml';
 import { Prompts } from '../schemas';
 import { sourcePrompts } from './prompts';
 
-const PROMPTS_DIR = path.join('.sfdx', 'oas_prompts');
-const PROMPTS_FILE = path.join(PROMPTS_DIR, 'prompts.yaml');
+export const PROMPTS_DIR = path.join('.sfdx', 'oas_prompts');
+export const PROMPTS_FILE = path.join(PROMPTS_DIR, 'prompts.yaml');
 
-const getPromptsFromSource = (): Record<string, any> => {
+export const getPromptsFromSource = (): Record<string, any> => {
   return sourcePrompts;
 };
 
