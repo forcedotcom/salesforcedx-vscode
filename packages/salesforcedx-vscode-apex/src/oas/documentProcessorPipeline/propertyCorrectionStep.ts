@@ -18,6 +18,7 @@ export class PropertyCorrectionStep implements ProcessorStep {
     fixedOASDoc = this.ensureParameterDescriptionsArePresent(fixedOASDoc);
     fixedOASDoc = this.ensureRequestBodyDescriptionsArePresent(fixedOASDoc);
     fixedOASDoc = this.ensureResponseContentsArePresent(fixedOASDoc);
+    fixedOASDoc = this.ensureSecuritySectionsAreRemoved(fixedOASDoc);
 
     return new Promise(resolve => {
       resolve({ ...input, openAPIDoc: fixedOASDoc });
@@ -103,6 +104,22 @@ export class PropertyCorrectionStep implements ProcessorStep {
             }
           }
         };
+      }
+    });
+
+    return oasDoc;
+  }
+
+  private ensureSecuritySectionsAreRemoved(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
+    // delete security section from root
+    delete oasDoc.security;
+    // Find all parent elements where "security" is a direct descendant and remove the "security" property
+
+    const securityParents = JSONPath({ path: '$.paths.*.*.security', json: oasDoc, resultType: 'parent' });
+
+    securityParents.forEach((parent: { security?: unknown }) => {
+      if (parent && typeof parent === 'object') {
+        delete parent.security;
       }
     });
 

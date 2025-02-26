@@ -20,6 +20,11 @@ describe('PropertyCorrectionStep', () => {
         title: 'Test API',
         version: ''
       },
+      security: [
+        {
+          apiKeyAuth: []
+        }
+      ],
       paths: {
         '/test': {
           description: '',
@@ -44,7 +49,12 @@ describe('PropertyCorrectionStep', () => {
                   }
                 }
               }
-            }
+            },
+            security: [
+              {
+                apiKeyAuth: []
+              }
+            ]
           }
         }
       }
@@ -88,5 +98,11 @@ describe('PropertyCorrectionStep', () => {
     );
     const parameterDescriptions = JSONPath({ path: '$.paths[*][*].parameters[*].description', json: result });
     expect(parameterDescriptions).toContain('Default description for the parameter.');
+  });
+
+  it('should remove security sections at root and within methods', () => {
+    const result = step['ensureSecuritySectionsAreRemoved'](openAPIDoc);
+    const securityEntries = JSONPath({ path: '$..security', json: result });
+    expect(securityEntries.length).toBe(0);
   });
 });
