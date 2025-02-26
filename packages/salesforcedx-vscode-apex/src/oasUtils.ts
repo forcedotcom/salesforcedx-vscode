@@ -6,7 +6,7 @@
  */
 
 import { SfProject } from '@salesforce/core-bundle';
-import { extractJsonString, isJsonString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { getJsonCandidate, identifyJsonTypeInString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
@@ -26,6 +26,23 @@ const TEMPLATES_DIR = join(DOT_SFDX, 'resources', 'templates');
 const gil = GenerationInteractionLogger.getInstance();
 
 /**
+ * Processes an OAS document from a YAML string.
+ * @param {string} oasDoc - The OAS document as a YAML string.
+ * @param {ApexClassOASGatherContextResponse} [context] - The context for the OAS document.
+ * @param {ApexClassOASEligibleResponse} [eligibleResult] - The eligible result for the OAS document.
+ * @param {boolean} [isRevalidation] - Whether the document is being revalidated.
+ * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
+ */
+export const processOasDocumentFromYaml = async (
+  oasDoc: string,
+  context?: ApexClassOASGatherContextResponse,
+  eligibleResult?: ApexClassOASEligibleResponse,
+  isRevalidation?: boolean
+): Promise<ProcessorInputOutput> => {
+  return processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), context, eligibleResult, isRevalidation);
+};
+
+/**
  * Processes an OAS document.
  * @param {string} oasDoc - The OAS document as a string.
  * @param {ApexClassOASGatherContextResponse} [context] - The context for the OAS document.
@@ -41,7 +58,7 @@ export const processOasDocument = async (
   isRevalidation?: boolean
 ): Promise<ProcessorInputOutput> => {
   if (isRevalidation || context?.classDetail.annotations.find(a => a.name === 'RestResource')) {
-    const parsed = isJsonString(oasDoc) ? parseOASDocFromJson(oasDoc) : parseOASDocFromYaml(oasDoc);
+    const parsed = parseOASDocFromJson(oasDoc);
 
     const oasProcessor = new OasProcessor(parsed, eligibleResult);
 
@@ -106,9 +123,16 @@ export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
  * Cleans up a generated document by extracting the JSON string.
  * @param {string} doc - The document to clean up.
  * @returns {string} - The cleaned-up JSON string.
+ * @throws Will throw an error if the document is not a valid JSON object.
  */
 export const cleanupGeneratedDoc = (doc: string): string => {
-  return extractJsonString(doc);
+  if (identifyJsonTypeInString(doc) === 'object') {
+    const jsonCandidate = getJsonCandidate(doc);
+    if (jsonCandidate) {
+      return jsonCandidate;
+    }
+  }
+  throw new Error('The document is not a valid JSON object.');
 };
 
 /**
@@ -143,6 +167,11 @@ export enum EjsTemplateKeys {
   METHOD_BY_METHOD = 'METHOD_BY_METHOD'
 }
 
+/**
+ * Copies the contents of a directory recursively.
+ * @param {string} src - The source directory.
+ * @param {string} dest - The destination directory.
+ */
 const copyDirectorySync = (src: string, dest: string) => {
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true });
@@ -162,6 +191,10 @@ const copyDirectorySync = (src: string, dest: string) => {
   }
 };
 
+/**
+ * Resolves the template directory URI.
+ * @returns {vscode.Uri} - The URI of the template directory.
+ */
 const resolveTemplateDir = (): vscode.Uri => {
   const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
   const extensionDir = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
@@ -189,4 +222,20 @@ export const ejsTemplateHelpers = {
     const baseExtensionPath = resolveTemplateDir();
     return vscode.Uri.file(join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
   }
+};
+
+/**
+ * Summarizes diagnostics by severity.
+ * @param {vscode.Diagnostic[]} diagnostics - The diagnostics to summarize.
+ * @returns {number[]} - An array with counts of diagnostics by severity.
+ */
+export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[] => {
+  return diagnostics.reduce(
+    (acc, cur) => {
+      acc[cur.severity] += 1;
+      acc[acc.length - 1] += 1; // [error, warning, info, hint, total]
+      return acc;
+    },
+    [0, 0, 0, 0, 0]
+  );
 };

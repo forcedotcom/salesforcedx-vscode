@@ -145,3 +145,20 @@ export const httpMethodMap = new Map<string, string>([
   ['HttpPatch', 'patch'],
   ['HttpDelete', 'delete']
 ]);
+
+export type OASGenerationCommandProperties = {
+  isClass: string;
+  overwrite: string;
+};
+
+export type OASGenerationCommandMeasure = {
+  llmCallCount?: number;
+  biddedCallCount?: number;
+  generationSize?: number;
+  generationDuration?: number;
+  documentTtlProblems?: number;
+  documentErrors?: number;
+  documentWarnings?: number;
+  documentInfo?: number;
+  documentHints?: number;
+};

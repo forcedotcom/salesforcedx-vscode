@@ -17,8 +17,18 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
-import { ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
-import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocument } from '../oasUtils';
+import {
+  ApexOASInfo,
+  ExternalServiceOperation,
+  OASGenerationCommandMeasure,
+  OASGenerationCommandProperties
+} from '../oas/schemas';
+import {
+  checkIfESRIsDecomposed,
+  createProblemTabEntriesForOasDocument,
+  processOasDocument,
+  summarizeDiagnostics
+} from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
@@ -37,14 +47,36 @@ export class ApexActionController {
    */
   public createApexAction = async (isClass: boolean, sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
     const type = isClass ? 'Class' : 'Method';
+    const createdMessage = `OASDocumentFor${type}Created`;
     const command = isClass
       ? 'SFDX: Create OpenAPI Document from This Class (Beta)'
       : 'SFDX: Create OpenAPI Document from Selected Method';
     let eligibilityResult;
     let context;
     let name;
+    let generationHrStart: [number, number] = [-1, -1];
+    let generationHrDuration: [number, number] = [-1, -1];
+    let overwrite = true;
     const telemetryService = await getTelemetryService();
     this.gil.clear();
+    const hrStart = process.hrtime();
+    let props: OASGenerationCommandProperties = {
+      isClass: `${isClass}`,
+      overwrite: 'false'
+    };
+
+    let measures: OASGenerationCommandMeasure = {
+      generationDuration: 0,
+      llmCallCount: 0,
+      biddedCallCount: 0,
+      generationSize: 0,
+      documentTtlProblems: 0,
+      documentErrors: 0,
+      documentWarnings: 0,
+      documentInfo: 0,
+      documentHints: 0
+    };
+
     try {
       let fullPath: [string, string, boolean] = ['', '', false];
       await vscode.window.withProgress(
@@ -83,9 +115,11 @@ export class ApexActionController {
           const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
 
           // Step 6: use the strategy to generate the OAS
+          generationHrStart = process.hrtime();
           const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
             this.getConfigBidRule()
           );
+          generationHrDuration = process.hrtime(generationHrStart);
 
           // Step 7: Process the OAS document
           progress.report({ message: nls.localize('processing_generated_oas') });
@@ -94,9 +128,29 @@ export class ApexActionController {
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
           await this.saveOasAsEsrMetadata(processedOasResult.openAPIDoc, fullPath[1]);
+          overwrite = fullPath[0] === fullPath[1];
+
+          props = {
+            isClass: `${isClass}`,
+            overwrite: `${overwrite}`
+          };
+
+          const [errors, warnings, infos, hints, total] = summarizeDiagnostics(processedOasResult.errors);
+
+          measures = {
+            generationDuration: telemetryService.hrTimeToMilliseconds(generationHrDuration),
+            biddedCallCount: promptGenerationOrchestrator.strategy?.biddedCallCount,
+            llmCallCount: promptGenerationOrchestrator.strategy?.llmCallCount,
+            generationSize: promptGenerationOrchestrator.strategy?.maxBudget,
+            documentTtlProblems: total,
+            documentErrors: errors,
+            documentWarnings: warnings,
+            documentInfo: infos,
+            documentHints: hints
+          };
 
           // Step 9: If the user chose to merge, open a diff between the original and new ESR files
-          if (fullPath[0] !== fullPath[1]) {
+          if (!overwrite) {
             void this.openDiffFile(fullPath[0], fullPath[1], 'Manual Diff of ESR XML Files');
 
             // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
@@ -137,10 +191,10 @@ export class ApexActionController {
       );
 
       // Step 5: Notify Success
-      if (fullPath[0] === fullPath[1]) {
+      if (overwrite) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
-        telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+        telemetryService.sendCommandEvent(createdMessage, hrStart, props, measures);
       } else {
         // Case 2: User decided to manually merge the original and new ESR files
         const message = nls.localize(
@@ -150,10 +204,10 @@ export class ApexActionController {
           name
         );
         await notificationService.showInformationMessage(message);
-        telemetryService.sendEventData(`ApexAction${type}Created`, { method: name! });
+        telemetryService.sendCommandEvent(createdMessage, hrStart, props, measures);
       }
     } catch (error: any) {
-      void this.handleError(error, `ApexAction${type}CreationFailed`);
+      void this.handleError(error, `OASDocumentFor${type}CreationFailed`);
     }
     this.gil.writeLogs();
   };

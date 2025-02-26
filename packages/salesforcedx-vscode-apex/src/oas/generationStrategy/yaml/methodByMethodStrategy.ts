@@ -36,7 +36,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
   context: ApexClassOASGatherContextResponse;
   prompts: Map<string, string>;
   strategyName: string;
-  callCounts: number;
+  biddedCallCount: number;
   maxBudget: number;
   methodsList: string[];
   methodsDocSymbolMap: Map<string, DocumentSymbol>;
@@ -224,7 +224,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     this.context = context;
     this.prompts = new Map();
     this.strategyName = 'MethodByMethod';
-    this.callCounts = 0;
+    this.biddedCallCount = 0;
     this.maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
     this.methodsList = [];
     this.llmResponses = new Map();
@@ -259,7 +259,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       const tokenCount = this.getPromptTokenCount(input);
       if (tokenCount <= PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
         this.prompts.set(methodName, input);
-        this.callCounts++;
+        this.biddedCallCount++;
         const currentBudget = Math.floor((PROMPT_TOKEN_MAX_LIMIT - tokenCount) * IMPOSED_FACTOR);
         if (currentBudget < this.maxBudget) {
           this.maxBudget = currentBudget;
@@ -267,7 +267,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
       } else {
         // as long as there is one failure, the strategy will be considered failed
         this.prompts.clear();
-        this.callCounts = 0;
+        this.biddedCallCount = 0;
         this.maxBudget = 0;
         return {
           maxBudget: 0,
@@ -277,7 +277,7 @@ export class MethodByMethodStrategy extends GenerationStrategy {
     }
     return {
       maxBudget: this.maxBudget,
-      callCounts: this.callCounts
+      callCounts: this.biddedCallCount
     };
   }
 

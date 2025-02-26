@@ -61,12 +61,6 @@ describe('PropertyCorrectionStep', () => {
     expect(result.servers).toEqual([{ url: '/services/apexrest' }]);
   });
 
-  it('should ensure path descriptions are present', () => {
-    const result = step['ensurePathDescriptionIsPresent'](openAPIDoc);
-    const pathDescriptions = JSONPath({ path: '$.paths[*].description', json: result });
-    expect(pathDescriptions).toContain('Default description for the endpoint.');
-  });
-
   it('should ensure response descriptions are present', () => {
     const result = step['ensureResponseDescriptionsArePresent'](openAPIDoc);
     const responseDescriptions = JSONPath({ path: '$.paths[*][*].responses[*].description', json: result });

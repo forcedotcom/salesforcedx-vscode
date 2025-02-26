@@ -19,6 +19,7 @@ export class SettingsService {
   }
 
   public static isAdvancedSettingEnabledFor(extensionName: string, advancedSetting: AdvancedSettings): boolean {
-    return vscode.workspace.getConfiguration().get<string>(`${extensionName}.${ADVANCED}.${advancedSetting}`) === TRUE;
+    const setting = vscode.workspace.getConfiguration().get<string>(`${extensionName}.${ADVANCED}.${advancedSetting}`);
+    return setting === TRUE;
   }
 }
