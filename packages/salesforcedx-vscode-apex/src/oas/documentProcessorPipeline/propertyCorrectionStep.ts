@@ -83,7 +83,7 @@ export class PropertyCorrectionStep implements ProcessorStep {
     const items = JSONPath({ path: jsonPath, json: oasDoc }) as { description?: string }[];
 
     items.forEach(item => {
-      if (item && typeof item === 'object' && 'description' in item && !item.description) {
+      if (item && typeof item === 'object' && (!Reflect.has(item, 'description') || !item.description)) {
         item.description = defaultDescription;
       }
     });
