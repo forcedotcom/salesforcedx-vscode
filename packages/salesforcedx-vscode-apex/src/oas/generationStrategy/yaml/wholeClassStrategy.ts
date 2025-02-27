@@ -51,7 +51,7 @@ export class WholeClassStrategy extends GenerationStrategy {
 
   public generate(): PromptGenerationResult {
     const prompts = getPrompts();
-    const documentText = fs.readFileSync(new URL(this.metadata.resourceUri), 'utf8');
+    const documentText = fs.readFileSync(this.metadata.resourceUri.fsPath, 'utf8');
     const input =
       `${prompts.SYSTEM_TAG}\n${prompts.systemPrompt}\n${prompts.END_OF_PROMPT_TAG}\n${prompts.USER_TAG}\n` +
       prompts.wholeClass.userPrompt +

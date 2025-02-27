@@ -102,7 +102,7 @@ export class ApexActionController {
           }
 
           // Step 3: Determine filename
-          name = path.basename(eligibilityResult.resourceUri, '.cls');
+          name = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
 
           // Step 4: Check if the file already exists
