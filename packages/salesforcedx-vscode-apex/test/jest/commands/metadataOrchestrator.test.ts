@@ -205,8 +205,8 @@ describe('MetadataOrchestrator', () => {
     });
 
     it('should call eligibilityDelegate with expected parameter when there is single request', async () => {
-      const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: mockUriParse('/file.cls') }];
       const uri = mockUriParse('/file.cls');
+      const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: uri }];
       eligibilityDelegateSpy = jest.spyOn(orchestrator, 'eligibilityDelegate').mockResolvedValue(responses);
       const mockEditor = {
         document: { fileName: 'file.cls' }
@@ -227,7 +227,20 @@ describe('MetadataOrchestrator', () => {
 
       (vscode.window as any).activeTextEditor = mockEditor;
       await orchestrator.validateEligibility(mockUriParse('/file.cls'), false);
-      expect(eligibilityDelegateSpy).toHaveBeenCalledWith({ ...payload });
+      expect(eligibilityDelegateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: [
+            expect.objectContaining({
+              resourceUri: expect.anything(),
+              includeAllMethods: true,
+              includeAllProperties: true,
+              position: null,
+              methodNames: [],
+              propertyNames: []
+            })
+          ]
+        })
+      );
     });
   });
 
