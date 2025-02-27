@@ -80,7 +80,7 @@ export const createProblemTabEntriesForOasDocument = (
   processedOasResult: ProcessorInputOutput,
   isESRDecomposed: boolean
 ): void => {
-  const uri = vscode.Uri.parse(fullPath);
+  const uri = vscode.Uri.file(fullPath);
   OasProcessor.diagnosticCollection.clear();
 
   const adjustErrors = processedOasResult.errors.map(result => {
