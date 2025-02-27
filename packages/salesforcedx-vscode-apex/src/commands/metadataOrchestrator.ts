@@ -65,12 +65,16 @@ export class MetadataOrchestrator {
         const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
         throw new Error(nls.localize('not_eligible_method', name));
       }
-      throw new Error(nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri, '.cls')));
+      throw new Error(
+        nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri.fsPath, '.cls'))
+      );
     }
     const symbols = isEligibleResponses[0].symbols ?? [];
     const eligibleSymbols = symbols.filter(s => s.isApexOasEligible);
     if (eligibleSymbols.length === 0) {
-      throw new Error(nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri, '.cls')));
+      throw new Error(
+        nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri.fsPath, '.cls'))
+      );
     }
     return isEligibleResponses[0];
   };
@@ -86,7 +90,7 @@ export class MetadataOrchestrator {
       const classNumbers = requests.payload.length.toString();
       const requestTarget = this.requestTarget(requests);
       try {
-        response = (await languageClient?.sendRequest('apexoas/isEligible', requests)) as ApexClassOASEligibleResponses;
+        response = (await languageClient?.isOpenAPIEligible(requests)) as ApexClassOASEligibleResponses;
         telemetryService.sendEventData('isEligibleResponseSucceeded', {
           classNumbers,
           requestTarget
@@ -107,14 +111,13 @@ export class MetadataOrchestrator {
     sourceUri: vscode.Uri | vscode.Uri[]
   ): Promise<ApexClassOASGatherContextResponse | undefined> => {
     const telemetryService = await getTelemetryService();
-    let response;
+    let response: ApexClassOASGatherContextResponse | undefined;
     const languageClient = languageClientUtils.getClientInstance();
     if (languageClient) {
       try {
-        response = (await languageClient?.sendRequest(
-          'apexoas/gatherContext',
-          sourceUri?.toString() ?? vscode.window.activeTextEditor?.document.uri.toString()
-        )) as ApexClassOASGatherContextResponse;
+        response = await languageClient?.gatherOpenAPIContext(
+          sourceUri ?? vscode.window.activeTextEditor?.document.uri
+        );
         telemetryService.sendEventData('gatherContextSucceeded', { context: JSON.stringify(response) });
       } catch (error) {
         telemetryService.sendException(
@@ -140,7 +143,7 @@ export class MetadataOrchestrator {
       // if sourceUri is an array, then multiple classes/folders are selected
       for (const uri of sourceUri) {
         const request = {
-          resourceUri: uri.toString(),
+          resourceUri: uri,
           includeAllMethods: true,
           includeAllProperties: true,
           methodNames: [],
@@ -162,9 +165,14 @@ export class MetadataOrchestrator {
       }
       // generate the payload
       await gil.addSourceUnderStudy(sourceUri ? sourceUri : vscode.window.activeTextEditor?.document.uri);
-
+      const resourceUri = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
+      if (!resourceUri) {
+        throw new Error(
+          'Cannot resolve URI for OAS Generation request. Please ensure that the location used to launch the command is from a file, folder or active editor'
+        );
+      }
       const request: ApexClassOASEligibleRequest = {
-        resourceUri: sourceUri ? sourceUri.toString() : vscode.window.activeTextEditor?.document.uri.toString() || '',
+        resourceUri,
         includeAllMethods: !isMethodSelected,
         includeAllProperties: !isMethodSelected,
         position: cursorPosition ?? null,
@@ -184,7 +192,7 @@ export class MetadataOrchestrator {
     else {
       const request = payload[0];
       if (!request.includeAllMethods && !request.includeAllProperties) return ApexOASResource.singleMethodOrProp;
-      if (!request.resourceUri.endsWith('.cls')) {
+      if (!request.resourceUri?.fsPath.endsWith('.cls')) {
         return ApexOASResource.folder;
       } else return ApexOASResource.class;
     }

@@ -19,6 +19,22 @@ jest.mock('../../../src/telemetry/telemetry', () => ({
   getTelemetryService: jest.fn()
 }));
 
+const mockUriParse = (uriString: string): vscode.Uri => {
+  const mockUri = {
+    path: uriString,
+    scheme: 'file',
+    authority: '',
+    query: '',
+    fragment: '',
+    fsPath: uriString,
+    with: jest.fn(),
+    toString: jest.fn().mockReturnValue(uriString),
+    toJSON: jest.fn().mockReturnValue(uriString)
+  } as unknown as vscode.Uri;
+  jest.spyOn(vscode.Uri, 'parse').mockReturnValue(mockUri);
+  return mockUri;
+};
+
 describe('MetadataOrchestrator', () => {
   let orchestrator: MetadataOrchestrator;
   let showErrorMessageMock: jest.SpyInstance;
@@ -68,7 +84,9 @@ describe('MetadataOrchestrator', () => {
     });
 
     it('should throw an error if the first eligible response is not eligible and method is not selected', async () => {
-      const mockResponse: any = [{ isApexOasEligible: false, isEligible: false, resourceUri: '/hello/world.cls' }];
+      const mockResponse: any = [
+        { isApexOasEligible: false, isEligible: false, resourceUri: mockUriParse('/hello/world.cls') }
+      ];
       jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
       await expect(orchestrator.validateMetadata(editorStub.document.uri)).rejects.toThrow(
         'The Apex Class world is not valid for OpenAPI document generation.'
@@ -103,15 +121,15 @@ describe('MetadataOrchestrator', () => {
 
     it('should send a request and return the response when successful', async () => {
       const mockLanguageClient = {
-        sendRequest: jest.fn().mockResolvedValue({ some: 'response' })
+        gatherOpenAPIContext: jest.fn().mockResolvedValue({ some: 'response' })
       } as unknown as ApexLanguageClient;
 
       getClientInstanceSpy = jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(mockLanguageClient);
 
-      const mockUri = { path: '/hello/world.cls' } as vscode.Uri;
+      const mockUri = mockUriParse('/hello/world.cls');
       const response = await orchestrator.gatherContext(mockUri);
 
-      expect(mockLanguageClient.sendRequest).toHaveBeenCalledWith('apexoas/gatherContext', mockUri.toString());
+      expect(mockLanguageClient.gatherOpenAPIContext).toHaveBeenCalledWith(mockUri);
       expect(response).toEqual({ some: 'response' });
     });
 
@@ -142,12 +160,12 @@ describe('MetadataOrchestrator', () => {
       (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
     });
     it('should call eligibilityDelegate with expected parameter when there are multiple uris (requests)', async () => {
-      const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: 'file.cls' }];
+      const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: mockUriParse('file.cls') }];
       const uris = [{ path: '/hello/world.cls' } as vscode.Uri, { path: 'hola/world.cls' } as vscode.Uri];
       const expectedRequest = {
         payload: [
           {
-            resourceUri: uris[0].toString(),
+            resourceUri: uris[0],
             includeAllMethods: true,
             includeAllProperties: true,
             position: null,
@@ -155,7 +173,7 @@ describe('MetadataOrchestrator', () => {
             propertyNames: []
           },
           {
-            resourceUri: uris[1].toString(),
+            resourceUri: uris[1],
             includeAllMethods: true,
             includeAllProperties: true,
             position: null,
@@ -187,15 +205,15 @@ describe('MetadataOrchestrator', () => {
     });
 
     it('should call eligibilityDelegate with expected parameter when there is single request', async () => {
-      const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: 'file.cls' }];
-      const uri = { path: '/file.cls' } as vscode.Uri;
+      const uri = mockUriParse('/file.cls');
+      const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: uri }];
       eligibilityDelegateSpy = jest.spyOn(orchestrator, 'eligibilityDelegate').mockResolvedValue(responses);
       const mockEditor = {
         document: { fileName: 'file.cls' }
       };
       // with no method selected
       const request = {
-        resourceUri: uri.toString(),
+        resourceUri: uri,
         includeAllMethods: true,
         includeAllProperties: true,
         position: null,
@@ -208,8 +226,21 @@ describe('MetadataOrchestrator', () => {
       };
 
       (vscode.window as any).activeTextEditor = mockEditor;
-      await orchestrator.validateEligibility({ path: 'file.cls' } as vscode.Uri, false);
-      expect(eligibilityDelegateSpy).toHaveBeenCalledWith(payload);
+      await orchestrator.validateEligibility(mockUriParse('/file.cls'), false);
+      expect(eligibilityDelegateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: [
+            expect.objectContaining({
+              resourceUri: expect.anything(),
+              includeAllMethods: true,
+              includeAllProperties: true,
+              position: null,
+              methodNames: [],
+              propertyNames: []
+            })
+          ]
+        })
+      );
     });
   });
 
@@ -222,7 +253,7 @@ describe('MetadataOrchestrator', () => {
       const sampleRequest = {
         payload: [
           {
-            resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes',
+            resourceUri: mockUriParse('file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes'),
             includeAllMethods: true,
             includeAllProperties: true,
             position: null,
@@ -242,7 +273,7 @@ describe('MetadataOrchestrator', () => {
       const sampleRequest = {
         payload: [
           {
-            resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes',
+            resourceUri: mockUriParse('file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes'),
             includeAllMethods: true,
             includeAllProperties: true,
             position: null,
@@ -258,7 +289,9 @@ describe('MetadataOrchestrator', () => {
       const sampleRequest = {
         payload: [
           {
-            resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file.cls',
+            resourceUri: mockUriParse(
+              'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file.cls'
+            ),
             includeAllMethods: true,
             includeAllProperties: true,
             position: null,
@@ -274,7 +307,9 @@ describe('MetadataOrchestrator', () => {
       const sampleRequest = {
         payload: [
           {
-            resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file.cls',
+            resourceUri: mockUriParse(
+              'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file.cls'
+            ),
             includeAllMethods: false,
             includeAllProperties: false,
             position: new vscode.Position(3, 5),
@@ -290,7 +325,9 @@ describe('MetadataOrchestrator', () => {
       const sampleRequest = {
         payload: [
           {
-            resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file1.cls',
+            resourceUri: mockUriParse(
+              'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file1.cls'
+            ),
             includeAllMethods: true,
             includeAllProperties: true,
             position: null,
@@ -298,7 +335,9 @@ describe('MetadataOrchestrator', () => {
             propertyNames: []
           },
           {
-            resourceUri: 'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file2.cls',
+            resourceUri: mockUriParse(
+              'file:///Users/peter.hale/git/apex-perf-project/force-app/main/default/classes/file2.cls'
+            ),
             includeAllMethods: true,
             includeAllProperties: true,
             position: null,

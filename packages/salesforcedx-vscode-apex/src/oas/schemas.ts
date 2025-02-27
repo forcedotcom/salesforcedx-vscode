@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import vscode, { DocumentSymbol } from 'vscode';
+import vscode, { DocumentSymbol, Uri } from 'vscode';
 export type ApexClassOASEligibleRequest = {
-  resourceUri: string;
+  resourceUri: Uri;
   includeAllMethods: boolean;
   includeAllProperties: boolean;
   position: vscode.Position | null;
@@ -23,7 +23,7 @@ export interface SymbolEligibility {
 export type ApexClassOASEligibleResponse = {
   isEligible: boolean;
   isApexOasEligible: boolean;
-  resourceUri: string;
+  resourceUri: Uri;
   symbols?: SymbolEligibility[];
 };
 

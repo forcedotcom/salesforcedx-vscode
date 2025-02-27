@@ -504,7 +504,7 @@
             "JSON_METHOD_BY_METHOD",
             "WHOLE_CLASS"
           ],
-          "default": "METHOD_BY_METHOD",
+          "default": "JSON_METHOD_BY_METHOD",
           "description": "%apex_oas_generation_strategy%"
         },
         "salesforcedx-vscode-apex.oas_generation_include_schema": {

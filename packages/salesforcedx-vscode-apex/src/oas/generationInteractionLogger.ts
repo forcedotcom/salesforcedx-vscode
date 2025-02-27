@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { join } from 'path';
 import * as vscode from 'vscode';
 import { SF_LOG_LEVEL_SETTING } from '../constants';
 
@@ -148,10 +149,10 @@ export default class GenerationInteractionLogger {
   public writeLogs(): void {
     if (this.okToLog()) {
       // create a file path based on current date time
-      const logPath = `${process.cwd()}/llm-logs`;
-      const dateTime = new Date().toISOString();
+      const logPath = join(process.cwd(), 'llm-logs');
+      const dateTime = new Date().toISOString().replace(/:/g, '-'); // colon is illegal for filename in Windows
       const fileName = `oas-gen-logs-${dateTime}.json`;
-      const filePath = `${logPath}/${fileName}`;
+      const filePath = join(logPath, fileName);
 
       fs.mkdirSync(logPath, { recursive: true });
       // write to the file
