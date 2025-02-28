@@ -15,13 +15,13 @@
     "@salesforce/salesforcedx-utils": "63.2.1",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
-    "async-lock": "1.0.0",
+    "async-lock": "1.4.1",
     "faye": "1.1.2",
     "request-light": "^0.7.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "63.2.1",
-    "@types/async-lock": "0.0.20",
+    "@types/async-lock": "1.4.2",
     "@types/chai": "4.3.3",
     "@types/jest": "^29.5.5",
     "@types/mocha": "^5",
