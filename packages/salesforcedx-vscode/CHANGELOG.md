@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- 🚀 Create Custom Agent Actions from Your Apex REST Classes using the new SFDX: Create OpenAPI Document from this Class (Beta) command. The command generates an OpenAPI document for your Apex REST class using Salesforce's secure, custom generative AI model.  Easily deploy the generated document to your org's API Catalog. Then, use it to create an agent action using Agent Studio. ([PR #6102](https://github.com/forcedotcom/salesforcedx-vscode/pull/6102))
+- 🚀 Create Custom Agent Actions from Your Apex REST Classes using the new `SFDX: Create OpenAPI Document from this Class (Beta)` command. The command generates an OpenAPI document for your Apex REST class using Salesforce's secure, custom generative AI model.  Easily deploy the generated document to your org's API Catalog. Then, use it to create an agent action using Agent Studio. ([PR #6102](https://github.com/forcedotcom/salesforcedx-vscode/pull/6102))
 
 ## Fixed
 
