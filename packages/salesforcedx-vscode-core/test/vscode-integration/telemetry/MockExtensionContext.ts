@@ -39,7 +39,7 @@ class MockMemento implements Memento {
     return readOnlyKeys;
   }
 
-  public get<T>(key: string): T {
+  public get<T>(key: string): T | undefined {
     if (this.telemetryGS === true) {
       return true as any;
     }
