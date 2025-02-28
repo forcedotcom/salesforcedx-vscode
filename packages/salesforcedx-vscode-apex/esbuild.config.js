@@ -12,7 +12,7 @@ const sharedConfig = {
   bundle: true,
   format: 'cjs',
   platform: 'node',
-  external: ['vscode', 'applicationinsights', 'shelljs', 'jsonpath'],
+  external: ['vscode', 'applicationinsights', 'shelljs', 'jsonpath', 'jsonc-parser'],
   keepNames: true,
   plugins: [esbuildPluginPino({ transports: ['pino-pretty'] })],
   minify: true,

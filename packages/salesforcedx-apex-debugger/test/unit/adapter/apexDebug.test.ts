@@ -438,11 +438,11 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     afterEach(() => {
-      sessionStartSpy.restore();
-      sessionConnectedSpy.restore();
-      streamingSubscribeSpy.restore();
-      breakpointHasLineNumberMappingSpy.restore();
-      orgInfoSpy.restore();
+      sessionStartSpy?.restore();
+      sessionConnectedSpy?.restore();
+      streamingSubscribeSpy?.restore();
+      breakpointHasLineNumberMappingSpy?.restore();
+      orgInfoSpy?.restore();
     });
 
     it('Should save proxy settings', async () => {

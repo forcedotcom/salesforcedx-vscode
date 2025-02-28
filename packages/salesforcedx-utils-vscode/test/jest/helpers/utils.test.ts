@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { extractJsonObject, stripAnsiInJson } from '../../../src/helpers/utils';
+import { extractJson, stripAnsiInJson } from '../../../src/helpers/utils';
 
 describe('utils tests', () => {
-  describe('extractJsonObject unit tests', () => {
+  describe('extractJson unit tests', () => {
     const initialValue = {
       how: 'does',
       it: true,
@@ -17,18 +17,40 @@ describe('utils tests', () => {
     const jsonString = JSON.stringify(initialValue);
 
     it('Should be able to parse a json string.', () => {
-      const result = extractJsonObject(jsonString);
+      const result = extractJson(jsonString);
+      expect(result).toStrictEqual(initialValue);
+    });
+    it('Should be able to parse a json string where valid json is embedded within.', () => {
+      const result = extractJson(`now is the time${jsonString}for all good people`);
       expect(result).toStrictEqual(initialValue);
     });
 
     it('Should throw error if argument is a simple text', () => {
       const invalidJson = initialValue.how;
-      expect(() => extractJsonObject(invalidJson)).toThrow('The string "does" is not a valid JSON string.');
+      expect(() => extractJson(invalidJson)).toThrow('The string "does" does not contain an array or object.');
     });
 
     it('Should throw error if argument is invalid JSON string', () => {
       const invalidJson = jsonString.substring(10);
-      expect(() => extractJsonObject(invalidJson)).toThrow(`The string "${invalidJson}" is not a valid JSON string.`);
+      expect(() => extractJson(invalidJson)).toThrow(
+        `The string "${invalidJson}" does not contain an array or object.`
+      );
+    });
+    it('Should throw error not enough curly braces', () => {
+      const invalidJson = '}';
+      expect(() => extractJson(invalidJson)).toThrow(
+        `The string "${invalidJson}" does not contain an array or object.`
+      );
+    });
+    it('Should throw error when curly braces not in correct order', () => {
+      const invalidJson = '}{';
+      expect(() => extractJson(invalidJson)).toThrow(
+        `The string "${invalidJson}" does not contain an array or object.`
+      );
+    });
+    it('Should throw error if JSON is invalid', () => {
+      const invalidJson = '{invalid}';
+      expect(() => extractJson(invalidJson)).toThrow("Expected property name or '}' in JSON at position 1");
     });
   });
   describe('stripAnsiInJson', () => {

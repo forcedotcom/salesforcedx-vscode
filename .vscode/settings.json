@@ -38,6 +38,7 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "eslint.enable": true,
   "eslint.run": "onSave",
   "editor.codeActionsOnSave": {

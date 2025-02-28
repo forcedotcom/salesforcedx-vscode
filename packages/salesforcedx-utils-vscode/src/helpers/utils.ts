@@ -8,18 +8,93 @@
 import { basename } from 'path';
 import { telemetryService } from '../telemetry';
 
-export const isNullOrUndefined = (object: any): object is null | undefined => {
-  return object === null || object === undefined;
+export const getJsonCandidate = (str: string): string | null => {
+  const firstCurly = str.indexOf('{');
+  const lastCurly = str.lastIndexOf('}');
+  const firstSquare = str.indexOf('[');
+  const lastSquare = str.lastIndexOf(']');
+
+  // Detect the correct JSON structure (object vs. array)
+  const isObject = firstCurly !== -1 && lastCurly !== -1 && firstCurly < lastCurly;
+  const isArray = firstSquare !== -1 && lastSquare !== -1 && firstSquare < lastSquare;
+
+  let jsonCandidate: string | null = null;
+
+  if (isObject && isArray) {
+    // If both are present, pick the one that appears first
+    jsonCandidate =
+      firstCurly < firstSquare ? str.slice(firstCurly, lastCurly + 1) : str.slice(firstSquare, lastSquare + 1);
+  } else if (isObject) {
+    jsonCandidate = str.slice(firstCurly, lastCurly + 1);
+  } else if (isArray) {
+    jsonCandidate = str.slice(firstSquare, lastSquare + 1);
+  }
+  return jsonCandidate;
 };
 
-export const extractJsonObject = (str: string): any => {
-  const isJsonString = str.indexOf('{') !== -1 && str.lastIndexOf('}') !== -1;
-  let jsonString;
-  if (isJsonString) {
-    jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
-    return JSON.parse(jsonString);
+export const identifyJsonTypeInString = (str: string): 'object' | 'array' | 'primitive' | 'none' => {
+  str = str.trim(); // Remove leading/trailing whitespace
+
+  const jsonCandidate: string | null = getJsonCandidate(str);
+
+  // Check if the JSON candidate is a valid object or array
+  if (jsonCandidate) {
+    const stack: string[] = [];
+    for (let i = 0; i < jsonCandidate.length; i++) {
+      const char = jsonCandidate[i];
+      if (char === '{' || char === '[') {
+        stack.push(char);
+      } else if (char === '}' || char === ']') {
+        const last = stack.pop();
+        if ((char === '}' && last !== '{') || (char === ']' && last !== '[')) {
+          return 'none';
+        }
+      } else if (char === '"' && (i === 0 || jsonCandidate[i - 1] !== '\\')) {
+        // Skip over strings
+        i++;
+        while (i < jsonCandidate.length && (jsonCandidate[i] !== '"' || jsonCandidate[i - 1] === '\\')) {
+          i++;
+        }
+      }
+    }
+
+    if (stack.length === 0) {
+      if (jsonCandidate.startsWith('{') && jsonCandidate.endsWith('}')) {
+        return 'object';
+      } else if (jsonCandidate.startsWith('[') && jsonCandidate.endsWith(']')) {
+        return 'array';
+      }
+    }
   }
-  throw new Error(`The string "${str}" is not a valid JSON string.`);
+
+  // Check if the entire string is a valid JSON primitive
+  if (
+    /^"([^"\\]|\\.)*"$/.test(str) || // String
+    /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(str) || // Number
+    /^(true|false|null)$/.test(str)
+  ) {
+    // Boolean or null
+    return 'primitive';
+  }
+
+  return 'none';
+};
+
+export const extractJson = <T = any>(str: string): T => {
+  str = str.trim(); // Remove leading/trailing whitespace
+
+  const jsonCandidate: string | null = getJsonCandidate(str);
+  const jsonType = identifyJsonTypeInString(str);
+
+  if (!jsonCandidate || jsonType === 'none' || jsonType === 'primitive') {
+    throw new Error(`The string "${str}" does not contain an array or object.`);
+  }
+  // Try parsing the detected JSON structure
+  return JSON.parse(jsonCandidate) as T; // Cast to generic type
+};
+
+export const isNullOrUndefined = (object: any): object is null | undefined => {
+  return object === null || object === undefined;
 };
 
 // There's a bug in VS Code where, after a file has been renamed,
@@ -77,7 +152,7 @@ export const asyncFilter = async <T>(arr: T[], callback: (value: T, index: numbe
 export const fileUtils = {
   flushFilePaths,
   flushFilePath,
-  extractJsonObject
+  extractJson
 };
 
 export const stripAnsiInJson = (str: string, hasJson: boolean): string => {
@@ -128,4 +203,14 @@ export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
   ].join('|');
 
   return new RegExp(pattern, onlyFirst ? undefined : 'g');
+};
+
+/**
+ * Returns elements that are in setA but not in setB.
+ * @param setA
+ * @param setB
+ * @returns
+ */
+export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => {
+  return new Set([...setA].filter(x => !setB.has(x)));
 };

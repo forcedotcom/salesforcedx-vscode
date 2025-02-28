@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/stale@v9
         with:
-          node-version: '20.9.0'
+          node-version: '20.17.0'
           stale-issue-label: stale
           days-before-issue-stale: 3
           days-before-issue-close: 2
