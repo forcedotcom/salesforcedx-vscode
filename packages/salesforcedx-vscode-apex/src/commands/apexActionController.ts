@@ -102,7 +102,7 @@ export class ApexActionController {
           }
 
           // Step 3: Determine filename
-          name = path.basename(eligibilityResult.resourceUri, '.cls');
+          name = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
 
           // Step 4: Check if the file already exists
@@ -165,7 +165,7 @@ export class ApexActionController {
 
           // Step: 10 Create entries in problems tab for generated file
           createProblemTabEntriesForOasDocument(
-            this.isESRDecomposed ? this.replaceXmlToYaml(fullPath[0]) : fullPath[0],
+            this.isESRDecomposed ? this.replaceXmlToYaml(fullPath[1]) : fullPath[1],
             processedOasResult,
             this.isESRDecomposed
           );
@@ -302,7 +302,7 @@ export class ApexActionController {
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
-    const formattedDate = `${month}${day}${year}_${hours}:${minutes}:${seconds}`;
+    const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
     return formattedDate;
   };
 
