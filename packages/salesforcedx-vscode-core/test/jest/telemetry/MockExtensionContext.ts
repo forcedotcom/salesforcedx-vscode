@@ -35,7 +35,7 @@ class MockMemento implements Memento {
     return readOnlyKeys;
   }
 
-  public get<T>(key: string): T {
+  public get<T>(key: string): T | undefined {
     const index = this.getIndex(key);
     return index !== -1 ? this.values[index] : undefined;
   }
