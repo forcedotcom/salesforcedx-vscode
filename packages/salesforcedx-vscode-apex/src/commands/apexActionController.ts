@@ -165,7 +165,7 @@ export class ApexActionController {
 
           // Step: 10 Create entries in problems tab for generated file
           createProblemTabEntriesForOasDocument(
-            this.isESRDecomposed ? this.replaceXmlToYaml(fullPath[0]) : fullPath[0],
+            this.isESRDecomposed ? this.replaceXmlToYaml(fullPath[1]) : fullPath[1],
             processedOasResult,
             this.isESRDecomposed
           );
