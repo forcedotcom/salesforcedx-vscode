@@ -1,28 +1,16 @@
-# 63.2.3 - March 2, 2025
+# 63.2.3 - February 28, 2025
 
 ## Added
 
-#### salesforcedx-vscode
+#### salesforcedx-vscode-apex
 
-- Revert " @W-17646997 include A4D in standard pack " (#6111) ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
-
-- @W-17646997 include A4D in standard pack ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
-
-#### salesforcedx-vscode-core
-
-- [W-17774287]  merge branch feat/apex-oas to develop ([PR #6102](https://github.com/forcedotcom/salesforcedx-vscode/pull/6102))
-
-#### salesforcedx-vscode-expanded
-
-- Revert " @W-17646997 include A4D in standard pack " (#6111) ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
-
-- @W-17646997 include A4D in standard pack ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+- 🚀 Create Custom Agent Actions from Your Apex REST Classes using the new SFDX: Create OpenAPI Document from this Class (Beta) command. The command generates an OpenAPI document for your Apex REST class using Salesforce's secure, custom generative AI model.  Easily deploy the generated document to your org's API Catalog. Then, use it to create an agent action using Agent Studio. ([PR #6102](https://github.com/forcedotcom/salesforcedx-vscode/pull/6102))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- [W-17856593]  correct url for 'set your java version' link ([PR #6106](https://github.com/forcedotcom/salesforcedx-vscode/pull/6106))
+- We corrected the URL for the "Set your Java version" link. ([PR #6106](https://github.com/forcedotcom/salesforcedx-vscode/pull/6106))
 
 # 63.1.1 - February 19, 2025
 
