@@ -120,7 +120,7 @@ const ruleset = {
     },
     'paths-method-description': {
       description: 'paths.<method>.description is required',
-      given: '$.paths.*',
+      given: '$.paths[*][get,post,put,delete,patch]',
       message: 'paths.<method>.description is required',
       then: {
         field: 'description',
