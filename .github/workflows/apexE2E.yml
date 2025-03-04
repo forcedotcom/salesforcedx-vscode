@@ -8,8 +8,8 @@ on:
         required: false
         default: 'main'
         type: string
-      apexActions:
-        description: 'Apex Actions'
+      createOASDoc:
+        description: 'Create OAS Doc'
         required: false
         default: true
         type: boolean
@@ -55,8 +55,8 @@ on:
         required: false
         default: 'main'
         type: string
-      apexActions:
-        description: 'Apex Actions'
+      createOASDoc:
+        description: 'Create OAS Doc'
         required: false
         default: true
         type: boolean
@@ -96,14 +96,14 @@ on:
         type: string
 
 jobs:
-  apexActions:
-    if: ${{ inputs.apexActions }}
+  createOASDoc:
+    if: ${{ inputs.createOASDoc }}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
       automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'apexActions.e2e.js'
+      testToRun: 'createOASDoc.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
@@ -166,42 +166,42 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [apexActions, apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
+    needs: [createOASDoc, apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n-Apex Actions: ${{ needs.apexActions.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      summary: '\n-Create OAS Doc: ${{ needs.createOASDoc.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [apexActions, apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
+    needs: [createOASDoc, apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n-Apex Actions: ${{ needs.apexActions.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      summary: '\n-Create OAS Doc: ${{ needs.createOASDoc.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [apexActions, apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
+    needs: [createOASDoc, apexLSP, apexReplayDebugger, debugApexTests, runApexTests, trailApexReplayDebugger]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n-Apex Actions: ${{ needs.apexActions.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
+      summary: '\n-Create OAS Doc: ${{ needs.createOASDoc.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
