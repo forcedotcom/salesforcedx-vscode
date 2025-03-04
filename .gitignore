@@ -5,7 +5,6 @@
 # TypeScript generated files
 dist/
 out/
-.github/actions/*/lib/src/*.js
 
 # Logs
 logs
