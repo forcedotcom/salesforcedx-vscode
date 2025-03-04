@@ -44,8 +44,8 @@
     "@types/vscode": "^1.90.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "esbuild": "^0.19.5",
-    "esbuild-plugin-pino": "2.1.0",
+    "esbuild": "0.25.0",
+    "esbuild-plugin-pino": "^2.2.2",
     "mocha": "^10",
     "prettier": "3.3.3",
     "sinon": "^13.0.1"
