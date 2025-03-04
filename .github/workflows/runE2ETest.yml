@@ -96,6 +96,12 @@ jobs:
             echo "The @salesforce/cli installation could not be verified"
             exit 1
           fi
+      - name: Install A4D Extension
+        if: inputs.testToRun == 'createOASDoc.e2e.js'
+        shell: bash
+        run: |
+          export PATH=$PATH:/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin
+          code --install-extension salesforce.salesforcedx-einstein-gpt
       - name: Set THROTTLE_FACTOR for macOS and Linux
         if: matrix.os != 'windows-latest'
         run: echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
