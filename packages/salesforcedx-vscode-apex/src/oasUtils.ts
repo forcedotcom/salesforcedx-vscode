@@ -62,7 +62,7 @@ export const processOasDocument = async (
 
     const oasProcessor = new OasProcessor(parsed, eligibleResult);
 
-    const processResult = await oasProcessor.process(isRevalidation);
+    const processResult = await oasProcessor.process(!isRevalidation);
 
     return processResult;
   }
