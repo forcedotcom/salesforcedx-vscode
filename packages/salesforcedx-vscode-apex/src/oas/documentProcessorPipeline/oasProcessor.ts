@@ -25,11 +25,15 @@ export class OasProcessor {
     this.eligibilityResult = eligibilityResult;
   }
 
-  async process(): Promise<ProcessorInputOutput> {
-    const pipeline = new Pipeline(new PropertyCorrectionStep())
-      .addStep(new ReconcileDuplicateSemanticPathsStep())
-      .addStep(new MethodValidationStep())
-      .addStep(new OasValidationStep());
+  async process(validationOnly = false): Promise<ProcessorInputOutput> {
+    const pipeline = validationOnly
+      ? new Pipeline(new ReconcileDuplicateSemanticPathsStep())
+          .addStep(new MethodValidationStep())
+          .addStep(new OasValidationStep())
+      : new Pipeline(new PropertyCorrectionStep())
+          .addStep(new ReconcileDuplicateSemanticPathsStep())
+          .addStep(new MethodValidationStep())
+          .addStep(new OasValidationStep());
 
     console.log('Executing pipeline with input:');
     console.log('document: ', this.document);
