@@ -11,7 +11,7 @@ exec('npm run vscode:bundle', (error, stdout, stderr) => {
   if (output.includes('[require-resolve-not-external]')) {
     console.error(output);
     console.error('Error: A dependency that has to be externalized in esbuild process is found. Please resolve it!');
-    process.exit(1); // Exit with an error code
+    process.exit(2); // Exit with an error code
   } else {
     console.log(output);
     process.exit(0); // Exit with success code

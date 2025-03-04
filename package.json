@@ -40,7 +40,7 @@
     "commitizen": "^4.2.5",
     "cz-conventional-changelog": "3.3.0",
     "depcheck": "1.4.3",
-    "esbuild": "0.15.10",
+    "esbuild": "0.25.0",
     "eslint": "9.13.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.31.0",
