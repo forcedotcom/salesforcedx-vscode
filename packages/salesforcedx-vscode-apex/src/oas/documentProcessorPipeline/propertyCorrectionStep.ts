@@ -14,6 +14,7 @@ export class PropertyCorrectionStep implements ProcessorStep {
     let fixedOASDoc = this.ensureServersIsPresent(input.openAPIDoc);
     fixedOASDoc = this.ensureInfoVersionIsPresent(fixedOASDoc);
     fixedOASDoc = this.ensurePathDescriptionIsPresent(fixedOASDoc);
+    fixedOASDoc = this.ensureOperationDescriptionIsPresent(fixedOASDoc);
     fixedOASDoc = this.ensureResponseDescriptionsArePresent(fixedOASDoc);
     fixedOASDoc = this.ensureParameterDescriptionsArePresent(fixedOASDoc);
     fixedOASDoc = this.ensureRequestBodyDescriptionsArePresent(fixedOASDoc);
@@ -33,16 +34,12 @@ export class PropertyCorrectionStep implements ProcessorStep {
     return { ...oasDoc, ...{ servers: [{ url: '/services/apexrest' }] } };
   }
 
+  private ensureOperationDescriptionIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
+    return this.ensureDescriptionsArePresent(oasDoc, '$.paths[*][*]', 'Default description for the operation.');
+  }
+
   private ensurePathDescriptionIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    const paths = JSONPath({ path: '$.paths[*][*]', json: oasDoc }) as OpenAPIV3.OperationObject[];
-
-    paths.forEach(path => {
-      if (path && !path.description) {
-        path.description = 'Default description for the endpoint.';
-      }
-    });
-
-    return oasDoc;
+    return this.ensureDescriptionsArePresent(oasDoc, '$.paths[*]', 'Default description for the path.');
   }
 
   private ensureResponseDescriptionsArePresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
@@ -62,18 +59,11 @@ export class PropertyCorrectionStep implements ProcessorStep {
   }
 
   private ensureRequestBodyDescriptionsArePresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    const requestBodies = JSONPath({
-      path: '$.paths[*][*].requestBody',
-      json: oasDoc
-    }) as OpenAPIV3.RequestBodyObject[];
-
-    requestBodies.forEach(requestBody => {
-      if (requestBody && !requestBody.description) {
-        requestBody.description = 'Default description for the requestBody.';
-      }
-    });
-
-    return oasDoc;
+    return this.ensureDescriptionsArePresent(
+      oasDoc,
+      '$.paths[*][*].requestBody',
+      'Default description for the requestBody.'
+    );
   }
 
   private ensureDescriptionsArePresent(
