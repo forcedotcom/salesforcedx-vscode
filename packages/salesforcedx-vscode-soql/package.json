@@ -59,7 +59,7 @@
     "cross-env": "5.2.0",
     "debounce": "^1.2.0",
     "esbuild": "^0.19.5",
-    "esbuild-plugin-pino": "^2.1.0",
+    "esbuild-plugin-pino": "2.1.0",
     "eslint-plugin-prettier": "^3.1.4",
     "fs-extra": "^8.1.0",
     "mocha": "^10",
