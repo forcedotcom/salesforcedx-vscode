@@ -118,6 +118,7 @@ jobs:
         shell: bash
         run: |
           export PATH=$PATH:/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin
+          echo $PATH
           code --install-extension salesforce.salesforcedx-einstein-gpt
       - name: Run headless test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
