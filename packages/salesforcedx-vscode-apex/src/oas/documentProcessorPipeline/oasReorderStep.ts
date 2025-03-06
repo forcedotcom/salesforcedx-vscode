@@ -25,11 +25,11 @@ export class OasReorderStep implements ProcessorStep {
     const oas = input.openAPIDoc;
 
     // Reorder info section in top level
-    let infoSection = oas.info;
+    const infoSection = oas.info;
     oas.info = reorderKeys(infoSection, INFO_KEYS_ORDER) as OpenAPIV3.InfoObject;
 
     for (const path in oas.paths) {
-      let pathItem = oas.paths[path] as OpenAPIV3.PathsObject;
+      const pathItem = oas.paths[path] as OpenAPIV3.PathsObject;
 
       for (const method of Object.keys(pathItem) as (keyof typeof pathItem)[]) {
         const operation = pathItem[method] as OpenAPIV3.OperationObject;
