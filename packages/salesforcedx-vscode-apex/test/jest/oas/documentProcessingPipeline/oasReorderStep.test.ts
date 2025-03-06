@@ -14,6 +14,25 @@ describe('OasReorderStep', () => {
     processor = new OasReorderStep();
   });
 
+  it('reorders info section attributes', async () => {
+    const input: ProcessorInputOutput = {
+      errors: [],
+      openAPIDoc: {
+        openapi: '3.0.0',
+        info: {
+          version: '1.0.0',
+          title: 'Example API',
+          description: 'An example API'
+        },
+        paths: {}
+      }
+    };
+
+    const output = await processor.process(input);
+
+    expect(Object.keys(output.openAPIDoc.info)).toEqual(['title', 'version', 'description']);
+  });
+
   it('reorders operation-level attributes', async () => {
     const input: ProcessorInputOutput = {
       errors: [],
@@ -29,7 +48,11 @@ describe('OasReorderStep', () => {
               operationId: 'getExample',
               description: 'Fetches example data',
               summary: 'Get example',
-              requestBody: undefined,
+              requestBody: {
+                content: {},
+                required: true,
+                description: 'Request body description'
+              },
               responses: {},
               parameters: []
             }
@@ -46,6 +69,11 @@ describe('OasReorderStep', () => {
       'parameters',
       'requestBody',
       'responses'
+    ]);
+    expect(Object.keys(output.openAPIDoc.paths['/examplePath']?.get?.requestBody as any)).toEqual([
+      'description',
+      'required',
+      'content'
     ]);
   });
 

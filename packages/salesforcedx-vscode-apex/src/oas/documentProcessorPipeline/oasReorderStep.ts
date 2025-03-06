@@ -7,12 +7,13 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
+const REQUEST_BODY_KEYS_ORDER = ['description', 'required', 'content'];
 const OPERATION_KEYS_ORDER = ['summary', 'description', 'operationId', 'parameters', 'requestBody', 'responses'];
 const PATH_KEYS_ORDER = ['description'];
+const INFO_KEYS_ORDER = ['title', 'version', 'description'];
 
 const reorderKeys = (obj: Record<string, any>, keyOrder: string[]): Record<string, any> => {
   if (!obj || typeof obj !== 'object') return obj;
-
   const orderedEntries = keyOrder.filter(key => key in obj).map(key => [key, obj[key]]);
   const remainingEntries = Object.entries(obj).filter(([key]) => !keyOrder.includes(key));
 
@@ -23,20 +24,29 @@ export class OasReorderStep implements ProcessorStep {
   async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     const oas = input.openAPIDoc;
 
+    // Reorder info section in top level
+    let infoSection = oas.info;
+    oas.info = reorderKeys(infoSection, INFO_KEYS_ORDER) as OpenAPIV3.InfoObject;
+
     for (const path in oas.paths) {
       let pathItem = oas.paths[path] as OpenAPIV3.PathsObject;
 
-      // Reorder operations inside the path object
       for (const method of Object.keys(pathItem) as (keyof typeof pathItem)[]) {
-        const operation = pathItem[method];
+        const operation = pathItem[method] as OpenAPIV3.OperationObject;
         if (operation && typeof operation === 'object') {
-          pathItem[method] = reorderKeys(operation, OPERATION_KEYS_ORDER) as OpenAPIV3.OperationObject;
+          const requestBody = operation.requestBody as OpenAPIV3.RequestBodyObject;
+
+          // Reorder request body inside the operation object
+          if (requestBody && typeof requestBody === 'object') {
+            operation.requestBody = reorderKeys(requestBody, REQUEST_BODY_KEYS_ORDER) as OpenAPIV3.RequestBodyObject;
+          }
+          // Reorder operations inside the path object
+          pathItem[method] = reorderKeys(operation, OPERATION_KEYS_ORDER);
         }
       }
 
       // Reorder the entire path object
-      pathItem = reorderKeys(pathItem, PATH_KEYS_ORDER) as OpenAPIV3.PathsObject;
-      oas.paths[path] = pathItem;
+      oas.paths[path] = reorderKeys(pathItem, PATH_KEYS_ORDER) as OpenAPIV3.PathsObject;
     }
 
     return input;
