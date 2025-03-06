@@ -2,19 +2,40 @@ name: Validate PR
 on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
-    branches: [develop]
+    branches: [main]
 
 jobs:
   pr-validation:
     uses: salesforcecli/github-workflows/.github/workflows/validatePR.yml@main
+  pr-title-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title format
+        runs: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if [[ ! "$PR_TITLE" =~ ^@W-[0-9]+[[:space:]]+-[[:space:]]+.+$ ]]; then
+            echo "❌ PR title must follow the format: @<work-item-id> - <PR description>"
+            echo "Example: @W-17961625 - fix: add missing semicolon"
+            exit 1
+          fi
   code-quality:
+    strategy:
+      matrix:
+        node_version: [lts/-1]
+      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN }}
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ matrix.node_version }}
           cache: npm
+      - name: Configure Git for private repo access
+        run: git config --global --add url."https://${{ secrets.IDEE_GH_TOKEN }}@github.com/".insteadOf "https://github.com/"
       - run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Prettier
+        run: npm run prettier-check
