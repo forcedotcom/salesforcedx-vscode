@@ -113,13 +113,6 @@ jobs:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
-      - name: Install A4D Extension
-        if: inputs.testToRun == 'createOASDoc.e2e.js'
-        shell: bash
-        run: |
-          export PATH=$PATH:/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin
-          echo $PATH
-          code --install-extension salesforce.salesforcedx-einstein-gpt
       - name: Run headless test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
         with:
