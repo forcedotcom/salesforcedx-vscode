@@ -13,7 +13,7 @@
     "@jsforce/jsforce-node": "3.4.1",
     "@salesforce/core-bundle": "8.8.2",
     "@salesforce/salesforcedx-utils-vscode": "63.3.0",
-    "shelljs": "0.8.5"
+    "shelljs": "0.9.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.3",
