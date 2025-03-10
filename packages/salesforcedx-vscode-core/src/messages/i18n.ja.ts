@@ -269,7 +269,7 @@ export const messages = {
   AIApplication: 'AI Applications',
   AIApplicationConfig: 'AI Application Configs',
   AIAssistantTemplate: 'AI Assistant Templates',
-  AIEvaluationDefinition: 'AI Evaluation Definitions',
+  AiEvaluationDefinition: 'AI Evaluation Definitions',
   ActivationPlatform: 'Activation Platforms',
   ActivationPlatformActvAttr: 'Activation Platform Active Attributes',
   ActivationPlatformField: 'Activation Platform Fields',
