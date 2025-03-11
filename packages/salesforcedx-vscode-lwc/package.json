@@ -26,7 +26,7 @@
   "dependencies": {
     "@salesforce/core-bundle": "8.8.2",
     "@salesforce/lightning-lsp-common": "4.12.2",
-    "@salesforce/lwc-language-server": "4.12.2",
+    "@salesforce/lwc-language-server": "4.12.3",
     "@salesforce/salesforcedx-utils-vscode": "63.4.0",
     "ajv": "8.17.1",
     "applicationinsights": "1.0.7",
