@@ -4,23 +4,23 @@
 
 #### salesforcedx-vscode-apex
 
-- Error name is undefined after bundling in apex ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
+- We fixed an issue where OpenAPI document generation was sometimes failing with an unknown error. ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
 
-- [W-17952548]  properly handle missing descriptions ([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
+- We fixed an issue that caused missing descriptions to be handled incorrectly when creating an OpenAPI document.([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
 
-- feat(W-17701706): reorder path and operation sections in oas ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
+- We improved the OpenAPI document generation so that the generated sections appear in a specific order. ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
 
 #### salesforcedx-vscode-core
 
-- Bump service provider to 1.4.0 ([PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
+- We updated the service provider package to version 1.4.0 ([PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
 
-- [W-17959360]  upgrade esbuild and esbuild-plugin-pino ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124))
+- We made some changes under the hood. ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124))
 
-- fix(W-18002235): update org browser labels ([PR #6139](https://github.com/forcedotcom/salesforcedx-vscode/pull/6139))
+- We added some labels in the Org Browser. ([PR #6139](https://github.com/forcedotcom/salesforcedx-vscode/pull/6139))
 
 #### salesforcedx-vscode-lightning
 #### salesforcedx-vscode-lwc
-- chore(W-16301365): bump lls ([PR #6141](https://github.com/forcedotcom/salesforcedx-vscode/pull/6141))
+- We made some changes under the hood. ([PR #6141](https://github.com/forcedotcom/salesforcedx-vscode/pull/6141))
 
 # 63.2.3 - February 28, 2025
 
