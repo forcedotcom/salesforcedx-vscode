@@ -8,11 +8,19 @@
 
 - [W-17952548]  properly handle missing descriptions ([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
 
+- feat(W-17701706): reorder path and operation sections in oas ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
+
 #### salesforcedx-vscode-core
 
 - Bump service provider to 1.4.0 ([PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
 
 - [W-17959360]  upgrade esbuild and esbuild-plugin-pino ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124))
+
+- fix(W-18002235): update org browser labels ([PR #6139](https://github.com/forcedotcom/salesforcedx-vscode/pull/6139))
+
+#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lwc
+- chore(W-16301365): bump lls ([PR #6141](https://github.com/forcedotcom/salesforcedx-vscode/pull/6141))
 
 # 63.2.3 - February 28, 2025
 
