@@ -6,7 +6,7 @@
 
 - We fixed an issue that caused missing descriptions to be handled incorrectly when creating an OpenAPI document.([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
 
-- We improved the OpenAPI document generation so that the generated sections appear in a specific order. ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
+- We improved the OpenAPI document generation so that the generated fields appear in a specific order. ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
 
 - We made some changes under the hood. ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
 
