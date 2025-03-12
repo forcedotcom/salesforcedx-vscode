@@ -1,3 +1,19 @@
+# 63.4.1 - March 14, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Error name is undefined after bundling in apex ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
+
+- [W-17952548]  properly handle missing descriptions ([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
+
+#### salesforcedx-vscode-core
+
+- Bump service provider to 1.4.0 ([PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
+
+- [W-17959360]  upgrade esbuild and esbuild-plugin-pino ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124))
+
 # 63.2.3 - February 28, 2025
 
 ## Added
