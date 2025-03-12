@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We fixed an issue where OpenAPI document generation was sometimes failing with an unknown error. ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
+- We made some changes under the hood. ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
 
 - We fixed an issue that caused missing descriptions to be handled incorrectly when creating an OpenAPI document.([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
 
@@ -12,7 +12,7 @@
 
 #### salesforcedx-vscode-core
 
-- We updated the service provider package to version 1.4.0 ([PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
+- We made some changes under the hood. ([PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
 
 - We made some changes under the hood. ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124))
 
