@@ -4,22 +4,21 @@
 
 #### salesforcedx-vscode-apex
 
-- We made some changes under the hood. ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
-
 - We fixed an issue that caused missing descriptions to be handled incorrectly when creating an OpenAPI document.([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
 
 - We improved the OpenAPI document generation so that the generated sections appear in a specific order. ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
 
+- We made some changes under the hood. ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
+
 #### salesforcedx-vscode-core
-
-- We made some changes under the hood. ([PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
-
-- We made some changes under the hood. ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124))
 
 - We added some labels in the Org Browser. ([PR #6139](https://github.com/forcedotcom/salesforcedx-vscode/pull/6139))
 
+- We made some changes under the hood. ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124), [PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
+
 #### salesforcedx-vscode-lightning
 #### salesforcedx-vscode-lwc
+
 - We made some changes under the hood. ([PR #6141](https://github.com/forcedotcom/salesforcedx-vscode/pull/6141))
 
 # 63.2.3 - February 28, 2025
