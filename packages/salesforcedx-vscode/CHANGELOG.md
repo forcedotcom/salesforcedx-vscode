@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We fixed an issue that caused missing descriptions to be handled incorrectly when creating an OpenAPI document.([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
+- We fixed an issue that caused missing descriptions to be handled incorrectly when creating an OpenAPI document. ([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
 
 - We improved the OpenAPI document generation so that the generated fields appear in a specific order. ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
 
