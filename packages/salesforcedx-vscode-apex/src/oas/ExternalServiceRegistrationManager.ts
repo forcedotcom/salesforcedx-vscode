@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
@@ -14,19 +14,17 @@ import * as vscode from 'vscode';
 import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import GenerationInteractionLogger from '../oas/generationInteractionLogger';
-import { ApexOASInfo, ExternalServiceOperation } from '../oas/schemas';
-import { createProblemTabEntriesForOasDocument, getCurrentTimestamp, summarizeDiagnostics } from '../oasUtils';
-import { getTelemetryService } from '../telemetry/telemetry';
+import { createProblemTabEntriesForOasDocument, getCurrentTimestamp } from '../oasUtils';
 import { ProcessorInputOutput } from './documentProcessorPipeline/processorStep';
-import { PromptGenerationOrchestrator } from './promptGenerationOrchestrator';
+import GenerationInteractionLogger from './generationInteractionLogger';
+import { ApexOASInfo, ExternalServiceOperation } from './schemas';
 
 /*
  * Handles the creation and management of External Service Registration (ESR) metadata.
  * This includes saving OpenAPI specifications as ESR metadata, managing named credentials,
  * and building the ESR XML and YAML files.
  */
-export class ESRHandler {
+export class ExternalServiceRegistrationManager {
   private isESRDecomposed: boolean = false;
   private gil = GenerationInteractionLogger.getInstance();
   private processedOasResult: ProcessorInputOutput = {} as any;
@@ -37,7 +35,7 @@ export class ESRHandler {
 
   constructor() {}
 
-  public async initialize(
+  private async initialize(
     isESRDecomposed: boolean,
     processedOasResult: ProcessorInputOutput,
     fullPath: [string, string, boolean]
@@ -63,11 +61,16 @@ export class ESRHandler {
    * @returns An object containing properties and measures for telemetry.
    */
   public async generateEsrMD(
-    isClass: boolean,
-    generationHrDuration: [number, number],
-    promptGenerationOrchestrator: PromptGenerationOrchestrator
-  ) {
-    const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
+    isESRDecomposed: boolean,
+    processedOasResult: ProcessorInputOutput,
+    fullPath: [string, string, boolean]
+  ): Promise<void> {
+    this.initialize(this.isESRDecomposed, processedOasResult, fullPath);
+    const orgVersion = await (await workspaceContext.getConnection()).retrieveMaxApiVersion();
+    if (!orgVersion) {
+      throw new Error(nls.localize('error_retrieving_org_version'));
+    }
+
     let existingContent;
     let namedCredential;
     if (fs.existsSync(this.newPath)) {
@@ -78,9 +81,30 @@ export class ESRHandler {
     if (!this.isVersionGte(orgVersion, '63.0')) namedCredential = await this.showNamedCredentialsQuickPick();
 
     //Step 2: Build the content of the ESR Xml file
-    const updatedContent = await this.buildESRXml(existingContent, namedCredential);
+    const updatedContent = await this.buildESRXml(existingContent, namedCredential, orgVersion);
 
     //Step 3: Write OpenAPI Document to File
+    await this.writeAndOpenEsrFile(updatedContent);
+
+    // Step 4: If the user chose to merge, open a diff between the original and new ESR files
+    this.displayFileDifferences();
+
+    // Step: 5 Create entries in problems tab for generated file
+    createProblemTabEntriesForOasDocument(
+      this.isESRDecomposed ? this.replaceXmlToYaml(this.newPath) : this.newPath,
+      this.processedOasResult,
+      this.isESRDecomposed
+    );
+  }
+
+  /**
+   * Writes the updated content to a file and opens it in the editor.
+   * If the ESR is decomposed, it also opens the corresponding YAML file.
+   *
+   * @param updatedContent - The content to be written to the file.
+   * @throws Will throw an error if the file write or document open operation fails.
+   */
+  public async writeAndOpenEsrFile(updatedContent: string) {
     try {
       fs.writeFileSync(this.newPath, updatedContent);
       await vscode.workspace.openTextDocument(this.newPath).then((newDocument: vscode.TextDocument) => {
@@ -96,37 +120,6 @@ export class ESRHandler {
     } catch (error) {
       throw new Error(nls.localize('artifact_failed', error.message));
     }
-
-    //Step 2: Gather metrics
-    const props = {
-      isClass: `${isClass}`,
-      overwrite: `${this.overwrite}`
-    };
-
-    const [errors, warnings, infos, hints, total] = summarizeDiagnostics(this.processedOasResult.errors);
-
-    const measures = {
-      generationDuration: (await getTelemetryService()).hrTimeToMilliseconds(generationHrDuration),
-      biddedCallCount: promptGenerationOrchestrator.strategy?.biddedCallCount,
-      llmCallCount: promptGenerationOrchestrator.strategy?.llmCallCount,
-      generationSize: promptGenerationOrchestrator.strategy?.maxBudget,
-      documentTtlProblems: total,
-      documentErrors: errors,
-      documentWarnings: warnings,
-      documentInfo: infos,
-      documentHints: hints
-    };
-
-    // Step 3: If the user chose to merge, open a diff between the original and new ESR files
-    this.openDiffFiles();
-
-    // Step: 4 Create entries in problems tab for generated file
-    createProblemTabEntriesForOasDocument(
-      this.isESRDecomposed ? this.replaceXmlToYaml(this.newPath) : this.newPath,
-      this.processedOasResult,
-      this.isESRDecomposed
-    );
-    return { props, measures };
   }
 
   /**
@@ -136,42 +129,65 @@ export class ESRHandler {
    *
    * @returns A promise that resolves to the selected or entered named credential, or undefined if none was selected.
    */
-  private async showNamedCredentialsQuickPick(): Promise<string | undefined> {
-    let namedCredentials;
-    let selectedNamedCredential: string | undefined;
-    let finalNamedCredential: string | undefined;
+  public async showNamedCredentialsQuickPick(): Promise<string | undefined> {
+    const namedCredentials = await this.queryNamedCredentials();
+    const selectedNamedCredential = await this.promptNamedCredentialSelection(namedCredentials);
+    return this.getFinalNamedCredential(selectedNamedCredential);
+  }
+
+  /**
+   * Queries the available named credentials.
+   * @returns A promise that resolves to the named credentials.
+   */
+  public async queryNamedCredentials(): Promise<any> {
     try {
-      namedCredentials = await (
-        await workspaceContext.getConnection()
-      ).query('SELECT MasterLabel FROM NamedCredential');
+      return await (await workspaceContext.getConnection()).query('SELECT MasterLabel FROM NamedCredential');
     } catch (parseError) {
       throw new Error(nls.localize('error_parsing_nc'));
     }
+  }
 
+  /**
+   * Prompts the user to select a named credential from the available options.
+   * @param namedCredentials - The available named credentials.
+   * @returns A promise that resolves to the selected named credential.
+   */
+  public async promptNamedCredentialSelection(namedCredentials: any): Promise<string | undefined> {
     if (namedCredentials) {
-      const quickPicks = namedCredentials.records.map(nc => nc.MasterLabel as string);
+      const quickPicks = namedCredentials.records.map((nc: any) => nc.MasterLabel as string);
       quickPicks.push(nls.localize('enter_new_nc'));
-      selectedNamedCredential = await vscode.window.showQuickPick(quickPicks, {
+      return await vscode.window.showQuickPick(quickPicks, {
         placeHolder: nls.localize('select_named_credential')
       });
     }
+    return undefined;
+  }
 
+  /**
+   * Prompts the user to enter a named credential if none was selected.
+   * @param selectedNamedCredential - The selected named credential.
+   * @returns A promise that resolves to the final named credential.
+   */
+  public async getFinalNamedCredential(selectedNamedCredential: string | undefined): Promise<string | undefined> {
     if (!selectedNamedCredential || selectedNamedCredential === nls.localize('enter_new_nc')) {
-      finalNamedCredential = await vscode.window.showInputBox({
+      return await vscode.window.showInputBox({
         prompt: nls.localize('enter_nc_name')
       });
-    } else {
-      finalNamedCredential = selectedNamedCredential;
     }
-    return finalNamedCredential;
+    return selectedNamedCredential;
   }
 
   /**
    * Builds the ESR XML content.
    * @param existingContent - The existing XML content, if any.
    * @param namedCredential - The named credential to be used.
+   * @param orgVersion - Highest api version that is supported by the target server instance.
    */
-  private async buildESRXml(existingContent: string | undefined, namedCredential: string | undefined): Promise<string> {
+  public async buildESRXml(
+    existingContent: string | undefined,
+    namedCredential: string | undefined,
+    orgVersion: string
+  ): Promise<string> {
     const baseName = path.basename(this.newPath).split('.')[0];
     let className;
     if (this.newPath.includes('esr_files_for_merge')) {
@@ -187,17 +203,8 @@ export class ESRHandler {
 
     // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
     let safeOasSpec = stringify(this.oasSpec);
-    if (this.isESRDecomposed) {
-      safeOasSpec = safeOasSpec.replaceAll('"', "'").replaceAll('type: Id', 'type: string');
-    } else {
-      safeOasSpec = safeOasSpec.replaceAll('"', '&apos;').replaceAll('type: Id', 'type: string');
-    }
-
-    const orgVersion = await (await WorkspaceContextUtil.getInstance().getConnection()).retrieveMaxApiVersion();
-    if (!orgVersion) {
-      throw new Error(nls.localize('error_retrieving_org_version'));
-    }
-
+    const replaceElement = this.isESRDecomposed ? "'" : '&apos;';
+    safeOasSpec = safeOasSpec.replaceAll('"', replaceElement).replaceAll('type: Id', 'type: string');
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
 
@@ -206,7 +213,59 @@ export class ESRHandler {
       throw new Error(nls.localize('invalid_named_credential'));
     }
 
-    const createESRObject = () => ({
+    // Create ESR Object
+    const esrObject = this.createESRObject(
+      description,
+      className,
+      safeOasSpec,
+      operations,
+      orgVersion,
+      namedCredential
+    );
+
+    if (existingContent) {
+      jsonObj = parser.parse(existingContent);
+      if (this.isESRDecomposed) {
+        jsonObj = esrObject;
+        this.buildESRYaml(this.newPath, safeOasSpec);
+      } else {
+        if (jsonObj.ExternalServiceRegistration?.schema) {
+          jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
+        } else {
+          jsonObj = esrObject;
+        }
+      }
+      jsonObj.ExternalServiceRegistration.operations = operations;
+      jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
+    } else {
+      jsonObj = esrObject;
+      if (this.isESRDecomposed) this.buildESRYaml(this.newPath, safeOasSpec);
+    }
+
+    const builder = new XMLBuilder({ ignoreAttributes: false, format: true, processEntities: false });
+    return builder.build(jsonObj);
+  }
+
+  /**
+   * Creates an External Service Registration (ESR) object.
+   *
+   * @param description - The description of the ESR.
+   * @param className - The name of the class associated with the ESR.
+   * @param safeOasSpec - The sanitized OpenAPI specification.
+   * @param operations - The operations defined in the ESR.
+   * @param orgVersion - The version of the organization.
+   * @param namedCredential - The named credential reference, if any.
+   * @returns An object representing the ESR.
+   */
+  public createESRObject(
+    description: string,
+    className: string,
+    safeOasSpec: string,
+    operations: any,
+    orgVersion: string,
+    namedCredential: string | undefined
+  ) {
+    return {
       '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
       ExternalServiceRegistration: {
         '@_xmlns': 'http://soap.sforce.com/2006/04/metadata',
@@ -230,33 +289,7 @@ export class ESRHandler {
               namedCredentialReference: namedCredential
             })
       }
-    });
-
-    if (existingContent) {
-      jsonObj = parser.parse(existingContent);
-      if (this.isESRDecomposed) {
-        jsonObj = createESRObject();
-        this.buildESRYaml(this.newPath, safeOasSpec);
-      } else {
-        if (jsonObj.ExternalServiceRegistration?.schema) {
-          jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
-        } else {
-          jsonObj = createESRObject();
-        }
-      }
-      jsonObj.ExternalServiceRegistration.operations = operations;
-      jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
-    } else {
-      if (this.isESRDecomposed) {
-        jsonObj = createESRObject();
-        this.buildESRYaml(this.newPath, safeOasSpec);
-      } else {
-        jsonObj = createESRObject();
-      }
-    }
-
-    const builder = new XMLBuilder({ ignoreAttributes: false, format: true, processEntities: false });
-    return builder.build(jsonObj);
+    };
   }
 
   /**
@@ -265,7 +298,7 @@ export class ESRHandler {
    * @param targetVersion - The target version to compare against.
    * @returns True if the version is greater than or equal to the target version, false otherwise.
    */
-  private isVersionGte(version: string, targetVersion: string): boolean {
+  public isVersionGte(version: string, targetVersion: string): boolean {
     const major = parseInt(version.split('.')[0], 10);
     const targetMajor = parseInt(targetVersion.split('.')[0], 10);
     return major >= targetMajor;
@@ -275,7 +308,7 @@ export class ESRHandler {
    * Extracts the description and version properties from the OpenAPI specification.
    * @returns An object containing the description and version properties.
    */
-  private extractInfoProperties(): ApexOASInfo {
+  public extractInfoProperties(): ApexOASInfo {
     return {
       description: this.oasSpec?.info?.description || '',
       version: this.oasSpec?.info?.version
@@ -286,7 +319,7 @@ export class ESRHandler {
    * Extracts the operations from the OpenAPI specification.
    * @returns An array of ExternalServiceOperation objects.
    */
-  private getOperationsFromYaml(): ExternalServiceOperation[] | [] {
+  public getOperationsFromYaml(): ExternalServiceOperation[] | [] {
     const operations = Object.entries(this.oasSpec.paths).flatMap(([p, pathItem]) => {
       if (!pathItem || typeof pathItem !== 'object') return [];
       return Object.entries(pathItem).map(([method, operation]) => {
@@ -308,7 +341,7 @@ export class ESRHandler {
    * @param esrXmlPath - The path to the ESR XML file.
    * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
    */
-  private buildESRYaml(esrXmlPath: string, safeOasSpec: string) {
+  public buildESRYaml(esrXmlPath: string, safeOasSpec: string) {
     this.gil.addFinalDoc(safeOasSpec);
     const esrYamlPath = this.replaceXmlToYaml(esrXmlPath);
     try {
@@ -334,7 +367,7 @@ export class ESRHandler {
    * @param newFilePath The file path of the new ESR file.
    * @param isESRDecomposed Indicates if ESR decomposition is enabled.
    */
-  public async openDiffFiles(): Promise<void> {
+  public async displayFileDifferences(): Promise<void> {
     if (!this.overwrite) {
       void this.openDiffFile(this.originalPath, this.newPath, 'Manual Diff of ESR XML Files');
 
@@ -355,7 +388,7 @@ export class ESRHandler {
    * @param filepath2 The file on the right side of the diff editor.
    * @param diffWindowName The title of the diff editor.
    */
-  private openDiffFile = async (filepath1: string, filepath2: string, diffWindowName: string): Promise<void> => {
+  public openDiffFile = async (filepath1: string, filepath2: string, diffWindowName: string): Promise<void> => {
     await vscode.commands.executeCommand(
       'vscode.diff',
       vscode.Uri.file(filepath1),

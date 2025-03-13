@@ -9,19 +9,19 @@ import { notificationService, WorkspaceContextUtil } from '@salesforce/salesforc
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { ESRHandler } from '../oas/esrHandler';
+import { ExternalServiceRegistrationManager } from '../oas/ExternalServiceRegistrationManager';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
-import { checkIfESRIsDecomposed, processOasDocument } from '../oasUtils';
+import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
   private gil = GenerationInteractionLogger.getInstance();
-  private esrHandler: ESRHandler;
+  private esrHandler: ExternalServiceRegistrationManager;
   constructor(private metadataOrchestrator: MetadataOrchestrator) {
-    this.esrHandler = new ESRHandler();
+    this.esrHandler = new ExternalServiceRegistrationManager();
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
@@ -115,15 +115,29 @@ export class ApexActionController {
           // Step 8: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
           overwrite = fullPath[0] === fullPath[1];
-          this.esrHandler.initialize(this.isESRDecomposed, processedOasResult, fullPath);
+          await this.esrHandler.generateEsrMD(this.isESRDecomposed, processedOasResult, fullPath);
 
-          ({ props, measures } = await this.esrHandler.generateEsrMD(
-            isClass,
-            generationHrDuration,
-            promptGenerationOrchestrator
-          ));
+          // Step 9: Gather metrics
+          props = {
+            isClass: `${isClass}`,
+            overwrite: `${overwrite}`
+          };
 
-          // Step 9: Call Mulesoft extension if installed
+          const [errors, warnings, infos, hints, total] = summarizeDiagnostics(processedOasResult.errors);
+
+          measures = {
+            generationDuration: (await getTelemetryService()).hrTimeToMilliseconds(generationHrDuration),
+            biddedCallCount: promptGenerationOrchestrator.strategy?.biddedCallCount,
+            llmCallCount: promptGenerationOrchestrator.strategy?.llmCallCount,
+            generationSize: promptGenerationOrchestrator.strategy?.maxBudget,
+            documentTtlProblems: total,
+            documentErrors: errors,
+            documentWarnings: warnings,
+            documentInfo: infos,
+            documentHints: hints
+          };
+
+          // Step 10: Call Mulesoft extension if installed
           const callMulesoftExtension = async () => {
             if (await this.isCommandAvailable('mule-dx-api.open-api-project')) {
               try {
@@ -143,7 +157,7 @@ export class ApexActionController {
         }
       );
 
-      // Step 10: Notify Success
+      // Step 11: Notify Success
       if (overwrite) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
