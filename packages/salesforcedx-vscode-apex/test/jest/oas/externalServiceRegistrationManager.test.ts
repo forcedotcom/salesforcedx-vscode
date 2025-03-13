@@ -4,9 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
@@ -19,8 +21,12 @@ describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;
   let processedOasResult: ProcessorInputOutput;
+  let workspacePathStub: jest.SpyInstance;
   let fullPath: [string, string, boolean];
   let workspaceContextGetInstanceSpy: any;
+  let registryAccess: RegistryAccess;
+  let getTypeByNameMock: jest.SpyInstance;
+  const fakeWorkspace = path.join('test', 'workspace');
   const mockOperations = {
     operationId: 'getPets',
     summary: 'Get all pets',
@@ -64,6 +70,7 @@ describe('ExternalServiceRegistrationManager', () => {
       .spyOn(WorkspaceContextUtil, 'getInstance')
       .mockReturnValue(mockWorkspaceContext as any);
     fullPath = ['/path/to/original', '/path/to/new', false];
+    workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
     oasSpec = {
       openapi: '3.0.0',
       info: {
@@ -77,7 +84,8 @@ describe('ExternalServiceRegistrationManager', () => {
         }
       }
     } as OpenAPIV3.Document;
-
+    registryAccess = new RegistryAccess();
+    getTypeByNameMock = jest.spyOn(registryAccess, 'getTypeByName');
     processedOasResult = {
       openAPIDoc: oasSpec,
       errors: []
@@ -182,13 +190,51 @@ describe('ExternalServiceRegistrationManager', () => {
     expect(result).toBe('merge');
   });
 
-  it('getFolderForArtifact', async () => {
-    const folderPath = '/path/to/folder';
-    (vscode.window.showInputBox as jest.Mock).mockResolvedValue(folderPath);
+  describe('getFolderForArtifact', () => {
+    it('should return the selected folder path', async () => {
+      const mockDirectoryName = 'externalServiceRegistrations';
+      const mockFolderPath = '/path/to/folder';
+      const mockDefaultESRFolder = path.join(
+        workspaceUtils.getRootWorkspacePath(),
+        'force-app',
+        'main',
+        'default',
+        mockDirectoryName
+      );
 
-    const result = await esrHandler.getFolderForArtifact();
+      getTypeByNameMock.mockReturnValue({ directoryName: mockDirectoryName } as any);
+      (vscode.window.showInputBox as jest.Mock).mockResolvedValue(mockFolderPath);
 
-    expect(result).toBe(folderPath);
+      const result = await esrHandler.getFolderForArtifact();
+
+      expect(result).toBe(path.resolve(mockFolderPath));
+      expect(vscode.window.showInputBox).toHaveBeenCalledWith({
+        prompt: nls.localize('select_folder_for_oas'),
+        value: mockDefaultESRFolder
+      });
+    });
+
+    it('should return undefined if no folder is selected', async () => {
+      const mockDirectoryName = 'externalServiceRegistrations';
+      const mockDefaultESRFolder = path.join(
+        workspaceUtils.getRootWorkspacePath(),
+        'force-app',
+        'main',
+        'default',
+        mockDirectoryName
+      );
+
+      getTypeByNameMock.mockReturnValue({ directoryName: mockDirectoryName } as any);
+      (vscode.window.showInputBox as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await esrHandler.getFolderForArtifact();
+
+      expect(result).toBeUndefined();
+      expect(vscode.window.showInputBox).toHaveBeenCalledWith({
+        prompt: nls.localize('select_folder_for_oas'),
+        value: mockDefaultESRFolder
+      });
+    });
   });
 
   it('createESRObject', () => {
