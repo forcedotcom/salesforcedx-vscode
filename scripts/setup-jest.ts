@@ -95,6 +95,7 @@ const getMockVSCode = () => {
       showInformationMessage: jest.fn(),
       showWarningMessage: jest.fn(),
       showErrorMessage: jest.fn(),
+      showQuickPick: jest.fn(),
       showInputBox: jest.fn(),
       setStatusBarMessage: jest.fn(),
       withProgress: jest.fn(),
@@ -141,33 +142,13 @@ const getMockVSCode = () => {
       public constructor(range: Range, message: string, severity?: any) {}
     },
     CallHierarchyItem: class {
-      public constructor(
-        kind: any,
-        name: string,
-        detail: string,
-        uri: Uri,
-        range: Range,
-        selectionRange: Range
-      ) {}
+      public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
     },
     TypeHierarchyItem: class {
-      public constructor(
-        kind: any,
-        name: string,
-        detail: string,
-        uri: Uri,
-        range: Range,
-        selectionRange: Range
-      ) {}
+      public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
     },
     SymbolInformation: class {
-      public constructor(
-        name: string,
-        kind: any,
-        range: Range,
-        uri?: Uri,
-        containerName?: string
-      ) {}
+      public constructor(name: string, kind: any, range: Range, uri?: Uri, containerName?: string) {}
     },
     InlayHint: class {
       public constructor(position: any, label: any, kind?: any) {}
