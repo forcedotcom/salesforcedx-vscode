@@ -27,6 +27,14 @@ export class ApexActionController {
   public async initialize(extensionContext: vscode.ExtensionContext) {
     await WorkspaceContextUtil.getInstance().initialize(extensionContext);
     this.isESRDecomposed = await checkIfESRIsDecomposed();
+
+    const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-api-component');
+
+    if (!muleDxApiExtension?.isActive) {
+      await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', true);
+    } else {
+      await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', false);
+    }
   }
 
   /**
