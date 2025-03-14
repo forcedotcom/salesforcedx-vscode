@@ -149,7 +149,7 @@
         },
         {
           "command": "sf.validate.oas.document",
-          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
         }
       ],
       "explorer/context": [
@@ -159,7 +159,7 @@
         },
         {
           "command": "sf.validate.oas.document",
-          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
         }
       ],
       "view/title": [
@@ -282,7 +282,7 @@
         },
         {
           "command": "sf.validate.oas.document",
-          "when": "sf:project_opened && sf:has_target_org && (resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled"
+          "when": "sf:project_opened && sf:has_target_org && (resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
         }
       ]
     },
