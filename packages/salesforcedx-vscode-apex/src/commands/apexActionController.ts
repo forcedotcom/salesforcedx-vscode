@@ -136,28 +136,10 @@ export class ApexActionController {
             documentInfo: infos,
             documentHints: hints
           };
-
-          // Step 10: Call Mulesoft extension if installed
-          const callMulesoftExtension = async () => {
-            if (await this.isCommandAvailable('mule-dx-api.open-api-project')) {
-              try {
-                const yamlUri = vscode.Uri.file(this.esrHandler.replaceXmlToYaml(fullPath[1]));
-                await vscode.commands.executeCommand('mule-dx-api.open-api-project', yamlUri);
-              } catch (error) {
-                telemetryService.sendEventData('mule-dx-api.open-api-project command could not be executed', {
-                  error: error.message
-                });
-                console.error('mule-dx-api.open-api-project command could not be executed', error);
-              }
-            } else {
-              telemetryService.sendEventData('mule-dx-api.open-api-project command not found');
-            }
-          };
-          await callMulesoftExtension();
         }
       );
 
-      // Step 11: Notify Success
+      // Step 10: Notify Success
       if (overwrite) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
