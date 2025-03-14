@@ -98,6 +98,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // Initialize if ESR xml is decomposed
   void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', isESRDecomposed);
 
+  const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
+
+  // Set context based on mulesoft extension
+  if (!muleDxApiExtension?.isActive) {
+    await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', true);
+  } else {
+    await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', false);
+  }
   // Commands
   const commands = registerCommands();
   extensionContext.subscriptions.push(commands);
