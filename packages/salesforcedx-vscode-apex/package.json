@@ -29,7 +29,7 @@
     "@salesforce/core-bundle": "8.8.2",
     "@salesforce/salesforcedx-utils-vscode": "63.4.1",
     "@salesforce/vscode-service-provider": "1.4.0",
-    "@stoplight/spectral-core": "1.19.4",
+    "@stoplight/spectral-core": "1.19.5",
     "@stoplight/spectral-functions": "1.9.3",
     "@stoplight/spectral-rulesets": "1.21.3",
     "async-lock": "1.4.1",
