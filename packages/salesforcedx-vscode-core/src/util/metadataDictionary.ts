@@ -89,6 +89,13 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
     directory: 'experiencePropertyTypeBundles',
     pathStrategy: PathStrategyFactory.createDefaultStrategy(),
     extensions: [`${sep}schema.json`]
+  },
+  contenttypebundle: {
+    type: 'ContentTypeBundle',
+    suffix: 'json',
+    directory: 'contentTypes',
+    pathStrategy: PathStrategyFactory.createDefaultStrategy(),
+    extensions: [`${sep}schema.json`]
   }
 };
 
