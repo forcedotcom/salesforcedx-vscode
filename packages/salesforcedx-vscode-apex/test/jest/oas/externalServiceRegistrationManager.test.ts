@@ -141,10 +141,10 @@ describe('ExternalServiceRegistrationManager', () => {
 
       await esrHandler.generateEsrMD(true, processedOasResult, fullPath);
 
-      expect(esrHandler['initialize']).toHaveBeenCalledWith(false, processedOasResult, fullPath);
+      expect(esrHandler['initialize']).toHaveBeenCalledWith(true, processedOasResult, fullPath);
       expect(esrHandler.writeAndOpenEsrFile).toHaveBeenCalled();
       expect(esrHandler.displayFileDifferences).toHaveBeenCalled();
-      expect(createProblemTabEntriesForOasDocument).toHaveBeenCalledWith(fullPath[1], processedOasResult, false);
+      expect(createProblemTabEntriesForOasDocument).toHaveBeenCalledWith(fullPath[1], processedOasResult, true);
     });
   });
 

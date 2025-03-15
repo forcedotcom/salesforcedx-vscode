@@ -65,7 +65,7 @@ export class ExternalServiceRegistrationManager {
     processedOasResult: ProcessorInputOutput,
     fullPath: [string, string, boolean]
   ): Promise<void> {
-    this.initialize(this.isESRDecomposed, processedOasResult, fullPath);
+    this.initialize(isESRDecomposed, processedOasResult, fullPath);
     const orgVersion = await (await workspaceContext.getConnection()).retrieveMaxApiVersion();
     if (!orgVersion) {
       throw new Error(nls.localize('error_retrieving_org_version'));
