@@ -36,5 +36,8 @@
   "run_tests_title": "テストを実行",
   "show_error_title": "エラーを表示",
   "test_view_container_title": "テストビューア",
-  "test_view_name": "Apex テスト"
+  "test_view_name": "Apex テスト",
+  "apex_code_coverage_color_theme": "Select the colors theme for Apex Tests code coverage",
+  "apex_code_coverage_color_theme-red_green_description": "Displays uncovered/covered lines with red/green color.",
+  "apex_code_coverage_color_theme-red_blue_description": "Displays uncovered/covered lines with red/blue color."
 }
