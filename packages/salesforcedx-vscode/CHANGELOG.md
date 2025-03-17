@@ -4,11 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Typo passing isESRDecomposed ([PR #6150](https://github.com/forcedotcom/salesforcedx-vscode/pull/6150))
-
-#### salesforcedx-vscode-core
-
-- W-18034479 - hide validate oas command when mulesoft extension is installed ([PR #6148](https://github.com/forcedotcom/salesforcedx-vscode/pull/6148))
+- We made some changes under the hood. ([PR #6146](https://github.com/forcedotcom/salesforcedx-vscode/pull/6146), [PR #6148](https://github.com/forcedotcom/salesforcedx-vscode/pull/6148), [PR #6150](https://github.com/forcedotcom/salesforcedx-vscode/pull/6150))
 
 # 63.4.1 - March 14, 2025
 
