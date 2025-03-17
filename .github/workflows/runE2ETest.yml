@@ -135,3 +135,8 @@ jobs:
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: ./salesforcedx-vscode/extensions/screenshots
+      - uses: actions/upload-artifact@v4
+        if: inputs.testToRun == 'createOASDoc'
+        with:
+          name: llm-logs
+          path: ./${{ inputs.automationRepo }}/llm-logs
