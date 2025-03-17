@@ -127,7 +127,7 @@
         {
           "id": "metadata",
           "title": "Org Browser",
-          "icon": "resources/dep.svg"
+          "icon": "resources/orgBrowserIcon.svg"
         },
         {
           "id": "conflicts",
