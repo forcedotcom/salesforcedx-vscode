@@ -32,6 +32,7 @@
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-debugger",
     "salesforce.salesforcedx-vscode-apex-replay-debugger",
+    "salesforce.salesforcedx-einstein-gpt",
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-lightning",
     "salesforce.salesforcedx-vscode-visualforce",
