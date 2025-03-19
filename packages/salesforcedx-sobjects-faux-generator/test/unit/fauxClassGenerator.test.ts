@@ -218,6 +218,22 @@ describe('SObject faux class generator', () => {
     expect(classText).to.not.include('Account Reference');
   });
 
+  it('Should create a class that has no duplicate field names (reverse order)', async () => {
+    const childRelation2 = '{"childSObject": "Case", "relationshipName": "Reference"}';
+    const childRelation1 = '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
+
+    const sobject1: string =
+      '{ "name": "Custom__c",  "childRelationships": [' + childRelation2 + ',' + childRelation1 + '] }';
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
+    expect(fs.existsSync(classPath));
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).to.include('List<Case> Reference;');
+    expect(classText).to.not.include('Account Reference');
+  });
+
   it('Should create a valid field reference to another SObject when missing the relationshipName', async () => {
     const childRelation1 = '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
     const field1 = '{"name": "AccountFieldId", "type": "string", "referenceTo": ["Account"], "relationshipName": null}';

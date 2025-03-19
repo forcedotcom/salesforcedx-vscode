@@ -40,43 +40,17 @@ const typeMapping: Map<string, string> = new Map([
   ['complexvalue', 'Object']
 ]);
 
-export const generateSObjectDefinition = (sobject: SObject): SObjectDefinition => {
-  const declarations: FieldDeclaration[] = [];
+export const generateSObjectDefinition = (sobject: SObject): SObjectDefinition => ({
+  name: sobject.name,
+  fields: [
+    ...(sobject.fields ?? []).flatMap(generateField),
+    // ones with relationship names need to be earlier in the list
+    ...(sobject.childRelationships ?? []).sort(relationshipNameFirst).flatMap(generateChildRelationship)
+  ]
+});
 
-  if (sobject.fields) {
-    for (const field of sobject.fields) {
-      const decls: FieldDeclaration[] = generateField(field);
-      if (decls && decls.length > 0) {
-        for (const decl of decls) {
-          declarations.push(decl);
-        }
-      }
-    }
-  }
-
-  if (sobject.childRelationships) {
-    for (const rel of sobject.childRelationships) {
-      if (rel.relationshipName) {
-        const decl = generateChildRelationship(rel);
-        if (decl) {
-          declarations.push(decl);
-        }
-      }
-    }
-
-    for (const rel of sobject.childRelationships) {
-      // handle the odd childRelationships last (without relationshipName)
-      if (!rel.relationshipName) {
-        const decl = generateChildRelationship(rel);
-        if (decl) {
-          declarations.push(decl);
-        }
-      }
-    }
-  }
-
-  return { name: sobject.name, fields: declarations };
-};
+const relationshipNameFirst = (a: ChildRelationship, b: ChildRelationship): number =>
+  a.relationshipName && !b.relationshipName ? -1 : b.relationshipName && !a.relationshipName ? 1 : 0;
 
 const generateField = (field: SObjectField): FieldDeclaration[] => {
   const common = {
@@ -86,11 +60,10 @@ const generateField = (field: SObjectField): FieldDeclaration[] => {
   if (!field.referenceTo || field.referenceTo.length === 0) {
     // should be a normal field EXCEPT for external lookup & metadata relationship
     // which is a reference, but no referenceTo targets
-    const genType = field.extraTypeInfo === 'externallookup' ? 'String' : getTargetType(field.type);
     return [
       {
         ...common,
-        type: genType,
+        type: field.extraTypeInfo === 'externallookup' ? 'String' : getTargetType(field.type),
         name: field.name
       }
     ];
