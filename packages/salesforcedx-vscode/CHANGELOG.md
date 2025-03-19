@@ -1,3 +1,11 @@
+# 63.5.0 - March 19, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We made some changes under the hood. ([PR #6146](https://github.com/forcedotcom/salesforcedx-vscode/pull/6146), [PR #6148](https://github.com/forcedotcom/salesforcedx-vscode/pull/6148), [PR #6150](https://github.com/forcedotcom/salesforcedx-vscode/pull/6150))
+
 # 63.4.1 - March 14, 2025
 
 ## Fixed
