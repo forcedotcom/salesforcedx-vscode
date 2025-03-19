@@ -155,8 +155,8 @@ export const createExpectedXHROptions = (
   requestBody: string | undefined,
   requestUrl: string,
   restHttpMethodEnum: RestHttpMethodEnum
-): XHROptions => {
-  return {
+): XHROptions =>
+  ({
     type: restHttpMethodEnum,
     url: requestUrl,
     timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
@@ -168,5 +168,4 @@ export const createExpectedXHROptions = (
       'Sforce-Call-Options': `client=${CLIENT_ID}`
     },
     data: requestBody
-  } as XHROptions;
-};
+  }) as XHROptions;

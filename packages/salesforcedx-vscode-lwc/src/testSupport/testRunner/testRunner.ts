@@ -38,9 +38,7 @@ export const normalizeRunTestsByPath = (cwd: string, testFsPath: string) => {
  * Returns testNamePattern flag and escaped test name
  * @param TestExecutionInfo
  */
-export const getTestNamePatternArgs = (testName: string) => {
-  return ['--testNamePattern', `${escapeStrForRegex(testName)}`];
-};
+export const getTestNamePatternArgs = (testName: string) => ['--testNamePattern', `${escapeStrForRegex(testName)}`];
 
 type JestExecutionInfo = {
   jestArgs: string[];

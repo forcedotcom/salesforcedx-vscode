@@ -43,9 +43,7 @@ const getSOQLVirtualContent = (
   const blankedContent = document
     .getText()
     .split(eol)
-    .map(line => {
-      return ' '.repeat(line.length);
-    })
+    .map(line => ' '.repeat(line.length))
     .join(eol);
 
   const content =

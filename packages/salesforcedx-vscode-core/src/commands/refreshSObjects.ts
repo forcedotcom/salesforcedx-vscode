@@ -197,10 +197,6 @@ export const initSObjectDefinitions = async (projectPath: string, isSettingEnabl
   }
 };
 
-const getSObjectsDirectory = () => {
-  return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
-};
+const getSObjectsDirectory = () => path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
 
-const getStandardSObjectsDirectory = () => {
-  return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);
-};
+const getStandardSObjectsDirectory = () => path.join(projectPaths.toolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);

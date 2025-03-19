@@ -7,6 +7,5 @@
 
 import { ServiceProvider, ServiceType, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 
-export const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
-  return ServiceProvider.getService(ServiceType.Telemetry, 'salesforcedx-vscode-apex');
-};
+export const getTelemetryService = async (): Promise<TelemetryServiceInterface> =>
+  ServiceProvider.getService(ServiceType.Telemetry, 'salesforcedx-vscode-apex');

@@ -21,9 +21,7 @@ import {
 import { workspaceContext } from '../../../src/context';
 
 // return undefined: used to get around strict checks
-const getUndefined = (): any => {
-  return undefined;
-};
+const getUndefined = (): any => undefined;
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 describe('Apex Test Run - Code Action', () => {
@@ -231,18 +229,12 @@ describe('Apex Test Run - Code Action', () => {
       sb.stub(HumanReporter.prototype, 'format');
       writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(SfProject, 'resolve').returns({
-        getDefaultPackage: () => {
-          return { fullPath: 'default/package/dir' };
-        }
+        getDefaultPackage: () => ({ fullPath: 'default/package/dir' })
       });
       sb.stub(ComponentSet, 'fromSource').returns({
-        getSourceComponents: () => {
-          return {
-            first: () => {
-              return { content: componentPath };
-            }
-          };
-        }
+        getSourceComponents: () => ({
+          first: () => ({ content: componentPath })
+        })
       });
       sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
 
@@ -452,18 +444,12 @@ describe('Apex Test Run - Code Action', () => {
       sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(workspaceContext, 'getConnection');
       sb.stub(SfProject, 'resolve').returns({
-        getDefaultPackage: () => {
-          return { fullPath: 'default/package/dir' };
-        }
+        getDefaultPackage: () => ({ fullPath: 'default/package/dir' })
       });
       componentPathStub = sb.stub(ComponentSet, 'fromSource').returns({
-        getSourceComponents: () => {
-          return {
-            first: () => {
-              return { content: componentPath };
-            }
-          };
-        }
+        getSourceComponents: () => ({
+          first: () => ({ content: componentPath })
+        })
       });
       setDiagnosticStub = sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
       runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous').resolves(testResult);
@@ -495,13 +481,9 @@ describe('Apex Test Run - Code Action', () => {
 
     it('should not set diagnostic if filepath was not found', async () => {
       componentPathStub.returns({
-        getSourceComponents: () => {
-          return {
-            first: () => {
-              return { content: undefined };
-            }
-          };
-        }
+        getSourceComponents: () => ({
+          first: () => ({ content: undefined })
+        })
       });
       await executor.run();
       expect(setDiagnosticStub.notCalled).to.be.true;
