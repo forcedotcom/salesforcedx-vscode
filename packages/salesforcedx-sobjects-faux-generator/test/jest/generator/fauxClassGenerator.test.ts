@@ -9,11 +9,10 @@ import { EOL } from 'os';
 import { join } from 'path';
 import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
 import { FauxClassGenerator } from '../../../src/generator';
-import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
+import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
 import { INDENT } from '../../../src/generator/fauxClassGenerator';
-jest.mock('../../../src/generator/declarationGenerator');
 
-const declarationGeneratorMocked = jest.mocked(DeclarationGenerator);
+jest.mock('../../../src/generator/declarationGenerator');
 
 describe('FauxClassGenerator Unit Tests.', () => {
   const fakePath = './this/is/a/path';
@@ -22,7 +21,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
     expect(fauxClassGeneratorInst).toBeDefined();
     expect(fauxClassGeneratorInst).toBeInstanceOf(FauxClassGenerator);
-    expect(declarationGeneratorMocked).toHaveBeenCalled();
+    expect(generateSObjectDefinition).toHaveBeenCalledTimes(0);
   });
 
   it('Should not be able to create an instance for all types.', () => {
@@ -104,7 +103,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       const fakeSObject = { name: 'fake' };
       const fakeSobjectDef = 'look at me the sobject';
       getStandardMock.mockReturnValue([fakeSObject]);
-      (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
+      jest.mocked(generateSObjectDefinition).mockReturnValue(fakeSobjectDef as any);
       generateFauxClassMock.mockReturnValue('hooray');
 
       const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
@@ -112,7 +111,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
 
       expect(fakeOutput.getStandard).toHaveBeenCalled();
       expect(fakeOutput.getCustom).not.toHaveBeenCalled();
-      expect(declarationGeneratorMocked.prototype.generateSObjectDefinition).toHaveBeenCalledWith(fakeSObject);
+      expect(generateSObjectDefinition).toHaveBeenCalledWith(fakeSObject);
       expect(generateFauxClassMock).toHaveBeenCalledWith(expectedFolderPath, fakeSobjectDef);
     });
 
@@ -120,7 +119,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       const fakeSObject = { name: 'fake' };
       const fakeSobjectDef = 'look at me the sobject';
       getCustomMock.mockReturnValue([fakeSObject]);
-      (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
+      jest.mocked(generateSObjectDefinition).mockReturnValue(fakeSobjectDef as any);
       generateFauxClassMock.mockReturnValue('hooray');
 
       const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.CUSTOM, fakePath);
@@ -128,7 +127,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
 
       expect(fakeOutput.getStandard).not.toHaveBeenCalled();
       expect(fakeOutput.getCustom).toHaveBeenCalled();
-      expect(declarationGeneratorMocked.prototype.generateSObjectDefinition).toHaveBeenCalledWith(fakeSObject);
+      expect(generateSObjectDefinition).toHaveBeenCalledWith(fakeSObject);
       expect(generateFauxClassMock).toHaveBeenCalledWith(expectedFolderPath, fakeSobjectDef);
     });
   });

@@ -12,7 +12,7 @@ import { mkdir, rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
-import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
+import { generateSObjectDefinition, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
 export const APEX_CLASS_EXTENSION = '.cls';
@@ -21,12 +21,10 @@ const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
 export class FauxClassGenerator implements SObjectGenerator {
   private sobjectSelector: SObjectCategory;
   private relativePath: string;
-  private declGenerator: DeclarationGenerator;
 
   public constructor(selector: SObjectCategory, relativePath: string) {
     this.sobjectSelector = selector;
     this.relativePath = relativePath;
-    this.declGenerator = new DeclarationGenerator();
 
     if (selector !== SObjectCategory.STANDARD && selector !== SObjectCategory.CUSTOM) {
       throw nls.localize('unsupported_sobject_category', String(selector));
@@ -53,7 +51,7 @@ export class FauxClassGenerator implements SObjectGenerator {
 
     for (const sobj of sobjects) {
       if (sobj.name) {
-        const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
+        const sobjDefinition = generateSObjectDefinition(sobj);
         this.generateFauxClass(outputFolderPath, sobjDefinition);
       }
     }
