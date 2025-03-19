@@ -1,18 +1,25 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
-import { DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS } from '../constants';
+import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
+import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
+import * as languageServer from '../languageServer';
+import { nls } from '../messages';
+import { retrieveEnableSyncInitJobs } from '../settings';
+import { getTelemetryService } from '../telemetry/telemetry';
 import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
-
+import { languageClientUtils } from '.';
+import { extensionUtils } from './extensionUtils';
 export class LanguageClientUtils {
   private static instance: LanguageClientUtils;
   private clientInstance: ApexLanguageClient | undefined;
   private status: LanguageClientStatus;
-
+  private statusBarItem: ApexLSPStatusBarItem | undefined;
   constructor() {
     this.status = new LanguageClientStatus(ClientStatus.Unavailable, '');
   }
@@ -30,6 +37,14 @@ export class LanguageClientUtils {
 
   public setClientInstance(languageClient: ApexLanguageClient | undefined) {
     this.clientInstance = languageClient;
+  }
+
+  public getStatusBarInstance(): ApexLSPStatusBarItem | undefined {
+    return this.statusBarItem;
+  }
+
+  public setStatusBarInstance(statusBarItem: ApexLSPStatusBarItem | undefined) {
+    this.statusBarItem = statusBarItem;
   }
 
   public getStatus() {
@@ -103,4 +118,130 @@ export const getExceptionBreakpointInfo = async (): Promise<{}> => {
     response = await languageClient.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS);
   }
   return Promise.resolve(response);
+};
+
+export const restartLanguageServerAndClient = async (extensionContext: vscode.ExtensionContext) => {
+  const removeIndexFiles = await vscode.window.showInformationMessage(
+    'Clean Apex DB and Restart? Or Restart Only?',
+    'Clean Apex DB and Restart',
+    'Restart Only'
+  );
+  //get the client and status bar item
+  const alc = LanguageClientUtils.getInstance().getClientInstance();
+  let statusBarInstance = LanguageClientUtils.getInstance().getStatusBarInstance();
+  if (statusBarInstance === undefined) {
+    statusBarInstance = new ApexLSPStatusBarItem();
+    LanguageClientUtils.getInstance().setStatusBarInstance(statusBarInstance);
+  }
+  if (alc !== undefined) {
+    statusBarInstance.restarting(); // update the status to user that we're restarting
+    // Stop the client and server with the safe stop() routine from the client.
+    // Server is stopped automatically as part of that procedure
+    try {
+      //if we try and restart during another restart or with a startFailed status, we'll throw an exception
+      await alc.stop();
+    } catch (error) {
+      //if the client is in the state of startFailed, we need to kill the LSP jar and then move on.
+      //todo: do we want to kill LSP jar manually here?
+      vscode.window.showWarningMessage('Uh oh cant stop wont stop:' + error.message);
+    }
+    //todo: replace with nls localize for removeIndexFiles command??
+    if (removeIndexFiles === 'Clean Apex DB and Restart') {
+      //delete the apex DB file if we need a clean slate
+      removeApexDB();
+    }
+    //Need a half second timeout for the creation of a new language client so that we give the previous LS a moment to complete shutdown
+    setTimeout(createLanguageClient, 500, extensionContext, statusBarInstance);
+  }
+};
+
+const removeApexDB = () => {
+  if (vscode.workspace.workspaceFolders) {
+    const wsrf = vscode.workspace.workspaceFolders[0].uri; // is this safe to do ?
+    const apexdburi = vscode.Uri.joinPath(wsrf, '.sfdx', 'tools', '254', 'apex.db'); //todo: make this less specific to release 254
+    try {
+      vscode.workspace.fs.delete(apexdburi, { useTrash: true });
+    } catch (error) {
+      console.log('Failed to delete db:' + error.message); //todo: replace with real error?
+    }
+  }
+};
+
+export const createLanguageClient = async (
+  extensionContext: vscode.ExtensionContext,
+  languageServerStatusBarItem: ApexLSPStatusBarItem
+): Promise<void> => {
+  const telemetryService = await getTelemetryService();
+  // Initialize Apex language server
+  try {
+    const langClientHRStart = process.hrtime();
+    languageClientUtils.setClientInstance(await languageServer.createLanguageServer(extensionContext));
+
+    const languageClient = languageClientUtils.getClientInstance();
+
+    if (languageClient) {
+      languageClient.errorHandler?.addListener('error', (message: string) => {
+        languageServerStatusBarItem.error(message);
+      });
+      languageClient.errorHandler?.addListener('restarting', (count: number) => {
+        languageServerStatusBarItem.error(
+          nls.localize('apex_language_server_quit_and_restarting').replace('$N', `${count}`)
+        );
+      });
+      languageClient.errorHandler?.addListener('startFailed', () => {
+        languageServerStatusBarItem.error(nls.localize('apex_language_server_failed_activate'));
+      });
+
+      // TODO: the client should not be undefined. We should refactor the code to
+      // so there is no question as to whether the client is defined or not.
+      await languageClient.start();
+      // Client is running
+      const startTime = telemetryService.getEndHRTime(langClientHRStart); // Record the end time
+      telemetryService.sendEventData('apexLSPStartup', undefined, {
+        activationTime: startTime
+      });
+      await indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
+      extensionContext.subscriptions.push(languageClientUtils.getClientInstance()!);
+    } else {
+      languageClientUtils.setStatus(
+        ClientStatus.Error,
+        `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`
+      );
+      languageServerStatusBarItem.error(
+        `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`
+      );
+    }
+  } catch (e) {
+    let errorMessage = '';
+    if (typeof e === 'string') {
+      errorMessage = e;
+    } else if (e instanceof Error) {
+      errorMessage = e.message ?? nls.localize('unknown_error');
+    }
+    if (errorMessage.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))) {
+      errorMessage = nls.localize('wrong_java_version_short');
+    }
+    languageClientUtils.setStatus(ClientStatus.Error, errorMessage);
+    languageServerStatusBarItem.error(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
+  }
+};
+
+// exported only for test
+export const indexerDoneHandler = async (
+  enableSyncInitJobs: boolean,
+  languageClient: ApexLanguageClient,
+  languageServerStatusBarItem: ApexLSPStatusBarItem
+) => {
+  // Listener is useful only in async mode
+  if (!enableSyncInitJobs) {
+    // The listener should be set after languageClient is ready
+    // Language client will get notified once async init jobs are done
+    languageClientUtils.setStatus(ClientStatus.Indexing, '');
+    languageClient.onNotification(API.doneIndexing, () => {
+      void extensionUtils.setClientReady(languageClient, languageServerStatusBarItem);
+    });
+  } else {
+    // indexer must be running at the point
+    await extensionUtils.setClientReady(languageClient, languageServerStatusBarItem);
+  }
 };

@@ -7,7 +7,7 @@
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
-import { languageClientUtils } from '../../src/languageUtils';
+import { languageClientUtils, indexerDoneHandler } from '../../src/languageUtils';
 import { extensionUtils } from '../../src/languageUtils/extensionUtils';
 import { getTelemetryService } from '../../src/telemetry/telemetry';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
@@ -36,7 +36,7 @@ describe('indexDoneHandler', () => {
 
   it('should call languageClientUtils.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
     const languageServerStatusBarItem = new ApexLSPStatusBarItem();
-    await index.indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
+    await indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
     expect(setStatusSpy).toHaveBeenCalledWith(1, '');
     expect(onNotificationSpy).toHaveBeenCalledWith(API.doneIndexing, expect.any(Function));
     expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
@@ -49,7 +49,7 @@ describe('indexDoneHandler', () => {
 
   it('should call setClientReady when enableSyncInitJobs is true', async () => {
     const languageServerStatusBarItem = new ApexLSPStatusBarItem();
-    await index.indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
+    await indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
     expect(setClientReadySpy).toHaveBeenCalledWith(mockLanguageClient, languageServerStatusBarItem);
     expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
   });

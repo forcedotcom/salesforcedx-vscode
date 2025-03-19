@@ -201,6 +201,10 @@
       ],
       "commandPalette": [
         {
+          "command": "sf.apex.languageServer.restart",
+          "when": "resource =~ /.\\.(cls)?$/"
+        },
+        {
           "command": "sf.anon.apex.execute.selection",
           "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
         },
@@ -294,6 +298,10 @@
       {
         "command": "sf.anon.apex.execute.selection",
         "title": "%anon_apex_execute_selection_text%"
+      },
+      {
+        "command": "sf.apex.languageServer.restart",
+        "title": "AA SFDX: Restart Apex Language Server"
       },
       {
         "command": "sf.apex.log.get",
