@@ -80,37 +80,32 @@ export const checkForDuplicateName = async (componentPath: string, newName: stri
   }
 };
 
-export const getOnlyFileNames = (allFiles: string[]) => {
-  return allFiles.map(file => {
+export const getOnlyFileNames = (allFiles: string[]) =>
+  allFiles.map(file => {
     const split = file?.split('.');
     return split?.length > 1 ? split[0] : '';
   });
-};
 
 const isDuplicate = async (componentPath: string, newName: string): Promise<boolean> => {
   // A LWC component can't share the same name as a Aura component
   const componentPathDirName = path.dirname(componentPath);
-  let lwcPath: string;
-  let auraPath: string;
-  if (isLwcComponent(componentPath)) {
-    lwcPath = componentPathDirName;
-    auraPath = path.join(path.dirname(componentPathDirName), AURA);
-  } else {
-    lwcPath = path.join(path.dirname(componentPathDirName), LWC);
-    auraPath = componentPathDirName;
-  }
-  const allLwcComponents = await readFromDir(lwcPath);
-  const allAuraComponents = await readFromDir(auraPath);
-  return allLwcComponents.includes(newName) || allAuraComponents.includes(newName);
+  const lwcPath = isLwcComponent(componentPath)
+    ? componentPathDirName
+    : path.join(path.dirname(componentPathDirName), LWC);
+
+  const auraPath = isLwcComponent(componentPath)
+    ? path.join(path.dirname(componentPathDirName), AURA)
+    : componentPathDirName;
+
+  return (await readFromDir(lwcPath)).includes(newName) || (await readFromDir(auraPath)).includes(newName);
 };
 
-const readFromDir = (dirPath: string): Promise<string[]> => {
-  return fs
-    .readdir(dirPath)
-    .then(files => files)
-    .catch(() => {
-      return [];
-    });
+const readFromDir = async (dirPath: string): Promise<string[]> => {
+  try {
+    return await fs.readdir(dirPath);
+  } catch {
+    return [];
+  }
 };
 
 // for testing

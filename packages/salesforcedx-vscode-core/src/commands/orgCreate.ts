@@ -120,9 +120,8 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias,
-      validateInput: value => {
-        return isAlphaNumSpaceString(value) || value === '' ? null : nls.localize('error_invalid_org_alias');
-      }
+      validateInput: value =>
+        isAlphaNumSpaceString(value) || value === '' ? null : nls.localize('error_invalid_org_alias')
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will use the value of `defaultAlias`
@@ -132,9 +131,8 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     const expirationDaysInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
       placeHolder: defaultExpirationdate,
-      validateInput: value => {
-        return isIntegerInRange(value, [1, 30]) || value === '' ? null : nls.localize('error_invalid_expiration_days');
-      }
+      validateInput: value =>
+        isIntegerInRange(value, [1, 30]) || value === '' ? null : nls.localize('error_invalid_expiration_days')
     } as vscode.InputBoxOptions;
     const scratchOrgExpirationInDays = await vscode.window.showInputBox(expirationDaysInputOptions);
     if (scratchOrgExpirationInDays === undefined) {

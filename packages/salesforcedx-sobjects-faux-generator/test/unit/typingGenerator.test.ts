@@ -7,14 +7,13 @@
 
 import * as chai from 'chai';
 import * as fs from 'fs';
-import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
+import { generateSObjectDefinition } from '../../src/generator/declarationGenerator';
 import { TypingGenerator } from '../../src/generator/typingGenerator';
 
 const expect = chai.expect;
 
 describe('SObject Javacript type declaration generator', () => {
   let typePath = '';
-  const declGenerator = new DeclarationGenerator();
 
   afterEach(() => {
     if (typePath) {
@@ -32,7 +31,7 @@ describe('SObject Javacript type declaration generator', () => {
     const closeHeader = ' ], "childRelationships": [] }';
 
     const sobject1 = `${fieldsHeader}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -67,7 +66,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -149,7 +148,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -168,7 +167,7 @@ describe('SObject Javacript type declaration generator', () => {
     const relation1 = '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
     const sobject1: string =
       '{ "name": "Custom__c", "fields": [ ' + field1 + ',' + relation1 + ' ], "childRelationships": [] }';
-    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -194,7 +193,7 @@ describe('SObject Javacript type declaration generator', () => {
     const header = '{ "name": "Custom__c",  "childRelationships": []';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header},${fieldHeader}${field1}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
@@ -212,7 +211,7 @@ describe('SObject Javacript type declaration generator', () => {
       '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
     typePath = gen.generateType(sobjectFolder, objDef);
@@ -228,7 +227,7 @@ describe('SObject Javacript type declaration generator', () => {
     const field1 = '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
     const field2 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
     typePath = gen.generateType(sobjectFolder, objDef);
@@ -250,7 +249,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
-    const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
+    const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();

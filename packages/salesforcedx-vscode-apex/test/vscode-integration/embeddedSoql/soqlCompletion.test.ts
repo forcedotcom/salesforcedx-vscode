@@ -117,9 +117,7 @@ const invokeSoqlMiddleware = async (
   };
   const token = {} as CancellationToken;
 
-  const apexLSPCompletionFn: ProvideCompletionItemsSignature = () => {
-    return itemsReturnedByApexLsp;
-  };
+  const apexLSPCompletionFn: ProvideCompletionItemsSignature = () => itemsReturnedByApexLsp;
 
   const finalItems: ProtocolCompletionItem[] = [];
   if (soqlMiddleware.provideCompletionItem) {
@@ -167,6 +165,4 @@ export const activate = async (docUri: Uri): Promise<TextDocument> => {
   }
 };
 
-const generateRandomInt = () => {
-  return Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER));
-};
+const generateRandomInt = () => Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER));

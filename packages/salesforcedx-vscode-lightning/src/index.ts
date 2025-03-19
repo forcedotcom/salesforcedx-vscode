@@ -23,9 +23,7 @@ export const code2ProtocolConverter = (value: Uri): string => {
   }
 };
 
-const protocol2CodeConverter = (value: string): Uri => {
-  return Uri.parse(value);
-};
+const protocol2CodeConverter = (value: string): Uri => Uri.parse(value);
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
@@ -174,9 +172,7 @@ const reportIndexing = async (indexingPromise: Promise<void>) => {
       title: nls.localize('index_components_text'),
       cancellable: true
     },
-    () => {
-      return indexingPromise;
-    }
+    () => indexingPromise
   );
 };
 

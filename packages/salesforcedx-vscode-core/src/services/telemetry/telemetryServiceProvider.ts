@@ -14,11 +14,9 @@ export const getTelemetryServiceForKey = (key: string | undefined): Promise<Tele
   return Promise.resolve(TelemetryService.getInstance(key));
 };
 
-export const registerGetTelemetryServiceCommand = () => {
-  return vscode.commands.registerCommand(
+export const registerGetTelemetryServiceCommand = () =>
+  vscode.commands.registerCommand(
     'sf.vscode.core.get.telemetry',
-    async (key: string | undefined): Promise<TelemetryService> => {
-      return (await getTelemetryServiceForKey(key)) as TelemetryService;
-    }
+    async (key: string | undefined): Promise<TelemetryService> =>
+      (await getTelemetryServiceForKey(key)) as TelemetryService
   );
-};

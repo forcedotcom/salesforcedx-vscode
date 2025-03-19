@@ -12,9 +12,7 @@ import { nls } from '../messages';
 
 let statusBarItem: StatusBarItem | undefined;
 
-export const showOrg = (): Promise<void> => {
-  return displayBrowserIcon();
-};
+export const showOrg = (): Promise<void> => displayBrowserIcon();
 
 const displayBrowserIcon = async () => {
   const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();

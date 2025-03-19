@@ -68,11 +68,8 @@ export const fileExtensionsMatch = (sourceUri: vscode.Uri, targetExtension: stri
   return extension === targetExtension.toLowerCase();
 };
 
-const stateFolder = (): string => {
-  return workspaceUtils.hasRootWorkspace()
-    ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
-    : '';
-};
+const stateFolder = (): string =>
+  workspaceUtils.hasRootWorkspace() ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER) : '';
 
 const metadataFolder = (): string => {
   const username = WorkspaceContextUtil.getInstance().username;
@@ -115,9 +112,7 @@ const toolsFolder = (): string => {
   return pathToToolsFolder;
 };
 
-const relativeStateFolder = (): string => {
-  return Global.STATE_FOLDER;
-};
+const relativeStateFolder = (): string => Global.STATE_FOLDER;
 
 const relativeToolsFolder = (): string => {
   const relativePathToToolsFolder = path.join(projectPaths.relativeStateFolder(), TOOLS);

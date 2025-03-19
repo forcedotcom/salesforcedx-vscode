@@ -39,10 +39,6 @@ const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | u
   return pathToLastOpenedLogFolder;
 };
 
-const folderExists = (path: string): boolean => {
-  return existsSync(path);
-};
+const folderExists = (path: string): boolean => existsSync(path);
 
-const getUriFor = (path: string): vscode.Uri => {
-  return vscode.Uri.file(path);
-};
+const getUriFor = (path: string): vscode.Uri => vscode.Uri.file(path);

@@ -980,13 +980,13 @@ export class ApexDebug extends LoggingDebugSession {
         const requestArgs: SetExceptionBreakpointsArguments = args;
         if (requestArgs && requestArgs.exceptionInfo) {
           try {
-            await this.lock.acquire('exception-breakpoint', async () => {
-              return this.myBreakpointService.reconcileExceptionBreakpoints(
+            await this.lock.acquire('exception-breakpoint', async () =>
+              this.myBreakpointService.reconcileExceptionBreakpoints(
                 this.salesforceProject,
                 this.mySessionService.getSessionId(),
                 requestArgs.exceptionInfo
-              );
-            });
+              )
+            );
             if (requestArgs.exceptionInfo.breakMode === EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS) {
               this.printToDebugConsole(
                 nls.localize('created_exception_breakpoint_text', requestArgs.exceptionInfo.label)

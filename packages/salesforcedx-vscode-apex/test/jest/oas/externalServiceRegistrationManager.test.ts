@@ -53,16 +53,12 @@ describe('ExternalServiceRegistrationManager', () => {
   };
   const mockWorkspaceContext = {
     onOrgChange: jest.fn(),
-    getConnection: async () => {
-      return {
-        retrieveMaxApiVersion: () => '50.0',
-        query: () => {
-          return {
-            records: [{ MasterLabel: 'TestCredential' }]
-          };
-        }
-      };
-    }
+    getConnection: async () => ({
+      retrieveMaxApiVersion: () => '50.0',
+      query: () => ({
+        records: [{ MasterLabel: 'TestCredential' }]
+      })
+    })
   } as any;
 
   beforeEach(() => {
@@ -119,11 +115,9 @@ describe('ExternalServiceRegistrationManager', () => {
   describe('generateEsrMD', () => {
     it('should throw an error if org version is not retrieved', async () => {
       workspaceContextGetInstanceSpy.mockReturnValue({
-        getConnection: async () => {
-          return {
-            retrieveMaxApiVersion: () => undefined
-          };
-        }
+        getConnection: async () => ({
+          retrieveMaxApiVersion: () => undefined
+        })
       });
 
       await expect(esrHandler.generateEsrMD(true, processedOasResult, fullPath)).rejects.toThrow(

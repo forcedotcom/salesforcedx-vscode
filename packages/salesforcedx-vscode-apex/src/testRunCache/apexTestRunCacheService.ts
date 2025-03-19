@@ -6,13 +6,9 @@
  */
 import * as vscode from 'vscode';
 
-export const isEmpty = (value: string): boolean => {
-  return !value || value.length === 0;
-};
+export const isEmpty = (value: string): boolean => !value || value.length === 0;
 
-const isNotEmpty = (value: string): boolean => {
-  return !isEmpty(value);
-};
+const isNotEmpty = (value: string): boolean => !isEmpty(value);
 
 // cache last test class and test method values to
 // enable re-running w/o command context via built-in LRU

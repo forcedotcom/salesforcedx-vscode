@@ -19,20 +19,14 @@ export type ComponentName = {
   name?: string;
 };
 
-export const isContinue = (contineOrCancel: ContinueOrCancel): contineOrCancel is ContinueResponse<OneOrMany> => {
-  return Reflect.get(contineOrCancel, 'type') === 'CONTINUE';
-};
+export const isContinue = (contineOrCancel: ContinueOrCancel): contineOrCancel is ContinueResponse<OneOrMany> =>
+  Reflect.get(contineOrCancel, 'type') === 'CONTINUE';
 
-export const isComponentName = (component: ComponentName | LocalComponent): component is ComponentName => {
-  return Reflect.has(component, 'name');
-};
+export const isComponentName = (component: ComponentName | LocalComponent): component is ComponentName =>
+  Reflect.has(component, 'name');
 
 export const isDirFileNameSelection = (
   component: DirFileNameSelection | LocalComponent
-): component is DirFileNameSelection => {
-  return Reflect.has(component, 'fileName') && Reflect.has(component, 'outputdir');
-};
+): component is DirFileNameSelection => Reflect.has(component, 'fileName') && Reflect.has(component, 'outputdir');
 
-export const isLwcComponentPath = (componentDir: string): boolean => {
-  return componentDir.endsWith(LWC);
-};
+export const isLwcComponentPath = (componentDir: string): boolean => componentDir.endsWith(LWC);

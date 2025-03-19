@@ -65,9 +65,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     return html;
   }
   private disposeInstance(instance: SOQLEditorInstance) {
-    const found = this.instances.findIndex(storedInstance => {
-      return storedInstance === instance;
-    });
+    const found = this.instances.findIndex(storedInstance => storedInstance === instance);
     if (found > -1) {
       this.instances.splice(found, 1);
     }

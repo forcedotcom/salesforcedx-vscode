@@ -17,11 +17,10 @@ import { messages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
 const loadMessageBundle = (config?: Config): Message => {
-  const resolveFileName = (locale: string): string => {
-    return locale === DEFAULT_LOCALE
+  const resolveFileName = (locale: string): string =>
+    locale === DEFAULT_LOCALE
       ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
       : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
-  };
 
   const base = new Message(messages);
 

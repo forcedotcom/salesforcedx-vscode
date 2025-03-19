@@ -57,6 +57,4 @@ export class CoreLoggerService implements LoggerInterface {
   }
 }
 
-export const getCoreLoggerService = (loggerName: string): LoggerInterface => {
-  return new CoreLoggerService(loggerName);
-};
+export const getCoreLoggerService = (loggerName: string): LoggerInterface => new CoreLoggerService(loggerName);
