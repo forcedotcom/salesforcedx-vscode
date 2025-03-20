@@ -21,7 +21,6 @@ import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import {
   MetadataCacheExecutor,
@@ -56,7 +55,7 @@ describe('Metadata Cache', () => {
       processStub.restore();
       operationStub.restore();
       workspaceStub!.restore();
-      shell.rm('-rf', PROJECT_DIR);
+      fs.rmSync(PROJECT_DIR, { recursive: true, force: true });
     });
 
     it('Should run metadata service', async () => {
@@ -101,15 +100,15 @@ describe('Metadata Cache', () => {
       service.clearCache();
       packageStub.restore();
       workspaceStub!.restore();
-      shell.rm('-rf', PROJECT_DIR);
+      fs.rmSync(PROJECT_DIR, { recursive: true, force: true });
     });
 
     it('Should clear cache directory', async () => {
       const cachePath = service.getCachePath();
       const tempFilePath = path.join(cachePath, 'TestFile.xml');
 
-      shell.mkdir('-p', cachePath);
-      shell.touch([tempFilePath]);
+      await fs.promises.mkdir(cachePath, { recursive: true });
+      await fs.promises.writeFile(tempFilePath, '');
 
       expect(fs.existsSync(tempFilePath), `folder ${tempFilePath} should exist`).to.equal(true);
 

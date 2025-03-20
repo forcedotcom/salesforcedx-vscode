@@ -8,7 +8,6 @@
 import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { cp } from 'shelljs';
 import * as util from 'util';
 import { Uri } from 'vscode';
 
@@ -57,7 +56,7 @@ export const deleteScratchOrg = async (projectName: string, username: string): P
 
 export const pushSource = async (sourceFolder: string, projectName: string, username: string): Promise<string> => {
   const targetFolder = path.join(process.cwd(), projectName, 'force-app', 'main', 'default');
-  cp('-R', sourceFolder, targetFolder);
+  await fs.promises.cp(sourceFolder, targetFolder, { recursive: true });
   const execution = new CliCommandExecutor(
     new SfCommandBuilder().withArg('project:deploy:start').withFlag('--target-org', username).withJson().build(),
     { cwd: path.join(process.cwd(), projectName) }

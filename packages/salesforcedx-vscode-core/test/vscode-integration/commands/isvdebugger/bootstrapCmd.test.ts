@@ -9,7 +9,6 @@ import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -38,19 +37,11 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
       inputBoxSpy.onCall(0).returns(undefined);
       inputBoxSpy.onCall(1).returns('');
-      inputBoxSpy
-        .onCall(2)
-        .returns(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
+      inputBoxSpy.onCall(2).returns(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
       inputBoxSpy.onCall(3).returns(`forceide://abc?url=${LOGIN_URL}`);
       inputBoxSpy.onCall(4).returns(`forceide://abc?sessionId=${SESSION_ID}`);
-      inputBoxSpy
-        .onCall(5)
-        .returns(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
-      inputBoxSpy
-        .onCall(6)
-        .returns(
-          `forceide://abc?url=${LOGIN_URL}&secure=0&sessionId=${SESSION_ID}`
-        );
+      inputBoxSpy.onCall(5).returns(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
+      inputBoxSpy.onCall(6).returns(`forceide://abc?url=${LOGIN_URL}&secure=0&sessionId=${SESSION_ID}`);
       showErrorMessageSpy = sinon.stub(vscode.window, 'showErrorMessage');
     });
 
@@ -128,26 +119,20 @@ describe('ISV Debugging Project Bootstrap Command', () => {
     });
 
     it('Should accept valid URI', async () => {
-      const response = EnterForceIdeUri.uriValidator(
-        `forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`
-      );
+      const response = EnterForceIdeUri.uriValidator(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
       expect(response).to.be.null;
     });
 
     it('Should complain about invalid URI', async () => {
-      expect(
-        EnterForceIdeUri.uriValidator(
-          `forceide://abc?url=${LOGIN_URL}&missingSessionId`
-        )
-      ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
-      expect(
-        EnterForceIdeUri.uriValidator(
-          `forceide://abc?sessionId=${SESSION_ID}&missingUrl`
-        )
-      ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
-      expect(
-        EnterForceIdeUri.uriValidator('forceide://abc?url=&missingSessionId')
-      ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
+      expect(EnterForceIdeUri.uriValidator(`forceide://abc?url=${LOGIN_URL}&missingSessionId`)).to.equal(
+        nls.localize('parameter_gatherer_invalid_forceide_url')
+      );
+      expect(EnterForceIdeUri.uriValidator(`forceide://abc?sessionId=${SESSION_ID}&missingUrl`)).to.equal(
+        nls.localize('parameter_gatherer_invalid_forceide_url')
+      );
+      expect(EnterForceIdeUri.uriValidator('forceide://abc?url=&missingSessionId')).to.equal(
+        nls.localize('parameter_gatherer_invalid_forceide_url')
+      );
       expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.equal(
         nls.localize('parameter_gatherer_invalid_forceide_url')
       );
@@ -168,47 +153,39 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       expect(createCommand.toCommand()).to.equal(
         `sf project:generate --name ${PROJECT_NAME} --output-dir ${PROJECT_DIR[0].fsPath} --template standard`
       );
-      expect(createCommand.description).to.equal(
-        nls.localize('isv_debug_bootstrap_create_project')
-      );
+      expect(createCommand.description).to.equal(nls.localize('isv_debug_bootstrap_create_project'));
     });
 
     it('Verify buildConfigureProjectCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
-      const configureCommand =
-        forceProjectConfigBuilder.buildConfigureProjectCommand({
-          loginUrl: LOGIN_URL,
-          sessionId: SESSION_ID,
-          orgName: PROJECT_NAME,
-          projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath,
-          projectTemplate: projectTemplateEnum.standard
-        });
+      const configureCommand = forceProjectConfigBuilder.buildConfigureProjectCommand({
+        loginUrl: LOGIN_URL,
+        sessionId: SESSION_ID,
+        orgName: PROJECT_NAME,
+        projectName: PROJECT_NAME,
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
+      });
       expect(configureCommand.toCommand()).to.equal(
         `sf config:set org-isv-debugger-sid=${SESSION_ID} org-isv-debugger-url=${LOGIN_URL} org-instance-url=${LOGIN_URL}`
       );
-      expect(configureCommand.description).to.equal(
-        nls.localize('isv_debug_bootstrap_configure_project')
-      );
+      expect(configureCommand.description).to.equal(nls.localize('isv_debug_bootstrap_configure_project'));
     });
 
     it('Verify buildQueryForOrgNamespacePrefixCommand', async () => {
       const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
-      const command =
-        forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand({
-          loginUrl: LOGIN_URL,
-          sessionId: SESSION_ID,
-          orgName: PROJECT_NAME,
-          projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath,
-          projectTemplate: projectTemplateEnum.standard
-        });
+      const command = forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand({
+        loginUrl: LOGIN_URL,
+        sessionId: SESSION_ID,
+        orgName: PROJECT_NAME,
+        projectName: PROJECT_NAME,
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
+      });
       expect(command.toCommand()).to.equal(
         `sf data:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --target-org ${SESSION_ID} --json`
       );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace')
-      );
+      expect(command.description).to.equal(nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace'));
     });
 
     it('Verify parseOrgNamespaceQueryResultJson', async () => {
@@ -238,9 +215,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       expect(command.toCommand()).to.equal(
         `sf project:retrieve:start --manifest ${builder.relativeApexPackageXmlPath} --target-org ${SESSION_ID}`
       );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_retrieve_org_source')
-      );
+      expect(command.description).to.equal(nls.localize('isv_debug_bootstrap_retrieve_org_source'));
     });
 
     it('Verify buildPackageInstalledListAsJsonCommand', async () => {
@@ -253,12 +228,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectUri: PROJECT_DIR[0].fsPath,
         projectTemplate: projectTemplateEnum.standard
       });
-      expect(command.toCommand()).to.equal(
-        `sf package:installed:list --target-org ${SESSION_ID} --json`
-      );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_list_installed_packages')
-      );
+      expect(command.toCommand()).to.equal(`sf package:installed:list --target-org ${SESSION_ID} --json`);
+      expect(command.description).to.equal(nls.localize('isv_debug_bootstrap_list_installed_packages'));
     });
 
     it('Verify buildRetrievePackageSourceCommand', async () => {
@@ -278,9 +249,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       expect(command.toCommand()).to.equal(
         `sf project:retrieve:start --package-name ${packageName} --target-org ${SESSION_ID} --target-metadata-dir ${builder.relativeInstalledPackagesPath} --unzip --zip-file-name ${packageName}`
       );
-      expect(command.description).to.equal(
-        nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName)
-      );
+      expect(command.description).to.equal(nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName));
     });
 
     it('Verify build does nothing', async () => {
@@ -320,25 +289,14 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
     it('Should successfully pass through execution', async () => {
       const projectPath = path.join(PROJECT_DIR[0].fsPath, PROJECT_NAME);
-      const projectMetadataTempPath = path.join(
-        projectPath,
-        executor.relativeMetadataTempPath
-      );
-      const projectInstalledPackagesPath = path.join(
-        projectPath,
-        executor.relativeInstalledPackagesPath
-      );
+      const projectMetadataTempPath = path.join(projectPath, executor.relativeMetadataTempPath);
+      const projectInstalledPackagesPath = path.join(projectPath, executor.relativeInstalledPackagesPath);
 
       // Setup old project data that should not be present upon completion
-      shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'old-package'));
-
+      await fs.promises.mkdir(path.join(projectInstalledPackagesPath, 'old-package'), { recursive: true });
       // fake project setup - copy the original project into this clone
       executeCommandSpy.onCall(0).callsFake(() => {
-        shell.cp(
-          '-R',
-          path.join(PROJECT_DIR[0].fsPath, ORIGINAL_PROJECT),
-          projectPath
-        );
+        fs.cpSync(path.join(PROJECT_DIR[0].fsPath, ORIGINAL_PROJECT), projectPath, { recursive: true });
       });
 
       // fake namespace query
@@ -368,7 +326,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
       // fake package metadata convert
       executeCommandSpy.onCall(5).callsFake(() => {
-        shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'mypackage'));
+        fs.mkdirSync(path.join(projectInstalledPackagesPath, 'mypackage'), { recursive: true });
       });
 
       const input = {
@@ -398,19 +356,17 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
       // there should be only one package in the installed-packages folder
       const dirInfo = fs.readdirSync(projectInstalledPackagesPath);
-      expect(
-        dirInfo.length,
-        `There should only be one package installed at ${projectInstalledPackagesPath}`
-      ).to.equal(1);
+      expect(dirInfo.length, `There should only be one package installed at ${projectInstalledPackagesPath}`).to.equal(
+        1
+      );
 
       // any temp files should be gone
-      expect(
-        fs.existsSync(projectMetadataTempPath),
-        `folder ${projectMetadataTempPath} must be deleted`
-      ).to.equal(false);
+      expect(fs.existsSync(projectMetadataTempPath), `folder ${projectMetadataTempPath} must be deleted`).to.equal(
+        false
+      );
 
       // Clean up project
-      shell.rm('-rf', projectPath);
+      await fs.promises.rm(projectPath, { recursive: true, force: true });
     });
   });
 });

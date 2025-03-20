@@ -8,8 +8,8 @@
 import { FileProperties, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import { fail } from 'assert';
 import { expect } from 'chai';
+import * as fs from 'node:fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import { channelService } from '../../../src/channels';
 import { PersistentStorageService } from '../../../src/conflict';
@@ -59,7 +59,8 @@ describe('Timestamp Conflict Detector Execution', () => {
     workspaceStub.restore();
     cacheStub.restore();
     channelServiceStub.restore();
-    shell.rm('-rf', PROJECT_DIR);
+
+    fs.rmSync(PROJECT_DIR, { recursive: true, force: true });
   });
 
   it('Should report differences', async () => {

@@ -8,7 +8,6 @@ import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
-import { mkdir, rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
@@ -98,10 +97,10 @@ export class FauxClassGenerator implements SObjectGenerator {
 
   private resetOutputFolder(pathToClean: string): boolean {
     if (fs.existsSync(pathToClean)) {
-      rm('-rf', pathToClean);
+      fs.rmSync(pathToClean, { recursive: true, force: true });
     }
     if (!fs.existsSync(pathToClean)) {
-      mkdir('-p', pathToClean);
+      fs.mkdirSync(pathToClean, { recursive: true });
       return fs.existsSync(pathToClean);
     }
     return true;

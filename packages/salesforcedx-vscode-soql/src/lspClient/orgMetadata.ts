@@ -88,14 +88,6 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       return undefined;
     }
   }
-
-  private async readTypeDescriptions(soqlMetadataPath: string): Promise<SObjectShortDescription[]> {
-    const savedTypeNamesBuffer = await fs.promises.readFile(path.join(soqlMetadataPath, 'typeNames.json'));
-    // TODO: validate content against a schema
-    const savedTypeNames = JSON.parse(savedTypeNamesBuffer.toString()) as SObjectShortDescription[];
-
-    return savedTypeNames;
-  }
 }
 
 export class JsforceOrgDataSource implements OrgDataSource {
