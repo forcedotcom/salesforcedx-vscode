@@ -89,6 +89,13 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
     directory: 'experiencePropertyTypeBundles',
     pathStrategy: PathStrategyFactory.createDefaultStrategy(),
     extensions: [`${sep}schema.json`]
+  },
+  lightningtypebundle: {
+    type: 'LightningTypeBundle',
+    suffix: 'json',
+    directory: 'lightningtypebundles',
+    pathStrategy: PathStrategyFactory.createDefaultStrategy(),
+    extensions: [`${sep}schema.json`]
   }
 };
 
