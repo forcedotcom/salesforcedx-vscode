@@ -82,21 +82,21 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
     directory: 'functions',
     pathStrategy: PathStrategyFactory.createFunctionJavaTemplateStrategy(),
     extensions: ['.java']
-    },
-    experiencepropertytypebundle: {
-      type: 'ExperiencePropertyTypeBundle',
-      suffix: 'json',
-      directory: 'experiencePropertyTypeBundles',
-      pathStrategy: PathStrategyFactory.createDefaultStrategy(),
-      extensions: [`${sep}schema.json`]
-    },
-    lightningtypebundle: {
-      type: 'LightningTypeBundle',
-      suffix: 'json',
-      directory: 'lightningtypebundles',
-      pathStrategy: PathStrategyFactory.createDefaultStrategy(),
-      extensions: [`${sep}schema.json`]
-    }
+  },
+  experiencepropertytypebundle: {
+    type: 'ExperiencePropertyTypeBundle',
+    suffix: 'json',
+    directory: 'experiencePropertyTypeBundles',
+    pathStrategy: PathStrategyFactory.createDefaultStrategy(),
+    extensions: [`${sep}schema.json`]
+  },
+  lightningtypebundle: {
+    type: 'LightningTypeBundle',
+    suffix: 'json',
+    directory: 'lightningtypebundles',
+    pathStrategy: PathStrategyFactory.createDefaultStrategy(),
+    extensions: [`${sep}schema.json`]
+  }
 };
 
 export class MetadataDictionary {
