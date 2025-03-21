@@ -6,7 +6,7 @@
  */
 
 import { ConfigUtil, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
-import { which } from 'shelljs';
+import { execSync } from 'node:child_process';
 import { window } from 'vscode';
 import {
   ENV_NODE_EXTRA_CA_CERTS,
@@ -18,15 +18,14 @@ import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 
 export const isCLIInstalled = () => {
-  let isInstalled = false;
   try {
-    if (which('sfdx')) {
-      isInstalled = true;
-    }
+    const result = execSync('sfdx --version');
+    console.log(result.toString());
+    return true;
   } catch (e) {
     console.error('An error happened while looking for sfdx cli', e);
+    return false;
   }
-  return isInstalled;
 };
 
 export const showCLINotInstalledMessage = () => {
