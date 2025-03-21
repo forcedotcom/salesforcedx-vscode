@@ -509,6 +509,7 @@ export const messages = {
   LightningExperienceTheme: 'Lightning Experience Themes',
   LightningMessageChannel: 'Lightning Message Channels',
   LightningOnboardingConfig: 'Lightning Onboarding Configs',
+  LightningTypeBundle: 'Lightning Type Bundles',
   ListView: 'List Views',
   LiveChatAgentConfig: 'Live Chat Agent Configs',
   LiveChatButton: 'Live Chat Buttons',
