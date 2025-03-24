@@ -1,0 +1,115 @@
+{
+  "targetDefaults": {
+    "bundle:debugger": {
+      "dependsOn": []
+    },
+    "compile": {
+      "cache": true,
+      "dependsOn": [
+        "^compile"
+      ],
+      "outputs": [
+        "{projectRoot}/out"
+      ]
+    },
+    "lint": {
+      "cache": true,
+      "dependsOn": [
+        "^lint"
+      ]
+    },
+    "lint:fix": {
+      "cache": true,
+      "dependsOn": []
+    },
+    "watch": {
+      "dependsOn": []
+    },
+    "clean": {
+      "cache": true,
+      "dependsOn": [
+        "^clean"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^test"
+      ]
+    },
+    "test:unit": {
+      "cache": true,
+      "dependsOn": [
+        "^test:unit"
+      ],
+      "outputs": [
+        "{projectRoot}/coverage"
+      ]
+    },
+    "test:integration": {
+      "dependsOn": []
+    },
+    "test:jest": {
+      "cache": true,
+      "dependsOn": [
+        "^test:jest"
+      ]
+    },
+    "coverage": {
+      "dependsOn": []
+    },
+    "copy:files": {
+      "cache": true,
+      "dependsOn": [
+        "^copy:files"
+      ]
+    },
+    "bundle:extension": {
+      "dependsOn": []
+    },
+    "bundle:extension:copy": {
+      "dependsOn": []
+    },
+    "bundle:extension:build": {
+      "dependsOn": []
+    },
+    "vscode:prepublish": {
+      "dependsOn": []
+    },
+    "vscode:package": {
+      "dependsOn": []
+    },
+    "vscode:sha256": {
+      "dependsOn": []
+    },
+    "vscode:publish": {
+      "dependsOn": []
+    },
+    "test:vscode-integration": {
+      "dependsOn": []
+    },
+    "test:vscode-insiders-integration": {
+      "dependsOn": []
+    },
+    "build": {
+      "dependsOn": []
+    },
+    "test:ui:prepare": {
+      "dependsOn": []
+    },
+    "test:ui:install": {
+      "dependsOn": []
+    },
+    "test:ui:run": {
+      "dependsOn": []
+    },
+    "test:ui": {
+      "dependsOn": []
+    },
+    "pretest": {
+      "dependsOn": []
+    },
+    "test:vscode-insiders-system-tests": {
+      "dependsOn": []
+    }
+  }
+}
