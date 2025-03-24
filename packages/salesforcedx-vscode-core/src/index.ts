@@ -91,10 +91,9 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, SF_CLI_DOWNLOAD_LINK } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
-import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { ProgressNotification, notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
