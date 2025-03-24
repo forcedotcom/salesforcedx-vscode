@@ -93,7 +93,7 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
   lightningtypebundle: {
     type: 'LightningTypeBundle',
     suffix: 'json',
-    directory: 'lightningtypebundles',
+    directory: 'LayoutOverrides',
     pathStrategy: PathStrategyFactory.createDefaultStrategy(),
     extensions: [`${sep}schema.json`]
   }
