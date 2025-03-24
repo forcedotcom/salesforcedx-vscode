@@ -10,17 +10,10 @@ import { ConfigUtil, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as shelljs from 'shelljs';
-import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { window } from 'vscode';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { ENV_SF_DISABLE_TELEMETRY, TARGET_ORG_KEY } from '../../../src/constants';
 import { WorkspaceContext } from '../../../src/context';
-import {
-  disableCLITelemetry,
-  isCLIInstalled,
-  isCLITelemetryAllowed,
-  showCLINotInstalledMessage,
-  workspaceUtils
-} from '../../../src/util';
+import { disableCLITelemetry, isCLIInstalled, isCLITelemetryAllowed, workspaceUtils } from '../../../src/util';
 
 describe('SFDX CLI Configuration utility', () => {
   let sandboxStub: SinonSandbox;
@@ -55,24 +48,6 @@ describe('SFDX CLI Configuration utility', () => {
 
       const response = isCLIInstalled();
       expect(response).equal(false);
-    });
-  });
-
-  describe('showCLINotInstalledMessage', () => {
-    let mShowWarning: SinonStub;
-
-    beforeEach(() => {
-      sandboxStub = createSandbox();
-      mShowWarning = sandboxStub.stub(window, 'showWarningMessage').returns(Promise.resolve(null));
-    });
-
-    afterEach(() => {
-      sandboxStub.restore();
-    });
-
-    it('Should show cli install info message', async () => {
-      showCLINotInstalledMessage();
-      assert.calledOnce(mShowWarning);
     });
   });
 

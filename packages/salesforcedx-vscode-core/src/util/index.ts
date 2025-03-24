@@ -11,8 +11,7 @@ export {
   isCLIInstalled,
   isCLITelemetryAllowed,
   setNodeExtraCaCerts,
-  setSfLogLevel,
-  showCLINotInstalledMessage
+  setSfLogLevel
 } from './cliConfiguration';
 export { workspaceUtils } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';

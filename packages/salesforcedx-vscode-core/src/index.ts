@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CliStatusEnum, CliVersionStatus, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
+import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ActivationTracker,
   ChannelService,
@@ -91,10 +91,9 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, SF_CLI_DOWNLOAD_LINK } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
-import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { ProgressNotification, notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -394,7 +393,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  // validateCliInstallationAndVersion();
   setNodeExtraCaCerts();
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
@@ -541,52 +539,6 @@ export const deactivate = async (): Promise<void> => {
 
   disposeTraceFlagExpiration();
   return turnOffLogging();
-};
-
-export const validateCliInstallationAndVersion = (): void => {
-  // Check that the CLI is installed and that it is a supported version
-  // If there is no CLI or it is an unsupported version then the Core extension will not activate
-  const c = new CliVersionStatus();
-
-  const sfdxCliVersionString = c.getCliVersion(true);
-  const sfCliVersionString = c.getCliVersion(false);
-
-  const sfdxCliVersionParsed = c.parseCliVersion(sfdxCliVersionString);
-  const sfCliVersionParsed = c.parseCliVersion(sfCliVersionString);
-
-  const cliInstallationResult = c.validateCliInstallationAndVersion(sfdxCliVersionParsed, sfCliVersionParsed);
-
-  switch (cliInstallationResult) {
-    case CliStatusEnum.cliNotInstalled: {
-      showErrorNotification('sfdx_cli_not_found', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
-      throw Error('No Salesforce CLI installed');
-    }
-    case CliStatusEnum.onlySFv1: {
-      showErrorNotification('sf_v1_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
-      throw Error('Only SF v1 installed');
-    }
-    case CliStatusEnum.outdatedSFDXVersion: {
-      showErrorNotification('sfdx_cli_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
-      throw Error('Outdated SFDX CLI version that is no longer supported');
-    }
-    case CliStatusEnum.bothSFDXAndSFInstalled: {
-      showErrorNotification('both_sfdx_and_sf', []);
-      throw Error('Both SFDX v7 and SF v2 are installed');
-    }
-    case CliStatusEnum.SFDXv7Valid: {
-      showWarningNotification('sfdx_v7_deprecation', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
-    }
-  }
-};
-
-export const showErrorNotification = (type: string, args: any[]) => {
-  const showMessage = nls.localize(type, ...args);
-  void vscode.window.showErrorMessage(showMessage);
-};
-
-export const showWarningNotification = (type: string, args: any[]) => {
-  const showMessage = nls.localize(type, ...args);
-  void vscode.window.showWarningMessage(showMessage);
 };
 
 const handleTheUnhandled = (): void => {

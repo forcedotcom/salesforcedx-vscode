@@ -7,14 +7,7 @@
 
 import { ConfigUtil, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
 import { which } from 'shelljs';
-import { window } from 'vscode';
-import {
-  ENV_NODE_EXTRA_CA_CERTS,
-  ENV_SF_DISABLE_TELEMETRY,
-  ENV_SF_LOG_LEVEL,
-  SF_CLI_DOWNLOAD_LINK
-} from '../constants';
-import { nls } from '../messages';
+import { ENV_NODE_EXTRA_CA_CERTS, ENV_SF_DISABLE_TELEMETRY, ENV_SF_LOG_LEVEL } from '../constants';
 import { salesforceCoreSettings } from '../settings';
 
 export const isCLIInstalled = () => {
@@ -27,11 +20,6 @@ export const isCLIInstalled = () => {
     console.error('An error happened while looking for sfdx cli', e);
   }
   return isInstalled;
-};
-
-export const showCLINotInstalledMessage = () => {
-  const showMessage = nls.localize('salesforce_cli_not_found', SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK);
-  void window.showWarningMessage(showMessage);
 };
 
 export const disableCLITelemetry = () => {
