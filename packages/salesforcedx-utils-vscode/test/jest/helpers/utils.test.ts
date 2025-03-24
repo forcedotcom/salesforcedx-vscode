@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { extractJson, stripAnsiInJson } from '../../../src/helpers/utils';
+import { extractJson, fixupError, stripAnsiInJson } from '../../../src/helpers/utils';
 
 describe('utils tests', () => {
   describe('extractJson unit tests', () => {
@@ -94,6 +94,54 @@ describe('utils tests', () => {
       const input = '{"key1": "\u001b[31mvalue1\u001b[0m", "key2": "\u001b[32mvalue2\u001b[0m"}';
       const result = stripAnsiInJson(input, true);
       expect(result).toBe('{"key1": "value1", "key2": "value2"}');
+    });
+  });
+
+  describe('fixupError', () => {
+    it('should return an error with the correct message', () => {
+      const message = 'Something went wrong';
+      const result = fixupError(message);
+      expect(result).toBe(message);
+    });
+
+    it('should handle empty messages', () => {
+      const result = fixupError('');
+      expect(result).toBe('');
+    });
+
+    it('should handle special characters in the message', () => {
+      const message = 'Error: @#$%^&*()!';
+      const result = fixupError(message);
+      expect(result).toBe(message);
+    });
+
+    it('should remove line/column information from the error message', () => {
+      const input = 'Syntax error at line (10:15)';
+      const result = fixupError(input);
+      expect(result).toBe('Syntax error at line');
+    });
+
+    it('should return "Unknown error occurred." for undefined input', () => {
+      const result = fixupError(undefined);
+      expect(result).toBe('Unknown error occurred.');
+    });
+
+    it('should trim whitespace from the error message', () => {
+      const input = '   Error occurred   ';
+      const result = fixupError(input);
+      expect(result).toBe('Error occurred');
+    });
+
+    it('should handle error messages without the line/column pattern', () => {
+      const input = 'General error';
+      const result = fixupError(input);
+      expect(result).toBe('General error');
+    });
+
+    it('should handle error messages with multiple line/column patterns', () => {
+      const input = 'Error occurred (56:78) ';
+      const result = fixupError(input);
+      expect(result).toBe('Error occurred');
     });
   });
 });
