@@ -29,13 +29,16 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
   public ready() {
     this.languageStatusItem.text = nls.localize('apex_language_server_loaded');
     this.languageStatusItem.severity = vscode.LanguageStatusSeverity.Information;
-    this.languageStatusItem.command = { title: 'Restart LSP!', command: 'sf.apex.languageServer.restart' };
+    this.languageStatusItem.command = {
+      title: nls.localize('apex_language_server_restart'),
+      command: 'sf.apex.languageServer.restart'
+    };
     // clear any errors that were there
     this.diagnostics.set(vscode.Uri.file('/ApexLSP'), []);
   }
 
   public restarting() {
-    this.languageStatusItem.text = 'Restarting...'; //todo: replace with nls localize?
+    this.languageStatusItem.text = nls.localize('apex_language_server_restarting');
     this.languageStatusItem.severity = vscode.LanguageStatusSeverity.Information;
     // do not allow a restart mid restart by clearing out the command shortcut while we are performing the restart
     this.languageStatusItem.command = undefined;

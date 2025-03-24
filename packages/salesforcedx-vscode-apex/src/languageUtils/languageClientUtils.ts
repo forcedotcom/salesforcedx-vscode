@@ -122,9 +122,9 @@ export const getExceptionBreakpointInfo = async (): Promise<{}> => {
 
 export const restartLanguageServerAndClient = async (extensionContext: vscode.ExtensionContext) => {
   const removeIndexFiles = await vscode.window.showInformationMessage(
-    'Clean Apex DB and Restart? Or Restart Only?',
-    'Clean Apex DB and Restart',
-    'Restart Only'
+    nls.localize('apex_language_server_restart_dialog_prompt'),
+    nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
+    nls.localize('apex_language_server_restart_dialog_restart_only')
   );
   //get the client and status bar item
   const alc = LanguageClientUtils.getInstance().getClientInstance();
@@ -143,26 +143,34 @@ export const restartLanguageServerAndClient = async (extensionContext: vscode.Ex
     } catch (error) {
       //if the client is in the state of startFailed, we need to kill the LSP jar and then move on.
       //todo: do we want to kill LSP jar manually here?
-      vscode.window.showWarningMessage('Uh oh cant stop wont stop:' + error.message);
+      vscode.window.showWarningMessage(
+        nls.localize('apex_language_server_restart_dialog_restart_only') + error.message
+      );
     }
-    //todo: replace with nls localize for removeIndexFiles command??
-    if (removeIndexFiles === 'Clean Apex DB and Restart') {
+    if (removeIndexFiles === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
       //delete the apex DB file if we need a clean slate
-      removeApexDB();
+      await removeApexDB();
     }
     //Need a half second timeout for the creation of a new language client so that we give the previous LS a moment to complete shutdown
     setTimeout(createLanguageClient, 500, extensionContext, statusBarInstance);
   }
 };
 
-const removeApexDB = () => {
+const removeApexDB = async () => {
   if (vscode.workspace.workspaceFolders) {
-    const wsrf = vscode.workspace.workspaceFolders[0].uri; // is this safe to do ?
-    const apexdburi = vscode.Uri.joinPath(wsrf, '.sfdx', 'tools', '254', 'apex.db'); //todo: make this less specific to release 254
+    const wsrf = vscode.workspace.workspaceFolders[0].uri;
+    const toolsUri = vscode.Uri.joinPath(wsrf, '.sfdx', 'tools');
     try {
-      vscode.workspace.fs.delete(apexdburi, { useTrash: true });
+      const entries = await vscode.workspace.fs.readDirectory(toolsUri);
+      const releaseFolders = entries
+        .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
+        .map(([name]) => name);
+      for (const folder of releaseFolders) {
+        const folderUri = vscode.Uri.joinPath(toolsUri, folder);
+        await vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true });
+      }
     } catch (error) {
-      console.log('Failed to delete db:' + error.message); //todo: replace with real error?
+      console.log('Error, failed to delete folder:' + error.message);
     }
   }
 };

@@ -301,7 +301,7 @@
       },
       {
         "command": "sf.apex.languageServer.restart",
-        "title": "AA SFDX: Restart Apex Language Server"
+        "title": "%apex_language_server_restart%"
       },
       {
         "command": "sf.apex.log.get",
