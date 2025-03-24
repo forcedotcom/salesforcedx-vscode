@@ -3,18 +3,18 @@
 ## Added
 
 #### salesforcedx-vscode
-
-- Revert "Revert " @W-17646997 include A4D in standard pack " (#6111)" (#6157) ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
-
 #### salesforcedx-vscode-expanded
 
-- Revert "Revert " @W-17646997 include A4D in standard pack " (#6111)" (#6157) ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+- 🚀  **Agentforce for Developers Elevated to Salesforce Extension Pack**
+
+With its elevated presence in the Salesforce Extension Pack, Agentforce for Developers is now a core part of the Salesforce developer experience. This change improves discoverability, making it easier for developers to find and install Agentforce and Developers as part of their workflow. ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- W-17739147 - update org browser icon ([PR #6152](https://github.com/forcedotcom/salesforcedx-vscode/pull/6152))
+- We updated the org browser icon. ([PR #6152](https://github.com/forcedotcom/salesforcedx-vscode/pull/6152))
 
 # 63.5.0 - March 19, 2025
 
