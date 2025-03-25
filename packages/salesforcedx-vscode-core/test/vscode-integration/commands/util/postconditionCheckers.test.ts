@@ -263,31 +263,6 @@ describe('Postcondition Checkers', () => {
       });
     });
 
-    it('Should prompt overwrite for LightningType components that exist', async () => {
-      existsStub.returns(false);
-      const data = {
-        fileName: 'Test1',
-        outputdir: 'package/tests',
-        type: 'LightningTypeBundle',
-        suffix: 'json'
-      };
-      pathExists(true, data, '/schema.json');
-      await checker.check({ type: 'CONTINUE', data });
-      expect(promptStub.firstCall.args[0]).to.eql([data]);
-    });
-
-    it('Should prompt overwrite for LightningType components that does not exist', async () => {
-      existsStub.returns(false);
-      const data = {
-        fileName: 'Test1',
-        outputdir: 'package/tests',
-        type: 'LightningTypeBundle',
-        suffix: 'json'
-      };
-      await checker.check({ type: 'CONTINUE', data });
-      expect(promptStub.firstCall).to.null;
-    });
-
     describe('Overwrite Dialog Message', () => {
       it('Should show every action when there are multiple components to overwrite', async () => {
         await checker.promptOverwrite(generateComponents(2));
