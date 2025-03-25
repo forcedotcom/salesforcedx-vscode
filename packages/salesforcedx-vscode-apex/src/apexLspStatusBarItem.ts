@@ -48,10 +48,10 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
     this.languageStatusItem.text = msg;
     this.languageStatusItem.severity = vscode.LanguageStatusSeverity.Error;
     const position = new vscode.Position(0, 0);
+    const errorSeverity = (vscode.DiagnosticSeverity && vscode.DiagnosticSeverity.Error) || 0;
     this.diagnostics.set(vscode.Uri.file('/ApexLSP'), [
-      new vscode.Diagnostic(new vscode.Range(position, position), msg, vscode.DiagnosticSeverity.Error)
+      new vscode.Diagnostic(new vscode.Range(position, position), msg, errorSeverity)
     ]);
-    // TODO W- add 'command' to statusItem to allow action to be taken
   }
 
   public dispose() {
