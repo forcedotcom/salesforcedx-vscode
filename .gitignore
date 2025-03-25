@@ -102,7 +102,7 @@ packages/system-tests/assets/sfdx-simple/force-app/main/default/lwc/jsconfig.jso
 packages/system-tests/assets/lwc-recipes/.vscode/
 packages/system-tests/assets/lwc-recipes/force-app/main/default/lwc/.eslintrc.json
 packages/system-tests/assets/lwc-recipes/force-app/main/default/lwc/jsconfig.json
-
+packages/salesforcedx-utils-vscode/salesforcedx-vscode.txt
 # Node lock files (actually causes issues with the symlinking that lerna does, so ignore)
 # package-lock.json
 
