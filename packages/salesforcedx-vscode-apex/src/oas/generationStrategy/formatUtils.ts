@@ -18,13 +18,10 @@ export const formatUrlPath = (parametersInPath: string[], urlMapping: string): s
   return updatedPath !== '' ? updatedPath : '/';
 };
 
-export const extractParametersInPath = (oas: OpenAPIV3.Document): string[] => {
-  return JSONPath<OpenAPIV3.ParameterObject[]>({ path: '$..parameters[?(@.in=="path")]', json: oas })
-    .sort((param1, param2) => {
-      return param1.required === param2.required ? 0 : param1.required ? -1 : 1;
-    })
+export const extractParametersInPath = (oas: OpenAPIV3.Document): string[] =>
+  JSONPath<OpenAPIV3.ParameterObject[]>({ path: '$..parameters[?(@.in=="path")]', json: oas })
+    .sort((param1, param2) => (param1.required === param2.required ? 0 : param1.required ? -1 : 1))
     .map(param => param.name);
-};
 
 export const excludeNon2xxResponses = (oas: OpenAPIV3.Document) => {
   JSONPath({

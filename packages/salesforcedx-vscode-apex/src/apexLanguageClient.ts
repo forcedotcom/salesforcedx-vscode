@@ -110,9 +110,7 @@ export class ApexLanguageClient extends LanguageClient {
   public async gatherOpenAPIContext(sourceUri: Uri | Uri[]): Promise<ApexClassOASGatherContextResponse> {
     if (!Array.isArray(sourceUri)) {
       return this.sendRequest('apexoas/gatherContext', this.code2ProtocolConverter.asUri(sourceUri)).then(
-        gatheredContext => {
-          return gatheredContext as ApexClassOASGatherContextResponse;
-        }
+        gatheredContext => gatheredContext as ApexClassOASGatherContextResponse
       );
     }
     throw new Error('Not implemented - Can only handle a single Uri for context gathering');

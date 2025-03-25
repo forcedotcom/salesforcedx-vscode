@@ -93,9 +93,7 @@ export const extractJson = <T = any>(str: string): T => {
   return JSON.parse(jsonCandidate) as T; // Cast to generic type
 };
 
-export const isNullOrUndefined = (object: any): object is null | undefined => {
-  return object === null || object === undefined;
-};
+export const isNullOrUndefined = (object: any): object is null | undefined => object === null || object === undefined;
 
 // There's a bug in VS Code where, after a file has been renamed,
 // the URI that VS Code passes to the command is stale and is the
@@ -155,13 +153,9 @@ export const fileUtils = {
   extractJson
 };
 
-export const stripAnsiInJson = (str: string, hasJson: boolean): string => {
-  return str && hasJson ? stripAnsi(str) : str;
-};
+export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
 
-export const stripAnsi = (str: string): string => {
-  return str ? str.replaceAll(ansiRegex(), '') : str;
-};
+export const stripAnsi = (str: string): string => (str ? str.replaceAll(ansiRegex(), '') : str);
 
 export const getMessageFromError = (err: any): string => {
   if (err instanceof Error) {
@@ -211,6 +205,4 @@ export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
  * @param setB
  * @returns
  */
-export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => {
-  return new Set([...setA].filter(x => !setB.has(x)));
-};
+export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => new Set([...setA].filter(x => !setB.has(x)));

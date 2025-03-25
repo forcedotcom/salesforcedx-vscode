@@ -8,8 +8,5 @@
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
-export const retrieveTestCodeCoverage = (): boolean => {
-  return vscode.workspace
-    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-    .get<boolean>('retrieve-test-code-coverage', false);
-};
+export const retrieveTestCodeCoverage = (): boolean =>
+  vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('retrieve-test-code-coverage', false);

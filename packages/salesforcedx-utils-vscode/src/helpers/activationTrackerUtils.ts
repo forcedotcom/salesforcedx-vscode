@@ -119,9 +119,9 @@ export const getExtensionHostLogActivationRecords = async (
     return undefined;
   }
 
-  const filtered = extHostLogLines.slice(lastExtensionLoadStart).filter(log => {
-    return log.includes('ExtensionService#_doActivateExtension');
-  });
+  const filtered = extHostLogLines
+    .slice(lastExtensionLoadStart)
+    .filter(log => log.includes('ExtensionService#_doActivateExtension'));
   const reduced = filtered.reduce((result: Record<string, ParsedLog>, log: string) => {
     const matches = activationRecordRegExp.exec(log.trim());
     if (!matches) {

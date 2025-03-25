@@ -16,35 +16,25 @@ import * as diagnostics from '../../../src/diagnostics';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../../../src/settings';
 
-jest.mock('@salesforce/source-deploy-retrieve-bundle', () => {
-  return {
-    ...jest.requireActual('@salesforce/source-deploy-retrieve-bundle'),
-    ComponentSet: jest.fn().mockImplementation(() => {
-      return {
-        deploy: jest.fn().mockImplementation(() => {
-          return { pollStatus: jest.fn() };
-        }),
-        getSourceComponents: jest.fn().mockReturnValue([
-          { name: '1', type: 'ApexClass' },
-          { name: '2', type: 'ApexClass' }
-        ])
-      };
-    })
-  };
-});
+jest.mock('@salesforce/source-deploy-retrieve-bundle', () => ({
+  ...jest.requireActual('@salesforce/source-deploy-retrieve-bundle'),
+  ComponentSet: jest.fn().mockImplementation(() => ({
+    deploy: jest.fn().mockImplementation(() => ({ pollStatus: jest.fn() })),
+    getSourceComponents: jest.fn().mockReturnValue([
+      { name: '1', type: 'ApexClass' },
+      { name: '2', type: 'ApexClass' }
+    ])
+  }))
+}));
 
-jest.mock('../../../src/commands/baseDeployRetrieve', () => {
-  return {
-    ...jest.requireActual('../../../src/commands/baseDeployRetrieve'),
-    RetrieveExecutor: jest.fn()
-  };
-});
+jest.mock('../../../src/commands/baseDeployRetrieve', () => ({
+  ...jest.requireActual('../../../src/commands/baseDeployRetrieve'),
+  RetrieveExecutor: jest.fn()
+}));
 
-jest.mock('../../../src/conflict/metadataCacheService', () => {
-  return {
-    ...jest.requireActual('../../../src/conflict/metadataCacheService')
-  };
-});
+jest.mock('../../../src/conflict/metadataCacheService', () => ({
+  ...jest.requireActual('../../../src/conflict/metadataCacheService')
+}));
 
 jest.mock('../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../src/commands/util/timestampConflictChecker');
