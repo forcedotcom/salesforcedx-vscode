@@ -59,7 +59,7 @@ describe('PropertyCorrectionStep', () => {
         }
       }
     };
-  }) as OpenAPIV3.Document;
+  }) as unknown as OpenAPIV3.Document;
 
   it('should ensure info version is present', () => {
     const result = step['ensureInfoVersionIsPresent'](openAPIDoc);
