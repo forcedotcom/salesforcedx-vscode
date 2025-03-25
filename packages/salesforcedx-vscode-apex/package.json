@@ -503,9 +503,7 @@
           "enum": [
             "LEAST_CALLS",
             "MOST_CALLS",
-            "METHOD_BY_METHOD",
-            "JSON_METHOD_BY_METHOD",
-            "WHOLE_CLASS"
+            "JSON_METHOD_BY_METHOD"
           ],
           "default": "JSON_METHOD_BY_METHOD",
           "description": "%apex_oas_generation_strategy%"
