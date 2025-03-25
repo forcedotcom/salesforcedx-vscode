@@ -290,5 +290,5 @@ const registerTestView = (): vscode.Disposable => {
 export const deactivate = async () => {
   await languageClientUtils.getClientInstance()?.stop();
   const telemetryService = await getTelemetryService();
-  telemetryService.sendExtensionDeactivationEvent();
+  telemetryService?.sendExtensionDeactivationEvent();
 };

@@ -48,6 +48,30 @@ const vscode = {
       public message: string,
       public severity: number
     ) {}
+  },
+  workspace: {
+    workspaceFolders: undefined,
+    createFileSystemWatcher: jest.fn().mockReturnValue({
+      onDidCreate: jest.fn(),
+      onDidChange: jest.fn(),
+      onDidDelete: jest.fn(),
+      dispose: jest.fn()
+    })
+  },
+  window: {
+    registerTreeDataProvider: jest.fn()
+  },
+  commands: {
+    registerCommand: jest.fn(),
+    executeCommand: jest.fn()
+  },
+  Disposable: {
+    from: (...items: any[]) => ({
+      dispose: jest.fn()
+    })
+  },
+  extensions: {
+    getExtension: jest.fn()
   }
 };
 
