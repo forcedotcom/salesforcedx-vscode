@@ -70,7 +70,7 @@
   },
   "scripts": {
     "postinstall": "npm run reformat && npm run check:peer-deps && npm run check:typescript-project-references",
-    "bootstrap": "npm install --no-package-lock",
+    "bootstrap": "npm install",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
