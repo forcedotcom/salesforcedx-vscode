@@ -260,7 +260,7 @@ export class TelemetryService implements TelemetryServiceInterface {
       this.reporters.forEach(reporter => {
         try {
           reporter.sendExceptionEvent(name, message);
-        } catch (error) {
+        } catch {
           console.log(
             'There was an error sending an exception report to: ' +
               typeof reporter +
