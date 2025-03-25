@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.5.0",
+  "version": "63.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,7 @@
     "@salesforce/apex-node-bundle": "8.1.12",
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core-bundle": "8.8.2",
-    "@salesforce/salesforcedx-utils-vscode": "63.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "63.6.0",
     "@salesforce/vscode-service-provider": "1.4.0",
     "@stoplight/spectral-core": "1.19.5",
     "@stoplight/spectral-functions": "1.9.3",
@@ -45,7 +45,7 @@
     "yaml": "2.6.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.5.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "63.6.0",
     "@salesforce/ts-sinon": "1.4.30",
     "@types/async-lock": "1.4.2",
     "@types/chai": "4.3.3",
@@ -503,9 +503,7 @@
           "enum": [
             "LEAST_CALLS",
             "MOST_CALLS",
-            "METHOD_BY_METHOD",
-            "JSON_METHOD_BY_METHOD",
-            "WHOLE_CLASS"
+            "JSON_METHOD_BY_METHOD"
           ],
           "default": "JSON_METHOD_BY_METHOD",
           "description": "%apex_oas_generation_strategy%"
