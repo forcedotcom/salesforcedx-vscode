@@ -18,7 +18,7 @@ import {
   PromptGenerationStrategyBid
 } from './schemas';
 
-export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS' | 'METHOD_BY_METHOD' | 'WHOLE_CLASS' | 'JSON_METHOD_BY_METHOD';
+export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS' | 'JSON_METHOD_BY_METHOD';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -78,18 +78,14 @@ export class PromptGenerationOrchestrator {
         return this.getLeastCalls(bids);
       case 'MOST_CALLS':
         return this.getMostCalls(bids);
-      case 'METHOD_BY_METHOD':
-        return this.getMethodByMethod(bids);
       case 'JSON_METHOD_BY_METHOD':
         return this.getJsonMethodByMethod(bids);
-      case 'WHOLE_CLASS':
-        return this.getWholeClass(bids);
     }
   }
 
   getLeastCalls(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
     let maxCallCount = 0;
-    let bestStrategy: GenerationStrategy = GenerationStrategy.METHOD_BY_METHOD; // fallback
+    let bestStrategy: GenerationStrategy = GenerationStrategy.JSON_METHOD_BY_METHOD; // fallback
     for (const strategyName of bids.keys()) {
       const bid = bids.get(strategyName);
       if (bid && bid.result.callCounts > 0) {
@@ -100,12 +96,12 @@ export class PromptGenerationOrchestrator {
       }
     }
     // TODO: define which to pick when both strategies have same call counts
-    return GenerationStrategy.METHOD_BY_METHOD; // METHOD_BY_METHOD is the default strategy
+    return GenerationStrategy.JSON_METHOD_BY_METHOD; // JSON_METHOD_BY_METHOD is the default strategy
   }
 
   getMostCalls(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
     let maxCallCount = 0;
-    let bestStrategy: GenerationStrategy = GenerationStrategy.METHOD_BY_METHOD; // fallback
+    let bestStrategy: GenerationStrategy = GenerationStrategy.JSON_METHOD_BY_METHOD; // fallback
     for (const strategyName of bids.keys()) {
       const bid = bids.get(strategyName);
       if (bid && bid.result.callCounts > 0) {
@@ -115,17 +111,10 @@ export class PromptGenerationOrchestrator {
         }
       }
     }
-    return GenerationStrategy.METHOD_BY_METHOD;
-  }
-
-  getMethodByMethod(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
-    return GenerationStrategy.METHOD_BY_METHOD;
-  }
-  getJsonMethodByMethod(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
     return GenerationStrategy.JSON_METHOD_BY_METHOD;
   }
 
-  getWholeClass(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
-    return GenerationStrategy.WHOLE_CLASS;
+  getJsonMethodByMethod(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
+    return GenerationStrategy.JSON_METHOD_BY_METHOD;
   }
 }
