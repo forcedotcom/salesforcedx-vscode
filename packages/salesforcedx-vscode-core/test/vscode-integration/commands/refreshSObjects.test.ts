@@ -11,10 +11,7 @@ import {
   SObjectTransformerFactory,
   STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import {
-  SObjectCategory,
-  SObjectRefreshSource
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
+import { SObjectCategory, SObjectRefreshSource } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
 import {
   ContinueResponse,
   notificationService,
@@ -45,7 +42,6 @@ describe('GenerateFauxClasses', () => {
     let sandboxStub: SinonSandbox;
     let existsSyncStub: SinonStub;
     let commandletSpy: SinonStub;
-    let notificationStub: SinonStub;
     let telemetryEventStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
@@ -55,10 +51,7 @@ describe('GenerateFauxClasses', () => {
       existsSyncStub = sandboxStub.stub(fs, 'existsSync');
       commandletSpy = sandboxStub.stub(SfCommandlet.prototype, 'run');
       telemetryEventStub = sandboxStub.stub(telemetryService, 'sendEventData');
-      notificationStub = sandboxStub.stub(
-        notificationService,
-        'showInformationMessage'
-      );
+      sandboxStub.stub(notificationService, 'showInformationMessage');
     });
 
     afterEach(() => {
@@ -131,25 +124,15 @@ describe('GenerateFauxClasses', () => {
       sandboxStub = createSandbox();
       progressStub = sandboxStub.stub(ProgressNotification, 'show');
       transformer = new SObjectTransformer(new EventEmitter(), [], []);
-      transformerStub = sandboxStub
-        .stub(transformer, 'transform')
-        .callsFake(() => {
-          return Promise.resolve({ data: expectedData });
-        });
-      factoryStub = sandboxStub
-        .stub(SObjectTransformerFactory, 'create')
-        .callsFake(() => {
-          return Promise.resolve(transformer);
-        });
-      logStub = sandboxStub.stub(
-        RefreshSObjectsExecutor.prototype,
-        'logMetric'
-      );
+      transformerStub = sandboxStub.stub(transformer, 'transform').callsFake(() => {
+        return Promise.resolve({ data: expectedData });
+      });
+      factoryStub = sandboxStub.stub(SObjectTransformerFactory, 'create').callsFake(() => {
+        return Promise.resolve(transformer);
+      });
+      logStub = sandboxStub.stub(RefreshSObjectsExecutor.prototype, 'logMetric');
       errorStub = sandboxStub.stub(telemetryService, 'sendException');
-      notificationStub = sandboxStub.stub(
-        notificationService,
-        'reportCommandExecutionStatus'
-      );
+      notificationStub = sandboxStub.stub(notificationService, 'reportCommandExecutionStatus');
     });
 
     afterEach(() => {
@@ -159,18 +142,12 @@ describe('GenerateFauxClasses', () => {
 
     it('Should pass response data to transformer', async () => {
       await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
-      expect(factoryStub.firstCall.args.slice(2)).to.eql([
-        SObjectCategory.CUSTOM,
-        SObjectRefreshSource.Startup
-      ]);
+      expect(factoryStub.firstCall.args.slice(2)).to.eql([SObjectCategory.CUSTOM, SObjectRefreshSource.Startup]);
     });
 
     it('Should pass minimal response data to transformer', async () => {
       await doExecute(SObjectRefreshSource.StartupMin, SObjectCategory.CUSTOM);
-      expect(factoryStub.firstCall.args.slice(2)).to.eql([
-        SObjectCategory.STANDARD,
-        SObjectRefreshSource.StartupMin
-      ]);
+      expect(factoryStub.firstCall.args.slice(2)).to.eql([SObjectCategory.STANDARD, SObjectRefreshSource.StartupMin]);
     });
 
     it('Should show progress on the status bar for non-manual refresh source', async () => {
@@ -180,9 +157,7 @@ describe('GenerateFauxClasses', () => {
 
     it('Should show progress as notification for manual refresh source', async () => {
       await doExecute(SObjectRefreshSource.Manual);
-      expect(progressStub.getCall(0).args[2]).to.eq(
-        ProgressLocation.Notification
-      );
+      expect(progressStub.getCall(0).args[2]).to.eq(ProgressLocation.Notification);
     });
 
     it('Should report command execution status for Startup Refresh', async () => {
@@ -196,10 +171,7 @@ describe('GenerateFauxClasses', () => {
     });
 
     it('Should not report command execution status for Startup Min Refresh', async () => {
-      await doExecute(
-        SObjectRefreshSource.StartupMin,
-        SObjectCategory.STANDARD
-      );
+      await doExecute(SObjectRefreshSource.StartupMin, SObjectCategory.STANDARD);
       expect(notificationStub.notCalled).to.be.true;
     });
 
@@ -230,10 +202,7 @@ describe('GenerateFauxClasses', () => {
       }
     });
 
-    const doExecute = async (
-      source: SObjectRefreshSource,
-      category?: SObjectCategory
-    ) => {
+    const doExecute = async (source: SObjectRefreshSource, category?: SObjectCategory) => {
       const executor = new RefreshSObjectsExecutor();
       await executor.execute({
         type: 'CONTINUE',
@@ -258,35 +227,30 @@ describe('GenerateFauxClasses', () => {
 
     it('Should return All sObjects', async () => {
       quickPickStub.returns(nls.localize('sobject_refresh_all'));
-      const response =
-        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
+      const response = (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.category).to.equal(SObjectCategory.ALL);
     });
 
     it('Should return Custom sObjects', async () => {
       quickPickStub.returns(nls.localize('sobject_refresh_custom'));
-      const response =
-        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
+      const response = (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.category).to.equal(SObjectCategory.CUSTOM);
     });
 
     it('Should return Standard sObjects', async () => {
       quickPickStub.returns(nls.localize('sobject_refresh_standard'));
-      const response =
-        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
+      const response = (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.category).to.equal(SObjectCategory.STANDARD);
     });
 
     it('Should return given source', async () => {
       gatherer = new SObjectRefreshGatherer(SObjectRefreshSource.Startup);
-      const response =
-        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
+      const response = (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.source).to.equal(SObjectRefreshSource.Startup);
     });
 
     it('Should return Manual source if none given', async () => {
-      const response =
-        (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
+      const response = (await gatherer.gather()) as ContinueResponse<RefreshSelection>;
       expect(response.data.source).to.equal(SObjectRefreshSource.Manual);
     });
   });

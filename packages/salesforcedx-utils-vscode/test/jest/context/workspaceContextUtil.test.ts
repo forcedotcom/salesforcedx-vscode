@@ -238,12 +238,9 @@ describe('WorkspaceContextUtil', () => {
     const mockAuthInfo = { test: 'test' };
     const mockConnection = { authInfo: mockAuthInfo };
 
-    let createAuthStub: jest.SpyInstance;
-    let createConnectionStub: jest.SpyInstance;
-
     beforeEach(() => {
-      createAuthStub = jest.spyOn(AuthInfo, 'create');
-      createConnectionStub = jest.spyOn(Connection, 'create');
+      jest.spyOn(AuthInfo, 'create');
+      jest.spyOn(Connection, 'create');
     });
 
     it('should return connection for the default org', async () => {

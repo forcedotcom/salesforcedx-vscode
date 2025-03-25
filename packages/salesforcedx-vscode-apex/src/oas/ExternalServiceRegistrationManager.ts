@@ -198,7 +198,7 @@ export class ExternalServiceRegistrationManager {
       className = baseName;
     }
 
-    const { description, version } = this.extractInfoProperties();
+    const { description } = this.extractInfoProperties();
     const operations = this.getOperationsFromYaml();
 
     // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
