@@ -11,66 +11,6 @@ import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { languageClientUtils } from '../../../src/languageUtils';
 import { ClientStatus } from '../../../src/languageUtils/languageClientUtils';
 
-// Mock vscode-languageclient
-jest.mock('vscode-languageclient/node', () => ({
-  LanguageClient: jest.fn(),
-  TransportKind: { pipe: 'pipe' },
-  RevealOutputChannelOn: {
-    Never: 1,
-    Error: 2,
-    Warn: 3,
-    Info: 4
-  }
-}));
-
-jest.mock('vscode', () => ({
-  Position: jest.fn().mockImplementation((line, character) => ({
-    line,
-    character
-  })),
-  Range: jest.fn().mockImplementation((start, end) => ({
-    start,
-    end
-  })),
-  TreeItem: jest.fn().mockImplementation((label, collapsibleState) => ({
-    label,
-    collapsibleState,
-    command: undefined,
-    iconPath: undefined,
-    contextValue: undefined,
-    tooltip: undefined
-  })),
-  TreeItemCollapsibleState: {
-    None: 0,
-    Collapsed: 1,
-    Expanded: 2
-  },
-  Disposable: jest.fn().mockImplementation(() => ({
-    dispose: jest.fn()
-  })),
-  languages: {
-    createLanguageStatusItem: jest.fn().mockReturnValue({})
-  },
-  ExtensionContext: jest.fn().mockImplementation(() => ({
-    subscriptions: [],
-    extensionPath: 'test/path'
-  })),
-  workspace: {
-    registerTextDocumentContentProvider: jest.fn(),
-    workspaceFolders: [],
-    fs: {
-      readDirectory: jest.fn(),
-      delete: jest.fn()
-    }
-  },
-  window: {
-    createOutputChannel: jest.fn()
-  },
-  Uri: {
-    joinPath: jest.fn()
-  }
-}));
-
 // Mock ApexLSPStatusBarItem class
 jest.mock('../../../src/apexLspStatusBarItem', () => {
   return {

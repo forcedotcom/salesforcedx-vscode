@@ -8,7 +8,6 @@
 import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ApexLanguageClient } from './apexLanguageClient';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
@@ -32,14 +31,10 @@ import {
   ApexActionController
 } from './commands';
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
-import { API, SET_JAVA_DOC_LINK } from './constants';
 import { workspaceContext } from './context';
-import * as languageServer from './languageServer';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
-  ClientStatus,
   enableJavaDocSymbols,
-  extensionUtils,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
@@ -48,7 +43,6 @@ import {
 import { restartLanguageServerAndClient, createLanguageClient } from './languageUtils/languageClientUtils';
 import { nls } from './messages';
 import { checkIfESRIsDecomposed } from './oasUtils';
-import { retrieveEnableSyncInitJobs } from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
