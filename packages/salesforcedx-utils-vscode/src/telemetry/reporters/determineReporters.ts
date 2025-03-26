@@ -9,8 +9,24 @@ import { isLocalLogging } from '../../telemetry/utils/devModeUtils';
 import { AppInsights } from './appInsights';
 import { LogStream } from './logStream';
 import { LogStreamConfig } from './logStreamConfig';
+import { O11yReporter } from './o11yReporter';
 import { TelemetryFile } from './telemetryFile';
 import { TelemetryReporterConfig } from './telemetryReporterConfig';
+
+let o11yReporterInstance: O11yReporter | null = null;
+let o11yInitializationPromise: Promise<void> | null = null;
+
+export const setO11yInitializationPromise = (promise: Promise<void>) => {
+  o11yInitializationPromise = promise;
+};
+
+export const getO11yInitializationPromise = (): Promise<void> | null => {
+  return o11yInitializationPromise;
+};
+
+export const clearO11yInitializationPromise = () => {
+  o11yInitializationPromise = null;
+};
 
 export const determineReporters = (config: TelemetryReporterConfig) => {
   const { extName, version, aiKey, userId, reporterName, isDevMode } = config;
@@ -19,6 +35,7 @@ export const determineReporters = (config: TelemetryReporterConfig) => {
   if (isDevMode) {
     addDevModeReporter(reporters, extName);
   } else {
+    addO11yReporter(reporters, extName);
     addAppInsightsReporter(reporters, reporterName, version, aiKey, userId);
     addLogstreamReporter(reporters, extName);
   }
@@ -42,6 +59,36 @@ const addAppInsightsReporter = (
 ) => {
   console.log('adding AppInsights reporter.');
   reporters.push(new AppInsights(reporterName, version, aiKey, userId, true));
+};
+
+export const initializeO11yReporter = async (extName: string, o11yUploadEndpoint: string) => {
+  if (o11yReporterInstance) return;
+
+  if (getO11yInitializationPromise()) {
+    await getO11yInitializationPromise();
+    return;
+  }
+
+  o11yReporterInstance = new O11yReporter(extName, o11yUploadEndpoint);
+  const initPromise = o11yReporterInstance
+    .initialize(extName)
+    .catch(err => {
+      console.error('O11y initialization failed:', err);
+      o11yReporterInstance = null;
+    })
+    .finally(() => clearO11yInitializationPromise());
+
+  setO11yInitializationPromise(initPromise);
+  await initPromise;
+};
+
+export const addO11yReporter = (reporters: TelemetryReporter[], extName: string): void => {
+  if (o11yReporterInstance) {
+    reporters.push(o11yReporterInstance);
+    console.log('Added O11y reporter to reporters list');
+  } else {
+    console.log('O11yReporter not initialized yet, skipping addition.');
+  }
 };
 
 /*
