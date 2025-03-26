@@ -20,8 +20,6 @@ describe('orgUtil tests', () => {
   let showChannelOutputSpy: jest.SpyInstance;
   let listAllAuthorizationsSpy: jest.SpyInstance;
   let authInfoCreateSpy: jest.SpyInstance;
-  let createStatusBarItemMock: jest.SpyInstance;
-  let createFileSystemWatcherMock: jest.SpyInstance;
   let getUsernameMock: jest.SpyInstance;
   let mockWatcher: any;
 
@@ -37,8 +35,8 @@ describe('orgUtil tests', () => {
       onDidCreate: jest.fn(),
       onDidDelete: jest.fn()
     };
-    createFileSystemWatcherMock = (vscode.workspace.createFileSystemWatcher as any).mockReturnValue(mockWatcher);
-    createStatusBarItemMock = (vscode.window.createStatusBarItem as any).mockReturnValue({
+    (vscode.workspace.createFileSystemWatcher as any).mockReturnValue(mockWatcher);
+    (vscode.window.createStatusBarItem as any).mockReturnValue({
       command: '',
       text: '',
       tooltip: '',

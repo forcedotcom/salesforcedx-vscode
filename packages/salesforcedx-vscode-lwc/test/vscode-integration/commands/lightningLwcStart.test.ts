@@ -6,23 +6,14 @@
  */
 
 import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CliCommandExecutor,
-  Command,
-  CommandExecution
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor, Command, CommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
-import * as vscode from 'vscode';
 import { DEV_SERVER_DEFAULT_BASE_URL } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
-import {
-  errorHints,
-  lightningLwcStart,
-  LightningLwcStartExecutor
-} from '../../../src/commands/lightningLwcStart';
+import { errorHints, lightningLwcStart, LightningLwcStartExecutor } from '../../../src/commands/lightningLwcStart';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import {
@@ -38,7 +29,6 @@ class FakeExecution implements CommandExecution {
   public processErrorSubject: Subject<Error>;
   public stdoutSubject: Subject<string>;
   public stderrSubject: Subject<string>;
-  private readonly childProcessPid: any;
 
   constructor(command: Command) {
     this.command = command;
@@ -46,7 +36,6 @@ class FakeExecution implements CommandExecution {
     this.processErrorSubject = new Subject<Error>();
     this.stdoutSubject = new Subject<string>();
     this.stderrSubject = new Subject<string>();
-    this.childProcessPid = '';
   }
 
   public killExecution(signal?: string): Promise<void> {
@@ -66,9 +55,7 @@ describe('lightningLwcStart', () => {
       it('returns a command with the correct description', () => {
         const executor = new LightningLwcStartExecutor();
         const command = executor.build();
-        expect(command.description).to.equal(
-          nls.localize('lightning_lwc_start_text')
-        );
+        expect(command.description).to.equal(nls.localize('lightning_lwc_start_text'));
       });
 
       it('returns a command with the correct logName', () => {
@@ -84,10 +71,7 @@ describe('lightningLwcStart', () => {
       let notificationServiceStubs: any;
       let devServiceStub: any;
       let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
-      let cliCommandExecutorStub: SinonStub<
-        [(CancellationToken | undefined)?],
-        CliCommandExecution | FakeExecution
-      >;
+      let cliCommandExecutorStub: SinonStub<[(CancellationToken | undefined)?], CliCommandExecution | FakeExecution>;
 
       beforeEach(() => {
         sandbox = sinon.createSandbox();
@@ -97,30 +81,15 @@ describe('lightningLwcStart', () => {
         devServiceStub = sinon.createStubInstance(DevServerService);
         sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
 
-        cliCommandExecutorStub = sandbox.stub(
-          CliCommandExecutor.prototype,
-          'execute'
-        );
+        cliCommandExecutorStub = sandbox.stub(CliCommandExecutor.prototype, 'execute');
 
         notificationServiceStubs = {};
 
-        appendLineStub = sandbox.stub(
-          ChannelService.prototype,
-          'appendLine' as any
-        );
+        appendLineStub = sandbox.stub(ChannelService.prototype, 'appendLine' as any);
 
-        notificationServiceStubs.reportExecutionErrorStub = sandbox.stub(
-          notificationService,
-          'reportExecutionError'
-        );
-        notificationServiceStubs.showErrorMessageStub = sandbox.stub(
-          notificationService,
-          'showErrorMessage'
-        );
-        notificationServiceStubs.showWarningMessageStub = sandbox.stub(
-          notificationService,
-          'showWarningMessage'
-        );
+        notificationServiceStubs.reportExecutionErrorStub = sandbox.stub(notificationService, 'reportExecutionError');
+        notificationServiceStubs.showErrorMessageStub = sandbox.stub(notificationService, 'showErrorMessage');
+        notificationServiceStubs.showWarningMessageStub = sandbox.stub(notificationService, 'showWarningMessage');
         notificationServiceStubs.showSuccessfulExecutionStub = sandbox
           .stub(notificationService, 'showSuccessfulExecution')
           .returns(Promise.resolve());
@@ -159,14 +128,10 @@ describe('lightningLwcStart', () => {
 
         fakeExecution.stdoutSubject.next('foo');
         fakeExecution.stdoutSubject.next('bar');
-        sinon.assert.notCalled(
-          notificationServiceStubs.showSuccessfulExecutionStub
-        );
+        sinon.assert.notCalled(notificationServiceStubs.showSuccessfulExecutionStub);
 
         fakeExecution.stdoutSubject.next('Server up');
-        sinon.assert.calledOnce(
-          notificationServiceStubs.showSuccessfulExecutionStub
-        );
+        sinon.assert.calledOnce(notificationServiceStubs.showSuccessfulExecutionStub);
       });
 
       it('shows the error message if server start up failed', () => {
@@ -177,26 +142,16 @@ describe('lightningLwcStart', () => {
         executor.execute({ type: 'CONTINUE', data: {} });
 
         fakeExecution.stderrSubject.next(errorHints.SERVER_STARTUP_FALIED);
-        sinon.assert.notCalled(
-          notificationServiceStubs.showSuccessfulExecutionStub
-        );
+        sinon.assert.notCalled(notificationServiceStubs.showSuccessfulExecutionStub);
 
         sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
           notificationServiceStubs.showErrorMessageStub,
-          sinon.match(
-            nls.localize(
-              'command_failure',
-              nls.localize(`lightning_lwc_start_text`)
-            )
-          )
+          sinon.match(nls.localize('command_failure', nls.localize(`lightning_lwc_start_text`)))
         );
 
         sinon.assert.calledOnce(appendLineStub);
-        sinon.assert.calledWith(
-          appendLineStub,
-          sinon.match(nls.localize('lightning_lwc_start_failed'))
-        );
+        sinon.assert.calledWith(appendLineStub, sinon.match(nls.localize('lightning_lwc_start_failed')));
       });
 
       it('opens the browser once server is started', () => {
@@ -213,10 +168,7 @@ describe('lightningLwcStart', () => {
           sinon.match('Server up on http://localhost:3333')
         );
         sinon.assert.calledOnce(openBrowserStub);
-        sinon.assert.calledWith(
-          openBrowserStub,
-          sinon.match(DEV_SERVER_DEFAULT_BASE_URL)
-        );
+        sinon.assert.calledWith(openBrowserStub, sinon.match(DEV_SERVER_DEFAULT_BASE_URL));
       });
 
       it('opens the browser at the correct port once server is started', () => {
@@ -232,15 +184,10 @@ describe('lightningLwcStart', () => {
 
         sinon.assert.calledWith(
           devServiceStub.setBaseUrlFromDevServerUpMessage,
-          sinon.match(
-            'Some details here\n Server up on http://localhost:3332 something\n More details here'
-          )
+          sinon.match('Some details here\n Server up on http://localhost:3332 something\n More details here')
         );
         sinon.assert.calledOnce(openBrowserStub);
-        sinon.assert.calledWith(
-          openBrowserStub,
-          sinon.match('http://localhost:3332')
-        );
+        sinon.assert.calledWith(openBrowserStub, sinon.match('http://localhost:3332'));
       });
 
       it('opens the browser with default url when Server up message contains no url', () => {
@@ -250,19 +197,14 @@ describe('lightningLwcStart', () => {
         devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
 
         executor.execute({ type: 'CONTINUE', data: {} });
-        fakeExecution.stdoutSubject.next(
-          'Some details here\n Server up on -no valid url here- \n More details here'
-        );
+        fakeExecution.stdoutSubject.next('Some details here\n Server up on -no valid url here- \n More details here');
 
         sinon.assert.neverCalledWith(
           devServiceStub.setBaseUrlFromDevServerUpMessage,
           sinon.match('http://localhost:3333')
         );
         sinon.assert.calledOnce(openBrowserStub);
-        sinon.assert.calledWith(
-          openBrowserStub,
-          sinon.match('http://localhost:3333')
-        );
+        sinon.assert.calledWith(openBrowserStub, sinon.match('http://localhost:3333'));
       });
 
       it('shows an error when the plugin is not installed', () => {
@@ -283,10 +225,7 @@ describe('lightningLwcStart', () => {
         );
 
         sinon.assert.calledOnce(appendLineStub);
-        sinon.assert.calledWith(
-          appendLineStub,
-          sinon.match(nls.localize('lightning_lwc_start_not_found'))
-        );
+        sinon.assert.calledWith(appendLineStub, sinon.match(nls.localize('lightning_lwc_start_not_found')));
       });
 
       it('shows an error when the address is already in use', () => {
@@ -306,10 +245,7 @@ describe('lightningLwcStart', () => {
         );
 
         sinon.assert.calledOnce(appendLineStub);
-        sinon.assert.calledWith(
-          appendLineStub,
-          sinon.match(nls.localize('lightning_lwc_start_addr_in_use'))
-        );
+        sinon.assert.calledWith(appendLineStub, sinon.match(nls.localize('lightning_lwc_start_addr_in_use')));
       });
 
       it('shows an error when scratch org is inactive', () => {
@@ -330,10 +266,7 @@ describe('lightningLwcStart', () => {
         );
 
         sinon.assert.calledOnce(appendLineStub);
-        sinon.assert.calledWith(
-          appendLineStub,
-          sinon.match(nls.localize('lightning_lwc_inactive_scratch_org'))
-        );
+        sinon.assert.calledWith(appendLineStub, sinon.match(nls.localize('lightning_lwc_inactive_scratch_org')));
       });
 
       it('shows no error when server is stopping', () => {
@@ -367,20 +300,14 @@ describe('lightningLwcStart', () => {
         );
 
         sinon.assert.calledOnce(appendLineStub);
-        sinon.assert.calledWith(
-          appendLineStub,
-          sinon.match(nls.localize('lightning_lwc_start_failed'))
-        );
+        sinon.assert.calledWith(appendLineStub, sinon.match(nls.localize('lightning_lwc_start_failed')));
       });
     });
   });
 
   describe('lightningLwcStart function', () => {
     let sandbox: SinonSandbox;
-    let showWarningStub: SinonStub<
-      [string, ...string[]],
-      Thenable<string | undefined>
-    >;
+    let showWarningStub: SinonStub<[string, ...string[]], Thenable<string | undefined>>;
     let devServiceStub: any;
     let commandletStub: SinonStub<[], Promise<void>>;
 
@@ -411,10 +338,7 @@ describe('lightningLwcStart', () => {
       await lightningLwcStart();
 
       sinon.assert.calledOnce(showWarningStub);
-      sinon.assert.calledWith(
-        showWarningStub,
-        nls.localize('lightning_lwc_start_already_running')
-      );
+      sinon.assert.calledWith(showWarningStub, nls.localize('lightning_lwc_start_already_running'));
     });
   });
 });

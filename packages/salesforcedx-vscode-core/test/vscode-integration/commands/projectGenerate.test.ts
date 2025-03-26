@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -82,9 +79,7 @@ describe('Project Generate', () => {
       const response = await gatherer.gather();
       expect(quickPickSpy.calledThrice).to.be.true;
       if (response.type === 'CONTINUE') {
-        expect(response.data.projectTemplate).to.equal(
-          projectTemplateEnum.analytics
-        );
+        expect(response.data.projectTemplate).to.equal(projectTemplateEnum.analytics);
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
@@ -111,7 +106,7 @@ describe('Project Generate', () => {
 
     it('Should make one call to showInputBox', async () => {
       inputBoxStub.returns(undefined);
-      const response = await gatherer.gather();
+      await gatherer.gather();
       expect(inputBoxStub.calledOnce).to.be.true;
     });
 
@@ -190,12 +185,8 @@ describe('Project Generate', () => {
 
     beforeEach(() => {
       showWarningBoxSpy = sinon.stub(vscode.window, 'showWarningMessage');
-      showWarningBoxSpy
-        .onCall(0)
-        .returns(nls.localize('warning_prompt_overwrite_cancel'));
-      showWarningBoxSpy
-        .onCall(1)
-        .returns(nls.localize('warning_prompt_overwrite'));
+      showWarningBoxSpy.onCall(0).returns(nls.localize('warning_prompt_overwrite_cancel'));
+      showWarningBoxSpy.onCall(1).returns(nls.localize('warning_prompt_overwrite'));
     });
 
     afterEach(() => {
@@ -269,15 +260,9 @@ describe('Project Generate', () => {
       quickPickStub = stub(vscode.window, 'showQuickPick');
       openDialogStub = stub(vscode.window, 'showOpenDialog');
       appendLineStub = stub(channelService, 'appendLine');
-      showSuccessfulExecutionStub = stub(
-        notificationService,
-        'showSuccessfulExecution'
-      );
+      showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
       showSuccessfulExecutionStub.returns(Promise.resolve());
-      showFailedExecutionStub = stub(
-        notificationService,
-        'showFailedExecution'
-      );
+      showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
       executeCommandStub = stub(vscode.commands, 'executeCommand');
       sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
       showWarningStub = stub(vscode.window, 'showWarningMessage');
@@ -323,102 +308,35 @@ describe('Project Generate', () => {
         'tabs',
         'triggers'
       ];
-      const filestocopy = [
-        '.forceignore',
-        '.gitignore',
-        '.prettierignore',
-        '.prettierrc',
-        'package.json'
-      ];
+      const filestocopy = ['.forceignore', '.gitignore', '.prettierignore', '.prettierrc', 'package.json'];
       const vscodearray = ['extensions', 'launch', 'settings'];
-      assert.file([
-        path.join(
-          rootWorkspacePath,
-          'TestProject',
-          'config',
-          'project-scratch-def.json'
-        )
-      ]);
-      assert.file([
-        path.join(
-          rootWorkspacePath,
-          'TestProject',
-          'scripts',
-          'soql',
-          'account.soql'
-        )
-      ]);
-      assert.file([
-        path.join(
-          rootWorkspacePath,
-          'TestProject',
-          'scripts',
-          'apex',
-          'hello.apex'
-        )
-      ]);
+      assert.file([path.join(rootWorkspacePath, 'TestProject', 'config', 'project-scratch-def.json')]);
+      assert.file([path.join(rootWorkspacePath, 'TestProject', 'scripts', 'soql', 'account.soql')]);
+      assert.file([path.join(rootWorkspacePath, 'TestProject', 'scripts', 'apex', 'hello.apex')]);
       assert.file([path.join(rootWorkspacePath, 'TestProject', 'README.md')]);
-      assert.file([
-        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json')
-      ]);
-      assert.fileContent(
-        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'),
-        '"namespace": "",'
-      );
-      assert.fileContent(
-        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'),
-        '"path": "force-app",'
-      );
-      assert.fileContent(
-        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'),
-        'sourceApiVersion'
-      );
+      assert.file([path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json')]);
+      assert.fileContent(path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'), '"namespace": "",');
+      assert.fileContent(path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'), '"path": "force-app",');
+      assert.fileContent(path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'), 'sourceApiVersion');
       assert.fileContent(
         path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'),
         '"sfdcLoginUrl": "https://login.salesforce.com"'
       );
 
       for (const file of vscodearray) {
-        assert.file([
-          path.join(rootWorkspacePath, 'TestProject', '.vscode', `${file}.json`)
-        ]);
+        assert.file([path.join(rootWorkspacePath, 'TestProject', '.vscode', `${file}.json`)]);
       }
       assert.file([
-        path.join(
-          rootWorkspacePath,
-          'TestProject',
-          'force-app',
-          'main',
-          'default',
-          'lwc',
-          '.eslintrc.json'
-        )
+        path.join(rootWorkspacePath, 'TestProject', 'force-app', 'main', 'default', 'lwc', '.eslintrc.json')
       ]);
       assert.file([
-        path.join(
-          rootWorkspacePath,
-          'TestProject',
-          'force-app',
-          'main',
-          'default',
-          'aura',
-          '.eslintrc.json'
-        )
+        path.join(rootWorkspacePath, 'TestProject', 'force-app', 'main', 'default', 'aura', '.eslintrc.json')
       ]);
       for (const file of filestocopy) {
         assert.file([path.join(rootWorkspacePath, 'TestProject', file)]);
       }
       for (const folder of standardfolderarray) {
-        assert.file(
-          path.join(
-            rootWorkspacePath,
-            'TestProject',
-            'force-app',
-            'main',
-            'default',
-            folder
-          )
-        );
+        assert.file(path.join(rootWorkspacePath, 'TestProject', 'force-app', 'main', 'default', folder));
       }
 
       // clean up
@@ -440,9 +358,7 @@ describe('Project Generate', () => {
       // act
       await projectGenerateWithManifest();
 
-      assert.file([
-        path.join(rootWorkspacePath, 'TestProject', 'manifest', 'package.xml')
-      ]);
+      assert.file([path.join(rootWorkspacePath, 'TestProject', 'manifest', 'package.xml')]);
 
       // clean up
       shell.rm('-rf', projectPath);

@@ -14,7 +14,6 @@ describe('scratch org decorator', () => {
   const testUser = 'test@username.com';
   const browserIcon = '$(browser)';
   const openOrgCommand = ORG_OPEN_COMMAND;
-  let createFileSystemWatcherMock: jest.SpyInstance;
   let getTargetOrgOrAliasMock: jest.SpyInstance;
   let createStatusBarItemMock: jest.SpyInstance;
   const mockStatusBarItem: any = {};
@@ -31,7 +30,7 @@ describe('scratch org decorator', () => {
       onDidCreate: jest.fn()
     };
     createStatusBarItemMock = (vscode.window.createStatusBarItem as any).mockReturnValue(mockStatusBarItem);
-    createFileSystemWatcherMock = (vscode.workspace.createFileSystemWatcher as any).mockReturnValue(mockWatcher);
+    (vscode.workspace.createFileSystemWatcher as any).mockReturnValue(mockWatcher);
     getTargetOrgOrAliasMock = jest.spyOn(ConfigUtil, 'getTargetOrgOrAlias');
   });
 

@@ -47,7 +47,7 @@ export class ApexLanguageClient extends LanguageClient {
   public constructor(
     id: string,
     name: string,
-    private serverOptions: ServerOptions,
+    serverOptions: ServerOptions,
     clientOptions: LanguageClientOptions,
     forceDebug?: boolean
   ) {

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 

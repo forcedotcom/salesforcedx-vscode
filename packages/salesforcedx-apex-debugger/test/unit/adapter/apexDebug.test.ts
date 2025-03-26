@@ -49,7 +49,6 @@ import {
   DebuggerMessage,
   SessionService,
   StreamingClientInfo,
-  StreamingClient,
   StreamingEvent,
   StreamingService
 } from '../../../src/core';

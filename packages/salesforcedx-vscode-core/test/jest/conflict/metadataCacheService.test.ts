@@ -39,7 +39,7 @@ describe('MetadataCacheService', () => {
       getSourceComponentsStub.mockResolvedValue(dummyComponentSet);
       const metadataCacheService = new MetadataCacheService('');
 
-      const retrieveOperation = await metadataCacheService.createRetrieveOperation();
+      await metadataCacheService.createRetrieveOperation();
 
       expect(workspaceContextStub).toHaveBeenCalled();
       expect(getSourceComponentsStub).toHaveBeenCalled();
@@ -53,7 +53,7 @@ describe('MetadataCacheService', () => {
         getSourceComponentsStub.mockResolvedValue(dummyEmptyComponentSet);
         const metadataCacheService = new MetadataCacheService('');
 
-        const cacheResult = await metadataCacheService.loadCache('', '');
+        await metadataCacheService.loadCache('', '');
 
         expect(getSourceComponentsStub).toHaveBeenCalled();
         expect(retrieveStub).not.toHaveBeenCalled();

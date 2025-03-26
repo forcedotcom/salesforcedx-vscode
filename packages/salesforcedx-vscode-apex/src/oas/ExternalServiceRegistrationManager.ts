@@ -142,7 +142,7 @@ export class ExternalServiceRegistrationManager {
   public async queryNamedCredentials(): Promise<any> {
     try {
       return await (await workspaceContext.getConnection()).query('SELECT MasterLabel FROM NamedCredential');
-    } catch (parseError) {
+    } catch {
       throw new Error(nls.localize('error_parsing_nc'));
     }
   }
@@ -198,7 +198,7 @@ export class ExternalServiceRegistrationManager {
       className = baseName;
     }
 
-    const { description, version } = this.extractInfoProperties();
+    const { description } = this.extractInfoProperties();
     const operations = this.getOperationsFromYaml();
 
     // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
@@ -320,9 +320,9 @@ export class ExternalServiceRegistrationManager {
    * @returns An array of ExternalServiceOperation objects.
    */
   public getOperationsFromYaml(): ExternalServiceOperation[] | [] {
-    const operations = Object.entries(this.oasSpec.paths).flatMap(([p, pathItem]) => {
+    const operations = Object.entries(this.oasSpec.paths).flatMap(([, pathItem]) => {
       if (!pathItem || typeof pathItem !== 'object') return [];
-      return Object.entries(pathItem).map(([method, operation]) => {
+      return Object.entries(pathItem).map(([, operation]) => {
         if ((operation as OpenAPIV3.OperationObject).operationId) {
           return {
             name: (operation as OpenAPIV3.OperationObject).operationId,
@@ -457,7 +457,7 @@ export class ExternalServiceRegistrationManager {
     let folderUri;
     try {
       esrDefaultDirectoryName = registryAccess.getTypeByName('ExternalServiceRegistration').directoryName;
-    } catch (error) {
+    } catch {
       throw new Error(nls.localize('registry_access_failed'));
     }
 

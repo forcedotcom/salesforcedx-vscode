@@ -14,7 +14,7 @@ import { nls } from '../../../src/messages';
 import { ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider';
 
 describe('Launch Replay Debugger', () => {
-  const $$ = new TestContext();
+  new TestContext();
   const sb = createSandbox();
   let flushFilePathStub: SinonStub;
   beforeEach(async () => {

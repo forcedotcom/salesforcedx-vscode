@@ -34,9 +34,6 @@ import {
   SelectProjectName
 } from '../projectGenerate';
 import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
-// below uses require due to bundling restrictions
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const AdmZip = require('adm-zip');
 
 export type InstalledPackageInfo = {
   id: string;

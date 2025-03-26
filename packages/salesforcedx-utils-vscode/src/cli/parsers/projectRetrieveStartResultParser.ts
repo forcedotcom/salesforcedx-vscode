@@ -40,7 +40,7 @@ export class ProjectRetrieveStartResultParser {
   constructor(stdout: string) {
     try {
       this.response = extractJson(stdout);
-    } catch (e) {
+    } catch {
       const err = new Error('Error parsing pull result');
       err.name = 'ProjectRetrieveStartParserFail';
       throw err;

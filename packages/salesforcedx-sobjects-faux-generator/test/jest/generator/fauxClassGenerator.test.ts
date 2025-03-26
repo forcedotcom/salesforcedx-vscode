@@ -27,7 +27,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
 
   it('Should not be able to create an instance for all types.', () => {
     expect(() => {
-      const inst = new FauxClassGenerator(SObjectCategory.ALL, fakePath);
+      new FauxClassGenerator(SObjectCategory.ALL, fakePath);
     }).toThrowError(`SObject category cannot be used to generate metadata ${SObjectCategory.ALL}`);
   });
 

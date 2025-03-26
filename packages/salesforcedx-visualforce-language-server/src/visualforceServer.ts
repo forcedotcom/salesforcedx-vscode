@@ -21,12 +21,7 @@ import {
   TextDocumentPositionParams,
   TextDocuments
 } from 'vscode-languageserver';
-import {
-  ColorInformation,
-  ColorPresentationRequest,
-  DocumentColorRequest,
-  ServerCapabilities as CPServerCapabilities
-} from 'vscode-languageserver-protocol';
+import { ColorInformation, ColorPresentationRequest, DocumentColorRequest } from 'vscode-languageserver-protocol';
 import { ConfigurationParams, ConfigurationRequest } from 'vscode-languageserver-protocol';
 import { Diagnostic, DocumentLink, SymbolInformation, TextDocument } from 'vscode-languageserver-types';
 import * as nls from 'vscode-nls';
@@ -91,8 +86,8 @@ const getDocumentSettings = (textDocument: TextDocument, needsDocumentSettings: 
   return Promise.resolve(void 0);
 };
 
-// After the server has started the client sends an initilize request. The server receives
-// in the passed params the rootPath of the workspace plus the client capabilites
+// After the server has started the client sends an initialize request. The server receives
+// in the passed params the rootPath of the workspace plus the client capabilities
 connection.onInitialize((params: InitializeParams): InitializeResult => {
   const initializationOptions = params.initializationOptions;
 

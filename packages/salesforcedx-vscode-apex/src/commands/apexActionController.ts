@@ -173,16 +173,6 @@ export class ApexActionController {
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
-  /**
-   * Checks if a VSCode command is available.
-   * @param commandId Command ID of the VSCode command to check
-   * @returns boolean - true if the command is available, false otherwise
-   */
-  private isCommandAvailable = async (commandId: string): Promise<boolean> => {
-    const commands = await vscode.commands.getCommands(true);
-    return commands.includes(commandId);
-  };
-
   private getConfigBidRule(): BidRule {
     return vscode.workspace
       .getConfiguration()
