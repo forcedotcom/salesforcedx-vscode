@@ -48,8 +48,6 @@ describe('Deploy Executor', () => {
   const mockWorkspaceContext = { getConnection: jest.fn() } as any;
   const ensureLocalTrackingSpy = jest.fn();
 
-  let workspaceContextGetInstanceSpy: jest.SpyInstance;
-  let getUsernameStub: jest.SpyInstance;
   let getSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
   let getEnableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
@@ -72,8 +70,8 @@ describe('Deploy Executor', () => {
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    workspaceContextGetInstanceSpy = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
-    getUsernameStub = jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue(dummyUsername);
+    jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
+    jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue(dummyUsername);
     getSourceTrackingSpy = jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue({
       ensureLocalTracking: ensureLocalTrackingSpy
     } as any);

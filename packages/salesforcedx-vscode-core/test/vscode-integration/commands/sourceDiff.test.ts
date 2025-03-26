@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { MetadataType, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import * as path from 'path';
 import { assert, createSandbox, match, SinonSpy, SinonStub, stub } from 'sinon';
@@ -36,12 +36,8 @@ describe('Diff', () => {
     const mockUsername = 'admin@ut-sandbox.org';
     const mockFilePath = path.join('/projects/trailheadapps/lwc-recipes/force-app/main/default/classes/mockFile.cls');
     let vscodeExecuteCommandStub: SinonStub;
-    let workspaceContextAliasStub: SinonStub;
-    let workspaceContextUsernameStub: SinonStub;
     let workspaceCheckerStub: SinonStub;
     let filePathGathererStub: SinonStub;
-    let componentStub: sinon.SinonStub;
-    let operationStub: sinon.SinonStub;
     let processStub: sinon.SinonStub;
     let notificationStub: SinonStub;
     let channelAppendLineStub: SinonStub;
@@ -50,18 +46,18 @@ describe('Diff', () => {
     let telemetryServiceSendExceptionStub: SinonStub;
 
     beforeEach(() => {
-      workspaceContextUsernameStub = sandbox.stub(WorkspaceContext.prototype, 'username').get(() => {
+      sandbox.stub(WorkspaceContext.prototype, 'username').get(() => {
         return mockUsername;
       });
-      workspaceContextAliasStub = sandbox.stub(WorkspaceContext.prototype, 'alias').get(() => {
+      sandbox.stub(WorkspaceContext.prototype, 'alias').get(() => {
         return mockAlias;
       });
       workspaceCheckerStub = sandbox.stub(SfWorkspaceChecker.prototype, 'check');
       workspaceCheckerStub.returns(true);
       filePathGathererStub = sandbox.stub(FilePathGatherer.prototype, 'gather');
       filePathGathererStub.returns({ type: 'CONTINUE', data: mockFilePath });
-      operationStub = sandbox.stub(MetadataCacheService.prototype, 'createRetrieveOperation');
-      componentStub = sandbox.stub(MetadataCacheService.prototype, 'getSourceComponents');
+      sandbox.stub(MetadataCacheService.prototype, 'createRetrieveOperation');
+      sandbox.stub(MetadataCacheService.prototype, 'getSourceComponents');
       processStub = sandbox.stub(MetadataCacheService.prototype, 'processResults');
       mockComponentWalkContentStub = sandbox.stub(SourceComponent.prototype, 'walkContent');
       notificationStub = sandbox.stub(notificationService, 'showErrorMessage');

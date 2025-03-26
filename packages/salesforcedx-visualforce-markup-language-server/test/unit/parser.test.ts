@@ -5,7 +5,7 @@
 'use strict';
 
 import * as assert from 'assert';
-import { HTMLDocument, Node, parse } from '../../src/parser/htmlParser';
+import { Node, parse } from '../../src/parser/htmlParser';
 
 describe('HTML Parser', () => {
   const toJSON = (node: Node) => ({

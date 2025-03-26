@@ -24,7 +24,7 @@ export const getLineRange = (document: TextDocument, lineNumber: number): Range 
   try {
     adjustedLineNumber = lineNumber - 1;
     firstLine = document.lineAt(adjustedLineNumber);
-  } catch (e) {
+  } catch {
     throw new Error(nls.localize('colorizer_out_of_sync_code_coverage_data'));
   }
 

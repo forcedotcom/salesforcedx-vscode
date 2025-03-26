@@ -28,7 +28,7 @@ export const excludeNon2xxResponses = (oas: OpenAPIV3.Document) => {
     path: '$.paths.*.*.responses',
     json: oas,
     callback: operation => {
-      for (const [statusCode, response] of Object.entries(operation)) {
+      for (const [statusCode] of Object.entries(operation)) {
         if (!statusCode.startsWith('2')) {
           delete operation[statusCode];
         }
@@ -49,7 +49,7 @@ export const excludeUnrelatedMethods = (
     path: '$.paths.*', // Access each method under each path
     json: oas,
     callback: (operation, type, fullPath) => {
-      for (const [method, body] of Object.entries(operation)) {
+      for (const [method] of Object.entries(operation)) {
         if (method !== httpMethod) {
           delete operation[method];
         }

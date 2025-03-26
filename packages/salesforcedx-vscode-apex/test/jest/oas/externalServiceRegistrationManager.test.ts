@@ -21,7 +21,6 @@ describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;
   let processedOasResult: ProcessorInputOutput;
-  let workspacePathStub: jest.SpyInstance;
   let fullPath: [string, string, boolean];
   let workspaceContextGetInstanceSpy: any;
   let registryAccess: RegistryAccess;
@@ -66,7 +65,7 @@ describe('ExternalServiceRegistrationManager', () => {
       .spyOn(WorkspaceContextUtil, 'getInstance')
       .mockReturnValue(mockWorkspaceContext as any);
     fullPath = ['/path/to/original', '/path/to/new', false];
-    workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
+    jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
     oasSpec = {
       openapi: '3.0.0',
       info: {
