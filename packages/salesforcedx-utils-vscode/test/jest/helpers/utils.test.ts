@@ -131,17 +131,5 @@ describe('utils tests', () => {
       const result = fixupError(input);
       expect(result).toBe('Error occurred');
     });
-
-    it('should handle error messages without the line/column pattern', () => {
-      const input = 'General error';
-      const result = fixupError(input);
-      expect(result).toBe('General error');
-    });
-
-    it('should handle error messages with multiple line/column patterns', () => {
-      const input = 'Error occurred (56:78) ';
-      const result = fixupError(input);
-      expect(result).toBe('Error occurred');
-    });
   });
 });

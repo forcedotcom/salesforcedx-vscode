@@ -42,12 +42,12 @@ export const handlePushDiagnosticErrors = (
     const fileUri = getFileUri(workspacePath, filePath, defaultErrorPath);
     const range = getRange(lineNumber || '1', columnNumber || '1');
 
-    const diagnostic = {
+    const diagnostic: vscode.Diagnostic = {
       message: fixupError(error),
       severity: vscode.DiagnosticSeverity.Error,
       source: type,
       range
-    } as vscode.Diagnostic;
+    };
 
     if (!diagnosticMap.has(fileUri)) {
       diagnosticMap.set(fileUri, []);
