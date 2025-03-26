@@ -18,11 +18,8 @@ const QUERY_RESULTS_DIR_PATH = path.join('scripts', 'soql', 'query-results');
 
 describe('Query Data File Service', () => {
   let mockTextDocument: vscode.TextDocument;
-  let docProviderDisposable: vscode.Disposable;
-  const documentName = 'example.soql';
   const workspacePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const testResultsDirPath = path.join(workspacePath, QUERY_RESULTS_DIR_PATH);
-  const mockUriPath = path.join(testResultsDirPath, documentName);
   let sandbox: sinon.SinonSandbox;
 
   function createResultsDirectory() {
@@ -33,10 +30,7 @@ describe('Query Data File Service', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
-      'sfdc-test',
-      new MockTextDocumentProvider()
-    );
+    vscode.workspace.registerTextDocumentContentProvider('sfdc-test', new MockTextDocumentProvider());
     mockTextDocument = await vscode.workspace.openTextDocument(
       vscode.Uri.parse('sfdc-test:test/examples/soql/mocksoql.soql')
     );

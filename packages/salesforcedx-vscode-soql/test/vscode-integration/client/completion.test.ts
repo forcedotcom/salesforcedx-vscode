@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { Connection } from '@salesforce/core-bundle';
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import * as sinon from 'sinon';
@@ -19,7 +18,6 @@ let doc: vscode.TextDocument;
 let soqlFileUri: Uri;
 let workspacePath: string;
 let sandbox: sinon.SinonSandbox;
-let mockConnection: Connection;
 
 const aggregateFunctionItems = [
   { label: 'AVG(...)', kind: CompletionItemKind.Function },
@@ -85,7 +83,7 @@ describe('Should do completion', async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
     soqlFileUri = Uri.file(path.join(workspacePath, `test_${generateRandomInt()}.soql`));
     sandbox = sinon.createSandbox();
-    mockConnection = stubMockConnection(sandbox);
+    stubMockConnection(sandbox);
   });
 
   afterEach(async () => {
@@ -357,7 +355,7 @@ describe('Should do completion', async () => {
   ]);
 
   testCompletion('SELECT Id FROM Account ORDER BY |', [
-    // NOTE: Description is NOT sorteable, so we DON'T expect it:
+    // NOTE: Description is NOT sortable, so we DON'T expect it:
     { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
     {
       label: 'CreatedDate',
@@ -423,7 +421,7 @@ describe('Should not do completion on metadata errors', async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
     soqlFileUri = Uri.file(path.join(workspacePath, `test_${generateRandomInt()}.soql`));
     sandbox = sinon.createSandbox();
-    mockConnection = stubFailingMockConnection(sandbox);
+    stubFailingMockConnection(sandbox);
   });
 
   afterEach(async () => {

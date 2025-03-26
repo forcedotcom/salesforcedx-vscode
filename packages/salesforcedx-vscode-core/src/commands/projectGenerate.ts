@@ -88,12 +88,6 @@ type ProjectTemplate = {
 };
 
 export class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate> {
-  private readonly prefillValueProvider?: () => string;
-
-  constructor(prefillValueProvider?: () => string) {
-    this.prefillValueProvider = prefillValueProvider;
-  }
-
   public async gather(): Promise<CancelResponse | ContinueResponse<ProjectTemplate>> {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),

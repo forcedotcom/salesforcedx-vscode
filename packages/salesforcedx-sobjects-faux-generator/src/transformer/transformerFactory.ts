@@ -77,7 +77,7 @@ export class SObjectTransformerFactory {
     try {
       const sfProject = await SfProject.resolve();
       return sfProject.getSfProjectJson().getContents().sourceApiVersion;
-    } catch (e) {
+    } catch {
       // If we can't resolve a project, then undefined
       return undefined;
     }

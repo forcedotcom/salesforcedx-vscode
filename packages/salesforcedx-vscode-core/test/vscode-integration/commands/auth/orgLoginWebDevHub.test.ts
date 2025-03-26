@@ -5,15 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigFile } from '@salesforce/core-bundle';
-import {
-  instantiateContext,
-  restoreContext,
-  stubContext
-} from '@salesforce/core-bundle';
-import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
+import { instantiateContext } from '@salesforce/core-bundle';
 import { expect } from 'chai';
-import { SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -26,7 +19,6 @@ import {
   OrgLoginWebDevHubExecutor
 } from '../../../../src/commands';
 import { nls } from '../../../../src/messages';
-import { OrgAuthInfo } from '../../../../src/util';
 
 const TEST_ALIAS = 'testAlias';
 
@@ -43,17 +35,13 @@ describe('Org Login Web for Dev Hub', () => {
     const orgLoginWebCommand = orgLoginWeb.build({
       alias: TEST_ALIAS
     });
-    expect(orgLoginWebCommand.toCommand()).to.equal(
-      `sf org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub`
-    );
-    expect(orgLoginWebCommand.description).to.equal(
-      nls.localize('org_login_web_authorize_dev_hub_text')
-    );
+    expect(orgLoginWebCommand.toCommand()).to.equal(`sf org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub`);
+    expect(orgLoginWebCommand.description).to.equal(nls.localize('org_login_web_authorize_dev_hub_text'));
   });
 });
 
 // Setup the test environment.
-const $$ = instantiateContext();
+instantiateContext();
 
 describe('Org Login Web For Dev Hub in Demo  Mode', () => {
   it('Should build the org login web login command', async () => {
@@ -64,9 +52,7 @@ describe('Org Login Web For Dev Hub in Demo  Mode', () => {
     expect(orgLoginWebCommand.toCommand()).to.equal(
       `sf org:login:web --alias ${TEST_ALIAS} --set-default-dev-hub --no-prompt --json`
     );
-    expect(orgLoginWebCommand.description).to.equal(
-      nls.localize('org_login_web_authorize_dev_hub_text')
-    );
+    expect(orgLoginWebCommand.description).to.equal(nls.localize('org_login_web_authorize_dev_hub_text'));
   });
 });
 
@@ -137,15 +123,12 @@ describe('Org Login Web Dev Hub is based on environment variables', () => {
 
     it('Should use OrgLoginWebDevHubDemoModeExecutor if demo mode is true', () => {
       process.env.SFDX_ENV = 'DEMO';
-      expect(
-        createAuthDevHubExecutor() instanceof OrgLoginWebDevHubDemoModeExecutor
-      ).to.be.true;
+      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubDemoModeExecutor).to.be.true;
     });
 
     it('Should use OrgLoginWebDevHubExecutor if demo mode is false', () => {
       process.env.SFDX_ENV = '';
-      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to
-        .be.true;
+      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to.be.true;
     });
   });
 
@@ -160,44 +143,26 @@ describe('Org Login Web Dev Hub is based on environment variables', () => {
 
     it('Should use OrgLoginWebDevHubExecutor when container mode is not defined', () => {
       const orgLoginWeb = new OrgLoginWebDevHubExecutor();
-      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to
-        .be.true;
-      const orgLoginWebCommand = orgLoginWeb.build(
-        {} as unknown as AuthDevHubParams
-      );
-      expect(orgLoginWebCommand.toCommand()).to.equal(
-        'sf org:login:web --alias  --set-default-dev-hub'
-      );
+      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to.be.true;
+      const orgLoginWebCommand = orgLoginWeb.build({} as unknown as AuthDevHubParams);
+      expect(orgLoginWebCommand.toCommand()).to.equal('sf org:login:web --alias  --set-default-dev-hub');
     });
 
     it('Should use OrgLoginWebDevHubExecutor when container mode is empty', () => {
       process.env.SF_CONTAINER_MODE = '';
       const orgLoginWeb = new OrgLoginWebDevHubExecutor();
-      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to
-        .be.true;
-      const orgLoginWebCommand = orgLoginWeb.build(
-        {} as unknown as AuthDevHubParams
-      );
-      expect(orgLoginWebCommand.toCommand()).to.equal(
-        'sf org:login:web --alias  --set-default-dev-hub'
-      );
+      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubExecutor).to.be.true;
+      const orgLoginWebCommand = orgLoginWeb.build({} as unknown as AuthDevHubParams);
+      expect(orgLoginWebCommand.toCommand()).to.equal('sf org:login:web --alias  --set-default-dev-hub');
     });
 
     it('Should use OrgLoginWebDevHubContainerExecutor when container mode is defined', () => {
       process.env.SF_CONTAINER_MODE = 'true';
       const authDevhubLogin = new OrgLoginWebDevHubContainerExecutor();
-      expect(
-        createAuthDevHubExecutor() instanceof OrgLoginWebDevHubContainerExecutor
-      ).to.be.true;
-      const authDevhubLoginCommand = authDevhubLogin.build(
-        {} as unknown as AuthDevHubParams
-      );
-      expect(authDevhubLoginCommand.toCommand()).to.equal(
-        'sf org:login:device --alias  --set-default-dev-hub --json'
-      );
-      expect(authDevhubLoginCommand.description).to.equal(
-        nls.localize('org_login_web_authorize_dev_hub_text')
-      );
+      expect(createAuthDevHubExecutor() instanceof OrgLoginWebDevHubContainerExecutor).to.be.true;
+      const authDevhubLoginCommand = authDevhubLogin.build({} as unknown as AuthDevHubParams);
+      expect(authDevhubLoginCommand.toCommand()).to.equal('sf org:login:device --alias  --set-default-dev-hub --json');
+      expect(authDevhubLoginCommand.description).to.equal(nls.localize('org_login_web_authorize_dev_hub_text'));
     });
   });
 });

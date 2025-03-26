@@ -39,7 +39,7 @@ const isProcessAlive = (pid: string): boolean => {
   try {
     process.kill(parseInt(pid, 10), 0);
     return true; // Process is active
-  } catch (error) {
+  } catch {
     return false; // Process is not active
   }
 };
