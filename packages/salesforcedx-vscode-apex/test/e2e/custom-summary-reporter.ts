@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// import { Runner, MochaOptions, Test } from 'mocha';
+// const { EVENT_RUN_END, EVENT_TEST_PASS, EVENT_TEST_FAIL, EVENT_TEST_PENDING } = Runner.constants;
 // class CustomSummaryReporter {
 //   private passes: { title: string; duration: number }[] = [];
 //   private failures: { title: string; error: string; duration: number }[] = [];

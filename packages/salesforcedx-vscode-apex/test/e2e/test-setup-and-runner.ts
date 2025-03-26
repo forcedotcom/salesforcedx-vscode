@@ -1,13 +1,19 @@
-import { ExTester } from 'vscode-extension-tester';
-import { EnvironmentSettings } from './environmentSettings';
-import path from 'path';
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { expect } from 'chai';
 import fs from 'fs/promises';
-import * as utilities from './utilities/index';
+import path from 'path';
+import { ExTester } from 'vscode-extension-tester';
+import { ReleaseQuality } from 'vscode-extension-tester/out/util/codeUtil';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import { EnvironmentSettings } from './environmentSettings';
+import * as utilities from './utilities/index';
 import { extensions } from './utilities/index';
-import { ReleaseQuality } from 'vscode-extension-tester/out/util/codeUtil';
-import { expect } from 'chai';
 
 class TestSetupAndRunner extends ExTester {
   protected static _exTestor: TestSetupAndRunner;
