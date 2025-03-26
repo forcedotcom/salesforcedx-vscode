@@ -13,7 +13,6 @@ import { BrowserNode, NodeType, orgBrowser } from '../../../../src/orgBrowser';
 import { SalesforcePackageDirectories } from '../../../../src/salesforceProject';
 
 describe('Retrieve Metadata Describers', () => {
-  let packageStub: SinonStub;
   let refreshStub: SinonStub;
   let env: SinonSandbox;
 
@@ -29,9 +28,7 @@ describe('Retrieve Metadata Describers', () => {
 
   beforeEach(() => {
     env = createSandbox();
-    packageStub = env
-      .stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths')
-      .returns(['p1', 'p2']);
+    env.stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths').returns(['p1', 'p2']);
     refreshStub = env.stub(orgBrowser, 'refreshAndExpand').callsFake(() => '');
   });
 
@@ -45,39 +42,29 @@ describe('Retrieve Metadata Describers', () => {
     });
 
     it('Should correctly build metadata argument for subset of child nodes', () => {
-      expect(describer.buildMetadataArg(generateComponents(2))).to.equal(
-        'TestType:Test1,TestType:Test2'
-      );
+      expect(describer.buildMetadataArg(generateComponents(2))).to.equal('TestType:Test1,TestType:Test2');
     });
 
     it('Should gather LocalComponents for each child node', async () => {
-      expect(await describer.gatherOutputLocations()).to.eql(
-        generateComponents(3)
-      );
+      expect(await describer.gatherOutputLocations()).to.eql(generateComponents(3));
     });
 
     it('Should refresh the available components before gathering', async () => {
       refreshStub.callsFake(() => {
         node.setComponents(['Test1'], NodeType.MetadataComponent);
       });
-      expect(await describer.gatherOutputLocations()).to.eql(
-        generateComponents(1)
-      );
+      expect(await describer.gatherOutputLocations()).to.eql(generateComponents(1));
     });
   });
 
   describe('ComponentNodeDescriber', () => {
-    const describer = RetrieveDescriberFactory.createComponentNodeDescriber(
-      node.children![0]
-    );
+    const describer = RetrieveDescriberFactory.createComponentNodeDescriber(node.children![0]);
     it('Should correctly build metadata argument', () => {
       expect(describer.buildMetadataArg()).to.equal('TestType:Test1');
     });
 
     it('Should correctly gather a LocalComponent', async () => {
-      expect(await describer.gatherOutputLocations()).to.eql(
-        generateComponents(1)
-      );
+      expect(await describer.gatherOutputLocations()).to.eql(generateComponents(1));
     });
   });
 

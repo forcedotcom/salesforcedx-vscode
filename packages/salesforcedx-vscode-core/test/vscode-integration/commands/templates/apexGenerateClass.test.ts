@@ -27,23 +27,21 @@ describe('Apex Generate Class', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
-  let showSuccessfulExecutionStub: SinonStub;
   let showFailedExecutionStub: SinonStub;
   let openTextDocumentStub: SinonStub;
   let sendCommandEventStub: SinonStub;
   let sendExceptionStub: SinonStub;
-  let getTemplatesDirectoryStub: SinonStub;
 
   beforeEach(() => {
     showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
     quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
     appendLineStub = sandbox.stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = sandbox.stub(notificationService, 'showSuccessfulExecution').resolves();
+    sandbox.stub(notificationService, 'showSuccessfulExecution').resolves();
     showFailedExecutionStub = sandbox.stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
     sendCommandEventStub = sandbox.stub(telemetryService, 'sendCommandEvent');
     sendExceptionStub = sandbox.stub(telemetryService, 'sendException');
-    getTemplatesDirectoryStub = sandbox.stub(ConfigUtil, 'getTemplatesDirectory').returns(undefined);
+    sandbox.stub(ConfigUtil, 'getTemplatesDirectory').returns(undefined);
   });
 
   afterEach(() => {

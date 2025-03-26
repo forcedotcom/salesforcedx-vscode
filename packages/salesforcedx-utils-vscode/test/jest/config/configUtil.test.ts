@@ -13,7 +13,6 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
   const fakeWorkspace = 'test/workspace/';
 
   let workspacePathStub: jest.SpyInstance;
-  let originalDirectoryStub: jest.SpyInstance;
   let configStub: jest.SpyInstance;
   let orgStub: jest.SpyInstance;
   let chdirStub: jest.SpyInstance;
@@ -27,7 +26,7 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
 
   beforeEach(() => {
     workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
-    originalDirectoryStub = jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
+    jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
     setMock = jest.fn();
     writeMock = jest.fn();
     configStub = jest.spyOn(Config, 'create');
@@ -81,7 +80,6 @@ describe('testing unsetTargetOrg', () => {
   const fakeWorkspace = 'test/workspace/';
 
   let workspacePathStub: jest.SpyInstance;
-  let originalDirectoryStub: jest.SpyInstance;
   let configStub: jest.SpyInstance;
   let chdirStub: jest.SpyInstance;
   let unsetMock: jest.SpyInstance;
@@ -94,7 +92,7 @@ describe('testing unsetTargetOrg', () => {
 
   beforeEach(() => {
     workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
-    originalDirectoryStub = jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
+    jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
     unsetMock = jest.fn();
     writeMock = jest.fn();
     configStub = jest.spyOn(Config, 'create');
