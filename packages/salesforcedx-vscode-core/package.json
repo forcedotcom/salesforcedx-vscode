@@ -53,7 +53,7 @@
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",
-    "@types/yeoman-assert": "^3.1.1",
+    "@types/yeoman-assert": "^3.1.4",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
