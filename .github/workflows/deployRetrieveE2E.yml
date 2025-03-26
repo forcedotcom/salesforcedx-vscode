@@ -92,7 +92,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'deployAndRetrieve.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -103,7 +103,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'manifestBuilder.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -114,7 +114,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'orgBrowser.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -125,7 +125,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'pushAndPull.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -136,7 +136,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'metadataDeployRetrieve.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}

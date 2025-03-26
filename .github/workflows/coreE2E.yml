@@ -112,7 +112,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'anInitialSuite.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -123,7 +123,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'authentication.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -134,7 +134,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'createProject.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -145,7 +145,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'miscellaneous.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -156,7 +156,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'sObjectsDefinitions.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -167,7 +167,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'templates.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -178,22 +178,15 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'sfdxProjectJson.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [
-        anInitialSuite,
-        authentication,
-        createProject,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
-        sfdxProjectJson
-      ]
+    needs:
+      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
@@ -207,15 +200,8 @@ jobs:
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [
-        anInitialSuite,
-        authentication,
-        createProject,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
-        sfdxProjectJson
-      ]
+    needs:
+      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
@@ -229,15 +215,8 @@ jobs:
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [
-        anInitialSuite,
-        authentication,
-        createProject,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
-        sfdxProjectJson
-      ]
+    needs:
+      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:

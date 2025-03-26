@@ -72,7 +72,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'auraLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -83,7 +83,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'lwcLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -94,7 +94,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'visualforceLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}

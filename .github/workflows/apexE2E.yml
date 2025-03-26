@@ -102,7 +102,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'apexActions.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -113,7 +113,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'apexLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -124,7 +124,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'apexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -136,7 +136,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'debugApexTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -148,7 +148,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'runApexTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -159,7 +159,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      automationRepo: 'salesforcedx-vscode'
       testToRun: 'trailApexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
