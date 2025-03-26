@@ -129,8 +129,8 @@ export const restartLanguageServerAndClient = async (extensionContext: vscode.Ex
   //get the client and status bar item
   const alc = LanguageClientUtils.getInstance().getClientInstance();
   const statusBarInstance = LanguageClientUtils.getInstance().getStatusBarInstance() ?? new ApexLSPStatusBarItem();
-    LanguageClientUtils.getInstance().setStatusBarInstance(statusBarInstance);
-  }
+  LanguageClientUtils.getInstance().setStatusBarInstance(statusBarInstance);
+
   if (alc !== undefined) {
     statusBarInstance.restarting(); // update the status to user that we're restarting
     // Stop the client and server with the safe stop() routine from the client.
