@@ -24,7 +24,7 @@ export class LanguageClientUtils {
     this.status = new LanguageClientStatus(ClientStatus.Unavailable, '');
   }
 
-  public static getInstance() {
+  public static getInstance(): LanguageClientUtils {
     if (!LanguageClientUtils.instance) {
       LanguageClientUtils.instance = new LanguageClientUtils();
     }
