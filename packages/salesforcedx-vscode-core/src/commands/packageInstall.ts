@@ -18,19 +18,7 @@ import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
 import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
 
-type packageInstallOptions = {
-  packageId: string;
-  installationKey: string;
-};
-
 export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
-  private readonly options: packageInstallOptions;
-
-  public constructor(options = { packageId: '', installationKey: '' }) {
-    super();
-    this.options = options;
-  }
-
   public build(data: PackageIdAndInstallationKey): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize('package_install_text'))

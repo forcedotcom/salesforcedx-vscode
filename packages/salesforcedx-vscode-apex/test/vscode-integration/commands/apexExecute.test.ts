@@ -32,7 +32,6 @@ describe('Apex Execute', () => {
   let sb: SinonSandbox;
   let traceFlagsStub: SinonStub;
   let settingStub: SinonStub;
-  let writeFileStub: SinonStub;
   let executeCommandStub: SinonStub;
 
   beforeEach(async () => {
@@ -60,7 +59,7 @@ describe('Apex Execute', () => {
       }
     }));
 
-    writeFileStub = sb.stub(fs, 'writeFileSync').returns(true);
+    sb.stub(fs, 'writeFileSync').returns(true);
 
     executeCommandStub = sb
       .stub(vscode.commands, 'executeCommand')
@@ -72,7 +71,7 @@ describe('Apex Execute', () => {
     sb.restore();
   });
 
-  describe('AnonApexGatherer', async () => {
+  describe('AnonApexGatherer', () => {
     it('should return the selected file to execute anonymous apex', async () => {
       const fileName = path.join(projectPaths.stateFolder(), 'tools', 'tempApex.input');
       const mockActiveTextEditor = {
@@ -150,14 +149,13 @@ describe('Apex Execute', () => {
     let outputStub: SinonStub;
     let showChannelOutputStub: SinonSpy;
     let setDiagnosticStub: SinonStub;
-    let debugLogsfolder: SinonStub;
     const file = '/test';
 
     beforeEach(() => {
       outputStub = sb.stub(channelService, 'appendLine');
       showChannelOutputStub = sb.spy(ChannelService.prototype, 'showChannelOutput');
       setDiagnosticStub = sb.stub(AnonApexLibraryExecuteExecutor.diagnostics, 'set');
-      debugLogsfolder = sb.stub(projectPaths, 'debugLogsFolder').returns('.sfdx/tools/debug/logs');
+      sb.stub(projectPaths, 'debugLogsFolder').returns('.sfdx/tools/debug/logs');
     });
 
     it('should format result correctly for a successful execution', async () => {
@@ -432,15 +430,10 @@ describe('Apex Execute', () => {
   });
 
   describe('Apex Replay Debugger', () => {
-    let outputStub: SinonStub;
-    let showChannelOutputStub: SinonSpy;
-    let setDiagnosticStub: SinonStub;
-    const file = '/test';
-
     beforeEach(() => {
-      outputStub = sb.stub(channelService, 'appendLine');
-      showChannelOutputStub = sb.spy(ChannelService.prototype, 'showChannelOutput');
-      setDiagnosticStub = sb.stub(AnonApexLibraryExecuteExecutor.diagnostics, 'set');
+      sb.stub(channelService, 'appendLine');
+      sb.spy(ChannelService.prototype, 'showChannelOutput');
+      sb.stub(AnonApexLibraryExecuteExecutor.diagnostics, 'set');
     });
 
     it('should set up trace flags and run the Apex replay debugger when AnonApexLibraryExecuteExecutor(true) runs', async () => {
@@ -459,9 +452,6 @@ describe('Apex Execute', () => {
           }
         ]
       };
-      const expectedOutput = `${nls.localize(
-        'apex_execute_compile_success'
-      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${execAnonResponse.logs}`;
       sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(execAnonResponse);
 
       await executor.run({ type: 'CONTINUE', data: {} });
@@ -486,9 +476,6 @@ describe('Apex Execute', () => {
           }
         ]
       };
-      const expectedOutput = `${nls.localize(
-        'apex_execute_compile_success'
-      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${execAnonResponse.logs}`;
       sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(execAnonResponse);
 
       await executor.run({ type: 'CONTINUE', data: {} });

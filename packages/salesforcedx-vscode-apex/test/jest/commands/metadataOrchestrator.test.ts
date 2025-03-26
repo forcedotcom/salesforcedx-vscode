@@ -37,15 +37,11 @@ const mockUriParse = (uriString: string): vscode.Uri => {
 
 describe('MetadataOrchestrator', () => {
   let orchestrator: MetadataOrchestrator;
-  let showErrorMessageMock: jest.SpyInstance;
-  let addSourceUnderStudySpy: jest.SpyInstance;
 
   beforeEach(() => {
     orchestrator = new MetadataOrchestrator();
-    showErrorMessageMock = jest.spyOn(notificationService, 'showErrorMessage').mockImplementation(jest.fn());
-    addSourceUnderStudySpy = jest
-      .spyOn(GenerationInteractionLogger.prototype, 'addSourceUnderStudy')
-      .mockImplementation(jest.fn());
+    jest.spyOn(notificationService, 'showErrorMessage').mockImplementation(jest.fn());
+    jest.spyOn(GenerationInteractionLogger.prototype, 'addSourceUnderStudy').mockImplementation(jest.fn());
   });
 
   afterEach(() => {
@@ -108,9 +104,6 @@ describe('MetadataOrchestrator', () => {
   });
 
   describe('gatherContext', () => {
-    let getClientInstanceSpy;
-    let mockTelemetryService: any;
-
     beforeEach(() => {
       (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
     });
@@ -124,7 +117,7 @@ describe('MetadataOrchestrator', () => {
         gatherOpenAPIContext: jest.fn().mockResolvedValue({ some: 'response' })
       } as unknown as ApexLanguageClient;
 
-      getClientInstanceSpy = jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(mockLanguageClient);
+      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(mockLanguageClient);
 
       const mockUri = mockUriParse('/hello/world.cls');
       const response = await orchestrator.gatherContext(mockUri);
@@ -140,7 +133,7 @@ describe('MetadataOrchestrator', () => {
       expect(response).toBeUndefined();
     });
 
-    it('should handle errors and throw a localized error', async () => {
+    it('should handle errors and throw a localized error', () => {
       const mockLanguageClient = {
         sendRequest: jest.fn().mockRejectedValue(new Error('Some error'))
       } as unknown as ApexLanguageClient;
@@ -211,19 +204,6 @@ describe('MetadataOrchestrator', () => {
       const mockEditor = {
         document: { fileName: 'file.cls' }
       };
-      // with no method selected
-      const request = {
-        resourceUri: uri,
-        includeAllMethods: true,
-        includeAllProperties: true,
-        position: null,
-        methodNames: [],
-        propertyNames: []
-      };
-
-      const payload = {
-        payload: [request]
-      };
 
       (vscode.window as any).activeTextEditor = mockEditor;
       await orchestrator.validateEligibility(mockUriParse('/file.cls'), false);
@@ -245,7 +225,6 @@ describe('MetadataOrchestrator', () => {
   });
 
   describe('eligibilityDelegate', () => {
-    let getClientInstanceSpy;
     beforeEach(() => {
       (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
     });
@@ -262,7 +241,7 @@ describe('MetadataOrchestrator', () => {
           }
         ]
       };
-      getClientInstanceSpy = jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(undefined);
+      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(undefined);
       const responses = await orchestrator.eligibilityDelegate(sampleRequest);
       expect(responses).toBe(undefined);
     });

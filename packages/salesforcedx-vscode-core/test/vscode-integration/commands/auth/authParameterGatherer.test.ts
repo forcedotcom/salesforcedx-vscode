@@ -8,11 +8,7 @@
 import { expect } from 'chai';
 import { assert, createSandbox, match, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  AccessTokenParamsGatherer,
-  DEFAULT_ALIAS,
-  INSTANCE_URL_PLACEHOLDER
-} from '../../../../src/commands';
+import { AccessTokenParamsGatherer, DEFAULT_ALIAS, INSTANCE_URL_PLACEHOLDER } from '../../../../src/commands';
 import { nls } from '../../../../src/messages';
 
 const sandbox = createSandbox();
@@ -67,12 +63,8 @@ describe('Auth Parameter Gatherer', () => {
     });
 
     it('Should return show localized prompts and placeholders', async () => {
-      setGathererBehavior(
-        mockInputInstanceUrl,
-        mockInputAlias,
-        mockInputAccessToken
-      );
-      const response = await gatherer.gather();
+      setGathererBehavior(mockInputInstanceUrl, mockInputAlias, mockInputAccessToken);
+      await gatherer.gather();
       assert.calledWith(
         inputStub,
         match({
@@ -93,20 +85,14 @@ describe('Auth Parameter Gatherer', () => {
         inputStub,
         match({
           prompt: nls.localize('parameter_gatherer_enter_session_id'),
-          placeHolder: nls.localize(
-            'parameter_gatherer_enter_session_id_placeholder'
-          ),
+          placeHolder: nls.localize('parameter_gatherer_enter_session_id_placeholder'),
           ignoreFocusOut: true
         })
       );
     });
 
     it('Should return Continue if user has input instance url, alias and access token', async () => {
-      setGathererBehavior(
-        mockInputInstanceUrl,
-        mockInputAlias,
-        mockInputAccessToken
-      );
+      setGathererBehavior(mockInputInstanceUrl, mockInputAlias, mockInputAccessToken);
       const response = await gatherer.gather();
       expect(response).to.eql({
         type: 'CONTINUE',

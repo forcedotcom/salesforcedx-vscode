@@ -6,11 +6,7 @@
  */
 
 import { expect } from 'chai';
-import {
-  ClientStatus,
-  LanguageClientStatus,
-  LanguageClientUtils
-} from '../../../src/languageUtils/languageClientUtils';
+import { ClientStatus, LanguageClientUtils } from '../../../src/languageUtils/languageClientUtils';
 
 describe('LanguageClientUtils', () => {
   let languageClientUtils: LanguageClientUtils;
