@@ -16,7 +16,7 @@ import { nls } from '../messages';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-export const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
+const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
 export const getLineRange = (document: TextDocument, lineNumber: number): Range => {
   let adjustedLineNumber: number;
@@ -36,13 +36,7 @@ export const getLineRange = (document: TextDocument, lineNumber: number): Range 
   );
 };
 
-export type CoverageTestResult = {
-  coverage: {
-    coverage: CoverageItem[];
-  };
-};
-
-export type CoverageItem = {
+type CoverageItem = {
   id: string;
   name: string;
   totalLines: number;
@@ -187,9 +181,4 @@ const applyCoverageToSource = (
     }
   }
   return { coveredLines, uncoveredLines };
-};
-
-// export is for testing
-export const colorizer = {
-  applyCoverageToSource
 };

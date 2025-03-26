@@ -104,7 +104,7 @@ export const isNullOrUndefined = (object: any): object is null | undefined => {
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
 
-export const flushFilePath = (filePath: string): string => {
+const flushFilePath = (filePath: string): string => {
   if (filePath === '') {
     return filePath;
   }
@@ -135,7 +135,7 @@ export const flushFilePath = (filePath: string): string => {
   return nativePath;
 };
 
-export const flushFilePaths = (filePaths: string[]): string[] => {
+const flushFilePaths = (filePaths: string[]): string[] => {
   for (let i = 0; i < filePaths.length; i++) {
     filePaths[i] = flushFilePath(filePaths[i]);
   }
@@ -196,7 +196,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
+const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
   const pattern = [
     '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
     '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))'

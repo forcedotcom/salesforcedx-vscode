@@ -10,23 +10,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import {
-  CsvDataProvider,
-  JsonDataProvider
-} from '../../../src/queryDataView/dataProviders';
+import { CsvDataProvider, JsonDataProvider } from '../../../src/queryDataView/dataProviders';
 import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
-import {
-  mockQueryText,
-  mockQueryData,
-  MockTextDocumentProvider,
-  TestFileService
-} from '../testUtilities';
+import { mockQueryText, mockQueryData, MockTextDocumentProvider, TestFileService } from '../testUtilities';
 
-export const QUERY_RESULTS_DIR_PATH = path.join(
-  'scripts',
-  'soql',
-  'query-results'
-);
+const QUERY_RESULTS_DIR_PATH = path.join('scripts', 'soql', 'query-results');
 
 describe('Query Data File Service', () => {
   let mockTextDocument: vscode.TextDocument;
@@ -63,20 +51,10 @@ describe('Query Data File Service', () => {
   });
 
   it('should use the correct data provider', () => {
-    const csvFileService = new TestFileService(
-      mockQueryText,
-      mockQueryData,
-      FileFormat.CSV,
-      mockTextDocument
-    );
+    const csvFileService = new TestFileService(mockQueryText, mockQueryData, FileFormat.CSV, mockTextDocument);
     expect(csvFileService.getDataProvider()).instanceOf(CsvDataProvider);
 
-    const jsonFileService = new TestFileService(
-      mockQueryText,
-      mockQueryData,
-      FileFormat.JSON,
-      mockTextDocument
-    );
+    const jsonFileService = new TestFileService(mockQueryText, mockQueryData, FileFormat.JSON, mockTextDocument);
     expect(jsonFileService.getDataProvider()).instanceOf(JsonDataProvider);
   });
 });

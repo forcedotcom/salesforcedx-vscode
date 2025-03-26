@@ -22,12 +22,12 @@ export type BatchDeleteResponse = {
   results: BatchDeleteResult[];
 };
 
-export type BatchDeleteResult = {
+type BatchDeleteResult = {
   statusCode: number;
   result: SingleResult[] | null;
 };
 
-export type SingleResult = {
+type SingleResult = {
   errorCode: string;
   message: string;
 };

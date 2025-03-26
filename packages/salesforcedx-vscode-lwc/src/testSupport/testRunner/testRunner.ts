@@ -27,7 +27,7 @@ export const enum TestRunType {
  * @param cwd
  * @param testFsPath
  */
-export const normalizeRunTestsByPath = (cwd: string, testFsPath: string) => {
+const normalizeRunTestsByPath = (cwd: string, testFsPath: string) => {
   if (/^win32/.test(process.platform)) {
     return path.relative(cwd, testFsPath);
   }

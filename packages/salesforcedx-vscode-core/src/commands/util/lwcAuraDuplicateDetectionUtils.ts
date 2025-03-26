@@ -15,7 +15,7 @@ export const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'rename_lightning_component';
 export const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
 export const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
 export const INPUT_DUP_ERROR = 'component_input_dup_error';
-export const RENAME_INPUT_DUP_FILE_NAME_ERROR = 'rename_component_input_dup_file_name_error';
+const RENAME_INPUT_DUP_FILE_NAME_ERROR = 'rename_component_input_dup_file_name_error';
 export const RENAME_ERROR = 'rename_component_error';
 export const RENAME_WARNING = 'rename_component_warning';
 
@@ -80,7 +80,7 @@ export const checkForDuplicateName = async (componentPath: string, newName: stri
   }
 };
 
-export const getOnlyFileNames = (allFiles: string[]) => {
+const getOnlyFileNames = (allFiles: string[]) => {
   return allFiles.map(file => {
     const split = file?.split('.');
     return split?.length > 1 ? split[0] : '';
@@ -111,11 +111,4 @@ const readFromDir = (dirPath: string): Promise<string[]> => {
     .catch(() => {
       return [];
     });
-};
-
-// for testing
-export const lwcAuraDuplicateComponentCheckersTesting = {
-  checkForDuplicateName,
-  checkForDuplicateInComponent,
-  isNameMatch
 };

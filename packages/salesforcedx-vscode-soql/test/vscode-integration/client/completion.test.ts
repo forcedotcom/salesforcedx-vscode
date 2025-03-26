@@ -13,11 +13,7 @@ import * as vscode from 'vscode';
 
 import { CompletionItem, CompletionItemKind } from 'vscode';
 import { extensions, Position, Uri, workspace, commands } from 'vscode';
-import {
-  stubMockConnection,
-  spyChannelService,
-  stubFailingMockConnection
-} from '../testUtilities';
+import { stubMockConnection, spyChannelService, stubFailingMockConnection } from '../testUtilities';
 
 let doc: vscode.TextDocument;
 let soqlFileUri: Uri;
@@ -62,9 +58,7 @@ const userFieldItems = [
 workspace.registerTextDocumentContentProvider('embedded-soql', {
   provideTextDocumentContent: (uri: Uri) => {
     const originalUri = uri.path.replace(/^\//, '').replace(/.soql$/, '');
-    return workspace.fs
-      .readFile(Uri.parse(originalUri))
-      .then(content => content.toLocaleString());
+    return workspace.fs.readFile(Uri.parse(originalUri)).then(content => content.toLocaleString());
   }
 });
 const configDir = '.sfdx';
@@ -72,13 +66,9 @@ const configDir = '.sfdx';
 describe('Should do completion', async () => {
   before(() => {
     // Populate filesystem with sobject's metadata. This is for the embedded-soql case
-    const workspaceDir = path.normalize(
-      __dirname + `/../../../../../system-tests/assets/sfdx-simple/${configDir}`
-    );
+    const workspaceDir = path.normalize(__dirname + `/../../../../../system-tests/assets/sfdx-simple/${configDir}`);
     const targetDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
-    const soqlMetadataDir = path.normalize(
-      __dirname + '/../../../../test/vscode-integration/soqlMetadata/'
-    );
+    const soqlMetadataDir = path.normalize(__dirname + '/../../../../test/vscode-integration/soqlMetadata/');
 
     if (fsExtra.existsSync(targetDir)) {
       console.log('Removing existing ' + targetDir);
@@ -93,9 +83,7 @@ describe('Should do completion', async () => {
 
   beforeEach(async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
-    soqlFileUri = Uri.file(
-      path.join(workspacePath, `test_${generateRandomInt()}.soql`)
-    );
+    soqlFileUri = Uri.file(path.join(workspacePath, `test_${generateRandomInt()}.soql`));
     sandbox = sinon.createSandbox();
     mockConnection = stubMockConnection(sandbox);
   });
@@ -252,9 +240,7 @@ describe('Should do completion', async () => {
   );
 
   // Account.Name is not Nillable
-  testCompletion('SELECT Id FROM Account WHERE Name = |', [
-    { label: 'abc123', kind: CompletionItemKind.Snippet }
-  ]);
+  testCompletion('SELECT Id FROM Account WHERE Name = |', [{ label: 'abc123', kind: CompletionItemKind.Snippet }]);
 
   // Account.BillingCity IS Nillable
   testCompletion('SELECT Id FROM Account WHERE BillingCity = |', [
@@ -400,19 +386,16 @@ describe('Should do completion', async () => {
     { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
   ]);
 
-  testCompletion(
-    'SELECT Id, (SELECT Name FROM Users ORDER BY |) FROM Account',
-    [
-      // only sortable fields of User:
-      { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
-      {
-        label: 'Name',
-        kind: CompletionItemKind.Field,
-        detail: 'string'
-      },
-      { label: 'IsDeleted', kind: 4, detail: 'boolean' }
-    ]
-  );
+  testCompletion('SELECT Id, (SELECT Name FROM Users ORDER BY |) FROM Account', [
+    // only sortable fields of User:
+    { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
+    {
+      label: 'Name',
+      kind: CompletionItemKind.Field,
+      detail: 'string'
+    },
+    { label: 'IsDeleted', kind: 4, detail: 'boolean' }
+  ]);
 
   // Semi-join
   testCompletion('SELECT Id FROM Account WHERE Id IN (SELECT | FROM User)', [
@@ -426,9 +409,7 @@ describe('Should do completion', async () => {
 });
 
 describe('Should not do completion on metadata errors', async () => {
-  const workspaceDir = path.normalize(
-    __dirname + `/../../../../../system-tests/assets/sfdx-simple/${configDir}`
-  );
+  const workspaceDir = path.normalize(__dirname + `/../../../../../system-tests/assets/sfdx-simple/${configDir}`);
   const soqlMetadataDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
 
   before(() => {
@@ -440,9 +421,7 @@ describe('Should not do completion on metadata errors', async () => {
 
   beforeEach(async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
-    soqlFileUri = Uri.file(
-      path.join(workspacePath, `test_${generateRandomInt()}.soql`)
-    );
+    soqlFileUri = Uri.file(path.join(workspacePath, `test_${generateRandomInt()}.soql`));
     sandbox = sinon.createSandbox();
     mockConnection = stubFailingMockConnection(sandbox);
   });
@@ -462,10 +441,7 @@ describe('Should not do completion on metadata errors', async () => {
   testCompletion('SELECT Id FROM |', [], {
     embeddedSoql: true,
     expectChannelMsg:
-      'ERROR: We can’t retrieve list of objects. ' +
-      'Expected JSON files in directory: ' +
-      soqlMetadataDir +
-      '.'
+      'ERROR: We can’t retrieve list of objects. ' + 'Expected JSON files in directory: ' + soqlMetadataDir + '.'
   });
   testCompletion(
     'SELECT | FROM Account',
@@ -509,8 +485,7 @@ describe('Should not do completion on metadata errors', async () => {
   );
 });
 
-const shouldIgnoreCompletionItem = (i: CompletionItem) =>
-  i.kind !== CompletionItemKind.Text;
+const shouldIgnoreCompletionItem = (i: CompletionItem) => i.kind !== CompletionItemKind.Text;
 
 function testCompletion(
   soqlTextWithCursorMarker: string,
@@ -529,19 +504,11 @@ function testCompletion(
   const itFn = options.skip ? xit : options.only ? it.only : it;
 
   itFn(soqlTextWithCursorMarker, async () => {
-    const position = await prepareSOQLFileAndGetCursorPosition(
-      soqlTextWithCursorMarker,
-      soqlFileUri,
-      cursorChar
-    );
+    const position = await prepareSOQLFileAndGetCursorPosition(soqlTextWithCursorMarker, soqlFileUri, cursorChar);
 
     const channelServiceSpy = spyChannelService(sandbox);
     const docUri = options.embeddedSoql
-      ? Uri.parse(
-          `embedded-soql://soql/${encodeURIComponent(
-            soqlFileUri.toString()
-          )}.soql`
-        )
+      ? Uri.parse(`embedded-soql://soql/${encodeURIComponent(soqlFileUri.toString())}.soql`)
       : soqlFileUri;
 
     let passed = false;
@@ -563,25 +530,18 @@ function testCompletion(
         const simplifiedActualCompletionItems = actualCompletionItems
           .filter(shouldIgnoreCompletionItem)
           .map(pickMainItemKeys);
-        const simplifiedExpectedCompletionItems =
-          expectedCompletionItems.map(pickMainItemKeys);
+        const simplifiedExpectedCompletionItems = expectedCompletionItems.map(pickMainItemKeys);
 
         if (options.allowExtraCompletionItems) {
-          expect(simplifiedActualCompletionItems).to.include.deep.members(
-            simplifiedExpectedCompletionItems
-          );
+          expect(simplifiedActualCompletionItems).to.include.deep.members(simplifiedExpectedCompletionItems);
         } else {
-          expect(simplifiedActualCompletionItems).to.have.deep.members(
-            simplifiedExpectedCompletionItems
-          );
+          expect(simplifiedActualCompletionItems).to.have.deep.members(simplifiedExpectedCompletionItems);
         }
 
         if (expectChannelMsg) {
           expect(channelServiceSpy.called).to.equal(true);
           console.log(channelServiceSpy.getCalls());
-          expect(channelServiceSpy.lastCall.args[0].toLowerCase()).to.equal(
-            expectChannelMsg.toLowerCase()
-          );
+          expect(channelServiceSpy.lastCall.args[0].toLowerCase()).to.equal(expectChannelMsg.toLowerCase());
         }
 
         passed = true;
@@ -603,7 +563,7 @@ async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function activate(docUri: vscode.Uri) {
+async function activate(docUri: vscode.Uri) {
   const ext = extensions.getExtension('salesforce.salesforcedx-vscode-soql')!;
   await ext.activate();
   try {

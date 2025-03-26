@@ -14,7 +14,7 @@ import { sourcePrompts } from './prompts';
 export const PROMPTS_DIR = path.join('.sfdx', 'oas_prompts');
 export const PROMPTS_FILE = path.join(PROMPTS_DIR, 'prompts.yaml');
 
-export const getPromptsFromSource = (): Record<string, any> => {
+const getPromptsFromSource = (): Record<string, any> => {
   return sourcePrompts;
 };
 
@@ -27,15 +27,4 @@ export const ensurePromptsExist = (): void => {
     const extractedPrompts = getPromptsFromSource();
     fs.writeFileSync(PROMPTS_FILE, stringify(extractedPrompts), 'utf8');
   }
-};
-
-export const getPrompts = (): Prompts => {
-  ensurePromptsExist();
-  const data = fs.readFileSync(PROMPTS_FILE, 'utf8');
-  return parse(data) as Prompts;
-};
-
-// For future use cases (if needed)
-export const updatePrompts = (newPrompts: Record<string, any>): void => {
-  fs.writeFileSync(PROMPTS_FILE, stringify(newPrompts), 'utf8');
 };

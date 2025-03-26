@@ -8,7 +8,7 @@
 import { GlobalCliEnvironment } from '../cli';
 import { ConfigUtil } from '../config/configUtil';
 
-export const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
+const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
 
 export const disableCLITelemetry = () => {
   GlobalCliEnvironment.environmentVariables.set(ENV_SF_DISABLE_TELEMETRY, 'true');

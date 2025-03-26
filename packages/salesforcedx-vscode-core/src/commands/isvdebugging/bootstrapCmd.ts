@@ -38,7 +38,7 @@ import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandle
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const AdmZip = require('adm-zip');
 
-export type InstalledPackageInfo = {
+type InstalledPackageInfo = {
   id: string;
   name: string;
   namespace: string;
@@ -363,7 +363,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
 export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
 
-export type ForceIdeUri = {
+type ForceIdeUri = {
   loginUrl: string;
   sessionId: string;
   orgName: string;

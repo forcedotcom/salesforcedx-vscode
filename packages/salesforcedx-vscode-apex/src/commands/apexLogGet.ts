@@ -28,7 +28,7 @@ type ApexDebugLogItem = vscode.QuickPickItem & {
   startTime: string;
 };
 
-export type ApexDebugLogIdStartTime = {
+type ApexDebugLogIdStartTime = {
   id: string;
   startTime: string;
 };
@@ -96,7 +96,7 @@ export type ApexDebugLogObject = {
     Name: string;
   };
 };
-export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
+class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   id: string;
 }> {
   constructor() {

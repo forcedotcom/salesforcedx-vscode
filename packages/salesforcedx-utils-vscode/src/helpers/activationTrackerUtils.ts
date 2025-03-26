@@ -35,7 +35,7 @@ const activationRecordRegExp =
 // 2024-01-16 15:18:17.014 [info] Extension host with pid 3574 started
 const sessionStartRecordRegExp = /.*?Extension host with pid\s?(?<pid>[0-9]+?)\s+?started/;
 
-export const isProcessAlive = (pid: string): boolean => {
+const isProcessAlive = (pid: string): boolean => {
   try {
     process.kill(parseInt(pid, 10), 0);
     return true; // Process is active
@@ -154,7 +154,7 @@ export const getExtensionHostLogActivationRecords = async (
  * @param extensionContext
  * @returns instance of ExtensionsInfo
  */
-export const getExtensionsInfo = async (extensionContext: ExtensionContext): Promise<ExtensionsInfo | undefined> => {
+const getExtensionsInfo = async (extensionContext: ExtensionContext): Promise<ExtensionsInfo | undefined> => {
   const activationRecords = await getExtensionHostLogActivationRecords(extensionContext);
   if (!activationRecords) {
     return undefined;
@@ -213,7 +213,7 @@ export const getExtensionInfo = async (
 };
 
 // Filter extensions that are part of the extension pack
-export const getSalesforceExtensions = () => {
+const getSalesforceExtensions = () => {
   // Hardcoded extension pack ID
   const extensionPackId = 'salesforce.salesforcedx-vscode';
   // Find the extension pack

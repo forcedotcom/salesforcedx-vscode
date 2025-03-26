@@ -192,7 +192,7 @@ export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams
   }
 }
 
-export const promptLogOutForProdOrg = async () => {
+const promptLogOutForProdOrg = async () => {
   await new SfCommandlet(
     new SfWorkspaceChecker(),
     new DemoModePromptGatherer(),

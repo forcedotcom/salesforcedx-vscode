@@ -121,7 +121,7 @@ export class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions
   }
 }
 
-export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuiteOptions> {
+class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuiteOptions> {
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
   constructor() {
