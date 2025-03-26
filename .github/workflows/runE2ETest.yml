@@ -77,10 +77,10 @@ jobs:
       #     repository: forcedotcom/${{ inputs.automationRepo }}
       #     path: ${{ inputs.automationRepo }}
       #     ref: ${{ inputs.automationBranch }}
-      - name: Install Test Dependencies
-        run: |
-          npm install
-        working-directory: ${{ inputs.automationRepo }}
+      # - name: Install Test Dependencies
+      #   run: |
+      #     npm install
+      #   working-directory: ${{ inputs.automationRepo }}
       - name: Install the Salesforce CLI
         run: npm install -g @salesforce/cli
       - name: Verify CLI
