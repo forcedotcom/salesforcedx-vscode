@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as fs from 'fs';
 import { AppInsights } from '../../../../src';
 import * as Settings from '../../../../src/settings';
 import { determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
@@ -11,6 +12,11 @@ import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
 import { TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
+
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  createWriteStream: jest.fn()
+}));
 
 describe('determineReporters', () => {
   let config: TelemetryReporterConfig;
@@ -68,6 +74,12 @@ describe('determineReporters', () => {
     });
 
     it('should return AppInsights and LogStream reporters when not in dev mode and log stream is enabled', () => {
+      const fsMocked = jest.mocked(fs);
+      fsMocked.createWriteStream.mockReturnValue({
+        write: jest.fn(),
+        end: jest.fn()
+      } as any);
+
       LogStreamConfig.isEnabledFor = jest.fn().mockReturnValue(true);
       const reporters = determineReporters(config);
       expect(reporters).toHaveLength(2);
