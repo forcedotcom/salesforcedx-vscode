@@ -55,7 +55,6 @@ describe('orgList Tests', () => {
     describe('Filter Authorization Info', async () => {
       let getDevHubUsernameStub: SinonStub;
       let getUsernameStub: SinonStub;
-      let stateAggregatorCreateStub: SinonStub;
       let getAllStub: SinonStub;
       let getAllAliasesForStub: SinonStub;
       let getAuthFieldsForStub: SinonStub;
@@ -73,7 +72,7 @@ describe('orgList Tests', () => {
             getAll: getAllStub
           }
         };
-        stateAggregatorCreateStub = sandbox.stub(StateAggregator, 'create').resolves(fakeStateAggregator);
+        sandbox.stub(StateAggregator, 'create').resolves(fakeStateAggregator);
 
         getAllAliasesForStub = sandbox.stub(ConfigUtil, 'getAllAliasesFor');
         getAuthFieldsForStub = sandbox.stub(OrgList.prototype, 'getAuthFieldsFor');
