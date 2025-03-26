@@ -128,9 +128,7 @@ export const restartLanguageServerAndClient = async (extensionContext: vscode.Ex
   );
   //get the client and status bar item
   const alc = LanguageClientUtils.getInstance().getClientInstance();
-  let statusBarInstance = LanguageClientUtils.getInstance().getStatusBarInstance();
-  if (statusBarInstance === undefined) {
-    statusBarInstance = new ApexLSPStatusBarItem();
+  const statusBarInstance = LanguageClientUtils.getInstance().getStatusBarInstance() ?? new ApexLSPStatusBarItem();
     LanguageClientUtils.getInstance().setStatusBarInstance(statusBarInstance);
   }
   if (alc !== undefined) {
