@@ -139,4 +139,4 @@ jobs:
         if: ${{ inputs.testToRun }} == 'createOASDoc'
         with:
           name: llm-logs
-          path: ./${{ inputs.automationRepo }}/llm-logs
+          path: ./${{ inputs.automationRepo }}/e2e-temp/TempProject-CreateOASDoc/llm-logs
