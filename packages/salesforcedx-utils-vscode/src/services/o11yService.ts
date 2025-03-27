@@ -29,7 +29,7 @@ import axios from 'axios';
 import { loadO11yModules } from '../telemetry/utils/o11yLoader';
 
 export class O11yService {
-  O11Y_UPLOAD_THRESHOLD_BYTES = 50000;
+  O11Y_UPLOAD_THRESHOLD_BYTES = 50_000;
   o11yUploadEndpoint: string | undefined;
   instrumentation: Instrumentation;
   _instrApp: InstrumentedAppMethods;
