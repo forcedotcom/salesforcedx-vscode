@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
@@ -155,7 +156,7 @@ export const restartLanguageServerAndClient = async (extensionContext: vscode.Ex
 };
 
 const removeApexDB = async () => {
-  if (vscode.workspace.workspaceFolders) {
+  if (hasRootWorkspace() && vscode.workspace.workspaceFolders) {
     const wsrf = vscode.workspace.workspaceFolders[0].uri;
     const toolsUri = vscode.Uri.joinPath(wsrf, '.sfdx', 'tools');
     try {
