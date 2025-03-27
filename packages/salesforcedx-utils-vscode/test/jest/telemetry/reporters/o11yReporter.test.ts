@@ -15,14 +15,13 @@ describe('O11yReporter', () => {
   const fakeEndpoint = 'https://o11y.salesforce.com/upload';
   const dummyOrgId = '00Dxx0000001gPFEAY';
 
-  let getInstanceMock: jest.SpyInstance;
   let sendMock: jest.Mock;
   let uploadMock: jest.Mock;
   let o11yReporter: O11yReporter;
 
   beforeEach(() => {
     // Mock WorkspaceContextUtil
-    getInstanceMock = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
+    jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
       orgId: dummyOrgId,
       orgShape: 'ScratchOrg',
       devHubId: '00Dxx0000001gPHFAU'
@@ -60,10 +59,12 @@ describe('O11yReporter', () => {
       expect(sendMock).toHaveBeenCalledTimes(1);
       expect(sendMock).toHaveBeenCalledTimes(1);
 
-      const [callArg, callUrl] = sendMock.mock.calls[0]; // ← Destructure the first call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const [callArg] = sendMock.mock.calls[0]; // ← Destructure the first call
 
       expect(callArg).toMatchObject({
         name: `${fakeExtensionId}/${eventName}`,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         properties: expect.objectContaining({
           foo: 'bar',
           orgId: '00Dxx0000001gPFEAY',
