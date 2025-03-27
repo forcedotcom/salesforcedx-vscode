@@ -8,8 +8,7 @@
 // tslint:disable:no-unused-expression
 
 import { expect } from 'chai';
-import * as fs from 'fs';
-import { createSandbox, SinonStub } from 'sinon';
+import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { RevealOutputChannelOn } from 'vscode-languageclient';

@@ -40,14 +40,13 @@ describe('workspaceOrgType', () => {
   let getUsernameStub: Sinon.SinonStub;
   let orgCreateStub: Sinon.SinonStub;
   let getTargetOrgOrAliasStub: Sinon.SinonStub;
-  let createStub: Sinon.SinonStub;
   let workspaceContextGetInstanceStub: Sinon.SinonStub;
 
   beforeEach(() => {
     getUsernameStub = sandbox.stub(OrgAuthInfo, 'getUsername');
     orgCreateStub = sandbox.stub(Org, 'create');
     getTargetOrgOrAliasStub = sandbox.stub(OrgAuthInfo, 'getTargetOrgOrAlias');
-    createStub = sandbox.stub(AuthInfo, 'create');
+    sandbox.stub(AuthInfo, 'create');
     workspaceContextGetInstanceStub = sandbox.stub(WorkspaceContext, 'getInstance');
   });
 

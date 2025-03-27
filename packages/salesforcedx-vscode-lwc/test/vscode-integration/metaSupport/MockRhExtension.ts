@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Extension, ExtensionKind, extensions, Uri } from 'vscode';
+import { Extension, ExtensionKind, Uri } from 'vscode';
 import * as path from 'path';
 
 export class MockRedhatExtension implements Extension<any> {
@@ -53,9 +53,7 @@ class MockRhApi {
   public isReady() {
     return true;
   }
-  public addXMLFileAssociations(
-    associations: Array<{ systemId: string; pattern: string }>
-  ) {
+  public addXMLFileAssociations(associations: Array<{ systemId: string; pattern: string }>) {
     associations.forEach(associate => {
       this.listOfAssociations.push({
         systemId: path.join(associate.systemId),

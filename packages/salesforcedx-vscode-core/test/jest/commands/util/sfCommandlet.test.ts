@@ -94,7 +94,7 @@ describe('SfCommandletExecutor', () => {
       const executor = new ProjectDeployStartExecutor(flag, pushCommand);
 
       // Act
-      const parsed = (executor as any).parseOutput(dummyStdOut);
+      (executor as any).parseOutput(dummyStdOut);
 
       // Assert
       expect(parseSpy).toHaveBeenCalledWith(dummyStdOut);
