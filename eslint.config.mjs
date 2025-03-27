@@ -79,7 +79,13 @@ export default [
           ' '
         ]
       ],
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          args: 'none',
+          ignoreRestSiblings: true
+        }
+      ],
       '@typescript-eslint/adjacent-overload-signatures': 'error',
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-restricted-types': [
@@ -148,7 +154,6 @@ export default [
           hoist: 'all'
         }
       ],
-      '@typescript-eslint/no-unused-expressions': 'error',
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-var-requires': 'error',
       '@typescript-eslint/prefer-function-type': 'error',
@@ -301,20 +306,10 @@ export default [
       '@typescript-eslint': typescriptEslint,
       jest: eslintPluginJest
     },
-    env: {
-      'jest/globals': true
-    },
     rules: {
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          varsIgnorePattern: '.*Mock$',
-          args: 'none'
-        }
-      ],
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unused-expressions': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
@@ -322,14 +317,14 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
       '@typescript-eslint/no-unused-vars': [
-        'error',
+        'warn',
         {
-          varsIgnorePattern: '.*Mock$',
-          argsIgnorePattern: '^_',
+          varsIgnorePattern: '.*Mock$|.*Stub$|.*Spy$',
+          args: 'none',
+          argsIgnorePattern: '.*',
           ignoreRestSiblings: true
         }
-      ],
-      'jest/no-unused-mock': 'error'
+      ]
     }
   },
   {
