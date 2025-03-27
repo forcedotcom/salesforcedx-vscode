@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npm run compile && node ./lib/test-setup-and-runner.js --spec lib/specs/anInitialSuite.e2e.js",
+    "test": "npm run compile && node ./lib/test-setup-and-runner.js --spec lib/specs/orgBrowser.e2e.js",
     "automation-tests": "npm run compile && node ./lib/test-setup-and-runner.js",
     "setup": "npm run compile && node ./lib/test-setup-and-runner.js --spec test/setup/anInitialSetUp.e2e.js",
     "lint": "eslint ./test --ext .ts",

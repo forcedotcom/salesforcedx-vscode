@@ -102,15 +102,22 @@ async function waitForQuickPick(prompt, pickListItem, options = { timeout: misce
 async function executeQuickPick(command, wait = miscellaneous_1.Duration.seconds(1)) {
     (0, miscellaneous_1.debug)(`executeQuickPick command: ${command}`);
     try {
+        console.log('A');
         const workbench = (0, workbench_1.getWorkbench)();
+        console.log('B');
         const prompt = await workbench.openCommandPrompt();
+        console.log('C');
         await prompt.setText(`>${command}`);
+        console.log('D');
         await prompt.selectQuickPick(command);
-        await (0, miscellaneous_1.pause)(wait);
+        console.log('E');
+        // await pause(wait);
+        console.log('F');
         return prompt;
     }
     catch (error) {
         let errorMessage;
+        console.log('madhur 1: ', error);
         if (error instanceof Error) {
             errorMessage = error.message;
         }
@@ -120,6 +127,7 @@ async function executeQuickPick(command, wait = miscellaneous_1.Duration.seconds
         else {
             throw new Error(`Unknown error: ${error}`);
         }
+        console.log('madhur 2: ', errorMessage);
         if (errorMessage.includes('Command not found')) {
             throw new Error(`Command not found: ${command}`);
         }
