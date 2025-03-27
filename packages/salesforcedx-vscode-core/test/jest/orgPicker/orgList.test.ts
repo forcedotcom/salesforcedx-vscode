@@ -13,14 +13,11 @@ import { OrgAuthInfo } from '../../../src/util';
 
 describe('OrgList tests', () => {
   let orgList: OrgList;
-  let createFileSystemWatcherMock: jest.SpyInstance;
-  let createStatusBarItemMock: jest.SpyInstance;
   let getDevHubUsernameMock: jest.SpyInstance;
   let getAllMock: jest.SpyInstance;
   let getAllAliasesForMock: jest.SpyInstance;
   let getUsernameForMock: jest.SpyInstance;
   let getAuthFieldsForMock: jest.SpyInstance;
-  let stateAggregatorCreateMock: jest.SpyInstance;
   let fakeStateAggregator: any;
   const mockStatusBarItem: any = {};
   let mockWatcher: any;
@@ -68,8 +65,8 @@ describe('OrgList tests', () => {
       onDidCreate: jest.fn(),
       onDidDelete: jest.fn()
     };
-    createFileSystemWatcherMock = (vscode.workspace.createFileSystemWatcher as any).mockReturnValue(mockWatcher);
-    createStatusBarItemMock = (vscode.window.createStatusBarItem as jest.Mock).mockReturnValue(mockStatusBarItem);
+    (vscode.workspace.createFileSystemWatcher as jest.Mock).mockReturnValue(mockWatcher);
+    (vscode.window.createStatusBarItem as jest.Mock).mockReturnValue(mockStatusBarItem);
     orgList = new OrgList();
     getAuthFieldsForMock = jest.spyOn(OrgList.prototype, 'getAuthFieldsFor');
     getUsernameForMock = jest.spyOn(ConfigUtil, 'getUsernameFor');
@@ -80,7 +77,7 @@ describe('OrgList tests', () => {
         getAll: getAllMock
       }
     };
-    stateAggregatorCreateMock = jest.spyOn(StateAggregator, 'create').mockResolvedValue(fakeStateAggregator);
+    jest.spyOn(StateAggregator, 'create').mockResolvedValue(fakeStateAggregator);
     getAllAliasesForMock = jest.spyOn(ConfigUtil, 'getAllAliasesFor');
   });
 

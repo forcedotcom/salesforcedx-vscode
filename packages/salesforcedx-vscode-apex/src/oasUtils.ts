@@ -6,11 +6,15 @@
  */
 
 import { SfProject } from '@salesforce/core-bundle';
-import { getJsonCandidate, identifyJsonTypeInString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  extensionUris,
+  getJsonCandidate,
+  identifyJsonTypeInString,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
-import { join } from 'path';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as yaml from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
@@ -18,10 +22,10 @@ import { nls } from './messages';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
-import { ApexClassOASGatherContextResponse, ApexClassOASEligibleResponse } from './oas/schemas';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
 
 const DOT_SFDX = '.sfdx';
-const TEMPLATES_DIR = join(DOT_SFDX, 'resources', 'templates');
+const TEMPLATES_DIR = path.join(DOT_SFDX, 'resources', 'templates');
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -62,7 +66,7 @@ export const processOasDocument = async (
 
     const oasProcessor = new OasProcessor(parsed, eligibleResult);
 
-    const processResult = await oasProcessor.process();
+    const processResult = await oasProcessor.process(!isRevalidation);
 
     return processResult;
   }
@@ -154,7 +158,7 @@ export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => {
 };
 
 const PROMPT_TEMPLATES = {
-  METHOD_BY_METHOD: join('resources', 'templates', 'methodByMethod.ejs')
+  METHOD_BY_METHOD: path.join('resources', 'templates', 'methodByMethod.ejs')
 };
 
 export type ejsTemplateKey = keyof typeof PROMPT_TEMPLATES;
@@ -180,8 +184,8 @@ const copyDirectorySync = (src: string, dest: string) => {
   const entries = fs.readdirSync(src, { withFileTypes: true });
 
   for (const entry of entries) {
-    const srcPath = join(src, entry.name);
-    const destPath = join(dest, entry.name);
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
 
     if (entry.isDirectory()) {
       copyDirectorySync(srcPath, destPath);
@@ -202,9 +206,9 @@ const resolveTemplateDir = (): vscode.Uri => {
     if (!fs.existsSync(TEMPLATES_DIR)) {
       fs.mkdirSync(TEMPLATES_DIR, { recursive: true });
       // copy contents of extensionDir to TEMPLATES_DIR
-      copyDirectorySync(join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
+      copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
     }
-    return vscode.Uri.file(join(process.cwd(), DOT_SFDX));
+    return vscode.Uri.file(path.join(process.cwd(), DOT_SFDX));
   }
   return extensionDir;
 };
@@ -220,7 +224,7 @@ export const ejsTemplateHelpers = {
    */
   getTemplatePath: (key: ejsTemplateKey): vscode.Uri => {
     const baseExtensionPath = resolveTemplateDir();
-    return vscode.Uri.file(join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
+    return vscode.Uri.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
   }
 };
 
@@ -238,4 +242,16 @@ export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[]
     },
     [0, 0, 0, 0, 0]
   );
+};
+
+export const getCurrentTimestamp = (): string => {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const year = now.getFullYear();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
+  return formattedDate;
 };

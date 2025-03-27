@@ -9,6 +9,7 @@ import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { ApexClassOASEligibleResponse } from '../schemas';
 import { MethodValidationStep } from './methodValidationStep';
+import { OasReorderStep } from './oasReorderStep';
 import { OasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';
 import { ProcessorInputOutput } from './processorStep';
@@ -25,11 +26,17 @@ export class OasProcessor {
     this.eligibilityResult = eligibilityResult;
   }
 
-  async process(): Promise<ProcessorInputOutput> {
-    const pipeline = new Pipeline(new PropertyCorrectionStep())
-      .addStep(new ReconcileDuplicateSemanticPathsStep())
-      .addStep(new MethodValidationStep())
-      .addStep(new OasValidationStep());
+  async process(doCorrections = false): Promise<ProcessorInputOutput> {
+    const pipeline = doCorrections
+      ? new Pipeline(new PropertyCorrectionStep())
+          .addStep(new ReconcileDuplicateSemanticPathsStep())
+          .addStep(new MethodValidationStep())
+          .addStep(new OasValidationStep())
+          .addStep(new OasReorderStep())
+      : new Pipeline(new ReconcileDuplicateSemanticPathsStep())
+          .addStep(new MethodValidationStep())
+          .addStep(new OasValidationStep())
+          .addStep(new OasReorderStep());
 
     console.log('Executing pipeline with input:');
     console.log('document: ', this.document);
