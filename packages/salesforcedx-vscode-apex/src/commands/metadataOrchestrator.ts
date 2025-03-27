@@ -197,7 +197,6 @@ export class MetadataOrchestrator {
       } else return ApexOASResource.class;
     }
   }
-  getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
-    return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
-  };
+  getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
+    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 }

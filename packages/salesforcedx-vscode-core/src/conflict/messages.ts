@@ -31,13 +31,12 @@ export const getConflictMessagesFor = (logName: string): ConflictDetectionMessag
       'deploy_with_manifest',
       {
         warningMessageKey,
-        commandHint: input => {
-          return new SfCommandBuilder()
+        commandHint: input =>
+          new SfCommandBuilder()
             .withArg('project:deploy:start')
             .withFlag('--manifest', input as string)
             .build()
-            .toString();
-        }
+            .toString()
       }
     ]
   ]);

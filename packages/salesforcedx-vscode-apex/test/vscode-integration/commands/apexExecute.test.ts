@@ -82,9 +82,7 @@ describe('Apex Execute', () => {
         selection: { isEmpty: true }
       };
 
-      sb.stub(vscode.window, 'activeTextEditor').get(() => {
-        return mockActiveTextEditor;
-      });
+      sb.stub(vscode.window, 'activeTextEditor').get(() => mockActiveTextEditor);
 
       const fileNameGatherer = new AnonApexGatherer();
       const result = (await fileNameGatherer.gather()) as ContinueResponse<{
@@ -108,9 +106,7 @@ describe('Apex Execute', () => {
           text: 'System.assert(false);'
         }
       };
-      sb.stub(vscode.window, 'activeTextEditor').get(() => {
-        return mockActiveTextEditor;
-      });
+      sb.stub(vscode.window, 'activeTextEditor').get(() => mockActiveTextEditor);
 
       const fileNameGatherer = new AnonApexGatherer();
       const result = (await fileNameGatherer.gather()) as ContinueResponse<{
@@ -133,9 +129,7 @@ describe('Apex Execute', () => {
           end: new vscode.Position(1, 19)
         }
       };
-      sb.stub(vscode.window, 'activeTextEditor').get(() => {
-        return mockActiveTextEditor;
-      });
+      sb.stub(vscode.window, 'activeTextEditor').get(() => mockActiveTextEditor);
 
       const apexCodeGatherer = new AnonApexGatherer();
       const result = (await apexCodeGatherer.gather()) as ContinueResponse<{

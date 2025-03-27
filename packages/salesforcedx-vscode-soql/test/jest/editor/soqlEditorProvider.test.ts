@@ -70,11 +70,9 @@ describe('SOQLEditorProvider', () => {
         dispose: jest.fn()
       } as unknown as vscode.WebviewPanel;
       workspaceOnDidChangeSpy = (vscode.workspace.onDidChangeTextDocument as jest.Mock) = jest.fn();
-      workspaceOnDidChangeSpy.mockImplementation((listener, context, disposables) => {
-        return {
-          dispose: jest.fn()
-        };
-      });
+      workspaceOnDidChangeSpy.mockImplementation((listener, context, disposables) => ({
+        dispose: jest.fn()
+      }));
       webViewPanelSpy = (vscode.window.createWebviewPanel as jest.Mock) = jest.fn();
       webViewPanelSpy.mockReturnValue(mockWebviewPanel);
       readFileSyncMock = jest.spyOn(fs, 'readFileSync');

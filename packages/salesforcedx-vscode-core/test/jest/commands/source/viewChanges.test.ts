@@ -14,11 +14,9 @@ describe('viewChanges', () => {
   beforeEach(() => {
     // Arrange
     runMock = jest.fn();
-    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => {
-      return {
-        run: runMock
-      };
-    });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+      run: runMock
+    }));
   });
 
   describe('viewAllChanges', () => {
