@@ -2,11 +2,6 @@ name: Run E2E Test
 on:
   workflow_call:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
       automationRepo:
         description: 'Set the repo to use for automation tests'
         required: false
@@ -76,7 +71,7 @@ jobs:
         with:
           repository: forcedotcom/${{ inputs.automationRepo }}
           path: ${{ inputs.automationRepo }}
-          ref: ${{ inputs.automationBranch }}
+          ref: ${{ github.ref }}
       - name: Install Test Dependencies
         run: |
           npm install
