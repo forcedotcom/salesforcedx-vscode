@@ -103,9 +103,7 @@ launch configuration would be like the following.
   "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/adapter/apexDebug.js",
   "args": ["--server=4711"],
   "sourceMaps": true,
-  "outFiles": [
-    "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/**/*.js"
-  ]
+  "outFiles": ["${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/**/*.js"]
 }
 ```
 
@@ -204,7 +202,14 @@ Add any missing peer dependencies identified to the package's dev dependency.
 
 ### `npm run vsix:install`
 
-This finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code Insiders.
+This finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code.
+
+- The installation would overwrite any installed packages in vscode with same name and version (under `~/.vscode/extensions`).
+- To debug installed extensions you can use Command Palette: `Developer > Show Logs .. > Extension Host`
+
+### `npm run vsix:install-insiders`
+
+Similar to the above command, this finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code Insiders.
 
 - The installation would overwrite any installed packages in insiders with same name and version (under `~/.vscode-insiders/extensions`).
 - To debug installed extensions you can use Command Palette: `Developer > Show Logs .. > Extension Host`

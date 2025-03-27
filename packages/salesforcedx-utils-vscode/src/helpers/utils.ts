@@ -206,3 +206,12 @@ export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
  * @returns
  */
 export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => new Set([...setA].filter(x => !setB.has(x)));
+
+/**
+ * Used to remove column/line from org Apex compilations errors.
+ * @param error
+ * @returns
+ */
+export const fixupError = (error: string | undefined): string =>
+  // Normalize error messages by trimming whitespace and removing redundant prefixes
+  error !== undefined ? error.replace(/\(\d+:\d+\)/, '').trim() : 'Unknown error occurred.';
