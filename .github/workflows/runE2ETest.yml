@@ -71,12 +71,12 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
-      # - name: Clone automation tests
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: forcedotcom/${{ inputs.automationRepo }}
-      #     path: ${{ inputs.automationRepo }}
-      #     ref: ${{ inputs.automationBranch }}
+      - name: Clone automation tests
+        uses: actions/checkout@v4
+        with:
+          repository: forcedotcom/${{ inputs.automationRepo }}
+          path: ${{ inputs.automationRepo }}
+          ref: ${{ inputs.automationBranch }}
       - name: Install Test Dependencies
         run: |
           npm install
