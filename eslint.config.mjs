@@ -317,7 +317,7 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           varsIgnorePattern: '.*Mock$|.*Stub$|.*Spy$',
           args: 'none',
