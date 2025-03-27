@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeSObjectResult } from '@jsforce/jsforce-node';
 import { SObject } from '../../src/types';
 
 // This is our internal minimal fields version (type SObject) of the same set of sobjects:
