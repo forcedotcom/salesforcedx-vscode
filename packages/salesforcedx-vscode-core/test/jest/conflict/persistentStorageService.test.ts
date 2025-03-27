@@ -15,12 +15,9 @@ describe('PersistentStorageService', () => {
   };
   describe('setPropertiesForFilesPushPull', () => {
     let setPropertiesForFileMock: jest.SpyInstance;
-    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      workspaceContextUtilGetInstanceSpy = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(mockWorkspaceContextUtil as any);
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil as any);
 
       const mockExtensionContext = new MockExtensionContext(false);
       PersistentStorageService.initialize(mockExtensionContext);

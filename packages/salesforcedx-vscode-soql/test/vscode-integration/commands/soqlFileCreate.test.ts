@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import { SinonSandbox, createSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { soqlOpenNew } from '../../../src/commands/soqlFileCreate';
-import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE } from '../../../src/constants';
+import { BUILDER_VIEW_TYPE } from '../../../src/constants';
 import { telemetryService } from '../../../src/telemetry';
 
 describe('soqlOpenNew should', () => {
@@ -20,10 +20,7 @@ describe('soqlOpenNew should', () => {
   beforeEach(() => {
     sb = createSandbox();
     telemetryStub = sb.stub(telemetryService, 'sendCommandEvent') as SinonStub;
-    executeCommandSpy = (sb.spy(
-      vscode.commands,
-      'executeCommand'
-    ) as unknown) as SinonSpy;
+    executeCommandSpy = sb.spy(vscode.commands, 'executeCommand') as unknown as SinonSpy;
   });
 
   afterEach(async () => {

@@ -71,7 +71,7 @@ describe('Persistent Storage Service', () => {
       children: [basename(deployPropsTwo.content), basename(deployPropsTwo.xml)]
     }
   ]);
-  const mockDeployResult = new DeployResult(
+  new DeployResult(
     {
       status: RequestStatus.Succeeded,
       lastModifiedDate: 'Yesterday'

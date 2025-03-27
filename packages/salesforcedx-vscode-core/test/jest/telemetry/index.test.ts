@@ -16,14 +16,13 @@ import { MockExtensionContext } from './MockExtensionContext';
 
 describe('Telemetry', () => {
   let mShowInformation: jest.SpyInstance;
-  let settings: jest.SpyInstance;
   let mockExtensionContext: MockExtensionContext;
   let teleSpy: jest.SpyInstance;
   let cliSpy: jest.SpyInstance;
 
   beforeEach(() => {
     mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
-    settings = jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
+    jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
     teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
     cliSpy = jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
   });

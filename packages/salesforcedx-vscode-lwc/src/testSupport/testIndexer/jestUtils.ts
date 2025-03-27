@@ -84,7 +84,7 @@ export const extractPositionFromFailureMessage = (testFsPath: string, failureMes
       return new vscode.Position(line - 1, column - 1);
     }
     return undefined;
-  } catch (error) {
+  } catch {
     return undefined;
   }
 };

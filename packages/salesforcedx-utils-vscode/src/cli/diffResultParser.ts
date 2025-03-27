@@ -74,7 +74,7 @@ export class DiffResultParser {
   constructor(stdout: string) {
     try {
       this.response = extractJson(stdout);
-    } catch (e) {
+    } catch {
       const err = new Error('Error parsing diff result');
       err.name = 'DiffResultParserFail';
       throw err;

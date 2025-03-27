@@ -9,7 +9,6 @@ import {
   CUSTOMOBJECTS_DIR,
   SObject,
   SObjectField,
-  SObjectShortDescription,
   SOQLMETADATA_DIR,
   STANDARDOBJECTS_DIR,
   toMinimalSObject
@@ -87,14 +86,6 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       channelService.appendLine(message);
       return undefined;
     }
-  }
-
-  private async readTypeDescriptions(soqlMetadataPath: string): Promise<SObjectShortDescription[]> {
-    const savedTypeNamesBuffer = await fs.promises.readFile(path.join(soqlMetadataPath, 'typeNames.json'));
-    // TODO: validate content against a schema
-    const savedTypeNames = JSON.parse(savedTypeNamesBuffer.toString()) as SObjectShortDescription[];
-
-    return savedTypeNames;
   }
 }
 

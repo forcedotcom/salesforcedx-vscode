@@ -22,7 +22,6 @@ const runtimePath = `~/java_home/real/jdk/${jdk}`;
 describe('Java Requirements Test', () => {
   let sandbox: SinonSandbox;
   let settingStub: SinonStub;
-  let pathExistsStub: SinonStub;
   let execFileStub: SinonStub;
 
   beforeEach(() => {
@@ -31,7 +30,7 @@ describe('Java Requirements Test', () => {
     sandbox.stub(vscode.workspace, 'getConfiguration').withArgs().returns({
       get: settingStub
     });
-    pathExistsStub = sandbox.stub(fs, 'existsSync').resolves(true);
+    sandbox.stub(fs, 'existsSync').resolves(true);
     execFileStub = sandbox.stub(cp, 'execFile');
   });
 

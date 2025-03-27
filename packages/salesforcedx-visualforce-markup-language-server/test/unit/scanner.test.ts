@@ -6,7 +6,7 @@
 'use strict';
 
 import * as assert from 'assert';
-import { createScanner, Scanner, ScannerState, TokenType } from '../../src/parser/htmlScanner';
+import { createScanner, ScannerState, TokenType } from '../../src/parser/htmlScanner';
 
 describe('HTML Scanner', () => {
   type Token = {

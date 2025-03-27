@@ -34,19 +34,12 @@ describe('Source Tracking Service', () => {
       onOrgChange: jest.fn(),
       getConnection: jest.fn()
     };
-    const updateTrackingFromRetrieveSpy = jest.fn();
     const getStatusMock = jest.fn();
-    const dummySourceTracking = {
-      updateTrackingFromRetrieve: updateTrackingFromRetrieveSpy
-    } as any;
 
-    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let getSourceTrackingForCurrentProjectMock: jest.SpyInstance;
 
     beforeEach(() => {
-      workspaceContextUtilGetInstanceSpy = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(mockWorkspaceContextUtil as any);
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil as any);
 
       getSourceTrackingForCurrentProjectMock = jest
         .spyOn(SourceTrackingService as any, 'getSourceTrackingForCurrentProject')

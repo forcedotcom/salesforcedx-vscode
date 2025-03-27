@@ -36,7 +36,7 @@ export class OrgDisplay {
     try {
       const orgInfo = JSON.parse(result).result as OrgInfo;
       return Promise.resolve(orgInfo);
-    } catch (e) {
+    } catch {
       return Promise.reject(result);
     }
   }

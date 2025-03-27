@@ -33,7 +33,7 @@ export class OrgCreateResultParser {
       if (stdout) {
         this.response = extractJson(stdout);
       }
-    } catch (e) {
+    } catch {
       const err = new Error('Error parsing org create result');
       err.name = 'OrgCreateParserFail';
       throw err;

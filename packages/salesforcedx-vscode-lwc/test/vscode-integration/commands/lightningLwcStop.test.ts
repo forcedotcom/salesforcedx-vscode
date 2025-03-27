@@ -6,14 +6,10 @@
  */
 
 import * as sinon from 'sinon';
-import * as vscode from 'vscode';
 import { lightningLwcStop } from '../../../src/commands/lightningLwcStop';
 import { DevServerService } from '../../../src/service/devServerService';
 import { nls } from '../../../src/messages';
-import {
-  ChannelService,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ChannelService, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('lightningLwcStop', () => {
   let sandbox: sinon.SinonSandbox;
@@ -30,17 +26,11 @@ describe('lightningLwcStop', () => {
 
     notificationServiceStubs = {};
 
-    appendLineStub = sandbox.stub(
-      ChannelService.prototype,
-      'appendLine' as any
-    );
+    appendLineStub = sandbox.stub(ChannelService.prototype, 'appendLine' as any);
     notificationServiceStubs.showSuccessfulExecutionStub = sandbox
       .stub(notificationService, 'showSuccessfulExecution')
       .returns(Promise.resolve());
-    notificationServiceStubs.showErrorMessageStub = sandbox.stub(
-      notificationService,
-      'showErrorMessage'
-    );
+    notificationServiceStubs.showErrorMessageStub = sandbox.stub(notificationService, 'showErrorMessage');
   });
 
   afterEach(() => {
@@ -67,14 +57,9 @@ describe('lightningLwcStop', () => {
     sinon.assert.notCalled(notificationServiceStubs.showErrorMessageStub);
 
     sinon.assert.calledOnce(appendLineStub);
-    sinon.assert.calledWith(
-      appendLineStub,
-      sinon.match(nls.localize('lightning_lwc_stop_in_progress'))
-    );
+    sinon.assert.calledWith(appendLineStub, sinon.match(nls.localize('lightning_lwc_stop_in_progress')));
 
-    sinon.assert.calledOnce(
-      notificationServiceStubs.showSuccessfulExecutionStub
-    );
+    sinon.assert.calledOnce(notificationServiceStubs.showSuccessfulExecutionStub);
     sinon.assert.calledWith(
       notificationServiceStubs.showSuccessfulExecutionStub,
       sinon.match(nls.localize('lightning_lwc_stop_text'))

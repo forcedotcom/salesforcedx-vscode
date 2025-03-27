@@ -64,7 +64,6 @@ export class MetadataCacheService {
   private static PROPERTIES_FOLDER = ['prop'];
   private static PROPERTIES_FILE = 'file-props.json';
 
-  private username: string;
   private cachePath: string;
   private componentPath?: string;
   private projectPath?: string;
@@ -72,7 +71,6 @@ export class MetadataCacheService {
   private sourceComponents: ComponentSet;
 
   public constructor(username: string) {
-    this.username = username;
     this.sourceComponents = new ComponentSet();
     this.cachePath = this.makeCachePath(username);
   }

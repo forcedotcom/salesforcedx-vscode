@@ -42,10 +42,8 @@ describe('test project paths', () => {
   const FAKE_PATH_TO_STATE_FOLDER = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
 
   describe('test stateFolder', () => {
-    let getRootWorkspacePathStub: jest.SpyInstance;
-
     beforeEach(() => {
-      getRootWorkspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(FAKE_WORKSPACE);
     });
 
     it('should return a path to the state folder if the project has a root workspace', () => {
@@ -59,11 +57,10 @@ describe('test project paths', () => {
     });
   });
   describe('test salesforceProjectConfig', () => {
-    let stateFolderStub: jest.SpyInstance;
     const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SFDX_CONFIG_FILE);
 
     beforeEach(() => {
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
 
     it('should be defined', () => {
@@ -99,10 +96,8 @@ describe('test project paths', () => {
   });
 
   describe('test toolsFolder', () => {
-    let stateFolderStub: jest.SpyInstance;
-
     beforeEach(() => {
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.toolsFolder).toBeDefined();
@@ -115,13 +110,11 @@ describe('test project paths', () => {
   });
 
   describe('test metadataFolder', () => {
-    let stateFolderStub: jest.SpyInstance;
-    let usernameStub: jest.SpyInstance;
     beforeEach(() => {
       FAKE_WORKSPACE_INSTANCE.username = 'fakeUsername';
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
 
-      usernameStub = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(FAKE_WORKSPACE_INSTANCE);
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(FAKE_WORKSPACE_INSTANCE);
     });
     it('should be defined', () => {
       expect(projectPaths.metadataFolder).toBeDefined();
@@ -135,10 +128,8 @@ describe('test project paths', () => {
   });
 
   describe('test apexTestResultsFolder', () => {
-    let stateFolderStub: jest.SpyInstance;
-
     beforeEach(() => {
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.apexTestResultsFolder).toBeDefined();
@@ -151,10 +142,8 @@ describe('test project paths', () => {
   });
 
   describe('test apexLanguageServerDatabase', () => {
-    let stateFolderStub: jest.SpyInstance;
-
     beforeEach(() => {
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.apexLanguageServerDatabase).toBeDefined();
@@ -167,10 +156,8 @@ describe('test project paths', () => {
   });
 
   describe('test lwcTestResultsFolder', () => {
-    let stateFolderStub: jest.SpyInstance;
-
     beforeEach(() => {
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.lwcTestResultsFolder).toBeDefined();
@@ -183,10 +170,8 @@ describe('test project paths', () => {
   });
 
   describe('test testResultsFolder', () => {
-    let stateFolderStub: jest.SpyInstance;
-
     beforeEach(() => {
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.testResultsFolder).toBeDefined();
@@ -199,10 +184,8 @@ describe('test project paths', () => {
   });
 
   describe('test debugLogsFolder', () => {
-    let stateFolderStub: jest.SpyInstance;
-
     beforeEach(() => {
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
+      jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
     it('should be defined', () => {
       expect(projectPaths.debugLogsFolder).toBeDefined();

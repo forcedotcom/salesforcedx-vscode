@@ -6,17 +6,8 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import {
-  instantiateContext,
-  MockTestOrgData,
-  restoreContext,
-  stubContext
-} from '@salesforce/core-bundle';
-import {
-  ContinueResponse,
-  LocalComponent,
-  SourceTrackingService
-} from '@salesforce/salesforcedx-utils-vscode';
+import { instantiateContext, MockTestOrgData, restoreContext, stubContext } from '@salesforce/core-bundle';
+import { ContinueResponse, LocalComponent, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   MetadataResolver,
@@ -32,7 +23,6 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { RetrieveDescriber } from '../../../../src/commands/retrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/retrieveMetadata/libraryRetrieveSourcePathExecutor';
 import { WorkspaceContext } from '../../../../src/context';
 import { SalesforcePackageDirectories } from '../../../../src/salesforceProject';
@@ -40,16 +30,6 @@ import { workspaceUtils } from '../../../../src/util';
 
 const $$ = instantiateContext();
 const sb = $$.SANDBOX;
-
-class TestDescriber implements RetrieveDescriber {
-  public buildMetadataArg(data?: LocalComponent[]): string {
-    return data ? `${data[0].type}:${data[0].fileName}` : 'TestType:Test1';
-  }
-
-  public gatherOutputLocations(): Promise<LocalComponent[]> {
-    throw new Error('Method not implemented.');
-  }
-}
 
 describe('Retrieve Component(s)', () => {
   describe('Library Executor', () => {
@@ -69,23 +49,13 @@ describe('Retrieve Component(s)', () => {
         contents: await testData.getConfig()
       });
       mockConnection = await testData.getConnection();
-      sb.stub(WorkspaceContext.prototype, 'getConnection').returns(
-        mockConnection
-      );
+      sb.stub(WorkspaceContext.prototype, 'getConnection').returns(mockConnection);
 
-      sb.stub(SalesforcePackageDirectories, 'getDefaultPackageDir').returns(
-        defaultPackageDir
-      );
-      sb.stub(
-        SalesforcePackageDirectories,
-        'getPackageDirectoryFullPaths'
-      ).resolves([
+      sb.stub(SalesforcePackageDirectories, 'getDefaultPackageDir').returns(defaultPackageDir);
+      sb.stub(SalesforcePackageDirectories, 'getPackageDirectoryFullPaths').resolves([
         path.join(workspaceUtils.getRootWorkspacePath(), defaultPackageDir)
       ]);
-      sb.stub(
-        SalesforcePackageDirectories,
-        'getPackageDirectoryPaths'
-      ).resolves([defaultPackageDir]);
+      sb.stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths').resolves([defaultPackageDir]);
 
       sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
@@ -181,31 +151,14 @@ describe('Retrieve Component(s)', () => {
       const type = registry.types.apexclass;
       const className = 'MyClass';
       const className2 = 'MyClass';
-      const apexClassPathOne = path.join(
-        String(type.directoryName),
-        `${className}.cls`
-      );
-      const apexClassPathTwo = path.join(
-        String(type.directoryName),
-        `${className2}.cls`
-      );
-      const apexClassXmlPathOne = path.join(
-        String(type.directoryName),
-        `${apexClassPathOne}-meta.xml`
-      );
-      const apexClassXmlPathTwo = path.join(
-        String(type.directoryName),
-        `${className2}.cls-meta.xml`
-      );
+      const apexClassPathOne = path.join(String(type.directoryName), `${className}.cls`);
+      const apexClassPathTwo = path.join(String(type.directoryName), `${className2}.cls`);
+      const apexClassXmlPathOne = path.join(String(type.directoryName), `${apexClassPathOne}-meta.xml`);
+      const apexClassXmlPathTwo = path.join(String(type.directoryName), `${className2}.cls-meta.xml`);
       const virtualTree = [
         {
           dirPath: 'classes',
-          children: [
-            `${className}.cls`,
-            `${className}.cls-meta.xml`,
-            `${className2}.cls`,
-            `${className2}.cls-meta.xml`
-          ]
+          children: [`${className}.cls`, `${className}.cls-meta.xml`, `${className2}.cls`, `${className2}.cls-meta.xml`]
         }
       ];
 

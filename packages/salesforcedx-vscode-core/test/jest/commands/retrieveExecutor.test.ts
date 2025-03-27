@@ -144,7 +144,6 @@ describe('Retrieve Executor', () => {
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
     expect(getSourceTrackingSpy).not.toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
-    const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
     expect(pollStatusMock).toHaveBeenCalled();
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });

@@ -27,7 +27,7 @@ describe('inputUtils Unit tests', () => {
 
     it('should call showInputBox once', async () => {
       showInputBoxStub.resolves(INPUT_VAL);
-      const trimmedString = await InputUtils.getFormattedString('', '');
+      await InputUtils.getFormattedString('', '');
       assert(showInputBoxStub.calledOnce);
     });
 
