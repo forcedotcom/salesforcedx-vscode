@@ -118,7 +118,7 @@ jobs:
         with:
           run: |
             npm run automation-tests
-          # working-directory: ${{ inputs.automationRepo }}
+          working-directory: ${{ inputs.automationRepo }}
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SPEC_FILES: ${{ inputs.testToRun }}
