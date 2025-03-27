@@ -7,8 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { parse, stringify } from 'yaml';
-import { Prompts } from '../schemas';
+import { stringify } from 'yaml';
 import { sourcePrompts } from './prompts';
 
 export const PROMPTS_DIR = path.join('.sfdx', 'oas_prompts');
