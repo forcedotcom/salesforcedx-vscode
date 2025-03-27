@@ -80,12 +80,11 @@ export const checkForDuplicateName = async (componentPath: string, newName: stri
   }
 };
 
-const getOnlyFileNames = (allFiles: string[]) => {
-  return allFiles.map(file => {
+const getOnlyFileNames = (allFiles: string[]) =>
+  allFiles.map(file => {
     const split = file?.split('.');
     return split?.length > 1 ? split[0] : '';
   });
-};
 
 const isDuplicate = async (componentPath: string, newName: string): Promise<boolean> => {
   // A LWC component can't share the same name as a Aura component
@@ -104,11 +103,15 @@ const isDuplicate = async (componentPath: string, newName: string): Promise<bool
   return allLwcComponents.includes(newName) || allAuraComponents.includes(newName);
 };
 
-const readFromDir = (dirPath: string): Promise<string[]> => {
-  return fs
+const readFromDir = (dirPath: string): Promise<string[]> =>
+  fs
     .readdir(dirPath)
     .then(files => files)
-    .catch(() => {
-      return [];
-    });
+    .catch(() => []);
+
+// for testing
+export const lwcAuraDuplicateComponentCheckersTesting = {
+  checkForDuplicateName,
+  checkForDuplicateInComponent,
+  isNameMatch
 };

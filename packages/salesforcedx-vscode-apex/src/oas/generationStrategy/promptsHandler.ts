@@ -13,9 +13,7 @@ import { sourcePrompts } from './prompts';
 export const PROMPTS_DIR = path.join('.sfdx', 'oas_prompts');
 export const PROMPTS_FILE = path.join(PROMPTS_DIR, 'prompts.yaml');
 
-const getPromptsFromSource = (): Record<string, any> => {
-  return sourcePrompts;
-};
+const getPromptsFromSource = (): Record<string, any> => sourcePrompts;
 
 export const ensurePromptsExist = (): void => {
   if (!fs.existsSync(PROMPTS_DIR)) {

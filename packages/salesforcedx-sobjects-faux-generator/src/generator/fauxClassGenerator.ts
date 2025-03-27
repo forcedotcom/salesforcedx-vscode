@@ -77,13 +77,11 @@ export class FauxClassGenerator implements SObjectGenerator {
     const className = definition.name;
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort((first, second): number => {
-      return first.name || first.type > second.name || second.type ? 1 : -1;
-    });
+    declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
 
-    declarations = declarations.filter((value, index, array): boolean => {
-      return !index || value.name !== array[index - 1].name;
-    });
+    declarations = declarations.filter(
+      (value, index, array): boolean => !index || value.name !== array[index - 1].name
+    );
 
     const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
     const declarationLines = declarations.map(FauxClassGenerator.fieldDeclToString).join(`${EOL}`);

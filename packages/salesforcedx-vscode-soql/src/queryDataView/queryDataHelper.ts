@@ -12,9 +12,7 @@ type ExtendedQueryData = QueryResult<JsonMap> & {
   columnData: ColumnData;
 };
 
-export const extendQueryData = (queryText: string, queryData: QueryResult<JsonMap>): ExtendedQueryData => {
-  return {
-    ...queryData,
-    columnData: new SelectAnalyzer(queryText).getColumnData()
-  };
-};
+export const extendQueryData = (queryText: string, queryData: QueryResult<JsonMap>): ExtendedQueryData => ({
+  ...queryData,
+  columnData: new SelectAnalyzer(queryText).getColumnData()
+});

@@ -41,8 +41,8 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
   });
 };
 
-const checkJavaRuntime = async (): Promise<string> => {
-  return new Promise((resolve, reject) => {
+const checkJavaRuntime = async (): Promise<string> =>
+  new Promise((resolve, reject) => {
     let source: string;
     let javaHome: string | undefined = readJavaConfig();
 
@@ -80,16 +80,13 @@ const checkJavaRuntime = async (): Promise<string> => {
       }
     });
   });
-};
 
 const readJavaConfig = (): string => {
   const config = workspace.getConfiguration();
   return config.get<string>('salesforcedx-vscode-apex.java.home', '');
 };
 
-const isLocal = (javaHome: string): boolean => {
-  return !path.isAbsolute(javaHome);
-};
+const isLocal = (javaHome: string): boolean => !path.isAbsolute(javaHome);
 
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
   const cmdFile = path.join(javaHome, 'bin', 'java');

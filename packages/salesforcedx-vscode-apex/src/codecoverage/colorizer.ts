@@ -67,9 +67,7 @@ const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
   return testResult.codecoverage || testResult.coverage.coverage;
 };
 
-const isApexMetadata = (filePath: string): boolean => {
-  return IS_CLS_OR_TRIGGER.test(filePath);
-};
+const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);
 
 const getApexMemberName = (filePath: string): string => {
   if (isApexMetadata(filePath)) {

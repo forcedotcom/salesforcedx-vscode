@@ -51,17 +51,10 @@ export const repeat = (value: string, count: number): string => {
   return s;
 };
 
-export const isWhitespaceOnly = (str: string): boolean => {
-  return /^\s*$/.test(str);
-};
+export const isWhitespaceOnly = (str: string): boolean => /^\s*$/.test(str);
 
-export const isEOL = (content: string, offset: number): boolean => {
-  return isNewlineCharacter(content.charCodeAt(offset));
-};
+export const isEOL = (content: string, offset: number): boolean => isNewlineCharacter(content.charCodeAt(offset));
 
 const CR = '\r'.charCodeAt(0);
 const NL = '\n'.charCodeAt(0);
-
-const isNewlineCharacter = (charCode: number): boolean => {
-  return charCode === CR || charCode === NL;
-};
+const isNewlineCharacter = (charCode: number): boolean => charCode === CR || charCode === NL;

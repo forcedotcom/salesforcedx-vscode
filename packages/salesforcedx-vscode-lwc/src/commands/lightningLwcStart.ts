@@ -79,9 +79,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     const executionName = execution.command.toString();
 
     const serverHandler: ServerHandler = {
-      stop: async () => {
-        return execution.killExecution('SIGTERM');
-      }
+      stop: async () => execution.killExecution('SIGTERM')
     };
     DevServerService.instance.registerServerHandler(serverHandler);
 
