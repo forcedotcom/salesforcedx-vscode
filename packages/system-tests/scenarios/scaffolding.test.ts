@@ -5,31 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// tslint:disable:no-unused-expression
 import { expect } from 'chai';
 import * as path from 'path';
 import { CommonActions } from '../src/areas/common';
 import { createWorkspace } from '../src/helpers/workspace';
-import {
-  SpectronApplication,
-  VSCODE_BINARY_PATH
-} from '../src/spectron/application';
+import { SpectronApplication, VSCODE_BINARY_PATH } from '../src/spectron/application';
 
 const TITLE = 'Scaffolding Commands Tests';
 
-const WORKSPACE_PATH = path.join(
-  createWorkspace(path.join(process.cwd(), 'assets', 'sfdx-simple')),
-  'sfdx-simple'
-);
+const WORKSPACE_PATH = path.join(createWorkspace(path.join(process.cwd(), 'assets', 'sfdx-simple')), 'sfdx-simple');
 
 describe('Scaffolding commands', () => {
   let app: SpectronApplication;
   let common: CommonActions;
 
   before(async () => {
-    app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [
-      WORKSPACE_PATH
-    ]);
+    app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [WORKSPACE_PATH]);
     common = new CommonActions(app);
 
     await app.start();
@@ -114,9 +105,7 @@ describe('Scaffolding commands', () => {
     await app.waitUI();
 
     // Check that the new apex class is opened in a new tab
-    const visualforceComponentTab = await common.getTab(
-      `${fileName}.component`
-    );
+    const visualforceComponentTab = await common.getTab(`${fileName}.component`);
     expect(visualforceComponentTab).to.be.not.undefined;
     if (visualforceComponentTab) {
       await common.closeTab();

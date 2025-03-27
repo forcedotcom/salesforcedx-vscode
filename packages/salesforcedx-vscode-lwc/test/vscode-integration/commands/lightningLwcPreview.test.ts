@@ -192,9 +192,7 @@ describe('lightningLwcPreview - lwcPreview ', () => {
   }
 
   class MockWorkspace implements vscode.WorkspaceConfiguration {
-    // tslint:disable-next-line:member-access
     shouldRemember = false;
-    // tslint:disable-next-line:member-access
     loglevel = defaultLogLevel;
 
     constructor(shouldRemember: boolean, loglevel?: string) {

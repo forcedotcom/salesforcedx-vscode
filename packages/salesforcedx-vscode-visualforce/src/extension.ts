@@ -39,7 +39,6 @@ import { activateTagClosing } from './tagClosing';
 
 import { telemetryService } from './telemetry';
 
-// tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
   export const type: RequestType<TextDocumentPositionParams, string, any, any> = new RequestType('html/tag');
 }

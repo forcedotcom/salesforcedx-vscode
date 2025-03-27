@@ -5,16 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// tslint:disable:no-unused-expression
 import * as util from '@salesforce/salesforcedx-test-utils-vscode/out/src/orgUtils';
 import { expect } from 'chai';
 import * as path from 'path';
 import { CommonActions } from '../src/areas/common';
 import { removeWorkspace } from '../src/helpers/workspace';
-import {
-  SpectronApplication,
-  VSCODE_BINARY_PATH
-} from '../src/spectron/application';
+import { SpectronApplication, VSCODE_BINARY_PATH } from '../src/spectron/application';
 
 const TITLE = 'force:soql:query UI commands Tests';
 const PROJECT_NAME = `project_${new Date().getTime()}`;
@@ -68,7 +64,7 @@ describe(TITLE, () => {
     await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
-    // tslint:disable-next-line:prefer-for-of
+
     for (let i = 0; i < consoleHtml.length; i++) {
       if (consoleHtml[i].indexOf('exit code') > 0) {
         expect(consoleHtml[i]).to.contain('exit code 0');
@@ -101,7 +97,7 @@ describe(TITLE, () => {
     await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
-    // tslint:disable-next-line:prefer-for-of
+
     for (let i = 0; i < consoleHtml.length; i++) {
       if (consoleHtml[i].indexOf('exit code') > 0) {
         expect(consoleHtml[i]).to.contain('exit code 0');
@@ -129,7 +125,7 @@ describe(TITLE, () => {
     await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
-    // tslint:disable-next-line:prefer-for-of
+
     for (let i = 0; i < consoleHtml.length; i++) {
       if (consoleHtml[i].indexOf('exit code') > 0) {
         expect(consoleHtml[i]).to.contain('exit code 0');

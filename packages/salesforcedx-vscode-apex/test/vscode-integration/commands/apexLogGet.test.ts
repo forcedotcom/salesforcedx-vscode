@@ -11,7 +11,6 @@ import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { ApexDebugLogObject, LogFileSelector } from '../../../src/commands/apexLogGet';
 
-// tslint:disable:no-unused-expression
 describe('Apex Log Get Logging', () => {
   const newerStartTime = new Date(Date.now());
   const olderStartTime = new Date(Date.now() - 10 * 60000);

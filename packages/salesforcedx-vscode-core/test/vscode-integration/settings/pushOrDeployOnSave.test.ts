@@ -16,8 +16,6 @@ import { DeployQueue, fileShouldNotBeDeployed, pathIsInPackageDirectory } from '
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
 import { telemetryService } from '../../../src/telemetry';
 
-/* tslint:disable:no-unused-expression */
-
 const sandbox = createSandbox();
 const OrgType = workspaceContextUtils.OrgType;
 
