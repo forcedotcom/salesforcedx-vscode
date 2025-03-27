@@ -235,9 +235,7 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   }
 };
 
-const imposeSlightDelay = (ms = 0) => {
-  return new Promise(r => setTimeout(r, ms));
-};
+const imposeSlightDelay = (ms = 0) => new Promise(r => setTimeout(r, ms));
 
 export const writeToDebuggerOutputWindow = (
   output: string,

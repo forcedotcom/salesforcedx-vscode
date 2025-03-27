@@ -162,9 +162,7 @@ describe('Extension Setup', () => {
     it('Should extract underlying debugger type', async () => {
       const session = {
         type: LIVESHARE_DEBUGGER_TYPE,
-        customRequest: async (command: string) => {
-          return Promise.resolve(DEBUGGER_TYPE);
-        }
+        customRequest: async (command: string) => Promise.resolve(DEBUGGER_TYPE)
       };
 
       const realType = await getDebuggerType(session as any as vscode.DebugSession);
