@@ -29,3 +29,4 @@ export {
 export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
 export { isSFContainerMode } from './env';
 export { ActivationTracker } from './activationTracker';
+export { fixupError } from './utils';
