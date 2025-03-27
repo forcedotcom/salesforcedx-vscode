@@ -68,7 +68,7 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
       const items = await invokeSoqlMiddleware(doc, position, [FAKE_APEX_COMPLETION_ITEM]);
 
       expect(items.length).to.equal(1);
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+
       expect(executeCommandSpy.called).to.be.false;
     });
   });
@@ -95,7 +95,6 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
         })
       ]);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(executeCommandSpy.called).to.be.true;
       expect(items.length).to.equal(1);
       expect(items[0]).to.equal(FAKE_SOQL_COMPLETION_ITEM);

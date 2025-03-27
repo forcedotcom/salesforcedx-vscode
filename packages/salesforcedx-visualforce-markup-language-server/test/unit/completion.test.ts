@@ -575,7 +575,6 @@ describe('HTML Completion', () => {
       });
 
       seenNamespaces.forEach((value, name) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         expect(value, `namespace ${name} was not seen`).to.be.true;
       });
     });

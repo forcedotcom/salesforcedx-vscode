@@ -23,7 +23,6 @@ import { workspaceContext } from '../../../src/context';
 // return undefined: used to get around strict checks
 const getUndefined = (): any => undefined;
 
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 describe('Apex Test Run - Code Action', () => {
   describe('Cached Test Class', () => {
     const testClass = 'MyTests';
