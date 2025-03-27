@@ -138,5 +138,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ inputs.testToRun }} == 'createOASDoc'
         with:
-          name: llm-logs
+          name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: ./${{ inputs.automationRepo }}/e2e-temp/TempProject-CreateOASDoc/llm-logs
