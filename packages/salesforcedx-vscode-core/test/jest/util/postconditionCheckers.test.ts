@@ -1,42 +1,41 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
-import { expect } from 'chai';
 import * as fs from 'fs';
 import { join } from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { OverwriteComponentPrompt } from '../../../src/commands/util';
-import { notificationService } from '../../../src/notifications';
 import { workspaceUtils } from '../../../src/util';
 
 describe('Postcondition Checkers', () => {
-  let env: SinonSandbox;
-
   describe('OverwriteComponentPrompt', () => {
-    let existsStub: SinonStub;
-    let modalStub: SinonStub;
-    let promptStub: SinonStub;
+    let existsSyncSpy: jest.SpyInstance;
+    let promptOverwriteSpy: jest.SpyInstance;
     const checker = new OverwriteComponentPrompt();
 
     beforeEach(() => {
-      env = createSandbox();
-      existsStub = env.stub(fs, 'existsSync');
-      modalStub = env.stub(notificationService, 'showWarningModal');
+      existsSyncSpy = jest.spyOn(fs, 'existsSync').mockImplementation(jest.fn());
+      promptOverwriteSpy = jest.spyOn(checker, 'promptOverwrite').mockImplementation(jest.fn());
     });
 
-    afterEach(() => env.restore());
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
 
     describe('Check Components Exist', () => {
-      beforeEach(() => {
-        promptStub = env.stub(checker, 'promptOverwrite');
-      });
+      const pathExists = (value: boolean, forComponent: LocalComponent, withExtension: string) => {
+        const path = join(
+          workspaceUtils.getRootWorkspacePath(),
+          `package/tests/${forComponent.fileName}${withExtension}`
+        );
+        existsSyncSpy.mockImplementation(inputPath => inputPath === path && value);
+      };
 
       it('Should prompt overwrite for LightningType components that exist', async () => {
-        existsStub.returns(false);
+        existsSyncSpy.mockReturnValue(true);
         const data = {
           fileName: 'Test1',
           outputdir: 'package/tests',
@@ -45,11 +44,11 @@ describe('Postcondition Checkers', () => {
         };
         pathExists(true, data, '/schema.json');
         await checker.check({ type: 'CONTINUE', data });
-        expect(promptStub.firstCall.args[0]).to.eql([data]);
+        expect(promptOverwriteSpy).toHaveBeenCalledWith([data]);
       });
 
-      it('Should prompt overwrite for LightningType components that does not exist', async () => {
-        existsStub.returns(false);
+      it('Should not prompt overwrite for LightningType components that do not exist', async () => {
+        existsSyncSpy.mockReturnValue(false);
         const data = {
           fileName: 'Test1',
           outputdir: 'package/tests',
@@ -57,16 +56,8 @@ describe('Postcondition Checkers', () => {
           suffix: 'json'
         };
         await checker.check({ type: 'CONTINUE', data });
-        expect(promptStub.firstCall).to.null;
+        expect(promptOverwriteSpy).not.toHaveBeenCalled();
       });
     });
-
-    const pathExists = (value: boolean, forComponent: LocalComponent, withExtension: string) => {
-      const path = join(
-        workspaceUtils.getRootWorkspacePath(),
-        `package/tests/${forComponent.fileName}${withExtension}`
-      );
-      existsStub.withArgs(path).returns(value);
-    };
   });
 });
