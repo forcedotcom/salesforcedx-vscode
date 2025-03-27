@@ -61,7 +61,7 @@ const addAppInsightsReporter = (
   reporters.push(new AppInsights(reporterName, version, aiKey, userId, true));
 };
 
-export const initializeO11yReporter = async (extName: string, o11yUploadEndpoint: string) => {
+export const initializeO11yReporter = async (extName: string, o11yUploadEndpoint: string): Promise<void> => {
   if (o11yReporterInstance) return;
 
   if (getO11yInitializationPromise()) {
