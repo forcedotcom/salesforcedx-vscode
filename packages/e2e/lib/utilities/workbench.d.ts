@@ -1,0 +1,13 @@
+import { WebDriver, Workbench } from 'vscode-extension-tester';
+import { Duration } from './miscellaneous';
+import { PredicateWithTimeout } from './predicates';
+export declare function getWorkbench(): Workbench;
+export declare function getBrowser(): WebDriver;
+export declare function reloadWindow(predicateOrWait?: PredicateWithTimeout | Duration): Promise<void>;
+export declare function closeCurrentEditor(): Promise<void>;
+export declare function closeAllEditors(): Promise<void>;
+export declare function enableAllExtensions(): Promise<void>;
+export declare function showExplorerView(): Promise<void>;
+export declare function zoom(zoomIn: 'In' | 'Out', zoomLevel: number, wait?: Duration): Promise<void>;
+export declare function zoomReset(wait?: Duration): Promise<void>;
+export declare function openNewTerminal(): Promise<void>;
