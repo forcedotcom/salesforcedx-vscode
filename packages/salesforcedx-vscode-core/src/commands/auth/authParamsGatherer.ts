@@ -55,9 +55,8 @@ const inputAccessToken = async (): Promise<string | undefined> => {
     placeHolder: nls.localize('parameter_gatherer_enter_session_id_placeholder'),
     password: true,
     ignoreFocusOut: true,
-    validateInput: text => {
-      return text && text.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message');
-    }
+    validateInput: text =>
+      text && text.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
   });
   return accessToken;
 };

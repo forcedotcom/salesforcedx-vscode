@@ -179,9 +179,7 @@ export const updateExceptionBreakpointCache = (selectedException: ExceptionBreak
   }
 };
 
-export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointItem> => {
-  return cachedExceptionBreakpoints;
-};
+export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointItem> => cachedExceptionBreakpoints;
 
 const registerFileWatchers = (): vscode.Disposable => {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');

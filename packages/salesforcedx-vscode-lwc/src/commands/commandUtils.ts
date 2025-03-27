@@ -19,6 +19,4 @@ export const showError = (e: Error, logName: string, commandName: string) => {
   channelService.showChannelOutput();
 };
 
-export const openBrowser = (url: string) => {
-  return env.openExternal(Uri.parse(url));
-};
+export const openBrowser = (url: string) => env.openExternal(Uri.parse(url));

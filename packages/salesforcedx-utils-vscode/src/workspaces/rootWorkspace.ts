@@ -8,14 +8,10 @@
 import { workspace, WorkspaceFolder } from 'vscode';
 
 // TODO: consolidate all of these into workspaceUtils
-export const hasRootWorkspace = (ws: typeof workspace = workspace) => {
-  return ws && ws.workspaceFolders && ws.workspaceFolders.length > 0;
-};
+export const hasRootWorkspace = (ws: typeof workspace = workspace) =>
+  ws && ws.workspaceFolders && ws.workspaceFolders.length > 0;
 
-export const getRootWorkspace = (): WorkspaceFolder => {
-  return hasRootWorkspace() ? workspace.workspaceFolders![0] : ({} as WorkspaceFolder);
-};
+export const getRootWorkspace = (): WorkspaceFolder =>
+  hasRootWorkspace() ? workspace.workspaceFolders![0] : ({} as WorkspaceFolder);
 
-export const getRootWorkspacePath = (): string => {
-  return getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '';
-};
+export const getRootWorkspacePath = (): string => (getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '');

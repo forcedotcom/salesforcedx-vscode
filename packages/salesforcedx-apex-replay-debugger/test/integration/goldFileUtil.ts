@@ -21,9 +21,7 @@ export class GoldFileUtil {
     this.dc = dc;
     this.goldFilePath = goldFilePath;
     this.golds = fs.readFileSync(this.goldFilePath, 'utf-8').split(this.delimiter);
-    this.golds = this.golds.map(gold => {
-      return gold.trim();
-    });
+    this.golds = this.golds.map(gold => gold.trim());
   }
 
   public close(): void {

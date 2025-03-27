@@ -21,18 +21,14 @@ import {
   TOOLS
 } from '../../../src/helpers/paths';
 
-jest.mock('@salesforce/core-bundle', () => {
-  return {
-    Global: {
-      SFDX_STATE_FOLDER: '.sfdx',
-      STATE_FOLDER: '.sfdx'
-    }
-  };
-});
+jest.mock('@salesforce/core-bundle', () => ({
+  Global: {
+    SFDX_STATE_FOLDER: '.sfdx',
+    STATE_FOLDER: '.sfdx'
+  }
+}));
 
-jest.mock('@salesforce/source-tracking-bundle', () => {
-  return {};
-});
+jest.mock('@salesforce/source-tracking-bundle', () => ({}));
 
 describe('test project paths', () => {
   const hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');

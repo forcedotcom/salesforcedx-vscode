@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const stripAnsiInJson = (str: string, hasJson: boolean): string => {
-  return hasJson ? str.replaceAll(ansiRegex(), '') : str;
-};
+export const stripAnsiInJson = (str: string, hasJson: boolean): string =>
+  hasJson ? str.replaceAll(ansiRegex(), '') : str;
 
 /*
 Copied from https://github.com/sindresorhus/strip-ansi/blob/master/index.js

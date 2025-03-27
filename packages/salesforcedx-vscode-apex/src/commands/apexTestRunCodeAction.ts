@@ -154,9 +154,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       return `${relativePath}/**/*.cls`;
     });
 
-    const findFilesPromises = patterns.map(pattern => {
-      return vscode.workspace.findFiles(pattern, '**/node_modules/**');
-    });
+    const findFilesPromises = patterns.map(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'));
 
     const filesWithDuplicates = (await Promise.all(findFilesPromises)).flat();
 

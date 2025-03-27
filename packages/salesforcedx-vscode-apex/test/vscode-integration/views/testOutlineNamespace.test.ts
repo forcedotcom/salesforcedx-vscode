@@ -77,13 +77,9 @@ describe('Test View with namespace', () => {
     beforeEach(() => {
       sb = createSandbox();
       readFolderStub = sb.stub(fs, 'readdirSync');
-      readFolderStub.callsFake(folderName => {
-        return ['test-result.json'];
-      });
+      readFolderStub.callsFake(folderName => ['test-result.json']);
       readFileStub = sb.stub(fs, 'readFileSync');
-      readFileStub.callsFake(fileName => {
-        return 'nonsense';
-      });
+      readFileStub.callsFake(fileName => 'nonsense');
       parseJSONStub = sb.stub(JSON, 'parse');
     });
 
@@ -92,9 +88,7 @@ describe('Test View with namespace', () => {
     });
 
     it('Should update single test with Pass result using Apex library', () => {
-      parseJSONStub.callsFake(() => {
-        return apexLibNsResult;
-      });
+      parseJSONStub.callsFake(() => apexLibNsResult);
       testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo.slice(0, 1));
       testOutline.updateTestResults('oneFilePass');
       const testGroupNode = testOutline.getHead().children[0] as ApexTestGroupNode;
@@ -104,9 +98,7 @@ describe('Test View with namespace', () => {
     });
 
     it('Should update tests and test groups with passing/failing results using Apex library', async () => {
-      parseJSONStub.callsFake(() => {
-        return apexLibMultipleNsResult;
-      });
+      parseJSONStub.callsFake(() => apexLibMultipleNsResult);
       testOutline = new ApexTestOutlineProvider(apexLibNsTestInfo);
       testOutline.updateTestResults('multipleFilesMixed');
 

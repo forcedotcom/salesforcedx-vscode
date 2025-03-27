@@ -357,9 +357,7 @@ export class ExternalServiceRegistrationManager {
    * @param filePath - The path to the XML file.
    * @returns The path to the YAML file.
    */
-  replaceXmlToYaml = (filePath: string): string => {
-    return filePath.replace('.externalServiceRegistration-meta.xml', '.yaml');
-  };
+  replaceXmlToYaml = (filePath: string): string => filePath.replace('.externalServiceRegistration-meta.xml', '.yaml');
 
   /**
    * Opens a diff editor for the original and new ESR files.

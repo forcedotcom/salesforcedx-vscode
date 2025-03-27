@@ -62,13 +62,11 @@ export class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> 
         { testSuites: [], apexClasses: [] }
       );
 
-    const fileItems = testSuites.map(testSuite => {
-      return {
-        label: basename(testSuite.toString(), '.testSuite-meta.xml'),
-        description: testSuite.fsPath,
-        type: TestType.Suite
-      };
-    });
+    const fileItems = testSuites.map(testSuite => ({
+      label: basename(testSuite.toString(), '.testSuite-meta.xml'),
+      description: testSuite.fsPath,
+      type: TestType.Suite
+    }));
 
     fileItems.push({
       label: nls.localize('apex_test_run_all_local_test_label'),
@@ -88,13 +86,11 @@ export class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> 
           const fileContent = readFileSync(apexClass.fsPath, 'utf-8');
           return IS_TEST_REG_EXP.test(fileContent);
         })
-        .map(apexClass => {
-          return {
-            label: basename(apexClass.toString(), APEX_CLASS_EXT),
-            description: apexClass.fsPath,
-            type: TestType.Class
-          };
-        })
+        .map(apexClass => ({
+          label: basename(apexClass.toString(), APEX_CLASS_EXT),
+          description: apexClass.fsPath,
+          type: TestType.Class
+        }))
     );
 
     const selection = (await window.showQuickPick(fileItems)) as ApexTestQuickPickItem;

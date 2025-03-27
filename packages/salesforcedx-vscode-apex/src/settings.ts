@@ -25,21 +25,14 @@ const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_PROP_ACCESS_MODIFIERS = ['global', 'public'];
 
-export const retrieveTestCodeCoverage = (): boolean => {
-  return vscode.workspace
-    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-    .get<boolean>('retrieve-test-code-coverage', false);
-};
+export const retrieveTestCodeCoverage = (): boolean =>
+  vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('retrieve-test-code-coverage', false);
 
-export const retrieveEnableSyncInitJobs = (): boolean => {
-  return vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
-};
+export const retrieveEnableSyncInitJobs = (): boolean =>
+  vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
 
-export const retrieveEnableApexLSErrorToTelemetry = (): boolean => {
-  return vscode.workspace
-    .getConfiguration()
-    .get<boolean>('salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry', false);
-};
+export const retrieveEnableApexLSErrorToTelemetry = (): boolean =>
+  vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry', false);
 
 // Configurations of the definitions of eligible apex classes/methods/properties
 // We want to lock the eligibility criteria for apexoas, so we do not expose the settings to customer
@@ -95,13 +88,9 @@ export const retrieveAAMethodAnnotations = (): string[] => {
 };
 
 // The REST-related annotations should not be edited by users
-export const retrieveAAClassRestAnnotations = (): string[] => {
-  return [...new Set([...APEX_ACTION_CLASS_REST_ANNOTATION])];
-};
+export const retrieveAAClassRestAnnotations = (): string[] => [...new Set([...APEX_ACTION_CLASS_REST_ANNOTATION])];
 
-export const retrieveAAMethodRestAnnotations = (): string[] => {
-  return [...new Set([...APEX_ACTION_METHOD_REST_ANNOTATION])];
-};
+export const retrieveAAMethodRestAnnotations = (): string[] => [...new Set([...APEX_ACTION_METHOD_REST_ANNOTATION])];
 
 export const retrieveGeneralClassAccessModifiers = (): string[] =>
   vscode.workspace

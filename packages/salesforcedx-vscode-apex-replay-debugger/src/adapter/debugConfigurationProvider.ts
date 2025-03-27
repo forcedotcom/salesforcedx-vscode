@@ -34,9 +34,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    return this.asyncDebugConfig(config).catch(async err => {
-      return vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined);
-    });
+    return this.asyncDebugConfig(config).catch(async err =>
+      vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined)
+    );
   }
 
   private async asyncDebugConfig(config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration | undefined> {

@@ -158,11 +158,9 @@ describe('componentSetUtils', () => {
   describe('getOrgApiVersion', () => {
     it("should validate that the Org's API version is returned", async () => {
       const workspaceContextFake = {
-        getConnection: async () => {
-          return {
-            getApiVersion: () => '60.0'
-          };
-        }
+        getConnection: async () => ({
+          getApiVersion: () => '60.0'
+        })
       };
       const getInstanceMock = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(workspaceContextFake as any);
 

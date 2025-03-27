@@ -99,17 +99,13 @@ const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {
     { key: 'command', label: COMMAND }
   ];
 
-  const rows: Row[] = orphanedProcesses.map(processInfo => {
-    return {
-      pid: processInfo.pid.toString(),
-      ppid: processInfo.ppid.toString(),
-      // split command into equal chunks no more than 70 characters long
-      command:
-        processInfo.command.length <= 70
-          ? processInfo.command
-          : (processInfo.command.match(/.{1,70}/g)?.join('\n') ?? '')
-    };
-  });
+  const rows: Row[] = orphanedProcesses.map(processInfo => ({
+    pid: processInfo.pid.toString(),
+    ppid: processInfo.ppid.toString(),
+    // split command into equal chunks no more than 70 characters long
+    command:
+      processInfo.command.length <= 70 ? processInfo.command : (processInfo.command.match(/.{1,70}/g)?.join('\n') ?? '')
+  }));
 
   const table: Table = new Table();
   const tableString = table.createTable(rows, columns);
@@ -125,13 +121,9 @@ const terminationConfirmation = async (orphanedCount: number): Promise<boolean> 
   return choice === YES;
 };
 
-const requestsTermination = (choice: string | undefined): boolean => {
-  return choice === TERMINATE_PROCESSES_BTN;
-};
+const requestsTermination = (choice: string | undefined): boolean => choice === TERMINATE_PROCESSES_BTN;
 
-const showProcesses = (choice: string): boolean => {
-  return choice === SHOW_PROCESSES_BTN;
-};
+const showProcesses = (choice: string): boolean => choice === SHOW_PROCESSES_BTN;
 
 const showProcessTerminated = (processDetail: ProcessDetail): void => {
   channelService.appendLine(nls.localize(TERMINATED_PROCESS, processDetail.pid));

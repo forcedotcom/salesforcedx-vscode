@@ -21,9 +21,7 @@ describe('workspaceContext', () => {
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
       getConnection: jest.fn().mockResolvedValue({
-        getAuthInfoFields: () => {
-          return { orgId: '000' };
-        }
+        getAuthInfoFields: () => ({ orgId: '000' })
       })
     };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;

@@ -89,8 +89,8 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-const killPromise = (processId: number, signal: string): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
+const killPromise = (processId: number, signal: string): Promise<void> =>
+  new Promise<void>((resolve, reject) => {
     treeKill(processId, signal, (err: Error | undefined) => {
       if (err) {
         reject(err);
@@ -98,4 +98,3 @@ const killPromise = (processId: number, signal: string): Promise<void> => {
       resolve();
     });
   });
-};

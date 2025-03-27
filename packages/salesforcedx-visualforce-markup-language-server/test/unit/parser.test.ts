@@ -8,24 +8,20 @@ import * as assert from 'assert';
 import { Node, parse } from '../../src/parser/htmlParser';
 
 describe('HTML Parser', () => {
-  const toJSON = (node: Node) => {
-    return {
-      tag: node.tag,
-      start: node.start,
-      end: node.end,
-      endTagStart: node.endTagStart,
-      closed: node.closed,
-      children: node.children.map(toJSON)
-    };
-  };
+  const toJSON = (node: Node) => ({
+    tag: node.tag,
+    start: node.start,
+    end: node.end,
+    endTagStart: node.endTagStart,
+    closed: node.closed,
+    children: node.children.map(toJSON)
+  });
 
-  const toJSONWithAttributes = (node: Node) => {
-    return {
-      tag: node.tag,
-      attributes: node.attributes,
-      children: node.children.map(toJSONWithAttributes)
-    };
-  };
+  const toJSONWithAttributes = (node: Node) => ({
+    tag: node.tag,
+    attributes: node.attributes,
+    children: node.children.map(toJSONWithAttributes)
+  });
 
   const assertDocument = (input: string, expected: any) => {
     const document = parse(input);

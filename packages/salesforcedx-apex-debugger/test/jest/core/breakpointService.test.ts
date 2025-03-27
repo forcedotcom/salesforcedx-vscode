@@ -25,30 +25,33 @@ describe('breakpointService Unit Tests.', () => {
     } as any;
 
     executeMock = jest.fn().mockReturnValue(undefined);
-    jest.spyOn(sfUtils, 'CliCommandExecutor').mockImplementation(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return {
-        execute: executeMock
-      } as any;
-    });
+    jest.spyOn(sfUtils, 'CliCommandExecutor').mockImplementation(
+      () =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ({
+          execute: executeMock
+        }) as any
+    );
 
-    jest.spyOn(sfUtils, 'SfCommandBuilder').mockImplementation(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return {
-        withArg: jest.fn().mockReturnThis(),
-        withFlag: jest.fn().mockReturnThis(),
-        withJson: jest.fn().mockReturnThis(),
-        build: jest.fn()
-      } as any;
-    });
+    jest.spyOn(sfUtils, 'SfCommandBuilder').mockImplementation(
+      () =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ({
+          withArg: jest.fn().mockReturnThis(),
+          withFlag: jest.fn().mockReturnThis(),
+          withJson: jest.fn().mockReturnThis(),
+          build: jest.fn()
+        }) as any
+    );
 
     getCmdResultMock = jest.fn();
-    jest.spyOn(sfUtils, 'CommandOutput').mockImplementation(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return {
-        getCmdResult: getCmdResultMock
-      } as any;
-    });
+    jest.spyOn(sfUtils, 'CommandOutput').mockImplementation(
+      () =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ({
+          getCmdResult: getCmdResultMock
+        }) as any
+    );
 
     breakpointService = new BreakpointService(fakeRequestService as any);
   });

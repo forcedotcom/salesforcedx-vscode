@@ -47,9 +47,8 @@ export abstract class GenerationStrategy {
     return Math.floor(prompt.length / 4);
   }
 
-  getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
-    return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
-  };
+  getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
+    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 
   async incrementCallCount(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access

@@ -28,9 +28,7 @@ jest.mock(
   { virtual: true }
 );
 
-const fixPath = (fsPath: string): string => {
-  return fsPath.split('/').join(sep);
-};
+const fixPath = (fsPath: string): string => fsPath.split('/').join(sep);
 
 describe('readExtensionHostLog', () => {
   it('should return log lines', async () => {

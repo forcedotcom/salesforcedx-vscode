@@ -114,11 +114,10 @@ const getActivationMode = (): string => {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 };
 
-const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
-  return Disposable.from(
+const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
+  Disposable.from(
     commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
     commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
     commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
     commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
-};
