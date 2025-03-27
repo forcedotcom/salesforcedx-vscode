@@ -108,10 +108,3 @@ const readFromDir = (dirPath: string): Promise<string[]> =>
     .readdir(dirPath)
     .then(files => files)
     .catch(() => []);
-
-// for testing
-export const lwcAuraDuplicateComponentCheckersTesting = {
-  checkForDuplicateName,
-  checkForDuplicateInComponent,
-  isNameMatch
-};
