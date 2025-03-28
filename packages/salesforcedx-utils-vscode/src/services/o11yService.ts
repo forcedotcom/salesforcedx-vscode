@@ -25,7 +25,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import axios from 'axios';
 import { loadO11yModules } from '../telemetry/utils/o11yLoader';
 
 export class O11yService {
@@ -173,23 +172,14 @@ export class O11yService {
     return this.postRequest(this.o11yUploadEndpoint, { base64Env: b64 }) as Promise<Response>;
   }
 
-  async postRequest(endpoint: string, body: any): Promise<any> {
-    try {
-      const response = await axios.post(endpoint, body, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      return response.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error('Failed to post request:', error.message);
-        if (error.response) {
-          console.error(`Error Response Status: ${error.response.status}`);
-        }
-      } else {
-        console.error('Unknown error:', error);
-      }
+  postRequest(endpoint: string, body: any): Promise<any> {
+    return fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).catch(error => {
+      console.error('Post Request failed:', error);
       throw error;
-    }
+    });
   }
 }
