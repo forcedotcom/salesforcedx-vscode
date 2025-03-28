@@ -22,20 +22,16 @@ export class ProgressNotification {
         location: progressLocation || vscode.ProgressLocation.Notification,
         cancellable: true
       },
-      (progress, cancellationToken) => {
-        return new Promise<void>(resolve => {
+      (progress, cancellationToken) =>
+        new Promise<void>(resolve => {
           cancellationToken.onCancellationRequested(() => {
             token.cancel();
             return resolve();
           });
 
-          execution.processExitSubject.subscribe(() => {
-            return resolve();
-          });
+          execution.processExitSubject.subscribe(() => resolve());
 
-          execution.processErrorSubject.subscribe(() => {
-            return resolve();
-          });
+          execution.processErrorSubject.subscribe(() => resolve());
 
           if (progressReporter) {
             progressReporter.subscribe({
@@ -49,8 +45,7 @@ export class ProgressNotification {
               }
             });
           }
-        });
-      }
+        })
     );
   }
 }

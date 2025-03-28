@@ -53,13 +53,9 @@ export const launchApexReplayDebuggerWithCurrentFile = async () => {
   void notificationService.showErrorMessage(nls.localize('launch_apex_replay_debugger_unsupported_file'));
 };
 
-const isLogFile = (sourceUri: vscode.Uri): boolean => {
-  return fileExtensionsMatch(sourceUri, 'log');
-};
+const isLogFile = (sourceUri: vscode.Uri): boolean => fileExtensionsMatch(sourceUri, 'log');
 
-const isAnonymousApexFile = (sourceUri: vscode.Uri): boolean => {
-  return fileExtensionsMatch(sourceUri, 'apex');
-};
+const isAnonymousApexFile = (sourceUri: vscode.Uri): boolean => fileExtensionsMatch(sourceUri, 'apex');
 
 const launchReplayDebuggerLogFile = async (sourceUri: vscode.Uri) => {
   await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile', {

@@ -98,21 +98,15 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
     },
     getCurrentDirectory: () => '',
     getDefaultLibFileName: options => getDefaultLibFilePath(options),
-    readFile: (path: string, encoding?: string): string => {
-      return sys.readFile(path, encoding);
-    },
-    fileExists: (path: string): boolean => {
-      return sys.fileExists(path);
-    }
+    readFile: (path: string, encoding?: string): string => sys.readFile(path, encoding),
+    fileExists: (path: string): boolean => sys.fileExists(path)
   };
   const jsLanguageService = createLanguageService(host);
 
   let globalSettings: Settings = {};
 
   return {
-    getId: () => {
-      return 'javascript';
-    },
+    getId: () => 'javascript',
     configure: (options: any) => {
       globalSettings = options;
     },
@@ -120,13 +114,13 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
       updateCurrentTextDocument(document);
       const syntaxDiagnostics = jsLanguageService.getSyntacticDiagnostics(FILE_NAME);
       const semanticDiagnostics = jsLanguageService.getSemanticDiagnostics(FILE_NAME);
-      return syntaxDiagnostics.concat(semanticDiagnostics).map((diag): Diagnostic => {
-        return {
+      return syntaxDiagnostics.concat(semanticDiagnostics).map(
+        (diag): Diagnostic => ({
           range: convertRange(currentTextDocument, diag),
           severity: DiagnosticSeverity.Error,
           message: flattenDiagnosticMessageText(diag.messageText, '\n')
-        };
-      });
+        })
+      );
     },
     doComplete: (document: TextDocument, position: Position): CompletionList => {
       updateCurrentTextDocument(document);
@@ -143,22 +137,20 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
       );
       return {
         isIncomplete: false,
-        items: completions.entries.map(entry => {
-          return {
+        items: completions.entries.map(entry => ({
+          uri: document.uri,
+          position,
+          label: entry.name,
+          sortText: entry.sortText,
+          kind: convertKind(entry.kind),
+          textEdit: TextEdit.replace(replaceRange, entry.name),
+          data: {
+            // data used for resolving item details (see 'doResolve')
+            languageId: 'javascript',
             uri: document.uri,
-            position,
-            label: entry.name,
-            sortText: entry.sortText,
-            kind: convertKind(entry.kind),
-            textEdit: TextEdit.replace(replaceRange, entry.name),
-            data: {
-              // data used for resolving item details (see 'doResolve')
-              languageId: 'javascript',
-              uri: document.uri,
-              offset
-            }
-          };
-        })
+            offset
+          }
+        }))
       };
     },
     doResolve: (document: TextDocument, item: CompletionItem): CompletionItem => {
@@ -240,12 +232,10 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
 
       if (highlights?.length > 0) {
         // Only one file to search above so there should only be one result
-        return highlights[0].highlightSpans.map(entry => {
-          return {
-            range: convertRange(currentTextDocument, entry.textSpan),
-            kind: entry.kind === 'writtenReference' ? DocumentHighlightKind.Write : DocumentHighlightKind.Text
-          };
-        });
+        return highlights[0].highlightSpans.map(entry => ({
+          range: convertRange(currentTextDocument, entry.textSpan),
+          kind: entry.kind === 'writtenReference' ? DocumentHighlightKind.Write : DocumentHighlightKind.Text
+        }));
       }
       return null;
     },
@@ -290,12 +280,10 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
       if (definition) {
         return definition
           .filter(d => d.fileName === FILE_NAME)
-          .map(d => {
-            return {
-              uri: document.uri,
-              range: convertRange(currentTextDocument, d.textSpan)
-            };
-          });
+          .map(d => ({
+            uri: document.uri,
+            range: convertRange(currentTextDocument, d.textSpan)
+          }));
       }
       return null;
     },
@@ -305,12 +293,10 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
       if (references) {
         return references
           .filter(d => d.fileName === FILE_NAME)
-          .map(d => {
-            return {
-              uri: document.uri,
-              range: convertRange(currentTextDocument, d.textSpan)
-            };
-          });
+          .map(d => ({
+            uri: document.uri,
+            range: convertRange(currentTextDocument, d.textSpan)
+          }));
       }
       return null;
     },
@@ -438,47 +424,43 @@ const convertOptions = (
   options: FormattingOptions,
   formatSettings: any,
   initialIndentLevel: number
-): FormatCodeOptions => {
-  return {
-    ConvertTabsToSpaces: options.insertSpaces,
-    TabSize: options.tabSize,
-    IndentSize: options.tabSize,
-    IndentStyle: IndentStyle.Smart,
-    NewLineCharacter: '\n',
-    BaseIndentSize: options.tabSize * initialIndentLevel,
-    InsertSpaceAfterCommaDelimiter: Boolean(!formatSettings || formatSettings.insertSpaceAfterCommaDelimiter),
-    InsertSpaceAfterSemicolonInForStatements: Boolean(
-      !formatSettings || formatSettings.insertSpaceAfterSemicolonInForStatements
-    ),
-    InsertSpaceBeforeAndAfterBinaryOperators: Boolean(
-      !formatSettings || formatSettings.insertSpaceBeforeAndAfterBinaryOperators
-    ),
-    InsertSpaceAfterKeywordsInControlFlowStatements: Boolean(
-      !formatSettings || formatSettings.insertSpaceAfterKeywordsInControlFlowStatements
-    ),
-    InsertSpaceAfterFunctionKeywordForAnonymousFunctions: Boolean(
-      !formatSettings || formatSettings.insertSpaceAfterFunctionKeywordForAnonymousFunctions
-    ),
-    InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: Boolean(
-      formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis
-    ),
-    InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: Boolean(
-      formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets
-    ),
-    InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: Boolean(
-      formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces
-    ),
-    InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces: Boolean(
-      formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces
-    ),
-    PlaceOpenBraceOnNewLineForControlBlocks: Boolean(
-      formatSettings && formatSettings.placeOpenBraceOnNewLineForFunctions
-    ),
-    PlaceOpenBraceOnNewLineForFunctions: Boolean(
-      formatSettings && formatSettings.placeOpenBraceOnNewLineForControlBlocks
-    )
-  };
-};
+): FormatCodeOptions => ({
+  ConvertTabsToSpaces: options.insertSpaces,
+  TabSize: options.tabSize,
+  IndentSize: options.tabSize,
+  IndentStyle: IndentStyle.Smart,
+  NewLineCharacter: '\n',
+  BaseIndentSize: options.tabSize * initialIndentLevel,
+  InsertSpaceAfterCommaDelimiter: Boolean(!formatSettings || formatSettings.insertSpaceAfterCommaDelimiter),
+  InsertSpaceAfterSemicolonInForStatements: Boolean(
+    !formatSettings || formatSettings.insertSpaceAfterSemicolonInForStatements
+  ),
+  InsertSpaceBeforeAndAfterBinaryOperators: Boolean(
+    !formatSettings || formatSettings.insertSpaceBeforeAndAfterBinaryOperators
+  ),
+  InsertSpaceAfterKeywordsInControlFlowStatements: Boolean(
+    !formatSettings || formatSettings.insertSpaceAfterKeywordsInControlFlowStatements
+  ),
+  InsertSpaceAfterFunctionKeywordForAnonymousFunctions: Boolean(
+    !formatSettings || formatSettings.insertSpaceAfterFunctionKeywordForAnonymousFunctions
+  ),
+  InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: Boolean(
+    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis
+  ),
+  InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: Boolean(
+    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets
+  ),
+  InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: Boolean(
+    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces
+  ),
+  InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces: Boolean(
+    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces
+  ),
+  PlaceOpenBraceOnNewLineForControlBlocks: Boolean(
+    formatSettings && formatSettings.placeOpenBraceOnNewLineForFunctions
+  ),
+  PlaceOpenBraceOnNewLineForFunctions: Boolean(formatSettings && formatSettings.placeOpenBraceOnNewLineForControlBlocks)
+});
 
 const computeInitialIndent = (document: TextDocument, range: Range, options: FormattingOptions) => {
   const lineStart = document.offsetAt(Position.create(range.start.line, 0));

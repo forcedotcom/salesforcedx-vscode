@@ -12,16 +12,14 @@ import { languageClientUtils } from '../../../src/languageUtils';
 import { ClientStatus } from '../../../src/languageUtils/languageClientUtils';
 
 // Mock ApexLSPStatusBarItem class
-jest.mock('../../../src/apexLspStatusBarItem', () => {
-  return {
-    __esModule: true,
-    default: jest.fn().mockImplementation(() => ({
-      dispose: jest.fn(),
-      ready: jest.fn(),
-      error: jest.fn()
-    }))
-  };
-});
+jest.mock('../../../src/apexLspStatusBarItem', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
+    dispose: jest.fn(),
+    ready: jest.fn(),
+    error: jest.fn()
+  }))
+}));
 
 describe('Language Client Utils', () => {
   it('Should return correct initial status', () => {

@@ -186,6 +186,7 @@ export default [
           allowNullish: true
         }
       ],
+      'arrow-body-style': ['error', 'as-needed'],
       'arrow-parens': ['error', 'as-needed'],
       'comma-dangle': 'error',
       complexity: 'off',

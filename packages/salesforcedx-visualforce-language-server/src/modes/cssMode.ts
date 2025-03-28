@@ -20,9 +20,7 @@ export const getCSSMode = (documentRegions: LanguageModelCache<HTMLDocumentRegio
   );
 
   return {
-    getId: () => {
-      return 'css';
-    },
+    getId: () => 'css',
     configure: (options: any) => {
       cssLanguageService.configure(options && options.css);
     },

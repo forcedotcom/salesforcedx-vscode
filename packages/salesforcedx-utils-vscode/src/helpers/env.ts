@@ -5,6 +5,4 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const isSFContainerMode = (): boolean => {
-  return process.env.SF_CONTAINER_MODE ? true : false;
-};
+export const isSFContainerMode = (): boolean => (process.env.SF_CONTAINER_MODE ? true : false);

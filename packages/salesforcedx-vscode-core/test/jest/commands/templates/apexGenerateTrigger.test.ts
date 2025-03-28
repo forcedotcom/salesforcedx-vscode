@@ -43,11 +43,9 @@ describe('apexGenerateTrigger Unit Tests.', () => {
     runMock = jest.fn();
     // Note that the entire sfCommandlet module can not be mocked like the other modules b/c
     // there are multiple exports there that cause issues if not available.
-    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => {
-      return {
-        run: runMock
-      };
-    });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+      run: runMock
+    }));
   });
 
   it('Should be able to execute apexGenerateTrigger.', async () => {

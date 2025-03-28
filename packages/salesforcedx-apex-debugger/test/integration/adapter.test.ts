@@ -174,8 +174,8 @@ describe.skip('Interactive debugger adapter - integration', () => {
   });
 });
 
-const execApexNoWait = (apexExecFilePath: string, userName: string): CommandExecution => {
-  return new CliCommandExecutor(
+const execApexNoWait = (apexExecFilePath: string, userName: string): CommandExecution =>
+  new CliCommandExecutor(
     new SfCommandBuilder()
       .withArg('apex:run')
       .withFlag('--file', apexExecFilePath)
@@ -184,4 +184,3 @@ const execApexNoWait = (apexExecFilePath: string, userName: string): CommandExec
       .build(),
     { cwd: process.cwd() }
   ).execute();
-};
