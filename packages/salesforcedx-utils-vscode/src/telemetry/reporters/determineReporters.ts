@@ -20,6 +20,8 @@ export const setO11yInitializationPromise = (promise: Promise<void>) => {
   o11yInitializationPromise = promise;
 };
 
+// prettier-ignore
+// eslint-disable-next-line arrow-body-style
 export const getO11yInitializationPromise = (): Promise<void> | null => {
   return o11yInitializationPromise;
 };
