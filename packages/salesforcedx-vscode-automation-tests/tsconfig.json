@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "target": "es2022",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "outDir": "./lib", // Specify the output directory
+    "strict": true,
+    "skipLibCheck": true,
+    "sourceMap": true, // Enable source maps
+    "declaration": true // Enable declaration files
+  },
+  "include": ["test"],
+  "exclude": ["node_modules", "lib"]
+}

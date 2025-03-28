@@ -3,11 +3,6 @@ name: Apex End to End Tests
 on:
   workflow_dispatch:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
       createOASDoc:
         description: 'Create OAS Doc'
         required: false
@@ -50,11 +45,6 @@ on:
 
   workflow_call:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
       createOASDoc:
         description: 'Create OAS Doc'
         required: false
@@ -101,8 +91,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'createOASDoc.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -112,8 +100,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'apexLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -123,8 +109,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'apexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -135,8 +119,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'debugApexTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -146,8 +128,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'runApexTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -157,8 +137,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'trailApexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -171,7 +149,7 @@ jobs:
     with:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n-Create OAS Doc: ${{ needs.createOASDoc.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -185,7 +163,7 @@ jobs:
     with:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n-Create OAS Doc: ${{ needs.createOASDoc.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -199,7 +177,7 @@ jobs:
     with:
       title: 'Apex E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n-Create OAS Doc: ${{ needs.createOASDoc.result }}\n- Apex LSP: ${{ needs.apexLSP.result }}\n- Apex Replay Debugger: ${{ needs.apexReplayDebugger.result }}\n- Debug Apex Tests: ${{ needs.debugApexTests.result }}\n- Run Apex Tests: ${{ needs.runApexTests.result }}\n- Trail Apex Replay Debugger: ${{ needs.trailApexReplayDebugger.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'

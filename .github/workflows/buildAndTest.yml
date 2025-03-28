@@ -20,3 +20,5 @@ jobs:
     with:
       branch: ${{ inputs.branch }}
       label: ${{ inputs.label }}
+  e2e-tests:
+    uses: ./.github/workflows/runE2ETest.yml

@@ -63,6 +63,9 @@
     },
     {
       "path": "./.github/actions/check-feature-request"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-automation-tests"
     }
   ]
 }
