@@ -65,7 +65,7 @@
       "path": "./.github/actions/check-feature-request"
     },
     {
-      "path": "packages/e2e"
+      "path": "packages/salesforcedx-vscode-automation-tests"
     }
   ]
 }
