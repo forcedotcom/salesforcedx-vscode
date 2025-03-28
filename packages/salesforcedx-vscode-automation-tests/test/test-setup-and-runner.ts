@@ -34,7 +34,11 @@ class TestSetupAndRunner extends ExTester {
 
   public async runTests(): Promise<number> {
     const useExistingProject = EnvironmentSettings.getInstance().useExistingProject;
+    utilities.log(`this.spec: ${this.spec}`);
+    utilities.log(`EnvironmentSettings.getInstance().specFiles: ${EnvironmentSettings.getInstance().specFiles}`);
+    utilities.log(`useExistingProject: ${useExistingProject}`);
     const resources = useExistingProject ? [useExistingProject] : [];
+    utilities.log(`resources: ${useExistingProject}`);
     return super.runTests(this.spec || EnvironmentSettings.getInstance().specFiles, { resources });
   }
   public async installExtension(extension: string): Promise<void> {
