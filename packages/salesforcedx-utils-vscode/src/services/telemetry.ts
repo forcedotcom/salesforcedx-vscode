@@ -21,7 +21,7 @@ import {
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
-import { determineReporters } from '../telemetry/reporters/determineReporters';
+import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 import { UserService } from './userService';
@@ -102,10 +102,12 @@ export class TelemetryService implements TelemetryServiceInterface {
    * @param extensionContext extension context
    */
   public async initializeService(extensionContext: ExtensionContext): Promise<void> {
-    const { name, version, aiKey } = extensionContext.extension.packageJSON as {
+    const { name, version, aiKey, o11yUploadEndpoint, enableO11y } = extensionContext.extension.packageJSON as {
       name: string;
       version: string;
       aiKey: string;
+      o11yUploadEndpoint: string;
+      enableO11y: string;
     };
     if (!name) {
       console.log('Extension name is not defined in package.json');
@@ -138,6 +140,17 @@ export class TelemetryService implements TelemetryServiceInterface {
         reporterName: this.getTelemetryReporterName(),
         isDevMode: this.isDevMode
       };
+
+      const isO11yEnabled = typeof enableO11y === 'boolean' ? enableO11y : enableO11y?.toLowerCase() === 'true';
+
+      if (isO11yEnabled) {
+        if (!o11yUploadEndpoint || typeof o11yUploadEndpoint !== 'string') {
+          console.log('Invalid o11yUploadEndpoint: must be a non-empty string when enableO11y is true.');
+          return;
+        }
+
+        await initializeO11yReporter(reporterConfig.extName, o11yUploadEndpoint);
+      }
 
       const reporters = determineReporters(reporterConfig);
       this.reporters.push(...reporters);

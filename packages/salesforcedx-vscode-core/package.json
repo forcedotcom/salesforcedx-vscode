@@ -35,6 +35,8 @@
     "@salesforce/vscode-service-provider": "1.4.0",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
+    "o11y": "250.12.0",
+    "o11y_schema": "254.77.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
@@ -89,6 +91,8 @@
       "main": "dist/src/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
+        "o11y": "250.12.0",
+        "o11y_schema": "254.77.0",
         "shelljs": "0.8.5",
         "@salesforce/schemas": "1.9.0"
       },
