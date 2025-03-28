@@ -8,7 +8,7 @@ import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { BASE_EXTENSION, EXPANDED_EXTENSION, EXT_PACK_STATUS_EVENT_NAME } from '../constants';
 
-export enum EXT_PACK_TYPES {
+enum EXT_PACK_TYPES {
   BASE = 'BASE',
   EXPANDED = 'EXPANDED',
   BOTH = 'BOTH',

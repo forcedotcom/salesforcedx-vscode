@@ -57,4 +57,4 @@ export const isEOL = (content: string, offset: number): boolean => isNewlineChar
 
 const CR = '\r'.charCodeAt(0);
 const NL = '\n'.charCodeAt(0);
-export const isNewlineCharacter = (charCode: number): boolean => charCode === CR || charCode === NL;
+const isNewlineCharacter = (charCode: number): boolean => charCode === CR || charCode === NL;

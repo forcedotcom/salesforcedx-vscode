@@ -14,7 +14,7 @@ import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';
 import { getRootWorkspacePath, hasRootWorkspace } from '../workspaces';
 import { notificationService } from './index';
 
-export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
+class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
   public apply(item: typeof workspace): PredicateResponse {
     if (!hasRootWorkspace()) {
       return PredicateResponse.of(false, nls.localize('predicates_no_folder_opened_text'));
@@ -26,7 +26,7 @@ export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
   }
 }
 
-export const isSalesforceProjectOpened = new IsSalesforceProjectOpened();
+const isSalesforceProjectOpened = new IsSalesforceProjectOpened();
 
 export class SfWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {

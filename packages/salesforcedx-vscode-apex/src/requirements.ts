@@ -22,7 +22,7 @@ const findJavaHome = require('find-java-home');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
-export type RequirementsData = {
+type RequirementsData = {
   java_home: string;
   java_memory: number | null;
 };

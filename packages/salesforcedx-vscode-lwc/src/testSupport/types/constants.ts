@@ -7,10 +7,6 @@
 import { GlobPattern } from 'vscode';
 
 /**
- * SFDX Project JSON glob pattern
- */
-export const SFDX_PROJECT_JSON_GLOB_PATTERN: GlobPattern = '**/sfdx-project.json';
-/**
  * LWC Jest Test glob pattern
  */
 export const LWC_TEST_GLOB_PATTERN: GlobPattern = '**/{lwc,modules}/**/*.test.js';

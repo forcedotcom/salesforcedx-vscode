@@ -11,7 +11,7 @@ import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languag
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
-export type ItemDescription = {
+type ItemDescription = {
   label: string;
   documentation?: string;
   kind?: CompletionItemKind;

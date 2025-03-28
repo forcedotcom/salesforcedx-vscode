@@ -55,7 +55,7 @@ export const orgLogoutAll = async () => {
   await commandlet.run();
 };
 
-export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
+class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   constructor() {
     super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
   }

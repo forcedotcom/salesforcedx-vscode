@@ -35,7 +35,7 @@ const activationRecordRegExp =
 // 2024-01-16 15:18:17.014 [info] Extension host with pid 3574 started
 const sessionStartRecordRegExp = /.*?Extension host with pid\s?(?<pid>[0-9]+?)\s+?started/;
 
-export const isProcessAlive = (pid: string): boolean => {
+const isProcessAlive = (pid: string): boolean => {
   try {
     process.kill(parseInt(pid, 10), 0);
     return true; // Process is active
@@ -154,7 +154,7 @@ export const getExtensionHostLogActivationRecords = async (
  * @param extensionContext
  * @returns instance of ExtensionsInfo
  */
-export const getExtensionsInfo = async (extensionContext: ExtensionContext): Promise<ExtensionsInfo | undefined> => {
+const getExtensionsInfo = async (extensionContext: ExtensionContext): Promise<ExtensionsInfo | undefined> => {
   const activationRecords = await getExtensionHostLogActivationRecords(extensionContext);
   if (!activationRecords) {
     return undefined;
@@ -210,23 +210,4 @@ export const getExtensionInfo = async (
 
   // If the timeout is reached and the extension info is still not available, return undefined
   return undefined;
-};
-
-// Filter extensions that are part of the extension pack
-export const getSalesforceExtensions = () => {
-  // Hardcoded extension pack ID
-  const extensionPackId = 'salesforce.salesforcedx-vscode';
-  // Find the extension pack
-  const extensionPack = extensions.getExtension(extensionPackId);
-
-  if (!extensionPack) {
-    throw new Error(`Extension pack ${extensionPackId} not found`);
-  }
-
-  return extensions.all.filter(
-    ext =>
-      ext.id !== 'salesforce.salesforce-vscode-slds' &&
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      extensionPack.packageJSON.extensionPack.includes(ext.id)
-  );
 };

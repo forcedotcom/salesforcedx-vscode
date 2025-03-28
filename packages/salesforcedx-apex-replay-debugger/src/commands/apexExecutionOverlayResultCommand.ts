@@ -38,7 +38,7 @@ export type ApexExecutionOverlayResultCommandSuccess = {
   Namespace: string;
 };
 
-export type HeapDump = {
+type HeapDump = {
   className: string;
   extents: HeapDumpExtents[];
   heapDumpDate: Date;
@@ -54,12 +54,12 @@ export type HeapDumpExtents = {
   typeName: string;
 };
 
-export type HeapDumpCollectionTypeDefinition = {
+type HeapDumpCollectionTypeDefinition = {
   name: string;
   type: string;
 };
 
-export type HeapDumpExtent = {
+type HeapDumpExtent = {
   address: string;
   size: number;
   isStatic: boolean;
@@ -74,17 +74,17 @@ export type HeapDumpExtentValue = {
   entry?: HeapDumpExtentValueEntry[];
 };
 
-export type HeapDumpExtentValueEntry = {
+type HeapDumpExtentValueEntry = {
   keyDisplayValue: string;
   value: HeapDumpExtentValue;
 };
 
-export type HeapDumpApexResult = {
+type HeapDumpApexResult = {
   apexError: string | null;
   apexExecutionResult: HeapDumpApexExecutionResult | null;
 };
 
-export type HeapDumpApexExecutionResult = {
+type HeapDumpApexExecutionResult = {
   column: number;
   compileProblem: string | null;
   compiled: boolean;
@@ -95,13 +95,13 @@ export type HeapDumpApexExecutionResult = {
 };
 
 // If the queryError is returned then the queryMetadata and queryResult will both be null.
-export type HeapDumpSOQLResult = {
+type HeapDumpSOQLResult = {
   queryError: string | null;
   queryMetadata: HeapDumpSOQLResultQueryMetadata | null;
   queryResult: HeapDumpSOQLResultQueryResult[] | null;
 };
 
-export type HeapDumpSOQLResultQueryMetadata = {
+type HeapDumpSOQLResultQueryMetadata = {
   columnMetadata: HeapDumpSOQLResultColumnMetadata[];
   entityName: string;
   groupBy: boolean;
@@ -109,7 +109,7 @@ export type HeapDumpSOQLResultQueryMetadata = {
   keyPrefix: string;
 };
 
-export type HeapDumpSOQLResultColumnMetadata = {
+type HeapDumpSOQLResultColumnMetadata = {
   aggregate: boolean;
   apexType: string;
   booleanType: boolean;
@@ -130,12 +130,12 @@ export type HeapDumpSOQLResultColumnMetadata = {
 // through the HeapDumpSOQLResult.queryResult['Id'|'Name'|'AccountNumber'].
 // The field name strings would be accessed through the ColumnMetadata returned
 // with the query.
-export type HeapDumpSOQLResultQueryResult = {
+type HeapDumpSOQLResultQueryResult = {
   attributes: Attributes;
   [fields: string]: any;
 };
 
-export type Attributes = {
+type Attributes = {
   type: string;
   url: string;
 };

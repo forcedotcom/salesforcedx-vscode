@@ -25,7 +25,7 @@ class DataQueryExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
+class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
     const editor = await vscode.window.activeTextEditor;
 
@@ -75,12 +75,12 @@ export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInput
   }
 }
 
-export type QueryAndApiInputs = {
+type QueryAndApiInputs = {
   query: string;
   api: ApiType;
 };
 
-export enum ApiType {
+enum ApiType {
   REST,
   Tooling
 }

@@ -44,10 +44,6 @@ export type Settings = {
   javascript?: any;
 };
 
-export type SettingProvider = {
-  getDocumentSettings(textDocument: TextDocument): Thenable<Settings>;
-};
-
 export type LanguageMode = {
   configure?: (options: Settings) => void;
   doValidation?: (document: TextDocument, settings?: Settings) => Diagnostic[];
@@ -79,7 +75,7 @@ export type LanguageModes = {
   dispose(): void;
 };
 
-export type LanguageModeRange = Range & {
+type LanguageModeRange = Range & {
   mode: LanguageMode;
   attributeValue?: boolean;
 };

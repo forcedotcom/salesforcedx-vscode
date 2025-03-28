@@ -34,13 +34,13 @@ export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndIns
   }
 }
 
-export type PackageIdAndInstallationKey = PackageID & InstallationKey;
+type PackageIdAndInstallationKey = PackageID & InstallationKey;
 
-export type PackageID = {
+type PackageID = {
   packageId: string;
 };
 
-export type InstallationKey = {
+type InstallationKey = {
   installationKey: string;
 };
 
