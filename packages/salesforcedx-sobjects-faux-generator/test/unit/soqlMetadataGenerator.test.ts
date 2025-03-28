@@ -7,7 +7,6 @@
 
 import * as chai from 'chai';
 import * as fs from 'fs';
-import { userInfo } from 'os';
 import { join } from 'path';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectShortDescription } from '../../src/describe';
@@ -26,11 +25,6 @@ describe('SOQL metadata files generator', () => {
   const cleanupMetadata = () => {
     fs.rmSync(standardFolder, { recursive: true, force: true });
   };
-
-  const username = userInfo().username;
-  const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
-  const standardFolderExists = fs.existsSync(standardFolder);
-  const customFolderExists = fs.existsSync(standardFolder);
 
   beforeEach(() => {
     cleanupMetadata();

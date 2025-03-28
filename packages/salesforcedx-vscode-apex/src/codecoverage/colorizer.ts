@@ -24,7 +24,7 @@ export const getLineRange = (document: TextDocument, lineNumber: number): Range 
   try {
     adjustedLineNumber = lineNumber - 1;
     firstLine = document.lineAt(adjustedLineNumber);
-  } catch (e) {
+  } catch {
     throw new Error(nls.localize('colorizer_out_of_sync_code_coverage_data'));
   }
 
@@ -73,9 +73,7 @@ const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
   return testResult.codecoverage || testResult.coverage.coverage;
 };
 
-const isApexMetadata = (filePath: string): boolean => {
-  return IS_CLS_OR_TRIGGER.test(filePath);
-};
+const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);
 
 const getApexMemberName = (filePath: string): string => {
   if (isApexMetadata(filePath)) {

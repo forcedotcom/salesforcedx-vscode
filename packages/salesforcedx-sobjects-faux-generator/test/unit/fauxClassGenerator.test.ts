@@ -23,9 +23,7 @@ describe('SObject faux class generator', () => {
   let classPath = '';
   const declGenerator = new DeclarationGenerator();
 
-  const getGenerator = (): FauxClassGenerator => {
-    return new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
-  };
+  const getGenerator = (): FauxClassGenerator => new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
 
   afterEach(() => {
     if (classPath) {

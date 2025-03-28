@@ -15,22 +15,16 @@ describe('List Metadata', () => {
     const metadataType = 'ApexClass';
     const targetOrg = 'test-username1@example.com';
     const listMetadataExec = new ListMetadataExecutor(metadataType, targetOrg);
-    const listMetadataCmd = listMetadataExec.build({});
-    expect(listMetadataCmd.toCommand()).to.equal(
-      `sf org:list:metadata -m ${metadataType} -o ${targetOrg} --json`
-    );
+    const listMetadataCmd = listMetadataExec.build();
+    expect(listMetadataCmd.toCommand()).to.equal(`sf org:list:metadata -m ${metadataType} -o ${targetOrg} --json`);
   });
 
   it('Should build list metadata command with folder arg', async () => {
     const metadataType = 'Report';
     const targetOrg = 'test-username1@example.com';
     const folder = 'SampleFolder';
-    const listMetadataExec = new ListMetadataExecutor(
-      metadataType,
-      targetOrg,
-      folder
-    );
-    const describeMetadataCmd = listMetadataExec.build({});
+    const listMetadataExec = new ListMetadataExecutor(metadataType, folder);
+    const describeMetadataCmd = listMetadataExec.build();
     expect(describeMetadataCmd.toCommand()).to.equal(
       `sf org:list:metadata -m ${metadataType} -o ${targetOrg} --json --folder ${folder}`
     );
@@ -39,14 +33,11 @@ describe('List Metadata', () => {
   it('Should write a file with metadata list output', async () => {
     const outputFolder = '/test/folder/';
     const metadataType = 'ApexClass';
-    const targetOrg = 'test-username1@example.com';
     const writeFileStub = sinon.stub(fs, 'writeFileSync');
     const resultData = '{status: 0}';
-    const cmdOutputStub = sinon
-      .stub(CommandOutput.prototype, 'getCmdResult')
-      .returns(resultData);
+    const cmdOutputStub = sinon.stub(CommandOutput.prototype, 'getCmdResult').returns(resultData);
     const execStub = sinon.stub(ListMetadataExecutor.prototype, 'execute');
-    const result = await listMetadata(metadataType, targetOrg, outputFolder);
+    const result = await listMetadata(metadataType, outputFolder);
     expect(writeFileStub.calledOnce).to.equal(true);
     expect(result).to.equal(resultData);
     writeFileStub.restore();

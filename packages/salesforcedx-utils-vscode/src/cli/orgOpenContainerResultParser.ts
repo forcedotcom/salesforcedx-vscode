@@ -31,7 +31,7 @@ export class OrgOpenContainerResultParser {
     try {
       const sanitized = stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
       this.response = JSON.parse(sanitized);
-    } catch (e) {
+    } catch {
       const err = new Error('Error parsing org open result');
       err.name = 'OrgOpenContainerParserFail';
       throw err;

@@ -106,7 +106,7 @@ describe('Project Generate', () => {
 
     it('Should make one call to showInputBox', async () => {
       inputBoxStub.returns(undefined);
-      const response = await gatherer.gather();
+      await gatherer.gather();
       expect(inputBoxStub.calledOnce).to.be.true;
     });
 

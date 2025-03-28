@@ -33,9 +33,6 @@ import {
   SelectProjectName
 } from '../projectGenerate';
 import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
-// below uses require due to bundling restrictions
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const AdmZip = require('adm-zip');
 
 export type InstalledPackageInfo = {
   id: string;
@@ -140,16 +137,17 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
   public parsePackageInstalledListJson(packagesJson: string): InstalledPackageInfo[] {
     const packagesData = JSON.parse(packagesJson);
-    return packagesData.result.map((entry: any) => {
-      return {
-        id: entry.SubscriberPackageId,
-        name: entry.SubscriberPackageName,
-        namespace: entry.SubscriberPackageNamespace,
-        versionId: entry.SubscriberPackageVersionId,
-        versionName: entry.SubscriberPackageVersionName,
-        versionNumber: entry.SubscriberPackageVersionNumber
-      } as InstalledPackageInfo;
-    });
+    return packagesData.result.map(
+      (entry: any) =>
+        ({
+          id: entry.SubscriberPackageId,
+          name: entry.SubscriberPackageName,
+          namespace: entry.SubscriberPackageNamespace,
+          versionId: entry.SubscriberPackageVersionId,
+          versionName: entry.SubscriberPackageVersionName,
+          versionNumber: entry.SubscriberPackageVersionNumber
+        }) as InstalledPackageInfo
+    );
   }
 
   public async execute(response: ContinueResponse<IsvDebugBootstrapConfig>): Promise<void> {

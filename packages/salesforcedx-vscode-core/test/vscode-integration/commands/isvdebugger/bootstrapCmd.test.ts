@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -262,19 +261,6 @@ describe('ISV Debugging Project Bootstrap Command', () => {
     let executor: IsvDebugBootstrapExecutor;
     let executeCommandSpy: sinon.SinonStub;
     let vscodeCommandSpy: sinon.SinonStub;
-    const TEST_DATA_FOLDER = path.join(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      '..',
-      '..',
-      'test',
-      'vscode-integration',
-      'commands',
-      'isvdebugger',
-      'testdata'
-    );
 
     beforeEach(() => {
       executor = new IsvDebugBootstrapExecutor();

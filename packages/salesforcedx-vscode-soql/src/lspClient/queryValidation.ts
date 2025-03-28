@@ -16,10 +16,6 @@ export const init = (client: LanguageClient): LanguageClient => {
   return client;
 };
 
-// When bundled and run in a pure JS env the RequestTypes.RunQuery enum is not defined
-// so default to the string value here as a work around.
-const runQueryString = 'runQuery';
-
 const emptyQueryResults = { done: true, totalSize: 0, records: [] };
 export const afterStart = (client: LanguageClient): LanguageClient => {
   client.onRequest('runQuery', async (queryText: string) => {

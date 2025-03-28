@@ -4,17 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import { ConfigUtil, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
-import { execSync } from 'node:child_process';
-import { window } from 'vscode';
-import {
-  ENV_NODE_EXTRA_CA_CERTS,
-  ENV_SF_DISABLE_TELEMETRY,
-  ENV_SF_LOG_LEVEL,
-  SF_CLI_DOWNLOAD_LINK
-} from '../constants';
-import { nls } from '../messages';
+import { execSync } from 'child_process';
+import { ENV_NODE_EXTRA_CA_CERTS, ENV_SF_DISABLE_TELEMETRY, ENV_SF_LOG_LEVEL } from '../constants';
 import { salesforceCoreSettings } from '../settings';
 
 export const isCLIInstalled = () => {
@@ -26,11 +18,6 @@ export const isCLIInstalled = () => {
     console.error('An error happened while looking for sfdx cli', e);
     return false;
   }
-};
-
-export const showCLINotInstalledMessage = () => {
-  const showMessage = nls.localize('salesforce_cli_not_found', SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK);
-  void window.showWarningMessage(showMessage);
 };
 
 export const disableCLITelemetry = () => {

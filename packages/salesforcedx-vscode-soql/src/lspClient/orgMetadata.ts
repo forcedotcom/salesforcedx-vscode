@@ -9,7 +9,6 @@ import {
   CUSTOMOBJECTS_DIR,
   SObject,
   SObjectField,
-  SObjectShortDescription,
   SOQLMETADATA_DIR,
   STANDARDOBJECTS_DIR,
   toMinimalSObject
