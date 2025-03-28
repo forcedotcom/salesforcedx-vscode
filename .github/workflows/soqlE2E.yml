@@ -41,7 +41,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'soql.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
