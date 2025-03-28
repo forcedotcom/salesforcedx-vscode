@@ -9,7 +9,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "63.5.0"
+    "@salesforce/salesforcedx-utils-vscode": "63.6.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.3",
