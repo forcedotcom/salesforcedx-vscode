@@ -4,11 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import axios from 'axios';
 import { O11yService } from '../../../src/services/o11yService';
 import { loadO11yModules } from '../../../src/telemetry/utils/o11yLoader';
 
-jest.mock('axios');
 jest.mock('../../../src/telemetry/utils/o11yLoader', () => ({
   loadO11yModules: jest.fn()
 }));
@@ -116,31 +114,36 @@ describe('O11yService', () => {
   });
 
   test('should post request successfully', async () => {
-    (axios.post as jest.Mock).mockResolvedValue({ data: { success: true } });
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ success: true })
+    } as unknown as Response);
 
     const response = await o11yService.postRequest('http://test-endpoint', { key: 'value' });
 
-    expect(response).toEqual({ success: true });
-    expect(axios.post).toHaveBeenCalledWith('http://test-endpoint', { key: 'value' }, expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith('http://test-endpoint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'value' })
+    });
+
+    expect(response.ok).toBe(true);
   });
 
   test('should handle post request failure', async () => {
-    (axios.post as jest.Mock).mockRejectedValue({
-      message: 'Network Error',
-      response: { status: 500 }
+    const mockError = new Error('Network Error');
+    jest.spyOn(global, 'fetch').mockRejectedValue(mockError);
+    jest.spyOn(console, 'error').mockImplementation(() => {}); // Suppress console output
+
+    await expect(o11yService.postRequest('http://test-endpoint', { key: 'value' })).rejects.toThrow('Network Error');
+
+    expect(fetch).toHaveBeenCalledWith('http://test-endpoint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'value' })
     });
 
-    console.error = jest.fn();
-
-    await expect(o11yService.postRequest('http://test-endpoint', { key: 'value' })).rejects.toBeDefined();
-
-    expect(console.error).toHaveBeenCalledWith(
-      'Unknown error:',
-      expect.objectContaining({
-        message: 'Network Error',
-        response: expect.objectContaining({ status: 500 })
-      })
-    );
+    expect(console.error).toHaveBeenCalledWith('Post Request failed:', mockError);
   });
 
   test('should throw error if o11yUploadEndpoint is undefined', async () => {
