@@ -3,11 +3,6 @@ name: Deploy and Retrieve End to End Tests
 on:
   workflow_dispatch:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
       deployAndRetrieve:
         description: 'Deploy and Retrieve'
         required: false
@@ -45,11 +40,6 @@ on:
 
   workflow_call:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
       deployAndRetrieve:
         description: 'Deploy and Retrieve'
         required: false
@@ -91,8 +81,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'deployAndRetrieve.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -102,8 +90,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'manifestBuilder.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -113,8 +99,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'orgBrowser.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -124,8 +108,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'pushAndPull.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -135,8 +117,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'metadataDeployRetrieve.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -149,7 +129,7 @@ jobs:
     with:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -163,7 +143,7 @@ jobs:
     with:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -177,7 +157,7 @@ jobs:
     with:
       title: 'Deploy and Retrieve E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n- Deploy and Retrieve: ${{ needs.deployAndRetrieve.result }}\n- Manifest Builder: ${{ needs.manifestBuilder.result }}\n- Org Browser: ${{ needs.orgBrowser.result }}\n- Push and Pull: ${{ needs.pushAndPull.result }}\n- MD Deploy and Retrieve: ${{needs.mdDeployRetrieve.result}} '
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'

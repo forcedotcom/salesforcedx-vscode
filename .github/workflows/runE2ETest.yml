@@ -2,16 +2,6 @@ name: Run E2E Test
 on:
   workflow_call:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
-      automationRepo:
-        description: 'Set the repo to use for automation tests'
-        required: false
-        default: 'salesforcedx-vscode-automation-tests-redhat'
-        type: string
       testToRun:
         description: 'Run this E2E test'
         required: false
@@ -55,7 +45,7 @@ jobs:
           mv ./extensions/*/* ./extensions/
         working-directory: salesforcedx-vscode
         env:
-          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Display downloaded vsix files
         run: ls -R ./salesforcedx-vscode/extensions
       - name: Setup node
@@ -65,22 +55,15 @@ jobs:
           cache: npm
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
-            ${{ inputs.automationRepo }}/package-lock.json
       - name: Setup java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '11'
-      - name: Clone automation tests
-        uses: actions/checkout@v4
-        with:
-          repository: forcedotcom/${{ inputs.automationRepo }}
-          path: ${{ inputs.automationRepo }}
-          ref: ${{ inputs.automationBranch }}
       - name: Install Test Dependencies
         run: |
           npm install
-        working-directory: ${{ inputs.automationRepo }}
+        working-directory: salesforcedx-vscode
       - name: Install the Salesforce CLI
         run: npm install -g @salesforce/cli
       - name: Verify CLI
@@ -102,23 +85,12 @@ jobs:
       - name: Set THROTTLE_FACTOR for Windows
         if: matrix.os == 'windows-latest'
         run: echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
-      - name: Run test setup script
-        if: inputs.automationRepo == 'salesforcedx-vscode-automation-tests'
-        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
-        with:
-          run: |
-            npm run setup
-          working-directory: 'salesforcedx-vscode-automation-tests'
-        env:
-          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
-          ORG_ID: ${{ secrets.ORG_ID_E2E }}
       - name: Run headless test
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
         with:
           run: |
             npm run automation-tests
-          working-directory: ${{ inputs.automationRepo }}
+          working-directory: salesforcedx-vscode
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SPEC_FILES: ${{ inputs.testToRun }}
@@ -126,12 +98,6 @@ jobs:
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
           THROTTLE_FACTOR: ${{ env.THROTTLE_FACTOR }}
       - uses: actions/upload-artifact@v4
-        if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests'
-        with:
-          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./${{ inputs.automationRepo }}/screenshots
-      - uses: actions/upload-artifact@v4
-        if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests-redhat'
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: ./salesforcedx-vscode/extensions/screenshots
