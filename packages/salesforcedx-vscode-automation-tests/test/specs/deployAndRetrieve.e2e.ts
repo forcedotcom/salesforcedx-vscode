@@ -41,7 +41,7 @@ describe('Deploy and Retrieve', async () => {
     await utilities.createApexClass('MyClass', classText);
     const workbench = utilities.getWorkbench();
     const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-      'SFDX: Create Apex Class successfully ran',
+      /SFDX: Create Apex Class successfully ran/,
       utilities.Duration.TEN_MINUTES
     );
     expect(successNotificationWasFound).to.equal(true);
@@ -85,7 +85,7 @@ describe('Deploy and Retrieve', async () => {
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
     await utilities.getTextEditor(workbench, 'MyClass.cls');
-    await runAndValidateCommand('Deploy', 'to', 'ST');
+    await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass');
   });
 
   step('Deploy again (with no changes) - ST enabled', async () => {
@@ -95,7 +95,7 @@ describe('Deploy and Retrieve', async () => {
     await utilities.clearOutputView(utilities.Duration.seconds(2));
     await utilities.getTextEditor(workbench, 'MyClass.cls');
 
-    await runAndValidateCommand('Deploy', 'to', 'ST', 'Unchanged  ');
+    await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Unchanged  ');
   });
 
   step('Modify the file and deploy again - ST enabled', async () => {
@@ -110,7 +110,7 @@ describe('Deploy and Retrieve', async () => {
     await textEditor.save();
 
     // Deploy running SFDX: Deploy This Source to Org
-    await runAndValidateCommand('Deploy', 'to', 'ST', 'Changed  ');
+    await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Changed  ');
   });
 
   step('Retrieve with SFDX: Retrieve This Source from Org', async () => {
@@ -120,7 +120,7 @@ describe('Deploy and Retrieve', async () => {
     await utilities.clearOutputView(utilities.Duration.seconds(2));
     await utilities.getTextEditor(workbench, 'MyClass.cls');
 
-    await runAndValidateCommand('Retrieve', 'from', 'ST');
+    await utilities.runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
   });
 
   step('Modify the file and retrieve again', async () => {
@@ -136,7 +136,7 @@ describe('Deploy and Retrieve', async () => {
 
     // Retrieve running SFDX: Retrieve This Source from Org
 
-    await runAndValidateCommand('Retrieve', 'from', 'ST');
+    await utilities.runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
     // Retrieve operation will overwrite the file, hence the the comment will remain as before the modification
     const textAfterRetrieve = await textEditor.getText();
     expect(textAfterRetrieve).to.not.contain('modified comment');
@@ -165,7 +165,7 @@ describe('Deploy and Retrieve', async () => {
     await utilities.pause(utilities.Duration.seconds(5));
 
     // At this point there should be no conflicts since this is a new class.
-    await validateCommand('Deploy', 'to', 'on save');
+    await utilities.validateCommand('Deploy', 'to', 'on save', 'ApexClass', ['MyClass']);
   });
 
   step('Disable Source Tracking Setting', async () => {
@@ -191,7 +191,7 @@ describe('Deploy and Retrieve', async () => {
     await utilities.clearOutputView(utilities.Duration.seconds(2));
     await utilities.getTextEditor(workbench, 'MyClass.cls');
 
-    await runAndValidateCommand('Deploy', 'to', 'no-ST');
+    await utilities.runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass');
   });
 
   step('Deploy again (with no changes) - ST disabled', async () => {
@@ -201,7 +201,7 @@ describe('Deploy and Retrieve', async () => {
     await utilities.clearOutputView(utilities.Duration.seconds(2));
     await utilities.getTextEditor(workbench, 'MyClass.cls');
 
-    await runAndValidateCommand('Deploy', 'to', 'no-ST', 'Unchanged  ');
+    await utilities.runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Unchanged  ');
   });
 
   step('Modify the file and deploy again - ST disabled', async () => {
@@ -216,115 +216,73 @@ describe('Deploy and Retrieve', async () => {
     await textEditor.save();
 
     // Deploy running SFDX: Deploy This Source to Org
-    await runAndValidateCommand('Deploy', 'to', 'no-ST', 'Changed  ');
+    await utilities.runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
   });
 
   step('SFDX: Delete This from Project and Org', async () => {
-    if (process.platform !== 'linux') {
-      utilities.log(`Deploy and Retrieve - SFDX: Delete This from Project and Org`);
-      const workbench = utilities.getWorkbench();
-      await utilities.getTextEditor(workbench, 'MyClass.cls');
-      // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
-      await utilities.executeQuickPick(
-        'SFDX: Push Source to Default Org and Ignore Conflicts',
-        utilities.Duration.seconds(10)
-      );
-      // Clear the Output view first.
-      await utilities.clearOutputView();
+    utilities.log(`Deploy and Retrieve - SFDX: Delete This from Project and Org`);
+    const workbench = utilities.getWorkbench();
+    await utilities.getTextEditor(workbench, 'MyClass.cls');
+    // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
+    await utilities.executeQuickPick(
+      'SFDX: Push Source to Default Org and Ignore Conflicts',
+      utilities.Duration.seconds(10)
+    );
+    // Clear the Output view first.
+    await utilities.clearOutputView();
 
-      // clear notifications
-      await utilities.dismissAllNotifications();
+    // clear notifications
+    await utilities.dismissAllNotifications();
 
-      await utilities.executeQuickPick('SFDX: Delete This from Project and Org', utilities.Duration.seconds(2));
+    await utilities.getTextEditor(workbench, 'MyClass.cls');
+    await utilities.pause(utilities.Duration.seconds(1));
+    await utilities.executeQuickPick('SFDX: Delete This from Project and Org', utilities.Duration.seconds(2));
 
-      // Make sure we get a notification for the source delete
-      const notificationFound = await utilities.notificationIsPresentWithTimeout(
-        'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
-        utilities.Duration.ONE_MINUTE
-      );
+    // Make sure we get a notification for the source delete
+    const notificationFound = await utilities.notificationIsPresentWithTimeout(
+      /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
+      utilities.Duration.ONE_MINUTE
+    );
 
-      expect(notificationFound).to.equal(true);
+    expect(notificationFound).to.equal(true);
 
-      // Confirm deletion
-      const accepted = await utilities.acceptNotification(
-        'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
-        'Delete Source',
-        utilities.Duration.seconds(5)
-      );
-      expect(accepted).to.equal(true);
-      const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        'SFDX: Delete from Project and Org successfully ran',
-        utilities.Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
+    // Confirm deletion
+    const accepted = await utilities.acceptNotification(
+      'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+      'Delete Source',
+      utilities.Duration.seconds(5)
+    );
+    expect(accepted).to.equal(true);
+    const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+      /SFDX: Delete from Project and Org successfully ran/,
+      utilities.Duration.TEN_MINUTES
+    );
+    expect(successNotificationWasFound).to.equal(true);
 
-      // TODO: see how the test can accommodate the new output from CLI.
-      // Verify Output tab
-      const outputPanelText = await utilities.attemptToFindOutputPanelText(
-        'Salesforce CLI',
-        'Starting SFDX: Delete from Project and Org',
-        10
-      );
-      utilities.log('Output panel text is: ' + outputPanelText);
+    // TODO: see how the test can accommodate the new output from CLI.
+    // Verify Output tab
+    const outputPanelText = await utilities.attemptToFindOutputPanelText(
+      'Salesforce CLI',
+      'Starting SFDX: Delete from Project and Org',
+      10
+    );
+    utilities.log('Output panel text is: ' + outputPanelText);
 
-      const expectedTexts = [
-        '=== Deleted Source',
-        'MyClass',
-        'ApexClass',
-        `${path.join(pathToClass)}.cls`,
-        `${path.join(pathToClass)}.cls-meta.xml`,
-        'ended with exit code 0'
-      ];
+    const expectedTexts = [
+      '=== Deleted Source',
+      'MyClass',
+      'ApexClass',
+      `${path.join(pathToClass)}.cls`,
+      `${path.join(pathToClass)}.cls-meta.xml`,
+      'ended with exit code 0'
+    ];
 
-      expect(outputPanelText).to.not.be.undefined;
-      await utilities.verifyOutputPanelText(outputPanelText!, expectedTexts);
-    }
+    expect(outputPanelText).to.not.be.undefined;
+    await utilities.verifyOutputPanelText(outputPanelText!, expectedTexts);
   });
 
   after('Tear down and clean up the testing environment', async () => {
     utilities.log(`Deploy and Retrieve - Tear down and clean up the testing environment`);
     await testSetup?.tearDown();
   });
-
-  const runAndValidateCommand = async (
-    operation: string,
-    fromTo: string,
-    type: string,
-    prefix?: string
-  ): Promise<void> => {
-    utilities.log(`runAndValidateCommand()`);
-    await utilities.executeQuickPick(`SFDX: ${operation} This Source ${fromTo} Org`, utilities.Duration.seconds(5));
-
-    await validateCommand(operation, fromTo, type, prefix);
-  };
-  const validateCommand = async (
-    operation: string,
-    fromTo: string,
-    type: string, // Text to identify operation type (if it has source tracking enabled, disabled or if it was a deploy on save)
-    prefix: string = ''
-  ): Promise<void> => {
-    utilities.log(`validateCommand()`);
-    const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-      `SFDX: ${operation} This Source ${fromTo} Org successfully ran`,
-      utilities.Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
-
-    // Verify Output tab
-    const outputPanelText = await utilities.attemptToFindOutputPanelText(
-      'Salesforce CLI',
-      `Starting SFDX: ${operation} This Source ${fromTo}`,
-      10
-    );
-    utilities.log(`${operation} time ${type}: ` + (await utilities.getOperationTime(outputPanelText!)));
-    const expectedTexts = [
-      `${operation}ed Source`.replace('Retrieveed', 'Retrieved'),
-      `${prefix}MyClass    ApexClass  ${pathToClass}.cls`,
-      `${prefix}MyClass    ApexClass  ${pathToClass}.cls-meta.xml`,
-      `ended SFDX: ${operation} This Source ${fromTo} Org`
-    ];
-
-    expect(outputPanelText).to.not.be.undefined;
-    await utilities.verifyOutputPanelText(outputPanelText!, expectedTexts);
-  };
 });

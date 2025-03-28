@@ -42,14 +42,14 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
     let successPushNotificationWasFound;
     try {
       successPushNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        'SFDX: Push Source to Default Org and Ignore Conflicts successfully ran',
+        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
         utilities.Duration.TEN_MINUTES
       );
       expect(successPushNotificationWasFound).to.equal(true);
     } catch (error) {
       await utilities.getWorkbench().openNotificationsCenter();
       successPushNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        'SFDX: Push Source to Default Org and Ignore Conflicts successfully ran',
+        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
         utilities.Duration.ONE_MINUTE
       );
       expect(successPushNotificationWasFound).to.equal(true);
@@ -77,14 +77,14 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
     let successNotificationWasFound;
     try {
       successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        'SFDX: Run Apex Tests successfully ran',
+        /SFDX: Run Apex Tests successfully ran/,
         utilities.Duration.TEN_MINUTES
       );
       expect(successNotificationWasFound).to.equal(true);
     } catch (error) {
       await utilities.getWorkbench().openNotificationsCenter();
       successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        'SFDX: Run Apex Tests successfully ran',
+        /SFDX: Run Apex Tests successfully ran/,
         utilities.Duration.ONE_MINUTE
       );
       expect(successNotificationWasFound).to.equal(true);
@@ -138,7 +138,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
 
     // Look for the success notification that appears which says, "SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran".
     const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-      'SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran',
+      /SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran/,
       utilities.Duration.TEN_MINUTES
     );
     expect(successNotificationWasFound).to.equal(true);
@@ -166,14 +166,14 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
     let successNotificationWasFound;
     try {
       successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        'SFDX: Run Apex Tests successfully ran',
+        /SFDX: Run Apex Tests successfully ran/,
         utilities.Duration.TEN_MINUTES
       );
       expect(successNotificationWasFound).to.equal(true);
     } catch (error) {
       await utilities.getWorkbench().openNotificationsCenter();
       successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        'SFDX: Run Apex Tests successfully ran',
+        /SFDX: Run Apex Tests successfully ran/,
         utilities.Duration.ONE_MINUTE
       );
       expect(successNotificationWasFound).to.equal(true);
@@ -193,7 +193,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
     prompt = await utilities.executeQuickPick('SFDX: Get Apex Debug Logs', utilities.Duration.seconds(0));
 
     // Wait for the command to execute
-    await utilities.waitForNotificationToGoAway('Getting Apex debug logs', utilities.Duration.TEN_MINUTES);
+    await utilities.waitForNotificationToGoAway(/Getting Apex debug logs/, utilities.Duration.TEN_MINUTES);
     await utilities.pause(utilities.Duration.seconds(2));
     // Select a log file
     const quickPicks = await prompt.getQuickPicks();
@@ -202,7 +202,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
     await prompt.selectQuickPick('User User - ApexTestHandler');
 
     const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-      'SFDX: Get Apex Debug Logs successfully ran',
+      /SFDX: Get Apex Debug Logs successfully ran/,
       utilities.Duration.TEN_MINUTES
     );
     expect(successNotificationWasFound).to.equal(true);
@@ -260,14 +260,14 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
       let successPushNotificationWasFound;
       try {
         successPushNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-          'SFDX: Push Source to Default Org and Ignore Conflicts successfully ran',
+          /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
           utilities.Duration.TEN_MINUTES
         );
         expect(successPushNotificationWasFound).to.equal(true);
       } catch (error) {
         await utilities.getWorkbench().openNotificationsCenter();
         successPushNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-          'SFDX: Push Source to Default Org and Ignore Conflicts successfully ran',
+          /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
           utilities.Duration.ONE_MINUTE
         );
         expect(successPushNotificationWasFound).to.equal(true);
@@ -288,14 +288,14 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
       let successNotificationWasFound;
       try {
         successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-          'SFDX: Run Apex Tests successfully ran',
+          /SFDX: Run Apex Tests successfully ran/,
           utilities.Duration.TEN_MINUTES
         );
         expect(successNotificationWasFound).to.equal(true);
       } catch (error) {
         await utilities.getWorkbench().openNotificationsCenter();
         successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-          'SFDX: Run Apex Tests successfully ran',
+          /SFDX: Run Apex Tests successfully ran/,
           utilities.Duration.ONE_MINUTE
         );
         expect(successNotificationWasFound).to.equal(true);

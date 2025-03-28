@@ -78,14 +78,7 @@ describe('Org Browser', async () => {
       `}`
     ].join('\n');
     await utilities.createApexClass('MyClass', classText);
-    await utilities.executeQuickPick('SFDX: Deploy This Source to Org', utilities.Duration.seconds(5));
-
-    // Verify the deploy was successful
-    const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-      'SFDX: Deploy This Source to Org successfully ran',
-      utilities.Duration.FIVE_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Created  ');
 
     await utilities.closeCurrentEditor();
   });
@@ -118,11 +111,7 @@ describe('Org Browser', async () => {
     expect(modalDialog).to.not.be.undefined;
     await modalDialog.pushButton('Overwrite');
 
-    const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-      'SFDX: Retrieve This Source from Org successfully ran',
-      utilities.Duration.FIVE_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await utilities.validateCommand('Retrieve', 'from', 'ST', 'ApexClass', ['MyClass']);
   });
 
   step('Retrieve and Open Source', async () => {
@@ -142,11 +131,7 @@ describe('Org Browser', async () => {
     expect(modalDialog).to.not.be.undefined;
     await modalDialog.pushButton('Overwrite');
 
-    const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-      'SFDX: Retrieve This Source from Org successfully ran',
-      utilities.Duration.FIVE_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await utilities.validateCommand('Retrieve', 'from', 'ST', 'ApexClass', ['MyClass']);
 
     // Verify 'Retrieve and Open Source' took us to MyClass.cls
     const workbench = utilities.getWorkbench();

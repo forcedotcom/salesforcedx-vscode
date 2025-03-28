@@ -6,7 +6,7 @@
  */
 import { fail } from 'assert';
 import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
+import { step } from 'mocha-steps';
 import path from 'path';
 import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
 import { TestSetup } from '../testSetup';
@@ -111,7 +111,7 @@ describe('Debug LWC Tests', async () => {
     // Also verify that all tests pass
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      `PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js`,
       'Test Suites: 1 passed, 1 total',
       'Tests:       1 skipped, 1 passed, 2 total',
       'Snapshots:   0 total',
@@ -149,7 +149,7 @@ describe('Debug LWC Tests', async () => {
     // Also verify that all tests pass
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      `PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js`,
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
@@ -210,7 +210,7 @@ describe('Debug LWC Tests', async () => {
     // Also verify that all tests pass
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
+      `PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js`,
       'Test Suites: 1 passed, 1 total',
       'Tests:       1 skipped, 1 passed, 2 total',
       'Snapshots:   0 total',
@@ -241,7 +241,7 @@ describe('Debug LWC Tests', async () => {
     // Also verify that all tests pass
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
     const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
+      `PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js`,
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',

@@ -40,7 +40,7 @@ describe('metadata mdDeployRetrieve', async () => {
     utilities.log(`mdDeployRetrieve - Open and deploy MD v1`);
     await utilities.openFile(mdPath);
     textV1 = await utilities.attemptToFindTextEditorText(mdPath);
-    await runAndValidateCommand('Deploy', 'to', 'ST');
+    await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'CustomField', 'Account.Deploy_Test__c');
     await utilities.clearOutputView();
     await utilities.closeAllEditors(); // close editor to make sure editor is up to date
   });
@@ -51,14 +51,14 @@ describe('metadata mdDeployRetrieve', async () => {
     await utilities.openFile(mdPath);
     textV2 = await utilities.attemptToFindTextEditorText(mdPath);
     expect(textV1).not.to.equal(textV2); // MD file should be updated
-    await runAndValidateCommand('Deploy', 'to', 'ST');
+    await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'CustomField', 'Account.Deploy_Test__c');
     await utilities.clearOutputView();
   });
 
   step('Retrieve MD v2 and verify the text not changed', async () => {
     utilities.log(`mdDeployRetrieve - Retrieve MD v2 and verify the text not changed`);
     await utilities.openFile(mdPath);
-    await runAndValidateCommand('Retrieve', 'from', 'ST');
+    await utilities.runAndValidateCommand('Retrieve', 'from', 'ST', 'CustomField', 'Account.Deploy_Test__c');
     textV2AfterRetrieve = await utilities.attemptToFindTextEditorText(mdPath);
 
     expect(textV2AfterRetrieve).to.contain(textV2); // should be same
@@ -69,36 +69,4 @@ describe('metadata mdDeployRetrieve', async () => {
     await utilities.gitCheckout('main', testSetup.projectFolderPath);
     await testSetup?.tearDown();
   });
-
-  const runAndValidateCommand = async (operation: string, fromTo: string, type: string): Promise<void> => {
-    utilities.log(`runAndValidateCommand()`);
-    await utilities.executeQuickPick(`SFDX: ${operation} This Source ${fromTo} Org`, utilities.Duration.seconds(5));
-
-    await validateCommand(operation, fromTo, type);
-  };
-
-  const validateCommand = async (
-    operation: string,
-    fromTo: string,
-    type: string // Text to identify operation type (if it has source tracking enabled, disabled or if it was a deploy on save)
-  ): Promise<void> => {
-    utilities.log(`validateCommand()`);
-    const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-      `SFDX: ${operation} This Source ${fromTo} Org successfully ran`,
-      utilities.Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
-
-    // Verify Output tab
-    const outputPanelText = await utilities.attemptToFindOutputPanelText(
-      'Salesforce CLI',
-      `Starting SFDX: ${operation} This Source ${fromTo}`,
-      10
-    );
-    utilities.log(`${operation} time ${type}: ` + (await utilities.getOperationTime(outputPanelText!)));
-    expect(outputPanelText).to.not.be.undefined;
-    expect(outputPanelText).to.contain(`${operation}ed Source`.replace('Retrieveed', 'Retrieved'));
-    expect(outputPanelText).to.contain(`Account.Deploy_Test__c  CustomField`);
-    expect(outputPanelText).to.contain(`ended SFDX: ${operation} This Source ${fromTo} Org`);
-  };
 });

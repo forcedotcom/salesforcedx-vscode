@@ -10,7 +10,8 @@
     "lint": "eslint ./test --ext .ts",
     "compile": "tsc --project ./tsconfig.json",
     "prepare": "husky",
-    "extester": "extest --help"
+    "extester": "extest --help",
+    "reinstall": "git checkout -- package-lock.json && git clean -xfd && npm install"
   },
   "config": {
     "commitizen": {

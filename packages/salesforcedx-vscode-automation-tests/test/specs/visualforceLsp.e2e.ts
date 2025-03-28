@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
+import { step } from 'mocha-steps';
 import path from 'path';
-import { By, after } from 'vscode-extension-tester';
 import { TestSetup } from '../testSetup';
 import * as utilities from '../utilities/index';
+import { expect } from 'chai';
+import { By, after } from 'vscode-extension-tester';
 
 describe('Visualforce LSP', async () => {
   let testSetup: TestSetup;
