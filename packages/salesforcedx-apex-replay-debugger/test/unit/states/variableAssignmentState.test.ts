@@ -17,7 +17,6 @@ import {
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('Variable assignment event', () => {
   let getUriFromSignatureStub: sinon.SinonStub;
   let context: LogContext;

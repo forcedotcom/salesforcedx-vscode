@@ -133,11 +133,7 @@ class MultiLineStream {
   public advanceUntilChars(ch: number[]): boolean {
     while (this.position + ch.length <= this.source.length) {
       let i = 0;
-      for (
-        ;
-        i < ch.length && this.source.charCodeAt(this.position + i) === ch[i];
-        i++ // tslint:disable-next-line:no-empty
-      ) {}
+      for (; i < ch.length && this.source.charCodeAt(this.position + i) === ch[i]; i++) {}
       if (i === ch.length) {
         return true;
       }
@@ -169,7 +165,6 @@ const _RAN = '>'.charCodeAt(0);
 const _FSL = '/'.charCodeAt(0);
 const _EQS = '='.charCodeAt(0);
 const _DQO = '"'.charCodeAt(0);
-// tslint:disable-next-line:quotemark
 const _SQO = "'".charCodeAt(0);
 const _NWL = '\n'.charCodeAt(0);
 const _CAR = '\r'.charCodeAt(0);

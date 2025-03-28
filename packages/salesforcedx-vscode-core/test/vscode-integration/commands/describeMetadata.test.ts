@@ -8,19 +8,13 @@ import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
-import {
-  describeMetadata,
-  DescribeMetadataExecutor
-} from '../../../src/commands';
+import { describeMetadata, DescribeMetadataExecutor } from '../../../src/commands';
 
-// tslint:disable:no-unused-expression
 describe('Describe Metadata', () => {
   it('Should build describe metadata command', async () => {
     const describeMetadataExec = new DescribeMetadataExecutor();
     const describeMetadataCmd = describeMetadataExec.build({});
-    expect(describeMetadataCmd.toCommand()).to.equal(
-      'sf org:list:metadata-types --json'
-    );
+    expect(describeMetadataCmd.toCommand()).to.equal('sf org:list:metadata-types --json');
   });
 
   it('Should write a file with metadata describe output', async () => {
@@ -29,9 +23,7 @@ describe('Describe Metadata', () => {
 
     const outputFolder = './test/folder/';
     const resultData = '{status: 0}';
-    const cmdOutputStub = sinon
-      .stub(CommandOutput.prototype, 'getCmdResult')
-      .returns(resultData);
+    const cmdOutputStub = sinon.stub(CommandOutput.prototype, 'getCmdResult').returns(resultData);
 
     const result = await describeMetadata(outputFolder);
     expect(writeFileStub.calledOnce).to.equal(true);

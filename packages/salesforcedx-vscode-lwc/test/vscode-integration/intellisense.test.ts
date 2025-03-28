@@ -27,9 +27,7 @@ describe('LWC Intellisense Integration Tests', () => {
   let lwcExtension: Extension<any>;
 
   before(async () => {
-    lwcExtension = extensions.getExtension(
-      'salesforce.salesforcedx-vscode-lwc'
-    ) as Extension<any>;
+    lwcExtension = extensions.getExtension('salesforce.salesforcedx-vscode-lwc') as Extension<any>;
     await lwcExtension.activate();
   });
 
@@ -37,9 +35,8 @@ describe('LWC Intellisense Integration Tests', () => {
     expect(lwcExtension.isActive);
   });
 
-  describe('LWC JS Intellisense Test Suite', function() {
+  describe('LWC JS Intellisense Test Suite', function () {
     // Time taken to execute the command to fetch actualcompletion list, varies with different environment and system.
-    // tslint:disable-next-line:no-invalid-this
     this.timeout(10000);
     let doc: TextDocument;
     let editor: TextEditor;
@@ -47,13 +44,7 @@ describe('LWC Intellisense Integration Tests', () => {
     let startPosition: Position;
     let endPosition: Position;
     let selection: Selection;
-    const lwcDir = path.join(
-      workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'lwc'
-    );
+    const lwcDir = path.join(workspace.workspaceFolders![0].uri.fsPath, 'force-app', 'main', 'default', 'lwc');
     const docUri = Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
 
     beforeEach(async () => {
@@ -75,10 +66,7 @@ describe('LWC Intellisense Integration Tests', () => {
     it('LWC JS Module Import Intellisense', async () => {
       // We have to have some text or we'll just get generic completions
       text = "import {} from 'c";
-      endPosition = new Position(
-        startPosition.line,
-        startPosition.character + text.length
-      );
+      endPosition = new Position(startPosition.line, startPosition.character + text.length);
       await editor.edit(editBuilder => {
         editBuilder.insert(startPosition, text);
       });
@@ -97,10 +85,7 @@ describe('LWC Intellisense Integration Tests', () => {
 
     it('LWC JS @Salesforce Import Intellisense', async () => {
       text = "import {} from '@sales";
-      endPosition = new Position(
-        startPosition.line,
-        startPosition.character + text.length
-      );
+      endPosition = new Position(startPosition.line, startPosition.character + text.length);
       await editor.edit(editBuilder => {
         editBuilder.insert(startPosition, text);
       });
@@ -124,10 +109,7 @@ describe('LWC Intellisense Integration Tests', () => {
 
     it('LWC JS Lightning Import Intellisense', async () => {
       text = "import {} from 'li";
-      endPosition = new Position(
-        startPosition.line,
-        startPosition.character + text.length
-      );
+      endPosition = new Position(startPosition.line, startPosition.character + text.length);
       await editor.edit(editBuilder => {
         editBuilder.insert(startPosition, text);
       });
@@ -145,20 +127,14 @@ describe('LWC Intellisense Integration Tests', () => {
     });
   });
 
-  describe('LWC MarkUp Intellisense Test Suite', function() {
+  describe('LWC MarkUp Intellisense Test Suite', function () {
     let doc: TextDocument;
     let editor: TextEditor;
     let text: string;
     let startPosition: Position;
     let endPosition: Position;
     let selection: Selection;
-    const lwcDir = path.join(
-      workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'lwc'
-    );
+    const lwcDir = path.join(workspace.workspaceFolders![0].uri.fsPath, 'force-app', 'main', 'default', 'lwc');
     const docUri = Uri.file(path.join(lwcDir, 'hello', 'hello.html'));
 
     beforeEach(async () => {
@@ -180,10 +156,7 @@ describe('LWC Intellisense Integration Tests', () => {
      */
     it('LWC Markup Intellisense', async () => {
       text = '<c-';
-      endPosition = new Position(
-        startPosition.line,
-        startPosition.character + text.length
-      );
+      endPosition = new Position(startPosition.line, startPosition.character + text.length);
       await editor.edit(editBuilder => {
         editBuilder.insert(startPosition, text);
       });
@@ -207,17 +180,11 @@ describe('LWC Intellisense Integration Tests', () => {
   });
 });
 
-async function testCompletion(
-  docUri: Uri,
-  position: Position,
-  expectedCompletionList: CompletionItem[]
-) {
+async function testCompletion(docUri: Uri, position: Position, expectedCompletionList: CompletionItem[]) {
   // Simulate triggering a completion
-  const actualCompletionList = ((await commands.executeCommand(
-    'vscode.executeCompletionItemProvider',
-    docUri,
-    position
-  )) as CompletionList).items;
+  const actualCompletionList = (
+    (await commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position)) as CompletionList
+  ).items;
 
   actualCompletionList.sort();
   expectedCompletionList.sort();
@@ -230,10 +197,7 @@ async function testCompletion(
       return false;
     });
 
-    assert.isDefined(
-      actualItem,
-      "Couldn't find expected completion item '" + expectedItem.label + "'"
-    );
+    assert.isDefined(actualItem, "Couldn't find expected completion item '" + expectedItem.label + "'");
     assert.equal(
       actualItem!.label,
       expectedItem.label,
@@ -242,10 +206,7 @@ async function testCompletion(
     assert.equal(
       actualItem!.kind,
       expectedItem.kind,
-      "Expected completion item'" +
-        expectedItem.label +
-        "' to have type: " +
-        expectedItem.kind
+      "Expected completion item'" + expectedItem.label + "' to have type: " + expectedItem.kind
     );
   });
 }

@@ -10,7 +10,6 @@ import { WorkspaceFolder } from 'vscode';
 import { workspaceUtils } from '../../../src/util';
 import { stubWorkspace } from './rootWorkspace.test-util';
 
-// tslint:disable:no-unused-expression
 describe('RootWorkspace utils should', () => {
   const myFolder: WorkspaceFolder = {
     name: 'test',

@@ -30,7 +30,6 @@ import { workspaceUtils } from '../../../../src/util';
 
 const SFDX_SIMPLE_NUM_OF_DIRS = 16;
 
-// tslint:disable:no-unused-expression
 describe('Parameter Gatherers', () => {
   describe('EmptyParametersGatherer', () => {
     it('Should always return continue with empty object as data', async () => {

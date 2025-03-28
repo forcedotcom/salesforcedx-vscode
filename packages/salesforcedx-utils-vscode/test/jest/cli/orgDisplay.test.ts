@@ -83,7 +83,7 @@ describe('orgDisplay Unit Tests.', () => {
       (commandOutputMock.prototype.getCmdResult as any).mockResolvedValue(badJson);
 
       const orgDisplay = new OrgDisplay();
-      // tslint:disable-next-line:no-floating-promises
+
       expect(orgDisplay.getOrgInfo(fakeProjectPath)).rejects.toEqual(badJson);
     });
   });

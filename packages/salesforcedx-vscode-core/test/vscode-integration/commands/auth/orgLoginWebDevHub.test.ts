@@ -28,7 +28,6 @@ class TestOrgLoginWebDevHubExecutor extends OrgLoginWebDevHubExecutor {
   }
 }
 
-// tslint:disable:no-unused-expression
 describe('Org Login Web for Dev Hub', () => {
   it('Should build the org login web login command', async () => {
     const orgLoginWeb = new OrgLoginWebDevHubExecutor();

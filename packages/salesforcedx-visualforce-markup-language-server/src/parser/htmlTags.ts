@@ -18,8 +18,6 @@ BEGIN THIRD PARTY
  *  from or derived from HTML 5.1 W3C Working Draft (http://www.w3.org/TR/2015/WD-html51-20151008/.)"
  *--------------------------------------------------------------------------------------------*/
 
-// tslint:disable:quotemark
-
 import * as arrays from '../utils/arrays';
 import * as strings from '../utils/strings';
 

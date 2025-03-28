@@ -34,8 +34,6 @@ import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
 import { getJavascriptMode } from './javascriptMode';
 
-// tslint:disable:forin
-
 export { ColorInformation, ColorPresentation };
 
 export type Settings = {

@@ -175,7 +175,7 @@ export default [
         }
       ],
       '@typescript-eslint/typedef': 'off',
-      '@typescript-eslint/no-redundant-type-constituents': 'warn',
+      '@typescript-eslint/no-redundant-type-constituents': 'error',
       '@typescript-eslint/unified-signatures': 'error',
       '@typescript-eslint/restrict-template-expressions': [
         'warn',

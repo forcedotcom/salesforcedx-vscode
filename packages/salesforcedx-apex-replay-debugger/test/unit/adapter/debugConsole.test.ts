@@ -12,7 +12,6 @@ import * as sinon from 'sinon';
 import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 
-// tslint:disable:no-unused-expression
 describe('Debug console', () => {
   let sendEventSpy: sinon.SinonSpy;
   let adapter: MockApexReplayDebug;
