@@ -50,7 +50,7 @@ export class EnvironmentSettings {
     this._vscodeVersion = process.env.CODE_VERSION || this._vscodeVersion;
 
     if (process.env.SPEC_FILES) {
-      this._specFiles = ['lib/specs/' + process.env.SPEC_FILES];
+      this._specFiles = ['packages/salesforcedx-vscode-automation-tests/lib/specs/' + process.env.SPEC_FILES];
     }
 
     this._devHubAliasName = process.env.DEV_HUB_ALIAS_NAME || this._devHubAliasName;
