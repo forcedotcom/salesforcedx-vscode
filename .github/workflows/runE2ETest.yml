@@ -66,12 +66,6 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
-      # - name: Clone automation tests
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: forcedotcom/${{ inputs.automationRepo }}
-      #     path: ${{ inputs.automationRepo }}
-      #     ref: ${{ github.ref }}
       - name: Install Test Dependencies
         run: |
           npm install
@@ -113,7 +107,7 @@ jobs:
         with:
           run: |
             npm run automation-tests
-          working-directory: ${{ inputs.automationRepo }}
+          working-directory: ${{ github.ref }}
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SPEC_FILES: ${{ inputs.testToRun }}
