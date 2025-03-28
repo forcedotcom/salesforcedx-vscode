@@ -24,7 +24,6 @@ export const AURA_APP_EXTENSION = '.app';
 export const AURA_COMPONENT_EXTENSION = '.cmp';
 export const AURA_EVENT_EXTENSION = '.evt';
 export const AURA_INTERFACE_EXTENSION = '.intf';
-
 export const AURA_TYPE = 'auradefinitionbundle';
 
 export const LWC_DIRECTORY = 'lwc';
