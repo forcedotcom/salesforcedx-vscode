@@ -41,7 +41,7 @@ export enum DeployType {
   Push = 'push'
 }
 
-export const pushCommand: CommandParams = {
+const pushCommand: CommandParams = {
   command: 'project:deploy:start',
   description: {
     default: 'project_deploy_start_default_org_text',

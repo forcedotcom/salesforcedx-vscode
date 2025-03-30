@@ -10,23 +10,12 @@ import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from '@jsforce/jsforce-node';
 import { SinonSandbox, SinonSpy } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  SoqlEditorEvent,
-  SOQLEditorInstance
-} from '../../src/editor/soqlEditorInstance';
+import { SoqlEditorEvent, SOQLEditorInstance } from '../../src/editor/soqlEditorInstance';
 import { DataProvider } from '../../src/queryDataView/dataProviders';
-import {
-  FileFormat,
-  QueryDataFileService
-} from '../../src/queryDataView/queryDataFileService';
-import {
-  DataViewEvent,
-  QueryDataViewService
-} from '../../src/queryDataView/queryDataViewService';
+import { FileFormat, QueryDataFileService } from '../../src/queryDataView/queryDataFileService';
+import { DataViewEvent, QueryDataViewService } from '../../src/queryDataView/queryDataViewService';
 
-const soqlExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-soql'
-);
+const soqlExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql');
 const soqlExports = soqlExtension?.exports;
 const { workspaceContext, channelService } = soqlExports;
 
@@ -74,7 +63,7 @@ export const mockColumnData = {
   subTables: []
 };
 
-export const mockDescribeGlobalResponse = {
+const mockDescribeGlobalResponse = {
   sobjects: [
     { name: 'Account', queryable: true },
     { name: 'User', queryable: true },
@@ -82,7 +71,7 @@ export const mockDescribeGlobalResponse = {
   ]
 };
 
-export const mockSObjects = [
+const mockSObjects = [
   {
     name: 'Account',
     childRelationships: [
@@ -297,27 +286,18 @@ export const mockSObjects = [
 ];
 export const mockSObject = mockSObjects[0];
 
-export function stubMockConnection(
-  sandbox: SinonSandbox,
-  testUserName = 'test@test.com'
-): Connection {
+export function stubMockConnection(sandbox: SinonSandbox, testUserName = 'test@test.com'): Connection {
   const connection = getMockConnection(sandbox, testUserName);
   sandbox.stub(workspaceContext, 'getConnection').returns(connection);
   return connection;
 }
-export function stubFailingMockConnection(
-  sandbox: SinonSandbox,
-  testUserName = 'test@test.com'
-): Connection {
+export function stubFailingMockConnection(sandbox: SinonSandbox, testUserName = 'test@test.com'): Connection {
   const connection = getFailingMockConnection(sandbox, testUserName);
   sandbox.stub(workspaceContext, 'getConnection').returns(connection);
   return connection;
 }
 
-export function getMockConnection(
-  sandbox: SinonSandbox,
-  testUserName = 'test@test.com'
-): Connection {
+export function getMockConnection(sandbox: SinonSandbox, testUserName = 'test@test.com'): Connection {
   const mockAuthInfo = new AuthInfo({
     username: 'test'
   });
@@ -337,10 +317,7 @@ export function getMockConnection(
   return mockConnection;
 }
 
-export function getFailingMockConnection(
-  sandbox: SinonSandbox,
-  testUserName = 'test@test.com'
-): Connection {
+function getFailingMockConnection(sandbox: SinonSandbox, testUserName = 'test@test.com'): Connection {
   const mockAuthInfo = { test: 'test' };
   const mockConnection = {
     authInfo: mockAuthInfo,
@@ -355,13 +332,8 @@ export function getFailingMockConnection(
   return mockConnection as unknown as Connection;
 }
 
-export class MockTextDocumentProvider
-  implements vscode.TextDocumentContentProvider
-{
-  public provideTextDocumentContent(
-    uri: vscode.Uri,
-    token: vscode.CancellationToken
-  ): string {
+export class MockTextDocumentProvider implements vscode.TextDocumentContentProvider {
+  public provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): string {
     return mockQueryText;
   }
 }
@@ -375,10 +347,7 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
     super.updateWebview(document);
   }
 
-  public updateTextDocument(
-    document: vscode.TextDocument,
-    soql: string
-  ): Thenable<boolean> {
+  public updateTextDocument(document: vscode.TextDocument, soql: string): Thenable<boolean> {
     return super.updateTextDocument(document, soql);
   }
 

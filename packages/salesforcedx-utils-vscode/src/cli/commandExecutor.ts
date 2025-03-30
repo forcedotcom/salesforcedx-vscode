@@ -13,7 +13,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 
-// Below two dependancies are not structured correcly for import unless require is used.
+// Below two dependencies are not structured correctly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Command } from './';
 const cross_spawn = require('cross-spawn');

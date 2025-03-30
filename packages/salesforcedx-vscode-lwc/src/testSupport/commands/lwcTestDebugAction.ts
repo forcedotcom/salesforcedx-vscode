@@ -45,7 +45,7 @@ export const getDebugConfiguration = (command: string, args: string[], cwd: stri
  * Start a debug session with provided test execution information
  * @param testExecutionInfo test execution information
  */
-export const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
+const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
   const shellExecutionInfo = testRunner.getShellExecutionInfo();
   if (shellExecutionInfo) {

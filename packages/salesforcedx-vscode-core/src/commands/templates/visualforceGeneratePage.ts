@@ -20,7 +20,7 @@ import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { VISUALFORCE_PAGE_DIRECTORY, VISUALFORCE_PAGE_TYPE } from './metadataTypeConstants';
 
-export class LibraryVisualforceGeneratePageExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryVisualforceGeneratePageExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('visualforce_generate_page_text');
   public telemetryName = 'visualforce_generate_page';
   public metadataTypeName = VISUALFORCE_PAGE_TYPE;

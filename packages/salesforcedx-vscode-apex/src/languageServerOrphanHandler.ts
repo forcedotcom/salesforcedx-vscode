@@ -12,22 +12,21 @@ import { languageServerUtils as lsu, ProcessDetail } from './languageUtils';
 import { nls } from './messages';
 import { getTelemetryService } from './telemetry/telemetry';
 
-export const ADVICE = nls.localize('orphan_process_advice');
-export const YES = nls.localize('yes');
-export const CANCEL = nls.localize('cancel');
-export const SHOW_PROCESSES = nls.localize('terminate_show_processes');
-export const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes');
-export const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
-export const DISMISSED_DEFAULT = 'dismissed';
-export const PROCESS_ID = nls.localize('process_id');
-export const PROCESS_PARENT_ID = nls.localize('parent_process_id');
-export const COMMAND = nls.localize('process_command');
+const ADVICE = nls.localize('orphan_process_advice');
+const YES = nls.localize('yes');
+const CANCEL = nls.localize('cancel');
+const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes');
+const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
+const DISMISSED_DEFAULT = 'dismissed';
+const PROCESS_ID = nls.localize('process_id');
+const PROCESS_PARENT_ID = nls.localize('parent_process_id');
+const COMMAND = nls.localize('process_command');
 
 // these messages contain replaceable parameters, cannot localize yet
-export const CONFIRM = 'terminate_processes_confirm';
-export const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_instances';
-export const TERMINATED_PROCESS = 'terminated_orphaned_process';
-export const TERMINATE_FAILED = 'terminate_failed';
+const CONFIRM = 'terminate_processes_confirm';
+const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_instances';
+const TERMINATED_PROCESS = 'terminated_orphaned_process';
+const TERMINATE_FAILED = 'terminate_failed';
 
 const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
   const telemetryService = await getTelemetryService();

@@ -10,7 +10,7 @@ import * as path from 'path';
 import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { DeclarationGenerator } from './declarationGenerator';
 
-export const TYPESCRIPT_TYPE_EXT = '.d.ts';
+const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 
 export class TypingGenerator implements SObjectGenerator {

@@ -14,7 +14,7 @@ import {
   TokenType
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
 
-export type LanguageRange = Range & {
+type LanguageRange = Range & {
   languageId: string;
   attributeValue?: boolean;
 };

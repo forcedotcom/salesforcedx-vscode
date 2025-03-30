@@ -91,7 +91,7 @@ const TRACE_CATEGORY_STREAMINGAPI = 'streaming';
 
 const CONNECT_TYPE_ISV_DEBUGGER = 'ISV_DEBUGGER';
 
-export type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol' | 'breakpoints' | 'streaming';
+type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol' | 'breakpoints' | 'streaming';
 
 export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   // comma separated list of trace selectors (see TraceCategory)
@@ -217,7 +217,7 @@ export class ApexVariable extends Variable {
   }
 }
 
-export type FilterType = 'named' | 'indexed' | 'all';
+type FilterType = 'named' | 'indexed' | 'all';
 
 export type VariableContainer = {
   expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]>;
@@ -225,7 +225,7 @@ export type VariableContainer = {
   getNumberOfChildren(): number | undefined;
 };
 
-export type ScopeType = 'local' | 'static' | 'global';
+type ScopeType = 'local' | 'static' | 'global';
 
 export class ScopeContainer implements VariableContainer {
   private type: ScopeType;

@@ -16,12 +16,13 @@ export type QueryOverlayActionIdsSuccessResult = {
   entityTypeName: string;
   records: ApexExecutionOverlayActionRecord[];
 };
-export type ApexExecutionOverlayActionRecord = {
+
+type ApexExecutionOverlayActionRecord = {
   attributes: ApexExecutionOverlayActionRecordAttribute;
   Id: string;
 };
 
-export type ApexExecutionOverlayActionRecordAttribute = {
+type ApexExecutionOverlayActionRecordAttribute = {
   type: string;
   url: string;
 };

@@ -30,7 +30,7 @@ import {
   SfWorkspaceChecker
 } from './util';
 
-export const pullCommand: CommandParams = {
+const pullCommand: CommandParams = {
   command: 'project:retrieve:start',
   description: {
     default: 'project_retrieve_start_default_org_text',

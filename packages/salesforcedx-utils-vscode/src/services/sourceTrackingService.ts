@@ -73,7 +73,7 @@ type FormattedStatusResult = {
   ignored?: string;
 };
 
-export class SourceStatusSummary {
+class SourceStatusSummary {
   constructor(private statusOutputRows: StatusOutputRow[]) {}
 
   public format(): string {

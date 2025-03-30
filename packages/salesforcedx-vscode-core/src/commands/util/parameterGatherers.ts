@@ -36,7 +36,7 @@ export type MetadataTypeParameter = {
   type: string;
 };
 
-export type ApexTestTemplateParameter = {
+type ApexTestTemplateParameter = {
   template: string;
 };
 

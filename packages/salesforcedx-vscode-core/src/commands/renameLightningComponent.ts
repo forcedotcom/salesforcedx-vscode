@@ -63,7 +63,7 @@ export const renameLightningComponent = (sourceUri: vscode.Uri): void => {
   }
 };
 
-export class GetComponentName implements ParametersGatherer<ComponentName> {
+class GetComponentName implements ParametersGatherer<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {
     this.sourceFsPath = sourceFsPath;

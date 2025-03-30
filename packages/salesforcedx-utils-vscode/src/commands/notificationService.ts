@@ -11,7 +11,7 @@ import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages';
 import { ChannelService } from './index';
 
-export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
+const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 
 /**
  * A centralized location for all notification functionalities.

@@ -21,7 +21,7 @@ export const stubWorkspace = (stubObj: WorkspaceFolder[]): SinonStub => {
   return stub(workspace, 'workspaceFolders').get(() => stubObj);
 };
 
-export const generateMockRootWorkspace = (path: string): WorkspaceFolder[] => {
+const generateMockRootWorkspace = (path: string): WorkspaceFolder[] => {
   return [
     {
       name: 'test',
