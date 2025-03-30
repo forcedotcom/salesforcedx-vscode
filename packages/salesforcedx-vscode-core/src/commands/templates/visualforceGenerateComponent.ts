@@ -20,7 +20,7 @@ import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { VISUALFORCE_COMPONENT_DIRECTORY, VISUALFORCE_COMPONENT_TYPE } from './metadataTypeConstants';
 
-export class LibraryVisualforceGenerateComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryVisualforceGenerateComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('visualforce_generate_component_text');
   public telemetryName = 'visualforce_generate_component';
   public metadataTypeName = VISUALFORCE_COMPONENT_TYPE;

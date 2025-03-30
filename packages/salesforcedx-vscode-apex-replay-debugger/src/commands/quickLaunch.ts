@@ -41,7 +41,7 @@ type LogFileRetrieveResult = {
   success: boolean;
 };
 
-export class QuickLaunch {
+class QuickLaunch {
   public async debugTest(testClass: string, testName?: string): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
 

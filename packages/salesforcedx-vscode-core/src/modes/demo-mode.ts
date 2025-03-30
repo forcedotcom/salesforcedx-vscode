@@ -7,7 +7,7 @@
 
 export const isDemoMode = (): boolean => (process.env.SFDX_ENV ? process.env.SFDX_ENV === 'DEMO' : false);
 
-export type authResponse = {
+type AuthResponse = {
   orgId: string;
   username: string;
   accessToken?: string;
@@ -19,5 +19,5 @@ export type authResponse = {
   clientSecret?: string;
 };
 
-export const isProdOrg = (response: { status: number; result: authResponse }): boolean =>
+export const isProdOrg = (response: { status: number; result: AuthResponse }): boolean =>
   response.result.trialExpirationDate ? false : true;

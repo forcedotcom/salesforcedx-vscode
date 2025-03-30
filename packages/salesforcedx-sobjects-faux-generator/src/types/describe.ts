@@ -32,7 +32,7 @@ export type SObject = Pick<DescribeSObjectResult, 'childRelationships' | 'label'
   fields: SObjectField[];
 };
 
-export type SubRequest = { method: string; url: string };
+type SubRequest = { method: string; url: string };
 export type BatchRequest = { batchRequests: SubRequest[] };
-export type SubResponse = { statusCode: number; result: DescribeSObjectResult };
+type SubResponse = { statusCode: number; result: DescribeSObjectResult };
 export type BatchResponse = { hasErrors: boolean; results: SubResponse[] };

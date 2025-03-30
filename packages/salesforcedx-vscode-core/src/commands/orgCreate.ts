@@ -37,8 +37,8 @@ import {
   SfWorkspaceChecker
 } from './util';
 
-export const DEFAULT_ALIAS = 'vscodeScratchOrg';
-export const DEFAULT_EXPIRATION_DAYS = '7';
+const DEFAULT_ALIAS = 'vscodeScratchOrg';
+const DEFAULT_EXPIRATION_DAYS = '7';
 
 export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   public build(data: AliasAndFileSelection): Command {
@@ -147,12 +147,12 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     };
   }
 }
-export type Alias = {
+type Alias = {
   alias: string;
   expirationDays: string;
 };
 
-export type AliasAndFileSelection = Alias & FileSelection;
+type AliasAndFileSelection = Alias & FileSelection;
 
 const preconditionChecker = new CompositePreconditionChecker(new SfWorkspaceChecker(), new DevUsernameChecker());
 const parameterGatherer = new CompositeParametersGatherer(
