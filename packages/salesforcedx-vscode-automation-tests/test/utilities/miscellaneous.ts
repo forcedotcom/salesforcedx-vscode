@@ -123,7 +123,7 @@ export async function createCommand(
   await inputBox.confirm();
 
   const successNotificationWasFound = await notificationIsPresentWithTimeout(
-    `SFDX: Create ${type} successfully ran`,
+    new RegExp(`SFDX: Create ${type} successfully ran`),
     Duration.minutes(10)
   );
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions

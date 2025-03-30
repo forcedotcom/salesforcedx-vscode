@@ -11,20 +11,20 @@ import { executeQuickPick } from './commandPrompt';
 import { By } from 'vscode-extension-tester';
 
 export async function waitForNotificationToGoAway(
-  notificationMessage: string,
+  notificationMessage: RegExp,
   durationInSeconds: Duration
 ): Promise<void> {
   await findNotification(notificationMessage, false, durationInSeconds, true);
 }
 
-export async function notificationIsPresent(notificationMessage: string): Promise<boolean> {
+export async function notificationIsPresent(notificationMessage: RegExp): Promise<boolean> {
   const notification = await findNotification(notificationMessage, true, Duration.milliseconds(500));
 
   return notification ? true : false;
 }
 
 export async function notificationIsPresentWithTimeout(
-  notificationMessage: string,
+  notificationMessage: RegExp,
   durationInSeconds: Duration
 ): Promise<boolean> {
   const notification = await findNotification(notificationMessage, true, durationInSeconds);
@@ -32,14 +32,14 @@ export async function notificationIsPresentWithTimeout(
   return notification ? true : false;
 }
 
-export async function notificationIsAbsent(notificationMessage: string): Promise<boolean> {
+export async function notificationIsAbsent(notificationMessage: RegExp): Promise<boolean> {
   const notification = await findNotification(notificationMessage, false, Duration.milliseconds(500));
 
   return notification ? false : true;
 }
 
 export async function notificationIsAbsentWithTimeout(
-  notificationMessage: string,
+  notificationMessage: RegExp,
   durationInSeconds: Duration
 ): Promise<boolean> {
   const notification = await findNotification(notificationMessage, false, durationInSeconds);
@@ -47,7 +47,7 @@ export async function notificationIsAbsentWithTimeout(
   return notification ? false : true;
 }
 
-export async function dismissNotification(notificationMessage: string, timeout = Duration.seconds(1)): Promise<void> {
+export async function dismissNotification(notificationMessage: RegExp, timeout = Duration.seconds(1)): Promise<void> {
   const notification = await findNotification(notificationMessage, true, timeout, true);
   notification?.close();
 }
@@ -79,7 +79,7 @@ export async function dismissAllNotifications(): Promise<void> {
 }
 
 async function findNotification(
-  message: string,
+  message: RegExp,
   shouldBePresent: boolean,
   timeout: Duration = Duration.milliseconds(500),
   throwOnTimeout: boolean = false // New parameter to control throwing on timeout
@@ -92,7 +92,7 @@ async function findNotification(
     const notifications = await workbench.getNotifications();
     for (const notification of notifications) {
       const notificationMessage = await notification.getMessage();
-      if (notificationMessage === message || notificationMessage.includes(message)) {
+      if (message.test(notificationMessage)) {
         return notification as unknown as Notification;
       }
     }

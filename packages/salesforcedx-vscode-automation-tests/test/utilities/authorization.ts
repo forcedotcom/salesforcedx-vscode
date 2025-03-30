@@ -10,10 +10,7 @@ import fs from 'fs';
 import { EnvironmentSettings as Env } from '../environmentSettings';
 import { TestSetup } from '../testSetup';
 
-export async function setUpScratchOrg(
-  testSetup: TestSetup,
-  scratchOrgEdition: utilities.OrgEdition
-) {
+export async function setUpScratchOrg(testSetup: TestSetup, scratchOrgEdition: utilities.OrgEdition) {
   await authorizeDevHub(testSetup);
   await createDefaultScratchOrg(testSetup, scratchOrgEdition);
 }
@@ -84,11 +81,7 @@ async function createDefaultScratchOrg(
   utilities.log('');
   utilities.log(`${testSetup.testSuiteSuffixName} - Starting createDefaultScratchOrg()...`);
 
-  const definitionFile = path.join(
-    testSetup.projectFolderPath!,
-    'config',
-    'project-scratch-def.json'
-  );
+  const definitionFile = path.join(testSetup.projectFolderPath!, 'config', 'project-scratch-def.json');
 
   utilities.debug(`${testSetup.testSuiteSuffixName} - constructing scratchOrgAliasName...`);
   // Org alias format: TempScratchOrg_yyyy_mm_dd_username_ticks_testSuiteSuffixName
@@ -100,27 +93,18 @@ async function createDefaultScratchOrg(
   const currentOsUserName = utilities.transformedUserName();
 
   testSetup.scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${currentOsUserName}_${currentDate.getTime()}_${testSetup.testSuiteSuffixName}`;
-  utilities.log(
-    `${testSetup.testSuiteSuffixName} - temporary scratch org name is ${testSetup.scratchOrgAliasName}...`
-  );
+  utilities.log(`${testSetup.testSuiteSuffixName} - temporary scratch org name is ${testSetup.scratchOrgAliasName}...`);
 
   const startHr = process.hrtime();
 
-  const sfOrgCreateResult = await utilities.scratchOrgCreate(
-    edition,
-    definitionFile,
-    testSetup.scratchOrgAliasName,
-    1
-  );
+  const sfOrgCreateResult = await utilities.scratchOrgCreate(edition, definitionFile, testSetup.scratchOrgAliasName, 1);
   utilities.debug(`${testSetup.testSuiteSuffixName} - calling JSON.parse()...`);
   const result = JSON.parse(sfOrgCreateResult.stdout).result;
 
   const endHr = process.hrtime(startHr);
   const time = endHr[0] * 1_000_000_000 + endHr[1] - (startHr[0] * 1_000_000_000 + startHr[1]);
 
-  utilities.log(
-    `Creating ${testSetup.scratchOrgAliasName} took ${time} ticks (${time / 1_000.0} seconds)`
-  );
+  utilities.log(`Creating ${testSetup.scratchOrgAliasName} took ${time} ticks (${time / 1_000.0} seconds)`);
   if (!result?.authFields?.accessToken || !result.orgId || !result.scratchOrgInfo.SignupEmail) {
     throw new Error(
       `In createDefaultScratchOrg(), result is missing required fields.\nAuth Fields: ${result.authFields}\nOrg ID: ${result.orgId}\nSign Up Email: ${result.scratchOrgInfo.SignupEmail}.`
@@ -137,7 +121,7 @@ async function createDefaultScratchOrg(
 
   // Look for the success notification.
   const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-    'SFDX: Set a Default Org successfully ran',
+    /SFDX: Set a Default Org successfully ran/,
     utilities.Duration.TEN_MINUTES
   );
   if (!successNotificationWasFound) {
@@ -147,9 +131,7 @@ async function createDefaultScratchOrg(
   }
 
   // Look for this.scratchOrgAliasName in the list of status bar items.
-  const scratchOrgStatusBarItem = await utilities.getStatusBarItemWhichIncludes(
-    testSetup.scratchOrgAliasName
-  );
+  const scratchOrgStatusBarItem = await utilities.getStatusBarItemWhichIncludes(testSetup.scratchOrgAliasName);
   if (!scratchOrgStatusBarItem) {
     throw new Error(
       'In createDefaultScratchOrg(), getStatusBarItemWhichIncludes() returned a scratchOrgStatusBarItem with a value of null (or undefined)'
