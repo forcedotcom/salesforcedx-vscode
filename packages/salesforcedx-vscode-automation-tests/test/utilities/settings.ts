@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { By, Setting } from 'vscode-extension-tester';
+import { By, Setting, SettingsEditor } from 'vscode-extension-tester';
 import { executeQuickPick } from './commandPrompt';
 import { debug, Duration, findElementByText, pause } from './miscellaneous';
 import { getBrowser } from './workbench';
@@ -95,3 +95,18 @@ export async function isBooleanSettingEnabled(
   const { checkButtonValue } = await findAndCheckSetting(id);
   return checkButtonValue === 'true';
 }
+
+/**
+ * Sets the value of a specific setting in the settings editor.
+ *
+ * @param id - The unique identifier of the setting to be updated.
+ * @param value - The new value to set for the specified setting.
+ * @param isWorkspace - True if the setting is a workspace setting; false if it's a user setting.
+ * @returns A promise that resolves when the setting value has been updated.
+ */
+export const setSettingValue = async (id: string, value: string | boolean, isWorkspace: boolean): Promise<void> => {
+  await (isWorkspace ? inWorkspaceSettings() : inUserSettings());
+  const settingsEditor = new SettingsEditor();
+  const logLevelSetting = await settingsEditor.findSettingByID(id);
+  await logLevelSetting?.setValue(value);
+};

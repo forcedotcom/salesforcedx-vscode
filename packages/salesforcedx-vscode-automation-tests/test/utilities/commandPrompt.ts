@@ -184,3 +184,22 @@ export async function clickFilePathOkButton(): Promise<void> {
   }
   await pause(Duration.seconds(2));
 }
+
+/**
+ * Checks if a VSCode command is available.
+ * @param commandName Name of the VSCode command to check
+ * @returns boolean - true if the command is available, false otherwise
+ */
+export const isCommandAvailable = async (commandName: string): Promise<boolean> => {
+  log('Checking if command is available: ' + commandName);
+  const workbench = getWorkbench();
+  const prompt = await workbench.openCommandPrompt();
+  await prompt.setText(`>${commandName}`);
+  const availableCommands = await prompt.getQuickPicks();
+  for (let item of availableCommands) {
+    if ((await item.getLabel()) === commandName) {
+      return true;
+    }
+  }
+  return false;
+};
