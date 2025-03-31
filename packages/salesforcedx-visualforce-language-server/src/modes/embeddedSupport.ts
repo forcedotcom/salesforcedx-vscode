@@ -5,13 +5,8 @@
 
 'use strict';
 
-import {
-  LanguageService,
-  Position,
-  Range,
-  TextDocument,
-  TokenType
-} from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import { LanguageService, TokenType } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import { Position, Range, TextDocument } from 'vscode-languageserver-types';
 
 type LanguageRange = Range & {
   languageId: string;
