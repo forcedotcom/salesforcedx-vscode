@@ -1,13 +1,7 @@
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  writeFileSync
-} from 'fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { chdir } from 'process';
-import * as shell from 'shelljs';
+import { execSync } from 'child_process';
 
 const logger = (msg: string, obj?: any) => {
   if (!obj) {
@@ -48,14 +42,13 @@ if (!packagingConfig) {
 for (let i = 0; i < packagingConfig.assets.length; i++) {
   const asset = packagingConfig.assets[i];
   logger(`copying ${asset}`);
-  shell.cp('-R', `./${asset}`, `${directoryToConstruct}`);
+  cpSync(`./${asset}`, `${directoryToConstruct}/${asset}`, { recursive: true });
 }
 
-const newPackage = Object.assign(
-  {},
-  packageContents,
-  packagingConfig.packageUpdates
-);
+const newPackage = {
+  ...packageContents,
+  ...packagingConfig.packageUpdates
+};
 delete newPackage.packaging;
 
 // Update the debugger config for dist
@@ -67,11 +60,7 @@ if (packagingConfig.debuggers) {
 }
 
 logger('Write the new package.json file.');
-writeFileSync(
-  `${directoryToConstruct}/package.json`,
-  JSON.stringify(newPackage, null, 2),
-  'utf-8'
-);
+writeFileSync(`${directoryToConstruct}/package.json`, JSON.stringify(newPackage, null, 2), 'utf-8');
 
 // copy extension to build location. Note this is required due to vsce note having any
 // option to disable npm workspaces.
@@ -88,7 +77,7 @@ logger('copying extension directory to build location', {
   directoryToConstruct,
   dest: `${buildLocation}/`
 });
-shell.cp('-R', directoryToConstruct, `${buildLocation}/`);
+cpSync(directoryToConstruct, `${buildLocation}/extension`, { recursive: true });
 
 // Move to the copied dir
 chdir(`${buildLocation}/extension`);
@@ -96,17 +85,15 @@ logger('Now in ' + process.cwd());
 
 // Run npm install
 logger('executing npm install');
-shell.exec(`npm install`);
+execSync('npm install', { stdio: 'inherit' });
 
 // Run the vsce package command
 logger('Execute vsce');
-shell.exec(`vsce package`);
+execSync('vsce package', { stdio: 'inherit' });
 
 // copy the vsix back to the extension directory
 logger('copy vsix back to extension directory');
-const vsixFiles = readdirSync(`${buildLocation}/extension`).filter(fn =>
-  fn.endsWith('.vsix')
-);
+const vsixFiles = readdirSync(`${buildLocation}/extension`).filter(fn => fn.endsWith('.vsix'));
 if (vsixFiles.length !== 1) {
   console.error('unabled to find generated vsix file.');
   process.exit(2);
