@@ -5,56 +5,108 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import {
-  ClientStatus,
-  LanguageClientStatus,
-  LanguageClientUtils
-} from '../../../src/languageUtils/languageClientUtils';
+import * as vscode from 'vscode';
+import { ApexLanguageClient } from '../../../src/apexLanguageClient';
+import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
+import { languageClientUtils } from '../../../src/languageUtils';
+import { ClientStatus } from '../../../src/languageUtils/languageClientUtils';
 
-describe('LanguageClientUtils', () => {
-  let languageClientUtils: LanguageClientUtils;
+// Mock ApexLSPStatusBarItem class
+jest.mock('../../../src/apexLspStatusBarItem', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
+    dispose: jest.fn(),
+    ready: jest.fn(),
+    error: jest.fn()
+  }))
+}));
 
-  beforeEach(() => {
-    languageClientUtils = LanguageClientUtils.getInstance();
-  });
-
-  it('Should return correct initial status', async () => {
+describe('Language Client Utils', () => {
+  it('Should return correct initial status', () => {
     const clientStatus = languageClientUtils.getStatus();
 
-    expect(clientStatus.isReady()).to.equal(false);
-    expect(clientStatus.isIndexing()).to.equal(false);
-    expect(clientStatus.failedToInitialize()).to.equal(false);
-    expect(clientStatus.getStatusMessage()).to.equal('');
+    expect(clientStatus.isReady()).toBe(false);
+    expect(clientStatus.isIndexing()).toBe(false);
+    expect(clientStatus.failedToInitialize()).toBe(false);
+    expect(clientStatus.getStatusMessage()).toBe('');
   });
 
-  it('Should return ready status', async () => {
+  it('Should return ready status', () => {
     languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
     const clientStatus = languageClientUtils.getStatus();
 
-    expect(clientStatus.isReady()).to.equal(true);
-    expect(clientStatus.isIndexing()).to.equal(false);
-    expect(clientStatus.failedToInitialize()).to.equal(false);
-    expect(clientStatus.getStatusMessage()).to.equal('Apex client is ready');
+    expect(clientStatus.isReady()).toBe(true);
+    expect(clientStatus.isIndexing()).toBe(false);
+    expect(clientStatus.failedToInitialize()).toBe(false);
+    expect(clientStatus.getStatusMessage()).toBe('Apex client is ready');
   });
 
-  it('Should return indexing status', async () => {
+  it('Should return indexing status', () => {
     languageClientUtils.setStatus(ClientStatus.Indexing, 'Apex client is indexing');
     const clientStatus = languageClientUtils.getStatus();
 
-    expect(clientStatus.isReady()).to.equal(false);
-    expect(clientStatus.isIndexing()).to.equal(true);
-    expect(clientStatus.failedToInitialize()).to.equal(false);
-    expect(clientStatus.getStatusMessage()).to.equal('Apex client is indexing');
+    expect(clientStatus.isReady()).toBe(false);
+    expect(clientStatus.isIndexing()).toBe(true);
+    expect(clientStatus.failedToInitialize()).toBe(false);
+    expect(clientStatus.getStatusMessage()).toBe('Apex client is indexing');
   });
 
-  it('Should return error status', async () => {
+  it('Should return error status', () => {
     languageClientUtils.setStatus(ClientStatus.Error, 'Java version is misconfigured');
     const clientStatus = languageClientUtils.getStatus();
 
-    expect(clientStatus.isReady()).to.equal(false);
-    expect(clientStatus.isIndexing()).to.equal(false);
-    expect(clientStatus.failedToInitialize()).to.equal(true);
-    expect(clientStatus.getStatusMessage()).to.equal('Java version is misconfigured');
+    expect(clientStatus.isReady()).toBe(false);
+    expect(clientStatus.isIndexing()).toBe(false);
+    expect(clientStatus.failedToInitialize()).toBe(true);
+    expect(clientStatus.getStatusMessage()).toBe('Java version is misconfigured');
+  });
+
+  it('Should return unavailable status', () => {
+    languageClientUtils.setStatus(ClientStatus.Unavailable, '');
+    const clientStatus = languageClientUtils.getStatus();
+
+    expect(clientStatus.isReady()).toBe(false);
+    expect(clientStatus.isIndexing()).toBe(false);
+    expect(clientStatus.failedToInitialize()).toBe(false);
+    expect(clientStatus.getStatusMessage()).toBe('');
+  });
+
+  it('Should manage client instance', () => {
+    const mockClient = {} as ApexLanguageClient;
+
+    expect(languageClientUtils.getClientInstance()).toBeUndefined();
+
+    languageClientUtils.setClientInstance(mockClient);
+    expect(languageClientUtils.getClientInstance()).toBe(mockClient);
+
+    languageClientUtils.setClientInstance(undefined);
+    expect(languageClientUtils.getClientInstance()).toBeUndefined();
+  });
+
+  it('Should manage status bar instance', () => {
+    const mockLanguageStatusItem = {
+      dispose: jest.fn()
+    };
+    (vscode.languages.createLanguageStatusItem as jest.Mock).mockReturnValue(mockLanguageStatusItem);
+
+    const mockStatusBar = new ApexLSPStatusBarItem();
+
+    expect(languageClientUtils.getStatusBarInstance()).toBeUndefined();
+
+    languageClientUtils.setStatusBarInstance(mockStatusBar);
+    expect(languageClientUtils.getStatusBarInstance()).toBe(mockStatusBar);
+
+    languageClientUtils.setStatusBarInstance(undefined);
+    expect(languageClientUtils.getStatusBarInstance()).toBeUndefined();
+  });
+
+  it('Should maintain singleton instance', () => {
+    const instance1 = languageClientUtils;
+    const instance2 = languageClientUtils;
+
+    expect(instance1).toBe(instance2);
+
+    instance1.setStatus(ClientStatus.Ready, 'test');
+    expect(instance2.getStatus().isReady()).toBe(true);
   });
 });

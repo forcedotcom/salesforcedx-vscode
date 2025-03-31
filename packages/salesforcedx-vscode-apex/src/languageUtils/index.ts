@@ -12,6 +12,7 @@ export {
   getLineBreakpointInfo,
   getApexTests,
   getExceptionBreakpointInfo,
+  indexerDoneHandler,
   LanguageClientStatus
 } from './languageClientUtils';
 

@@ -1,3 +1,29 @@
+# 63.6.0 - March 26, 2025
+
+## Added
+
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
+
+ 🚀  **Agentforce for Developers Elevated to Salesforce Extension Pack**
+
+With its elevated presence in the Salesforce Extension Pack, Agentforce for Developers is now a core part of the Salesforce developer experience. This change improves discoverability, making it easier for developers to find and install Agentforce for Developers as part of their workflow. ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We updated the org browser icon. ([PR #6152](https://github.com/forcedotcom/salesforcedx-vscode/pull/6152))
+
+# 63.5.0 - March 19, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We made some changes under the hood. ([PR #6146](https://github.com/forcedotcom/salesforcedx-vscode/pull/6146), [PR #6148](https://github.com/forcedotcom/salesforcedx-vscode/pull/6148), [PR #6150](https://github.com/forcedotcom/salesforcedx-vscode/pull/6150))
+
 # 63.4.1 - March 14, 2025
 
 ## Fixed

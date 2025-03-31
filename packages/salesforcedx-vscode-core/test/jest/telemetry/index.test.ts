@@ -16,14 +16,13 @@ import { MockExtensionContext } from './MockExtensionContext';
 
 describe('Telemetry', () => {
   let mShowInformation: jest.SpyInstance;
-  let settings: jest.SpyInstance;
   let mockExtensionContext: MockExtensionContext;
   let teleSpy: jest.SpyInstance;
   let cliSpy: jest.SpyInstance;
 
   beforeEach(() => {
     mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
-    settings = jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
+    jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
     teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
     cliSpy = jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
   });
@@ -59,9 +58,7 @@ describe('Telemetry', () => {
 
     it('should show telemetry opt-out info message only when user is external', async () => {
       // create telemetry shown states
-      globalStateTelemetrySpy.mockImplementation(key => {
-        return handleTelemetryMsgShown(key, false, false);
-      });
+      globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, false, false));
       // mock out the isInternalHost call
       jest.spyOn(os, 'hostname').mockReturnValue('test-host');
 
@@ -78,9 +75,7 @@ describe('Telemetry', () => {
 
     it('should not show telemetry info opt-out message nor internal message', async () => {
       // create telemetry shown states
-      globalStateTelemetrySpy.mockImplementation(key => {
-        return handleTelemetryMsgShown(key, true, true);
-      });
+      globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, true, true));
       // mock out the isInternalHost call
       jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
 
@@ -100,9 +95,7 @@ describe('Telemetry', () => {
 
     it('should show internal info message and telemetry opt-out message', async () => {
       // create telemetry shown states
-      globalStateTelemetrySpy.mockImplementation(key => {
-        return handleTelemetryMsgShown(key, false, false);
-      });
+      globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, false, false));
       // mock out the isInternalHost call
       jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
       await telemetryService.initializeService(mockExtensionContext);
@@ -120,9 +113,7 @@ describe('Telemetry', () => {
 
     it('should show internal info message and not telemetry opt-out message', async () => {
       // create telemetry shown states
-      globalStateTelemetrySpy.mockImplementation(key => {
-        return handleTelemetryMsgShown(key, true, false);
-      });
+      globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, true, false));
       // mock out the isInternalHost call
       jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
 
@@ -141,9 +132,7 @@ describe('Telemetry', () => {
 
     it('should show internal info message and not telemetry opt-out message', async () => {
       // create telemetry shown states
-      globalStateTelemetrySpy.mockImplementation(key => {
-        return handleTelemetryMsgShown(key, true, false);
-      });
+      globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, true, false));
       // mock out the isInternalHost call
       jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
 

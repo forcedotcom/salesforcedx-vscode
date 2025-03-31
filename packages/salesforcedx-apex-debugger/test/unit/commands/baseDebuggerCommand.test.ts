@@ -18,15 +18,13 @@ class DummyCommand extends BaseDebuggerCommand {
   }
 }
 
-export const getDefaultHeaders = (contentLength: number): any => {
-  return {
-    'Content-Type': 'application/json;charset=utf-8',
-    Accept: 'application/json',
-    Authorization: 'OAuth 123',
-    'Content-Length': String(contentLength),
-    'Sforce-Call-Options': `client=${CLIENT_ID}`
-  };
-};
+export const getDefaultHeaders = (contentLength: number): any => ({
+  'Content-Type': 'application/json;charset=utf-8',
+  Accept: 'application/json',
+  Authorization: 'OAuth 123',
+  'Content-Length': String(contentLength),
+  'Sforce-Call-Options': `client=${CLIENT_ID}`
+});
 
 describe('Base command', () => {
   let sendRequestSpy: sinon.SinonStub;

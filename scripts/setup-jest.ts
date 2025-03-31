@@ -99,6 +99,7 @@ const getMockVSCode = () => {
       showQuickPick: jest.fn(),
       showInputBox: jest.fn(),
       setStatusBarMessage: jest.fn(),
+      showWarningModal: jest.fn(),
       withProgress: jest.fn(),
       createOutputChannel: jest.fn(),
       showSaveDialog: jest.fn(),

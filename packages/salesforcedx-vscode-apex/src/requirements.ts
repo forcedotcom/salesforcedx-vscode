@@ -22,7 +22,7 @@ const findJavaHome = require('find-java-home');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
-export type RequirementsData = {
+type RequirementsData = {
   java_home: string;
   java_memory: number | null;
 };
@@ -41,8 +41,8 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
   });
 };
 
-const checkJavaRuntime = async (): Promise<string> => {
-  return new Promise((resolve, reject) => {
+const checkJavaRuntime = async (): Promise<string> =>
+  new Promise((resolve, reject) => {
     let source: string;
     let javaHome: string | undefined = readJavaConfig();
 
@@ -80,16 +80,13 @@ const checkJavaRuntime = async (): Promise<string> => {
       }
     });
   });
-};
 
 const readJavaConfig = (): string => {
   const config = workspace.getConfiguration();
   return config.get<string>('salesforcedx-vscode-apex.java.home', '');
 };
 
-const isLocal = (javaHome: string): boolean => {
-  return !path.isAbsolute(javaHome);
-};
+const isLocal = (javaHome: string): boolean => !path.isAbsolute(javaHome);
 
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
   const cmdFile = path.join(javaHome, 'bin', 'java');

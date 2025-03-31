@@ -18,17 +18,15 @@ import { SfCommandletExecutor } from './util';
 
 export class ListMetadataExecutor extends SfCommandletExecutor<string> {
   private metadataType: string;
-  private targetOrgOrAlias: string;
   private folder?: string;
 
-  public constructor(metadataType: string, targetOrgOrAlias: string, folder?: string) {
+  public constructor(metadataType: string, folder?: string) {
     super();
     this.metadataType = metadataType;
-    this.targetOrgOrAlias = targetOrgOrAlias;
     this.folder = folder;
   }
 
-  public build(data: {}): Command {
+  public build(): Command {
     const builder = new SfCommandBuilder()
       .withArg('org:list:metadata')
       .withFlag('-m', this.metadataType)
@@ -44,7 +42,7 @@ export class ListMetadataExecutor extends SfCommandletExecutor<string> {
 
   public execute(): CliCommandExecution {
     const startTime = process.hrtime();
-    const execution = new CliCommandExecutor(this.build({}), {
+    const execution = new CliCommandExecutor(this.build(), {
       cwd: workspaceUtils.getRootWorkspacePath()
     }).execute();
 
@@ -55,13 +53,8 @@ export class ListMetadataExecutor extends SfCommandletExecutor<string> {
   }
 }
 
-export const listMetadata = async (
-  metadataType: string,
-  targetOrgOrAlias: string,
-  outputPath: string,
-  folder?: string
-): Promise<string> => {
-  const listMetadataExecutor = new ListMetadataExecutor(metadataType, targetOrgOrAlias, folder);
+export const listMetadata = async (metadataType: string, outputPath: string, folder?: string): Promise<string> => {
+  const listMetadataExecutor = new ListMetadataExecutor(metadataType, folder);
   const execution = listMetadataExecutor.execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);

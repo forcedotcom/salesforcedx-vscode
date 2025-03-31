@@ -8,13 +8,11 @@ import { QueryResult } from '@jsforce/jsforce-node';
 import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
 import { JsonMap } from '@salesforce/ts-types';
 
-export type ExtendedQueryData = QueryResult<JsonMap> & {
+type ExtendedQueryData = QueryResult<JsonMap> & {
   columnData: ColumnData;
 };
 
-export const extendQueryData = (queryText: string, queryData: QueryResult<JsonMap>): ExtendedQueryData => {
-  return {
-    ...queryData,
-    columnData: new SelectAnalyzer(queryText).getColumnData()
-  };
-};
+export const extendQueryData = (queryText: string, queryData: QueryResult<JsonMap>): ExtendedQueryData => ({
+  ...queryData,
+  columnData: new SelectAnalyzer(queryText).getColumnData()
+});

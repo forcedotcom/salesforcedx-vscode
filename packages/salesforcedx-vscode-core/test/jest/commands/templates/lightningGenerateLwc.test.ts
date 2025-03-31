@@ -36,11 +36,9 @@ describe('lightningGenerateLwc Unit Tests.', () => {
 
   beforeEach(() => {
     runMock = jest.fn();
-    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => {
-      return {
-        run: runMock
-      };
-    });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+      run: runMock
+    }));
   });
 
   it('Should generate lwc scaffolding.', async () => {

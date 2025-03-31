@@ -22,7 +22,7 @@ export type CancellationToken = {
   isCancellationRequested: boolean;
 };
 
-export type SObjectRefreshTransformData = SObjectRefreshData & {
+type SObjectRefreshTransformData = SObjectRefreshData & {
   typeNames: SObjectShortDescription[];
   standard: SObject[];
   custom: SObject[];

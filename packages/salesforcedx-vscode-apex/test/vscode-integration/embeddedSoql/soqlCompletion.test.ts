@@ -68,7 +68,7 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
       const items = await invokeSoqlMiddleware(doc, position, [FAKE_APEX_COMPLETION_ITEM]);
 
       expect(items.length).to.equal(1);
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+
       expect(executeCommandSpy.called).to.be.false;
     });
   });
@@ -95,7 +95,6 @@ describe('Test embedded SOQL middleware to forward to SOQL LSP for code-completi
         })
       ]);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(executeCommandSpy.called).to.be.true;
       expect(items.length).to.equal(1);
       expect(items[0]).to.equal(FAKE_SOQL_COMPLETION_ITEM);
@@ -117,9 +116,7 @@ const invokeSoqlMiddleware = async (
   };
   const token = {} as CancellationToken;
 
-  const apexLSPCompletionFn: ProvideCompletionItemsSignature = () => {
-    return itemsReturnedByApexLsp;
-  };
+  const apexLSPCompletionFn: ProvideCompletionItemsSignature = () => itemsReturnedByApexLsp;
 
   const finalItems: ProtocolCompletionItem[] = [];
   if (soqlMiddleware.provideCompletionItem) {
@@ -154,7 +151,7 @@ const getCursorPosition = (text: string, cursorChar: string = '|'): Position => 
   throw new Error(`Cursor ${cursorChar} not found in ${text} !`);
 };
 
-export const activate = async (docUri: Uri): Promise<TextDocument> => {
+const activate = async (docUri: Uri): Promise<TextDocument> => {
   const ext = extensions.getExtension('salesforce.salesforcedx-vscode-apex')!;
   await ext.activate();
   try {
@@ -167,6 +164,4 @@ export const activate = async (docUri: Uri): Promise<TextDocument> => {
   }
 };
 
-const generateRandomInt = () => {
-  return Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER));
-};
+const generateRandomInt = () => Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER));

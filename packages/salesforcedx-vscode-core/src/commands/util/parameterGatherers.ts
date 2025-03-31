@@ -36,7 +36,7 @@ export type MetadataTypeParameter = {
   type: string;
 };
 
-export type ApexTestTemplateParameter = {
+type ApexTestTemplateParameter = {
   template: string;
 };
 
@@ -102,12 +102,10 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
 
   public async gather(): Promise<CancelResponse | ContinueResponse<FileSelection>> {
     const files = await vscode.workspace.findFiles(this.include, this.exclude, this.maxResults);
-    const fileItems = files.map(file => {
-      return {
-        label: path.basename(file.toString()),
-        description: file.fsPath
-      };
-    });
+    const fileItems = files.map(file => ({
+      label: path.basename(file.toString()),
+      description: file.fsPath
+    }));
     if (fileItems.length === 0) {
       vscode.window.showErrorMessage(this.errorMessage);
       return { type: CANCEL };
@@ -130,13 +128,12 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
     const fileNameInputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_file_name'),
       ...(this.maxFileNameLength !== Infinity && {
-        validateInput: value => {
-          return value.length > this.maxFileNameLength
+        validateInput: value =>
+          value.length > this.maxFileNameLength
             ? nls
                 .localize('parameter_gatherer_file_name_max_length_validation_error_message')
                 .replace('{0}', this.maxFileNameLength.toString())
-            : null;
-        }
+            : null
       })
     } as vscode.InputBoxOptions;
 

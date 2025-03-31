@@ -42,9 +42,8 @@ export const processOasDocumentFromYaml = async (
   context?: ApexClassOASGatherContextResponse,
   eligibleResult?: ApexClassOASEligibleResponse,
   isRevalidation?: boolean
-): Promise<ProcessorInputOutput> => {
-  return processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), context, eligibleResult, isRevalidation);
-};
+): Promise<ProcessorInputOutput> =>
+  processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), context, eligibleResult, isRevalidation);
 
 /**
  * Processes an OAS document.
@@ -144,18 +143,14 @@ export const cleanupGeneratedDoc = (doc: string): string => {
  * @param {string} doc - The JSON string representing the OAS document.
  * @returns {OpenAPIV3.Document} - The parsed OAS document.
  */
-export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => {
-  return JSON.parse(doc) as OpenAPIV3.Document;
-};
+export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => JSON.parse(doc) as OpenAPIV3.Document;
 
 /**
  * Parses an OAS document from a YAML string.
  * @param {string} doc - The YAML string representing the OAS document.
  * @returns {OpenAPIV3.Document} - The parsed OAS document.
  */
-export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => {
-  return yaml.parse(doc) as OpenAPIV3.Document;
-};
+export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => yaml.parse(doc) as OpenAPIV3.Document;
 
 const PROMPT_TEMPLATES = {
   METHOD_BY_METHOD: path.join('resources', 'templates', 'methodByMethod.ejs')
@@ -233,8 +228,8 @@ export const ejsTemplateHelpers = {
  * @param {vscode.Diagnostic[]} diagnostics - The diagnostics to summarize.
  * @returns {number[]} - An array with counts of diagnostics by severity.
  */
-export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[] => {
-  return diagnostics.reduce(
+export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[] =>
+  diagnostics.reduce(
     (acc, cur) => {
       acc[cur.severity] += 1;
       acc[acc.length - 1] += 1; // [error, warning, info, hint, total]
@@ -242,7 +237,6 @@ export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[]
     },
     [0, 0, 0, 0, 0]
   );
-};
 
 export const getCurrentTimestamp = (): string => {
   const now = new Date();

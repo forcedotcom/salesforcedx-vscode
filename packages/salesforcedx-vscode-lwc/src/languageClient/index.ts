@@ -19,9 +19,7 @@ export const code2ProtocolConverter = (value: Uri) => {
   }
 };
 
-const protocol2CodeConverter = (value: string) => {
-  return Uri.parse(value);
-};
+const protocol2CodeConverter = (value: string) => Uri.parse(value);
 
 export const createLanguageClient = (serverPath: string): LanguageClient => {
   // Setup the language server

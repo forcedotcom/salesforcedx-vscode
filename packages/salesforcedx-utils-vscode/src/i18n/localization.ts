@@ -17,7 +17,7 @@ export type Config = {
   locale: string;
 };
 
-export type LocalizationProvider = {
+type LocalizationProvider = {
   localize(label: string, ...args: any[]): string;
 };
 

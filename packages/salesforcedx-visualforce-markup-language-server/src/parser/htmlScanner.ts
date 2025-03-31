@@ -149,19 +149,14 @@ class MultiLineStream {
 
   public skipWhitespace(): boolean {
     const n = this.advanceWhileChar(ch => {
-      return (
-        ch === _WSP || ch === _TAB || ch === _NWL || ch === _LFD || ch === _CAR
-      );
+      return ch === _WSP || ch === _TAB || ch === _NWL || ch === _LFD || ch === _CAR;
     });
     return n > 0;
   }
 
   public advanceWhileChar(condition: (ch: number) => boolean): number {
     const posNow = this.position;
-    while (
-      this.position < this.len &&
-      condition(this.source.charCodeAt(this.position))
-    ) {
+    while (this.position < this.len && condition(this.source.charCodeAt(this.position))) {
       this.position++;
     }
     return this.position - posNow;
@@ -196,7 +191,7 @@ export enum ScannerState {
   BeforeAttributeValue
 }
 
-export type Scanner = {
+type Scanner = {
   scan(): TokenType;
   getTokenType(): TokenType;
   getTokenOffset(): number;
@@ -232,16 +227,10 @@ export function createScanner(
   }
 
   function nextAttributeName(): string {
-    return stream
-      .advanceIfRegExp(/^[^\s"'>/=\x00-\x0F\x7F\x80-\x9F]*/)
-      .toLowerCase();
+    return stream.advanceIfRegExp(/^[^\s"'>/=\x00-\x0F\x7F\x80-\x9F]*/).toLowerCase();
   }
 
-  function finishToken(
-    offset: number,
-    type: TokenType,
-    errorMessage?: string
-  ): TokenType {
+  function finishToken(offset: number, type: TokenType, errorMessage?: string): TokenType {
     tokenType = type;
     tokenOffset = offset;
     tokenError = errorMessage;
@@ -254,12 +243,7 @@ export function createScanner(
     const token = internalScan();
     if (token !== TokenType.EOS && offset === stream.pos()) {
       console.log(
-        'Scanner.scan has not advanced at offset ' +
-          offset +
-          ', state before: ' +
-          oldState +
-          ' after: ' +
-          state
+        'Scanner.scan has not advanced at offset ' + offset + ', state before: ' + oldState + ' after: ' + state
       );
       stream.advance(1);
       return finishToken(offset, TokenType.Unknown);
@@ -323,20 +307,12 @@ export function createScanner(
         }
         if (stream.skipWhitespace()) {
           // white space is not valid here
-          return finishToken(
-            offset,
-            TokenType.Whitespace,
-            'Tag name must directly follow the open bracket.'
-          );
+          return finishToken(offset, TokenType.Whitespace, 'Tag name must directly follow the open bracket.');
         }
         state = ScannerState.WithinEndTag;
         stream.advanceUntilChar(_RAN);
         if (offset < stream.pos()) {
-          return finishToken(
-            offset,
-            TokenType.Unknown,
-            'End tag name expected.'
-          );
+          return finishToken(offset, TokenType.Unknown, 'End tag name expected.');
         }
         return internalScan();
       case ScannerState.WithinEndTag:
@@ -362,20 +338,12 @@ export function createScanner(
         }
         if (stream.skipWhitespace()) {
           // white space is not valid here
-          return finishToken(
-            offset,
-            TokenType.Whitespace,
-            'Tag name must directly follow the open bracket.'
-          );
+          return finishToken(offset, TokenType.Whitespace, 'Tag name must directly follow the open bracket.');
         }
         state = ScannerState.WithinTag;
         stream.advanceUntilChar(_RAN);
         if (offset < stream.pos()) {
-          return finishToken(
-            offset,
-            TokenType.Unknown,
-            'Start tag name expected.'
-          );
+          return finishToken(offset, TokenType.Unknown, 'Start tag name expected.');
         }
         return internalScan();
       case ScannerState.WithinTag:
@@ -413,11 +381,7 @@ export function createScanner(
           return finishToken(offset, TokenType.StartTagClose);
         }
         stream.advance(1);
-        return finishToken(
-          offset,
-          TokenType.Unknown,
-          'Unexpected character in tag.'
-        );
+        return finishToken(offset, TokenType.Unknown, 'Unexpected character in tag.');
       case ScannerState.AfterAttributeName:
         if (stream.skipWhitespace()) {
           hasSpaceAfterTag = true;
@@ -450,9 +414,7 @@ export function createScanner(
             stream.advance(1); // consume quote
           }
           if (lastAttributeName === 'type') {
-            lastTypeValue = stream
-              .getSource()
-              .substring(offset + 1, stream.pos() - 1);
+            lastTypeValue = stream.getSource().substring(offset + 1, stream.pos() - 1);
           }
           state = ScannerState.WithinTag;
           hasSpaceAfterTag = false;

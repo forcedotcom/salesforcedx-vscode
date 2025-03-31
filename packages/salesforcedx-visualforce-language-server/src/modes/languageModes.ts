@@ -44,10 +44,6 @@ export type Settings = {
   javascript?: any;
 };
 
-export type SettingProvider = {
-  getDocumentSettings(textDocument: TextDocument): Thenable<Settings>;
-};
-
 export type LanguageMode = {
   configure?: (options: Settings) => void;
   doValidation?: (document: TextDocument, settings?: Settings) => Diagnostic[];
@@ -79,7 +75,7 @@ export type LanguageModes = {
   dispose(): void;
 };
 
-export type LanguageModeRange = Range & {
+type LanguageModeRange = Range & {
   mode: LanguageMode;
   attributeValue?: boolean;
 };
@@ -109,19 +105,16 @@ export const getLanguageModes = (supportedLanguages: { [languageId: string]: boo
       }
       return null;
     },
-    getModesInRange: (document: TextDocument, range: Range): LanguageModeRange[] => {
-      return documentRegions
+    getModesInRange: (document: TextDocument, range: Range): LanguageModeRange[] =>
+      documentRegions
         .get(document)
         .getLanguageRanges(range)
-        .map(r => {
-          return {
-            start: r.start,
-            end: r.end,
-            mode: modes[r.languageId],
-            attributeValue: r.attributeValue
-          };
-        });
-    },
+        .map(r => ({
+          start: r.start,
+          end: r.end,
+          mode: modes[r.languageId],
+          attributeValue: r.attributeValue
+        })),
     getAllModesInDocument: (document: TextDocument): LanguageMode[] => {
       const result = [];
       for (const languageId of documentRegions.get(document).getLanguagesInDocument()) {
@@ -142,9 +135,7 @@ export const getLanguageModes = (supportedLanguages: { [languageId: string]: boo
       }
       return result;
     },
-    getMode: (languageId: string): LanguageMode => {
-      return modes[languageId];
-    },
+    getMode: (languageId: string): LanguageMode => modes[languageId],
     onDocumentRemoved: (document: TextDocument) => {
       modelCaches.forEach(mc => mc.onDocumentRemoved(document));
       for (const mode in modes) {

@@ -19,27 +19,6 @@ import {
   ApexOASResource
 } from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
-/**
- * Interface representing the metadata of a method.
- */
-export interface MethodMetadata {
-  name: string;
-  parameters: Parameter[];
-  returnType: string;
-  isAuraEnabled: boolean;
-  className?: string;
-}
-
-/**
- * Interface representing a parameter of a method.
- */
-export interface Parameter {
-  name: string;
-  in: string;
-  required: boolean;
-  description: string;
-  schema: { type: string };
-}
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -197,7 +176,6 @@ export class MetadataOrchestrator {
       } else return ApexOASResource.class;
     }
   }
-  getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
-    return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
-  };
+  getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
+    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 }

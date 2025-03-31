@@ -8,12 +8,10 @@
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 export const SFDX_FOLDER = '.sfdx';
-export const CLIENT_ID = 'sfdx-vscode';
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 export const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
-export const SF_CLI_DOWNLOAD_LINK = 'https://developer.salesforce.com/tools/salesforcecli';
 export const TARGET_ORG_KEY = 'target-org';
 export const PKG_ID_PREFIX = '04t';
 
@@ -42,7 +40,6 @@ export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-startup';
-export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS = 'enableDeployAndRetrieveForSourceTrackedOrgs.enabled';
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
 export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
