@@ -1,3 +1,23 @@
+# 63.7.0 - April 2, 2025
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- W-18137365 - Merge Pr/6159 ([PR #6174](https://github.com/forcedotcom/salesforcedx-vscode/pull/6174))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- W-18033879:  make codecoverage colors themeable ([PR #6155](https://github.com/forcedotcom/salesforcedx-vscode/pull/6155))
+
+- Adding 'SFDX:' to command name ([PR #6177](https://github.com/forcedotcom/salesforcedx-vscode/pull/6177))
+
+#### salesforcedx-vscode-core
+
+- [W-14667562] remove dups from Apex problems ([PR #6163](https://github.com/forcedotcom/salesforcedx-vscode/pull/6163))
+
 # 63.6.0 - March 26, 2025
 
 ## Added
