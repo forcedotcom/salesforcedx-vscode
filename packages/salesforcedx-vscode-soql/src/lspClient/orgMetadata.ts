@@ -77,7 +77,7 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       const file = await fs.promises.readFile(filePath);
       // TODO: validate content against a schema
       return JSON.parse(file.toString());
-    } catch (e) {
+    } catch {
       const message = nls.localize(
         'error_sobject_metadata_fs_request',
         sobjectName,
