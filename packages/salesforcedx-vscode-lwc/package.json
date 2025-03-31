@@ -28,7 +28,6 @@
     "@salesforce/lightning-lsp-common": "4.12.3",
     "@salesforce/lwc-language-server": "4.12.3",
     "@salesforce/salesforcedx-utils-vscode": "63.7.0",
-    "ajv": "8.17.1",
     "applicationinsights": "1.0.7",
     "jest-editor-support": "30.3.1",
     "jest-regex-util": "^24.9.0",

@@ -13,7 +13,7 @@ import * as paths from 'path';
 const Mocha = require('mocha');
 
 // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
-// Since we are not running in a tty environment, we just implementt he method statically
+// Since we are not running in a tty environment, we just implement the method statically
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const tty = require('tty');
 if (!tty.getWindowSize) {
