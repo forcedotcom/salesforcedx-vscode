@@ -15,7 +15,7 @@ import { MinObjectRetriever, OrgObjectDetailRetriever, OrgObjectRetriever } from
 import { SObjectCategory, SObjectDefinitionRetriever, SObjectGenerator, SObjectRefreshSource } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
 
-export type CancellationToken = {
+type CancellationToken = {
   isCancellationRequested: boolean;
 };
 

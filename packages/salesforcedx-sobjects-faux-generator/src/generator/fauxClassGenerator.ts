@@ -14,7 +14,7 @@ import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator,
 import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
-export const APEX_CLASS_EXTENSION = '.cls';
+const APEX_CLASS_EXTENSION = '.cls';
 const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
 
 export class FauxClassGenerator implements SObjectGenerator {

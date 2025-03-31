@@ -23,7 +23,7 @@ import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './interna
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { AURA_DIRECTORY, AURA_INTERFACE_EXTENSION, AURA_TYPE } from './metadataTypeConstants';
 
-export class LibraryLightningGenerateInterfaceExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryLightningGenerateInterfaceExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_interface_text');
   public telemetryName = 'lightning_generate_interface';
   public metadataTypeName = AURA_TYPE;

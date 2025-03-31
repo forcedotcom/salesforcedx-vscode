@@ -19,7 +19,6 @@ import { projectTemplateEnum } from '../../../../src/commands/projectGenerate';
 import { nls } from '../../../../src/messages';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('ISV Debugging Project Bootstrap Command', () => {
   const LOGIN_URL = 'a.b.c';
   const SESSION_ID = '0x123';

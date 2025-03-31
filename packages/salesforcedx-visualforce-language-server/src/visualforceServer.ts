@@ -199,7 +199,7 @@ const triggerValidation = (textDocument: TextDocument): void => {
   cleanPendingValidation(textDocument);
   pendingValidationRequests[textDocument.uri] = setTimeout(() => {
     delete pendingValidationRequests[textDocument.uri];
-    // tslint:disable-next-line:no-floating-promises
+
     validateTextDocument(textDocument);
   }, validationDelayMs);
 };

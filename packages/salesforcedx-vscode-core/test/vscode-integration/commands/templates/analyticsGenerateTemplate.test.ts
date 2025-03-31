@@ -15,7 +15,6 @@ import { analyticsGenerateTemplate } from '../../../../src/commands/templates/an
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Analytics Generate Template', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;

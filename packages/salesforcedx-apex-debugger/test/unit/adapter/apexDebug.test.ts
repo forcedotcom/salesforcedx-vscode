@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // This is only done in tests because we are mocking things
-// tslint:disable:no-floating-promises
+
 import {
   ConfigGet,
   DEFAULT_CONNECTION_TIMEOUT_MS,
@@ -482,12 +482,10 @@ describe('Interactive debugger adapter - unit', () => {
 
       await adapter.launchRequest(initializedResponse, args);
 
-      // tslint:disable:no-unused-expression
       expect(requestService.proxyUrl).to.be.undefined;
       expect(requestService.proxyStrictSSL).to.be.undefined;
       expect(requestService.proxyAuthorization).to.be.undefined;
       expect(requestService.connectionTimeoutMs).to.equal(60000);
-      // tslint:enable:no-unused-expression
     });
   });
 
@@ -1371,12 +1369,11 @@ describe('Interactive debugger adapter - unit', () => {
           StreamingService.SYSTEM_EVENT_CHANNEL,
           StreamingService.USER_EVENT_CHANNEL
         ]);
-        // tslint:disable:no-unused-expression
+
         expect(clientInfo.connectedHandler).to.not.be.undefined;
         expect(clientInfo.disconnectedHandler).to.not.be.undefined;
         expect(clientInfo.errorHandler).to.not.be.undefined;
         expect(clientInfo.messageHandler).to.not.be.undefined;
-        // tslint:enable:no-unused-expression
       }
     });
   });
@@ -1521,10 +1518,10 @@ describe('Interactive debugger adapter - unit', () => {
       const threadEvent = adapter.getEvents()[1] as ThreadEvent;
       expect(threadEvent.body.reason).to.equal('exited');
       expect(threadEvent.body.threadId).to.equal(1);
-      // tslint:disable:no-unused-expression
+
       expect(adapter.getVariableContainer(variableReference)).to.not.be.undefined;
       expect(adapter.getStackFrameInfo(frameId)).to.not.be.undefined;
-      // tslint:enable:no-unused-expression
+
       expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(true);
     });
 
@@ -1568,10 +1565,10 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(adapter.getRequestThreads().size).to.equal(0);
       expect(adapter.getEvents().length).to.equal(2);
-      // tslint:disable:no-unused-expression
+
       expect(adapter.getVariableContainer(variableReference)).to.be.undefined;
       expect(adapter.getStackFrameInfo(frameId)).to.be.undefined;
-      // tslint:enable:no-unused-expression
+
       expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(false);
     });
 
@@ -1645,10 +1642,10 @@ describe('Interactive debugger adapter - unit', () => {
       });
       expect(markEventProcessedSpy.calledOnce).to.equal(true);
       expect(markEventProcessedSpy.getCall(0).args).to.have.same.members([ApexDebuggerEventType.Stopped, 0]);
-      // tslint:disable:no-unused-expression
+
       expect(adapter.getVariableContainer(variableReference)).to.be.undefined;
       expect(adapter.getStackFrameInfo(frameId)).to.be.undefined;
-      // tslint:enable:no-unused-expression
+
       expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(false);
     });
 
@@ -1804,10 +1801,10 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(adapter.getRequestThreads().size).to.equal(2);
       expect(adapter.getEvents().length).to.equal(2);
-      // tslint:disable:no-unused-expression
+
       expect(adapter.getVariableContainer(variableReference)).to.not.be.undefined;
       expect(adapter.getStackFrameInfo(frameId)).to.not.be.undefined;
-      // tslint:enable:no-unused-expression
+
       expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(true);
     });
 

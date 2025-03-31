@@ -17,7 +17,6 @@ import {
   TypeUtils
 } from '../../../src/orgBrowser';
 
-/* tslint:disable:no-unused-expression */
 describe('load org browser tree outline', () => {
   const username = 'test-username@test1234.com';
   let metadataProvider: MetadataOutlineProvider;

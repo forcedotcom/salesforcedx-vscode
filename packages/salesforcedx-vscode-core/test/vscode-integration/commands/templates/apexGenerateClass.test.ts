@@ -21,7 +21,6 @@ import { workspaceUtils } from '../../../../src/util';
 
 const sandbox = createSandbox();
 
-// tslint:disable:no-unused-expression
 describe('Apex Generate Class', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;

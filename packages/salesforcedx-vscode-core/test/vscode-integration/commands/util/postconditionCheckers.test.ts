@@ -113,7 +113,6 @@ describe('Postcondition Checkers', () => {
       });
     });
 
-    // tslint:disable:no-unused-expression
     it('Should call executor if composite checker is ContinueResponse', async () => {
       let executed = false;
       const commandlet = new SfCommandlet(

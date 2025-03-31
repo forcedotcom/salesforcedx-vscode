@@ -14,7 +14,7 @@ import { CsvDataProvider, JsonDataProvider } from '../../../src/queryDataView/da
 import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
 import { mockQueryText, mockQueryData, MockTextDocumentProvider, TestFileService } from '../testUtilities';
 
-export const QUERY_RESULTS_DIR_PATH = path.join('scripts', 'soql', 'query-results');
+const QUERY_RESULTS_DIR_PATH = path.join('scripts', 'soql', 'query-results');
 
 describe('Query Data File Service', () => {
   let mockTextDocument: vscode.TextDocument;

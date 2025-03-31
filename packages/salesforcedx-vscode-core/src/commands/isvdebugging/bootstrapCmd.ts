@@ -34,7 +34,7 @@ import {
 } from '../projectGenerate';
 import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
 
-export type InstalledPackageInfo = {
+type InstalledPackageInfo = {
   id: string;
   name: string;
   namespace: string;
@@ -361,7 +361,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
 export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
 
-export type ForceIdeUri = {
+type ForceIdeUri = {
   loginUrl: string;
   sessionId: string;
   orgName: string;

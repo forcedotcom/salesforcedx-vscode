@@ -25,7 +25,6 @@ import { nls } from '../../../../src/messages';
 const TEST_ALIAS = 'testAlias';
 const TEST_URL = 'https://my.testdomain.salesforce.com';
 
-// tslint:disable:no-unused-expression
 describe('Org Login Web', () => {
   it('Should build the org login web login command', async () => {
     const orgLoginWeb = new OrgLoginWebExecutor();
@@ -36,9 +35,7 @@ describe('Org Login Web', () => {
     expect(orgLoginWebCommand.toCommand()).to.equal(
       `sf org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default`
     );
-    expect(orgLoginWebCommand.description).to.equal(
-      nls.localize('org_login_web_authorize_org_text')
-    );
+    expect(orgLoginWebCommand.description).to.equal(nls.localize('org_login_web_authorize_org_text'));
   });
 });
 
@@ -52,9 +49,7 @@ describe('Org Login Web in Demo Mode', () => {
     expect(orgLoginWebCommand.toCommand()).to.equal(
       `sf org:login:web --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --no-prompt --json`
     );
-    expect(orgLoginWebCommand.description).to.equal(
-      nls.localize('org_login_web_authorize_org_text')
-    );
+    expect(orgLoginWebCommand.description).to.equal(nls.localize('org_login_web_authorize_org_text'));
   });
 });
 
@@ -83,9 +78,7 @@ describe('Auth Params Gatherer', () => {
     gatherer = new AuthParamsGatherer();
     inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
-    getProjectUrlStub = sinon
-      .stub(gatherer, 'getProjectLoginUrl')
-      .returns(TEST_URL);
+    getProjectUrlStub = sinon.stub(gatherer, 'getProjectLoginUrl').returns(TEST_URL);
   });
 
   afterEach(() => {
@@ -221,14 +214,12 @@ describe('Org Login Web is based on environment variables', () => {
 
     it('Should use OrgLoginWebDevHubDemoModeExecutor if demo mode is true', () => {
       process.env.SFDX_ENV = 'DEMO';
-      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebDemoModeExecutor)
-        .to.be.true;
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebDemoModeExecutor).to.be.true;
     });
 
     it('Should use OrgLoginWebDevHubExecutor if demo mode is false', () => {
       process.env.SFDX_ENV = '';
-      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be
-        .true;
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be.true;
     });
   });
 
@@ -238,21 +229,17 @@ describe('Org Login Web is based on environment variables', () => {
     });
 
     it('Should use OrgLoginWebExecutor when container mode is not defined', () => {
-      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be
-        .true;
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be.true;
     });
 
     it('Should use OrgLoginWebExecutor when container mode is empty', () => {
       process.env.SF_CONTAINER_MODE = '';
-      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be
-        .true;
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebExecutor).to.be.true;
     });
 
     it('Should use OrgLoginWebContainerExecutor when container mode is defined', () => {
       process.env.SF_CONTAINER_MODE = 'true';
-      expect(
-        createOrgLoginWebExecutor() instanceof OrgLoginWebContainerExecutor
-      ).to.be.true;
+      expect(createOrgLoginWebExecutor() instanceof OrgLoginWebContainerExecutor).to.be.true;
     });
 
     it('should build the org:login:device command', () => {
@@ -264,9 +251,7 @@ describe('Org Login Web is based on environment variables', () => {
       expect(orgLoginWebCommand.toCommand()).to.equal(
         `sf org:login:device --alias ${TEST_ALIAS} --instance-url ${TEST_URL} --set-default --json`
       );
-      expect(orgLoginWebCommand.description).to.equal(
-        nls.localize('org_login_web_authorize_org_text')
-      );
+      expect(orgLoginWebCommand.description).to.equal(nls.localize('org_login_web_authorize_org_text'));
     });
   });
 });
@@ -307,8 +292,7 @@ describe('Org Login Web Container', () => {
     expect(openExternal.called).to.be.true;
     expect(deviceExecutor.deviceCodeReceived).to.be.true;
 
-    const uri: vscode.Uri = openExternal.getCall(0)
-      .args as unknown as vscode.Uri;
+    const uri: vscode.Uri = openExternal.getCall(0).args as unknown as vscode.Uri;
     const targetUrl = uri.toString();
     expect(targetUrl).to.contain(testResponse.verification_uri);
     expect(targetUrl).to.contain(testResponse.user_code);

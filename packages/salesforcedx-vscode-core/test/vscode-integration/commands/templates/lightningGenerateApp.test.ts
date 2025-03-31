@@ -19,7 +19,6 @@ import { notificationService } from '../../../../src/notifications';
 import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Lightning Generate App', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
