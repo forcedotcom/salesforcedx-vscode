@@ -55,7 +55,7 @@
     "junit-report-merger": "7.0.0",
     "lerna": "5.5.4",
     "markdown-link-check": "^3.9.3",
-    "ncp": "^2.0.0",
+    "mocha-multi-reporters": "^1.1.7",
     "nyc": "15.1.0",
     "ovsx": "0.8.0",
     "prettier": "3.3.3",
