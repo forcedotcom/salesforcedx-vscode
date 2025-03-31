@@ -5,11 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { step } from 'mocha-steps';
-import { TestSetup } from '../testSetup';
-import * as utilities from '../utilities/index';
+import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { expect } from 'chai';
 import path from 'path';
-import { InputBox, QuickOpenBox, ExtensionsViewSection, ActivityBar, after, By, ExtensionsViewItem, DefaultTreeItem } from 'vscode-extension-tester';
+import {
+  InputBox,
+  QuickOpenBox,
+  ExtensionsViewSection,
+  ActivityBar,
+  after,
+  By,
+  ExtensionsViewItem,
+  DefaultTreeItem
+} from 'vscode-extension-tester';
 
 describe('Create OpenAPI v3 Specifications', async () => {
   let prompt: QuickOpenBox | InputBox;
@@ -135,8 +144,10 @@ describe('Create OpenAPI v3 Specifications', async () => {
 
   step('Try to generate OAS doc from an ineligible Apex class', async () => {
     utilities.log(`${testSetup.testSuiteSuffixName} - Try to generate OAS doc from an ineligible Apex class`);
-    await utilities.openFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'IneligibleApexClass.cls'));
-    if (process.platform === "win32") {
+    await utilities.openFile(
+      path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'IneligibleApexClass.cls')
+    );
+    if (process.platform === 'win32') {
       utilities.reloadWindow();
       await utilities.verifyExtensionsAreRunning(utilities.getExtensionsToVerifyActive());
       const workbench = utilities.getWorkbench();
@@ -163,28 +174,35 @@ describe('Create OpenAPI v3 Specifications', async () => {
   });
 
   describe('Composed mode', async () => {
-    step('Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation', async () => {
-      utilities.log(`${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation`);
-      await utilities.executeQuickPick('View: Close All Editors');
-      await utilities.openFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls'));
-      await utilities.pause(utilities.Duration.seconds(5));
-      prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-      await prompt.confirm();
+    step(
+      'Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation',
+      async () => {
+        utilities.log(
+          `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation`
+        );
+        await utilities.executeQuickPick('View: Close All Editors');
+        await utilities.openFile(
+          path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
+        );
+        await utilities.pause(utilities.Duration.seconds(5));
+        prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        await prompt.confirm();
 
-      const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        /OpenAPI Document created for class: CaseManager\./,
-        utilities.Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
+        const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+          /OpenAPI Document created for class: CaseManager\./,
+          utilities.Duration.TEN_MINUTES
+        );
+        expect(successNotificationWasFound).to.equal(true);
 
-      // Verify the generated OAS doc is open in the Editor View
-      await utilities.executeQuickPick('View: Open Last Editor in Group');
-      const workbench = utilities.getWorkbench();
-      const editorView = workbench.getEditorView();
-      const activeTab = await editorView.getActiveTab();
-      const title = await activeTab?.getTitle();
-      expect(title).to.equal('CaseManager.externalServiceRegistration-meta.xml');
-    });
+        // Verify the generated OAS doc is open in the Editor View
+        await utilities.executeQuickPick('View: Open Last Editor in Group');
+        const workbench = utilities.getWorkbench();
+        const editorView = workbench.getEditorView();
+        const activeTab = await editorView.getActiveTab();
+        const title = await activeTab?.getTitle();
+        expect(title).to.equal('CaseManager.externalServiceRegistration-meta.xml');
+      }
+    );
 
     step('Check for warnings and errors in the Problems Tab', async () => {
       utilities.log(`${testSetup.testSuiteSuffixName} - Check for warnings and errors in the Problems Tab`);
@@ -193,7 +211,9 @@ describe('Create OpenAPI v3 Specifications', async () => {
 
     step('Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
       // NOTE: The "fix" is actually replacing the OAS doc with the ideal solution
-      utilities.log(`${testSetup.testSuiteSuffixName} - Fix the OAS doc to get rid of the problems in the Problems Tab`);
+      utilities.log(
+        `${testSetup.testSuiteSuffixName} - Fix the OAS doc to get rid of the problems in the Problems Tab`
+      );
 
       const idealCaseManagerOASDoc = [
         `<?xml version="1.0" encoding="UTF-8"?>`,
@@ -284,13 +304,24 @@ describe('Create OpenAPI v3 Specifications', async () => {
       // Clear the Output view first.
       await utilities.clearOutputView(utilities.Duration.seconds(2));
       await utilities.getTextEditor(workbench, 'CaseManager.externalServiceRegistration-meta.xml');
-      await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'ExternalServiceRegistration', 'CaseManager', 'Created  ');
+      await utilities.runAndValidateCommand(
+        'Deploy',
+        'to',
+        'ST',
+        'ExternalServiceRegistration',
+        'CaseManager',
+        'Created  '
+      );
     });
 
     step('Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge', async () => {
-      utilities.log(`${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge`);
+      utilities.log(
+        `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge`
+      );
       await utilities.executeQuickPick('View: Close All Editors');
-      await utilities.openFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls'));
+      await utilities.openFile(
+        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
+      );
       await utilities.pause(utilities.Duration.seconds(5));
       prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await prompt.confirm();
@@ -332,7 +363,9 @@ describe('Create OpenAPI v3 Specifications', async () => {
 
   describe('Decomposed mode', async () => {
     step('Add "decomposeExternalServiceRegistrationBeta" setting to sfdx-project.json', async () => {
-      utilities.log(`${testSetup.testSuiteSuffixName} - Add "decomposeExternalServiceRegistrationBeta" setting to sfdx-project.json`);
+      utilities.log(
+        `${testSetup.testSuiteSuffixName} - Add "decomposeExternalServiceRegistrationBeta" setting to sfdx-project.json`
+      );
       const workbench = utilities.getWorkbench();
       await utilities.openFile(path.join(testSetup.projectFolderPath!, 'sfdx-project.json'));
       const textEditor = await utilities.getTextEditor(workbench, 'sfdx-project.json');
@@ -359,33 +392,47 @@ describe('Create OpenAPI v3 Specifications', async () => {
       await utilities.reloadWindow();
     });
 
-    step('Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation', async () => {
-      utilities.log(`${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation`);
-      await utilities.executeQuickPick('View: Close All Editors');
-      await utilities.openFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'SimpleAccountResource.cls'));
-      await utilities.pause(utilities.Duration.seconds(5));
-      prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-      await prompt.confirm();
+    step(
+      'Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation',
+      async () => {
+        utilities.log(
+          `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation`
+        );
+        await utilities.executeQuickPick('View: Close All Editors');
+        await utilities.openFile(
+          path.join(
+            testSetup.projectFolderPath!,
+            'force-app',
+            'main',
+            'default',
+            'classes',
+            'SimpleAccountResource.cls'
+          )
+        );
+        await utilities.pause(utilities.Duration.seconds(5));
+        prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        await prompt.confirm();
 
-      const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        /OpenAPI Document created for class: SimpleAccountResource\./,
-        utilities.Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
+        const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+          /OpenAPI Document created for class: SimpleAccountResource\./,
+          utilities.Duration.TEN_MINUTES
+        );
+        expect(successNotificationWasFound).to.equal(true);
 
-      // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
-      await utilities.executeQuickPick('View: Open Last Editor in Group');
-      const workbench = utilities.getWorkbench();
-      const editorView = workbench.getEditorView();
-      let activeTab = await editorView.getActiveTab();
-      let title = await activeTab?.getTitle();
-      expect(title).to.equal('SimpleAccountResource.yaml');
+        // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
+        await utilities.executeQuickPick('View: Open Last Editor in Group');
+        const workbench = utilities.getWorkbench();
+        const editorView = workbench.getEditorView();
+        let activeTab = await editorView.getActiveTab();
+        let title = await activeTab?.getTitle();
+        expect(title).to.equal('SimpleAccountResource.yaml');
 
-      await utilities.executeQuickPick('View: Open Previous Editor');
-      activeTab = await editorView.getActiveTab();
-      title = await activeTab?.getTitle();
-      expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
-    });
+        await utilities.executeQuickPick('View: Open Previous Editor');
+        activeTab = await editorView.getActiveTab();
+        title = await activeTab?.getTitle();
+        expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
+      }
+    );
 
     step('Check for warnings and errors in the Problems Tab', async () => {
       utilities.log(`${testSetup.testSuiteSuffixName} - Check for warnings and errors in the Problems Tab`);
@@ -394,7 +441,9 @@ describe('Create OpenAPI v3 Specifications', async () => {
 
     step('Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
       // NOTE: The "fix" is actually replacing the OAS doc with the ideal solution from the EMU repo
-      utilities.log(`${testSetup.testSuiteSuffixName} - Fix the OAS doc to get rid of the problems in the Problems Tab`);
+      utilities.log(
+        `${testSetup.testSuiteSuffixName} - Fix the OAS doc to get rid of the problems in the Problems Tab`
+      );
 
       const idealSimpleAccountResourceYAML = [
         `openapi: 3.0.0`,
@@ -465,7 +514,10 @@ describe('Create OpenAPI v3 Specifications', async () => {
         `</ExternalServiceRegistration>`
       ].join('\n');
 
-      textEditor = await utilities.getTextEditor(workbench, 'SimpleAccountResource.externalServiceRegistration-meta.xml');
+      textEditor = await utilities.getTextEditor(
+        workbench,
+        'SimpleAccountResource.externalServiceRegistration-meta.xml'
+      );
       await textEditor.setText(idealSimpleAccountResourceXML);
       await textEditor.save();
       await utilities.pause(utilities.Duration.seconds(1));
@@ -498,140 +550,177 @@ describe('Create OpenAPI v3 Specifications', async () => {
       // Clear the Output view first.
       await utilities.clearOutputView(utilities.Duration.seconds(2));
       await utilities.getTextEditor(workbench, 'SimpleAccountResource.externalServiceRegistration-meta.xml');
-      await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'ExternalServiceRegistration', 'SimpleAccountResource', 'Created  ');
-    });
-
-    step('Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite', async () => {
-      utilities.log(`${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite`);
-      await utilities.executeQuickPick('View: Close All Editors');
-      await utilities.openFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'SimpleAccountResource.cls'));
-      await utilities.pause(utilities.Duration.seconds(5));
-
-      // Use context menu for Windows and Ubuntu, command palette for Mac
-      if (process.platform !== 'darwin') {
-        utilities.log('Not Mac - can use context menu');
-        const workbench = utilities.getWorkbench();
-        const textEditor = await utilities.getTextEditor(workbench, 'SimpleAccountResource.cls');
-        const contextMenu = await textEditor.openContextMenu();
-        const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
-        // Wait for the command palette prompt to appear
-        if (menu) {
-          const result = await getQuickOpenBoxOrInputBox();
-          if (!result) {
-            throw new Error('Failed to get QuickOpenBox or InputBox');
-          }
-          prompt = result;
-        }
-      } else {
-        utilities.log('Mac - must use command palette')
-        prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-      }
-      await prompt.confirm();
-
-      // Click the Overwrite button on the popup
-      await utilities.clickButtonOnModalDialog('Overwrite');
-
-      const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        /OpenAPI Document created for class: SimpleAccountResource\./,
-        utilities.Duration.TEN_MINUTES
+      await utilities.runAndValidateCommand(
+        'Deploy',
+        'to',
+        'ST',
+        'ExternalServiceRegistration',
+        'SimpleAccountResource',
+        'Created  '
       );
-      expect(successNotificationWasFound).to.equal(true);
-
-      // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
-      await utilities.executeQuickPick('View: Open Last Editor in Group');
-      const workbench = utilities.getWorkbench();
-      const editorView = workbench.getEditorView();
-      let activeTab = await editorView.getActiveTab();
-      let title = await activeTab?.getTitle();
-      expect(title).to.equal('SimpleAccountResource.yaml');
-
-      await utilities.executeQuickPick('View: Open Previous Editor');
-      activeTab = await editorView.getActiveTab();
-      title = await activeTab?.getTitle();
-      expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
     });
 
-    step('Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge', async () => {
-      utilities.log(`${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge`);
-      await utilities.executeQuickPick('View: Close All Editors');
-      await utilities.openFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'SimpleAccountResource.cls'));
-      await utilities.pause(utilities.Duration.seconds(5));
+    step(
+      'Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite',
+      async () => {
+        utilities.log(
+          `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite`
+        );
+        await utilities.executeQuickPick('View: Close All Editors');
+        await utilities.openFile(
+          path.join(
+            testSetup.projectFolderPath!,
+            'force-app',
+            'main',
+            'default',
+            'classes',
+            'SimpleAccountResource.cls'
+          )
+        );
+        await utilities.pause(utilities.Duration.seconds(5));
 
-      // Use context menu for Windows and Ubuntu, command palette for Mac
-      if (process.platform !== 'darwin') {
-        utilities.log('Not Mac - can use context menu');
-        await utilities.executeQuickPick('File: Focus on Files Explorer');
-        await utilities.pause(utilities.Duration.seconds(2));
+        // Use context menu for Windows and Ubuntu, command palette for Mac
+        if (process.platform !== 'darwin') {
+          utilities.log('Not Mac - can use context menu');
+          const workbench = utilities.getWorkbench();
+          const textEditor = await utilities.getTextEditor(workbench, 'SimpleAccountResource.cls');
+          const contextMenu = await textEditor.openContextMenu();
+          const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
+          // Wait for the command palette prompt to appear
+          if (menu) {
+            const result = await getQuickOpenBoxOrInputBox();
+            if (!result) {
+              throw new Error('Failed to get QuickOpenBox or InputBox');
+            }
+            prompt = result;
+          }
+        } else {
+          utilities.log('Mac - must use command palette');
+          prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        }
+        await prompt.confirm();
+
+        // Click the Overwrite button on the popup
+        await utilities.clickButtonOnModalDialog('Overwrite');
+
+        const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+          /OpenAPI Document created for class: SimpleAccountResource\./,
+          utilities.Duration.TEN_MINUTES
+        );
+        expect(successNotificationWasFound).to.equal(true);
+
+        // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
+        await utilities.executeQuickPick('View: Open Last Editor in Group');
         const workbench = utilities.getWorkbench();
+        const editorView = workbench.getEditorView();
+        let activeTab = await editorView.getActiveTab();
+        let title = await activeTab?.getTitle();
+        expect(title).to.equal('SimpleAccountResource.yaml');
+
+        await utilities.executeQuickPick('View: Open Previous Editor');
+        activeTab = await editorView.getActiveTab();
+        title = await activeTab?.getTitle();
+        expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
+      }
+    );
+
+    step(
+      'Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge',
+      async () => {
+        utilities.log(
+          `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge`
+        );
+        await utilities.executeQuickPick('View: Close All Editors');
+        await utilities.openFile(
+          path.join(
+            testSetup.projectFolderPath!,
+            'force-app',
+            'main',
+            'default',
+            'classes',
+            'SimpleAccountResource.cls'
+          )
+        );
+        await utilities.pause(utilities.Duration.seconds(5));
+
+        // Use context menu for Windows and Ubuntu, command palette for Mac
+        if (process.platform !== 'darwin') {
+          utilities.log('Not Mac - can use context menu');
+          await utilities.executeQuickPick('File: Focus on Files Explorer');
+          await utilities.pause(utilities.Duration.seconds(2));
+          const workbench = utilities.getWorkbench();
+          const sidebar = await workbench.getSideBar().wait();
+          const content = await sidebar.getContent().wait();
+          const treeViewSection = await content.getSection(testSetup.tempProjectName);
+          if (!treeViewSection) {
+            throw new Error(
+              'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
+            );
+          }
+
+          // The force-app/main/default and classes folders are already expanded, so we can find the file directly
+          const simpleAccountResourceFile = (await treeViewSection.findItem(
+            'SimpleAccountResource.cls'
+          )) as DefaultTreeItem;
+          const contextMenu = await simpleAccountResourceFile.openContextMenu();
+          const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
+
+          // Wait for the command palette prompt to appear
+          if (menu) {
+            const result = await getQuickOpenBoxOrInputBox();
+            if (!result) {
+              throw new Error('Failed to get QuickOpenBox or InputBox');
+            }
+            prompt = result;
+          }
+        } else {
+          utilities.log('Mac - must use command palette');
+          prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        }
+        await prompt.confirm();
+
+        // Click the Manual Merge button on the popup
+        await utilities.clickButtonOnModalDialog('Manually merge with existing ESR');
+
+        const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+          /A new OpenAPI Document class SimpleAccountResource_\d{8}_\d{6} is created for SimpleAccountResource\. Manually merge the two files using the diff editor\./,
+          utilities.Duration.TEN_MINUTES
+        );
+        expect(successNotificationWasFound).to.equal(true);
+
+        // Verify the generated OAS doc and the diff editor are both open in the Editor View
+        await utilities.executeQuickPick('View: Open First Editor in Group');
+        const workbench = utilities.getWorkbench();
+        await utilities.executeQuickPick('Explorer: Focus on Open Editors View');
         const sidebar = await workbench.getSideBar().wait();
         const content = await sidebar.getContent().wait();
-        const treeViewSection = await content.getSection(testSetup.tempProjectName);
-        if (!treeViewSection) {
-          throw new Error(
-            'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
-          );
-        }
+        const openEditorsView = await content.getSection('Open Editors');
 
-        // The force-app/main/default and classes folders are already expanded, so we can find the file directly
-        const simpleAccountResourceFile = await treeViewSection.findItem('SimpleAccountResource.cls') as DefaultTreeItem;
-        const contextMenu = await simpleAccountResourceFile.openContextMenu();
-        const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
+        const openTabs = await openEditorsView?.getVisibleItems();
+        expect(openTabs?.length).to.equal(5);
 
-        // Wait for the command palette prompt to appear
-        if (menu) {
-          const result = await getQuickOpenBoxOrInputBox();
-          if (!result) {
-            throw new Error('Failed to get QuickOpenBox or InputBox');
-          }
-          prompt = result;
-        }
-      } else {
-        utilities.log('Mac - must use command palette')
-        prompt = await utilities.executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        // Locate each tab in the Open Editors View using the selector (there is a bug in vscode-extension-tester)
+        const firstTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(1)'));
+        const firstTabLabel = await firstTab.getText();
+        expect(firstTabLabel).to.match(/SimpleAccountResource\.cls/);
+
+        const secondTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(2)'));
+        const secondTabLabel = await secondTab.getText();
+        expect(secondTabLabel).to.match(/SimpleAccountResource_\d{8}_\d{6}\.externalServiceRegistration-meta\.xml/);
+
+        const thirdTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(3)'));
+        const thirdTabLabel = await thirdTab.getText();
+        expect(thirdTabLabel).to.match(/SimpleAccountResource_\d{8}_\d{6}\.yaml/);
+
+        const fourthTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(4)'));
+        const fourthTabLabel = await fourthTab.getText();
+        expect(fourthTabLabel).to.match(/Manual Diff of ESR XML Files/);
+
+        const fifthTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(5)'));
+        const fifthTabLabel = await fifthTab.getText();
+        expect(fifthTabLabel).to.match(/Manual Diff of ESR YAML Files/);
       }
-      await prompt.confirm();
-
-      // Click the Manual Merge button on the popup
-      await utilities.clickButtonOnModalDialog('Manually merge with existing ESR');
-
-      const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
-        /A new OpenAPI Document class SimpleAccountResource_\d{8}_\d{6} is created for SimpleAccountResource\. Manually merge the two files using the diff editor\./,
-        utilities.Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-
-      // Verify the generated OAS doc and the diff editor are both open in the Editor View
-      await utilities.executeQuickPick('View: Open First Editor in Group');
-      const workbench = utilities.getWorkbench();
-      await utilities.executeQuickPick('Explorer: Focus on Open Editors View');
-      const sidebar = await workbench.getSideBar().wait();
-      const content = await sidebar.getContent().wait();
-      const openEditorsView = await content.getSection('Open Editors');
-
-      const openTabs = await openEditorsView?.getVisibleItems();
-      expect(openTabs?.length).to.equal(5);
-
-      // Locate each tab in the Open Editors View using the selector (there is a bug in vscode-extension-tester)
-      const firstTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(1)'));
-      const firstTabLabel = await firstTab.getText();
-      expect(firstTabLabel).to.match(/SimpleAccountResource\.cls/);
-
-      const secondTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(2)'));
-      const secondTabLabel = await secondTab.getText();
-      expect(secondTabLabel).to.match(/SimpleAccountResource_\d{8}_\d{6}\.externalServiceRegistration-meta\.xml/);
-
-      const thirdTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(3)'));
-      const thirdTabLabel = await thirdTab.getText();
-      expect(thirdTabLabel).to.match(/SimpleAccountResource_\d{8}_\d{6}\.yaml/);
-
-      const fourthTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(4)'));
-      const fourthTabLabel = await fourthTab.getText();
-      expect(fourthTabLabel).to.match(/Manual Diff of ESR XML Files/);
-
-      const fifthTab = await openEditorsView.findElement(By.css('.monaco-list-row:nth-child(5)'));
-      const fifthTabLabel = await fifthTab.getText();
-      expect(fifthTabLabel).to.match(/Manual Diff of ESR YAML Files/);
-    });
+    );
   });
 
   describe('Disable A4D extension and ensure the commands to generate and validate OAS docs are not present', async () => {
@@ -641,16 +730,20 @@ describe('Create OpenAPI v3 Specifications', async () => {
       const extensionsView = await (await new ActivityBar().getViewControl('Extensions'))?.openView();
       await utilities.pause(utilities.Duration.seconds(5));
       let extensionsList = (await extensionsView?.getContent().getSection('Installed')) as ExtensionsViewSection;
-      const a4dExtension = await extensionsList?.findItem('Agentforce for Developers') as ExtensionsViewItem;
+      const a4dExtension = (await extensionsList?.findItem('Agentforce for Developers')) as ExtensionsViewItem;
       await a4dExtension.click();
 
       // In the extension details view, click the Disable button
-      const disableButton = await a4dExtension.findElement(By.xpath("//a[contains(@class, 'action-label') and contains(@class, 'extension-action') and text()='Disable']"));
+      const disableButton = await a4dExtension.findElement(
+        By.xpath("//a[contains(@class, 'action-label') and contains(@class, 'extension-action') and text()='Disable']")
+      );
       await disableButton?.click();
       await utilities.pause(utilities.Duration.seconds(5));
 
       // Click the Restart Extensions button
-      const restartExtensionsButton = await a4dExtension.findElement(By.xpath("//a[contains(@class, 'action-label') and contains(@class, 'reload') and text()='Restart Extensions']"));
+      const restartExtensionsButton = await a4dExtension.findElement(
+        By.xpath("//a[contains(@class, 'action-label') and contains(@class, 'reload') and text()='Restart Extensions']")
+      );
       await restartExtensionsButton?.click();
       await utilities.pause(utilities.Duration.seconds(5));
 
@@ -660,15 +753,30 @@ describe('Create OpenAPI v3 Specifications', async () => {
     });
 
     step('Ensure the commands to generate and validate OAS docs are not present', async () => {
-      utilities.log(`${testSetup.testSuiteSuffixName} - Ensure the commands to generate and validate OAS docs are not present`);
+      utilities.log(
+        `${testSetup.testSuiteSuffixName} - Ensure the commands to generate and validate OAS docs are not present`
+      );
       await utilities.executeQuickPick('View: Close All Editors');
       await utilities.reloadWindow(utilities.Duration.seconds(5));
 
-      await utilities.openFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls'));
+      await utilities.openFile(
+        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
+      );
       await utilities.pause(utilities.Duration.seconds(5));
-      expect(await utilities.isCommandAvailable('SFDX: Create OpenAPI Document from This Class (Beta)')).to.equal(false);
+      expect(await utilities.isCommandAvailable('SFDX: Create OpenAPI Document from This Class (Beta)')).to.equal(
+        false
+      );
 
-      await utilities.openFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'externalServiceRegistrations', 'SimpleAccountResource.yaml'));
+      await utilities.openFile(
+        path.join(
+          testSetup.projectFolderPath!,
+          'force-app',
+          'main',
+          'default',
+          'externalServiceRegistrations',
+          'SimpleAccountResource.yaml'
+        )
+      );
       await utilities.pause(utilities.Duration.seconds(5));
       expect(await utilities.isCommandAvailable('SFDX: Validate OpenAPI Document (Beta)')).to.equal(false);
     });
@@ -692,5 +800,5 @@ describe('Create OpenAPI v3 Specifications', async () => {
         return undefined;
       }
     }
-  }
+  };
 });

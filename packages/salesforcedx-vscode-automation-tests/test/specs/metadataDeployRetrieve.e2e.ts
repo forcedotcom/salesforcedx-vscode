@@ -8,8 +8,8 @@ import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import path from 'path';
 import { after } from 'vscode-extension-tester';
-import { TestSetup } from '../testSetup';
-import * as utilities from '../utilities/index';
+import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 
 // In future we will merge the test together with deployAndRetrieve
 describe('metadata mdDeployRetrieve', async () => {

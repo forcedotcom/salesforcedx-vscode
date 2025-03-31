@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import * as utilities from '../utilities/index'; // Assuming utilities is a module in your project
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities'; // Assuming utilities is a module in your project
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function showNotification(message: string) {

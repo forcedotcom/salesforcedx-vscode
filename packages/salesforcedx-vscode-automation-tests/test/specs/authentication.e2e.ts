@@ -7,9 +7,9 @@
 
 import { step } from 'mocha-steps';
 import { By, InputBox, after } from 'vscode-extension-tester';
-import { EnvironmentSettings } from '../environmentSettings';
-import { TestSetup } from '../testSetup';
-import * as utilities from '../utilities/index';
+import { EnvironmentSettings } from 'salesforcedx-vscode-automation-tests-redhat/test/environmentSettings';
+import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { expect } from 'chai';
 
 describe('Authentication', async () => {

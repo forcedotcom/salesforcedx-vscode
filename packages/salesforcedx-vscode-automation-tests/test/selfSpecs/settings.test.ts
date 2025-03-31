@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { step } from 'mocha-steps';
-import * as utilities from '../utilities/index';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 
 describe('Settings', async () => {
   step('Test Settings', async () => {

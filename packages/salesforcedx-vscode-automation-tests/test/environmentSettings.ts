@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import { join } from 'path';
-import { LOG_LEVELS, LogLevel } from './utilities/constants';
+import { LOG_LEVELS, LogLevel } from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 
 export class EnvironmentSettings {
   private static _instance: EnvironmentSettings;

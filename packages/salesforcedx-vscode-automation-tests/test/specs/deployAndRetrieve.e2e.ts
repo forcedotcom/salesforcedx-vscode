@@ -6,9 +6,9 @@
  */
 import { step } from 'mocha-steps';
 import path from 'path';
-import { TestSetup } from '../testSetup';
-import * as utilities from '../utilities/index';
-import { WORKSPACE_SETTING_KEYS as WSK } from '../utilities/index';
+import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { WORKSPACE_SETTING_KEYS as WSK } from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { after } from 'vscode-extension-tester';
 import { expect } from 'chai';
 

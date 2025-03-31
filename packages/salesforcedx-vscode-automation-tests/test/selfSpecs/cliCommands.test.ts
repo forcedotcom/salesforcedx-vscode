@@ -8,7 +8,7 @@
 import fs from 'fs';
 import { step } from 'mocha-steps';
 import { EnvironmentSettings } from '../environmentSettings';
-import * as utilities from '../utilities/index';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { expect } from 'chai';
 
 describe('CLI Commands', async () => {

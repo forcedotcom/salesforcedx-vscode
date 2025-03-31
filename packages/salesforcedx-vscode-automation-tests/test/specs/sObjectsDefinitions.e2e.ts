@@ -6,8 +6,8 @@
  */
 import { step } from 'mocha-steps';
 import { DefaultTreeItem, TreeItem, ViewSection, Workbench, after } from 'vscode-extension-tester';
-import { TestSetup } from '../testSetup';
-import * as utilities from '../utilities/index';
+import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { expect } from 'chai';
 
 describe('SObjects Definitions', async () => {

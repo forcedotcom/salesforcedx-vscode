@@ -12,8 +12,8 @@ import { ReleaseQuality } from 'vscode-extension-tester/out/util/codeUtil';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { EnvironmentSettings } from './environmentSettings';
-import * as utilities from './utilities/index';
-import { extensions } from './utilities/index';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { extensions } from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 
 class TestSetupAndRunner extends ExTester {
   protected static _exTestor: TestSetupAndRunner;
