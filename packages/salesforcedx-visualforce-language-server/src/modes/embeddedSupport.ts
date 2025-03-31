@@ -41,7 +41,7 @@ export const getDocumentRegions = (languageService: LanguageService, document: T
   let lastTagName: string;
   let lastAttributeName: string;
   let languageIdFromType: string;
-  const importedScripts = [];
+  const importedScripts: string[] = [];
 
   let token = scanner.scan();
   while (token !== TokenType.EOS) {
@@ -155,7 +155,7 @@ const getLanguageRanges = (document: TextDocument, regions: EmbeddedRegion[], ra
 };
 
 const getLanguagesInDocument = (document: TextDocument, regions: EmbeddedRegion[]): string[] => {
-  const result = [];
+  const result: string[] = [];
   for (const region of regions) {
     if (region.languageId && result.indexOf(region.languageId) === -1) {
       result.push(region.languageId);
