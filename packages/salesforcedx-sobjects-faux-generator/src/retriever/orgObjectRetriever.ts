@@ -52,7 +52,7 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
 
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
-    // tslint:disable-next-line:prefer-for-of
+
     for (let i = 0; i < fetchedSObjects.length; i++) {
       if (fetchedSObjects[i].custom) {
         customSObjects.push(fetchedSObjects[i]);

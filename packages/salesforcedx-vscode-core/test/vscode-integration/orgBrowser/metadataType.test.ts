@@ -14,7 +14,6 @@ import { DescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
 import { OrgAuthInfo } from '../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('get metadata types folder', () => {
   let getTargetOrgStub: SinonStub;
   let getUsernameStub: SinonStub;

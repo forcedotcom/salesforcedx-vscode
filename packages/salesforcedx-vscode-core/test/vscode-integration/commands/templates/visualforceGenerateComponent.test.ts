@@ -15,7 +15,6 @@ import { visualforceGenerateComponent } from '../../../../src/commands/templates
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Visualforce Generate Component', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;

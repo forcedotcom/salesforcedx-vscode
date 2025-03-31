@@ -15,7 +15,6 @@ import { apexGenerateTrigger } from '../../../../src/commands/templates/apexGene
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Apex Generate Trigger', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
