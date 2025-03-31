@@ -9,16 +9,16 @@ import { ENV_SF_DISABLE_TELEMETRY } from '../../../src/constants';
 import { disableCLITelemetry, isCLIInstalled, isCLITelemetryAllowed } from '../../../src/util';
 
 // Mock child_process
-jest.mock('node:child_process', () => {
-  return {
-    execSync: jest.fn()
-  };
-});
+jest.mock('node:child_process', () => ({
+  execSync: jest.fn()
+}));
 
 jest.mock('@salesforce/salesforcedx-utils-vscode');
 
-// Import the mocked modules
+// Import the mocked modules.  This needs to happen after the mocks are set.
+// eslint-disable-next-line import/order
 import { execSync } from 'node:child_process';
+// eslint-disable-next-line import/order
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('SFDX CLI Configuration utility', () => {
@@ -78,7 +78,7 @@ describe('SFDX CLI Configuration utility', () => {
       expect(response).toEqual(true);
     });
 
-    it('Should set an environment variable', async () => {
+    it('Should set an environment variable', () => {
       const cliEnvSpy = jest.spyOn(GlobalCliEnvironment.environmentVariables, 'set');
       disableCLITelemetry();
       expect(cliEnvSpy).toHaveBeenCalledWith(ENV_SF_DISABLE_TELEMETRY, 'true');
