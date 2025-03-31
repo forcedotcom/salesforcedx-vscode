@@ -12,7 +12,6 @@ import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 const PROJECT_PATH = path.join('sfdx', 'project', 'path');
 
-/* tslint:disable:no-unused-expression */
 describe('Salesforce Package Directories', () => {
   describe('getPackageDirectoryPaths', () => {
     let salesforceProjectConfigStub: SinonStub;

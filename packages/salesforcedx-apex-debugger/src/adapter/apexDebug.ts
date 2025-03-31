@@ -772,8 +772,7 @@ export class ApexDebug extends LoggingDebugSession {
           );
           return Promise.resolve(knownBps);
         });
-        // tslint:disable-next-line:no-empty
-      } catch (error) {}
+      } catch {}
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
         const lineNumber = this.convertDebuggerLineToClient(verifiedBreakpoint);
         response.body.breakpoints.push({

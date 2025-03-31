@@ -9,7 +9,6 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { By, EditorView, InputBox, TextEditor, VSBrowser, WebView, Workbench } from 'vscode-extension-tester';
 
-// tslint:disable-next-line:only-arrow-functions
 describe('In project folder, SOQL files should', function () {
   this.timeout(55000);
   let browser: VSBrowser;

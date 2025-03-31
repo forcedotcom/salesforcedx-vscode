@@ -104,9 +104,7 @@ export class SpectronApplication {
   }
 
   public wait(): Promise<any> {
-    return new Promise(resolve =>
-      setTimeout(resolve, this.testRetry * this.pollTimeout * 1000)
-    );
+    return new Promise(resolve => setTimeout(resolve, this.testRetry * this.pollTimeout * 1000));
   }
 
   public waitUI(): Promise<any> {
@@ -132,15 +130,9 @@ export class SpectronApplication {
         await this.webclient.windowByIndex(i);
         const title = await this.webclient.getTitle();
 
-        if (
-          process.platform === 'win32' &&
-          title !== '' &&
-          /Visual Studio Code/.test(title)
-        ) {
+        if (process.platform === 'win32' && title !== '' && /Visual Studio Code/.test(title)) {
           break;
-        } else if (
-          /bootstrap\/index\.html/.test(await this.webclient.getUrl())
-        ) {
+        } else if (/bootstrap\/index\.html/.test(await this.webclient.getUrl())) {
           break;
         }
       }
@@ -164,11 +156,7 @@ export class SpectronApplication {
 
   private retrieveKeybindings() {
     fs.readFile(
-      path.join(
-        process.cwd(),
-        'test_data',
-        `keybindings.${this.getKeybindingPlatform()}.json`
-      ),
+      path.join(process.cwd(), 'test_data', `keybindings.${this.getKeybindingPlatform()}.json`),
       'utf8',
       (err, data) => {
         if (err) {
@@ -183,19 +171,16 @@ export class SpectronApplication {
     );
   }
 
-  private callClientAPI(
-    func: (...args: any[]) => Promise<any>,
-    args: any
-  ): Promise<any> {
+  private callClientAPI(func: (...args: any[]) => Promise<any>, args: any): Promise<any> {
     let trial = 1;
     return new Promise(async (res, rej) => {
       while (true) {
         if (trial > this.pollTrials) {
           await this.screenshot.capture();
           rej(
-            `Could not retrieve the element in ${this.testRetry *
-              this.pollTrials *
-              this.pollTimeout} seconds. (${JSON.stringify(args)})`
+            `Could not retrieve the element in ${
+              this.testRetry * this.pollTrials * this.pollTimeout
+            } seconds. (${JSON.stringify(args)})`
           );
           break;
         }
@@ -203,7 +188,6 @@ export class SpectronApplication {
         let result;
         try {
           result = await func.call(this.client, args, false);
-          // tslint:disable-next-line:no-empty
         } catch (e) {
           console.log(` Attempt #${trial}: ${args} :::: ${e}`);
           await this.screenshot.capture();
@@ -247,9 +231,7 @@ export class SpectronApplication {
       case 'cmd':
         return 'Meta';
       default:
-        return key.length === 1
-          ? key
-          : key.charAt(0).toUpperCase() + key.slice(1);
+        return key.length === 1 ? key : key.charAt(0).toUpperCase() + key.slice(1);
     }
   }
 

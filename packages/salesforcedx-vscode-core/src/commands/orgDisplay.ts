@@ -39,7 +39,6 @@ export class OrgDisplay extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 
 export async function orgDisplay(this: FlagParameter<string>) {
-  // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
   const parameterGatherer = flag ? new SelectUsername() : new EmptyParametersGatherer();
   const executor = new OrgDisplay(flag);

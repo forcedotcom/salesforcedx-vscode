@@ -35,7 +35,6 @@ import {
   UserDebugState
 } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('LogContext', () => {
   let context: LogContext;
   let readLogFileStub: sinon.SinonStub;

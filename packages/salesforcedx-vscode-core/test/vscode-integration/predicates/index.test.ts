@@ -15,7 +15,6 @@ import { nls } from '../../../src/messages';
 import { isSalesforceProjectOpened } from '../../../src/predicates';
 import { workspaceUtils } from '../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('SFDX Project predicate', () => {
   let mExistsSync: SinonStub;
 

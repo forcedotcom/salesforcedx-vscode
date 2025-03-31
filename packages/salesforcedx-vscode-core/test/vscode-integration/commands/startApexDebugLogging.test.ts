@@ -20,7 +20,6 @@ import {
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
 describe('Start Apex Debug Logging', () => {
   let getTraceFlagIdStub: sinon.SinonStub;
   let getDebugLevelIdStub: sinon.SinonStub;

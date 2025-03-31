@@ -7,7 +7,6 @@
 import { expect } from 'chai';
 import { FrameStateUtil } from '../../../src/states/frameStateUtil';
 
-// tslint:disable:no-unused-expression
 describe('Frame state utilities', () => {
   describe('Verify frame name generation', () => {
     // EVENT_CODE_UNIT_STARTED/FINISHED tests

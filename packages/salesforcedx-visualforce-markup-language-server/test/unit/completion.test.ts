@@ -88,7 +88,6 @@ describe('HTML Completion', () => {
   };
 
   const run = (tests: PromiseLike<void>[], testDone) => {
-    // tslint:disable-next-line:no-floating-promises
     Promise.all(tests).then(
       () => {
         testDone();

@@ -5,14 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// tslint:disable:quotemark
-
-import {
-  collectValuesDefault,
-  IHTMLTagProvider,
-  IValueSets,
-  TagSpecification
-} from './htmlTags';
+import { collectValuesDefault, IHTMLTagProvider, IValueSets, TagSpecification } from './htmlTags';
 
 class VisualforceTagSpecification extends TagSpecification {
   public readonly label: string;
@@ -36,17 +29,11 @@ export function getVisualforceTagProvider(): IHTMLTagProvider {
     collectTags: (collector: (tag: string, label: string) => void) => {
       for (const tag in VISUALFORCE_TAGS) {
         if (VISUALFORCE_TAGS.hasOwnProperty(tag)) {
-          collector(
-            VISUALFORCE_TAGS[tag].label,
-            VISUALFORCE_TAGS[tag].documentation
-          );
+          collector(VISUALFORCE_TAGS[tag].label, VISUALFORCE_TAGS[tag].documentation);
         }
       }
     },
-    collectAttributes: (
-      tag: string,
-      collector: (attribute: string, type: string) => void
-    ) => {
+    collectAttributes: (tag: string, collector: (attribute: string, type: string) => void) => {
       if (tag) {
         const tags = VISUALFORCE_TAGS[tag];
         if (tags) {
@@ -60,19 +47,8 @@ export function getVisualforceTagProvider(): IHTMLTagProvider {
         }
       }
     },
-    collectValues: (
-      tag: string,
-      attribute: string,
-      collector: (value: string) => void
-    ) => {
-      collectValuesDefault(
-        tag,
-        attribute,
-        collector,
-        VISUALFORCE_TAGS,
-        [],
-        valueSets
-      );
+    collectValues: (tag: string, attribute: string, collector: (value: string) => void) => {
+      collectValuesDefault(tag, attribute, collector, VISUALFORCE_TAGS, [], valueSets);
     }
   };
 }
@@ -115,18 +91,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:actionpoller': new VisualforceTagSpecification(
     'apex:actionPoller',
     " A timer that sends an AJAX request to the server according to a time interval that you specify. Each request can result in a full or partial page update. \n\n An < apex:actionPoller > must be within the region it acts upon. For example, to use an < apex:actionPoller > with an < apex:actionRegion >, the < apex:actionPoller > must be within the < apex:actionRegion >. \n\n Considerations When Using < apex:actionPoller > \n\n Action methods used by < apex:actionPoller > should be lightweight. It's a best practice to avoid performing DML, external service calls, and other resource-intensive operations in action methods called by an < apex:actionPoller >. Consider carefully the effect of your action method being called repeatedly by an < apex:actionPoller > at the interval you specify, especially if it's used on a page that will be widely distributed, or left open for long periods. < apex:actionPoller > refreshes the connection regularly, keeping login sessions alive. A page with < apex:actionPoller > on it won't time out due to inactivity. If an < apex:actionPoller > is ever re-rendered as the result of another action, it resets itself. Avoid using this component with enhanced lists. ",
-    [
-      'action',
-      'enabled:b',
-      'id',
-      'interval',
-      'oncomplete',
-      'onsubmit',
-      'rendered:b',
-      'reRender',
-      'status',
-      'timeout'
-    ]
+    ['action', 'enabled:b', 'id', 'interval', 'oncomplete', 'onsubmit', 'rendered:b', 'reRender', 'status', 'timeout']
   ),
   'apex:actionregion': new VisualforceTagSpecification(
     'apex:actionRegion',
@@ -210,17 +175,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:attribute': new VisualforceTagSpecification(
     'apex:attribute',
     ' A definition of an attribute on a custom component. The attribute tag can only be a child of a component tag.\n\n Note that you cannot define attributes with names like id or rendered. These attributes are automatically created for all custom component definitions.\n\n ',
-    [
-      'access',
-      'assignTo',
-      'default',
-      'description',
-      'encode:b',
-      'id',
-      'name',
-      'required:b',
-      'type'
-    ]
+    ['access', 'assignTo', 'default', 'description', 'encode:b', 'id', 'name', 'required:b', 'type']
   ),
   'apex:axis': new VisualforceTagSpecification(
     'apex:axis',
@@ -316,32 +271,12 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:chartlabel': new VisualforceTagSpecification(
     'apex:chartLabel',
     ' Defines how labels are displayed. Depending on what component wraps it, < apex:chartLabel > gives you options for affecting the display of data series labels, pie chart segment labels, and axes labels.\n\n Note: This component must be enclosed by a data series component or an < apex:axis > component.\n\n ',
-    [
-      'color',
-      'display',
-      'field',
-      'font',
-      'id',
-      'minMargin',
-      'orientation',
-      'rendered:b',
-      'rendererFn',
-      'rotate'
-    ]
+    ['color', 'display', 'field', 'font', 'id', 'minMargin', 'orientation', 'rendered:b', 'rendererFn', 'rotate']
   ),
   'apex:charttips': new VisualforceTagSpecification(
     'apex:chartTips',
     ' Defines tooltips which appear on mouseover of data series elements. This component offers more configuration options than the default tooltips displayed by setting the tips attribute of a data series component to true.\n\n Note: This component must be enclosed by a data series component.\n\n ',
-    [
-      'height',
-      'id',
-      'labelField',
-      'rendered:b',
-      'rendererFn',
-      'trackMouse:b',
-      'valueField',
-      'width'
-    ]
+    ['height', 'id', 'labelField', 'rendered:b', 'rendererFn', 'trackMouse:b', 'valueField', 'width']
   ),
   'apex:column': new VisualforceTagSpecification(
     'apex:column',
@@ -487,17 +422,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:component': new VisualforceTagSpecification(
     'apex:component',
     ' A custom Visualforce component. All custom component definitions must be wrapped inside a single < apex:component > tag.\n\n This component supports HTML pass-through attributes using the "html-" prefix. Pass-through attributes are attached to the generated container tag, or , depending on the layout attribute.\n\n ',
-    [
-      'access',
-      'allowDML:b',
-      'controller',
-      'extensions',
-      'id',
-      'language',
-      'layout',
-      'rendered:b',
-      'selfClosing:b'
-    ]
+    ['access', 'allowDML:b', 'controller', 'extensions', 'id', 'language', 'layout', 'rendered:b', 'selfClosing:b']
   ),
   'apex:componentbody': new VisualforceTagSpecification(
     'apex:componentBody',
@@ -507,15 +432,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:componentexample': new VisualforceTagSpecification(
     'apex:componentExample',
     'Defines an example for a component definition that will be displayed in the online component reference.',
-    [
-      'demoPage',
-      'description',
-      'examplePage',
-      'id',
-      'imageURL',
-      'name',
-      'rendered:b'
-    ]
+    ['demoPage', 'description', 'examplePage', 'id', 'imageURL', 'name', 'rendered:b']
   ),
   'apex:composition': new VisualforceTagSpecification(
     'apex:composition',
@@ -606,11 +523,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
     ' A template component that provides content for an < apex:insert > component defined in a Visualforce template page. \n\n See also: < apex:composition >, < apex:insert >\n\n ',
     ['name']
   ),
-  'apex:description': new VisualforceTagSpecification(
-    'apex:description',
-    '',
-    []
-  ),
+  'apex:description': new VisualforceTagSpecification('apex:description', '', []),
   'apex:detail': new VisualforceTagSpecification(
     'apex:detail',
     ' The standard detail page for a particular object, as defined by the associated page layout for the object in Setup. This component includes attributes for including or excluding the associated related lists, related list hover links, and title bar that appear in the standard Salesforce application interface.\n\n ',
@@ -635,18 +548,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:enhancedlist': new VisualforceTagSpecification(
     'apex:enhancedList',
     ' The list view picklist for an object, including its associated list of records for the currently selected view. In standard Salesforce applications this component is displayed on the main tab for a particular object. This component has additional attributes that can be specified, such as the height and rows per page, as compared to < apex:listView >.\n\n Note: When an < apex:enhancedList > is rerendered through another component\'s rerender attribute, the < apex:enhancedList > must be inside of an < apex:outputPanel > component that has its layout attribute set to "block". The < apex:enhancedList > component is not allowed on pages that have the attribute showHeader set to false. You can only have five < apex:enhancedList > components on a single page. Ext JS versions less than 3 should not be included on pages that use this component.\n\n See also: < apex:listView >.\n\n ',
-    [
-      'customizable:b',
-      'height',
-      'id',
-      'listId',
-      'oncomplete',
-      'rendered:b',
-      'reRender',
-      'rowsPerPage',
-      'type',
-      'width'
-    ]
+    ['customizable:b', 'height', 'id', 'listId', 'oncomplete', 'rendered:b', 'reRender', 'rowsPerPage', 'type', 'width']
   ),
   'apex:facet': new VisualforceTagSpecification(
     'apex:facet',
@@ -656,16 +558,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:flash': new VisualforceTagSpecification(
     'apex:flash',
     'A Flash movie, rendered with the HTML object and embed tags.',
-    [
-      'flashvars',
-      'height',
-      'id',
-      'loop:b',
-      'play:b',
-      'rendered:b',
-      'src',
-      'width'
-    ]
+    ['flashvars', 'height', 'id', 'loop:b', 'play:b', 'rendered:b', 'src', 'width']
   ),
   'apex:form': new VisualforceTagSpecification(
     'apex:form',
@@ -717,16 +610,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:iframe': new VisualforceTagSpecification(
     'apex:iframe',
     ' A component that creates an inline frame within a Visualforce page. A frame allows you to keep some information visible while other information is scrolled or replaced.\n\n This component supports HTML pass-through attributes using the "html-" prefix. Pass-through attributes are attached to the generated tag.\n\n ',
-    [
-      'frameborder:b',
-      'height',
-      'id',
-      'rendered:b',
-      'scrolling:b',
-      'src',
-      'title',
-      'width'
-    ]
+    ['frameborder:b', 'height', 'id', 'rendered:b', 'scrolling:b', 'src', 'title', 'width']
   ),
   'apex:image': new VisualforceTagSpecification(
     'apex:image',
@@ -777,16 +661,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:inlineeditsupport': new VisualforceTagSpecification(
     'apex:inlineEditSupport',
     ' This component provides inline editing support to < apex:outputField > and various container components. In order to support inline editing, this component must also be within an < apex:form > tag.\n\n The < apex:inlineEditSupport > component can only be a descendant of the following tags: < apex:dataList > < apex:dataTable > < apex:form > < apex:outputField > < apex:pageBlock > < apex:pageBlockSection > < apex:pageBlockTable > < apex:repeat > \n\n See also: the inlineEdit attribute of < apex:detail >\n\n ',
-    [
-      'changedStyleClass',
-      'disabled:b',
-      'event',
-      'hideOnEdit',
-      'id',
-      'rendered:b',
-      'resetFunction',
-      'showOnEdit'
-    ]
+    ['changedStyleClass', 'disabled:b', 'event', 'hideOnEdit', 'id', 'rendered:b', 'resetFunction', 'showOnEdit']
   ),
   'apex:input': new VisualforceTagSpecification(
     'apex:input',
@@ -1113,32 +988,12 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:messages': new VisualforceTagSpecification(
     'apex:messages',
     ' All messages that were generated for all components on the current page. If an < apex:message > or < apex:messages > component is not included in a page, most warning and error messages are only shown in the debug log.\n\n This component supports HTML pass-through attributes using the "html-" prefix. Pass-through attributes are attached to the generated tag. (Each message is contained in a list item.)\n\n ',
-    [
-      'dir',
-      'globalOnly:b',
-      'id',
-      'lang',
-      'layout',
-      'rendered:b',
-      'style',
-      'styleClass',
-      'title'
-    ]
+    ['dir', 'globalOnly:b', 'id', 'lang', 'layout', 'rendered:b', 'style', 'styleClass', 'title']
   ),
   'apex:outputfield': new VisualforceTagSpecification(
     'apex:outputField',
     ' A read-only display of a label and value for a field on a Salesforce object. An < apex:outputField > component respects the attributes of the associated field, including how it should be displayed to the user. For example, if the specified < apex:outputField > component is a currency field, the appropriate currency symbol is displayed. Likewise, if the < apex:outputField > component is a lookup field or URL, the value of the field is displayed as a link.\n\n Note that if custom help is defined for the field in Setup, the field must be a child of an < apex:pageBlock > or < apex:pageBlockSectionItem >, and the Salesforce page header must be displayed for the custom help to appear on your Visualforce page. To override the display of custom help, use the < apex:outputField > in the body of an < apex:pageBlockSectionItem >.\n\n The Rich Text Area data type can only be used with this component on pages running Salesforce.com API versions greater than 18.0.\n\n This component supports HTML pass-through attributes using the "html-" prefix. Pass-through attributes are attached to the generated container tag.\n\n ',
-    [
-      'dir',
-      'id',
-      'label',
-      'lang',
-      'rendered:b',
-      'style',
-      'styleClass',
-      'title',
-      'value'
-    ]
+    ['dir', 'id', 'label', 'lang', 'rendered:b', 'style', 'styleClass', 'title', 'value']
   ),
   'apex:outputlabel': new VisualforceTagSpecification(
     'apex:outputLabel',
@@ -1234,18 +1089,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:outputtext': new VisualforceTagSpecification(
     'apex:outputText',
     ' Displays text on a Visualforce page. You can customize the appearance of < apex:outputText > using CSS styles, in which case the generated text is wrapped in an HTML < span > tag. You can also escape the rendered text if it contains sensitive HTML and XML characters. This component does take localization into account.\n\n Use with nested param tags to format the text values, where {n} corresponds to the n-th nested param tag. The value attribute supports the same syntax as the MessageFormat class in Java.\n\n Warning: Encrypted custom fields that are embedded in the < apex:outputText > component display in clear text. The < apex:outputText > component doesn\'t respect the View Encrypted Data permission for users. To prevent showing sensitive information to unauthorized users, use the < apex:outputField > tag instead.\n\n This component supports HTML pass-through attributes using the "html-" prefix. Pass-through attributes are attached to the generated container tag.\n\n ',
-    [
-      'dir',
-      'escape:b',
-      'id',
-      'label',
-      'lang',
-      'rendered:b',
-      'style',
-      'styleClass',
-      'title',
-      'value'
-    ]
+    ['dir', 'escape:b', 'id', 'label', 'lang', 'rendered:b', 'style', 'styleClass', 'title', 'value']
   ),
   'apex:page': new VisualforceTagSpecification(
     'apex:page',
@@ -1450,16 +1294,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:pagemessage': new VisualforceTagSpecification(
     'apex:pageMessage',
     'This component should be used for presenting custom messages in the page using the Salesforce pattern for errors, warnings and other types of messages for a given severity. See also the pageMessages component.',
-    [
-      'detail',
-      'escape:b',
-      'id',
-      'rendered:b',
-      'severity',
-      'strength',
-      'summary',
-      'title'
-    ]
+    ['detail', 'escape:b', 'id', 'rendered:b', 'severity', 'strength', 'summary', 'title']
   ),
   'apex:pagemessages': new VisualforceTagSpecification(
     'apex:pageMessages',
@@ -1605,30 +1440,12 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:remoteobjectmodel': new VisualforceTagSpecification(
     'apex:remoteObjectModel',
     'Defines an sObject and its fields to make accessible using Visualforce Remote Objects. This definition can include a shorthand name for the object, which you can use in JavaScript instead of the full API name. This is especially useful if your organization has a namespace, and makes your code more maintainable.',
-    [
-      'create',
-      'delete',
-      'fields',
-      'id',
-      'jsShorthand',
-      'name',
-      'rendered:b',
-      'retrieve',
-      'update'
-    ]
+    ['create', 'delete', 'fields', 'id', 'jsShorthand', 'name', 'rendered:b', 'retrieve', 'update']
   ),
   'apex:remoteobjects': new VisualforceTagSpecification(
     'apex:remoteObjects',
     'Use this component, along with child < apex:remoteObjectModel > and < apex:remoteObjectField > components, to specify the sObjects and fields to access using Visualforce Remote Objects. These components generate models in JavaScript that you can use for basic create, select, update, and delete operations in your client-side JavaScript code.\n\n',
-    [
-      'create',
-      'delete',
-      'id',
-      'jsNamespace',
-      'rendered:b',
-      'retrieve',
-      'update'
-    ]
+    ['create', 'delete', 'id', 'jsNamespace', 'rendered:b', 'retrieve', 'update']
   ),
   'apex:repeat': new VisualforceTagSpecification(
     'apex:repeat',
@@ -1657,15 +1474,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'apex:scontrol': new VisualforceTagSpecification(
     'apex:scontrol',
     " An inline frame that displays an s-control.\n\n Note: s-controls have been superseded by Visualforce pages. After March 2010 organizations that have never created s-controls, as well as new organizations, won't be allowed to create them. Existing s-controls remain unaffected.\n\n ",
-    [
-      'controlName',
-      'height',
-      'id',
-      'rendered:b',
-      'scrollbars:b',
-      'subject',
-      'width'
-    ]
+    ['controlName', 'height', 'id', 'rendered:b', 'scrollbars:b', 'subject', 'width']
   ),
   'apex:sectionheader': new VisualforceTagSpecification(
     'apex:sectionHeader',
@@ -1980,22 +1789,11 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
     'A component that displays the vote control for an object that supports it.',
     ['id', 'objectId', 'rendered:b', 'rerender']
   ),
-  'c:myvfcomponent': new VisualforceTagSpecification('c:myvfcomponent', '', [
-    'id',
-    'rendered:b'
-  ]),
+  'c:myvfcomponent': new VisualforceTagSpecification('c:myvfcomponent', '', ['id', 'rendered:b']),
   'chatter:feed': new VisualforceTagSpecification(
     'chatter:feed',
     "Displays the Chatter EntityFeed for a record or an UserProfileFeed for a user. Note that Chatter components are unavailable for Visualforce pages on Force.com sites. Ext JS versions less than 3 should not be included on pages that use this component. Note also that the chatter:feed component doesn't support feedItemType when the EntityId entity is a user. Use SOQL to filter on the UserProfileFeed object's Type field instead.",
-    [
-      'entityId',
-      'feedItemType',
-      'id',
-      'onComplete',
-      'rendered:b',
-      'reRender',
-      'showPublisher:b'
-    ]
+    ['entityId', 'feedItemType', 'id', 'onComplete', 'rendered:b', 'reRender', 'showPublisher:b']
   ),
   'chatter:feedwithfollowers': new VisualforceTagSpecification(
     'chatter:feedWithFollowers',
@@ -2042,16 +1840,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'ideas:detailoutputlink': new VisualforceTagSpecification(
     'ideas:detailOutputLink',
     'A link to the page displaying an idea. Note: To use this component, please contact your salesforce.com representative and request that the Ideas extended standard controllers be enabled for your organization.',
-    [
-      'id',
-      'ideaId',
-      'page',
-      'pageNumber',
-      'pageOffset',
-      'rendered:b',
-      'style',
-      'styleClass'
-    ]
+    ['id', 'ideaId', 'page', 'pageNumber', 'pageOffset', 'rendered:b', 'style', 'styleClass']
   ),
   'ideas:listoutputlink': new VisualforceTagSpecification(
     'ideas:listOutputLink',
@@ -2114,14 +1903,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'knowledge:articlerenderertoolbar': new VisualforceTagSpecification(
     'knowledge:articleRendererToolbar',
     'Displays a header toolbar for an article. This toolbar includes voting stars, a Chatter feed, a language picklist and a properties panel. Ext JS versions less than 3 should not be included on pages that use this component.',
-    [
-      'articleId',
-      'canVote:b',
-      'id',
-      'includeCSS:b',
-      'rendered:b',
-      'showChatter:b'
-    ]
+    ['articleId', 'canVote:b', 'id', 'includeCSS:b', 'rendered:b', 'showChatter:b']
   ),
   'knowledge:articletypelist': new VisualforceTagSpecification(
     'knowledge:articleTypeList',
@@ -2131,15 +1913,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'knowledge:categorylist': new VisualforceTagSpecification(
     'knowledge:categoryList',
     " A loop on a subset of the category hierarchy. The total number of categories displayed in a page can't exceed 100.\n\n You must have access to the category you set as rootCategory to get a list of any categories. To list categories available to a user, see the Knowledge Support REST APIs.\n\n",
-    [
-      'ancestorsOf',
-      'categoryGroup',
-      'categoryVar',
-      'id',
-      'level',
-      'rendered:b',
-      'rootCategory'
-    ]
+    ['ancestorsOf', 'categoryGroup', 'categoryVar', 'id', 'level', 'rendered:b', 'rootCategory']
   ),
   'liveagent:clientchat': new VisualforceTagSpecification(
     'liveAgent:clientChat',
@@ -2212,13 +1986,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'liveagent:clientchatlogalertmessage': new VisualforceTagSpecification(
     'liveAgent:clientChatLogAlertMessage',
     ' The area in a Live Agent chat window that displays the idle time-out alert (customer warning) to a visitor.\n\n Must be used within < liveAgent:clientChat >. Each chat window can have only one idle time-out alert.\n\n',
-    [
-      'autoResizeElementId',
-      'id',
-      'rendered:b',
-      'respondToChatLabel',
-      'respondWithinTimeLabel'
-    ]
+    ['autoResizeElementId', 'id', 'rendered:b', 'respondToChatLabel', 'respondWithinTimeLabel']
   ),
   'liveagent:clientchatmessages': new VisualforceTagSpecification(
     'liveAgent:clientChatMessages',
@@ -2258,15 +2026,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'messaging:emailtemplate': new VisualforceTagSpecification(
     'messaging:emailTemplate',
     'Defines a Visualforce email template. All email template tags must be wrapped inside a single emailTemplate component tag. emailTemplate must contain either an htmlEmailBody tag or a plainTextEmailBody tag. The detail and form components are not permitted as child nodes. This component can only be used within a Visualforce email template. Email templates can be created and managed through Setup | Communication Templates | Email Templates.',
-    [
-      'id',
-      'language',
-      'recipientType',
-      'relatedToType',
-      'rendered:b',
-      'replyTo',
-      'subject'
-    ]
+    ['id', 'language', 'recipientType', 'relatedToType', 'rendered:b', 'replyTo', 'subject']
   ),
   'messaging:htmlemailbody': new VisualforceTagSpecification(
     'messaging:htmlEmailBody',
@@ -2340,14 +2100,7 @@ const VISUALFORCE_TAGS: VisualforceTagSet = {
   'topics:widget': new VisualforceTagSpecification(
     'topics:widget',
     ' UI component that displays topics assigned to a record and allows users to add and remove topics. The UI component is available only if topics are enabled for these supported objects: accounts, assets, campaigns, cases, contacts, contracts, leads, opportunities, and custom objects.',
-    [
-      'customUrl',
-      'entity',
-      'hideSuccessMessage:b',
-      'id',
-      'rendered:b',
-      'renderStyle'
-    ]
+    ['customUrl', 'entity', 'hideSuccessMessage:b', 'id', 'rendered:b', 'renderStyle']
   ),
   'wave:dashboard': new VisualforceTagSpecification(
     'wave:dashboard',

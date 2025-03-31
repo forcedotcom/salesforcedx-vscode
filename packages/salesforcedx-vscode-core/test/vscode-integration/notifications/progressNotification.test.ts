@@ -13,7 +13,6 @@ import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ProgressNotification } from '../../../src/notifications';
 
-// tslint:disable:no-unused-expression
 describe('Progress Notification', () => {
   let tokenSource: vscode.CancellationTokenSource;
   let execution: CommandExecution;

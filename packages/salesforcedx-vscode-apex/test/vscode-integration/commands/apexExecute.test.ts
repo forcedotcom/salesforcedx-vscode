@@ -24,7 +24,6 @@ import { AnonApexGatherer, AnonApexLibraryExecuteExecutor } from '../../../src/c
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
 describe('Apex Execute', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();

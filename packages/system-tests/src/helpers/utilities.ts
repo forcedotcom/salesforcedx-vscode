@@ -8,7 +8,7 @@
  */
 
 import * as fs from 'fs';
-// tslint:disable-next-line:no-var-requires
+
 import * as rimraf from 'rimraf';
 
 /**

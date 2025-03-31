@@ -18,7 +18,6 @@ const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CONFIG_DIR = path.join(__dirname, '..', '..', 'test', 'integration', 'config');
 const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 
-// tslint:disable:no-unused-expression
 describe('Replay debugger adapter - integration', () => {
   jest.setTimeout(320000);
   let goldFileUtil: GoldFileUtil;
@@ -48,8 +47,7 @@ describe('Replay debugger adapter - integration', () => {
     try {
       await dc.attachRequest({});
       expect.fail('Debugger client should have thrown an error');
-      // tslint:disable-next-line:no-empty
-    } catch (error) {}
+    } catch {}
   });
 
   it('Recursive stack', async () => {
@@ -105,7 +103,7 @@ describe('Replay debugger adapter - integration', () => {
       assertBreakpointsCreated(addBreakpointsResponse, 1, classAPath, classAValidLines);
       addBreakpointsResponse = await dc.setBreakpointsRequest(createBreakpointsArgs(classBPath, classBValidLines));
       assertBreakpointsCreated(addBreakpointsResponse, 1, classBPath, classBValidLines);
-      // tslint:disable-next-line:no-floating-promises
+
       dc.configurationDoneRequest({});
       // Verify stopped on the first line of debug log
       const stackTraceResponse = await dc.assertStoppedLocation('entry', {
@@ -168,7 +166,6 @@ describe('Replay debugger adapter - integration', () => {
       );
       assertBreakpointsCreated(addBreakpointsResponse, 1, classStaticVarsAPath, classStaticVarsAValidLines);
 
-      // tslint:disable-next-line:no-floating-promises
       dc.configurationDoneRequest({});
 
       // Verify stopped on the first line of debug log

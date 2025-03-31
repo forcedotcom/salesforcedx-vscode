@@ -13,7 +13,6 @@ import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurat
 import { nls } from '../../../src/messages';
 import { MockApexExtension } from './MockApexExtension';
 
-// tslint:disable:no-unused-expression
 describe('Configuration provider', () => {
   let provider: DebugConfigurationProvider;
   let getConfigSpy: sinon.SinonSpy;

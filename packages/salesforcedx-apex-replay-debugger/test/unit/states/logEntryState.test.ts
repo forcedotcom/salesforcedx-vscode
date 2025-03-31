@@ -11,7 +11,6 @@ import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/ap
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { LogEntryState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('LogEntry event', () => {
   let readLogFileStub: sinon.SinonStub;
 

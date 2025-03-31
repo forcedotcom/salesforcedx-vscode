@@ -45,7 +45,6 @@ export class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 
 export async function orgDelete(this: FlagParameter<string>) {
-  // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
 
   const parameterGatherer = flag

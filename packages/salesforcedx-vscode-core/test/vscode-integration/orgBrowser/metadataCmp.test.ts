@@ -67,7 +67,6 @@ const expectedFieldList = [
   'Age__c (number)'
 ];
 
-// tslint:disable:no-unused-expression
 describe('get metadata components path', () => {
   let getUsernameStub: SinonStub;
   let metadataFolderStub: SinonStub;

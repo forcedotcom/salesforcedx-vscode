@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// tslint:disable-next-line:no-var-requires
-// tslint:disable-next-line:variable-name
 import * as Mocha from 'mocha';
 
 // You can directly control Mocha options by uncommenting the following lines

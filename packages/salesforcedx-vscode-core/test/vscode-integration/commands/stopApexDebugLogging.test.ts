@@ -10,7 +10,6 @@ import * as sinon from 'sinon';
 import { developerLogTraceFlag, StopApexDebugLoggingExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
 describe('Source Status', () => {
   let getDebugLevelIdStub: sinon.SinonStub;
   const fakeTraceFlagId = 'fakeDebugLevelId';

@@ -11,7 +11,6 @@ import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/ap
 import { LogContext } from '../../../src/core';
 import { FrameExitState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('Frame exit event', () => {
   let context: LogContext;
   const logFileName = 'foo.log';

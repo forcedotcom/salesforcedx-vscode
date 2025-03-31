@@ -26,16 +26,11 @@ export function findFirst<T>(array: T[], p: (x: T) => boolean): number {
   return low;
 }
 
-export function binarySearch<T>(
-  array: T[],
-  key: T,
-  comparator: (op1: T, op2: T) => number
-): number {
+export function binarySearch<T>(array: T[], key: T, comparator: (op1: T, op2: T) => number): number {
   let low = 0;
   let high = array.length - 1;
 
   while (low <= high) {
-    // tslint:disable-next-line:no-bitwise
     const mid = ((low + high) / 2) | 0;
     const comp = comparator(array[mid], key);
     if (comp < 0) {

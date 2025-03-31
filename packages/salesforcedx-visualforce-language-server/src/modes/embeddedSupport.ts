@@ -2,17 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-// tslint:disable:quotemark
 
 'use strict';
 
-import {
-  LanguageService,
-  Position,
-  Range,
-  TextDocument,
-  TokenType
-} from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import { LanguageService, TokenType } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import { Position, Range, TextDocument } from 'vscode-languageserver-types';
 
 type LanguageRange = Range & {
   languageId: string;
@@ -42,7 +36,7 @@ export const getDocumentRegions = (languageService: LanguageService, document: T
   let lastTagName: string;
   let lastAttributeName: string;
   let languageIdFromType: string;
-  const importedScripts = [];
+  const importedScripts: string[] = [];
 
   let token = scanner.scan();
   while (token !== TokenType.EOS) {
@@ -156,7 +150,7 @@ const getLanguageRanges = (document: TextDocument, regions: EmbeddedRegion[], ra
 };
 
 const getLanguagesInDocument = (document: TextDocument, regions: EmbeddedRegion[]): string[] => {
-  const result = [];
+  const result: string[] = [];
   for (const region of regions) {
     if (region.languageId && result.indexOf(region.languageId) === -1) {
       result.push(region.languageId);
