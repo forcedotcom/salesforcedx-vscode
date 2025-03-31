@@ -60,8 +60,7 @@
     "mocha": "^10",
     "prettier": "3.3.3",
     "sinon": "^13.0.1",
-    "typescript": "^5.6.2",
-    "vscode-extension-telemetry": "0.0.17"
+    "typescript": "^5.6.2"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
