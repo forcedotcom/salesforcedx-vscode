@@ -18,7 +18,6 @@
     "@types/webdriverio": "4.6.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "decache": "^4.1.0",
     "glob": "^8.0.3",
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
