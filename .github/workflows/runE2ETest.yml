@@ -45,7 +45,7 @@ jobs:
           mv ./extensions/*/* ./extensions/
         working-directory: salesforcedx-vscode
         env:
-          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Display downloaded vsix files
         run: ls -R ./salesforcedx-vscode/extensions
       - name: Setup node
