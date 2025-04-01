@@ -40,7 +40,7 @@ export class ProjectTemplateItem implements vscode.QuickPickItem {
   }
 }
 
-export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
+class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
   private readonly options: projectGenerateOptions;
 
   public constructor(options = { isProjectWithManifest: false }) {
@@ -75,7 +75,7 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
 
 export type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & ProjectTemplate;
 
-export type ProjectURI = {
+type ProjectURI = {
   projectUri: string;
 };
 
@@ -83,7 +83,7 @@ export type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = {
+type ProjectTemplate = {
   projectTemplate: string;
 };
 

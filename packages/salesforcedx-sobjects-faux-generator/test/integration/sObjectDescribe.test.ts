@@ -19,7 +19,6 @@ const CONNECTION_DATA = {
 
 const env = createSandbox();
 
-// tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
   const USERNAME = 'test@example.com';
   let connection: Connection;

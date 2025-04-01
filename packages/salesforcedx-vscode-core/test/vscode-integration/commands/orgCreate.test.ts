@@ -13,7 +13,6 @@ import { AliasGatherer, OrgCreateExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { workspaceUtils } from '../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Org Create', () => {
   describe('Alias Gatherer', () => {
     const EVENT_CANCEL = 'CANCEL';

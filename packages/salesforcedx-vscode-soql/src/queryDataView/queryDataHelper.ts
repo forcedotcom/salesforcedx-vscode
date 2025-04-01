@@ -8,7 +8,7 @@ import { QueryResult } from '@jsforce/jsforce-node';
 import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
 import { JsonMap } from '@salesforce/ts-types';
 
-export type ExtendedQueryData = QueryResult<JsonMap> & {
+type ExtendedQueryData = QueryResult<JsonMap> & {
   columnData: ColumnData;
 };
 

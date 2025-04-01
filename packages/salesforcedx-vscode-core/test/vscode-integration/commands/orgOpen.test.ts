@@ -6,35 +6,24 @@
  */
 
 import { expect } from 'chai';
-import {
-  getExecutor,
-  OrgOpenContainerExecutor,
-  OrgOpenExecutor
-} from '../../../src/commands';
+import { getExecutor, OrgOpenContainerExecutor, OrgOpenExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
 describe('Org Open', () => {
   it('should build the org open command', () => {
     const orgOpenContainer = new OrgOpenExecutor();
     const orgOpenCommand = orgOpenContainer.build({});
 
     expect(orgOpenCommand.toCommand()).to.equal('sf org:open');
-    expect(orgOpenCommand.description).to.equal(
-      nls.localize('org_open_default_scratch_org_text')
-    );
+    expect(orgOpenCommand.description).to.equal(nls.localize('org_open_default_scratch_org_text'));
   });
 
   it('should build the org open command for use in a container', () => {
     const orgOpenContainer = new OrgOpenContainerExecutor();
     const orgOpenCommand = orgOpenContainer.build({});
 
-    expect(orgOpenCommand.toCommand()).to.equal(
-      'sf org:open --url-only --json'
-    );
-    expect(orgOpenCommand.description).to.equal(
-      nls.localize('org_open_default_scratch_org_text')
-    );
+    expect(orgOpenCommand.toCommand()).to.equal('sf org:open --url-only --json');
+    expect(orgOpenCommand.description).to.equal(nls.localize('org_open_default_scratch_org_text'));
   });
 
   describe('Executor is chosen based on environment', () => {

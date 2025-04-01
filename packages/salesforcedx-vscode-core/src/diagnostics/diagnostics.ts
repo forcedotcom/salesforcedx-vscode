@@ -133,7 +133,7 @@ export const getAbsoluteFilePath = (
   return absoluteFilePath;
 };
 
-export const handleDuplicateDiagnostics = (
+const handleDuplicateDiagnostics = (
   diagnosticMap: Map<string, vscode.Diagnostic[]>
 ): Map<string, vscode.Diagnostic[]> => {
   diagnosticMap.forEach((diagnostics, file) => {

@@ -48,7 +48,6 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
-        // tslint:disable-next-line:no-floating-promises
         this.dispose();
       }
     }
@@ -139,9 +138,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
 
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        // tslint:disable-next-line:object-literal-shorthand
         properties: props,
-        // tslint:disable-next-line:object-literal-shorthand
         measurements
       });
     }

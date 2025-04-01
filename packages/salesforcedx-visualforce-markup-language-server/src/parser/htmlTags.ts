@@ -18,12 +18,10 @@ BEGIN THIRD PARTY
  *  from or derived from HTML 5.1 W3C Working Draft (http://www.w3.org/TR/2015/WD-html51-20151008/.)"
  *--------------------------------------------------------------------------------------------*/
 
-// tslint:disable:quotemark
-
 import * as arrays from '../utils/arrays';
 import * as strings from '../utils/strings';
 
-export const EMPTY_ELEMENTS: string[] = [
+const EMPTY_ELEMENTS: string[] = [
   'area',
   'base',
   'br',
@@ -44,12 +42,7 @@ export const EMPTY_ELEMENTS: string[] = [
 
 export function isEmptyElement(e: string): boolean {
   return (
-    e &&
-    arrays.binarySearch(
-      EMPTY_ELEMENTS,
-      e.toLowerCase(),
-      (s1: string, s2: string) => s1.localeCompare(s2)
-    ) >= 0
+    e && arrays.binarySearch(EMPTY_ELEMENTS, e.toLowerCase(), (s1: string, s2: string) => s1.localeCompare(s2)) >= 0
   );
 }
 
@@ -57,18 +50,11 @@ export type IHTMLTagProvider = {
   getId(): string;
   isApplicable(languageId: string);
   collectTags(collector: (tag: string, label: string) => void): void;
-  collectAttributes(
-    tag: string,
-    collector: (attribute: string, type: string) => void
-  ): void;
-  collectValues(
-    tag: string,
-    attribute: string,
-    collector: (value: string) => void
-  ): void;
+  collectAttributes(tag: string, collector: (attribute: string, type: string) => void): void;
+  collectValues(tag: string, attribute: string, collector: (value: string) => void): void;
 };
 
-export type ITagSet = {
+type ITagSet = {
   [tag: string]: TagSpecification;
 };
 
@@ -91,21 +77,14 @@ function localize(key: string, description: string): string {
 }
 
 // HTML tag information sourced from http://www.w3.org/TR/2015/WD-html51-20151008/
-export const HTML_TAGS: ITagSet = {
+const HTML_TAGS: ITagSet = {
   // The root element
-  html: new TagSpecification(
-    localize(
-      'tags.html',
-      'The html element represents the root of an HTML document.'
-    ),
-    ['manifest']
-  ),
+  html: new TagSpecification(localize('tags.html', 'The html element represents the root of an HTML document.'), [
+    'manifest'
+  ]),
   // Document metadata
   head: new TagSpecification(
-    localize(
-      'tags.head',
-      'The head element represents a collection of metadata for the Document.'
-    )
+    localize('tags.head', 'The head element represents a collection of metadata for the Document.')
   ),
   title: new TagSpecification(
     localize(
@@ -121,10 +100,7 @@ export const HTML_TAGS: ITagSet = {
     ['href', 'target']
   ),
   link: new TagSpecification(
-    localize(
-      'tags.link',
-      'The link element allows authors to link their document to other resources.'
-    ),
+    localize('tags.link', 'The link element allows authors to link their document to other resources.'),
     ['href', 'crossorigin:xo', 'rel', 'media', 'hreflang', 'type', 'sizes']
   ),
   meta: new TagSpecification(
@@ -142,27 +118,21 @@ export const HTML_TAGS: ITagSet = {
     ['media', 'nonce', 'type', 'scoped:v']
   ),
   // Sections
-  body: new TagSpecification(
-    localize(
-      'tags.body',
-      'The body element represents the content of the document.'
-    ),
-    [
-      'onafterprint',
-      'onbeforeprint',
-      'onbeforeunload',
-      'onhashchange',
-      'onlanguagechange',
-      'onmessage',
-      'onoffline',
-      'ononline',
-      'onpagehide',
-      'onpageshow',
-      'onpopstate',
-      'onstorage',
-      'onunload'
-    ]
-  ),
+  body: new TagSpecification(localize('tags.body', 'The body element represents the content of the document.'), [
+    'onafterprint',
+    'onbeforeprint',
+    'onbeforeunload',
+    'onhashchange',
+    'onlanguagechange',
+    'onmessage',
+    'onoffline',
+    'ononline',
+    'onpagehide',
+    'onpageshow',
+    'onpopstate',
+    'onstorage',
+    'onunload'
+  ]),
   article: new TagSpecification(
     localize(
       'tags.article',
@@ -187,24 +157,12 @@ export const HTML_TAGS: ITagSet = {
       'The aside element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content. Such sections are often represented as sidebars in printed typography.'
     )
   ),
-  h1: new TagSpecification(
-    localize('tags.h1', 'The h1 element represents a section heading.')
-  ),
-  h2: new TagSpecification(
-    localize('tags.h2', 'The h2 element represents a section heading.')
-  ),
-  h3: new TagSpecification(
-    localize('tags.h3', 'The h3 element represents a section heading.')
-  ),
-  h4: new TagSpecification(
-    localize('tags.h4', 'The h4 element represents a section heading.')
-  ),
-  h5: new TagSpecification(
-    localize('tags.h5', 'The h5 element represents a section heading.')
-  ),
-  h6: new TagSpecification(
-    localize('tags.h6', 'The h6 element represents a section heading.')
-  ),
+  h1: new TagSpecification(localize('tags.h1', 'The h1 element represents a section heading.')),
+  h2: new TagSpecification(localize('tags.h2', 'The h2 element represents a section heading.')),
+  h3: new TagSpecification(localize('tags.h3', 'The h3 element represents a section heading.')),
+  h4: new TagSpecification(localize('tags.h4', 'The h4 element represents a section heading.')),
+  h5: new TagSpecification(localize('tags.h5', 'The h5 element represents a section heading.')),
+  h6: new TagSpecification(localize('tags.h6', 'The h6 element represents a section heading.')),
   header: new TagSpecification(
     localize(
       'tags.header',
@@ -224,9 +182,7 @@ export const HTML_TAGS: ITagSet = {
     )
   ),
   // Grouping content
-  p: new TagSpecification(
-    localize('tags.p', 'The p element represents a paragraph.')
-  ),
+  p: new TagSpecification(localize('tags.p', 'The p element represents a paragraph.')),
   hr: new TagSpecification(
     localize(
       'tags.hr',
@@ -316,12 +272,7 @@ export const HTML_TAGS: ITagSet = {
     ),
     ['href', 'target', 'download', 'ping', 'rel', 'hreflang', 'type']
   ),
-  em: new TagSpecification(
-    localize(
-      'tags.em',
-      'The em element represents stress emphasis of its contents.'
-    )
-  ),
+  em: new TagSpecification(localize('tags.em', 'The em element represents stress emphasis of its contents.')),
   strong: new TagSpecification(
     localize(
       'tags.strong',
@@ -329,16 +280,10 @@ export const HTML_TAGS: ITagSet = {
     )
   ),
   small: new TagSpecification(
-    localize(
-      'tags.small',
-      'The small element represents side comments such as small print.'
-    )
+    localize('tags.small', 'The small element represents side comments such as small print.')
   ),
   s: new TagSpecification(
-    localize(
-      'tags.s',
-      'The s element represents contents that are no longer accurate or no longer relevant.'
-    )
+    localize('tags.s', 'The s element represents contents that are no longer accurate or no longer relevant.')
   ),
   cite: new TagSpecification(
     localize(
@@ -347,10 +292,7 @@ export const HTML_TAGS: ITagSet = {
     )
   ),
   q: new TagSpecification(
-    localize(
-      'tags.q',
-      'The q element represents some phrasing content quoted from another source.'
-    ),
+    localize('tags.q', 'The q element represents some phrasing content quoted from another source.'),
     ['cite']
   ),
   dfn: new TagSpecification(
@@ -426,12 +368,8 @@ export const HTML_TAGS: ITagSet = {
       'The kbd element represents user input (typically keyboard input, although it may also be used to represent other input, such as voice commands).'
     )
   ),
-  sub: new TagSpecification(
-    localize('tags.sub', 'The sub element represents a subscript.')
-  ),
-  sup: new TagSpecification(
-    localize('tags.sup', 'The sup element represents a superscript.')
-  ),
+  sub: new TagSpecification(localize('tags.sub', 'The sub element represents a subscript.')),
+  sup: new TagSpecification(localize('tags.sup', 'The sup element represents a superscript.')),
   i: new TagSpecification(
     localize(
       'tags.i',
@@ -474,26 +412,14 @@ export const HTML_TAGS: ITagSet = {
       "The span element doesn't mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children."
     )
   ),
-  br: new TagSpecification(
-    localize('tags.br', 'The br element represents a line break.')
-  ),
-  wbr: new TagSpecification(
-    localize('tags.wbr', 'The wbr element represents a line break opportunity.')
-  ),
+  br: new TagSpecification(localize('tags.br', 'The br element represents a line break.')),
+  wbr: new TagSpecification(localize('tags.wbr', 'The wbr element represents a line break opportunity.')),
   // Edits
-  ins: new TagSpecification(
-    localize(
-      'tags.ins',
-      'The ins element represents an addition to the document.'
-    )
-  ),
-  del: new TagSpecification(
-    localize(
-      'tags.del',
-      'The del element represents a removal from the document.'
-    ),
-    ['cite', 'datetime']
-  ),
+  ins: new TagSpecification(localize('tags.ins', 'The ins element represents an addition to the document.')),
+  del: new TagSpecification(localize('tags.del', 'The del element represents a removal from the document.'), [
+    'cite',
+    'datetime'
+  ]),
   // Embedded content
   picture: new TagSpecification(
     localize(
@@ -501,35 +427,26 @@ export const HTML_TAGS: ITagSet = {
       'The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.'
     )
   ),
-  img: new TagSpecification(
-    localize('tags.img', 'An img element represents an image.'),
-    [
-      'alt',
-      'src',
-      'srcset',
-      'crossorigin:xo',
-      'usemap',
-      'ismap:v',
-      'width',
-      'height'
-    ]
-  ),
-  iframe: new TagSpecification(
-    localize(
-      'tags.iframe',
-      'The iframe element represents a nested browsing context.'
-    ),
-    [
-      'src',
-      'srcdoc',
-      'name',
-      'sandbox:sb',
-      'seamless:v',
-      'allowfullscreen:v',
-      'width',
-      'height'
-    ]
-  ),
+  img: new TagSpecification(localize('tags.img', 'An img element represents an image.'), [
+    'alt',
+    'src',
+    'srcset',
+    'crossorigin:xo',
+    'usemap',
+    'ismap:v',
+    'width',
+    'height'
+  ]),
+  iframe: new TagSpecification(localize('tags.iframe', 'The iframe element represents a nested browsing context.'), [
+    'src',
+    'srcdoc',
+    'name',
+    'sandbox:sb',
+    'seamless:v',
+    'allowfullscreen:v',
+    'width',
+    'height'
+  ]),
   embed: new TagSpecification(
     localize(
       'tags.embed',
@@ -542,16 +459,7 @@ export const HTML_TAGS: ITagSet = {
       'tags.object',
       'The object element can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin.'
     ),
-    [
-      'data',
-      'type',
-      'typemustmatch:v',
-      'name',
-      'usemap',
-      'form',
-      'width',
-      'height'
-    ]
+    ['data', 'type', 'typemustmatch:v', 'name', 'usemap', 'form', 'width', 'height']
   ),
   param: new TagSpecification(
     localize(
@@ -561,10 +469,7 @@ export const HTML_TAGS: ITagSet = {
     ['name', 'value']
   ),
   video: new TagSpecification(
-    localize(
-      'tags.video',
-      'A video element is used for playing videos or movies, and audio files with captions.'
-    ),
+    localize('tags.video', 'A video element is used for playing videos or movies, and audio files with captions.'),
     [
       'src',
       'crossorigin:xo',
@@ -579,22 +484,16 @@ export const HTML_TAGS: ITagSet = {
       'height'
     ]
   ),
-  audio: new TagSpecification(
-    localize(
-      'tags.audio',
-      'An audio element represents a sound or audio stream.'
-    ),
-    [
-      'src',
-      'crossorigin:xo',
-      'preload:pl',
-      'autoplay:v',
-      'mediagroup',
-      'loop:v',
-      'muted:v',
-      'controls:v'
-    ]
-  ),
+  audio: new TagSpecification(localize('tags.audio', 'An audio element represents a sound or audio stream.'), [
+    'src',
+    'crossorigin:xo',
+    'preload:pl',
+    'autoplay:v',
+    'mediagroup',
+    'loop:v',
+    'muted:v',
+    'controls:v'
+  ]),
   source: new TagSpecification(
     localize(
       'tags.source',
@@ -622,25 +521,11 @@ export const HTML_TAGS: ITagSet = {
       'tags.area',
       'The area element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map.'
     ),
-    [
-      'alt',
-      'coords',
-      'shape:sh',
-      'href',
-      'target',
-      'download',
-      'ping',
-      'rel',
-      'hreflang',
-      'type'
-    ]
+    ['alt', 'coords', 'shape:sh', 'href', 'target', 'download', 'ping', 'rel', 'hreflang', 'type']
   ),
   // Tabular data
   table: new TagSpecification(
-    localize(
-      'tags.table',
-      'The table element represents data with more than one dimension, in the form of a table.'
-    ),
+    localize('tags.table', 'The table element represents data with more than one dimension, in the form of a table.'),
     ['sortable:v', 'border']
   ),
   caption: new TagSpecification(
@@ -681,33 +566,27 @@ export const HTML_TAGS: ITagSet = {
       'The tfoot element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table.'
     )
   ),
-  tr: new TagSpecification(
-    localize('tags.tr', 'The tr element represents a row of cells in a table.')
-  ),
-  td: new TagSpecification(
-    localize('tags.td', 'The td element represents a data cell in a table.'),
-    ['colspan', 'rowspan', 'headers']
-  ),
-  th: new TagSpecification(
-    localize('tags.th', 'The th element represents a header cell in a table.'),
-    ['colspan', 'rowspan', 'headers', 'scope:s', 'sorted', 'abbr']
-  ),
+  tr: new TagSpecification(localize('tags.tr', 'The tr element represents a row of cells in a table.')),
+  td: new TagSpecification(localize('tags.td', 'The td element represents a data cell in a table.'), [
+    'colspan',
+    'rowspan',
+    'headers'
+  ]),
+  th: new TagSpecification(localize('tags.th', 'The th element represents a header cell in a table.'), [
+    'colspan',
+    'rowspan',
+    'headers',
+    'scope:s',
+    'sorted',
+    'abbr'
+  ]),
   // Forms
   form: new TagSpecification(
     localize(
       'tags.form',
       'The form element represents a collection of form-associated elements, some of which can represent editable values that can be submitted to a server for processing.'
     ),
-    [
-      'accept-charset',
-      'action',
-      'autocomplete:o',
-      'enctype:et',
-      'method:m',
-      'name',
-      'novalidate:v',
-      'target'
-    ]
+    ['accept-charset', 'action', 'autocomplete:o', 'enctype:et', 'method:m', 'name', 'novalidate:v', 'target']
   ),
   label: new TagSpecification(
     localize(
@@ -757,10 +636,7 @@ export const HTML_TAGS: ITagSet = {
     ]
   ),
   button: new TagSpecification(
-    localize(
-      'tags.button',
-      'The button element represents a button labeled by its contents.'
-    ),
+    localize('tags.button', 'The button element represents a button labeled by its contents.'),
     [
       'autofocus:v',
       'disabled:v',
@@ -776,20 +652,8 @@ export const HTML_TAGS: ITagSet = {
     ]
   ),
   select: new TagSpecification(
-    localize(
-      'tags.select',
-      'The select element represents a control for selecting amongst a set of options.'
-    ),
-    [
-      'autocomplete:inputautocomplete',
-      'autofocus:v',
-      'disabled:v',
-      'form',
-      'multiple:v',
-      'name',
-      'required:v',
-      'size'
-    ]
+    localize('tags.select', 'The select element represents a control for selecting amongst a set of options.'),
+    ['autocomplete:inputautocomplete', 'autofocus:v', 'disabled:v', 'form', 'multiple:v', 'name', 'required:v', 'size']
   ),
   datalist: new TagSpecification(
     localize(
@@ -798,10 +662,7 @@ export const HTML_TAGS: ITagSet = {
     )
   ),
   optgroup: new TagSpecification(
-    localize(
-      'tags.optgroup',
-      'The optgroup element represents a group of option elements with a common label.'
-    ),
+    localize('tags.optgroup', 'The optgroup element represents a group of option elements with a common label.'),
     ['disabled:v', 'label']
   ),
   option: new TagSpecification(
@@ -1107,11 +968,7 @@ export function getHTML5TagProvider(): IHTMLTagProvider {
     lt: ['1', 'a', 'A', 'i', 'I'],
     mt: ['context', 'toolbar'],
     mit: ['command', 'checkbox', 'radio'],
-    et: [
-      'application/x-www-form-urlencoded',
-      'multipart/form-data',
-      'text/plain'
-    ],
+    et: ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain'],
     tk: ['subtitles', 'captions', 'descriptions', 'chapters', 'metadata'],
     pl: ['none', 'metadata', 'auto'],
     sh: ['circle', 'default', 'poly', 'rect'],
@@ -1275,12 +1132,8 @@ export function getHTML5TagProvider(): IHTMLTagProvider {
   return {
     getId: () => 'html5',
     isApplicable: () => true,
-    collectTags: (collector: (tag: string, label: string) => void) =>
-      collectTagsDefault(collector, HTML_TAGS),
-    collectAttributes: (
-      tag: string,
-      collector: (attribute: string, type: string) => void
-    ) => {
+    collectTags: (collector: (tag: string, label: string) => void) => collectTagsDefault(collector, HTML_TAGS),
+    collectAttributes: (tag: string, collector: (attribute: string, type: string) => void) => {
       if (HTML_TAGS[tag]) {
         collectAttributesDefault(tag, collector, HTML_TAGS, globalAttributes);
         eventHandlers.forEach(handler => {
@@ -1288,26 +1141,12 @@ export function getHTML5TagProvider(): IHTMLTagProvider {
         });
       }
     },
-    collectValues: (
-      tag: string,
-      attribute: string,
-      collector: (value: string) => void
-    ) =>
-      collectValuesDefault(
-        tag,
-        attribute,
-        collector,
-        HTML_TAGS,
-        globalAttributes,
-        valueSets
-      )
+    collectValues: (tag: string, attribute: string, collector: (value: string) => void) =>
+      collectValuesDefault(tag, attribute, collector, HTML_TAGS, globalAttributes, valueSets)
   };
 }
 
-export function collectTagsDefault(
-  collector: (tag: string, label: string) => void,
-  tagSet: ITagSet
-): void {
+export function collectTagsDefault(collector: (tag: string, label: string) => void, tagSet: ITagSet): void {
   for (const tag in tagSet) {
     if (tagSet.hasOwnProperty(tag)) {
       collector(tag, tagSet[tag].documentation);
@@ -1351,10 +1190,7 @@ export function collectValuesDefault(
   const prefix = attribute + ':';
   const processAttributes = (attributes: string[]) => {
     attributes.forEach(attr => {
-      if (
-        attr.length > prefix.length &&
-        strings.startsWithCaseInsentively(attr, prefix)
-      ) {
+      if (attr.length > prefix.length && strings.startsWithCaseInsentively(attr, prefix)) {
         const typeInfo = attr.substr(prefix.length);
         if (typeInfo === 'v') {
           collector(attribute);

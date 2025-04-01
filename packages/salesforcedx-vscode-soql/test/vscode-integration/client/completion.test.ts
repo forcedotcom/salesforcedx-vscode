@@ -561,7 +561,7 @@ async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function activate(docUri: vscode.Uri) {
+async function activate(docUri: vscode.Uri) {
   const ext = extensions.getExtension('salesforce.salesforcedx-vscode-soql')!;
   await ext.activate();
   try {

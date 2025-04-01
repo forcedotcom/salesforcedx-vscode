@@ -76,7 +76,7 @@ export class ConflictNode extends vscode.TreeItem {
   }
 }
 
-export class ConflictFileNode extends ConflictNode {
+class ConflictFileNode extends ConflictNode {
   constructor(conflict: ConflictFile, parent: ConflictNode) {
     super(conflict.fileName, vscode.TreeItemCollapsibleState.None, parent);
     this._conflict = conflict;

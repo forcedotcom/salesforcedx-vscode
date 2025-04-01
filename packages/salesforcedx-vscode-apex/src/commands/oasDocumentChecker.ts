@@ -13,7 +13,7 @@ import { nls } from '../messages';
 import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocumentFromYaml } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 // This class runs the validation and correction logic on Oas Documents
-export class OasDocumentChecker {
+class OasDocumentChecker {
   private isESRDecomposed: boolean = false;
   private static _instance: OasDocumentChecker;
 

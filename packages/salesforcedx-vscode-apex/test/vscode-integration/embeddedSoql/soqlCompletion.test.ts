@@ -151,7 +151,7 @@ const getCursorPosition = (text: string, cursorChar: string = '|'): Position => 
   throw new Error(`Cursor ${cursorChar} not found in ${text} !`);
 };
 
-export const activate = async (docUri: Uri): Promise<TextDocument> => {
+const activate = async (docUri: Uri): Promise<TextDocument> => {
   const ext = extensions.getExtension('salesforce.salesforcedx-vscode-apex')!;
   await ext.activate();
   try {

@@ -153,7 +153,6 @@ describe('WorkspaceContext', () => {
     expect(workspaceContext.alias).to.equal(undefined);
   });
 
-  // tslint:disable-next-line:only-arrow-functions
   it('should notify subscribers that the default org may have changed', async () => {
     const someLogic = env.stub();
     workspaceContext.onOrgChange((orgInfo: OrgUserInfo) => {

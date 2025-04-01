@@ -9,7 +9,7 @@ import { SfCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
 
-export const CONFIG_GET_COMMAND = 'config:get';
+const CONFIG_GET_COMMAND = 'config:get';
 /**
  * @deprecated
  * NOTE: This code is deprecated in favor of using ConfigUtil.ts

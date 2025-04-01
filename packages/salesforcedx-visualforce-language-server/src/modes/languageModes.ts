@@ -34,18 +34,12 @@ import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
 import { getJavascriptMode } from './javascriptMode';
 
-// tslint:disable:forin
-
 export { ColorInformation, ColorPresentation };
 
 export type Settings = {
   css?: any;
   visualforce?: any;
   javascript?: any;
-};
-
-export type SettingProvider = {
-  getDocumentSettings(textDocument: TextDocument): Thenable<Settings>;
 };
 
 export type LanguageMode = {
@@ -79,7 +73,7 @@ export type LanguageModes = {
   dispose(): void;
 };
 
-export type LanguageModeRange = Range & {
+type LanguageModeRange = Range & {
   mode: LanguageMode;
   attributeValue?: boolean;
 };

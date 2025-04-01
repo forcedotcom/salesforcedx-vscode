@@ -26,7 +26,7 @@ import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './interna
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
-export class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_lwc_text');
   public telemetryName = 'lightning_generate_lwc';
   public metadataTypeName = LWC_TYPE;

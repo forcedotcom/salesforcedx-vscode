@@ -8,14 +8,9 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import {
-  PackageInstallExecutor,
-  SelectInstallationKey,
-  SelectPackageID
-} from '../../../src/commands';
+import { PackageInstallExecutor, SelectInstallationKey, SelectPackageID } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
 describe('Package Install', () => {
   describe('SelectPackageID Gatherer', () => {
     const EVENT_CANCEL = 'CANCEL';
@@ -114,9 +109,7 @@ describe('Package Install', () => {
       expect(createCommand.toCommand()).to.equal(
         `sf package:install --package ${TEST_PACKAGE_ID} --installation-key ${TEST_INSTALLATION_KEY}`
       );
-      expect(createCommand.description).to.equal(
-        nls.localize('package_install_text')
-      );
+      expect(createCommand.description).to.equal(nls.localize('package_install_text'));
     });
     it('Should build the package install command without installation key', async () => {
       const TEST_PACKAGE_ID = 'testPackageID';
@@ -126,12 +119,8 @@ describe('Package Install', () => {
         packageId: TEST_PACKAGE_ID,
         installationKey: TEST_INSTALLATION_KEY
       });
-      expect(createCommand.toCommand()).to.equal(
-        `sf package:install --package ${TEST_PACKAGE_ID}`
-      );
-      expect(createCommand.description).to.equal(
-        nls.localize('package_install_text')
-      );
+      expect(createCommand.toCommand()).to.equal(`sf package:install --package ${TEST_PACKAGE_ID}`);
+      expect(createCommand.description).to.equal(nls.localize('package_install_text'));
     });
   });
 });

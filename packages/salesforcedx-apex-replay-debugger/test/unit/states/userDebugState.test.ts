@@ -14,7 +14,6 @@ import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { UserDebugState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('User debug event', () => {
   let warnToDebugConsoleStub: sinon.SinonStub;
   let getLogLinesStub: sinon.SinonStub;

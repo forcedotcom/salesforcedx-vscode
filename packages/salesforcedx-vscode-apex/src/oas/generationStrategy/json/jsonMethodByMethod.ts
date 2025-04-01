@@ -33,7 +33,6 @@ import { openAPISchema_v3_0_guided } from '../openapi-3.schema';
 
 const gil = GenerationInteractionLogger.getInstance();
 
-export const METHOD_BY_METHOD_STRATEGY_NAME = 'JsonMethodByMethod';
 export class JsonMethodByMethodStrategy extends GenerationStrategy {
   llmRequests: Map<string, Promise<string>>;
   llmResponses: Map<string, string>;
@@ -97,10 +96,10 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
         continue;
       }
       try {
-        const cleandResponse = cleanupGeneratedDoc(response);
-        gil.addCleanedResponse(cleandResponse);
+        const cleanedResponse = cleanupGeneratedDoc(response);
+        gil.addCleanedResponse(cleanedResponse);
         try {
-          const parsed = parseOASDocFromJson(cleandResponse);
+          const parsed = parseOASDocFromJson(cleanedResponse);
           // remove unrelated methods
           excludeUnrelatedMethods(parsed, methodName, this.methodsContextMap);
           // remove non-2xx responses

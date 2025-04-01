@@ -11,7 +11,7 @@ import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languag
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
-export type ItemDescription = {
+type ItemDescription = {
   label: string;
   documentation?: string;
   kind?: CompletionItemKind;
@@ -88,7 +88,6 @@ describe('HTML Completion', () => {
   };
 
   const run = (tests: PromiseLike<void>[], testDone) => {
-    // tslint:disable-next-line:no-floating-promises
     Promise.all(tests).then(
       () => {
         testDone();

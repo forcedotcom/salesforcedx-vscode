@@ -11,15 +11,8 @@ export class ApexHeapDump {
   private readonly className: string;
   private readonly namespace: string;
   private readonly line: number;
-  private overlaySuccessResut:
-    | ApexExecutionOverlayResultCommandSuccess
-    | undefined;
-  public constructor(
-    heapDumpId: string,
-    className: string,
-    namespace: string,
-    line: number
-  ) {
+  private overlaySuccessResut: ApexExecutionOverlayResultCommandSuccess | undefined;
+  public constructor(heapDumpId: string, className: string, namespace: string, line: number) {
     this.heapDumpId = heapDumpId;
     this.className = className;
     this.namespace = namespace;
@@ -37,21 +30,16 @@ export class ApexHeapDump {
   public getLine(): number {
     return this.line;
   }
-  public getOverlaySuccessResult():
-    | ApexExecutionOverlayResultCommandSuccess
-    | undefined {
+  public getOverlaySuccessResult(): ApexExecutionOverlayResultCommandSuccess | undefined {
     return this.overlaySuccessResut;
   }
-  public setOverlaySuccessResult(
-    overlaySuccessResult: ApexExecutionOverlayResultCommandSuccess
-  ): void {
+  public setOverlaySuccessResult(overlaySuccessResult: ApexExecutionOverlayResultCommandSuccess): void {
     this.overlaySuccessResut = overlaySuccessResult;
   }
-  /* tslint:disable */
+
   public toString = (): string => {
     return `HeapDumpId: ${this.heapDumpId}, ClassName: ${
       this.className
     }, Namespace: ${this.namespace}, Line: ${this.line}`;
-  }; /* This semi-colon is the reason for the tslint, formatting keeps adding it */
-  /* tslint:enable */
+  };
 }

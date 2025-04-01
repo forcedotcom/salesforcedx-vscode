@@ -8,7 +8,6 @@
 import { expect } from 'chai';
 import { BreakpointUtil } from '../../../src/breakpoints';
 
-// tslint:disable:no-unused-expression
 describe('Breakpoint utilities', () => {
   let util: BreakpointUtil;
 
