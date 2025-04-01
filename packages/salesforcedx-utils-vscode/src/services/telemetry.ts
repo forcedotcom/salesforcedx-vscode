@@ -149,7 +149,7 @@ export class TelemetryService implements TelemetryServiceInterface {
           return;
         }
 
-        await initializeO11yReporter(reporterConfig.extName, o11yUploadEndpoint);
+        await initializeO11yReporter(reporterConfig.extName, o11yUploadEndpoint, userId, version);
       }
 
       const reporters = determineReporters(reporterConfig);
