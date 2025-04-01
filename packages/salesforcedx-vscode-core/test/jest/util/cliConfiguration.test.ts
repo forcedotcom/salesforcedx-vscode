@@ -4,58 +4,78 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
-import { ENV_SF_DISABLE_TELEMETRY } from '../../../src/constants';
-import { disableCLITelemetry, isCLIInstalled, isCLITelemetryAllowed } from '../../../src/util';
 
 // Mock child_process
-jest.mock('node:child_process', () => ({
-  execSync: jest.fn()
+const mockExecSync = jest.fn();
+jest.mock('child_process', () => ({
+  execSync: mockExecSync
 }));
 
 jest.mock('@salesforce/salesforcedx-utils-vscode');
 
-// Import the mocked modules.  This needs to happen after the mocks are set.
-// eslint-disable-next-line import/order
-import { execSync } from 'node:child_process';
-// eslint-disable-next-line import/order
+import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { ENV_SF_DISABLE_TELEMETRY } from '../../../src/constants';
+import { disableCLITelemetry, isCLIInstalled, isCLITelemetryAllowed } from '../../../src/util';
 
 describe('SFDX CLI Configuration utility', () => {
   describe('isCLIInstalled', () => {
     let consoleErrorSpy: jest.SpyInstance;
+    let consoleLogSpy: jest.SpyInstance;
+
     beforeEach(() => {
       jest.clearAllMocks();
       consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     });
 
     afterEach(() => {
       consoleErrorSpy.mockRestore();
+      consoleLogSpy.mockRestore();
     });
 
     it('Should return true if sfdx command works', () => {
-      (execSync as jest.Mock).mockReturnValue(Buffer.from('sfdx-cli/7.142.1 darwin-x64 node-v16.16.0'));
+      const mockOutput = Buffer.from('sfdx-cli/7.142.1 darwin-x64 node-v16.16.0');
+      mockExecSync.mockReturnValue(mockOutput);
 
       const response = isCLIInstalled();
 
-      expect(execSync).toHaveBeenCalledWith('sfdx --version');
+      expect(mockExecSync).toHaveBeenCalledWith('sfdx --version');
+      expect(consoleLogSpy).toHaveBeenCalledWith(mockOutput.toString());
       expect(response).toEqual(true);
     });
 
-    it('Should return false if sfdx throws', () => {
-      (execSync as jest.Mock).mockImplementation(() => {
-        throw new Error('Command not found: sfdx');
+    it('Should return false if sfdx command throws', () => {
+      const mockError = new Error('Command not found: sfdx');
+      mockExecSync.mockImplementation(() => {
+        throw mockError;
       });
-      const response = isCLIInstalled();
-      expect(execSync).toHaveBeenCalledWith('sfdx --version');
-      expect(consoleErrorSpy).toHaveBeenCalled();
 
+      const response = isCLIInstalled();
+
+      expect(mockExecSync).toHaveBeenCalledWith('sfdx --version');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('An error happened while looking for sfdx cli', mockError);
+      expect(response).toEqual(false);
+    });
+
+    it('Should handle non-Error throws', () => {
+      mockExecSync.mockImplementation(() => {
+        // eslint-disable-next-line no-throw-literal
+        throw 'string error';
+      });
+
+      const response = isCLIInstalled();
+
+      expect(mockExecSync).toHaveBeenCalledWith('sfdx --version');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('An error happened while looking for sfdx cli', 'string error');
       expect(response).toEqual(false);
     });
   });
 
   describe('CLI Telemetry', () => {
-    beforeEach(() => {});
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
 
     it('Should return false if telemetry setting is disabled', async () => {
       ConfigUtil.isTelemetryDisabled = jest.fn().mockResolvedValue(true);
