@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import child_process from 'child_process';
-import { step } from 'mocha-steps';
+import { step, xstep } from 'mocha-steps';
 import path from 'path';
 import util from 'util';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';

@@ -13,8 +13,6 @@ import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/uti
 import { expect } from 'chai';
 
 describe('Authentication', async () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let projectFolderPath: string;
   let scratchOrgAliasName: string;
   let testSetup: TestSetup;
   const testReqConfig: utilities.TestReqConfig = {
@@ -27,7 +25,6 @@ describe('Authentication', async () => {
 
   step('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
-    projectFolderPath = testSetup.projectFolderPath!;
   });
 
   step('Run SFDX: Authorize a Dev Hub', async () => {
@@ -83,7 +80,7 @@ describe('Authentication', async () => {
     const devHubAliasName = environmentSettings.devHubAliasName;
     const devHubUserName = environmentSettings.devHubUserName;
     const inputBox = await InputBox.create();
-    const item = await inputBox.selectQuickPick(`${devHubAliasName} - ${devHubUserName}`);
+    await inputBox.selectQuickPick(`${devHubAliasName} - ${devHubUserName}`);
 
     // Need to pause here for the "set a default org" command to finish.
     await utilities.pause(utilities.Duration.seconds(5));

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { step } from 'mocha-steps';
+import { step, xstep } from 'mocha-steps';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { expect } from 'chai';

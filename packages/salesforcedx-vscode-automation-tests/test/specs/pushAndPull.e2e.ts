@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import fs from 'fs';
-import { step } from 'mocha-steps';
+import { step, xstep } from 'mocha-steps';
 import path from 'path';
 import { after } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';

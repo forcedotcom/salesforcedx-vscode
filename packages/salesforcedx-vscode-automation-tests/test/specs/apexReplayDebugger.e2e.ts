@@ -6,7 +6,7 @@
  */
 import { step } from 'mocha-steps';
 import path from 'path';
-import { InputBox, QuickOpenBox, TextEditor, Key } from 'vscode-extension-tester';
+import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { expect } from 'chai';

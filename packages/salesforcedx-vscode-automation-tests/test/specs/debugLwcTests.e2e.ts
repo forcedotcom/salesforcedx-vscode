@@ -6,7 +6,7 @@
  */
 import { fail } from 'assert';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
+import { step, xstep } from 'mocha-steps';
 import path from 'path';
 import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
@@ -14,7 +14,6 @@ import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/uti
 
 describe('Debug LWC Tests', async () => {
   let testSetup: TestSetup;
-  let projectFolderPath: string;
   const testReqConfig: utilities.TestReqConfig = {
     projectConfig: {
       projectShape: utilities.ProjectShapeOption.NEW
@@ -25,7 +24,6 @@ describe('Debug LWC Tests', async () => {
 
   step('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
-    projectFolderPath = testSetup.projectFolderPath!;
 
     // Close both Welcome and Running Extensions tabs
     await utilities.closeAllEditors();
