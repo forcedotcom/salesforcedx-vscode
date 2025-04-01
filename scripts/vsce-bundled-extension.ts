@@ -1,6 +1,5 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
-import { chdir } from 'process';
 import { execSync } from 'child_process';
 
 const logger = (msg: string, obj?: any) => {
@@ -28,8 +27,8 @@ if (!buildDirectory || !existsSync(buildDirectory)) {
 
 const directoryToConstruct = `${extensionDirectory}/extension`;
 if (!existsSync(directoryToConstruct)) {
-  logger('Creating the extensions directory');
-  mkdirSync(directoryToConstruct);
+  logger(`Creating the extensions directory ${directoryToConstruct}`);
+  mkdirSync(directoryToConstruct, { recursive: true });
 }
 
 const packagingConfig = packageContents.packaging;
@@ -41,8 +40,9 @@ if (!packagingConfig) {
 
 for (let i = 0; i < packagingConfig.assets.length; i++) {
   const asset = packagingConfig.assets[i];
-  logger(`copying ${asset}`);
-  cpSync(`./${asset}`, `${directoryToConstruct}/${asset}`, { recursive: true });
+  const from = `${extensionDirectory}/${asset}`;
+  logger(`copying ${from}`);
+  cpSync(from, `${directoryToConstruct}/${asset}`, { recursive: true });
 }
 
 const newPackage = {
@@ -79,27 +79,27 @@ logger('copying extension directory to build location', {
 });
 cpSync(directoryToConstruct, `${buildLocation}/extension`, { recursive: true });
 
-// Move to the copied dir
-chdir(`${buildLocation}/extension`);
-logger('Now in ' + process.cwd());
+// Remaining commans should be run in the copied dir
+const cwd = `${buildLocation}/extension`;
+logger(`Now in ${cwd}`);
 
 // Run npm install
 logger('executing npm install');
-execSync('npm install', { stdio: 'inherit' });
+execSync('npm install', { stdio: 'inherit', cwd });
 
 // Run the vsce package command
-logger('Execute vsce');
-execSync('vsce package', { stdio: 'inherit' });
+logger(`Execute vsce from ${cwd}`);
+execSync('vsce package', { stdio: 'inherit', cwd });
 
 // copy the vsix back to the extension directory
 logger('copy vsix back to extension directory');
-const vsixFiles = readdirSync(`${buildLocation}/extension`).filter(fn => fn.endsWith('.vsix'));
+const vsixFiles = readdirSync(cwd).filter(f => f.endsWith('.vsix'));
 if (vsixFiles.length !== 1) {
   console.error('unabled to find generated vsix file.');
   process.exit(2);
 }
 
-copyFileSync(vsixFiles[0], `${extensionDirectory}/${vsixFiles[0]}`);
+copyFileSync(`${cwd}/${vsixFiles[0]}`, `${extensionDirectory}/${vsixFiles[0]}`);
 
 logger('Success');
 process.exit(0);
