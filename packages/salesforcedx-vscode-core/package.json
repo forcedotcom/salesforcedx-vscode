@@ -35,7 +35,7 @@
     "@salesforce/vscode-service-provider": "1.4.0",
     "adm-zip": "0.5.10",
     "applicationinsights": "1.0.7",
-    "glob": "^7.1.2",
+    "glob": "^11.0.1",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
     "shelljs": "0.8.5"
@@ -45,7 +45,6 @@
     "@salesforce/ts-sinon": "^1.4.30",
     "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
-    "@types/glob": "^7.2.0",
     "@types/jest": "^29.5.5",
     "@types/mocha": "^5",
     "@types/node": "^20.0.0",
