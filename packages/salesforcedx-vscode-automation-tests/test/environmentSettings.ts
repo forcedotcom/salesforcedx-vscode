@@ -56,7 +56,7 @@ export class EnvironmentSettings {
     this._devHubAliasName = process.env.DEV_HUB_ALIAS_NAME || this._devHubAliasName;
     this._devHubUserName = process.env.DEV_HUB_USER_NAME || this._devHubUserName;
     this._extensionPath = process.env.EXTENSION_PATH || this._extensionPath;
-    this._throttleFactor = parseInt(process.env.THROTTLE_FACTOR!) || this._throttleFactor;
+    this._throttleFactor = parseInt(process.env.THROTTLE_FACTOR!, 10) || this._throttleFactor;
     this._sfdxAuthUrl = process.env.SFDX_AUTH_URL || this._sfdxAuthUrl;
     this._orgId = process.env.ORG_ID || this._orgId;
     this._extensionPath = process.env.SALESFORCEDX_VSCODE_EXTENSIONS_PATH || this._extensionPath;

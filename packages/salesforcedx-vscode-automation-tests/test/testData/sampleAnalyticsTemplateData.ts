@@ -64,13 +64,7 @@ export const variables = [
 
 export const ui = ['{', '  "pages": [],', '  "displayMessages": []', '}'].join('\n');
 
-export const templateToAppRules = [
-  '{',
-  '  "constants": [],',
-  '  "macros": [],',
-  '  "rules": []',
-  '}'
-].join('\n');
+export const templateToAppRules = ['{', '  "constants": [],', '  "macros": [],', '  "rules": []', '}'].join('\n');
 
 export const templateInfo = [
   '{',
@@ -135,13 +129,7 @@ export const folder = [
   '}'
 ].join('\n');
 
-export const appToTemplateRules = [
-  '{',
-  '  "constants": [],',
-  '  "macros": [],',
-  '  "rules": []',
-  '}'
-].join('\n');
+export const appToTemplateRules = ['{', '  "constants": [],', '  "macros": [],', '  "rules": []', '}'].join('\n');
 
 export const dashboard = [
   '{',

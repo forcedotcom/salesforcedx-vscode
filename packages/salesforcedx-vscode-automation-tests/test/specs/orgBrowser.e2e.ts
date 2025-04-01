@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import { expect } from 'chai';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
 
 describe('Org Browser', async () => {
@@ -70,12 +70,12 @@ describe('Org Browser', async () => {
 
     // Create Apex Class
     const classText = [
-      `public with sharing class MyClass {`,
-      ``,
-      `\tpublic static void SayHello(string name){`,
-      `\t\tSystem.debug('Hello, ' + name + '!');`,
-      `\t}`,
-      `}`
+      'public with sharing class MyClass {',
+      '',
+      '\tpublic static void SayHello(string name){',
+      "\t\tSystem.debug('Hello, ' + name + '!');",
+      '\t}',
+      '}'
     ].join('\n');
     await utilities.createApexClass('MyClass', classText);
     await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Created  ');

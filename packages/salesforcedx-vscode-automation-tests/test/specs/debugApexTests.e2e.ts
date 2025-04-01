@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { TreeItem, after } from 'vscode-extension-tester';
-import { expect } from 'chai';
 
 describe('Debug Apex Tests', async () => {
   let testSetup: TestSetup;
@@ -21,7 +21,7 @@ describe('Debug Apex Tests', async () => {
   };
 
   step('Set up the testing environment', async () => {
-    utilities.log(`DebugApexTests - Set up the testing environment`);
+    utilities.log('DebugApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Apex class 1 and test
@@ -72,7 +72,7 @@ describe('Debug Apex Tests', async () => {
   });
 
   step('Debug All Tests via Apex Class', async () => {
-    utilities.log(`DebugApexTests - Debug All Tests via Apex Class`);
+    utilities.log('DebugApexTests - Debug All Tests via Apex Class');
     const workbench = utilities.getWorkbench();
     const textEditor = await utilities.getTextEditor(workbench, 'ExampleApexClass1Test.cls');
 
@@ -106,7 +106,7 @@ describe('Debug Apex Tests', async () => {
   });
 
   step('Debug Single Test via Apex Class', async () => {
-    utilities.log(`DebugApexTests - Debug Single Test via Apex Class`);
+    utilities.log('DebugApexTests - Debug Single Test via Apex Class');
     const workbench = utilities.getWorkbench();
     const textEditor = await utilities.getTextEditor(workbench, 'ExampleApexClass2Test.cls');
 
@@ -140,7 +140,7 @@ describe('Debug Apex Tests', async () => {
   });
 
   step('Debug all Apex Methods on a Class via the Test Sidebar', async () => {
-    utilities.log(`DebugApexTests - Debug All Apex Methods on a Class via the Test Sidebar`);
+    utilities.log('DebugApexTests - Debug All Apex Methods on a Class via the Test Sidebar');
     const workbench = utilities.getWorkbench();
     await utilities.executeQuickPick('Testing: Focus on Apex Tests View', utilities.Duration.seconds(1));
 
@@ -181,7 +181,7 @@ describe('Debug Apex Tests', async () => {
   });
 
   step('Debug a Single Apex Test Method via the Test Sidebar', async () => {
-    utilities.log(`DebugApexTests - 'Debug Single Apex Test Method via the Test Sidebar`);
+    utilities.log("DebugApexTests - 'Debug Single Apex Test Method via the Test Sidebar");
     const workbench = utilities.getWorkbench();
     await utilities.executeQuickPick('Testing: Focus on Apex Tests View', utilities.Duration.seconds(1));
 
@@ -219,7 +219,7 @@ describe('Debug Apex Tests', async () => {
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`DebugApexTests - Tear down and clean up the testing environment`);
+    utilities.log('DebugApexTests - Tear down and clean up the testing environment');
     await testSetup?.tearDown();
   });
 });

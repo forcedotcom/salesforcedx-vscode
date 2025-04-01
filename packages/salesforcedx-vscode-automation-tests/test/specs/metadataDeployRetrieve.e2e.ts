@@ -7,9 +7,9 @@
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import path from 'path';
-import { after } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { after } from 'vscode-extension-tester';
 
 // In future we will merge the test together with deployAndRetrieve
 describe('metadata mdDeployRetrieve', async () => {
@@ -28,7 +28,7 @@ describe('metadata mdDeployRetrieve', async () => {
   let textV2AfterRetrieve: string;
 
   step('Set up the testing environment', async () => {
-    utilities.log(`mdDeployRetrieve - Set up the testing environment`);
+    utilities.log('mdDeployRetrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     mdPath = path.join(
       testSetup.projectFolderPath!,
@@ -37,7 +37,7 @@ describe('metadata mdDeployRetrieve', async () => {
   });
 
   step('Open and deploy MD v1', async () => {
-    utilities.log(`mdDeployRetrieve - Open and deploy MD v1`);
+    utilities.log('mdDeployRetrieve - Open and deploy MD v1');
     await utilities.openFile(mdPath);
     textV1 = await utilities.attemptToFindTextEditorText(mdPath);
     await utilities.runAndValidateCommand('Deploy', 'to', 'ST', 'CustomField', 'Account.Deploy_Test__c');
@@ -46,7 +46,7 @@ describe('metadata mdDeployRetrieve', async () => {
   });
 
   step('Update MD v2 and deploy again', async () => {
-    utilities.log(`mdDeployRetrieve - Update MD v2 and deploy again`);
+    utilities.log('mdDeployRetrieve - Update MD v2 and deploy again');
     await utilities.gitCheckout('updated-md', testSetup.projectFolderPath);
     await utilities.openFile(mdPath);
     textV2 = await utilities.attemptToFindTextEditorText(mdPath);
@@ -56,7 +56,7 @@ describe('metadata mdDeployRetrieve', async () => {
   });
 
   step('Retrieve MD v2 and verify the text not changed', async () => {
-    utilities.log(`mdDeployRetrieve - Retrieve MD v2 and verify the text not changed`);
+    utilities.log('mdDeployRetrieve - Retrieve MD v2 and verify the text not changed');
     await utilities.openFile(mdPath);
     await utilities.runAndValidateCommand('Retrieve', 'from', 'ST', 'CustomField', 'Account.Deploy_Test__c');
     textV2AfterRetrieve = await utilities.attemptToFindTextEditorText(mdPath);
@@ -65,7 +65,7 @@ describe('metadata mdDeployRetrieve', async () => {
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`mdDeployRetrieve - Tear down and clean up the testing environment`);
+    utilities.log('mdDeployRetrieve - Tear down and clean up the testing environment');
     await utilities.gitCheckout('main', testSetup.projectFolderPath);
     await testSetup?.tearDown();
   });

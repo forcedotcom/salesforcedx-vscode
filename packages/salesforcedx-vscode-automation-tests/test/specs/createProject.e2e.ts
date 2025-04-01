@@ -25,7 +25,7 @@ describe('SFDX: Create Project', async () => {
   });
 
   step('Execute command SFDX: Create Project', async () => {
-    utilities.log(`Starting command SFDX: Create Project...`);
+    utilities.log('Starting command SFDX: Create Project...');
     const prompt = await utilities.executeQuickPick('SFDX: Create Project');
     await utilities.waitForQuickPick(prompt, 'Standard', {
       msg: 'Expected extension salesforcedx-core to be available within 5 seconds',

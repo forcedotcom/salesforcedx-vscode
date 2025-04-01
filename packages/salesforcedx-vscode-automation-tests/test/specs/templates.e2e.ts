@@ -4,15 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import child_process from 'child_process';
 import { step, xstep } from 'mocha-steps';
 import path from 'path';
-import util from 'util';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
-import { expect } from 'chai';
+import util from 'util';
 import { after } from 'vscode-extension-tester';
+import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
 
 const exec = util.promisify(child_process.exec);
 
@@ -29,7 +29,7 @@ describe('Templates', async () => {
 
   // Set up
   step('Set up the testing environment', async () => {
-    utilities.log(`Templates - Set up the testing environment`);
+    utilities.log('Templates - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectName = testSetup.tempProjectName;
   });
@@ -310,7 +310,7 @@ describe('Templates', async () => {
   step('Verify the contents of the Lightning Web Component', async () => {
     utilities.log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Lightning Web Component`);
     const expectedText = [
-      `import { LightningElement } from 'lwc';`,
+      "import { LightningElement } from 'lwc';",
       '',
       'export default class LightningWebComponent1 extends LightningElement {}'
     ].join('\n');
@@ -334,7 +334,7 @@ describe('Templates', async () => {
       '__tests__',
       'lightningWebComponent1.test.js'
     );
-    exec(process.platform == 'win32' ? `del ${pathToLwcTest}` : `rm ${pathToLwcTest}`, {
+    exec(process.platform === 'win32' ? `del ${pathToLwcTest}` : `rm ${pathToLwcTest}`, {
       cwd: testSetup.projectFolderPath
     });
 

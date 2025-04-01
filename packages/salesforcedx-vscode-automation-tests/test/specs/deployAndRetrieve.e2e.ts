@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import path from 'path';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { WORKSPACE_SETTING_KEYS as WSK } from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { after } from 'vscode-extension-tester';
-import { expect } from 'chai';
 
 describe('Deploy and Retrieve', async () => {
   let projectName: string;
@@ -24,18 +24,18 @@ describe('Deploy and Retrieve', async () => {
     testSuiteSuffixName: 'DeployAndRetrieve'
   };
   step('Set up the testing environment', async () => {
-    utilities.log(`Deploy and Retrieve - Set up the testing environment`);
+    utilities.log('Deploy and Retrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectName = testSetup.tempProjectName;
 
     // Create Apex Class
     const classText = [
-      `public with sharing class MyClass {`,
-      ``,
-      `\tpublic static void SayHello(string name){`,
-      `\t\tSystem.debug('Hello, ' + name + '!');`,
-      `\t}`,
-      `}`
+      'public with sharing class MyClass {',
+      '',
+      '\tpublic static void SayHello(string name){',
+      "\t\tSystem.debug('Hello, ' + name + '!');",
+      '\t}',
+      '}'
     ].join('\n');
     await utilities.dismissAllNotifications();
     await utilities.createApexClass('MyClass', classText);
@@ -75,12 +75,12 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Verify Source Tracking Setting is enabled', async () => {
-    utilities.log(`Deploy and Retrieve - Verify Source Tracking Setting is enabled`);
+    utilities.log('Deploy and Retrieve - Verify Source Tracking Setting is enabled');
     expect(await utilities.isBooleanSettingEnabled(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE));
   });
 
   step('Deploy with SFDX: Deploy This Source to Org - ST enabled', async () => {
-    utilities.log(`Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST enabled`);
+    utilities.log('Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST enabled');
     const workbench = utilities.getWorkbench();
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -89,7 +89,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Deploy again (with no changes) - ST enabled', async () => {
-    utilities.log(`Deploy and Retrieve - Deploy again (with no changes) - ST enabled`);
+    utilities.log('Deploy and Retrieve - Deploy again (with no changes) - ST enabled');
     const workbench = utilities.getWorkbench();
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -99,7 +99,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Modify the file and deploy again - ST enabled', async () => {
-    utilities.log(`Deploy and Retrieve - Modify the file and deploy again - ST enabled`);
+    utilities.log('Deploy and Retrieve - Modify the file and deploy again - ST enabled');
     const workbench = utilities.getWorkbench();
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -114,7 +114,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Retrieve with SFDX: Retrieve This Source from Org', async () => {
-    utilities.log(`Deploy and Retrieve - Retrieve with SFDX: Retrieve This Source from Org`);
+    utilities.log('Deploy and Retrieve - Retrieve with SFDX: Retrieve This Source from Org');
     const workbench = utilities.getWorkbench();
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -124,7 +124,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Modify the file and retrieve again', async () => {
-    utilities.log(`Deploy and Retrieve - Modify the file and retrieve again`);
+    utilities.log('Deploy and Retrieve - Modify the file and retrieve again');
     const workbench = utilities.getWorkbench();
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -143,7 +143,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Prefer Deploy on Save when `Push or deploy on save` is enabled', async () => {
-    utilities.log(`Deploy and Retrieve - Prefer Deploy on Save when 'Push or deploy on save' is enabled`);
+    utilities.log("Deploy and Retrieve - Prefer Deploy on Save when 'Push or deploy on save' is enabled");
     const workbench = utilities.getWorkbench();
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -160,7 +160,7 @@ describe('Deploy and Retrieve', async () => {
     await utilities.clearOutputView(utilities.Duration.seconds(2));
     // Modify the file and save to trigger deploy
     const textEditor = await utilities.getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, `\t// let's trigger deploy`);
+    await textEditor.setTextAtLine(2, "\t// let's trigger deploy");
     await textEditor.save();
     await utilities.pause(utilities.Duration.seconds(5));
 
@@ -169,7 +169,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Disable Source Tracking Setting', async () => {
-    utilities.log(`Deploy and Retrieve - Disable Source Tracking Setting`);
+    utilities.log('Deploy and Retrieve - Disable Source Tracking Setting');
     await utilities.executeQuickPick('Notifications: Clear All Notifications', utilities.Duration.seconds(1));
 
     expect(await utilities.disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
@@ -183,7 +183,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Deploy with SFDX: Deploy This Source to Org - ST disabled', async () => {
-    utilities.log(`Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST disabled`);
+    utilities.log('Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST disabled');
     const workbench = utilities.getWorkbench();
     // Clear all notifications so clear output button is visible
     await utilities.executeQuickPick('Notifications: Clear All Notifications');
@@ -195,7 +195,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Deploy again (with no changes) - ST disabled', async () => {
-    utilities.log(`Deploy and Retrieve - Deploy again (with no changes) - ST enabled`);
+    utilities.log('Deploy and Retrieve - Deploy again (with no changes) - ST enabled');
     const workbench = utilities.getWorkbench();
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -205,7 +205,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('Modify the file and deploy again - ST disabled', async () => {
-    utilities.log(`Deploy and Retrieve - Modify the file and deploy again - ST disabled`);
+    utilities.log('Deploy and Retrieve - Modify the file and deploy again - ST disabled');
     const workbench = utilities.getWorkbench();
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -220,7 +220,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   step('SFDX: Delete This from Project and Org', async () => {
-    utilities.log(`Deploy and Retrieve - SFDX: Delete This from Project and Org`);
+    utilities.log('Deploy and Retrieve - SFDX: Delete This from Project and Org');
     const workbench = utilities.getWorkbench();
     await utilities.getTextEditor(workbench, 'MyClass.cls');
     // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
@@ -282,7 +282,7 @@ describe('Deploy and Retrieve', async () => {
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`Deploy and Retrieve - Tear down and clean up the testing environment`);
+    utilities.log('Deploy and Retrieve - Tear down and clean up the testing environment');
     await testSetup?.tearDown();
   });
 });

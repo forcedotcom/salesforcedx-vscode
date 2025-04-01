@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import { By, InputBox, QuickOpenBox, TextEditor, after } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import { expect } from 'chai';
+import { By, InputBox, QuickOpenBox, TextEditor, after } from 'vscode-extension-tester';
 
 /**
  * This test suite walks through the same steps performed in the "Find and Fix Bugs with Apex Replay Debugger" Trailhead Module;
@@ -27,7 +27,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
   };
 
   step('Set up the testing environment', async () => {
-    utilities.log(`TrailApexReplayDebugger - Set up the testing environment`);
+    utilities.log('TrailApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Apex class AccountService
@@ -66,7 +66,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
   });
 
   step('Run Apex Tests', async () => {
-    utilities.log(`TrailApexReplayDebugger - Run Apex Tests`);
+    utilities.log('TrailApexReplayDebugger - Run Apex Tests');
     // Run SFDX: Run Apex tests.
     await utilities.clearOutputView();
     prompt = await utilities.executeQuickPick('SFDX: Run Apex Tests', utilities.Duration.seconds(1));
@@ -98,7 +98,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
   });
 
   step('Set Breakpoints and Checkpoints', async () => {
-    utilities.log(`TrailApexReplayDebugger - Set Breakpoints and Checkpoints`);
+    utilities.log('TrailApexReplayDebugger - Set Breakpoints and Checkpoints');
     // Get open text editor
     const workbench = utilities.getWorkbench();
     const textEditor = await utilities.getTextEditor(workbench, 'AccountService.cls');
@@ -128,7 +128,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
   });
 
   step('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
-    utilities.log(`TrailApexReplayDebugger - SFDX: Turn On Apex Debug Log for Replay Debugger`);
+    utilities.log('TrailApexReplayDebugger - SFDX: Turn On Apex Debug Log for Replay Debugger');
     // Run SFDX: Turn On Apex Debug Log for Replay Debugger
     await utilities.clearOutputView();
     await utilities.executeQuickPick(
@@ -155,7 +155,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
   });
 
   step('Run Apex Tests', async () => {
-    utilities.log(`TrailApexReplayDebugger - Run Apex Tests`);
+    utilities.log('TrailApexReplayDebugger - Run Apex Tests');
     // Run SFDX: Run Apex tests.
     await utilities.clearOutputView();
     prompt = await utilities.executeQuickPick('SFDX: Run Apex Tests', utilities.Duration.seconds(1));
@@ -187,7 +187,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
   });
 
   step('SFDX: Get Apex Debug Logs', async () => {
-    utilities.log(`TrailApexReplayDebugger - SFDX: Get Apex Debug Logs`);
+    utilities.log('TrailApexReplayDebugger - SFDX: Get Apex Debug Logs');
     // Run SFDX: Get Apex Debug Logs
     const workbench = utilities.getWorkbench();
     prompt = await utilities.executeQuickPick('SFDX: Get Apex Debug Logs', utilities.Duration.seconds(0));
@@ -230,7 +230,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
   });
 
   step('Replay an Apex Debug Log', async () => {
-    utilities.log(`TrailApexReplayDebugger - Replay an Apex Debug Log`);
+    utilities.log('TrailApexReplayDebugger - Replay an Apex Debug Log');
     // Run SFDX: Launch Apex Replay Debugger with Current File
     await utilities.executeQuickPick(
       'SFDX: Launch Apex Replay Debugger with Current File',
@@ -243,7 +243,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
 
   step('Push Fixed Metadata to Org', async () => {
     if (process.platform === 'darwin') {
-      utilities.log(`TrailApexReplayDebugger - Push Fixed Metadata to Org`);
+      utilities.log('TrailApexReplayDebugger - Push Fixed Metadata to Org');
       // Get open text editor
       const workbench = utilities.getWorkbench();
       const textEditor = await utilities.getTextEditor(workbench, 'AccountService.cls');
@@ -277,7 +277,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
 
   step('Run Apex Tests to Verify Fix', async () => {
     if (process.platform === 'darwin') {
-      utilities.log(`TrailApexReplayDebugger - Run Apex Tests to Verify Fix`);
+      utilities.log('TrailApexReplayDebugger - Run Apex Tests to Verify Fix');
       // Run SFDX: Run Apex tests.
       await utilities.clearOutputView();
       prompt = await utilities.executeQuickPick('SFDX: Run Apex Tests', utilities.Duration.seconds(1));
@@ -310,7 +310,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', async
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`TrailApexReplayDebugger - Tear down and clean up the testing environment`);
+    utilities.log('TrailApexReplayDebugger - Tear down and clean up the testing environment');
     await testSetup?.tearDown();
   });
 });

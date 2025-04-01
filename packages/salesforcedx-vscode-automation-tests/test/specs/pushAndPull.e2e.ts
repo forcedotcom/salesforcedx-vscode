@@ -9,9 +9,9 @@ import { expect } from 'chai';
 import fs from 'fs';
 import { step, xstep } from 'mocha-steps';
 import path from 'path';
-import { after } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { after } from 'vscode-extension-tester';
 
 describe('Push and Pull', async () => {
   let projectName = '';
@@ -28,25 +28,25 @@ describe('Push and Pull', async () => {
   };
 
   step('Set up the testing environment', async () => {
-    utilities.log(`Push And Pull - Set up the testing environment`);
+    utilities.log('Push And Pull - Set up the testing environment');
     testSetup1 = await TestSetup.setUp(testReqConfig);
     projectName = testSetup1.tempProjectName;
   });
 
   step('SFDX: View All Changes (Local and in Default Org)', async () => {
-    utilities.log(`Push And Pull - SFDX: View All Changes (Local and in Default Org)`);
+    utilities.log('Push And Pull - SFDX: View All Changes (Local and in Default Org)');
     await utilities.executeQuickPick(
       'SFDX: View All Changes (Local and in Default Org)',
       utilities.Duration.seconds(5)
     );
 
     // Check the output.
-    const outputPanelText = await utilities.attemptToFindOutputPanelText(`Salesforce CLI`, `Source Status`, 10);
+    const outputPanelText = await utilities.attemptToFindOutputPanelText('Salesforce CLI', 'Source Status', 10);
     expect(outputPanelText).to.contain('No local or remote changes found');
   });
 
   step('Create an Apex class', async () => {
-    utilities.log(`Push And Pull - Create an Apex class`);
+    utilities.log('Push And Pull - Create an Apex class');
     // Create an Apex Class.
     await utilities.createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
 
@@ -70,11 +70,11 @@ describe('Push and Pull', async () => {
   });
 
   step('SFDX: View Local Changes', async () => {
-    utilities.log(`Push And Pull - SFDX: View Local Changes`);
+    utilities.log('Push And Pull - SFDX: View Local Changes');
     await utilities.executeQuickPick('SFDX: View Local Changes', utilities.Duration.seconds(5));
 
     // Check the output.
-    const outputPanelText = await utilities.attemptToFindOutputPanelText(`Salesforce CLI`, `Source Status`, 10);
+    const outputPanelText = await utilities.attemptToFindOutputPanelText('Salesforce CLI', 'Source Status', 10);
     expect(outputPanelText).to.contain(
       `Local Add  ExampleApexClass1  ApexClass  ${path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls')}`
     );
@@ -84,7 +84,7 @@ describe('Push and Pull', async () => {
   });
 
   step('Push the Apex class', async () => {
-    utilities.log(`Push And Pull - Push the Apex class`);
+    utilities.log('Push And Pull - Push the Apex class');
     await utilities.executeQuickPick('SFDX: Push Source to Default Org', utilities.Duration.seconds(5));
 
     await verifyPushSuccess();
@@ -93,7 +93,7 @@ describe('Push and Pull', async () => {
   });
 
   step('Push again (with no changes)', async () => {
-    utilities.log(`Push And Pull - Push again (with no changes)`);
+    utilities.log('Push And Pull - Push again (with no changes)');
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
 
@@ -106,7 +106,7 @@ describe('Push and Pull', async () => {
   });
 
   step('Modify the file and push the changes', async () => {
-    utilities.log(`Push And Pull - Modify the file and push the changes`);
+    utilities.log('Push And Pull - Modify the file and push the changes');
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
 
@@ -160,7 +160,7 @@ describe('Push and Pull', async () => {
   });
 
   step('Pull the Apex class', async () => {
-    utilities.log(`Push And Pull - Pull the Apex class`);
+    utilities.log('Push And Pull - Pull the Apex class');
     // With this test, it's going to pull twice...
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -186,7 +186,7 @@ describe('Push and Pull', async () => {
   });
 
   step("Modify the file (but don't save), then pull", async () => {
-    utilities.log(`Push And Pull - Modify the file (but don't save), then pull`);
+    utilities.log("Push And Pull - Modify the file (but don't save), then pull");
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
 
@@ -204,7 +204,7 @@ describe('Push and Pull', async () => {
   });
 
   step('Save the modified file, then pull', async () => {
-    utilities.log(`Push And Pull - Save the modified file, then pull`);
+    utilities.log('Push And Pull - Save the modified file, then pull');
     // Clear the Output view first.
     await utilities.clearOutputView(utilities.Duration.seconds(2));
 
@@ -229,7 +229,7 @@ describe('Push and Pull', async () => {
   };
 
   step('SFDX: View Changes in Default Org', async () => {
-    utilities.log(`Push And Pull - SFDX: View Changes in Default Org`);
+    utilities.log('Push And Pull - SFDX: View Changes in Default Org');
     // Create second Project to then view Remote Changes
     // The new project will connect to the scratch org automatically on GHA, but does not work locally
     testSetup2 = await TestSetup.setUp(testReqConfig2);
@@ -244,9 +244,9 @@ describe('Push and Pull', async () => {
     await utilities.executeQuickPick('SFDX: View Changes in Default Org', utilities.Duration.seconds(5));
 
     // Check the output.
-    const outputPanelText = await utilities.attemptToFindOutputPanelText(`Salesforce CLI`, `Source Status`, 10);
+    const outputPanelText = await utilities.attemptToFindOutputPanelText('Salesforce CLI', 'Source Status', 10);
 
-    expect(outputPanelText).to.contain(`Remote Add  ExampleApexClass1  ApexClass`);
+    expect(outputPanelText).to.contain('Remote Add  ExampleApexClass1  ApexClass');
   });
 
   xstep('Create an additional system admin user', async () => {
@@ -337,7 +337,7 @@ describe('Push and Pull', async () => {
     expect(successNotificationWasFound).to.equal(true);
     // Check the output.
     const outputPanelText = await utilities.attemptToFindOutputPanelText(
-      `Salesforce CLI`,
+      'Salesforce CLI',
       `=== ${operation}ed Source`,
       10
     );

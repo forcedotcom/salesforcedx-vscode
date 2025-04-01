@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import { By, InputBox, after } from 'vscode-extension-tester';
 import { EnvironmentSettings } from 'salesforcedx-vscode-automation-tests-redhat/test/environmentSettings';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import { expect } from 'chai';
+import { By, InputBox, after } from 'vscode-extension-tester';
 
 describe('Authentication', async () => {
   let scratchOrgAliasName: string;
@@ -29,7 +29,7 @@ describe('Authentication', async () => {
 
   step('Run SFDX: Authorize a Dev Hub', async () => {
     // In the initial state, the org picker button should be set to "No Default Org Set".
-    let noDefaultOrgSetItem = await utilities.getStatusBarItemWhichIncludes('No Default Org Set');
+    const noDefaultOrgSetItem = await utilities.getStatusBarItemWhichIncludes('No Default Org Set');
     expect(noDefaultOrgSetItem).to.not.be.undefined;
 
     // This is essentially the "SFDX: Authorize a Dev Hub" command, but using the CLI and an auth file instead of the UI.

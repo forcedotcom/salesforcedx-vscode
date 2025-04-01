@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import { DefaultTreeItem, TreeItem, ViewSection, Workbench, after } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import { expect } from 'chai';
+import { DefaultTreeItem, TreeItem, ViewSection, Workbench, after } from 'vscode-extension-tester';
 
 describe('SObjects Definitions', async () => {
   let testSetup: TestSetup;
@@ -29,7 +29,7 @@ describe('SObjects Definitions', async () => {
     await utilities.createCustomObjects(testSetup);
   });
 
-  step(`Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder`, async () => {
+  step("Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder", async () => {
     utilities.log(
       `${testSetup.testSuiteSuffixName} - Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder`
     );
@@ -136,11 +136,11 @@ async function verifyOutputPanelText(type: string, qty?: number): Promise<void> 
   const outputPanelText = (await utilities.attemptToFindOutputPanelText('Salesforce CLI', 'sObjects', 10)) as string;
   expect(outputPanelText).to.not.be.undefined;
   const expectedTexts = [
-    `Starting SFDX: Refresh SObject Definitions`,
-    `sf sobject definitions refresh`,
+    'Starting SFDX: Refresh SObject Definitions',
+    'sf sobject definitions refresh',
     `Processed ${qty || ''}`,
     `${type}`,
-    `ended with exit code 0`
+    'ended with exit code 0'
   ];
   await utilities.verifyOutputPanelText(outputPanelText, expectedTexts);
 }

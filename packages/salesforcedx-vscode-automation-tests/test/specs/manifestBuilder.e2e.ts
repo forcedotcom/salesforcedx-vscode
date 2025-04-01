@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import path from 'path';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
-import { expect } from 'chai';
 
 describe('Manifest Builder', async () => {
   let testSetup: TestSetup;
@@ -79,14 +79,14 @@ describe('Manifest Builder', async () => {
       const workbench = utilities.getWorkbench();
       const textEditor = await utilities.getTextEditor(workbench, 'manifest.xml');
       const content = [
-        `<?xml version="1.0" encoding="UTF-8"?>`,
-        `<Package xmlns="http://soap.sforce.com/2006/04/metadata">`,
-        `\t<types>`,
-        `\t\t<members>*</members>`,
-        `\t\t<name>CustomObject</name>`,
-        `\t</types>`,
-        `\t<version>57.0</version>`,
-        `</Package>`
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<Package xmlns="http://soap.sforce.com/2006/04/metadata">',
+        '\t<types>',
+        '\t\t<members>*</members>',
+        '\t\t<name>CustomObject</name>',
+        '\t</types>',
+        '\t<version>57.0</version>',
+        '</Package>'
       ].join('\n');
 
       await textEditor.setText(content);

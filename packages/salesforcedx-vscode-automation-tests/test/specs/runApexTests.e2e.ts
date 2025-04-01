@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import { By, InputBox, QuickOpenBox, SideBarView, after } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import { expect } from 'chai';
+import { By, InputBox, QuickOpenBox, SideBarView, after } from 'vscode-extension-tester';
 
 describe('Run Apex Tests', async () => {
   let prompt: InputBox | QuickOpenBox;
@@ -22,7 +22,7 @@ describe('Run Apex Tests', async () => {
   };
 
   step('Set up the testing environment', async () => {
-    utilities.log(`RunApexTests - Set up the testing environment`);
+    utilities.log('RunApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Apex class 1 and test
@@ -80,7 +80,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run All Tests via Apex Class', async () => {
-    utilities.log(`RunApexTests - Run All Tests via Apex Class`);
+    utilities.log('RunApexTests - Run All Tests via Apex Class');
     const workbench = utilities.getWorkbench();
     const textEditor = await utilities.getTextEditor(workbench, 'ExampleApexClass1Test.cls');
 
@@ -126,7 +126,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run Single Test via Apex Class', async () => {
-    utilities.log(`RunApexTests - Run Single Test via Apex Class`);
+    utilities.log('RunApexTests - Run Single Test via Apex Class');
     const workbench = utilities.getWorkbench();
     const textEditor = await utilities.getTextEditor(workbench, 'ExampleApexClass2Test.cls');
 
@@ -172,7 +172,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run All Tests via Command Palette', async () => {
-    utilities.log(`RunApexTests - Run All Tests via Command Palette`);
+    utilities.log('RunApexTests - Run All Tests via Command Palette');
     // Clear the Output view.
     await utilities.dismissAllNotifications();
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -219,7 +219,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run Single Class via Command Palette', async () => {
-    utilities.log(`RunApexTests - Run Single Class via Command Palette`);
+    utilities.log('RunApexTests - Run Single Class via Command Palette');
     // Clear the Output view.
     await utilities.dismissAllNotifications();
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -263,7 +263,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run All tests via Test Sidebar', async () => {
-    utilities.log(`RunApexTests - Run All tests via Test Sidebar`);
+    utilities.log('RunApexTests - Run All tests via Test Sidebar');
     const workbench = utilities.getWorkbench();
     const testingView = await workbench.getActivityBar().getViewControl('Testing');
     expect(testingView).to.not.be.undefined;
@@ -330,7 +330,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run All Tests on a Class via the Test Sidebar', async () => {
-    utilities.log(`RunApexTests - Run All Tests on a Class via the Test Sidebar`);
+    utilities.log('RunApexTests - Run All Tests on a Class via the Test Sidebar');
     const workbench = utilities.getWorkbench();
     // Clear the Output view.
     await utilities.dismissAllNotifications();
@@ -355,7 +355,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run Single Test via the Test Sidebar', async () => {
-    utilities.log(`RunApexTests - 'Run Single Test via the Test Sidebar`);
+    utilities.log("RunApexTests - 'Run Single Test via the Test Sidebar");
     const workbench = utilities.getWorkbench();
     // Clear the Output view.
     await utilities.dismissAllNotifications();
@@ -380,7 +380,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run a test that fails and fix it', async () => {
-    utilities.log(`RunApexTests - Run a test that fails and fix it`);
+    utilities.log('RunApexTests - Run a test that fails and fix it');
     // Create Apex class AccountService
     await utilities.createApexClassWithBugs();
 
@@ -507,7 +507,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Create Apex Test Suite', async () => {
-    utilities.log(`RunApexTests - Create Apex Test Suite`);
+    utilities.log('RunApexTests - Create Apex Test Suite');
     // Run SFDX: Create Apex Test Suite.
     prompt = await utilities.executeQuickPick('SFDX: Create Apex Test Suite', utilities.Duration.seconds(2));
 
@@ -531,7 +531,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Add test to Apex Test Suite', async () => {
-    utilities.log(`RunApexTests - Add test to Apex Test Suite`);
+    utilities.log('RunApexTests - Add test to Apex Test Suite');
     // Run SFDX: Add Tests to Apex Test Suite.
     prompt = await utilities.executeQuickPick('SFDX: Add Tests to Apex Test Suite', utilities.Duration.seconds(1));
 
@@ -554,7 +554,7 @@ describe('Run Apex Tests', async () => {
   });
 
   step('Run Apex Test Suite', async () => {
-    utilities.log(`RunApexTests - Run Apex Test Suite`);
+    utilities.log('RunApexTests - Run Apex Test Suite');
     // Clear the Output view.
     await utilities.dismissAllNotifications();
     await utilities.clearOutputView(utilities.Duration.seconds(2));
@@ -601,7 +601,7 @@ describe('Run Apex Tests', async () => {
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`RunApexTests - Tear down and clean up the testing environment`);
+    utilities.log('RunApexTests - Tear down and clean up the testing environment');
     await testSetup?.tearDown();
   });
 });

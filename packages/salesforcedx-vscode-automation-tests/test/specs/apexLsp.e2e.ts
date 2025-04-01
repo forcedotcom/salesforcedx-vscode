@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import { EnvironmentSettings } from '../environmentSettings';
 import { By, after } from 'vscode-extension-tester';
-import { step } from 'mocha-steps';
-import { expect } from 'chai';
+import { EnvironmentSettings } from '../environmentSettings';
 
 describe('Apex LSP', async () => {
   let testSetup: TestSetup;
@@ -81,12 +81,12 @@ describe('Apex LSP', async () => {
     expect(ariaLabel).to.contain('SayHello(name)');
     await autocompletionOptions[0].click();
     // Verify autocompletion options can be selected and therefore automatically inserted into the file
-    await textEditor.typeText(`'Jack`);
+    await textEditor.typeText("'Jack");
     await textEditor.typeTextAt(7, 38, ';');
     await textEditor.save();
     await utilities.pause(utilities.Duration.seconds(1));
     const line7Text = await textEditor.getTextAtLine(7);
-    expect(line7Text).to.include(`ExampleClass.SayHello('Jack');`);
+    expect(line7Text).to.include("ExampleClass.SayHello('Jack');");
   });
 
   after('Tear down and clean up the testing environment', async () => {

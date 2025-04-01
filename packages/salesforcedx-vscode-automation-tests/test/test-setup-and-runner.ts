@@ -7,13 +7,13 @@
 import { expect } from 'chai';
 import fs from 'fs/promises';
 import path from 'path';
+import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { extensions } from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 import { ExTester } from 'vscode-extension-tester';
 import { ReleaseQuality } from 'vscode-extension-tester/out/util/codeUtil';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { EnvironmentSettings } from './environmentSettings';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import { extensions } from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
 
 class TestSetupAndRunner extends ExTester {
   protected static _exTestor: TestSetupAndRunner;
@@ -74,11 +74,7 @@ class TestSetupAndRunner extends ExTester {
           return null;
         })
         .filter(Boolean)
-        .filter(ext =>
-          extensions.find(refExt => {
-            return refExt.extensionId === ext?.extensionId;
-          })
-        )
+        .filter(ext => extensions.find(refExt => refExt.extensionId === ext?.extensionId))
     );
 
     if (

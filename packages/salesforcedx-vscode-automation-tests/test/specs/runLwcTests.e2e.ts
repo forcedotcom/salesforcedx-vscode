@@ -8,9 +8,9 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
 import path from 'path';
-import { TreeItem, after } from 'vscode-extension-tester';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TreeItem, after } from 'vscode-extension-tester';
 
 describe('Run LWC Tests', async () => {
   let testSetup: TestSetup;
@@ -52,8 +52,8 @@ describe('Run LWC Tests', async () => {
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
 
     const expectedTexts = [
-      `PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js`,
-      `PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js`,
+      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 2 passed, 2 total',
       'Tests:       4 passed, 4 total',
       'Snapshots:   0 total',
@@ -126,8 +126,8 @@ describe('Run LWC Tests', async () => {
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
 
     const expectedTexts = [
-      `PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js`,
-      `PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js`,
+      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 2 passed, 2 total',
       'Tests:       4 passed, 4 total',
       'Snapshots:   0 total',
@@ -155,7 +155,7 @@ describe('Run LWC Tests', async () => {
     );
 
     const expectedTexts = [
-      `PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js`,
+      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
@@ -179,7 +179,7 @@ describe('Run LWC Tests', async () => {
       'SFDX: Run Lightning Web Component Test Case'
     );
     const expectedTexts = [
-      `PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js`,
+      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       1 skipped, 1 passed, 2 total',
       'Snapshots:   0 total',
@@ -215,7 +215,7 @@ describe('Run LWC Tests', async () => {
     const workbench = utilities.getWorkbench();
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
     const expectedTexts = [
-      `PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js`,
+      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
@@ -243,7 +243,7 @@ describe('Run LWC Tests', async () => {
     // Also verify that all tests pass
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
     const expectedTexts = [
-      `PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js`,
+      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
@@ -270,7 +270,7 @@ describe('Run LWC Tests', async () => {
     // Also verify that all tests pass
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
     const expectedTexts = [
-      `PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js`,
+      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       1 skipped, 1 passed, 2 total',
       'Snapshots:   0 total',
@@ -297,7 +297,7 @@ describe('Run LWC Tests', async () => {
     // Also verify that all tests pass
     const terminalText = await utilities.getTerminalViewText(workbench, 10);
     const expectedTexts = [
-      `PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js`,
+      'PASS  force-app/main/default/lwc/lwc2/__tests__/lwc2.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',

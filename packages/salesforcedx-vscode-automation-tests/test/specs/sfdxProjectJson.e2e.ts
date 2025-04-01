@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect } from 'chai';
 import { step } from 'mocha-steps';
+import path from 'path';
 import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
 import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
-import path from 'path';
-import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
 
 describe('Customize sfdx-project.json', async () => {
@@ -39,17 +39,17 @@ describe('Customize sfdx-project.json', async () => {
 async function createSfdxProjectJsonWithAllFields(testSetup: TestSetup): Promise<void> {
   const workbench = utilities.getWorkbench();
   const sfdxConfig = [
-    `{`,
-    `\t"packageDirectories": [`,
-    `\t\t{`,
-    `\t\t\t"path": "force-app",`,
-    `\t\t\t"default": true`,
-    `\t\t}`,
-    `\t],`,
-    `\t"namespace": "",`,
-    `\t"sourceApiVersion": "61.0",`,
-    `\t"sourceBehaviorOptions": ["decomposeCustomLabelsBeta", "decomposePermissionSetBeta", "decomposeWorkflowBeta", "decomposeSharingRulesBeta"]`,
-    `}`
+    '{',
+    '\t"packageDirectories": [',
+    '\t\t{',
+    '\t\t\t"path": "force-app",',
+    '\t\t\t"default": true',
+    '\t\t}',
+    '\t],',
+    '\t"namespace": "",',
+    '\t"sourceApiVersion": "61.0",',
+    '\t"sourceBehaviorOptions": ["decomposeCustomLabelsBeta", "decomposePermissionSetBeta", "decomposeWorkflowBeta", "decomposeSharingRulesBeta"]',
+    '}'
   ].join('\n');
   await utilities.openFile(path.join(testSetup.projectFolderPath!, 'sfdx-project.json'));
   const textEditor = await utilities.getTextEditor(workbench, 'sfdx-project.json');
