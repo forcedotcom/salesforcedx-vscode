@@ -8,9 +8,12 @@
 'use strict';
 
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import { Disposable, workspace } from 'vscode';
+import * as os from 'os';
+import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { O11yService } from '../../services/o11yService';
+import { isInternalHost } from '../utils/isInternal';
+import { CommonProperties, InternalProperties } from './loggingProperties';
 
 export class O11yReporter extends Disposable implements TelemetryReporter {
   private userOptIn: boolean = false;
@@ -23,7 +26,9 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
 
   constructor(
     private extensionId: string,
-    o11yUploadEndpoint: string
+    private extensionVersion: string,
+    o11yUploadEndpoint: string,
+    readonly userId: string
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));
     this.o11yService = O11yService.getInstance();
@@ -36,6 +41,51 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
     await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint);
   }
 
+  private getCommonProperties(): CommonProperties {
+    const commonProperties: CommonProperties = {
+      'common.os': os.platform(),
+      'common.platformversion': (os.release() || '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
+      'common.systemmemory': `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`,
+      'common.extname': this.extensionId,
+      'common.extversion': this.extensionVersion
+    };
+
+    const cpus = os.cpus();
+    if (cpus && cpus.length > 0) {
+      commonProperties['common.cpus'] = `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
+    }
+
+    if (env) {
+      commonProperties['common.vscodemachineid'] = env.machineId;
+      commonProperties['common.vscodesessionid'] = env.sessionId;
+      commonProperties['common.vscodeversion'] = version;
+      if (env.uiKind) {
+        commonProperties['common.vscodeuikind'] = UIKind[env.uiKind];
+      }
+    }
+
+    return commonProperties;
+  }
+
+  private getInternalProperties(): InternalProperties {
+    return {
+      'sfInternal.hostname': os.hostname(),
+      'sfInternal.username': os.userInfo().username
+    };
+  }
+
+  private getUserProperties(): Record<string, string> {
+    return {
+      'user.id': this.userId,
+      'session.id': env.sessionId
+    };
+  }
+
+  private aggregateLoggingProperties() {
+    const commonProperties = { ...this.getUserProperties(), ...this.getCommonProperties() };
+    return isInternalHost() ? { ...commonProperties, ...this.getInternalProperties() } : commonProperties;
+  }
+
   public sendTelemetryEvent(
     eventName: string,
     properties?: { [key: string]: string },
@@ -45,7 +95,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
       const orgId = WorkspaceContextUtil.getInstance().orgId;
       const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
       const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
-      let props = properties ? properties : {};
+      let props = properties ? { ...properties, ...this.aggregateLoggingProperties() } : {};
       props = this.applyTelemetryTag(orgId ? { ...props, orgId, orgShape, devHubId } : props);
 
       this.o11yService.logEvent({

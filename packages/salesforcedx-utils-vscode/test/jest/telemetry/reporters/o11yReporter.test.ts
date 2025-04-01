@@ -13,6 +13,8 @@ import { O11yReporter } from '../../../../src/telemetry/reporters/o11yReporter';
 describe('O11yReporter', () => {
   const fakeExtensionId = 'anExtensionId';
   const fakeEndpoint = 'https://o11y.salesforce.com/upload';
+  const fakeExtensionVersion = '1.0.0';
+  const fakeUserId = 'test-user-id'; // Provide a test user ID
   const dummyOrgId = '00Dxx0000001gPFEAY';
 
   let sendMock: jest.Mock;
@@ -41,7 +43,7 @@ describe('O11yReporter', () => {
       get: jest.fn().mockReturnValue('testTelemetryTag')
     } as any);
 
-    o11yReporter = new O11yReporter(fakeExtensionId, fakeEndpoint);
+    o11yReporter = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId);
   });
 
   afterEach(() => {
@@ -138,7 +140,7 @@ describe('O11yReporter', () => {
         get: jest.fn().mockReturnValue(undefined)
       } as any);
 
-      const reporterWithoutTag = new O11yReporter(fakeExtensionId, fakeEndpoint);
+      const reporterWithoutTag = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId);
       sendMock.mockClear();
 
       reporterWithoutTag.sendTelemetryEvent('eventWithoutTag');
