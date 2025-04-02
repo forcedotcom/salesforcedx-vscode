@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./lib" // Specify the output directory
+  },
+  "include": ["test"],
+  "exclude": ["node_modules", "lib"]
+}
