@@ -34,7 +34,7 @@
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-service-provider": "1.4.0",
     "applicationinsights": "1.0.7",
-    "glob": "^7.1.2",
+    "glob": "^10.3.10",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1"
   },

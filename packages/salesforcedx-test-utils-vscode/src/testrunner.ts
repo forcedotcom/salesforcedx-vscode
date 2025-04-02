@@ -6,7 +6,7 @@
  */
 'use strict';
 
-import * as glob from 'glob';
+import { glob } from 'glob';
 import * as paths from 'path';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
