@@ -98,6 +98,7 @@ jobs:
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
           THROTTLE_FACTOR: ${{ env.THROTTLE_FACTOR }}
       - uses: actions/upload-artifact@v4
+        if: failure()
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: ./salesforcedx-vscode/extensions/screenshots
@@ -105,4 +106,4 @@ jobs:
         if: ${{ inputs.testToRun }} == 'createOASDoc'
         with:
           name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./${{ inputs.automationRepo }}/e2e-temp/TempProject-CreateOASDoc/llm-logs
+          path: ./packages/salesforcedx-vscode-automation-tests/e2e-temp/TempProject-CreateOASDoc/llm-logs
