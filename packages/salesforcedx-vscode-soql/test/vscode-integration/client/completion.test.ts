@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { before, beforeEach, describe, it } from 'mocha';
 
 import { CompletionItem, CompletionItemKind } from 'vscode';
 import { extensions, Position, Uri, workspace, commands } from 'vscode';
