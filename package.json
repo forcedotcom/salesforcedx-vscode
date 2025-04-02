@@ -84,7 +84,6 @@
     "lint:fix": "lerna run lint:fix",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test --if-present",
     "test:unit": "lerna run test:unit",
-    "test:ui": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:ui --if-present",
     "test:unit-and-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:unit --if-present && npm run coverage:system-tests",
     "test:download-vscode": "node scripts/download-vscode",
     "test:integration": "lerna run test:integration --concurrency 1 --stream -- --if-present",

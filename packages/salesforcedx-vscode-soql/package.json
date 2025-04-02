@@ -67,7 +67,6 @@
     "prettier": "3.3.3",
     "sinon": "13.0.1",
     "typescript": "^5.6.2",
-    "vscode-extension-tester": "^5.0.0",
     "vscode-languageclient": "6.1.3"
   },
   "extensionDependencies": [
@@ -83,10 +82,6 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
     "test": "npm run test:vscode-integration",
-    "test:ui:prepare": "extest get-vscode -s ~/.vscode-test-resources && extest get-chromedriver -s ~/.vscode-test-resources ",
-    "test:ui:install": "extest install-vsix -f ./salesforcedx-vscode-soql-*.vsix -s ~/.vscode-test-resources -e test/ui-test/resources/extensions ",
-    "test:ui:run": "extest run-tests -s ~/.vscode-test-resources -o test/ui-test/resources/settings.json -e test/ui-test/resources/extensions out/test/ui-test/*.test.js",
-    "test:ui": "npm run test:ui:prepare && npm run test:ui:install && npm run test:ui:run",
     "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
