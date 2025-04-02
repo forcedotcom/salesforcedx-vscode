@@ -16,7 +16,7 @@ export {
   LanguageClientStatus
 } from './languageClientUtils';
 
-export { enableJavaDocSymbols } from './apexLanguageConfiguration';
+export { configureApexLanguage } from './apexLanguageConfiguration';
 
 export { languageServerUtils, ProcessDetail } from './languageServerUtils';
 
