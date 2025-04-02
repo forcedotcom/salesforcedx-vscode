@@ -37,7 +37,7 @@
     "@salesforce/ts-sinon": "1.4.30",
     "@types/async-lock": "1.4.2",
     "@types/chai": "4.3.3",
-    "@types/mocha": "^5",
+    "@types/mocha": "^10",
     "@types/node": "^20.0.0",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",

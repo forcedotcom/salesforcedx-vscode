@@ -12,7 +12,7 @@
     "@salesforce/salesforcedx-test-utils-vscode": "63.7.0",
     "@salesforce/salesforcedx-utils-vscode": "63.7.0",
     "@types/chai": "4.3.3",
-    "@types/mocha": "^5",
+    "@types/mocha": "^10",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.90.0",
     "@types/webdriverio": "4.6.1",
