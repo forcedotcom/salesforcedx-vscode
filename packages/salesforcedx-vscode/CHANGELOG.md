@@ -1,3 +1,22 @@
+# 63.7.0 - April 2, 2025
+
+## Added
+
+#### salesforcedx-vscode-core
+#### salesforcedx-vscode-apex
+
+- We updated the Org Browser to include more lightning component types. ([PR #6174](https://github.com/forcedotcom/salesforcedx-vscode/pull/6174))
+- Use the new `SFDX: Restart Apex Language Server` command to restart the Apex Language Server. ([PR #6177](https://github.com/forcedotcom/salesforcedx-vscode/pull/6177))
+- Code coverage colors now match your VS Code theme, so you can create a personalized coding experience. In the past, these colors were static. ([PR #6155](https://github.com/forcedotcom/salesforcedx-vscode/pull/6155))
+
+
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #6163](https://github.com/forcedotcom/salesforcedx-vscode/pull/6163))
+
 # 63.6.0 - March 26, 2025
 
 ## Added
