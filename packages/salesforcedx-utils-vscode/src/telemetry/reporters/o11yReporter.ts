@@ -76,8 +76,8 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
 
   private getUserProperties(): Record<string, string> {
     return {
-      'user.id': this.userId,
-      'session.id': env.sessionId
+      user_Id: this.userId,
+      session_Id: env.sessionId
     };
   }
 

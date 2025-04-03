@@ -106,8 +106,8 @@ export class TelemetryService implements TelemetryServiceInterface {
       name: string;
       version: string;
       aiKey: string;
-      o11yUploadEndpoint: string;
-      enableO11y: string;
+      o11yUploadEndpoint?: string;
+      enableO11y?: string;
     };
     if (!name) {
       console.log('Extension name is not defined in package.json');
@@ -144,8 +144,8 @@ export class TelemetryService implements TelemetryServiceInterface {
       const isO11yEnabled = typeof enableO11y === 'boolean' ? enableO11y : enableO11y?.toLowerCase() === 'true';
 
       if (isO11yEnabled) {
-        if (!o11yUploadEndpoint || typeof o11yUploadEndpoint !== 'string') {
-          console.log('Invalid o11yUploadEndpoint: must be a non-empty string when enableO11y is true.');
+        if (!o11yUploadEndpoint) {
+          console.log('o11yUploadEndpoint is not defined. Skipping O11y initialization.');
           return;
         }
 
