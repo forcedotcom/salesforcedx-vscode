@@ -4,9 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import * as fs from 'node:fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -61,7 +60,12 @@ describe('Lightning Generate App', () => {
       'testApp',
       'testApp.app-meta.xml'
     );
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'));
+
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'), {
+      recursive: true,
+      force: true
+    });
+
     assert.noFile([auraAppPath, auraAppMetaPath]);
     showInputBoxStub.returns('testApp');
     quickPickStub.returns(outputPath);
@@ -89,7 +93,10 @@ describe('Lightning Generate App', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'), {
+      recursive: true,
+      force: true
+    });
   });
 
   it('Should generate internal Aura App', async () => {
@@ -97,12 +104,15 @@ describe('Lightning Generate App', () => {
     getInternalDevStub.returns(true);
     const outputPath = 'force-app/main/default/aura';
     const auraAppPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp', 'testApp.app');
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([auraAppPath]);
     showInputBoxStub.returns('testApp');
 
     // act
-    shell.mkdir('-p', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
+    await fs.promises.mkdir(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), { recursive: true });
     await internalLightningGenerateApp(vscode.Uri.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath)));
 
     // assert
@@ -115,6 +125,9 @@ describe('Lightning Generate App', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'), {
+      recursive: true,
+      force: true
+    });
   });
 });

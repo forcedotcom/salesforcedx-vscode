@@ -12,7 +12,7 @@ const sharedConfig = {
   bundle: true,
   format: 'cjs',
   platform: 'node',
-  external: ['vscode', 'applicationinsights', 'shelljs', 'jsonpath', 'jsonc-parser'],
+  external: ['vscode', 'applicationinsights', 'jsonpath', 'jsonc-parser'],
   keepNames: false, // set it false to get rid of error: __name is undefined. https://github.com/evanw/esbuild/issues/3455
   plugins: [esbuildPluginPino({ transports: ['pino-pretty'] })],
   minify: true,

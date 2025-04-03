@@ -8,7 +8,6 @@
 import * as chai from 'chai';
 import * as fs from 'fs';
 import { join } from 'path';
-import { rm } from 'shelljs';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectShortDescription } from '../../src/describe';
 import { SOQLMetadataGenerator } from '../../src/generator/soqlMetadataGenerator';
@@ -24,16 +23,14 @@ describe('SOQL metadata files generator', () => {
   const customFolder = join(soqlMetadataFolder, CUSTOMOBJECTS_DIR);
 
   const cleanupMetadata = () => {
-    if (fs.existsSync(soqlMetadataFolder)) {
-      rm('-rf', soqlMetadataFolder);
-    }
+    fs.rmSync(standardFolder, { recursive: true, force: true });
   };
 
   beforeEach(() => {
     cleanupMetadata();
     fs.mkdirSync(soqlMetadataFolder, { recursive: true });
-    fs.mkdirSync(standardFolder);
-    fs.mkdirSync(customFolder);
+    fs.mkdirSync(standardFolder, { recursive: true });
+    fs.mkdirSync(customFolder, { recursive: true });
   });
 
   afterAll(() => {
