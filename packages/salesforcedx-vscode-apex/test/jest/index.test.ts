@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
-import { languageClientUtils, indexerDoneHandler } from '../../src/languageUtils';
+import { languageClientManager, indexerDoneHandler } from '../../src/languageUtils';
 import { extensionUtils } from '../../src/languageUtils/extensionUtils';
 import { getTelemetryService } from '../../src/telemetry/telemetry';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
@@ -27,7 +27,7 @@ describe('index tests', () => {
     const apexLSPStatusBarItemMock = jest.mocked(ApexLSPStatusBarItem);
 
     beforeEach(() => {
-      setStatusSpy = jest.spyOn(languageClientUtils, 'setStatus').mockReturnValue();
+      setStatusSpy = jest.spyOn(languageClientManager, 'setStatus').mockReturnValue();
       mockLanguageClient = {
         onNotification: jest.fn()
       };
@@ -35,7 +35,7 @@ describe('index tests', () => {
       setClientReadySpy = jest.spyOn(extensionUtils, 'setClientReady').mockResolvedValue();
     });
 
-    it('should call languageClientUtils.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
+    it('should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
       const languageServerStatusBarItem = new ApexLSPStatusBarItem();
       await indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
       expect(setStatusSpy).toHaveBeenCalledWith(1, '');
@@ -97,8 +97,8 @@ describe('index tests', () => {
       // Store original workspaceFolders
       originalWorkspaceFolders = vscode.workspace.workspaceFolders;
 
-      // Mock languageClientUtils
-      jest.mock('../../src/languageUtils/languageClientUtils', () => ({
+      // Mock languageClientManager
+      jest.mock('../../src/languageUtils/languageClientManager', () => ({
         createLanguageClient: jest.fn().mockResolvedValue(undefined)
       }));
 
@@ -146,7 +146,7 @@ describe('index tests', () => {
       telemetryServiceMock = new MockTelemetryService();
       (getTelemetryService as jest.Mock).mockResolvedValue(telemetryServiceMock);
       jest
-        .spyOn(languageClientUtils, 'getClientInstance')
+        .spyOn(languageClientManager, 'getClientInstance')
         .mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
     });
 
@@ -156,7 +156,7 @@ describe('index tests', () => {
     });
 
     it('should handle case when client instance is null', async () => {
-      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(undefined);
+      jest.spyOn(languageClientManager, 'getClientInstance').mockReturnValue(undefined);
       await index.deactivate();
       expect(stopSpy).not.toHaveBeenCalled();
     });

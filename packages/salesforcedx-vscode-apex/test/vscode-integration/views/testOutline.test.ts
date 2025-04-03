@@ -13,7 +13,7 @@ import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT } from '../../../src/constants';
 import { ClientStatus } from '../../../src/languageUtils/languageClientManager';
-import { LanguageClientUtils } from '../../../src/languageUtils/languageClientUtils';
+import { LanguageClientManager } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
 import * as settings from '../../../src/settings';
 import { apexTestRunCacheService } from '../../../src/testRunCache';
@@ -37,13 +37,13 @@ describe('TestView', () => {
   describe('Code Coverage', () => {
     let commandletSpy: SinonSpy;
     let getCoverageStub: SinonStub;
-    let languageClientUtils: LanguageClientUtils;
+    let languageClientManager: LanguageClientManager;
 
     beforeEach(() => {
       commandletSpy = sb.spy(SfCommandlet.prototype, 'run');
       getCoverageStub = sb.stub(settings, 'retrieveTestCodeCoverage');
-      languageClientUtils = LanguageClientUtils.getInstance();
-      languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
+      languageClientManager = LanguageClientManager.getInstance();
+      languageClientManager.setStatus(ClientStatus.Ready, 'Apex client is ready');
     });
 
     it('Should honor code coverage setting with Apex Library', async () => {
@@ -66,11 +66,11 @@ describe('TestView', () => {
     const testMethod = 'MyTestMethod';
     const testClass = 'MyTestClass';
     const testRunAll = 'RunAll';
-    let languageClientUtils: LanguageClientUtils;
+    let languageClientManager: LanguageClientManager;
 
     beforeEach(() => {
-      languageClientUtils = LanguageClientUtils.getInstance();
-      languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
+      languageClientManager = LanguageClientManager.getInstance();
+      languageClientManager.setStatus(ClientStatus.Ready, 'Apex client is ready');
     });
 
     it('Should cache the last run test method', async () => {

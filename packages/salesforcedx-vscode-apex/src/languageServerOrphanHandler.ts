@@ -8,7 +8,7 @@ import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { APEX_LSP_ORPHAN } from './constants';
-import { languageServerUtils as lsu, ProcessDetail } from './languageUtils';
+import { findAndCheckOrphanedProcesses, terminateProcess, ProcessDetail } from './languageUtils';
 import { nls } from './messages';
 import { getTelemetryService } from './telemetry/telemetry';
 
@@ -30,7 +30,7 @@ const TERMINATE_FAILED = 'terminate_failed';
 
 const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
   const telemetryService = await getTelemetryService();
-  const orphanedProcesses = await lsu.findAndCheckOrphanedProcesses();
+  const orphanedProcesses = await findAndCheckOrphanedProcesses();
   if (orphanedProcesses.length > 0) {
     if (await getResolutionForOrphanProcesses(orphanedProcesses)) {
       telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, {
@@ -39,7 +39,7 @@ const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
       });
       for (const processInfo of orphanedProcesses) {
         try {
-          lsu.terminateProcess(processInfo.pid);
+          terminateProcess(processInfo.pid);
           telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, {
             terminateSuccessful: 1
           });
