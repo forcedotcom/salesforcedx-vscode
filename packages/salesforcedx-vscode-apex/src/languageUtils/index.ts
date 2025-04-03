@@ -20,7 +20,7 @@ export {
   indexerDoneHandler
 } from './languageClientUtils';
 
-export { enableJavaDocSymbols } from './javaDocSymbols';
+export { configureApexLanguage } from './apexLanguageConfiguration';
 
 export { languageServerUtils } from './languageServerUtils';
 
