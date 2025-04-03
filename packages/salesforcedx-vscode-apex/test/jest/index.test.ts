@@ -9,8 +9,9 @@ import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientManager, indexerDoneHandler } from '../../src/languageUtils';
-import { extensionUtils } from '../../src/languageUtils/extensionUtils';
+import { ClientStatus } from '../../src/languageUtils/languageClientManager';
 import { getTelemetryService } from '../../src/telemetry/telemetry';
+import * as testOutlineProvider from '../../src/views/testOutlineProvider';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 import { MockTelemetryService } from './telemetry/mockTelemetryService';
 
@@ -18,41 +19,62 @@ jest.mock('./../../src/apexLspStatusBarItem');
 jest.mock('../../src/telemetry/telemetry', () => ({
   getTelemetryService: jest.fn()
 }));
+
 describe('index tests', () => {
   describe('indexDoneHandler', () => {
     let setStatusSpy: jest.SpyInstance;
     let onNotificationSpy: jest.SpyInstance;
     let mockLanguageClient: any;
-    let setClientReadySpy: jest.SpyInstance;
-    const apexLSPStatusBarItemMock = jest.mocked(ApexLSPStatusBarItem);
+    let languageServerStatusBarItem: ApexLSPStatusBarItem;
+    let mockTestOutlineProvider: any;
 
     beforeEach(() => {
-      setStatusSpy = jest.spyOn(languageClientManager, 'setStatus').mockReturnValue();
+      // Set up mock test outline provider
+      mockTestOutlineProvider = {
+        refresh: jest.fn().mockResolvedValue(undefined)
+      };
+      jest.spyOn(testOutlineProvider, 'getTestOutlineProvider').mockReturnValue(mockTestOutlineProvider);
+
+      setStatusSpy = jest.spyOn(languageClientManager, 'setStatus');
       mockLanguageClient = {
-        onNotification: jest.fn()
+        onNotification: jest.fn(),
+        errorHandler: {
+          serviceHasStartedSuccessfully: jest.fn()
+        }
       };
       onNotificationSpy = jest.spyOn(mockLanguageClient, 'onNotification');
-      setClientReadySpy = jest.spyOn(extensionUtils, 'setClientReady').mockResolvedValue();
+      languageServerStatusBarItem = new ApexLSPStatusBarItem();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
     });
 
     it('should call languageClientManager.setStatus and set up event listener when enableSyncInitJobs is false', async () => {
-      const languageServerStatusBarItem = new ApexLSPStatusBarItem();
       await indexerDoneHandler(false, mockLanguageClient, languageServerStatusBarItem);
-      expect(setStatusSpy).toHaveBeenCalledWith(1, '');
+
+      expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Indexing, '');
       expect(onNotificationSpy).toHaveBeenCalledWith(API.doneIndexing, expect.any(Function));
-      expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
 
+      // Simulate the notification callback
       const mockCallback = onNotificationSpy.mock.calls[0][1];
-
       await mockCallback();
-      expect(setClientReadySpy).toHaveBeenCalledWith(mockLanguageClient, languageServerStatusBarItem);
+
+      expect(mockTestOutlineProvider.refresh).toHaveBeenCalled();
+      expect(languageServerStatusBarItem.ready).toHaveBeenCalled();
+      expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Ready, '');
+      expect(mockLanguageClient.errorHandler.serviceHasStartedSuccessfully).toHaveBeenCalled();
     });
 
     it('should call setClientReady when enableSyncInitJobs is true', async () => {
-      const languageServerStatusBarItem = new ApexLSPStatusBarItem();
       await indexerDoneHandler(true, mockLanguageClient, languageServerStatusBarItem);
-      expect(setClientReadySpy).toHaveBeenCalledWith(mockLanguageClient, languageServerStatusBarItem);
-      expect(apexLSPStatusBarItemMock).toHaveBeenCalledTimes(1);
+
+      expect(setStatusSpy).not.toHaveBeenCalledWith(ClientStatus.Indexing, '');
+      expect(onNotificationSpy).not.toHaveBeenCalled();
+      expect(mockTestOutlineProvider.refresh).toHaveBeenCalled();
+      expect(languageServerStatusBarItem.ready).toHaveBeenCalled();
+      expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Ready, '');
+      expect(mockLanguageClient.errorHandler.serviceHasStartedSuccessfully).toHaveBeenCalled();
     });
   });
 
