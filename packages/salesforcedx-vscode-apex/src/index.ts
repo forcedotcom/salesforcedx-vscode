@@ -34,7 +34,7 @@ import { MetadataOrchestrator } from './commands/metadataOrchestrator';
 import { workspaceContext } from './context';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
-  enableJavaDocSymbols,
+  configureApexLanguage,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
@@ -88,7 +88,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
   await createLanguageClient(extensionContext, languageServerStatusBarItem);
 
   // Javadoc support
-  enableJavaDocSymbols();
+  configureApexLanguage();
 
   // Initialize the apexActionController
   await apexActionController.initialize(extensionContext);
