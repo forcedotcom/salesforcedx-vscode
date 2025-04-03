@@ -21,12 +21,12 @@
   "devDependencies": {
     "@types/chai": "4.3.0",
     "@types/chai-as-promised": "^7.1.0",
-    "@types/mocha": "^5.2.5",
+    "@types/mocha": "^10",
     "@types/node": "^10.12.18",
     "@types/sinon": "^7.5.2",
     "chai": "^4.2.0",
     "eslint": "8.23.0",
-    "mocha": "^5.2.0",
+    "mocha": "^10",
     "sinon": "^7.2.3"
   }
 }

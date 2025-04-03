@@ -23,10 +23,9 @@ const mocha = new Mocha({
     xunitReporterOptions: {
       output: 'xunit.xml'
     }
-  }
+  },
+  color: true
 });
-mocha.useColors(true);
-
 const files = await glob('out/**/*.test.js', { cwd: process.cwd() });
 files.forEach(f => mocha.addFile(path.join(process.cwd(), f)));
 
