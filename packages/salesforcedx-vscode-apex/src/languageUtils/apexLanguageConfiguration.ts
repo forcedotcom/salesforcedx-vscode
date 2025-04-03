@@ -5,6 +5,9 @@
  *--------------------------------------------------------------------------------------------*/
 import { IndentAction, languages } from 'vscode';
 
+// Exported for testing purposes
+export const wordPattern = /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}\\|;:'",.<>\/?\s]+)/g;
+
 export const configureApexLanguage = (): void => {
   languages.setLanguageConfiguration('apex', {
     indentationRules: {
@@ -13,7 +16,7 @@ export const configureApexLanguage = (): void => {
       // ^.*\{[^}"']*$
       increaseIndentPattern: /^.*\{[^}"']*$/
     },
-    wordPattern: /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}\\|;:'",.<>\/?\s]+)/g,
+    wordPattern,
     onEnterRules: [
       {
         // e.g. /** | */
