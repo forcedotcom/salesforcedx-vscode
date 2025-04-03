@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { languageClientUtils } from '../../../src/languageUtils';
-import { ClientStatus } from '../../../src/languageUtils/languageClientUtils';
+import { ClientStatus } from '../../../src/languageUtils/languageClientManager';
 
 // Mock ApexLSPStatusBarItem class
 jest.mock('../../../src/apexLspStatusBarItem', () => ({
