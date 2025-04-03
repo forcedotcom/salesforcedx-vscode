@@ -1,20 +1,21 @@
 #!/usr/bin/env node
-/* 
+/*
  * Automates the process of updating the Language Server Jar from a local Jorje repo.
- * 
+ *
  * Assumptions:
- * 0. You have shelljs installed globally using `npm install -g shelljs`.
- * 1. You have a local Jorje repo, have saved the keystore to sign the Jar, and have 
- *    saved the paths for those + the keystore to your bash profile. 
+ * 0. You have a local Jorje repo, have saved the keystore to sign the Jar, and have
+ *    saved the paths for those + the keystore to your bash profile.
  *    *Hard* reset VS Code once set.
- * 
+ *
  * Ex:  export JORJE_DEV_DIR=~/Git-Repositories/apex-jorje
         export SFDC_KEYSTORE=~/KEYS/sfdc.jks
         export SFDC_KEYPASS=PASS #where PASS is the password for the keystore
  */
 
 const process = require('process');
-const shell = require('shelljs');
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 const util = require('util');
 const { checkJorjeDirectory, checkSigningAbility } = require('./validation-utils');
 const logger = require('./logger-util');
@@ -53,33 +54,44 @@ function buildLSP() {
   console.log(util.format(BUILD_MSG, CURRENT_DIR));
   process.chdir(JORJE_DEV_DIR);
   if (needSigning === 'true') {
-    shell.exec(
+    execSync(
       `mvn clean install package -Plsp -Psign-jars -Dsfdc.keystore=${SFDC_KEYSTORE} -Dsfdc.keypass=${SFDC_KEYPASS} -Dsfdc.storepass=${SFDC_KEYPASS} -DskipTests`
     );
   } else {
-    shell.exec(`mvn clean install package -Plsp -DskipTests;`);
+    execSync(`mvn clean install package -Plsp -DskipTests;`);
   }
+}
+
+function findJarFiles(dir) {
+  const isJarFile = file => file.match(/apex-jorje-lsp-\d{3}\.\d*-SNAPSHOT\.jar$/);
+  const getFullPath = file => path.join(dir, file);
+
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    const fullPath = getFullPath(entry.name);
+    return entry.isDirectory() ? findJarFiles(fullPath) : isJarFile(entry.name) ? [fullPath] : [];
+  });
 }
 
 function getLSP() {
   console.log(util.format(FIND_MSG, JORJE_DEV_DIR));
-  const re = /apex-jorje-lsp-\d{3}\.\d*-SNAPSHOT\.jar$/;
-  return shell.find(JORJE_DEV_DIR).filter(function (file) {
-    return file.match(re);
-  })[0];
+  const files = findJarFiles(JORJE_DEV_DIR);
+  return files[0];
 }
 
 function copyLSP(jar) {
   console.log(SECTION_HEADER);
   console.log(util.format(COPY_MSG, jar, JORJE_DEST_PATH));
-  const copy = shell.cp(jar, JORJE_DEST_PATH);
-  if (copy.stderr) {
-    console.log(util.format(COPY_ERR, jar, copy.stderr));
+
+  try {
+    fs.copyFileSync(jar, JORJE_DEST_PATH);
+  } catch (error) {
+    console.log(util.format(COPY_ERR, jar, error.message));
     process.exit();
   }
+
   if (needSigning === 'true') {
-    const signedConf = shell.exec(`jarsigner -verify ${JORJE_DEST_PATH}`);
-    if (!signedConf.stdout.includes('jar verified')) {
+    const signedConf = execSync(`jarsigner -verify ${JORJE_DEST_PATH}`, { encoding: 'utf8' });
+    if (!signedConf.includes('jar verified')) {
       logger.error(util.format(SIGN_ERR, JORJE_DEV_DIR));
     } else {
       console.log(SIGN_INFO);

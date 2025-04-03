@@ -136,7 +136,6 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "shelljs": "0.8.5",
         "@salesforce/soql-builder-ui": "1.0.0",
         "@salesforce/soql-data-view": "0.1.0",
         "@salesforce/soql-language-server": "0.7.1",

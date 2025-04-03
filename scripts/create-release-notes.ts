@@ -1,6 +1,6 @@
 import * as changeLogGeneratorUtils from './change-log-generator-utils';
 import * as constants from './change-log-constants';
-import * as shell from 'shelljs';
+import { execSync } from 'child_process';
 
 const [_, __, releaseOverride] = process.argv;
 
@@ -20,11 +20,11 @@ function getCurrentRemoteReleaseBranch(): string {
   logger('\nStep 1: Determine release branch.');
   let releaseBranch;
   if (!releaseOverride) {
-    console.log(`releaseOverride not provided. Getting latest release.`);
+    console.log('releaseOverride not provided. Getting latest release.');
     releaseBranch = changeLogGeneratorUtils.getPreviousReleaseBranch();
   } else {
     console.log(`releaseOverride set to ${releaseOverride}`);
-    releaseBranch = constants.REMOTE_RELEASE_BRANCH_PREFIX + releaseOverride;
+    releaseBranch = `${constants.REMOTE_RELEASE_BRANCH_PREFIX}${releaseOverride}`;
   }
   validateReleaseBranch(releaseBranch);
   console.log(`\nBranch to be released is: ${releaseBranch}`);
@@ -35,10 +35,8 @@ function getCurrentRemoteReleaseBranch(): string {
  * Gets the previous release branch from the latest Github tag information we have.
  */
 function getPreviousRemoteReleaseBranch(): string {
-  logger(`\nStep 2: Getting latest tag to compare last published version`);
-  const latestReleasedTag = String(
-    shell.exec(`git describe --tags --abbrev=0`),
-  );
+  logger('\nStep 2: Getting latest tag to compare last published version');
+  const latestReleasedTag = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim();
   const latestReleasedBranchName = `${constants.REMOTE_RELEASE_BRANCH_PREFIX_NO_VERSION}/${latestReleasedTag}`;
   validateReleaseBranch(latestReleasedBranchName);
   return latestReleasedBranchName;
@@ -49,9 +47,7 @@ function getPreviousRemoteReleaseBranch(): string {
  */
 function validateReleaseBranch(releaseBranch): void {
   if (!(releaseBranch && constants.RELEASE_REGEX.exec(releaseBranch))) {
-    console.log(
-      "Invalid release '" + releaseBranch + "'. Expected format [xx.yy.z].",
-    );
+    console.log(`Invalid release '${releaseBranch}'. Expected format [xx.yy.z].`);
     process.exit(1);
   }
 }
@@ -61,30 +57,27 @@ const previousReleaseBranchName = getPreviousRemoteReleaseBranch();
 const releaseBranchName = currentReleaseBranchName.replace('origin/', '');
 
 // switch to the current release branch
-logger(`switch to the current release branch`);
-shell.exec(`git checkout ${releaseBranchName}`);
+logger('switch to the current release branch');
+execSync(`git checkout ${releaseBranchName}`);
 
-changeLogGeneratorUtils.updateChangeLog(
-  currentReleaseBranchName,
-  previousReleaseBranchName,
-);
+changeLogGeneratorUtils.updateChangeLog(currentReleaseBranchName, previousReleaseBranchName);
 
 // if running on github actions
 if (process.env.GITHUB_ACTIONS) {
-  logger(`\nCommit auto-generated changelog`);
-  shell.exec(`git add ${constants.CHANGE_LOG_PATH}`);
+  logger('\nCommit auto-generated changelog');
+  execSync(`git add ${constants.CHANGE_LOG_PATH}`);
 
-  shell.exec(
-    `git commit -m "chore: generated CHANGELOG for ${releaseBranchName}"`,
-  );
-  shell.exec(`git push -u origin ${releaseBranchName}`);
+  execSync(`git commit -m "chore: generated CHANGELOG for ${releaseBranchName}"`);
+  execSync(`git push -u origin ${releaseBranchName}`);
 } else {
-  logger(`\nOpening changelog for review`);
+  logger('\nOpening changelog for review');
   //if code-insiders isn't yet set in the PATH or running user doesn't have insiders,
   //this will use VS Code instead
-  shell.exec(
-    `code-insiders ${constants.CHANGE_LOG_PATH} || code ${constants.CHANGE_LOG_PATH}`,
-  );
+  try {
+    execSync(`code-insiders ${constants.CHANGE_LOG_PATH}`);
+  } catch (error) {
+    execSync(`code ${constants.CHANGE_LOG_PATH}`);
+  }
 }
 
 process.exit(0);

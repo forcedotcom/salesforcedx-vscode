@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
-import * as shell from 'shelljs';
+import * as fs from 'node:fs';
 import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
@@ -48,7 +48,10 @@ describe('Visualforce Generate Component', () => {
     const outputPath = 'force-app/main/default/components';
     const vfCmpPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFCmp.component');
     const vfCmpMetaPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFCmp.component-meta.xml');
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([vfCmpPath, vfCmpMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -62,6 +65,9 @@ describe('Visualforce Generate Component', () => {
     sinon.assert.calledWith(openTextDocumentStub, vfCmpPath);
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), {
+      recursive: true,
+      force: true
+    });
   });
 });

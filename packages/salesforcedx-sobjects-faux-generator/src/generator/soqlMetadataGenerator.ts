@@ -7,7 +7,6 @@
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { mkdir, rm } from 'shelljs';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
@@ -68,18 +67,14 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     const standardsFolder = path.join(outputFolder, STANDARDOBJECTS_DIR);
 
     if ([SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category) && fs.existsSync(standardsFolder)) {
-      rm('-rf', standardsFolder);
+      await fs.promises.rm(standardsFolder, { recursive: true, force: true });
     }
     if ([SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category) && fs.existsSync(customsFolder)) {
-      rm('-rf', customsFolder);
+      await fs.promises.rm(customsFolder, { recursive: true, force: true });
     }
 
-    if (!fs.existsSync(customsFolder)) {
-      mkdir('-p', customsFolder);
-    }
-    if (!fs.existsSync(standardsFolder)) {
-      mkdir('-p', standardsFolder);
-    }
+    await Promise.all([customsFolder, standardsFolder].map(folder => fs.promises.mkdir(folder, { recursive: true })));
+
     return true;
   }
 }

@@ -8,7 +8,6 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -279,11 +278,10 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       const projectInstalledPackagesPath = path.join(projectPath, executor.relativeInstalledPackagesPath);
 
       // Setup old project data that should not be present upon completion
-      shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'old-package'));
-
+      await fs.promises.mkdir(path.join(projectInstalledPackagesPath, 'old-package'), { recursive: true });
       // fake project setup - copy the original project into this clone
       executeCommandSpy.onCall(0).callsFake(() => {
-        shell.cp('-R', path.join(PROJECT_DIR[0].fsPath, ORIGINAL_PROJECT), projectPath);
+        fs.cpSync(path.join(PROJECT_DIR[0].fsPath, ORIGINAL_PROJECT), projectPath, { recursive: true });
       });
 
       // fake namespace query
@@ -313,7 +311,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
       // fake package metadata convert
       executeCommandSpy.onCall(5).callsFake(() => {
-        shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'mypackage'));
+        fs.mkdirSync(path.join(projectInstalledPackagesPath, 'mypackage'), { recursive: true });
       });
 
       const input = {
@@ -353,7 +351,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
 
       // Clean up project
-      shell.rm('-rf', projectPath);
+      await fs.promises.rm(projectPath, { recursive: true, force: true });
     });
   });
 });

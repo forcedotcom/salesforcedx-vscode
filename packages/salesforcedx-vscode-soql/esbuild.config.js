@@ -15,7 +15,6 @@ const sharedConfig = {
   external: [
     'vscode',
     'applicationinsights',
-    'shelljs',
     '@salesforce/soql-model',
     '@salesforce/soql-language-server',
     '@salesforce/soql-data-view',

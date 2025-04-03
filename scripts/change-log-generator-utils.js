@@ -1,6 +1,6 @@
 const constants = require('./change-log-constants');
 const fs = require('fs');
-const shell = require('shelljs');
+const { execSync } = require('child_process');
 const util = require('util');
 
 // Commit Map Keys
@@ -18,19 +18,12 @@ const PR_ALREADY_EXISTS_ERROR = 'Filtered PR number %s. An entry already exists 
 
 const typesToIgnore = ['chore', 'style', 'refactor', 'test', 'build', 'ci', 'revert'];
 
-const logger = (msg, obj) => {
-  if (!obj) {
-    console.log(`*** ${msg}`);
-  } else {
-    console.log(`*** ${msg}`, obj);
-  }
-};
+const logger = (msg, obj) => console.log(`*** ${msg}`, ...(!obj ? [] : [obj]));
 
 /**
  * Returns the previous release branch
  * @returns
  */
-
 function getPreviousReleaseBranch() {
   const releaseBranches = getRemoteReleaseBranches();
   return releaseBranches[0];
@@ -41,10 +34,9 @@ function getPreviousReleaseBranch() {
  * creation date. This ensures that the first entry is the latest branch.
  */
 function getRemoteReleaseBranches() {
-  return shell
-    .exec(`git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`, {
-      silent: false
-    })
+  return execSync(`git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`, {
+    encoding: 'utf8'
+  })
     .replace(/\n/g, ',')
     .split(',')
     .map(Function.prototype.call, String.prototype.trim);
@@ -60,13 +52,9 @@ function getRemoteReleaseBranches() {
  */
 function getCommits(releaseBranch, previousBranch) {
   logger(`\nStep 3: Get commits from ${previousBranch} to ${releaseBranch}`);
-  const commits = shell
-    .exec(`git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`, {
-      silent: false
-    })
-    .stdout.trim()
+  return execSync(`git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`, { encoding: 'utf8' })
+    .trim()
     .split('\n');
-  return commits;
 }
 
 /**
@@ -182,11 +170,10 @@ function getChangeLogText(releaseBranch, groupedMessages) {
 }
 
 function getFilesChanged(commitNumber) {
-  return shell
-    .exec('git show --pretty="" --name-only ' + commitNumber, {
-      silent: true
-    })
-    .stdout.trim()
+  return execSync('git show --pretty="" --name-only ' + commitNumber, {
+    encoding: 'utf8'
+  })
+    .trim()
     .toString()
     .replace(/\n/g, ',');
 }
@@ -284,7 +271,7 @@ function updateChangeLog(remoteReleaseBranch, remotePreviousBranch) {
     const localReleaseBranch = remoteReleaseBranch.replace(constants.ORIGIN_PREFIX_ONLY, '');
     console.log(`\nChecking out ${localReleaseBranch}`);
     const commitCommand = `git checkout ${localReleaseBranch}`;
-    shell.exec(commitCommand);
+    execSync(commitCommand);
 
     const groupedMessages = getMessagesGroupedByPackage(parsedCommits, '');
     const changeLog = getChangeLogText(remoteReleaseBranch, groupedMessages);

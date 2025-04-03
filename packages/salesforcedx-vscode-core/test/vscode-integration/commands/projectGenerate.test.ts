@@ -7,8 +7,8 @@
 
 import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import * as fs from 'node:fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
@@ -282,7 +282,7 @@ describe('Project Generate', () => {
     it('Should Generate Project', async () => {
       // arrange
       const projectPath = path.join(rootWorkspacePath, 'TestProject');
-      shell.rm('-rf', projectPath);
+      await fs.promises.rm(projectPath, { recursive: true, force: true });
       assert.noFile(projectPath);
 
       quickPickStub.returns({
@@ -339,13 +339,13 @@ describe('Project Generate', () => {
       }
 
       // clean up
-      shell.rm('-rf', projectPath);
+      await fs.promises.rm(projectPath, { recursive: true, force: true });
     });
 
     it('Should Generate Project with manifest', async () => {
       // arrange
       const projectPath = path.join(rootWorkspacePath, 'TestProject');
-      shell.rm('-rf', projectPath);
+      await fs.promises.rm(projectPath, { recursive: true, force: true });
       assert.noFile(projectPath);
 
       quickPickStub.returns({
@@ -360,7 +360,7 @@ describe('Project Generate', () => {
       assert.file([path.join(rootWorkspacePath, 'TestProject', 'manifest', 'package.xml')]);
 
       // clean up
-      shell.rm('-rf', projectPath);
+      await fs.promises.rm(projectPath, { recursive: true, force: true });
     });
   });
 });

@@ -38,7 +38,7 @@ jobs:
       - name: Set NPM at the correct version for Lerna
         run: npm install -g npm@9.8.1
       - run: npm install
-      - run: npm install -g shelljs && npm install -g lerna@5.5.4
+      - run: npm install -g lerna@5.5.4
       - run: rm -rf ./bundle-publish-scripts
       - name: Create and Push the Release Branch
         id: create_step

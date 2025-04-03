@@ -7,17 +7,17 @@
  */
 
 import * as path from 'path';
-import { cp, mkdir, rm, tempdir } from 'shelljs';
+import * as fs from 'fs';
+import { tmpdir } from 'os';
 
 export function createWorkspace(assetToSeedPath: string): string {
-  const tmpDir = tempdir();
   const prefix = (Date.now() + Math.round(Math.random() * 1000)).toString();
-  const workspacePath = path.join(tmpDir, prefix);
-  mkdir('-p', workspacePath);
-  cp('-R', assetToSeedPath, workspacePath);
+  const workspacePath = path.join(tmpdir(), prefix);
+  fs.mkdirSync(workspacePath, { recursive: true });
+  fs.cpSync(assetToSeedPath, workspacePath, { recursive: true });
   return path.join(workspacePath);
 }
 
 export function removeWorkspace(pathToRemove: string) {
-  rm('-rf', pathToRemove);
+  fs.rmSync(pathToRemove, { recursive: true, force: true });
 }
