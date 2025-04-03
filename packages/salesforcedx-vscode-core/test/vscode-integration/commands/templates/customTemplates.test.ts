@@ -7,8 +7,8 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
+import * as fs from 'node:fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -65,8 +65,9 @@ describe('Custom Templates Create', () => {
       outputPath,
       'TestApexClass.cls-meta.xml'
     );
-    shell.rm('-f', apexClassPath);
-    shell.rm('-f', apexClassMetaPath);
+    await fs.promises.rm(apexClassMetaPath, { force: true });
+    await fs.promises.rm(apexClassPath, { force: true });
+
     assert.noFile([apexClassPath, apexClassMetaPath]);
     showInputBoxStub.returns('TestApexClass');
     quickPickStub.returns(outputPath);
@@ -87,8 +88,8 @@ describe('Custom Templates Create', () => {
     });
 
     // clean up
-    shell.rm('-f', apexClassPath);
-    shell.rm('-f', apexClassMetaPath);
+    await fs.promises.rm(apexClassMetaPath, { force: true });
+    await fs.promises.rm(apexClassPath, { force: true });
   });
 
   it('Should handle error and log telemetry if local template does not exist', async () => {
@@ -101,8 +102,8 @@ describe('Custom Templates Create', () => {
       outputPath,
       'TestApexClass.cls-meta.xml'
     );
-    shell.rm('-f', apexClassPath);
-    shell.rm('-f', apexClassMetaPath);
+    await fs.promises.rm(apexClassMetaPath, { force: true });
+    await fs.promises.rm(apexClassPath, { force: true });
     assert.noFile([apexClassPath, apexClassMetaPath]);
     showInputBoxStub.returns('TestApexClass');
     quickPickStub.returns(outputPath);
@@ -130,8 +131,8 @@ describe('Custom Templates Create', () => {
       outputPath,
       'TestApexClass.cls-meta.xml'
     );
-    shell.rm('-f', apexClassPath);
-    shell.rm('-f', apexClassMetaPath);
+    await fs.promises.rm(apexClassMetaPath, { force: true });
+    await fs.promises.rm(apexClassPath, { force: true });
     assert.noFile([apexClassPath, apexClassMetaPath]);
     showInputBoxStub.returns('TestApexClass');
     quickPickStub.returns(outputPath);
@@ -157,7 +158,10 @@ describe('Custom Templates Create', () => {
     const lwcHtmlPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.html');
     const lwcJsPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.js');
     const lwcJsMetaPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.js-meta.xml');
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -178,6 +182,9 @@ describe('Custom Templates Create', () => {
     });
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
   });
 });

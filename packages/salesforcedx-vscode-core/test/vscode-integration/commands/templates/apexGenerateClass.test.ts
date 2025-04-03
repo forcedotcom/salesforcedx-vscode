@@ -4,11 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import * as fs from 'node:fs';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -56,8 +55,9 @@ describe('Apex Generate Class', () => {
       outputPath,
       'TestApexClass.cls-meta.xml'
     );
-    shell.rm('-f', apexClassPath);
-    shell.rm('-f', apexClassMetaPath);
+    await fs.promises.rm(path.join(apexClassPath), { force: true });
+    await fs.promises.rm(path.join(apexClassMetaPath), { force: true });
+
     assert.noFile([apexClassPath, apexClassMetaPath]);
     showInputBoxStub.returns('TestApexClass');
     quickPickStub.returns(outputPath);
@@ -78,8 +78,8 @@ describe('Apex Generate Class', () => {
     });
 
     // clean up
-    shell.rm('-f', apexClassPath);
-    shell.rm('-f', apexClassMetaPath);
+    await fs.promises.rm(path.join(apexClassPath), { force: true });
+    await fs.promises.rm(path.join(apexClassMetaPath), { force: true });
   });
 
   it('Should handle error and log telemetry for exceptions', async () => {
