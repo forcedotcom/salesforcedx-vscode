@@ -57,6 +57,8 @@ import { nls } from '../../../src/messages';
 import { ApexDebugForTest } from './apexDebugForTest';
 import { DummyContainer, newStringValue } from './apexDebugVariablesHandling.test';
 
+jest.setTimeout(30_000);
+
 describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;
   const initializedResponse = {

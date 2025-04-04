@@ -34,7 +34,6 @@
     "@vscode/test-electron": "2.3.0",
     "@vscode/vsce": "2.21.1",
     "acorn": "8.8.2",
-    "ajv": "8.17.1",
     "check-peer-dependencies": "4.1.0",
     "commitizen": "^4.2.5",
     "cz-conventional-changelog": "3.3.0",

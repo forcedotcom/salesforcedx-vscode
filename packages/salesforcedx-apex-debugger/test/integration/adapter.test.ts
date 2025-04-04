@@ -10,8 +10,8 @@ import { CliCommandExecutor, CommandExecution, SfCommandBuilder } from '@salesfo
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
+import * as fsPromises from 'fs/promises';
 import * as path from 'path';
-import * as rimraf from 'rimraf';
 import Uri from 'vscode-uri';
 import { LaunchRequestArguments } from '../../src/adapter/apexDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints/lineBreakpoint';
@@ -72,7 +72,7 @@ describe.skip('Interactive debugger adapter - integration', () => {
     if (userName) {
       await util.deleteScratchOrg(PROJECT_NAME, userName);
     }
-    rimraf.sync(projectPath);
+    await fsPromises.rm(projectPath, { recursive: true, force: true });
     if (dc) {
       await dc.stop();
     }

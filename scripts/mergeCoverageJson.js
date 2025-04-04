@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const glob = require('glob');
+const { glob } = require('glob');
 
 // Source pattern to find all coverage-final.json files
 const sourcePattern = './packages/**/coverage/coverage-final.json';
@@ -12,9 +12,9 @@ const outputDir = process.argv[2] || 'coverage';
 const destinationFile = path.join(outputDir, 'combined-coverage-final.json');
 
 // Function to merge coverage files
-function mergeCoverageFiles() {
+async function mergeCoverageFiles() {
   // Find all coverage-final.json files
-  const files = glob.sync(sourcePattern);
+  const files = await glob(sourcePattern);
 
   // Initialize an empty object to hold the combined coverage data
   let combinedCoverage = {};

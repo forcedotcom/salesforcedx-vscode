@@ -14,7 +14,7 @@
   "typings": "./out/src/htmlLanguageService.d.ts",
   "devDependencies": {
     "@types/chai": "4.3.3",
-    "@types/mocha": "^2.2.38",
+    "@types/mocha": "^10",
     "@types/node": "^20.0.0",
     "chai": "^4.0.2",
     "eslint-plugin-jest": "28.9.0",

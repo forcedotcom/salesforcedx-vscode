@@ -6,7 +6,7 @@
  *
  */
 
-import * as glob from 'glob';
+import { glob } from 'glob';
 import * as path from 'path';
 import * as Mocha from 'mocha';
 
@@ -23,11 +23,10 @@ const mocha = new Mocha({
     xunitReporterOptions: {
       output: 'xunit.xml'
     }
-  }
+  },
+  color: true
 });
-mocha.useColors(true);
-
-const files = glob.sync('out/**/*.test.js', { cwd: process.cwd() });
+const files = await glob('out/**/*.test.js', { cwd: process.cwd() });
 files.forEach(f => mocha.addFile(path.join(process.cwd(), f)));
 
 mocha.run(failures => {
