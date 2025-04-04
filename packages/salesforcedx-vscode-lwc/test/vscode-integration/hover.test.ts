@@ -7,30 +7,17 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import {
-  Hover,
-  Position,
-  MarkdownString,
-  commands,
-  window,
-  workspace
-} from 'vscode';
-import { LanguageClient } from 'vscode-languageclient';
+import { Hover, Position, MarkdownString, commands, window, workspace } from 'vscode';
+import { BaseLanguageClient } from 'vscode-languageclient/node';
 import { createLanguageClient } from '../../src/languageClient';
 import { before } from 'mocha';
 
 describe('LWC Hovers', () => {
-  let lwcDir = path.join(
-    workspace.workspaceFolders![0].uri.fsPath,
-    'force-app',
-    'main',
-    'default',
-    'lwc'
-  );
+  let lwcDir = path.join(workspace.workspaceFolders![0].uri.fsPath, 'force-app', 'main', 'default', 'lwc');
 
-  let client: LanguageClient;
+  let client: BaseLanguageClient;
 
-  before(async function() {
+  before(async function () {
     this.timeout(10000);
     // creating a new client so that we can wait on its ready status before the
     // tests begin. set the timeout at the suite level to give the client some time
@@ -50,8 +37,7 @@ describe('LWC Hovers', () => {
         'server.js'
       )
     );
-    client.start();
-    await client.onReady();
+    await client.start();
   });
 
   afterEach(async () => {
@@ -61,9 +47,7 @@ describe('LWC Hovers', () => {
   after(() => client.stop());
 
   it('Should provide additional details when hovering over a LWC tag', async () => {
-    const doc = await workspace.openTextDocument(
-      path.join(lwcDir, 'hello', 'hello.html')
-    );
+    const doc = await workspace.openTextDocument(path.join(lwcDir, 'hello', 'hello.html'));
     const editor = await window.showTextDocument(doc);
 
     // hover over the 'lightning-card' tag
@@ -87,9 +71,7 @@ describe('LWC Hovers', () => {
   });
 
   it('Should provide additional details when hovering over a LWC attribute', async () => {
-    const doc = await workspace.openTextDocument(
-      path.join(lwcDir, 'hello', 'hello.html')
-    );
+    const doc = await workspace.openTextDocument(path.join(lwcDir, 'hello', 'hello.html'));
     const editor = await window.showTextDocument(doc);
 
     // hover over the 'title' attribute
@@ -126,9 +108,7 @@ function findContentFromInstances(instances: Hover[], expectedContent: string) {
     // type assertion to prevent using a deprecated type
     const contents = instance!.contents as MarkdownString[];
 
-    const content = contents.find(content =>
-      content.value.includes(expectedContent)
-    );
+    const content = contents.find(content => content.value.includes(expectedContent));
 
     // return the first found match
     if (content) {

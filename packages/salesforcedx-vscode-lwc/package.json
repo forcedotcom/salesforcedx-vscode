@@ -36,7 +36,7 @@
     "strip-ansi": "^5.2.0",
     "uuid": "^3.3.3",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "^5.2.1"
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "63.7.0",

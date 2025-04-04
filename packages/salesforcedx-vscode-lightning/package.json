@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils-vscode": "63.7.0",
     "applicationinsights": "1.0.7",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "^5.2.1"
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "63.7.0",

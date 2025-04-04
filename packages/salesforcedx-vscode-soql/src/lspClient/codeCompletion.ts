@@ -8,8 +8,8 @@
 
 import { SoqlItemContext } from '@salesforce/soql-language-server';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
-import { Middleware } from 'vscode-languageclient';
-import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
+import { Middleware } from 'vscode-languageclient/node';
 
 import { telemetryService } from '../telemetry';
 import { FileSystemOrgDataSource, JsforceOrgDataSource, OrgDataSource, SObject, SObjectField } from './orgMetadata';

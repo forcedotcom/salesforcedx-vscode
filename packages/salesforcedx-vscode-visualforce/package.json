@@ -27,9 +27,9 @@
     "@salesforce/salesforcedx-visualforce-language-server": "63.7.0",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "63.7.0",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "5.2.1",
-    "vscode-languageserver-protocol": "3.14.1",
-    "vscode-languageserver-types": "3.14.0"
+    "vscode-languageclient": "9.0.1",
+    "vscode-languageserver-protocol": "3.17.5",
+    "vscode-languageserver-types": "3.17.5"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "63.7.0",
@@ -98,8 +98,8 @@
       "dependencies": {
         "vscode-css-languageservice": "2.1.9",
         "vscode-languageserver": "5.2.1",
-        "vscode-languageserver-protocol": "3.14.1",
-        "vscode-languageserver-types": "3.14.0",
+        "vscode-languageserver-protocol": "3.17.5",
+        "vscode-languageserver-types": "3.17.5",
         "vscode-nls": "2.0.2",
         "vscode-uri": "1.0.1"
       },
