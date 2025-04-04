@@ -8,7 +8,7 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import { MetadataOrchestrator } from '../../../src/commands/metadataOrchestrator';
-import { languageClientUtils } from '../../../src/languageUtils';
+import { languageClientManager } from '../../../src/languageUtils';
 import { nls } from '../../../src/messages';
 import GenerationInteractionLogger from '../../../src/oas/generationInteractionLogger';
 import { ApexOASResource } from '../../../src/oas/schemas';
@@ -117,7 +117,7 @@ describe('MetadataOrchestrator', () => {
         gatherOpenAPIContext: jest.fn().mockResolvedValue({ some: 'response' })
       } as unknown as ApexLanguageClient;
 
-      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(mockLanguageClient);
+      jest.spyOn(languageClientManager, 'getClientInstance').mockReturnValue(mockLanguageClient);
 
       const mockUri = mockUriParse('/hello/world.cls');
       const response = await orchestrator.gatherContext(mockUri);
@@ -127,7 +127,7 @@ describe('MetadataOrchestrator', () => {
     });
 
     it('should handle language client being unavailable', async () => {
-      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(undefined);
+      jest.spyOn(languageClientManager, 'getClientInstance').mockReturnValue(undefined);
 
       const response = await orchestrator.gatherContext(vscode.Uri.file('/path/to/source'));
       expect(response).toBeUndefined();
@@ -138,7 +138,7 @@ describe('MetadataOrchestrator', () => {
         sendRequest: jest.fn().mockRejectedValue(new Error('Some error'))
       } as unknown as ApexLanguageClient;
 
-      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(mockLanguageClient);
+      jest.spyOn(languageClientManager, 'getClientInstance').mockReturnValue(mockLanguageClient);
 
       const mockUri = { path: '/hello/world.cls' } as vscode.Uri;
 
@@ -241,7 +241,7 @@ describe('MetadataOrchestrator', () => {
           }
         ]
       };
-      jest.spyOn(languageClientUtils, 'getClientInstance').mockReturnValue(undefined);
+      jest.spyOn(languageClientManager, 'getClientInstance').mockReturnValue(undefined);
       const responses = await orchestrator.eligibilityDelegate(sampleRequest);
       expect(responses).toBe(undefined);
     });

@@ -9,7 +9,7 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
-import { getApexTests, languageClientUtils } from '../languageUtils';
+import { getApexTests, languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
 import { IconsEnum, iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
@@ -65,7 +65,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
       } else {
         let message = NO_TESTS_MESSAGE;
         let description = NO_TESTS_DESCRIPTION;
-        const languageClientStatus = languageClientUtils.getStatus();
+        const languageClientStatus = languageClientManager.getStatus();
         if (!languageClientStatus.isReady()) {
           if (languageClientStatus.failedToInitialize()) {
             void vscode.window.showInformationMessage(languageClientStatus.getStatusMessage());
@@ -90,7 +90,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
       this.getAllApexTests();
       let message = NO_TESTS_MESSAGE;
       let description = NO_TESTS_DESCRIPTION;
-      if (!languageClientUtils.getStatus().isReady()) {
+      if (!languageClientManager.getStatus().isReady()) {
         message = LOADING_MESSAGE;
         description = '';
       }
