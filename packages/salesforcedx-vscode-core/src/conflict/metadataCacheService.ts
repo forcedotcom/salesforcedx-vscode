@@ -15,7 +15,6 @@ import {
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
@@ -357,7 +356,7 @@ export class MetadataCacheService {
 
   private clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {
     try {
-      shell.rm('-rf', dirToRemove);
+      fs.rmSync(dirToRemove, { recursive: true, force: true });
     } catch (error) {
       if (throwErrorOnFailure) {
         throw error;

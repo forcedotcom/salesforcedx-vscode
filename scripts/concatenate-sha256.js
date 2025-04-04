@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const shell = require('shelljs');
+const fs = require('fs');
 
-const packageVersion = JSON.parse(shell.cat('./lerna.json')).version;
+const packageVersion = JSON.parse(fs.readFileSync('./lerna.json', 'utf8')).version;
 
 const HEADER = `Currently, Visual Studio Code extensions are not signed or verified on the
 Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash
@@ -35,6 +35,6 @@ VSIX.
 6. Install the verified VSIX file.
 `;
 
-const sha256 = shell.cat('./SHA256');
+const sha256 = fs.readFileSync('./SHA256', 'utf8');
 const content = HEADER + sha256 + FOOTER;
-shell.echo(content).to('./SHA256.md');
+fs.writeFileSync('./SHA256.md', content);

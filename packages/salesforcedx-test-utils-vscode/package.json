@@ -9,15 +9,13 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "63.7.0",
-    "shelljs": "0.8.5"
+    "@salesforce/salesforcedx-utils-vscode": "63.7.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.3",
     "@types/glob": "^7.2.0",
     "@types/mocha": "^2.2.38",
     "@types/node": "^20.0.0",
-    "@types/shelljs": "0.7.9",
     "@types/sinon": "^2.3.7",
     "chai": "^4.0.2",
     "decache": "^4.1.0",
