@@ -35,7 +35,7 @@
     "rxjs": "^5.4.1",
     "strip-ansi": "^5.2.0",
     "uuid": "^3.3.3",
-    "vscode-extension-telemetry": "0.0.17",
+    "vscode-extension-telemetry": "^0.0.17",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
