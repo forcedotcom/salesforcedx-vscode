@@ -12,7 +12,7 @@ import { TypingGenerator } from '../../src/generator/typingGenerator';
 
 const expect = chai.expect;
 
-describe('SObject Javacript type declaration generator', () => {
+describe('SObject Javascript type declaration generator', () => {
   let typePath = '';
   const declGenerator = new DeclarationGenerator();
 
