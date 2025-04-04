@@ -192,7 +192,7 @@
       "editor/context": [
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && resourceLangId != 'als' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && ((resourceLangId != 'als' && resourceLangId != 'yaml') || resourcePath =~ /externalServiceRegistrations\\//) && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -200,7 +200,7 @@
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && resourceLangId != 'als' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && ((resourceLangId != 'als' && resourceLangId != 'yaml') || resourcePath =~ /externalServiceRegistrations\\//) && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -294,7 +294,7 @@
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && resourceLangId != 'als' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && ((resourceLangId != 'als' && resourceLangId != 'yaml') || resourcePath =~ /externalServiceRegistrations\\//) && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -302,7 +302,7 @@
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && resourceLangId != 'als' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && ((resourceLangId != 'als' && resourceLangId != 'yaml') || resourcePath =~ /externalServiceRegistrations\\//) && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -488,7 +488,7 @@
         },
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && resourceLangId != 'als' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && ((resourceLangId != 'als' && resourceLangId != 'yaml') || resourcePath =~ /externalServiceRegistrations\\//) && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -496,7 +496,7 @@
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && resourceLangId != 'als' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && ((resourceLangId != 'als' && resourceLangId != 'yaml') || resourcePath =~ /externalServiceRegistrations\\//) && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
