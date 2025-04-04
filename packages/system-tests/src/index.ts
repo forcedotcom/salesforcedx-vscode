@@ -7,24 +7,15 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 
 export function deactivate() {
   if (process.env.COLLECT_COVERAGE) {
     console.log('System tests unloading...');
     const coverage = (global as any).__coverage__;
     if (coverage) {
-      const coverageFolder = path.join(
-        __dirname,
-        '..',
-        '..',
-        'coverage',
-        `${new Date().getTime()}`
-      );
-      shell.mkdir('-p', coverageFolder);
-      const writeStream = fs.createWriteStream(
-        path.join(coverageFolder, 'coverage.json')
-      );
+      const coverageFolder = path.join(__dirname, '..', '..', 'coverage', `${new Date().getTime()}`);
+      fs.mkdirSync(coverageFolder, { recursive: true });
+      const writeStream = fs.createWriteStream(path.join(coverageFolder, 'coverage.json'));
       writeStream.write(JSON.stringify(coverage));
       writeStream.end();
     }

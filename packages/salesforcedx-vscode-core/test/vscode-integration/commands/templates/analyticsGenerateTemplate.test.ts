@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import * as shell from 'shelljs';
+import * as fs from 'node:fs';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
@@ -60,7 +60,10 @@ describe('Analytics Generate Template', () => {
       'TestWave/dashboards',
       'TestWaveDashboard.json'
     );
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'TestWave'));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'TestWave'), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([templateInfoJsonPath, templateFolderJsonPath, templateDashboardPath]);
     showInputBoxStub.returns('TestWave');
     quickPickStub.returns(outputPath);
@@ -75,6 +78,9 @@ describe('Analytics Generate Template', () => {
     assert.fileContent(templateDashboardPath, '"name": "TestWaveDashboard_tp"');
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), {
+      recursive: true,
+      force: true
+    });
   });
 });
