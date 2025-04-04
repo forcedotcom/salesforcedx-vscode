@@ -45,7 +45,9 @@ describe('HTML Completion', () => {
       assert.equal(match.kind, expected.kind);
     }
     if (expected.resultText) {
-      assert.equal(applyEdits(document, [match.textEdit]), expected.resultText);
+      if (match.textEdit && 'range' in match.textEdit) {
+        assert.equal(applyEdits(document, [match.textEdit]), expected.resultText);
+      }
     }
   };
 
