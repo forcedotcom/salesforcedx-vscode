@@ -197,7 +197,7 @@
       "commandPalette": [
         {
           "command": "sf.apex.languageServer.restart",
-          "when": "true"
+          "when": "sf:project_opened"
         },
         {
           "command": "sf.anon.apex.execute.selection",
