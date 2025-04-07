@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils": "63.8.0",
     "@salesforce/salesforcedx-utils-vscode": "63.8.0",
     "async-lock": "1.4.1",
-    "vscode-extension-telemetry": "0.0.17"
+    "vscode-extension-telemetry": "^0.0.17"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "63.8.0",
