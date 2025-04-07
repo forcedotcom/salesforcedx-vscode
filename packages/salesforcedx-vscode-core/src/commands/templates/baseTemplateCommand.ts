@@ -8,7 +8,7 @@
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse, DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';

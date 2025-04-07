@@ -10,7 +10,7 @@ import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse, isSFContainerMode } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
 import { channelService } from '../../channels/index';

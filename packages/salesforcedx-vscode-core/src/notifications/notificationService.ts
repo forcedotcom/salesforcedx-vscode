@@ -6,7 +6,7 @@
  */
 
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { STATUS_BAR_MSG_TIMEOUT_MS } from '../constants';

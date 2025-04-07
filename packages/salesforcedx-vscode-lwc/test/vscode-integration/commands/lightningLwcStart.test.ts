@@ -8,7 +8,7 @@
 import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor, Command, CommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { DEV_SERVER_DEFAULT_BASE_URL } from '../../../src/commands/commandConstants';

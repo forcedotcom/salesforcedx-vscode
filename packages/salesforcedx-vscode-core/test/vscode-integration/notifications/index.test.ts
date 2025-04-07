@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ReplaySubject } from 'rxjs/ReplaySubject';
+import { ReplaySubject } from 'rxjs';
 import { assert, SinonStub, stub } from 'sinon';
 import { CancellationTokenSource, window } from 'vscode';
 import { channelService } from '../../../src/channels';

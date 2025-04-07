@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Observable } from 'rxjs/Observable';
+import { fromEvent, interval } from 'rxjs';
 import * as kill from 'tree-kill';
 import { CancellationToken, CliCommandExecution, Command } from '../../../src';
 import {
@@ -15,6 +15,10 @@ import {
   NO_STDOUT_ERROR
 } from '../../../src/cli/cliCommandExecution';
 jest.mock('tree-kill');
+jest.mock('rxjs', () => ({
+  fromEvent: jest.fn(),
+  interval: jest.fn()
+}));
 
 const treeKillMocked = jest.mocked(kill);
 
@@ -26,8 +30,8 @@ describe('CliCommandExecution Unit Tests.', () => {
   };
   let testChildProcess: any;
   let testCancelationToken: CancellationToken;
-  let fromEventSpy: jest.SpyInstance;
-  let intervalSpy: jest.SpyInstance;
+  let fromEventSpy: jest.Mock;
+  let intervalSpy: jest.Mock;
   let subscribeSpy: jest.SpyInstance;
   let unsubscribeSpy: jest.SpyInstance;
 
@@ -44,12 +48,14 @@ describe('CliCommandExecution Unit Tests.', () => {
     subscribeSpy = jest.fn().mockReturnValue({
       unsubscribe: unsubscribeSpy
     });
-    fromEventSpy = jest.spyOn(Observable, 'fromEvent').mockReturnValue({
+    fromEventSpy = fromEvent as jest.Mock;
+    intervalSpy = interval as jest.Mock;
+    fromEventSpy.mockReturnValue({
       subscribe: subscribeSpy
-    } as any);
-    intervalSpy = jest.spyOn(Observable, 'interval').mockReturnValue({
+    });
+    intervalSpy.mockReturnValue({
       subscribe: subscribeSpy
-    } as any);
+    });
   });
 
   afterEach(() => {

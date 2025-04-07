@@ -7,7 +7,7 @@
 
 import { CliCommandExecutor, CommandExecution, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';

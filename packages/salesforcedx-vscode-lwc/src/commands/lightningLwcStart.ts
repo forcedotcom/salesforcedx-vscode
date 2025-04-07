@@ -19,7 +19,7 @@ import {
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import * as vscode from 'vscode';
 import { channelService } from '../channel';
 import { nls } from '../messages';

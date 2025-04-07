@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ChildProcess } from 'child_process';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
-
+import { Observable, Subscription, fromEvent, interval } from 'rxjs';
 import { CancellationToken, CommandExecution } from '../types';
 import { Command } from './command';
 
@@ -41,13 +39,13 @@ export class CliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
 
     // Process
-    this.processExitSubject = Observable.fromEvent(childProcess, 'exit');
+    this.processExitSubject = fromEvent<number>(childProcess, 'exit');
     this.processExitSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
     });
-    this.processErrorSubject = Observable.fromEvent(childProcess, 'error');
+    this.processErrorSubject = fromEvent<Error>(childProcess, 'error');
     this.processErrorSubject.subscribe(() => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -58,15 +56,15 @@ export class CliCommandExecution implements CommandExecution {
     if (!childProcess.stdout) {
       throw new Error(NO_STDOUT_ERROR);
     }
-    this.stdoutSubject = Observable.fromEvent(childProcess.stdout, 'data');
+    this.stdoutSubject = fromEvent<string>(childProcess.stdout, 'data');
     if (!childProcess.stderr) {
       throw new Error(NO_STDERR_ERROR);
     }
-    this.stderrSubject = Observable.fromEvent(childProcess.stderr, 'data');
+    this.stderrSubject = fromEvent<string>(childProcess.stderr, 'data');
 
     // Cancellation watcher
     if (cancellationToken) {
-      const timer = Observable.interval(CANCELLATION_INTERVAL);
+      const timer = interval(CANCELLATION_INTERVAL);
       timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {

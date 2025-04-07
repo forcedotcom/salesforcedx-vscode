@@ -19,7 +19,7 @@ import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';

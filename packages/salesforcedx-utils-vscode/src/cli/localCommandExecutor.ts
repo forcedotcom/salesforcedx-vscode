@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EventEmitter } from 'events';
-import 'rxjs/add/observable/fromEvent';
-import { Observable } from 'rxjs/Observable';
+import { Observable, fromEvent } from 'rxjs';
 import { Command } from '.';
 import { CancellationToken, CommandExecution } from './commandExecutor';
 
@@ -31,9 +30,9 @@ export class LocalCommandExecution implements CommandExecution {
 
   constructor(command: Command) {
     this.command = command;
-    this.processExitSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.EXIT_EVENT);
-    this.processErrorSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.ERROR_EVENT);
-    this.stdoutSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.STDOUT_EVENT);
-    this.stderrSubject = Observable.fromEvent(this.cmdEmitter, LocalCommandExecution.STDERR_EVENT);
+    this.processExitSubject = fromEvent<number | undefined>(this.cmdEmitter, LocalCommandExecution.EXIT_EVENT);
+    this.processErrorSubject = fromEvent<Error | undefined>(this.cmdEmitter, LocalCommandExecution.ERROR_EVENT);
+    this.stdoutSubject = fromEvent<Buffer | string>(this.cmdEmitter, LocalCommandExecution.STDOUT_EVENT);
+    this.stderrSubject = fromEvent<Buffer | string>(this.cmdEmitter, LocalCommandExecution.STDERR_EVENT);
   }
 }
