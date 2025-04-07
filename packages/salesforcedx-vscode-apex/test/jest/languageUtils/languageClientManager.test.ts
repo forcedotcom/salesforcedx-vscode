@@ -331,7 +331,7 @@ describe('Language Client Manager', () => {
 
       // Verify showWarningMessage was called with the correct message
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
-        nls.localize('apex_language_server_restart_dialog_restart_only') + errorMessage
+        `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
       );
 
       // Verify setTimeout was still called
