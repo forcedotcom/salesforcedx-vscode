@@ -12,7 +12,7 @@ import {
   SFDX_LWC_EXTENSION_NAME
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
-import * as glob from 'glob';
+import { glob } from 'glob';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
@@ -260,7 +260,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
 
   public getCustomOptions(packageDirs: string[], rootPath: string): string[] {
     const packages = packageDirs.length > 1 ? `{${packageDirs.join(',')}}` : packageDirs[0];
-    return new glob.GlobSync(path.join(rootPath, packages, '**', path.sep)).found.map(value => {
+    return glob.sync(path.join(rootPath, packages, '**', path.sep)).map(value => {
       let relativePath = path.relative(rootPath, path.join(value, '/'));
       relativePath = path.join(
         relativePath,

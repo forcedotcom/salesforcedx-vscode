@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
-import * as fsExtra from 'fs-extra';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { before, beforeEach, describe, it } from 'mocha';
@@ -69,14 +69,14 @@ describe('Should do completion', async () => {
     const targetDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
     const soqlMetadataDir = path.normalize(__dirname + '/../../../../test/vscode-integration/soqlMetadata/');
 
-    if (fsExtra.existsSync(targetDir)) {
+    if (fs.existsSync(targetDir)) {
       console.log('Removing existing ' + targetDir);
-      fsExtra.removeSync(targetDir);
+      fs.rmSync(targetDir);
     }
-    fsExtra.mkdirSync(targetDir, { recursive: true });
+    fs.mkdirSync(targetDir, { recursive: true });
     console.log('Copying ' + soqlMetadataDir + ' to ' + targetDir);
-    fsExtra.copySync(soqlMetadataDir, targetDir, { recursive: true });
-    const files = fsExtra.readdirSync(targetDir);
+    fs.cpSync(soqlMetadataDir, targetDir, { recursive: true });
+    const files = fs.readdirSync(targetDir);
     console.log('Copied ' + files.length + ' files');
   });
 
@@ -412,9 +412,9 @@ describe('Should not do completion on metadata errors', async () => {
   const soqlMetadataDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
 
   before(() => {
-    if (fsExtra.existsSync(soqlMetadataDir)) {
+    if (fs.existsSync(soqlMetadataDir)) {
       console.log('Removing existing ' + soqlMetadataDir);
-      fsExtra.removeSync(soqlMetadataDir);
+      fs.rmSync(soqlMetadataDir);
     }
   });
 
