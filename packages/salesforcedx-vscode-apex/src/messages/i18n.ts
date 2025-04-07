@@ -28,6 +28,7 @@ export const messages = {
   apex_language_server_restart_dialog_prompt: 'Clean Apex DB and Restart? Or Restart Only?',
   apex_language_server_restart_dialog_clean_and_restart: 'Clean Apex DB and Restart',
   apex_language_server_restart_dialog_restart_only: 'Restart Only',
+  apex_language_server_already_restarting: 'Apex Language Server is already restarting. Please wait.',
   apex_language_server_restart_failed: 'Failed to restart Apex Language Server: ',
   apex_language_server_failed_activate: 'Unable to activate the Apex Language Server',
   apex_language_server_quit_and_restarting: 'Apex Language Server has stopped. Restarting… %d of 5',
