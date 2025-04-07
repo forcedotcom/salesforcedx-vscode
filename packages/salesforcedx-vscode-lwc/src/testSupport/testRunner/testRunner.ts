@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { escapeStrForRegex } from 'jest-regex-util';
+import { randomUUID } from 'node:crypto';
 import * as path from 'path';
-import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
@@ -60,7 +60,7 @@ export class TestRunner {
    * @param logName Telemetry log name. If specified we will send command telemetry event when task finishes
    */
   constructor(testExecutionInfo: TestExecutionInfo, testRunType: TestRunType, logName?: string) {
-    this.testRunId = uuid.v4();
+    this.testRunId = randomUUID();
     this.testExecutionInfo = testExecutionInfo;
     this.testRunType = testRunType;
     this.logName = logName;

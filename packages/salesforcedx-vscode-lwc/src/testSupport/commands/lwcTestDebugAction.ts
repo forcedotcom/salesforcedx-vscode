@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as uuid from 'uuid';
+import { randomUUID } from 'node:crypto';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from '../testRunner';
@@ -23,7 +23,7 @@ const debugSessionStartTimes = new Map<string, [number, number]>();
  * @param cwd current working directory
  */
 export const getDebugConfiguration = (command: string, args: string[], cwd: string): vscode.DebugConfiguration => {
-  const sfDebugSessionId = uuid.v4();
+  const sfDebugSessionId = randomUUID();
   const debugConfiguration: vscode.DebugConfiguration = {
     sfDebugSessionId,
     type: 'node',

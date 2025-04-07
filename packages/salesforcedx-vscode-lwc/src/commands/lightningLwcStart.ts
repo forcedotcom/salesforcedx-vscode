@@ -34,7 +34,7 @@ const commandName = nls.localize('lightning_lwc_start_text');
  * Hints come from the stderr output of lwc-dev-server. (We should move this to lwc-dev-server later)
  */
 export const enum errorHints {
-  SERVER_STARTUP_FALIED = 'Server start up failed',
+  SERVER_STARTUP_FAILED = 'Server start up failed',
   ADDRESS_IN_USE = 'EADDRINUSE',
   INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
 }
@@ -121,7 +121,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     execution.stderrSubject.subscribe(async data => {
       if (!printedError && data) {
         let errorCode = -1;
-        if (data.toString().includes(errorHints.SERVER_STARTUP_FALIED)) {
+        if (data.toString().includes(errorHints.SERVER_STARTUP_FAILED)) {
           errorCode = 1;
         }
         if (data.toString().includes(errorHints.ADDRESS_IN_USE)) {
