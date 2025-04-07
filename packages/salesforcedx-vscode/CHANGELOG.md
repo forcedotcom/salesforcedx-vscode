@@ -4,9 +4,9 @@
 
 #### salesforcedx-vscode-apex
 
-- [W-17379061] [W-15712992]  handle Apex variables that contain a number in the middle ([PR #6184](https://github.com/forcedotcom/salesforcedx-vscode/pull/6184))
-- [W-18160819] fix: changed the visibility of the language server restart command to always ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
-- [W-14314436]  Language utils refactor ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
+- We fixed an issue where an Apex variable with a number in the middle of its name was previously treated as two separate variables. ([PR #6184](https://github.com/forcedotcom/salesforcedx-vscode/pull/6184))
+- We fixed an issue where the `SFDX: Restart Apex Language Server` command wasn't always visible. Now it's always visible. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
+- We made some changes under the hood. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
 
 # 63.7.0 - April 2, 2025
 
