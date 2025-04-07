@@ -62,6 +62,8 @@ export class LanguageClientManager {
   private clientInstance: ApexLanguageClient | undefined;
   private status: LanguageClientStatus;
   private statusBarItem: ApexLSPStatusBarItem | undefined;
+  private isRestarting: boolean = false;
+  private restartTimeout: NodeJS.Timeout | undefined;
 
   private constructor() {
     this.status = new LanguageClientStatus(ClientStatus.Unavailable, '');
@@ -130,11 +132,28 @@ export class LanguageClientManager {
   }
 
   public async restartLanguageServerAndClient(extensionContext: vscode.ExtensionContext): Promise<void> {
-    const removeIndexFiles = await vscode.window.showInformationMessage(
-      nls.localize('apex_language_server_restart_dialog_prompt'),
-      nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
-      nls.localize('apex_language_server_restart_dialog_restart_only')
-    );
+    // If already restarting, show a message and return
+    if (this.isRestarting) {
+      vscode.window.showInformationMessage(nls.localize('apex_language_server_already_restarting'));
+      return;
+    }
+
+    const cleanAndRestartOption = nls.localize('apex_language_server_restart_dialog_clean_and_restart');
+    const restartOnlyOption = nls.localize('apex_language_server_restart_dialog_restart_only');
+
+    const options = [cleanAndRestartOption, restartOnlyOption];
+    const selectedOption = await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
+    });
+
+    // If no option is selected, cancel the operation
+    if (!selectedOption) {
+      return;
+    }
+
+    // Set the restarting flag to prevent multiple restarts
+    this.isRestarting = true;
+
     const alc = this.getClientInstance();
     const statusBarInstance = this.getStatusBarInstance() ?? new ApexLSPStatusBarItem();
     this.setStatusBarInstance(statusBarInstance);
@@ -148,12 +167,31 @@ export class LanguageClientManager {
           nls.localize('apex_language_server_restart_dialog_restart_only') + error.message
         );
       }
-      if (removeIndexFiles === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
+      if (selectedOption === cleanAndRestartOption) {
         await this.removeApexDB();
       }
-      setTimeout(() => {
-        void this.createLanguageClient(extensionContext, statusBarInstance);
+
+      // Clear any existing timeout
+      if (this.restartTimeout) {
+        clearTimeout(this.restartTimeout);
+      }
+
+      // Set a new timeout for the restart
+      this.restartTimeout = setTimeout(async () => {
+        try {
+          await this.createLanguageClient(extensionContext, statusBarInstance);
+        } catch (error) {
+          // Log any errors that occur during client creation
+          console.error('Error creating language client:', error);
+        } finally {
+          // Reset the restarting flag and clear the timeout reference
+          this.isRestarting = false;
+          this.restartTimeout = undefined;
+        }
       }, 500);
+    } else {
+      // Reset the restarting flag if there's no client instance
+      this.isRestarting = false;
     }
   }
 
