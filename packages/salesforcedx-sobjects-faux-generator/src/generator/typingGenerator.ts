@@ -7,16 +7,10 @@
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
-import {
-  FieldDeclaration,
-  SObject,
-  SObjectDefinition,
-  SObjectGenerator,
-  SObjectRefreshOutput
-} from '../types';
+import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { DeclarationGenerator } from './declarationGenerator';
 
-export const TYPESCRIPT_TYPE_EXT = '.d.ts';
+const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 
 export class TypingGenerator implements SObjectGenerator {
@@ -28,10 +22,7 @@ export class TypingGenerator implements SObjectGenerator {
 
   public generate(output: SObjectRefreshOutput): void {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
-    this.generateTypes(
-      [...output.getStandard(), ...output.getCustom()],
-      typingsFolderPath
-    );
+    this.generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
   }
 
   public generateTypes(sobjects: SObject[], targetFolder: string): void {
@@ -41,22 +32,14 @@ export class TypingGenerator implements SObjectGenerator {
 
     for (const sobj of sobjects) {
       if (sobj.name) {
-        const sobjDefinition = this.declGenerator.generateSObjectDefinition(
-          sobj
-        );
+        const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
         this.generateType(targetFolder, sobjDefinition);
       }
     }
   }
 
-  public generateType(
-    folderPath: string,
-    definition: SObjectDefinition
-  ): string {
-    const typingPath = path.join(
-      folderPath,
-      `${definition.name}${TYPESCRIPT_TYPE_EXT}`
-    );
+  public generateType(folderPath: string, definition: SObjectDefinition): string {
+    const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
     if (fs.existsSync(typingPath)) {
       fs.unlinkSync(typingPath);
     }
@@ -74,13 +57,11 @@ export class TypingGenerator implements SObjectGenerator {
 
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort((first, second): number => {
-      return first.name || first.type > second.name || second.type ? 1 : -1;
-    });
+    declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
 
-    declarations = declarations.filter((value, index, array): boolean => {
-      return !index || value.name !== array[index - 1].name;
-    });
+    declarations = declarations.filter(
+      (value, index, array): boolean => !index || value.name !== array[index - 1].name
+    );
 
     const declarationLines = declarations
       .filter(decl => !this.isCollectionType(decl.type))
@@ -91,11 +72,7 @@ export class TypingGenerator implements SObjectGenerator {
   }
 
   private isCollectionType(fieldType: string): boolean {
-    return (
-      fieldType.startsWith('List<') ||
-      fieldType.startsWith('Set<') ||
-      fieldType.startsWith('Map<')
-    );
+    return fieldType.startsWith('List<') || fieldType.startsWith('Set<') || fieldType.startsWith('Map<');
   }
 
   private convertDeclaration(objName: string, decl: FieldDeclaration): string {

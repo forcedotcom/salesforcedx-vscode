@@ -1,47 +1,35 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import {
+  Properties,
+  Measurements,
+  TelemetryData,
+  TelemetryServiceInterface,
+  TelemetryReporter,
+  ActivationInfo
+} from '@salesforce/vscode-service-provider';
 import * as util from 'util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { ActivationInfo } from '..';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
-import * as Settings from '../settings';
-import {
-  disableCLITelemetry,
-  isCLITelemetryAllowed
-} from '../telemetry/cliConfiguration';
-import { TelemetryReporter } from '../telemetry/interfaces/telemetryReporter';
-import { AppInsights } from '../telemetry/reporters/appInsights';
-import { LogStream } from '../telemetry/reporters/logStream';
-import { LogStreamConfig } from '../telemetry/reporters/logStreamConfig';
-import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
+import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
+import { determineReporters } from '../telemetry/reporters/determineReporters';
+import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
+import { isInternalHost } from '../telemetry/utils/isInternal';
 import { UserService } from './userService';
 
 type CommandMetric = {
   extensionName: string;
   commandName: string;
   executionTime?: string;
-};
-
-export type Measurements = {
-  [key: string]: number;
-};
-
-export type Properties = {
-  [key: string]: string;
-};
-
-export type TelemetryData = {
-  properties?: Properties;
-  measurements?: Measurements;
 };
 
 export class TelemetryBuilder {
@@ -75,7 +63,7 @@ export class TelemetryBuilder {
 // export only for unit test
 export class TelemetryServiceProvider {
   public static instances = new Map<string, TelemetryService>(); // public only for unit test
-  public static getInstance(extensionName?: string): TelemetryService {
+  public static getInstance(extensionName?: string): TelemetryServiceInterface {
     // default if not present
     const name = extensionName || SFDX_CORE_EXTENSION_NAME;
     let service = TelemetryServiceProvider.instances.get(name);
@@ -87,17 +75,20 @@ export class TelemetryServiceProvider {
   }
 }
 
-export class TelemetryService {
+export class TelemetryService implements TelemetryServiceInterface {
   private extensionContext: ExtensionContext | undefined;
   private reporters: TelemetryReporter[] = [];
   private aiKey = DEFAULT_AIKEY;
   private version: string = '';
+  public isInternal: boolean = false;
+  public isDevMode: boolean = false;
+
   /**
    * Retrieve Telemetry Service according to the extension name.
    * If no extension name provided, return the instance for core extension by default
    * @param extensionName extension name
    */
-  public static getInstance(extensionName?: string) {
+  public static getInstance(extensionName?: string): TelemetryServiceInterface {
     return TelemetryServiceProvider.getInstance(extensionName);
   }
   /**
@@ -109,12 +100,13 @@ export class TelemetryService {
   /**
    * Initialize Telemetry Service during extension activation.
    * @param extensionContext extension context
-   * @param extensionName extension name
    */
-  public async initializeService(
-    extensionContext: ExtensionContext
-  ): Promise<void> {
-    const { name, version, aiKey } = extensionContext.extension.packageJSON;
+  public async initializeService(extensionContext: ExtensionContext): Promise<void> {
+    const { name, version, aiKey } = extensionContext.extension.packageJSON as {
+      name: string;
+      version: string;
+      aiKey: string;
+    };
     if (!name) {
       console.log('Extension name is not defined in package.json');
     }
@@ -123,66 +115,34 @@ export class TelemetryService {
     }
     this.extensionContext = extensionContext;
     this.extensionName = name;
-    this.version = version;
+    this.version = version ?? '';
     this.aiKey = aiKey || this.aiKey;
+    this.isInternal = isInternalHost();
+    this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
     this.checkCliTelemetry()
-      .then(async cliEnabled => {
-        this.setCliTelemetryEnabled(
-          this.isTelemetryExtensionConfigurationEnabled() && cliEnabled
-        );
+      .then(cliEnabled => {
+        this.setCliTelemetryEnabled(this.isTelemetryExtensionConfigurationEnabled() && cliEnabled);
       })
       .catch(error => {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    const isDevMode =
-      extensionContext.extensionMode !== ExtensionMode.Production;
-
-    // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
-      if (!isDevMode) {
-        console.log('adding AppInsights reporter.');
-        const userId = await UserService.getTelemetryUserId(this.extensionContext);
-        this.reporters.push(
-          new AppInsights(
-            this.getTelemetryReporterName(),
-            this.version,
-            this.aiKey,
-            userId,
-            true
-          )
-        );
+      const userId = this.extensionContext ? await UserService.getTelemetryUserId(this.extensionContext) : 'unknown';
+      const reporterConfig: TelemetryReporterConfig = {
+        extName: this.extensionName,
+        version: this.version,
+        aiKey: this.aiKey,
+        userId,
+        reporterName: this.getTelemetryReporterName(),
+        isDevMode: this.isDevMode
+      };
 
-        // Assuming this fs streaming is more efficient than the appendFile technique that
-        // the new TelemetryFile reporter uses, I am keeping the logic in place for which
-        // reporter is used when.  The original log stream functionality only worked under
-        // the same conditions as the AppInsights capabilities, but with additional configuration.
-        if (LogStreamConfig.isEnabledFor(this.extensionName)) {
-          this.reporters.push(
-            new LogStream(
-              this.getTelemetryReporterName(),
-              LogStreamConfig.logFilePath()
-            )
-          );
-        }
-      } else {
-        // Dev Mode
-        //
-        // The new TelemetryFile reporter is run in Dev mode, and only
-        // requires the advanced setting to be set re: configuration.
-        if (
-          Settings.SettingsService.isAdvancedSettingEnabledFor(
-            this.extensionName,
-            Settings.AdvancedSettings.LOCAL_TELEMETRY_LOGGING
-          )
-        ) {
-          this.reporters.push(new TelemetryFile(this.extensionName));
-        }
-      }
+      const reporters = determineReporters(reporterConfig);
+      this.reporters.push(...reporters);
     }
-
-    this.extensionContext.subscriptions.push(...this.reporters);
+    this.extensionContext?.subscriptions.push(...this.reporters);
   }
 
   /**
@@ -192,9 +152,7 @@ export class TelemetryService {
    * exported only for unit test
    */
   public getTelemetryReporterName(): string {
-    return this.extensionName.startsWith(SFDX_EXTENSION_PACK_NAME)
-      ? SFDX_EXTENSION_PACK_NAME
-      : this.extensionName;
+    return this.extensionName.startsWith(SFDX_EXTENSION_PACK_NAME) ? SFDX_EXTENSION_PACK_NAME : this.extensionName;
   }
 
   public getReporters(): TelemetryReporter[] {
@@ -202,10 +160,7 @@ export class TelemetryService {
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
-    return (
-      this.isTelemetryExtensionConfigurationEnabled() &&
-      (await this.checkCliTelemetry())
-    );
+    return this.isInternal ? true : this.isTelemetryExtensionConfigurationEnabled() && (await this.checkCliTelemetry());
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
@@ -218,12 +173,8 @@ export class TelemetryService {
 
   public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
-      workspace
-        .getConfiguration('telemetry')
-        .get<boolean>('enableTelemetry', true) &&
-      workspace
-        .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-        .get<boolean>('telemetry.enabled', true)
+      workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
+      workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('telemetry.enabled', true)
     );
   }
 
@@ -236,25 +187,12 @@ export class TelemetryService {
   public sendActivationEventInfo(activationInfo: ActivationInfo) {
     const telemetryBuilder = new TelemetryBuilder();
     const telemetryData = telemetryBuilder
-      .addProperty(
-        'activateStartDate',
-        activationInfo.activateStartDate?.toISOString()
-      )
-      .addProperty(
-        'activateEndDate',
-        activationInfo.activateEndDate?.toISOString()
-      )
+      .addProperty('activateStartDate', activationInfo.activateStartDate?.toISOString())
+      .addProperty('activateEndDate', activationInfo.activateEndDate?.toISOString())
       .addProperty('loadStartDate', activationInfo.loadStartDate?.toISOString())
-      .addMeasurement(
-        'extensionActivationTime',
-        activationInfo.extensionActivationTime
-      )
+      .addMeasurement('extensionActivationTime', activationInfo.extensionActivationTime)
       .build();
-    this.sendExtensionActivationEvent(
-      activationInfo.startActivateHrTime,
-      activationInfo.markEndTime,
-      telemetryData
-    );
+    this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, telemetryData);
   }
 
   public sendExtensionActivationEvent(
@@ -274,11 +212,7 @@ export class TelemetryService {
 
     this.validateTelemetry(() => {
       this.reporters.forEach(reporter => {
-        reporter.sendTelemetryEvent(
-          'activationEvent',
-          properties,
-          measurements
-        );
+        reporter.sendTelemetryEvent('activationEvent', properties, measurements);
       });
     });
   }
@@ -315,11 +249,7 @@ export class TelemetryService {
           }
         }
         this.reporters.forEach(reporter => {
-          reporter.sendTelemetryEvent(
-            'commandExecution',
-            aggregatedProps,
-            aggregatedMeasurements
-          );
+          reporter.sendTelemetryEvent('commandExecution', aggregatedProps, aggregatedMeasurements);
         });
       }
     });
@@ -330,7 +260,7 @@ export class TelemetryService {
       this.reporters.forEach(reporter => {
         try {
           reporter.sendExceptionEvent(name, message);
-        } catch (error) {
+        } catch {
           console.log(
             'There was an error sending an exception report to: ' +
               typeof reporter +

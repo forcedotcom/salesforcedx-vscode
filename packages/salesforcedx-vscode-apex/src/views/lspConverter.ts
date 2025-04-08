@@ -12,12 +12,12 @@ export type LSPApexTestMethod = {
   location: LSPLocation;
 };
 
-export type LSPLocation = {
+type LSPLocation = {
   uri: string; // Uri is transferred as a string instead of Uri
   range: { start: LSPPosition; end: LSPPosition };
 };
 
-export type LSPPosition = {
+type LSPPosition = {
   line: number;
   character: number;
 };
@@ -29,9 +29,7 @@ export type ApexTestMethod = {
 };
 
 export class ApexLSPConverter {
-  public static toApexTestMethod(
-    requestInfo: LSPApexTestMethod
-  ): ApexTestMethod {
+  public static toApexTestMethod(requestInfo: LSPApexTestMethod): ApexTestMethod {
     const testLocation = ApexLSPConverter.toLocation(requestInfo.location);
     const retInfo = {
       methodName: requestInfo.methodName,

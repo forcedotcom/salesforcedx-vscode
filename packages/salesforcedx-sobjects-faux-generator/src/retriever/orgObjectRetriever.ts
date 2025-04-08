@@ -6,18 +6,10 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import {
-  SObjectDescribe,
-  SObjectSelector,
-  SObjectShortDescription
-} from '../describe';
+import { SObjectDescribe, SObjectSelector, SObjectShortDescription } from '../describe';
 
 import { nls } from '../messages';
-import {
-  SObject,
-  SObjectDefinitionRetriever,
-  SObjectRefreshOutput
-} from '../types';
+import { SObject, SObjectDefinitionRetriever, SObjectRefreshOutput } from '../types';
 
 export class OrgObjectRetriever implements SObjectDefinitionRetriever {
   private describer: SObjectDescribe;
@@ -32,10 +24,7 @@ export class OrgObjectRetriever implements SObjectDefinitionRetriever {
       sobjects = await this.describer.describeGlobal();
     } catch (e) {
       const err = JSON.parse(e);
-      output.setError(
-        nls.localize('failure_fetching_sobjects_list_text', err.message),
-        err.stack
-      );
+      output.setError(nls.localize('failure_fetching_sobjects_list_text', err.message), err.stack);
       return;
     }
     output.addTypeNames(sobjects);
@@ -57,15 +46,13 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
     try {
       fetchedSObjects = await this.describer.fetchObjects(retrieveTypes);
     } catch (errorMessage) {
-      output.setError(
-        nls.localize('failure_in_sobject_describe_text', errorMessage)
-      );
+      output.setError(nls.localize('failure_in_sobject_describe_text', errorMessage));
       return;
     }
 
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
-    // tslint:disable-next-line:prefer-for-of
+
     for (let i = 0; i < fetchedSObjects.length; i++) {
       if (fetchedSObjects[i].custom) {
         customSObjects.push(fetchedSObjects[i]);

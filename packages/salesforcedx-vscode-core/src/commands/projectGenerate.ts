@@ -19,11 +19,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
-import {
-  CompositeParametersGatherer,
-  EmptyPreChecker,
-  SfCommandlet
-} from './util';
+import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet } from './util';
 
 export enum projectTemplateEnum {
   standard = 'standard',
@@ -44,7 +40,7 @@ export class ProjectTemplateItem implements vscode.QuickPickItem {
   }
 }
 
-export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
+class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
   private readonly options: projectGenerateOptions;
 
   public constructor(options = { isProjectWithManifest: false }) {
@@ -58,14 +54,8 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
   public getOutputFileName(data: ProjectNameAndPathAndTemplate) {
     return data.projectName;
   }
-  protected async openCreatedTemplateInVSCode(
-    outputdir: string,
-    fileName: string
-  ) {
-    await vscode.commands.executeCommand(
-      'vscode.openFolder',
-      vscode.Uri.file(path.join(outputdir, fileName))
-    );
+  protected async openCreatedTemplateInVSCode(outputdir: string, fileName: string) {
+    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(path.join(outputdir, fileName)));
   }
 
   public constructTemplateOptions(data: ProjectNameAndPathAndTemplate) {
@@ -83,11 +73,9 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
   }
 }
 
-export type ProjectNameAndPathAndTemplate = ProjectName &
-  ProjectURI &
-  ProjectTemplate;
+export type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & ProjectTemplate;
 
-export type ProjectURI = {
+type ProjectURI = {
   projectUri: string;
 };
 
@@ -95,34 +83,16 @@ export type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = {
+type ProjectTemplate = {
   projectTemplate: string;
 };
 
-export class SelectProjectTemplate
-  implements ParametersGatherer<ProjectTemplate> {
-  private readonly prefillValueProvider?: () => string;
-
-  constructor(prefillValueProvider?: () => string) {
-    this.prefillValueProvider = prefillValueProvider;
-  }
-
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<ProjectTemplate>
-  > {
+export class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<ProjectTemplate>> {
     const items: vscode.QuickPickItem[] = [
-      new ProjectTemplateItem(
-        'project_generate_standard_template_display_text',
-        'project_generate_standard_template'
-      ),
-      new ProjectTemplateItem(
-        'project_generate_empty_template_display_text',
-        'project_generate_empty_template'
-      ),
-      new ProjectTemplateItem(
-        'project_generate_analytics_template_display_text',
-        'project_generate_analytics_template'
-      )
+      new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),
+      new ProjectTemplateItem('project_generate_empty_template_display_text', 'project_generate_empty_template'),
+      new ProjectTemplateItem('project_generate_analytics_template_display_text', 'project_generate_analytics_template')
     ];
 
     const selection = await vscode.window.showQuickPick(items);
@@ -140,9 +110,7 @@ export class SelectProjectTemplate
       default:
         break;
     }
-    return projectTemplate
-      ? { type: 'CONTINUE', data: { projectTemplate } }
-      : { type: 'CANCEL' };
+    return projectTemplate ? { type: 'CONTINUE', data: { projectTemplate } } : { type: 'CANCEL' };
   }
 }
 export class SelectProjectName implements ParametersGatherer<ProjectName> {
@@ -152,27 +120,16 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
     this.prefillValueProvider = prefillValueProvider;
   }
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<ProjectName>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<ProjectName>> {
     const prompt = nls.localize('parameter_gatherer_enter_project_name');
-    const prefillValue = this.prefillValueProvider
-      ? this.prefillValueProvider()
-      : '';
-    const projectName = await InputUtils.getFormattedString(
-      prompt,
-      prefillValue
-    );
-    return projectName
-      ? { type: 'CONTINUE', data: { projectName } }
-      : { type: 'CANCEL' };
+    const prefillValue = this.prefillValueProvider ? this.prefillValueProvider() : '';
+    const projectName = await InputUtils.getFormattedString(prompt, prefillValue);
+    return projectName ? { type: 'CONTINUE', data: { projectName } } : { type: 'CANCEL' };
   }
 }
 
 export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<ProjectURI>
-  > {
+  public async gather(): Promise<CancelResponse | ContinueResponse<ProjectURI>> {
     const projectUri = await vscode.window.showOpenDialog({
       canSelectFiles: false,
       canSelectFolders: true,
@@ -185,15 +142,12 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
   }
 }
 
-export class PathExistsChecker
-  implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
+export class PathExistsChecker implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
   public async check(
     inputs: ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse
   ): Promise<ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
-      const pathExists = fs.existsSync(
-        path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)
-      );
+      const pathExists = fs.existsSync(path.join(inputs.data.projectUri, `${inputs.data.projectName}/`));
       if (!pathExists) {
         return inputs;
       } else {

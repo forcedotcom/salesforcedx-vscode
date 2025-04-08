@@ -12,21 +12,13 @@ import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
 import { nls } from '../../messages';
 import { SfCommandlet, SfWorkspaceChecker } from '../util';
-import {
-  AccessTokenParams,
-  AccessTokenParamsGatherer
-} from './authParamsGatherer';
+import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
 
-export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
+class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
   constructor() {
-    super(
-      nls.localize('org_login_access_token_text'),
-      'org_login_access_token',
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize('org_login_access_token_text'), 'org_login_access_token', OUTPUT_CHANNEL);
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   public async run(
     response: ContinueResponse<AccessTokenParams>,
     progress?: vscode.Progress<{
@@ -34,7 +26,6 @@ export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<Acces
       increment?: number | undefined;
     }>,
     token?: vscode.CancellationToken
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
     try {
@@ -50,9 +41,7 @@ export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<Acces
     } catch (error) {
       if (error.message && error.message.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID
-        channelService.appendLine(
-          nls.localize('org_login_access_token_bad_oauth_token_message')
-        );
+        channelService.appendLine(nls.localize('org_login_access_token_bad_oauth_token_message'));
       }
       throw error;
     }
@@ -65,10 +54,6 @@ const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AccessTokenParamsGatherer();
 
 export const orgLoginAccessToken = async () => {
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new OrgLoginAccessTokenExecutor()
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new OrgLoginAccessTokenExecutor());
   await commandlet.run();
 };

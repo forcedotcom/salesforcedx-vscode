@@ -26,10 +26,7 @@ export class TelemetryService {
     return TelemetryService.instance;
   }
 
-  public initializeService(
-    reporters: TelemetryReporter[],
-    isTelemetryEnabled: boolean
-  ): void {
+  public initializeService(reporters: TelemetryReporter[], isTelemetryEnabled: boolean): void {
     this.isTelemetryEnabled = isTelemetryEnabled;
     this.reporters = reporters;
   }
@@ -68,6 +65,19 @@ export class TelemetryService {
           extensionName: EXTENSION_NAME,
           logSize: logSizeStr,
           errorMessage: errorMsg
+        });
+      });
+    }
+  }
+
+  public sendGeneralEvent(subject: string, type: string, qty?: string): void {
+    if (this.reporters !== undefined && this.isTelemetryEnabled) {
+      this.reporters.forEach(reporter => {
+        reporter.sendTelemetryEvent('ardGeneralEvent', {
+          extensionName: EXTENSION_NAME,
+          subject,
+          type,
+          qty: qty || '0'
         });
       });
     }

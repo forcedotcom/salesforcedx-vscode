@@ -1,6 +1,6 @@
 # Salesforce Extensions for VS Code
 
-[![Dev Dependencies](https://david-dm.org/forcedotcom/salesforcedx-vscode/dev-status.svg)](contributing/dependencies.md)
+[![Dev Dependencies](https://img.shields.io/librariesio/github/forcedotcom/salesforcedx-vscode)](contributing/dependencies.md)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
 ## Introduction
@@ -36,8 +36,8 @@ Dreamforce 2018 session on how to use Visual Studio Code and Salesforce Extensio
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 
-If you are interested in building the extensions locally, please take a look at the publishing [doc](contributing/publishing.md).
+If you are interested in building the extensions locally, please take a look at the developing [doc](contributing/developing.md).
 
-You can find more information about developing Salesforce Extensions for VS Code in the [docs](docs) folder. If the docs don’t cover what you are looking for, please feel free to open an issue.
+You can find more information about using the Salesforce Extensions for VS Code in the [public documentation](https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide). If the docs don’t cover what you are looking for, please feel free to open an issue.
 
 For information about using the extensions, consult the README.md file for each package.

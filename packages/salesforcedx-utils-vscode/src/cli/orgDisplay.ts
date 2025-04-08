@@ -27,17 +27,16 @@ export type OrgInfo = {
 
 export class OrgDisplay {
   public async getOrgInfo(projectPath: string): Promise<OrgInfo> {
-    const execution = new CliCommandExecutor(
-      new SfCommandBuilder().withArg(ORG_DISPLAY_COMMAND).withJson().build(),
-      { cwd: projectPath }
-    ).execute();
+    const execution = new CliCommandExecutor(new SfCommandBuilder().withArg(ORG_DISPLAY_COMMAND).withJson().build(), {
+      cwd: projectPath
+    }).execute();
 
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
       const orgInfo = JSON.parse(result).result as OrgInfo;
       return Promise.resolve(orgInfo);
-    } catch (e) {
+    } catch {
       return Promise.reject(result);
     }
   }

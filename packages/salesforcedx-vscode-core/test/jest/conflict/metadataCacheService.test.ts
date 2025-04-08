@@ -23,38 +23,27 @@ describe('MetadataCacheService', () => {
     let setApiVersionStub: jest.SpyInstance;
 
     beforeEach(() => {
-      workspaceContextStub = jest
-        .spyOn(WorkspaceContext, 'getInstance')
-        .mockReturnValue({
-          getConnection: async () => {
-            return {};
-          }
-        } as any);
-      getSourceComponentsStub = jest
-        .spyOn(MetadataCacheService.prototype, 'getSourceComponents');
+      workspaceContextStub = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+        getConnection: async () => ({})
+      } as any);
+      getSourceComponentsStub = jest.spyOn(MetadataCacheService.prototype, 'getSourceComponents');
 
-      setApiVersionStub = jest
-        .spyOn(componentSetUtils, 'setApiVersion')
-        .mockImplementation(jest.fn());
+      setApiVersionStub = jest.spyOn(componentSetUtils, 'setApiVersion').mockImplementation(jest.fn());
 
-      retrieveStub = jest
-        .spyOn(dummyComponentSet, 'retrieve')
-        .mockResolvedValue({} as any);
+      retrieveStub = jest.spyOn(dummyComponentSet, 'retrieve').mockResolvedValue({} as any);
     });
 
     it('should use the suppressEvents option to retrieve files with conflicts', async () => {
       getSourceComponentsStub.mockResolvedValue(dummyComponentSet);
       const metadataCacheService = new MetadataCacheService('');
 
-      const retrieveOperation = await metadataCacheService.createRetrieveOperation();
+      await metadataCacheService.createRetrieveOperation();
 
       expect(workspaceContextStub).toHaveBeenCalled();
       expect(getSourceComponentsStub).toHaveBeenCalled();
       expect(setApiVersionStub).toHaveBeenCalledWith(dummyComponentSet);
       const dummyRetrieveOptionsWithSuppressEvents = { suppressEvents: true };
-      expect(retrieveStub).toHaveBeenCalledWith(
-        expect.objectContaining(dummyRetrieveOptionsWithSuppressEvents)
-      );
+      expect(retrieveStub).toHaveBeenCalledWith(expect.objectContaining(dummyRetrieveOptionsWithSuppressEvents));
     });
 
     describe('loadCache', () => {
@@ -62,7 +51,7 @@ describe('MetadataCacheService', () => {
         getSourceComponentsStub.mockResolvedValue(dummyEmptyComponentSet);
         const metadataCacheService = new MetadataCacheService('');
 
-        const cacheResult = await metadataCacheService.loadCache('', '');
+        await metadataCacheService.loadCache('', '');
 
         expect(getSourceComponentsStub).toHaveBeenCalled();
         expect(retrieveStub).not.toHaveBeenCalled();

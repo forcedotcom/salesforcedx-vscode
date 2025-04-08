@@ -5,27 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ApexTestResultOutcome,
-  HumanReporter,
-  TestLevel,
-  TestResult,
-  TestService
-} from '@salesforce/apex-node-bundle';
+import { ApexTestResultOutcome, HumanReporter, TestLevel, TestResult, TestService } from '@salesforce/apex-node-bundle';
 import { SfProject } from '@salesforce/core-bundle';
 import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import { join } from 'path';
 import { assert, createSandbox, match, SinonStub } from 'sinon';
-import {
-  CancellationToken,
-  DiagnosticSeverity,
-  EventEmitter,
-  Progress,
-  Range,
-  Uri
-} from 'vscode';
+import { CancellationToken, DiagnosticSeverity, EventEmitter, Progress, Range, Uri } from 'vscode';
 import {
   ApexLibraryTestRunExecutor,
   resolveTestClassParam,
@@ -34,11 +21,8 @@ import {
 import { workspaceContext } from '../../../src/context';
 
 // return undefined: used to get around strict checks
-const getUndefined = (): any => {
-  return undefined;
-};
+const getUndefined = (): any => undefined;
 
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 describe('Apex Test Run - Code Action', () => {
   describe('Cached Test Class', () => {
     const testClass = 'MyTests';
@@ -129,8 +113,7 @@ describe('Apex Test Run - Code Action', () => {
         fullName: 'TestClass.testMethod',
         diagnostic: {
           exceptionMessage: 'System.AssertException: Assertion Failed',
-          exceptionStackTrace:
-            'System.AssertException: Assertion Failed Col: 18 Line: 2',
+          exceptionStackTrace: 'System.AssertException: Assertion Failed Col: 18 Line: 2',
           compileProblem: '',
           lineNumber: 6,
           columnNumber: 1,
@@ -157,8 +140,7 @@ describe('Apex Test Run - Code Action', () => {
         fullName: 'TestClassTwo.testMethodTwo',
         diagnostic: {
           exceptionMessage: 'System.AssertException: Assertion Failed',
-          exceptionStackTrace:
-            'System.AssertException: Assertion Failed Col: 15 Line: 3',
+          exceptionStackTrace: 'System.AssertException: Assertion Failed Col: 15 Line: 3',
           compileProblem: '',
           lineNumber: 3,
           columnNumber: 15,
@@ -234,37 +216,24 @@ describe('Apex Test Run - Code Action', () => {
     let buildPayloadStub: SinonStub;
     let writeResultFilesStub: SinonStub;
     const defaultPackageDir = 'default/package/dir';
-    const componentPath = join(
-      defaultPackageDir,
-      'main',
-      'default',
-      'TestClass.cls'
-    );
+    const componentPath = join(defaultPackageDir, 'main', 'default', 'TestClass.cls');
     let reportStub: SinonStub;
     let progress: Progress<unknown>;
     let cancellationTokenEventEmitter;
     let cancellationToken: CancellationToken;
     beforeEach(() => {
-      runTestStub = sb
-        .stub(TestService.prototype, 'runTestAsynchronous')
-        .resolves(passingResult);
+      runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous').resolves(passingResult);
       sb.stub(workspaceContext, 'getConnection');
       buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
       sb.stub(HumanReporter.prototype, 'format');
       writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(SfProject, 'resolve').returns({
-        getDefaultPackage: () => {
-          return { fullPath: 'default/package/dir' };
-        }
+        getDefaultPackage: () => ({ fullPath: 'default/package/dir' })
       });
       sb.stub(ComponentSet, 'fromSource').returns({
-        getSourceComponents: () => {
-          return {
-            first: () => {
-              return { content: componentPath };
-            }
-          };
-        }
+        getSourceComponents: () => ({
+          first: () => ({ content: componentPath })
+        })
       });
       sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
 
@@ -285,18 +254,11 @@ describe('Apex Test Run - Code Action', () => {
         tests: [{ className: 'testClass', testMethods: ['oneTest'] }],
         testLevel: TestLevel.RunSpecifiedTests
       });
-      const apexLibExecutor = new ApexLibraryTestRunExecutor(
-        ['testClass.oneTest'],
-        'path/to/dir',
-        true
-      );
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(['testClass.oneTest'], 'path/to/dir', true);
       await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       expect(buildPayloadStub.called).to.be.true;
-      expect(buildPayloadStub.args[0]).to.eql([
-        'RunSpecifiedTests',
-        'testClass.oneTest'
-      ]);
+      expect(buildPayloadStub.args[0]).to.eql(['RunSpecifiedTests', 'testClass.oneTest']);
       assert.calledOnce(runTestStub);
       assert.calledWith(
         runTestStub,
@@ -327,10 +289,7 @@ describe('Apex Test Run - Code Action', () => {
       await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       expect(buildPayloadStub.called).to.be.true;
-      expect(buildPayloadStub.args[0]).to.eql([
-        'RunSpecifiedTests',
-        'testClass.oneTest,testClass.twoTest'
-      ]);
+      expect(buildPayloadStub.args[0]).to.eql(['RunSpecifiedTests', 'testClass.oneTest,testClass.twoTest']);
       assert.calledOnce(runTestStub);
       assert.calledWith(
         runTestStub,
@@ -353,18 +312,11 @@ describe('Apex Test Run - Code Action', () => {
         tests: [{ className: 'testClass' }],
         testLevel: TestLevel.RunSpecifiedTests
       });
-      const apexLibExecutor = new ApexLibraryTestRunExecutor(
-        ['testClass'],
-        'path/to/dir',
-        true
-      );
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(['testClass'], 'path/to/dir', true);
       await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       expect(buildPayloadStub.called).to.be.true;
-      expect(buildPayloadStub.args[0]).to.eql([
-        'RunSpecifiedTests',
-        'testClass'
-      ]);
+      expect(buildPayloadStub.args[0]).to.eql(['RunSpecifiedTests', 'testClass']);
       assert.calledOnce(runTestStub);
       assert.calledWith(
         runTestStub,
@@ -384,18 +336,11 @@ describe('Apex Test Run - Code Action', () => {
         tests: [{ className: 'testClass' }, { className: 'secondTestClass' }],
         testLevel: TestLevel.RunSpecifiedTests
       });
-      const apexLibExecutor = new ApexLibraryTestRunExecutor(
-        ['testClass', 'secondTestClass'],
-        'path/to/dir',
-        false
-      );
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(['testClass', 'secondTestClass'], 'path/to/dir', false);
       await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       expect(buildPayloadStub.called).to.be.true;
-      expect(buildPayloadStub.args[0]).to.eql([
-        'RunSpecifiedTests',
-        'testClass,secondTestClass'
-      ]);
+      expect(buildPayloadStub.args[0]).to.eql(['RunSpecifiedTests', 'testClass,secondTestClass']);
       assert.calledOnce(runTestStub);
       assert.calledWith(
         runTestStub,
@@ -420,38 +365,31 @@ describe('Apex Test Run - Code Action', () => {
         ],
         testLevel: TestLevel.RunSpecifiedTests
       });
-      const apexLibExecutor = new ApexLibraryTestRunExecutor(
-        ['testClass', 'secondTestClass'],
-        'path/to/dir',
-        false
-      );
-      runTestStub.callsFake(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (payload, codecoverage, exitEarly, progressReporter, token) => {
-          progressReporter.report({
-            type: 'StreamingClientProgress',
-            value: 'streamingTransportUp',
-            message: 'Listening for streaming state changes...'
-          });
-          progressReporter.report({
-            type: 'StreamingClientProgress',
-            value: 'streamingProcessingTestRun',
-            message: 'Processing test run 707500000000000001',
-            testRunId: '707500000000000001'
-          });
-          progressReporter.report({
-            type: 'FormatTestResultProgress',
-            value: 'retrievingTestRunSummary',
-            message: 'Retrieving test run summary record'
-          });
-          progressReporter.report({
-            type: 'FormatTestResultProgress',
-            value: 'queryingForAggregateCodeCoverage',
-            message: 'Querying for aggregate code coverage results'
-          });
-          return passingResult;
-        }
-      );
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(['testClass', 'secondTestClass'], 'path/to/dir', false);
+      runTestStub.callsFake((payload, codecoverage, exitEarly, progressReporter, token) => {
+        progressReporter.report({
+          type: 'StreamingClientProgress',
+          value: 'streamingTransportUp',
+          message: 'Listening for streaming state changes...'
+        });
+        progressReporter.report({
+          type: 'StreamingClientProgress',
+          value: 'streamingProcessingTestRun',
+          message: 'Processing test run 707500000000000001',
+          testRunId: '707500000000000001'
+        });
+        progressReporter.report({
+          type: 'FormatTestResultProgress',
+          value: 'retrievingTestRunSummary',
+          message: 'Retrieving test run summary record'
+        });
+        progressReporter.report({
+          type: 'FormatTestResultProgress',
+          value: 'queryingForAggregateCodeCoverage',
+          message: 'Querying for aggregate code coverage results'
+        });
+        return passingResult;
+      });
 
       await apexLibExecutor.run(undefined, progress, cancellationToken);
 
@@ -470,20 +408,12 @@ describe('Apex Test Run - Code Action', () => {
     });
 
     it('should return if cancellation is requested', async () => {
-      const apexLibExecutor = new ApexLibraryTestRunExecutor(
-        ['testClass', 'secondTestClass'],
-        'path/to/dir',
-        false
-      );
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(['testClass', 'secondTestClass'], 'path/to/dir', false);
       runTestStub.callsFake(() => {
         cancellationToken.isCancellationRequested = true;
       });
 
-      const result = await apexLibExecutor.run(
-        undefined,
-        progress,
-        cancellationToken
-      );
+      const result = await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       assert.calledOnce(runTestStub);
       assert.notCalled(writeResultFilesStub);
@@ -492,21 +422,11 @@ describe('Apex Test Run - Code Action', () => {
   });
 
   describe('Report Diagnostics', () => {
-    const executor = new ApexLibraryTestRunExecutor(
-      ['TestClass', 'TestClassTwo'],
-      'path/to/dir',
-      false
-    );
+    const executor = new ApexLibraryTestRunExecutor(['TestClass', 'TestClassTwo'], 'path/to/dir', false);
     const defaultPackageDir = 'default/package/dir';
-    const componentPath = join(
-      defaultPackageDir,
-      'main',
-      'default',
-      'TestClass.cls'
-    );
+    const componentPath = join(defaultPackageDir, 'main', 'default', 'TestClass.cls');
     const diagnostics = testResult.tests.map(() => {
-      const { exceptionMessage, exceptionStackTrace } =
-        testResult.tests[0].diagnostic!;
+      const { exceptionMessage, exceptionStackTrace } = testResult.tests[0].diagnostic!;
       return {
         message: `${exceptionMessage}\n${exceptionStackTrace}`,
         severity: DiagnosticSeverity.Error,
@@ -523,26 +443,15 @@ describe('Apex Test Run - Code Action', () => {
       sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(workspaceContext, 'getConnection');
       sb.stub(SfProject, 'resolve').returns({
-        getDefaultPackage: () => {
-          return { fullPath: 'default/package/dir' };
-        }
+        getDefaultPackage: () => ({ fullPath: 'default/package/dir' })
       });
       componentPathStub = sb.stub(ComponentSet, 'fromSource').returns({
-        getSourceComponents: () => {
-          return {
-            first: () => {
-              return { content: componentPath };
-            }
-          };
-        }
+        getSourceComponents: () => ({
+          first: () => ({ content: componentPath })
+        })
       });
-      setDiagnosticStub = sb.stub(
-        ApexLibraryTestRunExecutor.diagnostics,
-        'set'
-      );
-      runTestStub = sb
-        .stub(TestService.prototype, 'runTestAsynchronous')
-        .resolves(testResult);
+      setDiagnosticStub = sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
+      runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous').resolves(testResult);
       sb.stub(pathUtils, 'getTestResultsFolder');
     });
 
@@ -551,10 +460,7 @@ describe('Apex Test Run - Code Action', () => {
     });
 
     it('should clear diagnostics before setting new ones', async () => {
-      const clearStub = sb.stub(
-        ApexLibraryTestRunExecutor.diagnostics,
-        'clear'
-      );
+      const clearStub = sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'clear');
 
       await executor.run();
       expect(clearStub.calledBefore(setDiagnosticStub)).to.be.true;
@@ -563,36 +469,20 @@ describe('Apex Test Run - Code Action', () => {
     it('should set all diagnostic properties correctly', async () => {
       await executor.run();
 
-      expect(
-        setDiagnosticStub.calledWith(Uri.file(defaultPackageDir), [
-          diagnostics[0]
-        ])
-      );
+      expect(setDiagnosticStub.calledWith(Uri.file(defaultPackageDir), [diagnostics[0]]));
     });
 
     it('should set multiple diagnostics correctly', async () => {
       await executor.run();
-      expect(
-        setDiagnosticStub.calledWith(Uri.file(defaultPackageDir), [
-          diagnostics[0]
-        ])
-      );
-      expect(
-        setDiagnosticStub.calledWith(Uri.file(defaultPackageDir), [
-          diagnostics[1]
-        ])
-      );
+      expect(setDiagnosticStub.calledWith(Uri.file(defaultPackageDir), [diagnostics[0]]));
+      expect(setDiagnosticStub.calledWith(Uri.file(defaultPackageDir), [diagnostics[1]]));
     });
 
     it('should not set diagnostic if filepath was not found', async () => {
       componentPathStub.returns({
-        getSourceComponents: () => {
-          return {
-            first: () => {
-              return { content: undefined };
-            }
-          };
-        }
+        getSourceComponents: () => ({
+          first: () => ({ content: undefined })
+        })
       });
       await executor.run();
       expect(setDiagnosticStub.notCalled).to.be.true;

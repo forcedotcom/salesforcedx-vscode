@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Command,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
   CompositeParametersGatherer,
@@ -48,25 +45,16 @@ export class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 
 export async function orgDelete(this: FlagParameter<string>) {
-  // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
 
   const parameterGatherer = flag
     ? new CompositeParametersGatherer(
         new SelectUsername(),
-        new PromptConfirmGatherer(
-          nls.localize('parameter_gatherer_placeholder_delete_selected_org')
-        )
+        new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_selected_org'))
       )
-    : new PromptConfirmGatherer(
-        nls.localize('parameter_gatherer_placeholder_delete_default_org')
-      );
+    : new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_default_org'));
 
   const executor = new OrgDeleteExecutor(flag);
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    executor
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
   await commandlet.run();
 }

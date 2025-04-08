@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  LocalComponent,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+import { LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import {
   CompositeParametersGatherer,
@@ -20,7 +17,12 @@ import {
   SimpleGatherer
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import { ApexTestTemplateGatherer, FileNameParameter, MetadataTypeParameter, OutputDirParameter } from '../util/parameterGatherers';
+import {
+  ApexTestTemplateGatherer,
+  FileNameParameter,
+  MetadataTypeParameter,
+  OutputDirParameter
+} from '../util/parameterGatherers';
 import { LibraryApexGenerateClassExecutor } from './executors/LibraryApexGenerateClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
@@ -35,7 +37,7 @@ let metadataTypeGatherer: ParametersGatherer<MetadataTypeParameter> | undefined;
 let templateGatherer: ParametersGatherer<any> | undefined;
 
 export const getParamGatherers = () => {
-  fileNameGatherer ??=  new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
+  fileNameGatherer ??= new SelectFileName(APEX_CLASS_NAME_MAX_LENGTH);
   outputDirGatherer ??= new SelectOutputDir(APEX_CLASS_DIRECTORY);
   metadataTypeGatherer ??= new MetadataTypeGatherer(APEX_CLASS_TYPE);
   templateGatherer ??= new ApexTestTemplateGatherer(APEX_TEST_TEMPLATE);

@@ -4,34 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ProjectDeployStartErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { fixupError, ProjectDeployStartErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentStatus,
-  DeployResult
-} from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve-bundle';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { SfCommandletExecutor } from '../commands/util';
 
 const notApplicable = 'N/A';
 
-export const getFileUri = (
-  workspacePath: string,
-  filePath: string,
-  defaultErrorPath: string
-): string => {
-  const resolvedFilePath = filePath.includes(workspacePath)
-    ? filePath
-    : path.join(workspacePath, filePath);
+export const getFileUri = (workspacePath: string, filePath: string, defaultErrorPath: string): string => {
+  const resolvedFilePath = filePath.includes(workspacePath) ? filePath : path.join(workspacePath, filePath);
   // source:deploy sometimes returns N/A as filePath
   return filePath === notApplicable ? defaultErrorPath : resolvedFilePath;
 };
 
-export const getRange = (
-  lineNumber: string,
-  columnNumber: string
-): vscode.Range => {
+export const getRange = (lineNumber: string, columnNumber: string): vscode.Range => {
   const ln = Number(lineNumber);
   const col = Number(columnNumber);
   const pos = new vscode.Position(ln > 0 ? ln - 1 : 0, col > 0 ? col - 1 : 0);
@@ -46,56 +34,46 @@ export const handlePushDiagnosticErrors = (
 ): vscode.DiagnosticCollection => {
   errorCollection.clear();
 
-  // In the case that we have deployed multiple source paths,
-  // the default error path for errors without an associated
-  // file path should be the workspace path
-  const defaultErrorPath = sourcePathOrPaths.includes(',')
-    ? workspacePath
-    : sourcePathOrPaths;
+  const defaultErrorPath = sourcePathOrPaths.includes(',') ? workspacePath : sourcePathOrPaths;
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
+
+  const processError = (filePath: string, lineNumber: string, columnNumber: string, error: string, type: string) => {
+    const fileUri = getFileUri(workspacePath, filePath, defaultErrorPath);
+    const range = getRange(lineNumber || '1', columnNumber || '1');
+
+    const diagnostic: vscode.Diagnostic = {
+      message: fixupError(error),
+      severity: vscode.DiagnosticSeverity.Error,
+      source: type,
+      range
+    };
+
+    if (!diagnosticMap.has(fileUri)) {
+      diagnosticMap.set(fileUri, []);
+    }
+
+    diagnosticMap.get(fileUri)!.push(diagnostic);
+  };
+
   if (Reflect.has(errors, 'files')) {
-    errors.files.forEach(error => {
-      const fileUri = getFileUri(
-        workspacePath,
-        error.filePath,
-        defaultErrorPath
+    errors.files?.forEach(error => {
+      processError(
+        error.filePath ?? notApplicable,
+        error.lineNumber ?? '1',
+        error.columnNumber ?? '1',
+        error.error ?? 'Unknown error',
+        error.type ?? 'Unknown type'
       );
-      const range = getRange(
-        error.lineNumber || '1',
-        error.columnNumber || '1'
-      );
-
-      const diagnostic = {
-        message: error.error,
-        severity: vscode.DiagnosticSeverity.Error,
-        source: error.type,
-        range
-      } as vscode.Diagnostic;
-
-      if (!diagnosticMap.has(fileUri)) {
-        diagnosticMap.set(fileUri, []);
-      }
-
-      diagnosticMap.get(fileUri)!.push(diagnostic);
-    });
-
-    diagnosticMap.forEach((diagMap: vscode.Diagnostic[], file) => {
-      const fileUri = vscode.Uri.file(file);
-      errorCollection.set(fileUri, diagMap);
     });
   } else if (Reflect.has(errors, 'status')) {
-    const fileUri = vscode.Uri.file(defaultErrorPath);
-    const range = getRange('1', '1');
-    const diagnostic = {
-      message: errors.message,
-      severity: vscode.DiagnosticSeverity.Error,
-      source: errors.name,
-      range
-    } as vscode.Diagnostic;
-
-    errorCollection.set(fileUri, [diagnostic]);
+    processError(defaultErrorPath, '1', '1', errors.message, errors.name);
   }
+
+  handleDuplicateDiagnostics(diagnosticMap).forEach((diagMap: vscode.Diagnostic[], file) => {
+    const fileUri = vscode.Uri.file(file);
+    errorCollection.set(fileUri, diagMap);
+  });
 
   return errorCollection;
 };
@@ -115,17 +93,11 @@ export const handleDeployDiagnostics = (
     }
 
     const { lineNumber, columnNumber, error, problemType, type } = fileResponse;
-    const range = getRange(
-      lineNumber ? lineNumber.toString() : '1',
-      columnNumber ? columnNumber.toString() : '1'
-    );
-    const severity =
-      problemType === 'Error'
-        ? vscode.DiagnosticSeverity.Error
-        : vscode.DiagnosticSeverity.Warning;
+    const range = getRange(lineNumber ? lineNumber.toString() : '1', columnNumber ? columnNumber.toString() : '1');
+    const severity = problemType === 'Error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
 
     const vscDiagnostic: vscode.Diagnostic = {
-      message: error,
+      message: fixupError(error),
       range,
       severity,
       source: type
@@ -139,9 +111,10 @@ export const handleDeployDiagnostics = (
     diagnosticMap.get(filePath)!.push(vscDiagnostic);
   }
 
-  diagnosticMap.forEach((diagnostics, file) =>
-    errorCollection.set(vscode.Uri.file(file), diagnostics)
-  );
+  handleDuplicateDiagnostics(diagnosticMap).forEach((diagMap: vscode.Diagnostic[], file) => {
+    const fileUri = vscode.Uri.file(file);
+    errorCollection.set(fileUri, diagMap);
+  });
 
   return errorCollection;
 };
@@ -158,4 +131,23 @@ export const getAbsoluteFilePath = (
     absoluteFilePath = [workspacePath, filePath].join('/');
   }
   return absoluteFilePath;
+};
+
+const handleDuplicateDiagnostics = (
+  diagnosticMap: Map<string, vscode.Diagnostic[]>
+): Map<string, vscode.Diagnostic[]> => {
+  diagnosticMap.forEach((diagnostics, file) => {
+    const fileUri = vscode.Uri.file(file);
+    const existingDiagnostics = vscode.languages.getDiagnostics(fileUri);
+    const existingDiagnosticKeys = new Set(existingDiagnostics.map(d => d.message));
+    diagnostics.forEach((diagnostic, index) => {
+      // delete the diagnostic to the map if it's not already present
+      if (existingDiagnosticKeys.has(diagnostic.message)) {
+        delete diagnostics[index];
+      } else {
+        existingDiagnosticKeys.add(diagnostic.message); // prevent multiple dups for the same key
+      }
+    });
+  });
+  return diagnosticMap;
 };

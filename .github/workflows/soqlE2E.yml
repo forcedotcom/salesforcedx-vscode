@@ -1,0 +1,100 @@
+name: SOQL End to End Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'main'
+        type: string
+      soqlBuilder:
+        description: 'SOQL Builder'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: 'stable'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+  workflow_call:
+    inputs:
+      automationBranch:
+        description: 'Set the branch to use for automation tests'
+        required: false
+        default: 'main'
+        type: string
+      soqlBuilder:
+        description: 'SOQL Builder'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: 'stable'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: false
+        type: string
+
+jobs:
+  soqlBuilder:
+    if: ${{ inputs.soqlBuilder }}
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch }}
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'soql.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  slack_success_notification:
+    if: ${{ success() }}
+    needs: [soqlBuilder]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'SOQL E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}'
+      result: 'All the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_failure_notification:
+    if: ${{ failure() }}
+    needs: [soqlBuilder]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'SOQL E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}'
+      result: 'Not all the tests passed.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'
+
+  slack_cancelled_notification:
+    if: ${{ cancelled() }}
+    needs: [soqlBuilder]
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: 'SOQL E2E Tests'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.automationBranch }}
+      summary: '\n- SOQL Builder: ${{ needs.soqlBuilder.result }}'
+      result: 'The workflow was cancelled.'
+      workflow: 'actions/runs/${{ github.run_id }}'
+      type: 'e2e'

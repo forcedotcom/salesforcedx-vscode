@@ -33,10 +33,7 @@ class TestResultsWatcher implements vscode.Disposable {
    * @param workspaceFolder workspace folder of the test
    * @param testExecutionInfo test execution info
    */
-  public getTempFolder(
-    workspaceFolder: vscode.WorkspaceFolder,
-    testExecutionInfo: TestExecutionInfo
-  ) {
+  public getTempFolder(workspaceFolder: vscode.WorkspaceFolder, testExecutionInfo: TestExecutionInfo) {
     const { testType } = testExecutionInfo;
     const workspaceFsPath = workspaceFolder.uri.fsPath;
     return getTestResultsFolder(workspaceFsPath, testType);
@@ -52,12 +49,8 @@ class TestResultsWatcher implements vscode.Disposable {
     let fileSystemWatcher = this.fileSystemWatchers.get(outputFileFolder);
     if (!fileSystemWatcher) {
       const outputFileExtname = path.extname(outputFilePath);
-      const testResultsGlobPattern = path
-        .join(outputFileFolder, `*${outputFileExtname}`)
-        .replace(/\\/g, '/');
-      fileSystemWatcher = vscode.workspace.createFileSystemWatcher(
-        testResultsGlobPattern
-      );
+      const testResultsGlobPattern = path.join(outputFileFolder, `*${outputFileExtname}`).replace(/\\/g, '/');
+      fileSystemWatcher = vscode.workspace.createFileSystemWatcher(testResultsGlobPattern);
       fileSystemWatcher.onDidCreate(testResultsUri => {
         this.updateTestResultsFromTestResultsJson(testResultsUri);
       });

@@ -9,9 +9,7 @@ import { BaseDebuggerCommand } from './baseDebuggerCommand';
 import { DebuggerRequest, ReferenceRequest } from './protocol';
 
 export class ReferencesCommand extends BaseDebuggerCommand {
-  protected static createGetReferenceRequest(
-    apexReferences: number[]
-  ): DebuggerRequest {
+  protected static createGetReferenceRequest(apexReferences: number[]): DebuggerRequest {
     return {
       getReferencesRequest: {
         reference: apexReferences.map(apexReference => {
@@ -25,11 +23,6 @@ export class ReferencesCommand extends BaseDebuggerCommand {
   }
 
   public constructor(debuggedRequestId: string, ...apexReferences: number[]) {
-    super(
-      'references',
-      debuggedRequestId,
-      undefined,
-      ReferencesCommand.createGetReferenceRequest(apexReferences)
-    );
+    super('references', debuggedRequestId, undefined, ReferencesCommand.createGetReferenceRequest(apexReferences));
   }
 }

@@ -14,11 +14,11 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "61.9.0",
+  "version": "63.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.82.0"
+    "vscode": "^1.90.0"
   },
   "scripts": {
     "vscode:package": "vsce package --no-dependencies",
@@ -32,6 +32,7 @@
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-debugger",
     "salesforce.salesforcedx-vscode-apex-replay-debugger",
+    "salesforce.salesforcedx-einstein-gpt",
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-lightning",
     "salesforce.salesforcedx-vscode-visualforce",

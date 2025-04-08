@@ -4,15 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { CliCommandExecutor, Command, CommandExecution } from '../cli';
-import {
-  Measurements,
-  Properties,
-  TelemetryBuilder,
-  TelemetryData,
-  TelemetryService
-} from '../index';
+import { TelemetryBuilder, TelemetryService } from '../index';
 import { nls } from '../messages';
 import { SettingsService } from '../settings';
 import { CommandletExecutor, ContinueResponse } from '../types';
@@ -24,11 +19,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();
-  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
-    [number, number]
-  >();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> =
-    this.onDidFinishExecutionEventEmitter.event;
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<[number, number]>();
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this.onDidFinishExecutionEventEmitter.event;
 
   constructor(outputChannel?: vscode.OutputChannel) {
     this.outputChannel = outputChannel;
@@ -47,11 +39,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
         channel.showChannelOutput();
       }
     }
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      channel,
-      cancellationToken
-    );
+    notificationService.reportCommandExecutionStatus(execution, channel, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
   }
 
@@ -61,12 +49,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     properties?: Properties,
     measurements?: Measurements
   ) {
-    TelemetryService.getInstance().sendCommandEvent(
-      logName,
-      hrstart,
-      properties,
-      measurements
-    );
+    TelemetryService.getInstance().sendCommandEvent(logName, hrstart, properties, measurements);
   }
 
   public execute(response: ContinueResponse<T>): void {
@@ -84,34 +67,23 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     });
 
     execution.processExitSubject.subscribe(exitCode => {
-      const telemetryData = this.getTelemetryData(
-        exitCode === 0,
-        response,
-        output
-      );
+      const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
       let properties;
       let measurements;
       if (telemetryData) {
         properties = telemetryData.properties;
         measurements = telemetryData.measurements;
       }
-      this.logMetric(
-        execution.command.logName,
-        startTime,
-        properties,
-        measurements
-      );
+      this.logMetric(execution.command.logName, startTime, properties, measurements);
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
   protected getTelemetryData(
-    /* eslint-disable @typescript-eslint/no-unused-vars */
     success: boolean,
     response: ContinueResponse<T>,
     output: string
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): TelemetryData | undefined {
     return;
   }
@@ -119,9 +91,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   public abstract build(data: T): Command;
 }
 
-export abstract class LibraryCommandletExecutor<T>
-  implements CommandletExecutor<T>
-{
+export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor<T> {
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
   private readonly executionName: string;
@@ -135,11 +105,7 @@ export abstract class LibraryCommandletExecutor<T>
    * @param logName Name for logging purposes such as telemetry.
    * @param outputChannel VS Code output channel to report execution status to.
    */
-  constructor(
-    executionName: string,
-    logName: string,
-    outputChannel: vscode.OutputChannel
-  ) {
+  constructor(executionName: string, logName: string, outputChannel: vscode.OutputChannel) {
     this.executionName = executionName;
     this.logName = logName;
     this.outputChannel = outputChannel;
@@ -168,9 +134,7 @@ export abstract class LibraryCommandletExecutor<T>
       channelService.clear();
     }
 
-    channelService.showCommandWithTimestamp(
-      `${nls.localize('channel_starting_message')}${this.executionName}\n`
-    );
+    channelService.showCommandWithTimestamp(`${nls.localize('channel_starting_message')}${this.executionName}\n`);
 
     try {
       const success = await vscode.window.withProgress(
@@ -184,19 +148,12 @@ export abstract class LibraryCommandletExecutor<T>
             this.cancelled = true;
             notificationService.showCanceledExecution(this.executionName);
 
-            telemetryService.sendCommandEvent(
-              `${this.logName}_cancelled`,
-              startTime,
-              properties,
-              measurements
-            );
+            telemetryService.sendCommandEvent(`${this.logName}_cancelled`, startTime, properties, measurements);
           });
           return this.run(response, progress, token);
         }
       );
-      channelService.showCommandWithTimestamp(
-        `${nls.localize('channel_end')} ${this.executionName}`
-      );
+      channelService.showCommandWithTimestamp(`${nls.localize('channel_end')} ${this.executionName}`);
 
       if (this.showChannelOutput) {
         channelService.showChannelOutput();
@@ -204,9 +161,7 @@ export abstract class LibraryCommandletExecutor<T>
 
       if (!this.cancelled) {
         if (success) {
-          notificationService
-            .showSuccessfulExecution(this.executionName, channelService)
-            .catch(e => console.error(e));
+          notificationService.showSuccessfulExecution(this.executionName, channelService).catch(e => console.error(e));
         } else {
           notificationService.showFailedExecution(this.executionName);
         }
@@ -214,15 +169,13 @@ export abstract class LibraryCommandletExecutor<T>
 
       this.telemetry.addProperty('success', String(success));
       const { properties, measurements } = this.telemetry.build();
-      telemetryService.sendCommandEvent(
-        this.logName,
-        startTime,
-        properties,
-        measurements
-      );
+      telemetryService.sendCommandEvent(this.logName, startTime, properties, measurements);
     } catch (e) {
       if (e instanceof Error) {
-        telemetryService.sendException(e.name, e.message);
+        telemetryService.sendException(
+          `LibraryCommandletExecutor - ${this.logName}`,
+          `Error: name = ${e.name} message = ${e.message}`
+        );
         notificationService.showFailedExecution(this.executionName);
         channelService.appendLine(e.message);
       }

@@ -25,9 +25,7 @@ jest.mock('../../../../src/commands/util/parameterGatherers');
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
 const selectOutputDirMocked = jest.mocked(SelectOutputDir);
-const compositeParametersGathererMocked = jest.mocked(
-  CompositeParametersGatherer
-);
+const compositeParametersGathererMocked = jest.mocked(CompositeParametersGatherer);
 const overwriteComponentPromptMocked = jest.mocked(OverwriteComponentPrompt);
 const sfWorkspaceCheckerMocked = jest.mocked(SfWorkspaceChecker);
 const selectLwcComponentTypeMocked = jest.mocked(SelectLwcComponentType);
@@ -38,13 +36,9 @@ describe('lightningGenerateLwc Unit Tests.', () => {
 
   beforeEach(() => {
     runMock = jest.fn();
-    sfCommandletMocked = jest
-      .spyOn(commandlet, 'SfCommandlet')
-      .mockImplementation((): any => {
-        return {
-          run: runMock
-        };
-      });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+      run: runMock
+    }));
   });
 
   it('Should generate lwc scaffolding.', async () => {

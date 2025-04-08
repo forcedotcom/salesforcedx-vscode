@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export const dummyLastModifiedDateCache = '2023-03-17T17:52:51.000Z';
+const dummyLastModifiedDateCache = '2023-03-17T17:52:51.000Z';
 export const dummyLastModifiedDateLocal = '2023-03-16T17:52:51.000Z';
 export const testData = {
   dummyMetadataCacheResult: {
@@ -16,8 +16,7 @@ export const testData = {
     ],
     selectedType: 'individual',
     cache: {
-      baseDirectory:
-        '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com',
+      baseDirectory: '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com',
       commonRoot: 'metadataPackage_1679149492372/main/default/classes',
       components: [
         {
@@ -34,20 +33,14 @@ export const testData = {
               adapter: 'matchingContentFile'
             }
           },
-          xml:
-            '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679149492372/main/default/classes/TestFriday2.cls-meta.xml',
+          xml: '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679149492372/main/default/classes/TestFriday2.cls-meta.xml',
           parent: undefined,
           content:
             '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679149492372/main/default/classes/TestFriday2.cls',
           parentType: undefined,
           treeContainer: {},
           forceIgnore: {
-            DEFAULT_IGNORE: [
-              '**/*.dup',
-              '**/.*',
-              '**/package2-descriptor.json',
-              '**/package2-manifest.json'
-            ]
+            DEFAULT_IGNORE: ['**/*.dup', '**/.*', '**/package2-descriptor.json', '**/package2-manifest.json']
           }
         },
         {
@@ -64,20 +57,14 @@ export const testData = {
               adapter: 'matchingContentFile'
             }
           },
-          xml:
-            '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679149492372/main/default/classes/TestApex22.cls-meta.xml',
+          xml: '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679149492372/main/default/classes/TestApex22.cls-meta.xml',
           parent: undefined,
           content:
             '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679149492372/main/default/classes/TestApex22.cls',
           parentType: undefined,
           treeContainer: {},
           forceIgnore: {
-            DEFAULT_IGNORE: [
-              '**/*.dup',
-              '**/.*',
-              '**/package2-descriptor.json',
-              '**/package2-manifest.json'
-            ]
+            DEFAULT_IGNORE: ['**/*.dup', '**/.*', '**/package2-descriptor.json', '**/package2-manifest.json']
           }
         }
       ]
@@ -102,20 +89,13 @@ export const testData = {
               adapter: 'matchingContentFile'
             }
           },
-          xml:
-            '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
+          xml: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
           parent: undefined,
-          content:
-            '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
+          content: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
           parentType: undefined,
           treeContainer: {},
           forceIgnore: {
-            DEFAULT_IGNORE: [
-              '**/*.dup',
-              '**/.*',
-              '**/package2-descriptor.json',
-              '**/package2-manifest.json'
-            ],
+            DEFAULT_IGNORE: ['**/*.dup', '**/.*', '**/package2-descriptor.json', '**/package2-manifest.json'],
             parser: {
               _rules: [
                 {
@@ -215,20 +195,13 @@ export const testData = {
               adapter: 'matchingContentFile'
             }
           },
-          xml:
-            '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
+          xml: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
           parent: undefined,
-          content:
-            '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
+          content: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
           parentType: undefined,
           treeContainer: {},
           forceIgnore: {
-            DEFAULT_IGNORE: [
-              '**/*.dup',
-              '**/.*',
-              '**/package2-descriptor.json',
-              '**/package2-manifest.json'
-            ],
+            DEFAULT_IGNORE: ['**/*.dup', '**/.*', '**/package2-descriptor.json', '**/package2-manifest.json'],
             parser: {
               _rules: [
                 {
@@ -374,20 +347,14 @@ export const testData = {
             adapter: 'matchingContentFile'
           }
         },
-        xml:
-          '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150223956/main/default/classes/TestFriday2.cls-meta.xml',
+        xml: '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150223956/main/default/classes/TestFriday2.cls-meta.xml',
         parent: undefined,
         content:
           '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150223956/main/default/classes/TestFriday2.cls',
         parentType: undefined,
         treeContainer: {},
         forceIgnore: {
-          DEFAULT_IGNORE: [
-            '**/*.dup',
-            '**/.*',
-            '**/package2-descriptor.json',
-            '**/package2-manifest.json'
-          ]
+          DEFAULT_IGNORE: ['**/*.dup', '**/.*', '**/package2-descriptor.json', '**/package2-manifest.json']
         }
       },
       projectComponent: {
@@ -404,20 +371,13 @@ export const testData = {
             adapter: 'matchingContentFile'
           }
         },
-        xml:
-          '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
+        xml: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
         parent: undefined,
-        content:
-          '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
+        content: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
         parentType: undefined,
         treeContainer: {},
         forceIgnore: {
-          DEFAULT_IGNORE: [
-            '**/*.dup',
-            '**/.*',
-            '**/package2-descriptor.json',
-            '**/package2-manifest.json'
-          ],
+          DEFAULT_IGNORE: ['**/*.dup', '**/.*', '**/package2-descriptor.json', '**/package2-manifest.json'],
           parser: {
             _rules: [
               {
@@ -520,20 +480,14 @@ export const testData = {
             adapter: 'matchingContentFile'
           }
         },
-        xml:
-          '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150223956/main/default/classes/TestApex22.cls-meta.xml',
+        xml: '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150223956/main/default/classes/TestApex22.cls-meta.xml',
         parent: undefined,
         content:
           '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150223956/main/default/classes/TestApex22.cls',
         parentType: undefined,
         treeContainer: {},
         forceIgnore: {
-          DEFAULT_IGNORE: [
-            '**/*.dup',
-            '**/.*',
-            '**/package2-descriptor.json',
-            '**/package2-manifest.json'
-          ]
+          DEFAULT_IGNORE: ['**/*.dup', '**/.*', '**/package2-descriptor.json', '**/package2-manifest.json']
         }
       },
       projectComponent: {
@@ -550,20 +504,13 @@ export const testData = {
             adapter: 'matchingContentFile'
           }
         },
-        xml:
-          '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
+        xml: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
         parent: undefined,
-        content:
-          '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
+        content: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
         parentType: undefined,
         treeContainer: {},
         forceIgnore: {
-          DEFAULT_IGNORE: [
-            '**/*.dup',
-            '**/.*',
-            '**/package2-descriptor.json',
-            '**/package2-manifest.json'
-          ],
+          DEFAULT_IGNORE: ['**/*.dup', '**/.*', '**/package2-descriptor.json', '**/package2-manifest.json'],
           parser: {
             _rules: [
               {
@@ -654,28 +601,24 @@ export const testData = {
   ],
   dummyDiffs: [
     {
-      projectPath:
-        '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
+      projectPath: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls',
       cachePath:
         '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150703854/main/default/classes/TestFriday2.cls'
     },
     {
-      projectPath:
-        '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
+      projectPath: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestFriday2.cls-meta.xml',
       cachePath:
         '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679150703854/main/default/classes/TestFriday2.cls-meta.xml'
     }
   ],
   dummyDiffs2: [
     {
-      projectPath:
-        '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
+      projectPath: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls',
       cachePath:
         '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679151464361/main/default/classes/TestApex22.cls'
     },
     {
-      projectPath:
-        '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
+      projectPath: '/Users/test.user/scratchpad/TestProject-1/force-app/main/default/classes/TestApex22.cls-meta.xml',
       cachePath:
         '/var/folders/71/2811gwnx2n7fwqyyf99ctsfm0000gn/T/.sfdx/diff/test-ph2qxpndpvi7@example.com/metadataPackage_1679151464361/main/default/classes/TestApex22.cls-meta.xml'
     }

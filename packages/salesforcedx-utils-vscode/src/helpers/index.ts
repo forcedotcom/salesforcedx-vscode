@@ -18,22 +18,15 @@ export { TraceFlags } from './traceFlags';
 export { TraceFlagsRemover } from './traceFlagsRemover';
 export {
   asyncFilter,
-  extractJsonObject,
+  difference,
+  extractJson,
+  getJsonCandidate,
   getMessageFromError,
+  identifyJsonTypeInString,
   isNullOrUndefined,
   fileUtils
 } from './utils';
-export {
-  isAlphaNumSpaceString,
-  isAlphaNumString,
-  isInteger,
-  isIntegerInRange,
-  isRecordIdFormat
-} from './validations';
+export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
 export { isSFContainerMode } from './env';
-export {
-  ActivationInfo,
-  ActivationTracker,
-  ExtensionInfo,
-  ExtensionsInfo
-} from './activationTracker';
+export { ActivationTracker } from './activationTracker';
+export { fixupError } from './utils';

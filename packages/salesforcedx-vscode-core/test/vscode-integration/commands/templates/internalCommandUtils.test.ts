@@ -11,10 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { Uri } from 'vscode';
-import {
-  FileInternalPathGatherer,
-  InternalDevWorkspaceChecker
-} from '../../../../src/commands/templates';
+import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from '../../../../src/commands/templates';
 import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 
 describe('Internal Command Utilities', () => {
@@ -63,9 +60,7 @@ describe('Internal Command Utilities', () => {
         isDirectory: () => true
       });
 
-      const folderPathGatherer = new FileInternalPathGatherer(
-        Uri.parse(testDir)
-      );
+      const folderPathGatherer = new FileInternalPathGatherer(Uri.parse(testDir));
       const response = (await folderPathGatherer.gather()) as ContinueResponse<{
         outputdir: string;
       }>;

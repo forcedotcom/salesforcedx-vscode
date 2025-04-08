@@ -6,6 +6,7 @@
  */
 
 import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -14,7 +15,7 @@ import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
   // Run once to start off with.
-  await checkForExpiredOrgs(orgList);
+  await checkForSoonToBeExpiredOrgs(orgList);
 
   /*
   Comment this out for now.  For now, we are only going to check once on activation,
@@ -22,13 +23,16 @@ export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void>
   check once a day, uncomment the following code.
 
   // And run again once every 24 hours.
-  setInterval(async () => {
-    await checkForExpiredOrgs(orgList);
-  }, 1000 * 60 * 60 * 24);
+  setInterval(
+    async () => {
+      void checkForSoonToBeExpiredOrgs(orgList);
+    },
+    1000 * 60 * 60 * 24
+  );
   */
 };
 
-export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
+export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<void> => {
   if (!orgList) {
     return;
   }
@@ -37,9 +41,7 @@ export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
     const daysBeforeExpire = 5;
     const today = new Date();
     const daysUntilExpiration = new Date();
-    daysUntilExpiration.setDate(
-      daysUntilExpiration.getDate() + daysBeforeExpire
-    );
+    daysUntilExpiration.setDate(daysUntilExpiration.getDate() + daysBeforeExpire);
 
     const orgAuthorizations = await AuthInfo.listAllAuthorizations();
     if (!orgAuthorizations) {
@@ -63,6 +65,9 @@ export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
       // Filter out the expired orgs.
       const expirationDate = new Date(authFields.expirationDate);
       if (expirationDate < today) {
+        if (orgAuthorization.username === (await ConfigUtil.getUsername())) {
+          void notificationService.showWarningMessage(nls.localize('default_org_expired'));
+        }
         continue;
       }
 
@@ -73,13 +78,7 @@ export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
             ? orgAuthorization.aliases[0]
             : orgAuthorization.username;
 
-        results.push(
-          nls.localize(
-            'pending_org_expiration_expires_on_message',
-            aliasName,
-            authFields.expirationDate
-          )
-        );
+        results.push(nls.localize('pending_org_expiration_expires_on_message', aliasName, authFields.expirationDate));
       }
     }
 
@@ -88,19 +87,12 @@ export const checkForExpiredOrgs = async (orgList: OrgList): Promise<void> => {
     }
 
     notificationService.showWarningMessage(
-      nls.localize(
-        'pending_org_expiration_notification_message',
-        daysBeforeExpire
-      )
+      nls.localize('pending_org_expiration_notification_message', daysBeforeExpire)
     );
 
     const formattedOrgsToDisplay = results.join('\n\n');
     channelService.appendLine(
-      nls.localize(
-        'pending_org_expiration_output_channel_message',
-        daysBeforeExpire,
-        formattedOrgsToDisplay
-      )
+      nls.localize('pending_org_expiration_output_channel_message', daysBeforeExpire, formattedOrgsToDisplay)
     );
     channelService.showChannelOutput();
   } catch (err) {

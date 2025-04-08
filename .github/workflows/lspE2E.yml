@@ -6,7 +6,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'testesm'
+        default: 'main'
         type: string
       auraLsp:
         description: 'Aura LSP'
@@ -38,7 +38,7 @@ on:
       automationBranch:
         description: 'Set the branch to use for automation tests'
         required: false
-        default: 'testesm'
+        default: 'main'
         type: string
       auraLsp:
         description: 'Aura LSP'
@@ -72,7 +72,8 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'auraLsp.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'auraLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
@@ -82,7 +83,8 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'lwcLsp.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'lwcLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
@@ -92,7 +94,8 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch }}
-      testToRun: 'visualforceLsp.e2e.ts'
+      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
+      testToRun: 'visualforceLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
       os: '["macos-latest", "ubuntu-latest"]'

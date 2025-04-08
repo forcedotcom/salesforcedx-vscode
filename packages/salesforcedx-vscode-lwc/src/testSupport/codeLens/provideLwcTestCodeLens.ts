@@ -5,14 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { parse } from 'jest-editor-support';
-import {
-  CancellationToken,
-  CodeLens,
-  Command,
-  Position,
-  Range,
-  TextDocument
-} from 'vscode';
+import { CancellationToken, CodeLens, Command, Position, Range, TextDocument } from 'vscode';
 import { nls } from '../../messages';
 import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
 
@@ -25,7 +18,7 @@ import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
  */
 export const provideLwcTestCodeLens = async (
   document: TextDocument,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   token: CancellationToken
 ): Promise<CodeLens[]> => {
   const fsPath = document.uri.fsPath;

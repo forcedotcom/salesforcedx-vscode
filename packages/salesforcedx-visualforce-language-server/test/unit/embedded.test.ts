@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -17,40 +16,20 @@ describe('HTML Embedded Support', () => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
-    const document = TextDocument.create(
-      'test://test/test.html',
-      'html',
-      0,
-      value
-    );
+    const document = TextDocument.create('test://test/test.html', 'html', 0, value);
 
     const position = document.positionAt(offset);
 
-    const docRegions = embeddedSupport.getDocumentRegions(
-      htmlLanguageService,
-      document
-    );
+    const docRegions = embeddedSupport.getDocumentRegions(htmlLanguageService, document);
     const languageId = docRegions.getLanguageAtPosition(position);
 
     assert.equal(languageId, expectedLanguageId);
   };
 
-  const assertEmbeddedLanguageContent = (
-    value: string,
-    languageId: string,
-    expectedContent: string
-  ): void => {
-    const document = TextDocument.create(
-      'test://test/test.html',
-      'html',
-      0,
-      value
-    );
+  const assertEmbeddedLanguageContent = (value: string, languageId: string, expectedContent: string): void => {
+    const document = TextDocument.create('test://test/test.html', 'html', 0, value);
 
-    const docRegions = embeddedSupport.getDocumentRegions(
-      htmlLanguageService,
-      document
-    );
+    const docRegions = embeddedSupport.getDocumentRegions(htmlLanguageService, document);
     const content = docRegions.getEmbeddedDocument(languageId);
     assert.equal(content.getText(), expectedContent);
   };
@@ -88,11 +67,7 @@ describe('HTML Embedded Support', () => {
   });
 
   it('Should handle embedded styles', () => {
-    assertEmbeddedLanguageContent(
-      '<html><style>foo { }</style></html>',
-      'css',
-      '             foo { }               '
-    );
+    assertEmbeddedLanguageContent('<html><style>foo { }</style></html>', 'css', '             foo { }               ');
     assertEmbeddedLanguageContent(
       '<html><script>var i = 0;</script></html>',
       'css',
@@ -109,16 +84,8 @@ describe('HTML Embedded Support', () => {
       '\n         \n    foo { }  \n  \n\n'
     );
 
-    assertEmbeddedLanguageContent(
-      '<div style="color: red"></div>',
-      'css',
-      '         __{color: red}       '
-    );
-    assertEmbeddedLanguageContent(
-      '<div style=color:red></div>',
-      'css',
-      '        __{color:red}      '
-    );
+    assertEmbeddedLanguageContent('<div style="color: red"></div>', 'css', '         __{color: red}       ');
+    assertEmbeddedLanguageContent('<div style=color:red></div>', 'css', '        __{color:red}      ');
   });
 
   it('Should handle script tag', () => {
@@ -130,57 +97,24 @@ describe('HTML Embedded Support', () => {
     assertLanguageId('<html><script>var i = 0;|</script></html>', 'javascript');
     assertLanguageId('<html><script>var i = 0;</scr|ipt></html>', 'html');
 
-    assertLanguageId(
-      '<script type="text/javascript">var| i = 0;</script>',
-      'javascript'
-    );
-    assertLanguageId(
-      '<script type="text/ecmascript">var| i = 0;</script>',
-      'javascript'
-    );
-    assertLanguageId(
-      '<script type="application/javascript">var| i = 0;</script>',
-      'javascript'
-    );
-    assertLanguageId(
-      '<script type="application/ecmascript">var| i = 0;</script>',
-      'javascript'
-    );
-    assertLanguageId(
-      '<script type="application/typescript">var| i = 0;</script>',
-      void 0
-    );
-    assertLanguageId(
-      "<script type='text/javascript'>var| i = 0;</script>",
-      'javascript'
-    );
+    assertLanguageId('<script type="text/javascript">var| i = 0;</script>', 'javascript');
+    assertLanguageId('<script type="text/ecmascript">var| i = 0;</script>', 'javascript');
+    assertLanguageId('<script type="application/javascript">var| i = 0;</script>', 'javascript');
+    assertLanguageId('<script type="application/ecmascript">var| i = 0;</script>', 'javascript');
+    assertLanguageId('<script type="application/typescript">var| i = 0;</script>', void 0);
+    assertLanguageId("<script type='text/javascript'>var| i = 0;</script>", 'javascript');
   });
 
   it('Should handle script tag in attribute', () => {
     assertLanguageId('<div |onKeyUp="foo()" onkeydown=\'bar()\'/>', 'html');
     assertLanguageId('<div onKeyUp=|"foo()" onkeydown=\'bar()\'/>', 'html');
-    assertLanguageId(
-      '<div onKeyUp="|foo()" onkeydown=\'bar()\'/>',
-      'javascript'
-    );
-    assertLanguageId(
-      '<div onKeyUp="foo(|)" onkeydown=\'bar()\'/>',
-      'javascript'
-    );
-    assertLanguageId(
-      '<div onKeyUp="foo()|" onkeydown=\'bar()\'/>',
-      'javascript'
-    );
+    assertLanguageId('<div onKeyUp="|foo()" onkeydown=\'bar()\'/>', 'javascript');
+    assertLanguageId('<div onKeyUp="foo(|)" onkeydown=\'bar()\'/>', 'javascript');
+    assertLanguageId('<div onKeyUp="foo()|" onkeydown=\'bar()\'/>', 'javascript');
     assertLanguageId('<div onKeyUp="foo()"| onkeydown=\'bar()\'/>', 'html');
     assertLanguageId('<div onKeyUp="foo()" onkeydown=|\'bar()\'/>', 'html');
-    assertLanguageId(
-      '<div onKeyUp="foo()" onkeydown=\'|bar()\'/>',
-      'javascript'
-    );
-    assertLanguageId(
-      '<div onKeyUp="foo()" onkeydown=\'bar()|\'/>',
-      'javascript'
-    );
+    assertLanguageId('<div onKeyUp="foo()" onkeydown=\'|bar()\'/>', 'javascript');
+    assertLanguageId('<div onKeyUp="foo()" onkeydown=\'bar()|\'/>', 'javascript');
     assertLanguageId('<div onKeyUp="foo()" onkeydown=\'bar()\'|/>', 'html');
 
     assertLanguageId('<DIV ONKEYUP|=foo()</DIV>', 'html');

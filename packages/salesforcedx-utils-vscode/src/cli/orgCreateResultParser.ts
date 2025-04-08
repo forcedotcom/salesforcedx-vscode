@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJsonObject } from '../helpers';
+import { extractJson } from '../helpers';
 
 export type OrgCreateSuccessResult = {
   status: number;
@@ -31,9 +31,9 @@ export class OrgCreateResultParser {
   constructor(stdout: string) {
     try {
       if (stdout) {
-        this.response = extractJsonObject(stdout);
+        this.response = extractJson(stdout);
       }
-    } catch (e) {
+    } catch {
       const err = new Error('Error parsing org create result');
       err.name = 'OrgCreateParserFail';
       throw err;

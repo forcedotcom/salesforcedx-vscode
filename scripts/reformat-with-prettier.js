@@ -1,19 +1,11 @@
 #!/usr/bin/env node
 
 const path = require('path');
-const shell = require('shelljs');
+const { execSync } = require('child_process');
 
-const prettierExecutable = path.join(
-  __dirname,
-  '..',
-  'node_modules',
-  '.bin',
-  'prettier'
-);
+const prettierExecutable = path.join(__dirname, '..', 'node_modules', '.bin', 'prettier');
 
-shell.exec(
-  `${prettierExecutable} --config .prettierrc --write "packages/salesforcedx-*/package.json" "package.json"`,
-  {
-    cwd: path.join(__dirname, '..')
-  }
-);
+execSync(`${prettierExecutable} --config .prettierrc --write "packages/salesforcedx-*/package.json" "package.json"`, {
+  cwd: path.join(__dirname, '..'),
+  stdio: 'inherit'
+});

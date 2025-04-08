@@ -6,10 +6,7 @@
  */
 
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  DirFileNameSelection
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -17,11 +14,7 @@ import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
-import {
-  SelectOutputDir,
-  SfCommandletExecutor,
-  SourcePathStrategy
-} from '../util';
+import { SelectOutputDir, SfCommandletExecutor, SourcePathStrategy } from '../util';
 
 export abstract class BaseTemplateCommand extends SfCommandletExecutor<DirFileNameSelection> {
   private metadataType?: MetadataInfo;
@@ -40,10 +33,7 @@ export abstract class BaseTemplateCommand extends SfCommandletExecutor<DirFileNa
         dirType: this.identifyDirType(response.data.outputdir)
       });
       if (data && String(data) === '0' && workspaceUtils.hasRootWorkspace()) {
-        const outputFile = this.getPathToSource(
-          response.data.outputdir,
-          response.data.fileName
-        );
+        const outputFile = this.getPathToSource(response.data.outputdir, response.data.fileName);
         const document = await vscode.workspace.openTextDocument(outputFile);
         vscode.window.showTextDocument(document);
         this.runPostCommandTasks(response.data);
@@ -59,7 +49,6 @@ export abstract class BaseTemplateCommand extends SfCommandletExecutor<DirFileNa
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected runPostCommandTasks(data: DirFileNameSelection) {
     // By default do nothing
     // This method is overridden in child classes to run any post command tasks
@@ -67,25 +56,13 @@ export abstract class BaseTemplateCommand extends SfCommandletExecutor<DirFileNa
   }
 
   private identifyDirType(outputDirectory: string): string {
-    const defaultDirectoryPath = path.join(
-      SelectOutputDir.defaultOutput,
-      this.getDefaultDirectory()
-    );
-    return outputDirectory.endsWith(defaultDirectoryPath)
-      ? 'defaultDir'
-      : 'customDir';
+    const defaultDirectoryPath = path.join(SelectOutputDir.defaultOutput, this.getDefaultDirectory());
+    return outputDirectory.endsWith(defaultDirectoryPath) ? 'defaultDir' : 'customDir';
   }
 
   protected getPathToSource(outputDir: string, fileName: string): string {
-    const sourceDirectory = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputDir
-    );
-    return this.getSourcePathStrategy().getPathToSource(
-      sourceDirectory,
-      fileName,
-      this.getFileExtension()
-    );
+    const sourceDirectory = path.join(workspaceUtils.getRootWorkspacePath(), outputDir);
+    return this.getSourcePathStrategy().getPathToSource(sourceDirectory, fileName, this.getFileExtension());
   }
 
   public getSourcePathStrategy(): SourcePathStrategy {

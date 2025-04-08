@@ -18,12 +18,12 @@ jobs:
     steps:
       - uses: actions/stale@v9
         with:
-          node-version: '20.9.0'
+          node-version: '20.17.0'
           stale-issue-label: stale
           days-before-issue-stale: 3
           days-before-issue-close: 2
           stale-issue-message: 'This issue has not received a response in 3 days. It will auto-close in 2 days unless a response is posted.'
           close-issue-reason: not_planned
           operations-per-run: 100
-          exempt-issue-labels: announcement,bug,on hold,waiting for internal reply,feature
-          any-of-labels: more information required,missing required information
+          exempt-issue-labels: announcement,type:bug,on hold,waiting for internal reply,feature
+          any-of-labels: more information required,missing required information,waiting for user

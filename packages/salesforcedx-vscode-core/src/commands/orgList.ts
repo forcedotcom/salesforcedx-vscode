@@ -5,20 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Command,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
-import {
-  PromptConfirmGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { PromptConfirmGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class OrgListExecutor extends SfCommandletExecutor<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: { choice?: string }): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_list_clean_text'))
@@ -33,14 +24,8 @@ export class OrgListExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 
 export const orgList = (): void => {
-  const parameterGatherer = new PromptConfirmGatherer(
-    nls.localize('parameter_gatherer_placeholder_org_list_clean')
-  );
+  const parameterGatherer = new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_org_list_clean'));
   const executor = new OrgListExecutor();
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    executor
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
   void commandlet.run();
 };

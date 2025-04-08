@@ -10,24 +10,12 @@ import * as vscode from 'vscode';
 
 export const setupGlobalDefaultUserIsvAuth = async () => {
   const isvUtil = new IsvContextUtil();
-  if (
-    vscode.workspace &&
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    const isvDebugProject = await isvUtil.setIsvDebuggerContext(
-      vscode.workspace.workspaceFolders[0].uri.fsPath
-    );
+  if (vscode.workspace && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+    const isvDebugProject = await isvUtil.setIsvDebuggerContext(vscode.workspace.workspaceFolders[0].uri.fsPath);
 
-    await vscode.commands.executeCommand(
-      'setContext',
-      'sf:isv_debug_project',
-      isvDebugProject
-    );
+    await vscode.commands.executeCommand('setContext', 'sf:isv_debug_project', isvDebugProject);
 
-    const isvDebugMsg = isvDebugProject
-      ? 'Configured ISV Project Authentication'
-      : 'Project is not for ISV Debugger';
+    const isvDebugMsg = isvDebugProject ? 'Configured ISV Project Authentication' : 'Project is not for ISV Debugger';
     console.log(isvDebugMsg);
   }
 
@@ -35,20 +23,15 @@ export const setupGlobalDefaultUserIsvAuth = async () => {
   isvUtil.resetCliEnvironmentVars();
 };
 
-export const registerIsvAuthWatcher = (
-  extensionContext: vscode.ExtensionContext
-) => {
-  if (
-    vscode.workspace.workspaceFolders instanceof Array &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
+export const registerIsvAuthWatcher = (extensionContext: vscode.ExtensionContext) => {
+  if (vscode.workspace.workspaceFolders instanceof Array && vscode.workspace.workspaceFolders.length > 0) {
     const configPath = projectPaths.salesforceProjectConfig();
     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
-    /* eslint-disable @typescript-eslint/no-unused-vars */
+
     isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
     isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
     isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+
     extensionContext.subscriptions.push(isvAuthWatcher);
   }
 };

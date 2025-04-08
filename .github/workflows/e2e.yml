@@ -11,9 +11,9 @@ on:
   workflow_dispatch:
     inputs:
       automationBranch:
-        description: 'Set the branch to use for automation tests in ESM'
+        description: 'Set the branch to use for automation tests'
         required: false
-        default: 'testesm'
+        default: 'main'
         type: string
       apexE2ETests:
         description: 'Apex E2E Tests'
@@ -35,13 +35,18 @@ on:
         required: false
         default: true
         type: boolean
-      # lwcE2ETests:
-      #   description: 'LWC E2E Tests'
-      #   required: false
-      #   default: false
-      #   type: boolean
+      lwcE2ETests:
+        description: 'LWC E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      soqlE2ETests:
+        description: 'SOQL E2E Tests'
+        required: false
+        default: true
+        type: boolean
       vscodeVersion:
-        description: 'VSCode Version for ESM branches'
+        description: 'VSCode Version'
         required: false
         default: 'stable'
         type: string
@@ -51,83 +56,110 @@ on:
         type: string
 
 jobs:
-  Apex_E2E_tests:
+  Apex:
     if: ${{ inputs.apexE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  Core_E2E_tests:
+  Core:
     if: ${{ inputs.coreE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  DeployAndRetrieve_E2E_tests:
+  DeployAndRetrieve:
     if: ${{ inputs.deployAndRetrieveE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  LSP_E2E_tests:
+  LSP:
     if: ${{ inputs.lspE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'testesm' }}
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
       vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  # LWC_E2E_tests:
-  #   if: ${{ inputs.lwcE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-  #   uses: ./.github/workflows/lwcE2E.yml
-  #   secrets: inherit
-  #   with:
-  #     automationBranch: ${{ inputs.automationBranch || 'testesm' }}
-  #     vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
-  #     runId: ${{ inputs.runId || github.event.workflow_run.id }}
+  LWC:
+    if: ${{ inputs.lwcE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/lwcE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
-  Apex_E2E_tests_min_vscode_version:
+  SOQL:
+    if: ${{ inputs.soqlE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    uses: ./.github/workflows/soqlE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: ${{ inputs.automationBranch || 'main' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'stable' }}
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+
+  Apex_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'testesm'
-      vscodeVersion: '1.86.0'
+      automationBranch: 'main'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
-  Core_E2E_tests_min_vscode_version:
+  Core_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'testesm'
-      vscodeVersion: '1.86.0'
+      automationBranch: 'main'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
-  DeployAndRetrieve_E2E_tests_min_vscode_version:
+  DeployAndRetrieve_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'testesm'
-      vscodeVersion: '1.86.0'
+      automationBranch: 'main'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
-  LSP_E2E_tests_min_vscode_version:
+  LSP_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'testesm'
-      vscodeVersion: '1.86.0'
+      automationBranch: 'main'
+      vscodeVersion: '1.90.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  LWC_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/lwcE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: 'main'
+      vscodeVersion: '1.90.0'
+      runId: ${{ github.event.workflow_run.id }}
+
+  SOQL_min_vscode_version:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/soqlE2E.yml
+    secrets: inherit
+    with:
+      automationBranch: 'main'
+      vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}

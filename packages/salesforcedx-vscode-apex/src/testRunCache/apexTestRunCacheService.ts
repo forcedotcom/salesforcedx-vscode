@@ -6,13 +6,9 @@
  */
 import * as vscode from 'vscode';
 
-export const isEmpty = (value: string): boolean => {
-  return !value || value.length === 0;
-};
+export const isEmpty = (value: string): boolean => !value || value.length === 0;
 
-const isNotEmpty = (value: string): boolean => {
-  return !isEmpty(value);
-};
+const isNotEmpty = (value: string): boolean => !isEmpty(value);
 
 // cache last test class and test method values to
 // enable re-running w/o command context via built-in LRU
@@ -52,22 +48,14 @@ class ApexTestRunCacheService {
   public async setCachedClassTestParam(test: string) {
     // enable then run 'last executed' command so command
     // added to 'recently used'
-    await vscode.commands.executeCommand(
-      'setContext',
-      'sf:has_cached_test_class',
-      true
-    );
+    await vscode.commands.executeCommand('setContext', 'sf:has_cached_test_class', true);
     this.lastClassTestParam = test;
   }
 
   public async setCachedMethodTestParam(test: string) {
     // enable then run 'last executed' command so command
     // added to 'recently used'
-    await vscode.commands.executeCommand(
-      'setContext',
-      'sf:has_cached_test_method',
-      true
-    );
+    await vscode.commands.executeCommand('setContext', 'sf:has_cached_test_method', true);
     this.lastMethodTestParam = test;
   }
 }

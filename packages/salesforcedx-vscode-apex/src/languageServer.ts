@@ -7,26 +7,35 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  Executable,
-  LanguageClientOptions,
-  RevealOutputChannelOn
-} from 'vscode-languageclient/node';
+import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
-import { retrieveEnableSyncInitJobs } from './settings';
-import { telemetryService } from './telemetry';
+import {
+  retrieveEnableApexLSErrorToTelemetry,
+  retrieveEnableSyncInitJobs,
+  retrieveAAClassDefModifiers,
+  retrieveAAClassAccessModifiers,
+  retrieveAAMethodDefModifiers,
+  retrieveAAMethodAccessModifiers,
+  retrieveAAPropDefModifiers,
+  retrieveAAPropAccessModifiers,
+  retrieveAAClassRestAnnotations,
+  retrieveAAMethodRestAnnotations,
+  retrieveAAMethodAnnotations,
+  retrieveGeneralClassAccessModifiers,
+  retrieveGeneralMethodAccessModifiers,
+  retrieveGeneralPropAccessModifiers
+} from './settings';
+import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
-const SUSPEND_LANGUAGE_SERVER_STARTUP =
-  process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
-const LANGUAGE_SERVER_LOG_LEVEL =
-  process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
+const SUSPEND_LANGUAGE_SERVER_STARTUP = process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
+const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
 // eslint-disable-next-line no-var
 declare var v8debug: any;
 
@@ -35,10 +44,7 @@ const startedInDebugMode = (): boolean => {
   if (args) {
     return args.some(
       (arg: any) =>
-        /^--debug=?/.test(arg) ||
-        /^--debug-brk=?/.test(arg) ||
-        /^--inspect=?/.test(arg) ||
-        /^--inspect-brk=?/.test(arg)
+        /^--debug=?/.test(arg) || /^--debug-brk=?/.test(arg) || /^--inspect=?/.test(arg) || /^--inspect-brk=?/.test(arg)
     );
   }
   return false;
@@ -46,9 +52,8 @@ const startedInDebugMode = (): boolean => {
 
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
-const createServer = async (
-  extensionContext: vscode.ExtensionContext
-): Promise<Executable> => {
+const createServer = async (extensionContext: vscode.ExtensionContext): Promise<Executable> => {
+  const telemetryService = await getTelemetryService();
   try {
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
@@ -56,19 +61,14 @@ const createServer = async (
       extensionContext.extension.packageJSON.languageServerDir,
       UBER_JAR_NAME
     );
-    const javaExecutable = path.resolve(
-      `${requirementsData.java_home}/bin/java`
-    );
+    const javaExecutable = path.resolve(`${requirementsData.java_home}/bin/java`);
     const jvmMaxHeap = requirementsData.java_memory;
     const enableSemanticErrors: boolean = vscode.workspace
       .getConfiguration()
       .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
     const enableCompletionStatistics: boolean = vscode.workspace
       .getConfiguration()
-      .get<boolean>(
-        'salesforcedx-vscode-apex.advanced.enable-completion-statistics',
-        false
-      );
+      .get<boolean>('salesforcedx-vscode-apex.advanced.enable-completion-statistics', false);
 
     const args: string[] = [
       '-cp',
@@ -90,15 +90,11 @@ const createServer = async (
       args.push(
         '-Dtrace.protocol=false',
         `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
-          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
-        },address=*:${JDWP_DEBUG_PORT},quiet=y`
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'},address=*:${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
         if (SUSPEND_LANGUAGE_SERVER_STARTUP) {
-          throw new Error(
-            'Cannot suspend language server startup with profiler agent enabled.'
-          );
+          throw new Error('Cannot suspend language server startup with profiler agent enabled.');
         }
         args.push(`-agentpath:${process.env.YOURKIT_PROFILER_AGENT}`);
       }
@@ -131,24 +127,14 @@ export const code2ProtocolConverter = (value: vscode.Uri) => {
   }
 };
 
-const protocol2CodeConverter = (value: string) => {
-  return vscode.Uri.parse(value);
-};
+const protocol2CodeConverter = (value: string) => vscode.Uri.parse(value);
 
-export const createLanguageServer = async (
-  extensionContext: vscode.ExtensionContext
-): Promise<ApexLanguageClient> => {
+export const createLanguageServer = async (extensionContext: vscode.ExtensionContext): Promise<ApexLanguageClient> => {
+  const telemetryService = await getTelemetryService();
   const server = await createServer(extensionContext);
-  const client = new ApexLanguageClient(
-    'apex',
-    nls.localize('client_name'),
-    server,
-    buildClientOptions()
-  );
+  const client = new ApexLanguageClient('apex', nls.localize('client_name'), server, buildClientOptions());
 
-  client.onTelemetry(data =>
-    telemetryService.sendEventData('apexLSPLog', data.properties, data.measures)
-  );
+  client.onTelemetry(data => telemetryService.sendEventData('apexLSPLog', data.properties, data.measures));
 
   return client;
 };
@@ -166,6 +152,7 @@ export const buildClientOptions = (): LanguageClientOptions => {
     synchronize: {
       configurationSection: 'apex',
       fileEvents: [
+        vscode.workspace.createFileSystemWatcher('**/', true, true, false), // only events for folder deletions
         vscode.workspace.createFileSystemWatcher('**/*.{cls,trigger,apex}'), // Apex classes
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
@@ -177,7 +164,20 @@ export const buildClientOptions = (): LanguageClientOptions => {
     },
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs()
+      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
+      enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
+      apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
+      apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
+      apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
+      apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
+      apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
+      apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
+      apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
+      apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
+      apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
+      apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
+      apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
+      apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()

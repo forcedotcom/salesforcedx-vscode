@@ -7,15 +7,11 @@
 
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { StatementExecuteState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('Statement execute event', () => {
   let context: LogContext;
   const logFileName = 'foo.log';

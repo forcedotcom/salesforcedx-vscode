@@ -8,8 +8,7 @@
  */
 
 import * as fs from 'fs';
-// tslint:disable-next-line:no-var-requires
-import * as rimraf from 'rimraf';
+import * as fsPromises from 'fs/promises';
 
 /**
  * Contains methods that are commonly used across test areas.
@@ -29,15 +28,8 @@ export class Util {
     }
   }
 
-  public rimraf(directory: string): Promise<any> {
-    return new Promise<void>((res, rej) => {
-      rimraf(directory, err => {
-        if (err) {
-          rej(err);
-        }
-        res();
-      });
-    });
+  public rimraf(directory: string): Promise<void> {
+    return fsPromises.rm(directory, { recursive: true, force: true });
   }
 }
 

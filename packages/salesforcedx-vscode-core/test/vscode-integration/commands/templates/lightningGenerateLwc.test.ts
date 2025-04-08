@@ -4,24 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as fs from 'node:fs';
 import { SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
-import {
-  internalLightningGenerateLwc,
-  lightningGenerateLwc
-} from '../../../../src/commands/templates';
+import { internalLightningGenerateLwc, lightningGenerateLwc } from '../../../../src/commands/templates';
 import { LWC_PREVIEW_TYPESCRIPT_SUPPORT } from '../../../../src/commands/util/parameterGatherers';
 import { notificationService } from '../../../../src/notifications';
 import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Generate Lightning Web Component', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
@@ -34,17 +30,12 @@ describe('Generate Lightning Web Component', () => {
   let getConfiguration: SinonStub;
 
   beforeEach(() => {
-    getInternalDevStub = stub(
-      SalesforceCoreSettings.prototype,
-      'getInternalDev'
-    );
+    settingStub = stub();
+    getInternalDevStub = stub(SalesforceCoreSettings.prototype, 'getInternalDev');
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -71,28 +62,13 @@ describe('Generate Lightning Web Component', () => {
     settingStub.withArgs(LWC_PREVIEW_TYPESCRIPT_SUPPORT).returns(false);
     const fileName = 'testLwc';
     const outputPath = 'force-app/main/default/lwc';
-    const lwcHtmlPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testLwc.html'
-    );
-    const lwcJsPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testLwc.js'
-    );
-    const lwcJsMetaPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testLwc.js-meta.xml'
-    );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    const lwcHtmlPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.html');
+    const lwcJsPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.js');
+    const lwcJsMetaPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.js-meta.xml');
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -106,10 +82,10 @@ describe('Generate Lightning Web Component', () => {
     sinon.assert.calledWith(openTextDocumentStub, lwcJsPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
   });
 
   it('Should generate LWC - TypeScript', async () => {
@@ -118,28 +94,13 @@ describe('Generate Lightning Web Component', () => {
     settingStub.withArgs(LWC_PREVIEW_TYPESCRIPT_SUPPORT).returns(true);
     const fileName = 'testLwc';
     const outputPath = 'force-app/main/default/lwc';
-    const lwcHtmlPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testLwc.html'
-    );
-    const lwcTsPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testLwc.ts'
-    );
-    const lwcJsMetaPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testLwc.js-meta.xml'
-    );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    const lwcHtmlPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.html');
+    const lwcTsPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.ts');
+    const lwcJsMetaPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.js-meta.xml');
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([lwcHtmlPath, lwcTsPath, lwcJsMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -153,10 +114,10 @@ describe('Generate Lightning Web Component', () => {
     sinon.assert.calledWith(openTextDocumentStub, lwcTsPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
   });
 
   it('Should generate internal LWC', async () => {
@@ -165,36 +126,19 @@ describe('Generate Lightning Web Component', () => {
     settingStub.withArgs(LWC_PREVIEW_TYPESCRIPT_SUPPORT).returns(false);
     const fileName = 'testLwc';
     const outputPath = 'force-app/main/default/lwc';
-    const lwcHtmlPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testLwc.html'
-    );
-    const lwcJsPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      fileName,
-      'testLwc.js'
-    );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    const lwcHtmlPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.html');
+    const lwcJsPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testLwc.js');
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([lwcHtmlPath, lwcJsPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir(
-      '-p',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
-    await internalLightningGenerateLwc(
-      vscode.Uri.file(
-        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-      )
-    );
+    await fs.promises.mkdir(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), { recursive: true });
+    await internalLightningGenerateLwc(vscode.Uri.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath)));
 
     // assert
     assert.file([lwcHtmlPath, lwcJsPath]);
@@ -209,9 +153,9 @@ export default class TestLwc extends LightningElement {}`
     sinon.assert.calledWith(openTextDocumentStub, lwcJsPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
-    );
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
   });
 });

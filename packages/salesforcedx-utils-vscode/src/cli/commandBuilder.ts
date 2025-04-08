@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export class Command {
+class Command {
   public readonly command: string;
   public readonly description?: string;
   public readonly args: string[];
@@ -19,9 +19,7 @@ export class Command {
   }
 
   public toString(): string {
-    return this.description
-      ? this.description
-      : `${this.command} ${this.args.join(' ')}`;
+    return this.description ? this.description : `${this.command} ${this.args.join(' ')}`;
   }
 
   public toCommand(): string {

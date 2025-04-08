@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {format} from 'util';
+import { format } from 'util';
 
 export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
   const month2Digit = makeDoubleDigit(localUTCDate.getMonth() + 1);
@@ -17,9 +17,7 @@ export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
   return `${localUTCDate.getFullYear()}${month2Digit}${date2Digit}${hour2Digit}${mins2Digit}${sec2Digit}`;
 };
 
-export const makeDoubleDigit = (currentDigit: number): string => {
-  return format('%d', currentDigit).padStart(2, '0');
-};
+export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
 
 export const optionYYYYMMddHHmmss: Intl.DateTimeFormatOptions = {
   year: 'numeric',

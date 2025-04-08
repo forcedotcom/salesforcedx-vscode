@@ -7,15 +7,11 @@
 
 import * as assert from 'assert';
 import { expect } from 'chai';
-import {
-  CompletionItemKind,
-  CompletionList,
-  TextDocument
-} from 'vscode-languageserver-types';
+import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
-export type ItemDescription = {
+type ItemDescription = {
   label: string;
   documentation?: string;
   kind?: CompletionItemKind;
@@ -30,24 +26,16 @@ describe('HTML Completion', () => {
     document: TextDocument,
     offset: number
   ) => {
-    const matches = completions.items.filter(completion => {
-      return completion.label === expected.label;
-    });
+    const matches = completions.items.filter(completion => completion.label === expected.label);
     if (expected.notAvailable) {
-      assert.equal(
-        matches.length,
-        0,
-        expected.label + ' should not existing is results'
-      );
+      assert.equal(matches.length, 0, expected.label + ' should not existing is results');
       return;
     }
 
     assert.equal(
       matches.length,
       1,
-      expected.label +
-        ' should only existing once: Actual: ' +
-        completions.items.map(c => c.label).join(', ')
+      expected.label + ' should only existing once: Actual: ' + completions.items.map(c => c.label).join(', ')
     );
     const match = matches[0];
     if (expected.documentation) {
@@ -57,7 +45,9 @@ describe('HTML Completion', () => {
       assert.equal(match.kind, expected.kind);
     }
     if (expected.resultText) {
-      assert.equal(applyEdits(document, [match.textEdit]), expected.resultText);
+      if (match.textEdit && 'range' in match.textEdit) {
+        assert.equal(applyEdits(document, [match.textEdit]), expected.resultText);
+      }
     }
   };
 
@@ -71,12 +61,7 @@ describe('HTML Completion', () => {
 
     const ls = htmlLanguageService.getLanguageService();
 
-    const document = TextDocument.create(
-      'test://test/test.page',
-      'visualforce',
-      0,
-      value
-    );
+    const document = TextDocument.create('test://test/test.page', 'visualforce', 0, value);
     const position = document.positionAt(offset);
     const vfDoc = ls.parseHTMLDocument(document);
     const list = ls.doComplete(document, position, vfDoc, settings);
@@ -97,12 +82,7 @@ describe('HTML Completion', () => {
 
     const ls = htmlLanguageService.getLanguageService();
 
-    const document = TextDocument.create(
-      'test://test/test.page',
-      'visualforce',
-      0,
-      value
-    );
+    const document = TextDocument.create('test://test/test.page', 'visualforce', 0, value);
     const position = document.positionAt(offset);
     const vfDoc = ls.parseHTMLDocument(document);
     const actual = ls.doTagComplete(document, position, vfDoc);
@@ -110,7 +90,6 @@ describe('HTML Completion', () => {
   };
 
   const run = (tests: PromiseLike<void>[], testDone) => {
-    // tslint:disable-next-line:no-floating-promises
     Promise.all(tests).then(
       () => {
         testDone();
@@ -247,9 +226,7 @@ describe('HTML Completion', () => {
           ]
         }),
         testCompletionFor('<input src="c" type="color|" ', {
-          items: [
-            { label: 'color', resultText: '<input src="c" type="color" ' }
-          ]
+          items: [{ label: 'color', resultText: '<input src="c" type="color" ' }]
         }),
         testCompletionFor('<iframe sandbox="allow-forms |', {
           items: [
@@ -284,9 +261,7 @@ describe('HTML Completion', () => {
           ]
         }),
         testCompletionFor('<input src="c" type=color| ', {
-          items: [
-            { label: 'color', resultText: '<input src="c" type="color" ' }
-          ]
+          items: [{ label: 'color', resultText: '<input src="c" type="color" ' }]
         }),
         testCompletionFor('<div dir=|></div>', {
           items: [
@@ -345,24 +320,19 @@ describe('HTML Completion', () => {
         testCompletionFor('<foo><bar></bar></|   ', {
           items: [{ label: '/foo', resultText: '<foo><bar></bar></foo>   ' }]
         }),
-        testCompletionFor(
-          '<div>\n  <form>\n    <div>\n      <label></label>\n      <|\n    </div>\n  </form></div>',
-          {
-            items: [
-              {
-                label: 'span',
-                resultText:
-                  '<div>\n  <form>\n    <div>\n      <label></label>\n      <span\n    </div>\n  </form></div>'
-              },
+        testCompletionFor('<div>\n  <form>\n    <div>\n      <label></label>\n      <|\n    </div>\n  </form></div>', {
+          items: [
+            {
+              label: 'span',
+              resultText: '<div>\n  <form>\n    <div>\n      <label></label>\n      <span\n    </div>\n  </form></div>'
+            },
 
-              {
-                label: '/div',
-                resultText:
-                  '<div>\n  <form>\n    <div>\n      <label></label>\n    </div>\n    </div>\n  </form></div>'
-              }
-            ]
-          }
-        ),
+            {
+              label: '/div',
+              resultText: '<div>\n  <form>\n    <div>\n      <label></label>\n    </div>\n    </div>\n  </form></div>'
+            }
+          ]
+        }),
         testCompletionFor('<body><div><div></div></div></|  >', {
           items: [
             {
@@ -446,18 +416,14 @@ describe('HTML Completion', () => {
   it('Handlebar Completion', testDone => {
     run(
       [
-        testCompletionFor(
-          '<script id="entry-template" type="text/x-handlebars-template"> <| </script>',
-          {
-            items: [
-              {
-                label: 'div',
-                resultText:
-                  '<script id="entry-template" type="text/x-handlebars-template"> <div </script>'
-              }
-            ]
-          }
-        )
+        testCompletionFor('<script id="entry-template" type="text/x-handlebars-template"> <| </script>', {
+          items: [
+            {
+              label: 'div',
+              resultText: '<script id="entry-template" type="text/x-handlebars-template"> <div </script>'
+            }
+          ]
+        })
       ],
       testDone
     );
@@ -536,20 +502,14 @@ describe('HTML Completion', () => {
         testCompletionFor(
           '<|',
           {
-            items: [
-              { label: 'ion-checkbox', notAvailable: true },
-              { label: 'div' }
-            ]
+            items: [{ label: 'ion-checkbox', notAvailable: true }, { label: 'div' }]
           },
           { html5: true, ionic: false, angular1: false }
         ),
         testCompletionFor(
           '<input  |> </input >',
           {
-            items: [
-              { label: 'ng-model', notAvailable: true },
-              { label: 'type' }
-            ]
+            items: [{ label: 'ng-model', notAvailable: true }, { label: 'type' }]
           },
           { html5: true, ionic: false, angular1: false }
         )
@@ -577,12 +537,7 @@ describe('HTML Completion', () => {
 
     const ls = htmlLanguageService.getLanguageService();
 
-    const document = TextDocument.create(
-      'test://test/test.page',
-      'visualforce',
-      0,
-      value
-    );
+    const document = TextDocument.create('test://test/test.page', 'visualforce', 0, value);
     const position = document.positionAt(offset);
     const vfDoc = ls.parseHTMLDocument(document);
     const list = ls.doComplete(document, position, vfDoc);

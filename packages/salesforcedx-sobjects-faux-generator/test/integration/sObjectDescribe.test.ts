@@ -17,24 +17,8 @@ const CONNECTION_DATA = {
   instanceUrl: 'https://na1.salesforce.com'
 };
 
-const SOBJECTS_DESCRIBE_SAMPLE = {
-  sobjects: [
-    { custom: true, name: 'MyCustomObj1' },
-    { custom: true, name: 'MyCustomObj2' },
-    { custom: true, name: 'Custom_History_Obj' },
-    { custom: true, name: 'MyCustomObj1Share' },
-    { custom: true, name: 'MyCustomObj2History' },
-    { custom: true, name: 'MyCustomObj1Feed' },
-    { custom: true, name: 'MyCustomObj2Event' },
-    { custom: false, name: 'Account' },
-    { custom: false, name: 'Contact' },
-    { custom: false, name: 'Lead' },
-    { custom: false, name: 'Event' }
-  ]
-};
 const env = createSandbox();
 
-// tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
   const USERNAME = 'test@example.com';
   let connection: Connection;
@@ -58,16 +42,12 @@ describe('Fetch sObjects', () => {
   afterEach(() => env.restore());
 
   it('Should throw exception when describeGlobal fails', async () => {
-    describeGlobalStub.throws(
-      new Error('Unexpected error when running describeGlobal')
-    );
+    describeGlobalStub.throws(new Error('Unexpected error when running describeGlobal'));
     try {
       await sobjectdescribe.describeGlobal();
       fail('test should have failed with an api exception');
     } catch (e) {
-      expect(e.message).contains(
-        'Unexpected error when running describeGlobal'
-      );
+      expect(e.message).contains('Unexpected error when running describeGlobal');
     }
   });
 
@@ -92,9 +72,7 @@ describe('Fetch sObjects', () => {
   });
 
   it('Should build the sobject describe url', () => {
-    expect(sobjectdescribe.buildSObjectDescribeURL('testObject')).to.equal(
-      'v50.0/sobjects/testObject/describe'
-    );
+    expect(sobjectdescribe.buildSObjectDescribeURL('testObject')).to.equal('v50.0/sobjects/testObject/describe');
   });
 
   it('Should build the batch request url', async () => {
@@ -145,9 +123,7 @@ describe('Fetch sObjects', () => {
     const sobjectTypes = ['ApexPageInfo'];
     env.stub(connection, 'request').resolves(mockAPIResponse);
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(1);
     expect(batchResponse[0]).to.deep.equal(mockMinimizedResponseResult);
@@ -159,9 +135,7 @@ describe('Fetch sObjects', () => {
       results: undefined
     });
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(0);
   });
@@ -170,9 +144,7 @@ describe('Fetch sObjects', () => {
     const sobjectTypes = ['ApexPageInfo'];
     env.stub(connection, 'request').resolves({});
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(0);
   });

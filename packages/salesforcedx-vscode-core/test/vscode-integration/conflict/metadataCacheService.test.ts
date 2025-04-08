@@ -21,7 +21,6 @@ import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import {
   MetadataCacheExecutor,
@@ -34,16 +33,7 @@ import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {
-    const PROJ_ROOT = path.join(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      '..',
-      'test',
-      'vscode-integration',
-      'diffs'
-    );
+    const PROJ_ROOT = path.join(__dirname, '..', '..', '..', '..', 'test', 'vscode-integration', 'diffs');
     const usernameOrAlias = 'admin@ut-sandbox.org';
     const PROJECT_DIR = path.join(PROJ_ROOT, 'meta-proj');
     let workspaceStub: sinon.SinonStub;
@@ -53,24 +43,10 @@ describe('Metadata Cache', () => {
     let processStub: sinon.SinonStub;
 
     beforeEach(() => {
-      executor = new MetadataCacheExecutor(
-        usernameOrAlias,
-        'Source Diff',
-        'source-diff-loader',
-        handleCacheResults
-      );
-      operationStub = sinon.stub(
-        MetadataCacheService.prototype,
-        'createRetrieveOperation'
-      );
-      componentStub = sinon.stub(
-        MetadataCacheService.prototype,
-        'getSourceComponents'
-      );
-      processStub = sinon.stub(
-        MetadataCacheService.prototype,
-        'processResults'
-      );
+      executor = new MetadataCacheExecutor(usernameOrAlias, 'Source Diff', 'source-diff-loader', handleCacheResults);
+      operationStub = sinon.stub(MetadataCacheService.prototype, 'createRetrieveOperation');
+      componentStub = sinon.stub(MetadataCacheService.prototype, 'getSourceComponents');
+      processStub = sinon.stub(MetadataCacheService.prototype, 'processResults');
       workspaceStub = stubRootWorkspace(PROJECT_DIR);
     });
 
@@ -79,7 +55,7 @@ describe('Metadata Cache', () => {
       processStub.restore();
       operationStub.restore();
       workspaceStub!.restore();
-      shell.rm('-rf', PROJECT_DIR);
+      fs.rmSync(PROJECT_DIR, { recursive: true, force: true });
     });
 
     it('Should run metadata service', async () => {
@@ -105,26 +81,8 @@ describe('Metadata Cache', () => {
   });
 
   describe('Metadata Cache Service', () => {
-    const PROJ_ROOT = path.join(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      '..',
-      'test',
-      'vscode-integration',
-      'diffs'
-    );
-    const TEST_ASSETS_FOLDER = path.join(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      '..',
-      '..',
-      'system-tests',
-      'assets'
-    );
+    const PROJ_ROOT = path.join(__dirname, '..', '..', '..', '..', 'test', 'vscode-integration', 'diffs');
+    const TEST_ASSETS_FOLDER = path.join(__dirname, '..', '..', '..', '..', '..', 'system-tests', 'assets');
     const TEST_DATA_FOLDER = path.join(TEST_ASSETS_FOLDER, 'differ-testdata');
     const usernameOrAlias = 'admin@ut-sandbox.org';
     const PROJECT_DIR = path.join(PROJ_ROOT, 'meta-proj2');
@@ -134,9 +92,7 @@ describe('Metadata Cache', () => {
 
     beforeEach(() => {
       service = new MetadataCacheService(usernameOrAlias);
-      packageStub = sinon
-        .stub(SalesforcePackageDirectories, 'getPackageDirectoryFullPaths')
-        .resolves([]);
+      packageStub = sinon.stub(SalesforcePackageDirectories, 'getPackageDirectoryFullPaths').resolves([]);
       workspaceStub = stubRootWorkspace(PROJECT_DIR);
     });
 
@@ -144,28 +100,22 @@ describe('Metadata Cache', () => {
       service.clearCache();
       packageStub.restore();
       workspaceStub!.restore();
-      shell.rm('-rf', PROJECT_DIR);
+      fs.rmSync(PROJECT_DIR, { recursive: true, force: true });
     });
 
     it('Should clear cache directory', async () => {
       const cachePath = service.getCachePath();
       const tempFilePath = path.join(cachePath, 'TestFile.xml');
 
-      shell.mkdir('-p', cachePath);
-      shell.touch([tempFilePath]);
+      await fs.promises.mkdir(cachePath, { recursive: true });
+      await fs.promises.writeFile(tempFilePath, '');
 
-      expect(
-        fs.existsSync(tempFilePath),
-        `folder ${tempFilePath} should exist`
-      ).to.equal(true);
+      expect(fs.existsSync(tempFilePath), `folder ${tempFilePath} should exist`).to.equal(true);
 
       const actualCachePath = service.clearCache();
       expect(actualCachePath).to.equal(cachePath);
 
-      expect(
-        fs.existsSync(actualCachePath),
-        `folder ${actualCachePath} should not exist`
-      ).to.equal(false);
+      expect(fs.existsSync(actualCachePath), `folder ${actualCachePath} should not exist`).to.equal(false);
     });
 
     it('Should find one component', async () => {
@@ -176,12 +126,7 @@ describe('Metadata Cache', () => {
       projectZip.addLocalFolder(TEST_DATA_FOLDER);
       projectZip.extractAllTo(projectPath);
 
-      const componentPath = path.join(
-        projectPath,
-        'aura',
-        'PictureGalleryCard',
-        'PictureGalleryCard.cmp'
-      );
+      const componentPath = path.join(projectPath, 'aura', 'PictureGalleryCard', 'PictureGalleryCard.cmp');
       service.initialize(componentPath, PROJECT_DIR);
       const components = await service.getSourceComponents();
 
@@ -204,12 +149,7 @@ describe('Metadata Cache', () => {
 
     it('Should find components using a manifest', async () => {
       const projectPath = path.join(PROJECT_DIR, 'src');
-      const manifestPath = path.join(
-        TEST_ASSETS_FOLDER,
-        'proj-testdata',
-        'manifest',
-        'one-class.xml'
-      );
+      const manifestPath = path.join(TEST_ASSETS_FOLDER, 'proj-testdata', 'manifest', 'one-class.xml');
 
       // populate project metadata
       const projectZip = new AdmZip();
@@ -242,9 +182,7 @@ describe('Metadata Cache', () => {
       expect(cache).to.not.equal(undefined);
       expect(cache?.selectedPath).to.equal(projectPath);
       expect(cache?.selectedType).to.equal(PathType.Folder);
-      expect(cache?.cachePropPath).to.equal(
-        path.join(cachePath, 'prop', 'file-props.json')
-      );
+      expect(cache?.cachePropPath).to.equal(path.join(cachePath, 'prop', 'file-props.json'));
 
       expect(cache?.cache.baseDirectory).to.equal(cachePath);
       expect(cache?.cache.commonRoot).to.equal(retrieveRoot);
@@ -269,10 +207,7 @@ describe('Metadata Cache', () => {
     });
   });
 
-  const handleCacheResults = (
-    username: string,
-    cache?: MetadataCacheResult
-  ): Promise<void> => {
+  const handleCacheResults = (username: string, cache?: MetadataCacheResult): Promise<void> => {
     return Promise.resolve();
   };
 

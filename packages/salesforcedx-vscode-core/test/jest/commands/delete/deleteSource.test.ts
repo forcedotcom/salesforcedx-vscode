@@ -25,8 +25,6 @@ describe('Project Delete Source', () => {
     isSourceTracked = false;
     const executor = new DeleteSourceExecutor(isSourceTracked);
     const sourceDeleteCommand = executor.build({ filePath: sourcePath });
-    expect(sourceDeleteCommand.toCommand()).toEqual(
-      `sf project:delete:source --source-dir ${sourcePath} --no-prompt`
-    );
+    expect(sourceDeleteCommand.toCommand()).toEqual(`sf project:delete:source --source-dir ${sourcePath} --no-prompt`);
   });
 });

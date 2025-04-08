@@ -8,7 +8,6 @@
 import { expect } from 'chai';
 import { LogContextUtil } from '../../../src/core/logContextUtil';
 
-// tslint:disable:no-unused-expression
 describe('Log context utilities', () => {
   describe('Read log file', () => {
     let util: LogContextUtil;

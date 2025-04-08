@@ -12,8 +12,8 @@ import * as Mocha from 'mocha';
 
 const mocha = new Mocha({
   ui: 'bdd',
-  timeout: 100000
+  timeout: 100000,
+  color: true
 });
-mocha.useColors(true);
 
 module.exports = mocha;

@@ -44,56 +44,26 @@ export {
   StopActiveDebuggerSessionExecutor,
   debuggerStop
 } from './debuggerStop';
-export {
-  ConfirmationAndSourcePathGatherer,
-  DeleteSourceExecutor,
-  ManifestChecker,
-  deleteSource
-} from './deleteSource';
+export { ConfirmationAndSourcePathGatherer, DeleteSourceExecutor, ManifestChecker, deleteSource } from './deleteSource';
 export { projectGenerateManifest } from './projectGenerateManifest';
 export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
 export { ListMetadataExecutor, listMetadata } from './listMetadata';
-export {
-  PackageInstallExecutor,
-  SelectInstallationKey,
-  SelectPackageID,
-  packageInstall
-} from './packageInstall';
-export {
-  RefreshSObjectsExecutor,
-  checkSObjectsAndRefresh,
-  refreshSObjects,
-  initSObjectDefinitions
-} from './refreshSObjects';
+export { PackageInstallExecutor, SelectInstallationKey, SelectPackageID, packageInstall } from './packageInstall';
+export { RefreshSObjectsExecutor, refreshSObjects, initSObjectDefinitions } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
 export { deployManifest } from './deployManifest';
-export {
-  LibraryDeploySourcePathExecutor,
-  deploySourcePaths
-} from './deploySourcePath';
+export { LibraryDeploySourcePathExecutor, deploySourcePaths } from './deploySourcePath';
 export { sourceDiff, sourceFolderDiff, handleCacheResults } from './sourceDiff';
 export { retrieveManifest } from './retrieveManifest';
 export { retrieveComponent } from './retrieveMetadata';
-export {
-  LibraryRetrieveSourcePathExecutor,
-  SourcePathChecker,
-  retrieveSourcePaths
-} from './retrieveSourcePath';
+export { LibraryRetrieveSourcePathExecutor, SourcePathChecker, retrieveSourcePaths } from './retrieveSourcePath';
 export { openDocumentation } from './openDocumentation';
 export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
-export {
-  OrgOpenContainerExecutor,
-  OrgOpenExecutor,
-  getExecutor,
-  orgOpen
-} from './orgOpen';
-export {
-  ProjectDeployStartExecutor,
-  projectDeployStart
-} from './projectDeployStart';
+export { OrgOpenContainerExecutor, OrgOpenExecutor, getExecutor, orgOpen } from './orgOpen';
+export { ProjectDeployStartExecutor, projectDeployStart } from './projectDeployStart';
 export {
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
@@ -105,15 +75,8 @@ export {
   projectTemplateEnum,
   sfProjectGenerate
 } from './projectGenerate';
-export {
-  ProjectRetrieveStartExecutor,
-  projectRetrieveStart
-} from './projectRetrieveStart';
-export {
-  viewAllChanges,
-  viewLocalChanges,
-  viewRemoteChanges
-} from './source/viewChanges';
+export { ProjectRetrieveStartExecutor, projectRetrieveStart } from './projectRetrieveStart';
+export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/viewChanges';
 export {
   CreateDebugLevel,
   CreateTraceFlag,
@@ -124,11 +87,7 @@ export {
   UpdateTraceFlagsExecutor,
   startApexDebugLogging
 } from './startApexDebugLogging';
-export {
-  StopApexDebugLoggingExecutor,
-  stopApexDebugLogging,
-  turnOffLogging
-} from './stopApexDebugLogging';
+export { StopApexDebugLoggingExecutor, stopApexDebugLogging, turnOffLogging } from './stopApexDebugLogging';
 export { taskStop } from './taskStop';
 export {
   analyticsGenerateTemplate,

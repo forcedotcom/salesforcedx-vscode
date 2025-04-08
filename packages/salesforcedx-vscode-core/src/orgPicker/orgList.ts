@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core-bundle';
-import {
-  CancelResponse,
-  ConfigUtil,
-  ContinueResponse,
-  OrgUserInfo
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ConfigUtil, ContinueResponse, OrgUserInfo } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
@@ -20,10 +15,7 @@ export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
 
   constructor() {
-    this.statusBarItem = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-      49
-    );
+    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 49);
     this.statusBarItem.command = 'sf.set.default.org';
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
@@ -37,7 +29,20 @@ export class OrgList implements vscode.Disposable {
 
   private displayTargetOrg(targetOrgOrAlias?: string) {
     if (targetOrgOrAlias) {
-      this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
+      return Promise.resolve(this.isOrgExpired(targetOrgOrAlias))
+        .then(isExpired => {
+          if (isExpired) {
+            this.statusBarItem.text = `$(warning) ${targetOrgOrAlias}`;
+          } else {
+            this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
+          }
+        })
+        .catch(error => {
+          if (error.name === 'NamedOrgNotFoundError') {
+            this.statusBarItem.text = `$(error) ${nls.localize('invalid_default_org')}`;
+          }
+          console.error('Error checking org expiration: ', error);
+        });
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
     }
@@ -48,6 +53,17 @@ export class OrgList implements vscode.Disposable {
     return orgAuthorizations;
   }
 
+  public async isOrgExpired(targetOrgOrAlias: string): Promise<boolean> {
+    const username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
+    const authFields = await this.getAuthFieldsFor(username);
+    const today = new Date();
+    let expirationDate;
+    if (authFields.expirationDate) {
+      expirationDate = new Date(authFields.expirationDate);
+    }
+    return expirationDate ? expirationDate < today : false;
+  }
+
   public async getAuthFieldsFor(username: string): Promise<AuthFields> {
     const authInfo: AuthInfo = await AuthInfo.create({
       username
@@ -55,9 +71,7 @@ export class OrgList implements vscode.Disposable {
     return authInfo.getFields();
   }
 
-  public async filterAuthInfo(
-    orgAuthorizations: OrgAuthorization[]
-  ): Promise<string[]> {
+  public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]): Promise<string[]> {
     const targetDevHub = await OrgAuthInfo.getDevHubUsername();
 
     const authList = [];
@@ -68,41 +82,26 @@ export class OrgList implements vscode.Disposable {
       // error. This warning prevents that error from stopping the process, and
       // should help in debugging if there are any other Org Auths with errors.
       if (orgAuth.error) {
-        console.warn(
-          `Org Auth for username: ${orgAuth.username} has an error: ${orgAuth.error}`
-        );
+        console.warn(`Org Auth for username: ${orgAuth.username} has an error: ${orgAuth.error}`);
         continue;
       }
-      const authFields: AuthFields = await this.getAuthFieldsFor(
-        orgAuth.username
-      );
+      const authFields: AuthFields = await this.getAuthFieldsFor(orgAuth.username);
       if (authFields && 'scratchAdminUsername' in authFields) {
         // non-Admin scratch org users
         continue;
       }
-      if (
-        authFields &&
-        'devHubUsername' in authFields &&
-        authFields.devHubUsername !== targetDevHub
-      ) {
+      if (authFields && 'devHubUsername' in authFields && authFields.devHubUsername !== targetDevHub) {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      const isExpired =
-        authFields && authFields.expirationDate
-          ? today >= new Date(authFields.expirationDate)
-          : false;
+      const isExpired = authFields && authFields.expirationDate ? today >= new Date(authFields.expirationDate) : false;
 
       const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
       let authListItem =
-        aliases && aliases.length > 0
-          ? `${aliases.join(',')} - ${orgAuth.username}`
-          : orgAuth.username;
+        aliases && aliases.length > 0 ? `${aliases.join(',')} - ${orgAuth.username}` : orgAuth.username;
 
       if (isExpired) {
-        authListItem += ` - ${nls.localize(
-          'org_expired'
-        )} ${String.fromCodePoint(0x274c)}`; // cross-mark
+        authListItem += ` - ${nls.localize('org_expired')} ${String.fromCodePoint(0x274c)}`; // cross-mark
       }
 
       authList.push(authListItem);

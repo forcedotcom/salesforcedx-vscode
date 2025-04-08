@@ -1,7 +1,19 @@
 #!/usr/bin/env node
 
-const shell = require('shelljs');
+const fs = require('fs');
 
 // Removes all files but .jar files at the top-level
-
-shell.rm('-rf', shell.ls().filter(file => !file.match(/\.jar$/)));
+const files = fs.readdirSync('.');
+files.forEach(file => {
+  if (!file.match(/\.jar$/)) {
+    try {
+      if (fs.statSync(file).isDirectory()) {
+        fs.rmSync(file, { recursive: true, force: true });
+      } else {
+        fs.unlinkSync(file);
+      }
+    } catch (err) {
+      console.error(`Error removing ${file}:`, err);
+    }
+  }
+});

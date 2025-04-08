@@ -44,10 +44,7 @@ type FileStats = {
 export class CommonDirDirectoryDiffer implements DirectoryDiffer {
   constructor() {}
 
-  public diff(
-    localSourcePath: string,
-    remoteSourcePath: string
-  ): DirectoryDiffResults {
+  public diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults {
     const localSet = this.listFiles(localSourcePath);
     const different = new Set<TimestampFileProperties>();
 
@@ -90,11 +87,7 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
     return results;
   }
 
-  private walkFiles(
-    root: string,
-    subdir: string,
-    callback: (stats: FileStats) => void
-  ) {
+  private walkFiles(root: string, subdir: string, callback: (stats: FileStats) => void) {
     const fullDir = path.join(root, subdir);
     const subdirList = fs.readdirSync(fullDir);
 
@@ -113,24 +106,12 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
 }
 
 export const diffFolder = (cache: MetadataCacheResult, username: string) => {
-  const localPath = path.join(
-    cache.project.baseDirectory,
-    cache.project.commonRoot
-  );
-  const remotePath = path.join(
-    cache.cache.baseDirectory,
-    cache.cache.commonRoot
-  );
+  const localPath = path.join(cache.project.baseDirectory, cache.project.commonRoot);
+  const remotePath = path.join(cache.cache.baseDirectory, cache.cache.commonRoot);
   const differ = new CommonDirDirectoryDiffer();
   const diffs = differ.diff(localPath, remotePath);
 
-  conflictView.visualizeDifferences(
-    nls.localize('source_diff_folder_title', username),
-    username,
-    true,
-    diffs,
-    true
-  );
+  conflictView.visualizeDifferences(nls.localize('source_diff_folder_title', username), username, true, diffs, true);
 };
 
 /**
@@ -162,18 +143,13 @@ export const diffOneFile = async (
           'vscode.diff',
           remoteUri,
           localUri,
-          nls.localize(
-            'source_diff_title',
-            targetOrgorAlias,
-            filePart,
-            filePart
-          )
+          nls.localize('source_diff_title', targetOrgorAlias, filePart, filePart)
         );
       } catch (err) {
         await notificationService.showErrorMessage(err.message);
         channelService.appendLine(err.message);
         channelService.showChannelOutput();
-        telemetryService.sendException(err.name, err.message);
+        telemetryService.sendException('source_diff_file', `Error: name = ${err.name} message = ${err.message}`);
       }
       return;
     }

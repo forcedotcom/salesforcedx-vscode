@@ -1,4 +1,3 @@
-/* eslint-disable header/header */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -10,10 +9,7 @@ import {
   DocumentContext,
   getLanguageService as getHTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import {
-  ColorInformation,
-  ColorPresentation
-} from 'vscode-languageserver-protocol';
+import { ColorInformation, ColorPresentation } from 'vscode-languageserver-protocol';
 import {
   CompletionItem,
   CompletionList,
@@ -32,16 +28,11 @@ import {
   TextEdit
 } from 'vscode-languageserver-types';
 
-import {
-  getLanguageModelCache,
-  LanguageModelCache
-} from '../languageModelCache';
+import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
 import { getCSSMode } from './cssMode';
 import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
 import { getJavascriptMode } from './javascriptMode';
-
-// tslint:disable:forin
 
 export { ColorInformation, ColorPresentation };
 
@@ -51,46 +42,21 @@ export type Settings = {
   javascript?: any;
 };
 
-export type SettingProvider = {
-  getDocumentSettings(textDocument: TextDocument): Thenable<Settings>;
-};
-
 export type LanguageMode = {
   configure?: (options: Settings) => void;
   doValidation?: (document: TextDocument, settings?: Settings) => Diagnostic[];
-  doComplete?: (
-    document: TextDocument,
-    position: Position,
-    settings?: Settings
-  ) => CompletionList;
+  doComplete?: (document: TextDocument, position: Position, settings?: Settings) => CompletionList;
   doResolve?: (document: TextDocument, item: CompletionItem) => CompletionItem;
   doHover?: (document: TextDocument, position: Position) => Hover;
-  doSignatureHelp?: (
-    document: TextDocument,
-    position: Position
-  ) => SignatureHelp;
-  findDocumentHighlight?: (
-    document: TextDocument,
-    position: Position
-  ) => DocumentHighlight[];
+  doSignatureHelp?: (document: TextDocument, position: Position) => SignatureHelp;
+  findDocumentHighlight?: (document: TextDocument, position: Position) => DocumentHighlight[];
   findDocumentSymbols?: (document: TextDocument) => SymbolInformation[];
-  findDocumentLinks?: (
-    document: TextDocument,
-    documentContext: DocumentContext
-  ) => DocumentLink[];
+  findDocumentLinks?: (document: TextDocument, documentContext: DocumentContext) => DocumentLink[];
   findDefinition?: (document: TextDocument, position: Position) => Definition;
   findReferences?: (document: TextDocument, position: Position) => Location[];
-  format?: (
-    document: TextDocument,
-    range: Range,
-    options: FormattingOptions,
-    settings: Settings
-  ) => TextEdit[];
+  format?: (document: TextDocument, range: Range, options: FormattingOptions, settings: Settings) => TextEdit[];
   findDocumentColors?: (document: TextDocument) => ColorInformation[];
-  getColorPresentations?: (
-    document: TextDocument,
-    colorInfo: ColorInformation
-  ) => ColorPresentation[];
+  getColorPresentations?: (document: TextDocument, colorInfo: ColorInformation) => ColorPresentation[];
   doAutoClose?: (document: TextDocument, position: Position) => string;
   getId();
   dispose(): void;
@@ -107,19 +73,15 @@ export type LanguageModes = {
   dispose(): void;
 };
 
-export type LanguageModeRange = Range & {
+type LanguageModeRange = Range & {
   mode: LanguageMode;
   attributeValue?: boolean;
 };
 
-export const getLanguageModes = (supportedLanguages: {
-  [languageId: string]: boolean;
-}): LanguageModes => {
+export const getLanguageModes = (supportedLanguages: { [languageId: string]: boolean }): LanguageModes => {
   const htmlLanguageService = getHTMLLanguageService();
-  const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(
-    10,
-    60,
-    document => getDocumentRegions(htmlLanguageService, document)
+  const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(10, 60, document =>
+    getDocumentRegions(htmlLanguageService, document)
   );
 
   let modelCaches: LanguageModelCache<any>[] = [];
@@ -134,39 +96,26 @@ export const getLanguageModes = (supportedLanguages: {
     modes['javascript'] = getJavascriptMode(documentRegions);
   }
   return {
-    getModeAtPosition: (
-      document: TextDocument,
-      position: Position
-    ): LanguageMode => {
-      const languageId = documentRegions
-        .get(document)
-        .getLanguageAtPosition(position);
+    getModeAtPosition: (document: TextDocument, position: Position): LanguageMode => {
+      const languageId = documentRegions.get(document).getLanguageAtPosition(position);
       if (languageId) {
         return modes[languageId];
       }
       return null;
     },
-    getModesInRange: (
-      document: TextDocument,
-      range: Range
-    ): LanguageModeRange[] => {
-      return documentRegions
+    getModesInRange: (document: TextDocument, range: Range): LanguageModeRange[] =>
+      documentRegions
         .get(document)
         .getLanguageRanges(range)
-        .map(r => {
-          return {
-            start: r.start,
-            end: r.end,
-            mode: modes[r.languageId],
-            attributeValue: r.attributeValue
-          };
-        });
-    },
+        .map(r => ({
+          start: r.start,
+          end: r.end,
+          mode: modes[r.languageId],
+          attributeValue: r.attributeValue
+        })),
     getAllModesInDocument: (document: TextDocument): LanguageMode[] => {
       const result = [];
-      for (const languageId of documentRegions
-        .get(document)
-        .getLanguagesInDocument()) {
+      for (const languageId of documentRegions.get(document).getLanguagesInDocument()) {
         const mode = modes[languageId];
         if (mode) {
           result.push(mode);
@@ -184,9 +133,7 @@ export const getLanguageModes = (supportedLanguages: {
       }
       return result;
     },
-    getMode: (languageId: string): LanguageMode => {
-      return modes[languageId];
-    },
+    getMode: (languageId: string): LanguageMode => modes[languageId],
     onDocumentRemoved: (document: TextDocument) => {
       modelCaches.forEach(mc => mc.onDocumentRemoved(document));
       for (const mode in modes) {

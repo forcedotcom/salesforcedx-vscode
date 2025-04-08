@@ -30,7 +30,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
@@ -39,18 +38,14 @@ export type RefreshSelection = {
   source: SObjectRefreshSource;
 };
 
-export class SObjectRefreshGatherer
-  implements ParametersGatherer<RefreshSelection>
-{
+export class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
   private source?: SObjectRefreshSource;
 
   public constructor(source?: SObjectRefreshSource) {
     this.source = source;
   }
 
-  public async gather(): Promise<
-    ContinueResponse<RefreshSelection> | CancelResponse
-  > {
+  public async gather(): Promise<ContinueResponse<RefreshSelection> | CancelResponse> {
     let category = SObjectCategory.ALL;
     if (!this.source || this.source === SObjectRefreshSource.Manual) {
       const options = [
@@ -84,12 +79,11 @@ export class SObjectRefreshGatherer
 }
 
 export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
-  public static readonly refreshSObjectsCommandCompletionEventEmitter =
-    new vscode.EventEmitter();
+  public static readonly refreshSObjectsCommandCompletionEventEmitter = new vscode.EventEmitter();
   public static readonly onRefreshSObjectsCommandCompletion =
     RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.event;
   private static isActive = false;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('sobjects_refresh'))
@@ -98,13 +92,9 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
       .build();
   }
 
-  public async execute(
-    response: ContinueResponse<RefreshSelection>
-  ): Promise<void> {
+  public async execute(response: ContinueResponse<RefreshSelection>): Promise<void> {
     if (RefreshSObjectsExecutor.isActive) {
-      await vscode.window.showErrorMessage(
-        nls.localize('sobjects_no_refresh_if_already_active_error_text')
-      );
+      await vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'));
       return;
     }
     const startTime = process.hrtime();
@@ -120,22 +110,14 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     }
 
     if (response.data.source !== SObjectRefreshSource.StartupMin) {
-      notificationService.reportCommandExecutionStatus(
-        execution,
-        channelService,
-        cancellationToken
-      );
+      notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     }
 
     let progressLocation = vscode.ProgressLocation.Notification;
     if (response.data.source !== SObjectRefreshSource.Manual) {
       progressLocation = vscode.ProgressLocation.Window;
     }
-    ProgressNotification.show(
-      execution,
-      cancellationTokenSource,
-      progressLocation
-    );
+    ProgressNotification.show(execution, cancellationTokenSource, progressLocation);
 
     const commandName = execution.command.logName;
     try {
@@ -171,14 +153,15 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
           customObjects: result.data.customObjects ?? 0
         }
       );
-      RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.fire(
-        {
-          exitCode: LocalCommandExecution.SUCCESS_CODE
-        }
-      );
+      RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.fire({
+        exitCode: LocalCommandExecution.SUCCESS_CODE
+      });
     } catch (error) {
       console.log('Generate error ' + error.error);
-      telemetryService.sendException(error.name, error.error);
+      telemetryService.sendException(
+        'generate_faux_classes_create',
+        `Error: name = ${error.name} message = ${error.error}`
+      );
       RefreshSObjectsExecutor.isActive = false;
 
       throw error;
@@ -193,70 +176,27 @@ const workspaceChecker = new SfWorkspaceChecker();
 
 export const refreshSObjects = async (source?: SObjectRefreshSource) => {
   const parameterGatherer = new SObjectRefreshGatherer(source);
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new RefreshSObjectsExecutor()
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new RefreshSObjectsExecutor());
   await commandlet.run();
 };
 
-export const verifyUsernameAndInitSObjectDefinitions = async (
-  projectPath: string
-) => {
-  const hasTargetOrgSet =
-    (await WorkspaceContext.getInstance().getConnection()).getUsername() !==
-    undefined;
-  if (hasTargetOrgSet) {
-    initSObjectDefinitions(projectPath).catch(e =>
-      telemetryService.sendException(e.name, e.message)
-    );
-  }
-};
-
-export const initSObjectDefinitions = async (projectPath: string) => {
+export const initSObjectDefinitions = async (projectPath: string, isSettingEnabled: boolean) => {
   if (projectPath) {
-    const sobjectFolder = getSObjectsDirectory();
+    const sobjectFolder = isSettingEnabled ? getSObjectsDirectory() : getStandardSObjectsDirectory();
+    const refreshSource = isSettingEnabled ? SObjectRefreshSource.Startup : SObjectRefreshSource.StartupMin;
+
     if (!fs.existsSync(sobjectFolder)) {
-      telemetryService.sendEventData(
-        'sObjectRefreshNotification',
-        { type: SObjectRefreshSource.Startup },
-        undefined
-      );
+      telemetryService.sendEventData('sObjectRefreshNotification', { type: refreshSource }, undefined);
       try {
-        await refreshSObjects(SObjectRefreshSource.Startup);
+        await refreshSObjects(refreshSource);
       } catch (e) {
-        telemetryService.sendException(e.name, e.message);
+        telemetryService.sendException('initSObjectDefinitions', e.message);
         throw e;
       }
     }
   }
 };
 
-const getSObjectsDirectory = () => {
-  return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
-};
+const getSObjectsDirectory = () => path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
 
-const getStandardSObjectsDirectory = () => {
-  return path.join(
-    projectPaths.toolsFolder(),
-    SOBJECTS_DIR,
-    STANDARDOBJECTS_DIR
-  );
-};
-
-export const checkSObjectsAndRefresh = async (projectPath: string) => {
-  if (projectPath && !fs.existsSync(getStandardSObjectsDirectory())) {
-    telemetryService.sendEventData(
-      'sObjectRefreshNotification',
-      { type: SObjectRefreshSource.StartupMin },
-      undefined
-    );
-    try {
-      await refreshSObjects(SObjectRefreshSource.StartupMin);
-    } catch (e) {
-      telemetryService.sendException(e.name, e.message);
-      throw e;
-    }
-  }
-};
+const getStandardSObjectsDirectory = () => path.join(projectPaths.toolsFolder(), SOBJECTS_DIR, STANDARDOBJECTS_DIR);

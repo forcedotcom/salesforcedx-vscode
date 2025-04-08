@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  SETTING_CLEAR_OUTPUT_TAB,
-  SFDX_CORE_CONFIGURATION_NAME
-} from '@salesforce/salesforcedx-utils-vscode';
+import { SETTING_CLEAR_OUTPUT_TAB, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import {
   CONFLICT_DETECTION_ENABLED,
@@ -19,6 +16,7 @@ import {
   PREFER_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
+  DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL,
   RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
@@ -50,9 +48,7 @@ export class SalesforceCoreSettings {
   // checks for Microsoft's telemetry setting as well as Salesforce's telemetry setting.
   public getTelemetryEnabled(): boolean {
     return (
-      vscode.workspace
-        .getConfiguration('telemetry')
-        .get<boolean>('enableTelemetry', true) &&
+      vscode.workspace.getConfiguration('telemetry').get<boolean>('enableTelemetry', true) &&
       this.getConfigValue<boolean>(TELEMETRY_ENABLED, true)
     );
   }
@@ -66,21 +62,19 @@ export class SalesforceCoreSettings {
   }
 
   public getPushOrDeployOnSaveIgnoreConflicts(): boolean {
-    return this.getConfigValue<boolean>(
-      PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
-      false
-    );
+    return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS, false);
   }
 
   public getPreferDeployOnSaveEnabled(): boolean {
     return this.getConfigValue(PREFER_DEPLOY_ON_SAVE_ENABLED, false);
   }
 
+  public getDeployOnSaveShowOutputPanel(): boolean {
+    return this.getConfigValue(DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL, false);
+  }
+
   public getEnableSourceTrackingForDeployAndRetrieve(): boolean {
-    return this.getConfigValue(
-      ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE,
-      true
-    );
+    return this.getConfigValue(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
   }
 
   public getRetrieveTestCodeCoverage(): boolean {
@@ -100,17 +94,11 @@ export class SalesforceCoreSettings {
   }
 
   public getNodeExtraCaCerts(): string {
-    return this.getConfigValue(
-      ENV_NODE_EXTRA_CA_CERTS,
-      process.env.NODE_EXTRA_CA_CERTS ?? ''
-    );
+    return this.getConfigValue(ENV_NODE_EXTRA_CA_CERTS, process.env.NODE_EXTRA_CA_CERTS ?? '');
   }
 
   public getSfLogLevel(): string {
-    return this.getConfigValue(
-      ENV_SF_LOG_LEVEL,
-      process.env.SF_LOG_LEVEL ?? 'fatal'
-    );
+    return this.getConfigValue(ENV_SF_LOG_LEVEL, process.env.SF_LOG_LEVEL ?? 'fatal');
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

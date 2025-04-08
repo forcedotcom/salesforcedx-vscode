@@ -5,39 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionContext, ExtensionKind, Uri } from 'vscode';
-import { TelemetryService } from '..';
+import { ActivationInfo, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import { ExtensionContext } from 'vscode';
 import { getExtensionInfo } from './activationTrackerUtils';
-
-export type ExtensionInfo = {
-  isActive: boolean;
-  path: string;
-  kind: ExtensionKind;
-  uri: Uri;
-  loadStartDate: Date;
-};
-
-export type ExtensionsInfo = {
-  [extensionId: string]: ExtensionInfo;
-};
-
-export type ActivationInfo = Partial<ExtensionInfo> & {
-  startActivateHrTime: [number, number];
-  activateStartDate: Date;
-  activateEndDate?: Date;
-  extensionActivationTime: number;
-  markEndTime?: number;
-};
 
 export class ActivationTracker {
   private extensionContext: ExtensionContext;
-  private telemetryService: TelemetryService;
+  private telemetryService: TelemetryServiceInterface;
   private _activationInfo: ActivationInfo;
 
-  constructor(
-    extensionContext: ExtensionContext,
-    telemetryService: TelemetryService
-  ) {
+  constructor(extensionContext: ExtensionContext, telemetryService: TelemetryServiceInterface) {
     this.extensionContext = extensionContext;
     this.telemetryService = telemetryService;
     this._activationInfo = {
@@ -50,26 +27,18 @@ export class ActivationTracker {
   async markActivationStop(activationEndDate?: Date): Promise<void> {
     // capture date and elapsed HR time
     const activateEndDate = activationEndDate ?? new Date();
-    const hrEnd = this.telemetryService.getEndHRTime(
-      this._activationInfo.startActivateHrTime
-    );
+    const hrEnd = this.telemetryService.getEndHRTime(this._activationInfo.startActivateHrTime);
     // getting extension info. This may take up to 10 seconds, as log record creation might be lagging from
     // this code. All needed data have been captured for telemetry, so a wait here should have no effect
     // on quality of telemetry data
     const extensionInfo = await getExtensionInfo(this.extensionContext);
     let extensionActivationTime = -1;
-    if (
-      extensionInfo?.loadStartDate &&
-      activateEndDate.getTime() >= extensionInfo.loadStartDate.getTime()
-    ) {
+    if (extensionInfo?.loadStartDate && activateEndDate.getTime() >= extensionInfo.loadStartDate.getTime()) {
       // subtract activateEndDate from loadStartDate to get the time spent loading the extension if loadStartDate is not undefined
-      extensionActivationTime =
-        activateEndDate.getTime() - extensionInfo.loadStartDate.getTime();
+      extensionActivationTime = activateEndDate.getTime() - extensionInfo.loadStartDate.getTime();
     }
     if (extensionActivationTime < 0) {
-      this.telemetryService.sendExtensionActivationEvent(
-        this._activationInfo.startActivateHrTime
-      );
+      this.telemetryService.sendExtensionActivationEvent(this._activationInfo.startActivateHrTime);
     } else {
       this._activationInfo = {
         ...this._activationInfo,

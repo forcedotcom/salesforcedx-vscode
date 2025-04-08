@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const isDemoMode = (): boolean =>
-  process.env.SFDX_ENV ? process.env.SFDX_ENV === 'DEMO' : false;
+export const isDemoMode = (): boolean => (process.env.SFDX_ENV ? process.env.SFDX_ENV === 'DEMO' : false);
 
-export type authResponse = {
+type AuthResponse = {
   orgId: string;
   username: string;
   accessToken?: string;
@@ -20,7 +19,5 @@ export type authResponse = {
   clientSecret?: string;
 };
 
-export const isProdOrg = (response: {
-  status: number;
-  result: authResponse;
-}): boolean => (response.result.trialExpirationDate ? false : true);
+export const isProdOrg = (response: { status: number; result: AuthResponse }): boolean =>
+  response.result.trialExpirationDate ? false : true;

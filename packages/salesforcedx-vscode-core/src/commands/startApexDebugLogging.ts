@@ -23,38 +23,24 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo, workspaceUtils } from '../util';
 import { developerLogTraceFlag } from '.';
-import {
-  EmptyParametersGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();
   private cancellationToken = this.cancellationTokenSource.token;
 
   public build(): Command {
-    return new CommandBuilder(nls.localize('start_apex_debug_logging'))
-      .withLogName('start_apex_debug_logging')
-      .build();
+    return new CommandBuilder(nls.localize('start_apex_debug_logging')).withLogName('start_apex_debug_logging').build();
   }
 
   public attachSubExecution(execution: CommandExecution) {
     channelService.streamCommandOutput(execution);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async execute(response: ContinueResponse<{}>): Promise<void> {
     const startTime = process.hrtime();
-    const executionWrapper = new CompositeCliCommandExecutor(
-      this.build()
-    ).execute(this.cancellationToken);
-    this.attachExecution(
-      executionWrapper,
-      this.cancellationTokenSource,
-      this.cancellationToken
-    );
+    const executionWrapper = new CompositeCliCommandExecutor(this.build()).execute(this.cancellationToken);
+    this.attachExecution(executionWrapper, this.cancellationTokenSource, this.cancellationToken);
 
     executionWrapper.processExitSubject.subscribe(() => {
       this.logMetric(executionWrapper.command.logName, startTime);
@@ -64,9 +50,7 @@ export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
       // query traceflag
       const userId = await getUserId(workspaceUtils.getRootWorkspacePath());
 
-      let resultJson = await this.subExecute(
-        new QueryTraceFlag().build(userId)
-      );
+      let resultJson = await this.subExecute(new QueryTraceFlag().build(userId));
       if (resultJson && resultJson.result && resultJson.result.totalSize >= 1) {
         const traceflag = resultJson.result.records[0];
         developerLogTraceFlag.setTraceFlagDebugLevelInfo(
@@ -91,9 +75,7 @@ export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
           developerLogTraceFlag.setDebugLevelId(debugLevelId);
 
           developerLogTraceFlag.validateDates();
-          resultJson = await this.subExecute(
-            new CreateTraceFlag(userId).build()
-          );
+          resultJson = await this.subExecute(new CreateTraceFlag(userId).build());
           developerLogTraceFlag.setTraceFlagId(resultJson.result.id);
         }
       }
@@ -155,10 +137,7 @@ export class QueryUser extends SfCommandletExecutor<{}> {
   public build(): Command {
     return new SfCommandBuilder()
       .withArg('data:query')
-      .withFlag(
-        '--query',
-        `SELECT id FROM User WHERE username='${this.username}'`
-      )
+      .withFlag('--query', `SELECT id FROM User WHERE username='${this.username}'`)
       .withJson()
       .withLogName('query_user')
       .build();
@@ -216,10 +195,7 @@ export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
       .withArg('data:update:record')
       .withFlag('--sobject', 'DebugLevel')
       .withFlag('--record-id', nonNullDebugLevel)
-      .withFlag(
-        '--values',
-        `ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL}`
-      )
+      .withFlag('--values', `ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL}`)
       .withArg('--use-tooling-api')
       .withJson()
       .withLogName('update_debug_level')
@@ -234,12 +210,7 @@ export class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
       .withArg('data:update:record')
       .withFlag('--sobject', 'TraceFlag')
       .withFlag('--record-id', nonNullTraceFlag)
-      .withFlag(
-        '--values',
-        `StartDate='' ExpirationDate='${developerLogTraceFlag
-          .getExpirationDate()
-          .toUTCString()}'`
-      )
+      .withFlag('--values', `StartDate='' ExpirationDate='${developerLogTraceFlag.getExpirationDate().toUTCString()}'`)
       .withArg('--use-tooling-api')
       .withJson()
       .withLogName('update_trace_flag')
@@ -268,10 +239,6 @@ export class QueryTraceFlag extends SfCommandletExecutor<{}> {
 
 export const startApexDebugLogging = async (): Promise<void> => {
   const executor = new StartApexDebugLoggingExecutor();
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    executor
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
   await commandlet.run();
 };

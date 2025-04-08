@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // This is only done in tests because we are mocking things
-// tslint:disable:no-floating-promises
 
 import { RequestService } from '@salesforce/salesforcedx-utils';
 import { Source } from '@vscode/debugadapter';
@@ -17,11 +16,7 @@ import {
   VariableContainer
 } from '../../../src/adapter/apexDebug';
 import { Reference } from '../../../src/commands';
-import {
-  BreakpointService,
-  SessionService,
-  StreamingService
-} from '../../../src/core';
+import { BreakpointService, SessionService, StreamingService } from '../../../src/core';
 
 export class ApexDebugForTest extends ApexDebug {
   private receivedResponses: DebugProtocol.Response[] = [];
@@ -35,15 +30,9 @@ export class ApexDebugForTest extends ApexDebug {
   ) {
     super();
     this.myRequestService = requestService;
-    this.mySessionService = sessionService
-      ? sessionService
-      : new SessionService(requestService);
-    this.myStreamingService = streamingService
-      ? streamingService
-      : new StreamingService();
-    this.myBreakpointService = breakpointService
-      ? breakpointService
-      : new BreakpointService(requestService);
+    this.mySessionService = sessionService ? sessionService : new SessionService(requestService);
+    this.myStreamingService = streamingService ? streamingService : new StreamingService();
+    this.myBreakpointService = breakpointService ? breakpointService : new BreakpointService(requestService);
   }
 
   public getBreakpointService(): BreakpointService {
@@ -81,17 +70,11 @@ export class ApexDebugForTest extends ApexDebug {
     super.initializeRequest(response, args);
   }
 
-  public attachReq(
-    response: DebugProtocol.AttachResponse,
-    args: DebugProtocol.AttachRequestArguments
-  ): void {
+  public attachReq(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): void {
     super.attachRequest(response, args);
   }
 
-  public async launchRequest(
-    response: DebugProtocol.LaunchResponse,
-    args: LaunchRequestArguments
-  ): Promise<void> {
+  public async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
     return super.launchRequest(response, args);
   }
 
@@ -116,10 +99,7 @@ export class ApexDebugForTest extends ApexDebug {
     return super.continueRequest(response, args);
   }
 
-  public async nextRequest(
-    response: DebugProtocol.NextResponse,
-    args: DebugProtocol.NextArguments
-  ): Promise<void> {
+  public async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
     super.nextRequest(response, args);
   }
 
@@ -148,11 +128,7 @@ export class ApexDebugForTest extends ApexDebug {
     return super.stackTraceRequest(response, args);
   }
 
-  public async customRequest(
-    command: string,
-    response: DebugProtocol.Response,
-    args: any
-  ): Promise<void> {
+  public async customRequest(command: string, response: DebugProtocol.Response, args: any): Promise<void> {
     return super.customRequest(command, response, args);
   }
 
@@ -168,11 +144,7 @@ export class ApexDebugForTest extends ApexDebug {
     return this.requestThreads;
   }
 
-  public printToDebugConsole(
-    msg?: string,
-    sourceFile?: Source,
-    sourceLine?: number
-  ): void {
+  public printToDebugConsole(msg?: string, sourceFile?: Source, sourceLine?: number): void {
     super.printToDebugConsole(msg, sourceFile, sourceLine);
   }
 
@@ -180,9 +152,7 @@ export class ApexDebugForTest extends ApexDebug {
     super.populateReferences(references, requestId);
   }
 
-  public getVariableContainer(
-    variableReference: number
-  ): VariableContainer | undefined {
+  public getVariableContainer(variableReference: number): VariableContainer | undefined {
     return this.variableHandles.get(variableReference);
   }
 

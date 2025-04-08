@@ -4,46 +4,31 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ContinueResponse,
-  fileUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import {
-  ConfirmationAndSourcePathGatherer,
-  ManifestChecker
-} from '../../../src/commands';
+import { ConfirmationAndSourcePathGatherer, ManifestChecker } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
-// tslint:disable:no-unused-expression
 describe('ManifestChecker', () => {
   let workspaceStub: sinon.SinonStub;
   const workspaceFolderPath = path.join('path', 'to', 'workspace', 'folder');
 
-  before(() => {
+  beforeEach(() => {
     const workspaceFolders = [{ uri: { fsPath: workspaceFolderPath } }];
-    workspaceStub = sinon
-      .stub(vscode.workspace, 'workspaceFolders')
-      .value(workspaceFolders);
+    workspaceStub = sinon.stub(vscode.workspace, 'workspaceFolders').value(workspaceFolders);
   });
 
-  after(() => {
+  beforeEach(() => {
     workspaceStub.restore();
   });
 
   it('fails the check if the selected resource is in the manifest directory', () => {
-    const manifestFilePath = path.join(
-      workspaceFolderPath,
-      'manifest',
-      'package.xml'
-    );
+    const manifestFilePath = path.join(workspaceFolderPath, 'manifest', 'package.xml');
     const manifestUri = { fsPath: manifestFilePath } as vscode.Uri;
-    const flushFilePathStub = sinon
-      .stub(fileUtils, 'flushFilePath')
-      .returns(manifestFilePath);
+    const flushFilePathStub = sinon.stub(fileUtils, 'flushFilePath').returns(manifestFilePath);
     const checker = new ManifestChecker(manifestUri);
     const response = checker.check();
     expect(response).to.be.false;
@@ -54,9 +39,7 @@ describe('ManifestChecker', () => {
   it('passes the check if the selected resource is not in the manifest directory', () => {
     const sourcePath = path.join(workspaceFolderPath, 'src', 'exampleFile.js');
     const sourceUri = { fsPath: sourcePath } as vscode.Uri;
-    const flushFilePathStub = sinon
-      .stub(fileUtils, 'flushFilePath')
-      .returns(sourcePath);
+    const flushFilePathStub = sinon.stub(fileUtils, 'flushFilePath').returns(sourcePath);
     const checker = new ManifestChecker(sourceUri);
     const response = checker.check();
     expect(response).to.be.true;
@@ -73,10 +56,7 @@ describe('ConfirmationAndSourcePathGatherer', () => {
   let flushFilePathStub: sinon.SinonStub;
 
   beforeEach(() => {
-    informationMessageStub = sinon.stub(
-      vscode.window,
-      'showInformationMessage'
-    );
+    informationMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
 
     flushFilePathStub = sinon.stub(fileUtils, 'flushFilePath');
 
@@ -89,9 +69,7 @@ describe('ConfirmationAndSourcePathGatherer', () => {
   });
 
   it('Should return cancel if the user cancels the command', async () => {
-    informationMessageStub.returns(
-      nls.localize('cancel_delete_source_button_text')
-    );
+    informationMessageStub.returns(nls.localize('cancel_delete_source_button_text'));
 
     const gatherer = new ConfirmationAndSourcePathGatherer(explorerPathUri);
     const response = await gatherer.gather();
@@ -100,9 +78,7 @@ describe('ConfirmationAndSourcePathGatherer', () => {
   });
 
   it('Should return Continue if the user chooses to proceed', async () => {
-    informationMessageStub.returns(
-      nls.localize('confirm_delete_source_button_text')
-    );
+    informationMessageStub.returns(nls.localize('confirm_delete_source_button_text'));
 
     const gatherer = new ConfirmationAndSourcePathGatherer(explorerPathUri);
     const response = (await gatherer.gather()) as ContinueResponse<{

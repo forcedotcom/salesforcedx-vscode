@@ -21,17 +21,8 @@ export {
   internalLightningGenerateAuraComponent,
   lightningGenerateAuraComponent
 } from './lightningGenerateAuraComponent';
-export {
-  internalLightningGenerateEvent,
-  lightningGenerateEvent
-} from './lightningGenerateEvent';
-export {
-  internalLightningGenerateInterface,
-  lightningGenerateInterface
-} from './lightningGenerateInterface';
-export {
-  internalLightningGenerateLwc,
-  lightningGenerateLwc
-} from './lightningGenerateLwc';
+export { internalLightningGenerateEvent, lightningGenerateEvent } from './lightningGenerateEvent';
+export { internalLightningGenerateInterface, lightningGenerateInterface } from './lightningGenerateInterface';
+export { internalLightningGenerateLwc, lightningGenerateLwc } from './lightningGenerateLwc';
 export { visualforceGenerateComponent } from './visualforceGenerateComponent';
 export { visualforceGeneratePage } from './visualforceGeneratePage';

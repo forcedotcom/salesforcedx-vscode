@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  DirFileNameSelection,
-  LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode';
+import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningInterfaceOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
@@ -22,18 +19,11 @@ import {
   SfWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import {
-  FileInternalPathGatherer,
-  InternalDevWorkspaceChecker
-} from './internalCommandUtils';
+import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import {
-  AURA_DIRECTORY,
-  AURA_INTERFACE_EXTENSION,
-  AURA_TYPE
-} from './metadataTypeConstants';
+import { AURA_DIRECTORY, AURA_INTERFACE_EXTENSION, AURA_TYPE } from './metadataTypeConstants';
 
-export class LibraryLightningGenerateInterfaceExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryLightningGenerateInterfaceExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_interface_text');
   public telemetryName = 'lightning_generate_interface';
   public metadataTypeName = AURA_TYPE;
@@ -61,15 +51,10 @@ const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
 export const lightningGenerateInterface = (): void => {
-  const createTemplateExecutor =
-    new LibraryLightningGenerateInterfaceExecutor();
+  const createTemplateExecutor = new LibraryLightningGenerateInterfaceExecutor();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
-    new CompositeParametersGatherer<LocalComponent>(
-      metadataTypeGatherer,
-      fileNameGatherer,
-      outputDirGatherer
-    ),
+    new CompositeParametersGatherer<LocalComponent>(metadataTypeGatherer, fileNameGatherer, outputDirGatherer),
     createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
@@ -77,14 +62,10 @@ export const lightningGenerateInterface = (): void => {
 };
 
 export const internalLightningGenerateInterface = (sourceUri: Uri): void => {
-  const createTemplateExecutor =
-    new LibraryLightningGenerateInterfaceExecutor();
+  const createTemplateExecutor = new LibraryLightningGenerateInterfaceExecutor();
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
-    new CompositeParametersGatherer(
-      fileNameGatherer,
-      new FileInternalPathGatherer(sourceUri)
-    ),
+    new CompositeParametersGatherer(fileNameGatherer, new FileInternalPathGatherer(sourceUri)),
     createTemplateExecutor
   );
   void commandlet.run();

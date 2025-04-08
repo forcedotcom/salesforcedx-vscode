@@ -14,46 +14,36 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "61.9.0",
+  "version": "63.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.82.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "61.9.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "61.9.0",
-    "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "5.2.1",
-    "vscode-languageserver-protocol": "3.14.1",
-    "vscode-languageserver-types": "3.14.0"
+    "@salesforce/salesforcedx-visualforce-language-server": "63.8.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "63.8.0",
+    "vscode-extension-telemetry": "^0.0.17",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "vscode-languageserver-types": "^3.17.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "61.9.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "63.8.0",
     "@types/chai": "4.3.3",
-    "@types/mocha": "^5",
-    "@types/node": "^18.11.9",
+    "@types/mocha": "^10",
+    "@types/node": "^20.0.0",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "^1.61.2",
-    "@typescript-eslint/eslint-plugin": "6.9.0",
-    "@typescript-eslint/parser": "6.9.0",
+    "@types/vscode": "^1.90.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "eslint": "8.52.0",
-    "eslint-config-prettier": "9.0.0",
-    "eslint-plugin-header": "3.1.1",
-    "eslint-plugin-import": "2.29.0",
-    "eslint-plugin-jest": "27.5.0",
-    "eslint-plugin-jest-formatting": "3.1.0",
-    "eslint-plugin-jsdoc": "46.8.2",
-    "eslint-plugin-prefer-arrow": "1.2.3",
     "mocha": "^10",
-    "prettier": "3.0.3",
+    "prettier": "3.3.3",
     "sinon": "^13.0.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.6.2"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -92,7 +82,7 @@
   ],
   "packaging": {
     "assets": [
-      "License.txt",
+      "LICENSE.txt",
       "package.nls.ja.json",
       "package.nls.json",
       "README.md",
@@ -106,12 +96,12 @@
     "packageUpdates": {
       "main": "dist/index.js",
       "dependencies": {
-        "vscode-css-languageservice": "2.1.9",
-        "vscode-languageserver": "5.2.1",
-        "vscode-languageserver-protocol": "3.14.1",
-        "vscode-languageserver-types": "3.14.0",
-        "vscode-nls": "2.0.2",
-        "vscode-uri": "1.0.1"
+        "vscode-css-languageservice": "^2.1.9",
+        "vscode-languageserver": "^9.0.1",
+        "vscode-languageserver-protocol": "^3.17.5",
+        "vscode-languageserver-types": "^3.17.5",
+        "vscode-nls": "^2.0.2",
+        "vscode-uri": "^1.0.1"
       },
       "devDependencies": {},
       "serverPath": [

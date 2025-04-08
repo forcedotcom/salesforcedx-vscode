@@ -1,3 +1,313 @@
+# 63.7.0 - April 2, 2025
+
+## Added
+
+#### salesforcedx-vscode-core
+#### salesforcedx-vscode-apex
+
+- We updated the Org Browser to include more lightning component types. ([PR #6174](https://github.com/forcedotcom/salesforcedx-vscode/pull/6174))
+- Use the new `SFDX: Restart Apex Language Server` command to restart the Apex Language Server. ([PR #6177](https://github.com/forcedotcom/salesforcedx-vscode/pull/6177))
+- Code coverage colors now match your VS Code theme, so you can create a personalized coding experience. In the past, these colors were static. ([PR #6155](https://github.com/forcedotcom/salesforcedx-vscode/pull/6155))
+
+
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #6163](https://github.com/forcedotcom/salesforcedx-vscode/pull/6163))
+
+# 63.6.0 - March 26, 2025
+
+## Added
+
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
+
+ 🚀  **Agentforce for Developers Elevated to Salesforce Extension Pack**
+
+With its elevated presence in the Salesforce Extension Pack, Agentforce for Developers is now a core part of the Salesforce developer experience. This change improves discoverability, making it easier for developers to find and install Agentforce for Developers as part of their workflow. ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We updated the org browser icon. ([PR #6152](https://github.com/forcedotcom/salesforcedx-vscode/pull/6152))
+
+# 63.5.0 - March 19, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We made some changes under the hood. ([PR #6146](https://github.com/forcedotcom/salesforcedx-vscode/pull/6146), [PR #6148](https://github.com/forcedotcom/salesforcedx-vscode/pull/6148), [PR #6150](https://github.com/forcedotcom/salesforcedx-vscode/pull/6150))
+
+# 63.4.1 - March 14, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed an issue that caused missing descriptions to be handled incorrectly when creating an OpenAPI document. ([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
+
+- We improved the OpenAPI document generation so that the generated fields appear in a specific order. ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
+
+- We made some changes under the hood. ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
+
+#### salesforcedx-vscode-core
+
+- We added some labels in the Org Browser. ([PR #6139](https://github.com/forcedotcom/salesforcedx-vscode/pull/6139))
+
+- We made some changes under the hood. ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124), [PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
+
+#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lwc
+
+- We made some changes under the hood. ([PR #6141](https://github.com/forcedotcom/salesforcedx-vscode/pull/6141))
+
+# 63.2.3 - February 28, 2025
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- 🚀 Create Custom Agent Actions from Your Apex REST Classes using the new `SFDX: Create OpenAPI Document from this Class (Beta)` command. The command generates an OpenAPI document for your Apex REST class using Salesforce's secure, custom generative AI model.  Easily deploy the generated document to your org's API Catalog. Then, use it to create an agent action using Agent Studio. ([PR #6102](https://github.com/forcedotcom/salesforcedx-vscode/pull/6102))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We corrected the URL for the "Set your Java version" link. ([PR #6106](https://github.com/forcedotcom/salesforcedx-vscode/pull/6106))
+
+# 63.1.1 - February 19, 2025
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We updated our dependencies to support the latest metadata types. As a result, you can now deploy all the latest metadata types using the VSCode extensions. ([PR #6083](https://github.com/forcedotcom/salesforcedx-vscode/pull/6083))
+
+# 63.0.0 - February 13, 2025
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We've made some updates to the Apex LSP to prepare for an upcoming Salesforce release bump.([PR #6062](https://github.com/forcedotcom/salesforcedx-vscode/pull/6062))
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- We fixed an under-the-hood issue with our telemetry. ([PR #6006](https://github.com/forcedotcom/salesforcedx-vscode/pull/6006))
+
+#### salesforcedx-vscode
+
+- Our VS Code Marketplace page now shows the minimum VS Code version that’s required by the Salesforce Extension Pack.([PR #6044](https://github.com/forcedotcom/salesforcedx-vscode/pull/6044))
+
+# 62.14.1 - January 15, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5996](https://github.com/forcedotcom/salesforcedx-vscode/pull/5996), [PR #6003](https://github.com/forcedotcom/salesforcedx-vscode/pull/6003))
+
+- We got rid of that pesky warning that you saw every time you opened the `sfdx-project.json` file in your project. ([PR #6000](https://github.com/forcedotcom/salesforcedx-vscode/pull/6000))
+
+
+# 62.13.0 - January 8, 2025
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- We updated the configuration used to check if telemetry is enabled from `enableTelemetry` to `telemetryLevel`. ([PR #5986](https://github.com/forcedotcom/salesforcedx-vscode/pull/5986))
+
+# 62.12.0 - January 1, 2025
+
+## Fixed
+
+#### salesforcedx-visualforce-language-server
+
+- We fixed an issue where the Visualforce Language Server threw a `Request textDocument/documentHighlight failed with message: Debug Failure. False expression. Code: -32603` error when JavaScript code in the embedded `<script>` tag was selected. Thank you [AndrewStopchenko-SO](https://github.com/AndrewStopchenko-SO) for this contribution. ([PR #5975](https://github.com/forcedotcom/salesforcedx-vscode/pull/5975))
+
+# 62.9.1 - December 12, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We've added a new VS Code configuration that lets you enable error telemetry from the Apex Language Server. We turned off this feature by default so that we can reduce noise. ([PR #5969](https://github.com/forcedotcom/salesforcedx-vscode/pull/5969))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some labels in the Org Browser.([PR #5967](https://github.com/forcedotcom/salesforcedx-vscode/pull/5967))
+
+# 62.5.1 - November 14, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We improved the accuracy of the range for Class, Enum, and Interface symbols in the Apex LSP `.jar` file. We also modified document symbol creation to introduce a nested symbol hierarchy in the Outline View, improving clarity of the outline. ([PR #5945](https://github.com/forcedotcom/salesforcedx-vscode/pull/5945))
+
+#### salesforcedx-vscode-core
+
+- When you push or deploy on save, you’ll no longer automatically switch to the output panel view by default. You can toggle this setting with the `salesforcedx-vscode-core.push-or-deploy-on-save.showOutputPanel` setting. Thank you [Jason Venable](https://github.com/tehnrd) for this contribution. ([PR #5904](https://github.com/forcedotcom/salesforcedx-vscode/pull/5904))
+- We made some changes under the hood. ([PR #5939](https://github.com/forcedotcom/salesforcedx-vscode/pull/5939))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- To ensure smooth operation the Salesforce Extension Pack needs to run with a minimum supported Visual Studio Code version. We support only Visual Studio Code 1.90.0 or higher. ([PR #5937](https://github.com/forcedotcom/salesforcedx-vscode/pull/5937))
+
+# 62.3.1 - November 1, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed a bug where deleted folders still showed Apex tests in the Testing sidebar. Now, when you delete a folder, it will be completely removed. No more pesky leftover tests! We did this by adding a new file watcher that triggers when an entire folder is deleted. ([PR #5901](https://github.com/forcedotcom/salesforcedx-vscode/pull/5901))
+
+- 🚀 We improved the startup time of the Apex extension by 30%. This was achieved by moving our check for orphaned Apex Language Server instances outside the activation loop. This means that Apex extensions start up faster, so you can get to work more quickly. ([PR #5900](https://github.com/forcedotcom/salesforcedx-vscode/pull/5900))
+
+- We made some changes under the hood. ([PR #5930](https://github.com/forcedotcom/salesforcedx-vscode/pull/5930))
+
+# 62.2.0 - October 23, 2024
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We added telemetry to the Apex Language Server, so you can track all errors and exceptions. To see them, select the "Apex Language Server" dropdown in the Output tab. Want to enable or disable telemetry? Use the `Salesforcedx-vscode-core › Telemetry` setting. ([PR #5897](https://github.com/forcedotcom/salesforcedx-vscode/pull/5897))
+
+# 62.0.0 - October 9, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We updated the Java Home Setting description to include Java 21. ([PR #5878](https://github.com/forcedotcom/salesforcedx-vscode/pull/5878))
+- We updated the Apex Language Server to support the latest features and improvements of the language. When you activate the new  of the Apex extension for the first time, you could experience some lag while your workspace is upgraded to 252 Apex artifacts and your project is fully indexed. ([PR #5887](https://github.com/forcedotcom/salesforcedx-vscode/pull/5887))
+
+#### salesforcedx-vscode-core
+
+- We fixed some labels in the Org Browser. ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5888)) ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5888))
+- We bumped SDR to catch up with the latest and fixed an issue where the `SFDX: Retrieve Source from Org` command nested a duplicate parent folder. Thank you [Alan Reader](https://github.com/readeral) for creating the issue. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889), [ISSUE #2997](https://github.com/forcedotcom/cli/issues/2977))
+
+## Added
+
+### salesforcedx-vscode-apex
+
+### salesforcedx-vscode-apex-replay-debugger
+
+### salesforcedx-vscode-core
+
+### salesforcedx-vscode-lightning
+
+### salesforcedx-vscode-lwc
+
+### salesforcedx-vscode-soql
+
+- We made some changes under the hood. ([PR #5889](https://github.com/forcedotcom/salesforcedx-vscode/pull/5889)).
+
+# 61.16.0 - October 2, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-soql
+
+- We fixed an issue where the "Switch Between SOQL Builder and Text Editor" icon went missing. ([PR #5868](https://github.com/forcedotcom/salesforcedx-vscode/pull/5868), [ISSUE #5841](https://github.com/forcedotcom/salesforcedx-vscode/issues/5841))
+
+# 61.15.0 - September 25, 2024
+
+## Added
+
+#### salesforcedx-vscode-lwc
+
+- To improve developer productivity and code quality, now you can use Salesforce TypeScript type definitions to develop Lightning web components (LWCs). For now, support for a limited number of Salesforce type definitions is in developer preview. To learn more, see [TypeScript Support for LWC (Developer Preview)](https://developer.salesforce.com/docs/platform/lwc/guide/ts.html).
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #5714](https://github.com/forcedotcom/salesforcedx-vscode/pull/5714)) ([PR #5844](https://github.com/forcedotcom/salesforcedx-vscode/pull/5844))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- To help you quickly connect to the right default org, we’ve added handy indicators to let you know if your default org has expired, or isn’t valid. ([PR #5835](https://github.com/forcedotcom/salesforcedx-vscode/pull/5835))
+
+- We fixed an issue where the `SFDX:Push Source to Default Org` and `SFDX:Pull Source from Default Org` commands would hang without throwing an error message when the error wasn’t related to files in the project. ([PR #5838](https://github.com/forcedotcom/salesforcedx-vscode/pull/5838))
+
+- We made some changes under the hood. ([PR #5857](https://github.com/forcedotcom/salesforcedx-vscode/pull/5857)), ([PR #5830](https://github.com/forcedotcom/salesforcedx-vscode/pull/5830)), ([PR #5786](https://github.com/forcedotcom/salesforcedx-vscode/pull/5786))
+
+#### salesforcedx-vscode-lightning
+
+#### salesforcedx-vscode-lwc
+
+- We made some changes under the hood. ([PR #5821](https://github.com/forcedotcom/salesforcedx-vscode/pull/5821))
+
+# 61.12.0 - September 4, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-lightning
+
+#### salesforcedx-vscode-lwc
+
+- We fixed an issue where the `paths` property was incorrectly placed in jsconfig.json. ([PR #597](https://github.com/forcedotcom/lightning-language-server/pull/597), [PR #5798](https://github.com/forcedotcom/salesforcedx-vscode/pull/5798))
+
+# 61.11.0 - August 28, 2024
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue that was causing the `SFDX: Generate Manifest File` command to appear in the context menu for manifest files. ([PR #5731](https://github.com/forcedotcom/salesforcedx-vscode/pull/5731))
+
+# 61.10.0 - August 21, 2024
+
+## Added
+
+#### salesforcedx-vscode
+
+#### salesforcedx-vscode-expanded
+
+- To ensure smooth operation, the Salesforce Extension Pack needs to run with a minimum supported Visual Studio Code version. We support only Visual Studio Code 1.86 or higher. ([PR #5715](https://github.com/forcedotcom/salesforcedx-vscode/pull/5715))
+
+#### salesforcedx-vscode-core
+
+- Good news! We’ve made the core extension smaller and better. By bundling more libraries, we’ve reduced the size from 8.9MB to 2.8MB. That’s a big win for everyone. ([PR #5705](https://github.com/forcedotcom/salesforcedx-vscode/pull/5705))
+
+## Fixed
+
+#### docs
+
+- We made some changes under the hood. ([PR #5707](https://github.com/forcedotcom/salesforcedx-vscode/pull/5707))
+
+#### salesforcedx-apex-replay-debugger
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- To give us better insight into its behavior, we’ve added more telemetry to the Apex Replay Debugger. ([PR #5724](https://github.com/forcedotcom/salesforcedx-vscode/pull/5724))
+
+#### salesforcedx-vscode
+
+#### salesforcedx-vscode-expanded
+
+- We made helpful clarifications in Marketplace READMEs. ([PR #5716](https://github.com/forcedotcom/salesforcedx-vscode/pull/5716))
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the `SFDX: Diff Folder Against Org` and `SFDX: Diff File Against Org` commands. These commands now work correctly when you have a file in your project, but not in your org. You won’t see a notification that says the command is running when it’s not. ([PR #5722](https://github.com/forcedotcom/salesforcedx-vscode/pull/5722))
+
+- You can now rename Lightning Web Component (LWC) components when the Aura folder isn’t present, and vice versa. We’ve also added checks when creating new LWC and Aura components to ensure that the name doesn't already exist. ([PR #5718](https://github.com/forcedotcom/salesforcedx-vscode/pull/5718), [ISSUE #5692](https://github.com/forcedotcom/salesforcedx-vscode/issues/5692))
+
 # 61.8.1 - August 8, 2024
 
 ## Added
@@ -52,7 +362,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- We added support for the LWC Lightning Record Picker component. You can now use features like hover and auto-completion when you're working with this component in VS Code. ([PR #5683](https://github.com/forcedotcom/salesforcedx-vscode/pull/5683)). 
+- We added support for the LWC Lightning Record Picker component. You can now use features like hover and auto-completion when you're working with this component in VS Code. ([PR #5683](https://github.com/forcedotcom/salesforcedx-vscode/pull/5683)).
 
 # 61.4.0 - July 10, 2024
 
@@ -80,13 +390,11 @@
 
 - We updated our documentation with information about installing JDK 21. ([PR #5655](https://github.com/forcedotcom/salesforcedx-vscode/pull/5655))
 
-- We made updates to our Apex Debugger documentation.  ([PR #5649](https://github.com/forcedotcom/salesforcedx-vscode/pull/5649))
-
+- We made updates to our Apex Debugger documentation. ([PR #5649](https://github.com/forcedotcom/salesforcedx-vscode/pull/5649))
 
 #### salesforcedx-vscode-core
 
 - We fixed an issue where an incorrect caching strategy caused metadata files to deploy with outdated content. ([PR #5650](https://github.com/forcedotcom/salesforcedx-vscode/pull/5650), [ISSUE #5612](https://github.com/forcedotcom/salesforcedx-vscode/issues/5612))
-
 
 # 61.1.2 - June 21, 2024
 

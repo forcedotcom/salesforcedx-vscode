@@ -67,16 +67,15 @@ export class DeployQueue {
   }
 
   private async executeDeployCommand(toDeploy: vscode.Uri[]) {
-    vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy);
+    await vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy, null, true);
   }
 
   private async executePushCommand() {
-    const ignoreConflictsCommand =
-      salesforceCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
-        ? '.ignore.conflicts'
-        : '';
+    const ignoreConflictsCommand = salesforceCoreSettings.getPushOrDeployOnSaveIgnoreConflicts()
+      ? '.ignore.conflicts'
+      : '';
     const command = `sf.project.deploy.start${ignoreConflictsCommand}`;
-    vscode.commands.executeCommand(command);
+    vscode.commands.executeCommand(command, true);
   }
 
   private async doDeploy(): Promise<void> {
@@ -86,8 +85,7 @@ export class DeployQueue {
       this.queue.clear();
       let deployType: string = '';
       try {
-        const preferDeployOnSaveEnabled =
-          salesforceCoreSettings.getPreferDeployOnSaveEnabled();
+        const preferDeployOnSaveEnabled = salesforceCoreSettings.getPreferDeployOnSaveEnabled();
         if (preferDeployOnSaveEnabled) {
           await this.executeDeployCommand(toDeploy);
           deployType = 'Deploy';
@@ -109,9 +107,7 @@ export class DeployQueue {
           },
           {
             documentsToDeploy: toDeploy.length,
-            waitTimeForLastDeploy: this.deployWaitStart
-              ? telemetryService.getEndHRTime(this.deployWaitStart)
-              : 0
+            waitTimeForLastDeploy: this.deployWaitStart ? telemetryService.getEndHRTime(this.deployWaitStart) : 0
           }
         );
       } catch (e) {
@@ -120,9 +116,7 @@ export class DeployQueue {
             displayError(nls.localize('error_fetching_auth_info_text'));
             break;
           case 'NoTargetOrgSet':
-            displayError(
-              nls.localize('error_push_or_deploy_on_save_no_target_org')
-            );
+            displayError(nls.localize('error_push_or_deploy_on_save_no_target_org'));
             break;
           default:
             displayError(e.message);
@@ -138,17 +132,12 @@ export class DeployQueue {
 }
 
 export const registerPushOrDeployOnSave = () => {
-  vscode.workspace.onDidSaveTextDocument(
-    async (textDocument: vscode.TextDocument) => {
-      const documentUri = textDocument.uri;
-      if (
-        salesforceCoreSettings.getPushOrDeployOnSaveEnabled() &&
-        !(await ignorePath(documentUri.fsPath))
-      ) {
-        await DeployQueue.get().enqueue(documentUri);
-      }
+  vscode.workspace.onDidSaveTextDocument(async (textDocument: vscode.TextDocument) => {
+    const documentUri = textDocument.uri;
+    if (salesforceCoreSettings.getPushOrDeployOnSaveEnabled() && !(await ignorePath(documentUri.fsPath))) {
+      await DeployQueue.get().enqueue(documentUri);
     }
-  );
+  });
 };
 
 const displayError = (message: string) => {
@@ -162,27 +151,18 @@ const displayError = (message: string) => {
 };
 
 const ignorePath = async (documentPath: string): Promise<boolean> =>
-  fileShouldNotBeDeployed(documentPath) ||
-  !(await pathIsInPackageDirectory(documentPath));
+  fileShouldNotBeDeployed(documentPath) || !(await pathIsInPackageDirectory(documentPath));
 
-export const pathIsInPackageDirectory = async (
-  documentPath: string
-): Promise<boolean> => {
+export const pathIsInPackageDirectory = async (documentPath: string): Promise<boolean> => {
   try {
-    return await SalesforcePackageDirectories.isInPackageDirectory(
-      documentPath
-    );
+    return await SalesforcePackageDirectories.isInPackageDirectory(documentPath);
   } catch (error) {
     switch (error.name) {
       case 'NoPackageDirectoriesFound':
-        error.message = nls.localize(
-          'error_no_package_directories_found_on_setup_text'
-        );
+        error.message = nls.localize('error_no_package_directories_found_on_setup_text');
         break;
       case 'NoPackageDirectoryPathsFound':
-        error.message = nls.localize(
-          'error_no_package_directories_paths_found_text'
-        );
+        error.message = nls.localize('error_no_package_directories_paths_found_text');
         break;
     }
     displayError(error.message);
@@ -193,11 +173,8 @@ export const pathIsInPackageDirectory = async (
 export const fileShouldNotBeDeployed = (fsPath: string): boolean =>
   isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
 
-const isDotFile = (fsPath: string): boolean =>
-  path.basename(fsPath).startsWith('.');
+const isDotFile = (fsPath: string): boolean => path.basename(fsPath).startsWith('.');
 
-const isSoql = (fsPath: string): boolean =>
-  path.basename(fsPath).endsWith('.soql');
+const isSoql = (fsPath: string): boolean => path.basename(fsPath).endsWith('.soql');
 
-const isAnonApex = (fsPath: string): boolean =>
-  path.basename(fsPath).endsWith('.apex');
+const isAnonApex = (fsPath: string): boolean => path.basename(fsPath).endsWith('.apex');

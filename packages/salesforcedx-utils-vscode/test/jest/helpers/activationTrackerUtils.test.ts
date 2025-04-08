@@ -28,15 +28,11 @@ jest.mock(
   { virtual: true }
 );
 
-const fixPath = (fsPath: string): string => {
-  return fsPath.split('/').join(sep);
-};
+const fixPath = (fsPath: string): string => fsPath.split('/').join(sep);
 
 describe('readExtensionHostLog', () => {
   it('should return log lines', async () => {
-    (readFile as jest.Mock).mockResolvedValue(
-      ['line1', 'line2', 'line3'].join(EOL)
-    );
+    (readFile as jest.Mock).mockResolvedValue(['line1', 'line2', 'line3'].join(EOL));
     (Uri.file as jest.Mock).mockReturnValue({
       fsPath: fixPath('/path/to/log')
     });
@@ -61,9 +57,7 @@ describe('getExtensionHostLogLocation', () => {
     (Uri.file as jest.Mock).mockReturnValue({
       fsPath: fixPath('/path/to/exthost/window1/a/b/c/some-ext.log')
     });
-    const logUri = Uri.file(
-      fixPath('/path/to/exthost/window1/a/b/c/some-ext.log')
-    );
+    const logUri = Uri.file(fixPath('/path/to/exthost/window1/a/b/c/some-ext.log'));
     const context = {
       logUri
     } as unknown as ExtensionContext;

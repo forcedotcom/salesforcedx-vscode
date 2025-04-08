@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJsonObject } from '../../helpers';
+import { extractJson } from '../../helpers';
 
 export const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
@@ -23,7 +23,7 @@ export type ProjectDeployStartErrorResponse = {
   message: string;
   name: string;
   status: number;
-  files: ProjectDeployStartResult[];
+  files?: ProjectDeployStartResult[];
   warnings: any[];
 };
 
@@ -39,7 +39,7 @@ export class ProjectDeployStartResultParser {
 
   constructor(stdout: string) {
     try {
-      this.response = extractJsonObject(stdout);
+      this.response = extractJson(stdout);
     } catch (e) {
       const err = new Error('Error parsing project deploy start result');
       err.name = 'ProjectDeployStartParserFail';
@@ -49,14 +49,14 @@ export class ProjectDeployStartResultParser {
 
   public getErrors(): ProjectDeployStartErrorResponse | undefined {
     if (this.response.status === 1) {
+      const files = this.response.data ?? this.response.result?.files;
       return {
         message: this.response.message ?? 'Push failed. ',
         name: this.response.name ?? 'DeployFailed',
         status: this.response.status,
-        files: (this.response.data ?? this.response.result.files).filter(
-          (file: { state: string }) =>
-            file.state === 'Failed' || file.state === 'Conflict'
-        )
+        ...(files && {
+          files: files.filter((file: { state: string }) => file.state === 'Failed' || file.state === 'Conflict')
+        })
       } as ProjectDeployStartErrorResponse;
     }
   }
@@ -76,8 +76,6 @@ export class ProjectDeployStartResultParser {
   }
 
   public hasConflicts(): boolean {
-    return (
-      this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
-    );
+    return this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME;
   }
 }

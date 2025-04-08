@@ -13,10 +13,7 @@ import {
   OrgOpenSuccessResult,
   SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  isSFContainerMode
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, isSFContainerMode } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -24,15 +21,9 @@ import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { workspaceUtils } from '../util';
-import {
-  EmptyParametersGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
@@ -85,9 +76,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
           channelService.appendLine(errorResponse.message);
         }
       } catch (error) {
-        channelService.appendLine(
-          nls.localize('org_open_default_scratch_org_container_error')
-        );
+        channelService.appendLine(nls.localize('org_open_default_scratch_org_container_error'));
         telemetryService.sendException(
           'org_open_container',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -96,10 +85,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
       }
     });
 
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
-    );
+    notificationService.reportCommandExecutionStatus(execution, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
@@ -107,7 +93,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
 
 export class OrgOpenExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
@@ -124,10 +110,6 @@ const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export const orgOpen = (): void => {
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    getExecutor()
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, getExecutor());
   void commandlet.run();
 };

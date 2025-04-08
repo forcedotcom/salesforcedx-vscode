@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getRootWorkspacePath } from '../..';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
-import { TelemetryReporter } from '../interfaces';
 
 /**
  * Represents a telemetry file that logs telemetry events by appending to a local file.
@@ -67,16 +67,10 @@ export class TelemetryFile implements TelemetryReporter {
   ) {
     const timestamp = new Date().toISOString();
 
-    await fs.promises.appendFile(
-      this.filePath,
-      JSON.stringify({ timestamp, command, data }, null, 2) + ','
-    );
+    await fs.promises.appendFile(this.filePath, JSON.stringify({ timestamp, command, data }, null, 2) + ',');
   }
 
   private logFilePathFor(extensionId: string): string {
-    return path.join(
-      getRootWorkspacePath(),
-      `${extensionId}-${LOCAL_TELEMETRY_FILE}`
-    );
+    return path.join(getRootWorkspacePath(), `${extensionId}-${LOCAL_TELEMETRY_FILE}`);
   }
 }

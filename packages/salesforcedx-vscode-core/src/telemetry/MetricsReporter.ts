@@ -8,24 +8,20 @@ import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { BASE_EXTENSION, EXPANDED_EXTENSION, EXT_PACK_STATUS_EVENT_NAME } from '../constants';
 
-export enum EXT_PACK_TYPES {
+enum EXT_PACK_TYPES {
   BASE = 'BASE',
   EXPANDED = 'EXPANDED',
   BOTH = 'BOTH',
   NONE = 'NONE'
-};
+}
 
 export class MetricsReporter {
-
-  public static extensionPackStatus = () => {
+  public static extensionPackStatus = (): void => {
     const extensionPackStatus = MetricsReporter.getExtensionPackStatus();
-    TelemetryService.getInstance().sendEventData(
-      EXT_PACK_STATUS_EVENT_NAME,
-      { extpack: extensionPackStatus }
-    );
+    TelemetryService.getInstance().sendEventData(EXT_PACK_STATUS_EVENT_NAME, { extpack: extensionPackStatus });
   };
 
-  private static getExtensionPackStatus = () => {
+  private static getExtensionPackStatus = (): EXT_PACK_TYPES => {
     const hasBasePack = this.isExtensionInstalled(BASE_EXTENSION);
     const hasExpandedPack = this.isExtensionInstalled(EXPANDED_EXTENSION);
 
@@ -41,9 +37,8 @@ export class MetricsReporter {
     return status;
   };
 
-  private static isExtensionInstalled = (extensionName: string) => {
+  private static isExtensionInstalled = (extensionName: string): boolean => {
     const extension = vscode.extensions.getExtension(extensionName);
     return extension !== undefined;
   };
-
 }

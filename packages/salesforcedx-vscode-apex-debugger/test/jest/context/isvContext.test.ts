@@ -12,16 +12,13 @@ describe('isvContext unit test', () => {
   describe('registerIsvAuthWatcher', () => {
     const fakePath = '/here/is/a/fake/config.json';
     let extensionContext: any;
-    let salesforceProjectConfigStub: jest.SpyInstance;
     let pushSpy: jest.SpyInstance;
     let onDidChangeSpy: jest.SpyInstance;
     let onDidCreateSpy: jest.SpyInstance;
     let onDidDeleteSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      salesforceProjectConfigStub = jest
-        .spyOn(projectPaths, 'salesforceProjectConfig')
-        .mockReturnValue(fakePath);
+      jest.spyOn(projectPaths, 'salesforceProjectConfig').mockReturnValue(fakePath);
       onDidChangeSpy = jest.fn();
       onDidCreateSpy = jest.fn();
       onDidDeleteSpy = jest.fn();
@@ -51,9 +48,7 @@ describe('isvContext unit test', () => {
     it('should watch files if workspace folders are present', () => {
       (vscode.workspace.workspaceFolders as any) = ['1'];
       registerIsvAuthWatcher(extensionContext);
-      expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith(
-        fakePath
-      );
+      expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith(fakePath);
       expect(onDidChangeSpy).toHaveBeenCalledWith(expect.any(Function));
       expect(onDidCreateSpy).toHaveBeenCalledWith(expect.any(Function));
       expect(onDidDeleteSpy).toHaveBeenCalledWith(expect.any(Function));

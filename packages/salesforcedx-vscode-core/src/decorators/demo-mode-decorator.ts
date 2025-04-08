@@ -12,10 +12,7 @@ let demoModeStatusBar: StatusBarItem;
 
 export const showDemoMode = () => {
   if (!demoModeStatusBar) {
-    demoModeStatusBar = window.createStatusBarItem(
-      StatusBarAlignment.Right,
-      50
-    );
+    demoModeStatusBar = window.createStatusBarItem(StatusBarAlignment.Right, 50);
     demoModeStatusBar.text = nls.localize('demo_mode_status_text');
     demoModeStatusBar.tooltip = nls.localize('demo_mode_status_tooltip');
     demoModeStatusBar.show();

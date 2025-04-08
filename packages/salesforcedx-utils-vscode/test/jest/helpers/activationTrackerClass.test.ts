@@ -61,10 +61,7 @@ describe('ActivationTracker', () => {
     await tracker.markActivationStop();
 
     expect(tracker.activationInfo).toEqual({
-      startActivateHrTime: expect.arrayContaining([
-        expect.any(Number),
-        expect.any(Number)
-      ]),
+      startActivateHrTime: expect.arrayContaining([expect.any(Number), expect.any(Number)]),
       activateStartDate: expect.any(Date),
       activateEndDate: expect.any(Date),
       extensionActivationTime: expect.any(Number),
@@ -72,9 +69,7 @@ describe('ActivationTracker', () => {
       ...mockExtensionInfo
     });
 
-    expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(
-      tracker.activationInfo
-    );
+    expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(tracker.activationInfo);
   });
   it('should not sendActivationEventInfo when loadStartDate is undefined', async () => {
     const loadStartDate: Date | undefined = undefined;

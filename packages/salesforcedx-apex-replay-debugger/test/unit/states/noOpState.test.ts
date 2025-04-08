@@ -6,14 +6,10 @@
  */
 
 import { expect } from 'chai';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import { NoOpState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('NoOp event', () => {
   it('Should handle event', () => {
     const context = new LogContext(

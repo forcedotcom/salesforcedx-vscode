@@ -4,9 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import * as fs from 'node:fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -20,7 +19,6 @@ import { notificationService } from '../../../../src/notifications';
 import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Lightning Generate App', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
@@ -31,17 +29,11 @@ describe('Lightning Generate App', () => {
   let openTextDocumentStub: SinonStub;
 
   beforeEach(() => {
-    getInternalDevStub = stub(
-      SalesforceCoreSettings.prototype,
-      'getInternalDev'
-    );
+    getInternalDevStub = stub(SalesforceCoreSettings.prototype, 'getInternalDev');
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -61,22 +53,19 @@ describe('Lightning Generate App', () => {
     // arrange
     getInternalDevStub.returns(false);
     const outputPath = 'force-app/main/default/aura';
-    const auraAppPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testApp',
-      'testApp.app'
-    );
+    const auraAppPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp', 'testApp.app');
     const auraAppMetaPath = path.join(
       workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testApp',
       'testApp.app-meta.xml'
     );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
-    );
+
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'), {
+      recursive: true,
+      force: true
+    });
+
     assert.noFile([auraAppPath, auraAppMetaPath]);
     showInputBoxStub.returns('testApp');
     quickPickStub.returns(outputPath);
@@ -96,92 +85,49 @@ describe('Lightning Generate App', () => {
       '.svg'
     ];
     for (const suffix of suffixarray) {
-      assert.file(
-        path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          outputPath,
-          'testApp',
-          `testApp${suffix}`
-        )
-      );
+      assert.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp', `testApp${suffix}`));
     }
-    assert.fileContent(
-      auraAppPath,
-      '<aura:application>\n\n</aura:application>'
-    );
-    assert.fileContent(
-      auraAppMetaPath,
-      '<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">'
-    );
+    assert.fileContent(auraAppPath, '<aura:application>\n\n</aura:application>');
+    assert.fileContent(auraAppMetaPath, '<AuraDefinitionBundle xmlns="http://soap.sforce.com/2006/04/metadata">');
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
-    );
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'), {
+      recursive: true,
+      force: true
+    });
   });
 
   it('Should generate internal Aura App', async () => {
     // arrange
     getInternalDevStub.returns(true);
     const outputPath = 'force-app/main/default/aura';
-    const auraAppPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testApp',
-      'testApp.app'
-    );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
-    );
+    const auraAppPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp', 'testApp.app');
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([auraAppPath]);
     showInputBoxStub.returns('testApp');
 
     // act
-    shell.mkdir(
-      '-p',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
-    await internalLightningGenerateApp(
-      vscode.Uri.file(
-        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-      )
-    );
+    await fs.promises.mkdir(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), { recursive: true });
+    await internalLightningGenerateApp(vscode.Uri.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath)));
 
     // assert
-    const suffixarray = [
-      '.app',
-      '.auradoc',
-      '.css',
-      'Controller.js',
-      'Helper.js',
-      'Renderer.js',
-      '.svg'
-    ];
+    const suffixarray = ['.app', '.auradoc', '.css', 'Controller.js', 'Helper.js', 'Renderer.js', '.svg'];
     for (const suffix of suffixarray) {
-      assert.file(
-        path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          outputPath,
-          'testApp',
-          `testApp${suffix}`
-        )
-      );
+      assert.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp', `testApp${suffix}`));
     }
-    assert.fileContent(
-      auraAppPath,
-      '<aura:application>\n\n</aura:application>'
-    );
+    assert.fileContent(auraAppPath, '<aura:application>\n\n</aura:application>');
     sinon.assert.calledOnce(openTextDocumentStub);
     sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
-    );
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp'), {
+      recursive: true,
+      force: true
+    });
   });
 });

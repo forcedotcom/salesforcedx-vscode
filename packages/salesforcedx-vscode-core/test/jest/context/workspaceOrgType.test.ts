@@ -6,16 +6,12 @@
  */
 import { Org } from '@salesforce/core-bundle';
 import { WorkspaceContext } from '../../../src/context';
-import {
-  getWorkspaceOrgType,
-  OrgType
-} from '../../../src/context/workspaceOrgType';
+import { getWorkspaceOrgType, OrgType } from '../../../src/context/workspaceOrgType';
 
 describe('workspaceOrgType', () => {
   describe('getWorkspaceOrgType', () => {
     const mockWorkspaceContext = { getConnection: jest.fn() } as any;
     let workspaceContextGetInstanceSpy: jest.SpyInstance;
-    let orgStub: jest.SpyInstance;
 
     beforeEach(() => {
       workspaceContextGetInstanceSpy = jest
@@ -24,7 +20,7 @@ describe('workspaceOrgType', () => {
     });
 
     it('should return SourceTracked for an org that supports source-tracking', async () => {
-      orgStub = jest.spyOn(Org, 'create').mockResolvedValue({
+      jest.spyOn(Org, 'create').mockResolvedValue({
         supportsSourceTracking: async () => true
       } as any);
 
@@ -35,7 +31,7 @@ describe('workspaceOrgType', () => {
     });
 
     it('should return NonSourceTracked for an org that does not support source-tracking', async () => {
-      orgStub = jest.spyOn(Org, 'create').mockResolvedValue({
+      jest.spyOn(Org, 'create').mockResolvedValue({
         supportsSourceTracking: async () => false
       } as any);
 

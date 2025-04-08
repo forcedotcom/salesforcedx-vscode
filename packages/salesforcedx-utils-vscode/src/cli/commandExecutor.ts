@@ -13,7 +13,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 
-// Below two dependancies are not structured correcly for import unless require is used.
+// Below two dependencies are not structured correctly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { Command } from './';
 const cross_spawn = require('cross-spawn');
@@ -29,10 +29,7 @@ export class GlobalCliEnvironment {
 }
 
 export class CliCommandExecutor {
-  protected static patchEnv(
-    options: SpawnOptions,
-    baseEnvironment: Map<string, string>
-  ): SpawnOptions {
+  protected static patchEnv(options: SpawnOptions, baseEnvironment: Map<string, string>): SpawnOptions {
     // start with current process environment
     const env = Object.create(null);
 
@@ -61,31 +58,16 @@ export class CliCommandExecutor {
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
-  public constructor(
-    command: Command,
-    options: SpawnOptions,
-    inheritGlobalEnvironmentVariables = true
-  ) {
+  public constructor(command: Command, options: SpawnOptions, inheritGlobalEnvironmentVariables = true) {
     this.command = command;
     this.options = inheritGlobalEnvironmentVariables
-      ? CliCommandExecutor.patchEnv(
-          options,
-          GlobalCliEnvironment.environmentVariables
-        )
+      ? CliCommandExecutor.patchEnv(options, GlobalCliEnvironment.environmentVariables)
       : options;
   }
 
   public execute(cancellationToken?: CancellationToken): CliCommandExecution {
-    const childProcess = cross_spawn(
-      this.command.command,
-      this.command.args,
-      this.options
-    );
-    return new CliCommandExecution(
-      this.command,
-      childProcess,
-      cancellationToken
-    );
+    const childProcess = cross_spawn(this.command.command, this.command.args, this.options);
+    return new CliCommandExecution(this.command, childProcess, cancellationToken);
   }
 }
 
@@ -96,9 +78,7 @@ export class CompositeCliCommandExecutor {
     this.command = commands;
   }
 
-  public execute(
-    cancellationToken?: CancellationToken
-  ): CompositeCliCommandExecution {
+  public execute(cancellationToken?: CancellationToken): CompositeCliCommandExecution {
     return new CompositeCliCommandExecution(this.command, cancellationToken);
   }
 }
@@ -107,7 +87,7 @@ export class CompositeCliCommandExecutor {
  * Represents a command execution (a process has already been spawned for it).
  * This is tightly coupled with the execution model (child_process).
  * If we ever use a different executor, this class should be refactored and abstracted
- * to take an event emitter/observable instead of child_proces.
+ * to take an event emitter/observable instead of child_process.
  */
 export type CommandExecution = {
   readonly command: Command;
@@ -174,7 +154,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
 
   public failureExit(e?: {}) {
     if (e) {
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       this.stderr.next(`${e}${os.EOL}`);
     }
     this.exitSubject.next(1);
@@ -191,11 +171,7 @@ export class CliCommandExecution implements CommandExecution {
 
   private readonly childProcessPid: number;
 
-  constructor(
-    command: Command,
-    childProcess: ChildProcess,
-    cancellationToken?: CancellationToken
-  ) {
+  constructor(command: Command, childProcess: ChildProcess, cancellationToken?: CancellationToken) {
     this.command = command;
     this.cancellationToken = cancellationToken;
 
@@ -250,8 +226,8 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-const killPromise = (processId: number, signal: string): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
+const killPromise = (processId: number, signal: string): Promise<void> =>
+  new Promise<void>((resolve, reject) => {
     kill(processId, signal, (err: {}) => {
       if (err) {
         reject(err);
@@ -259,4 +235,3 @@ const killPromise = (processId: number, signal: string): Promise<void> => {
       resolve();
     });
   });
-};

@@ -22,9 +22,7 @@ describe('extensionUris Unit Tests.', () => {
     it('Should return extensionUri if found.', () => {
       (vscode.extensions.getExtension as any).mockReturnValue(fakeExtensionRef);
       const result = extensionUris.extensionUri(fakeExtensionName);
-      expect(vscode.extensions.getExtension).toHaveBeenCalledWith(
-        fakeExtensionName
-      );
+      expect(vscode.extensions.getExtension).toHaveBeenCalledWith(fakeExtensionName);
       expect(result).toEqual(fakeExtensionRef.extensionUri);
     });
 

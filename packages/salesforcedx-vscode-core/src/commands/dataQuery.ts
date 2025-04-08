@@ -5,15 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Command,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
@@ -26,20 +19,14 @@ class DataQueryExecutor extends SfCommandletExecutor<{}> {
       .withFlag('--query', `${data.query}`)
       .withLogName('data_soql_query');
     if (data.api === ApiType.Tooling) {
-      command = command
-        .withArg('--use-tooling-api')
-        .withLogName('data_soql_query_tooling');
+      command = command.withArg('--use-tooling-api').withLogName('data_soql_query_tooling');
     }
     return command.build();
   }
 }
 
-export class GetQueryAndApiInputs
-  implements ParametersGatherer<QueryAndApiInputs>
-{
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<QueryAndApiInputs>
-  > {
+class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
     const editor = await vscode.window.activeTextEditor;
 
     let query;
@@ -84,31 +71,24 @@ export class GetQueryAndApiInputs
     const apiItems = [restApi, toolingApi];
     const selection = await vscode.window.showQuickPick(apiItems);
 
-    return selection
-      ? { type: 'CONTINUE', data: { query, api: selection.api } }
-      : { type: 'CANCEL' };
+    return selection ? { type: 'CONTINUE', data: { query, api: selection.api } } : { type: 'CANCEL' };
   }
 }
 
-export type QueryAndApiInputs = {
+type QueryAndApiInputs = {
   query: string;
   api: ApiType;
 };
 
-export enum ApiType {
+enum ApiType {
   REST,
   Tooling
 }
 
 const workspaceChecker = new SfWorkspaceChecker();
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const dataQuery = (explorerDir?: any): void => {
   const parameterGatherer = new GetQueryAndApiInputs();
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new DataQueryExecutor()
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new DataQueryExecutor());
   void commandlet.run();
 };

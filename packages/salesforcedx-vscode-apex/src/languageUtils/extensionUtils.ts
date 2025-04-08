@@ -7,10 +7,7 @@
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { getTestOutlineProvider } from '../views/testOutlineProvider';
-import {
-  ClientStatus,
-  languageClientUtils
-} from './index';
+import { ClientStatus, languageClientManager } from './index';
 
 const setClientReady = async (
   languageClient: ApexLanguageClient,
@@ -18,7 +15,7 @@ const setClientReady = async (
 ): Promise<void> => {
   await getTestOutlineProvider().refresh();
   languageServerStatusBarItem.ready();
-  languageClientUtils.setStatus(ClientStatus.Ready, '');
+  languageClientManager.setStatus(ClientStatus.Ready, '');
   languageClient?.errorHandler?.serviceHasStartedSuccessfully();
 };
 

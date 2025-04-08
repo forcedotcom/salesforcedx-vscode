@@ -5,28 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandOutput,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor, Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { workspaceUtils } from '../util';
-import {
-  EmptyParametersGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 type QueryResponse = {
   status: number;
@@ -71,15 +58,11 @@ export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelect
 }
 
 export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withArg('data:query')
       .withDescription(nls.localize('debugger_query_session_text'))
-      .withFlag(
-        '--query',
-        "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"
-      )
+      .withFlag('--query', "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1")
       .withArg('--use-tooling-api')
       .withJson()
       .withLogName('debugger_query_session')
@@ -107,11 +90,7 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
     try {
       const result = await resultPromise;
       const queryResponse = JSON.parse(result) as QueryResponse;
-      if (
-        queryResponse &&
-        queryResponse.result &&
-        queryResponse.result.size === 1
-      ) {
+      if (queryResponse && queryResponse.result && queryResponse.result.size === 1) {
         const sessionIdToUpdate = queryResponse.result.records[0].Id;
         if (sessionIdToUpdate && sessionIdToUpdate.startsWith('07a')) {
           const sessionDetachCommandlet = new SfCommandlet(
@@ -122,12 +101,9 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
           await sessionDetachCommandlet.run();
         }
       } else {
-        void notificationService.showInformationMessage(
-          nls.localize('debugger_stop_none_found_text')
-        );
+        void notificationService.showInformationMessage(nls.localize('debugger_stop_none_found_text'));
       }
-      // tslint:disable-next-line:no-empty
-    } catch (e) {}
+    } catch {}
 
     return Promise.resolve();
   }

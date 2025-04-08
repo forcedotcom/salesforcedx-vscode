@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LoggerLevel } from '@salesforce/vscode-service-provider';
-import {
-  CoreLoggerService,
-  getCoreLoggerService
-} from '../../../src/services/getCoreLoggerService';
+import { CoreLoggerService, getCoreLoggerService } from '../../../src/services/getCoreLoggerService';
 
 describe('getCoreLoggerService', () => {
   it('should return an instance of ILogger', () => {

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
-import * as shell from 'shelljs';
+import * as fs from 'node:fs';
 import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
@@ -15,7 +15,6 @@ import { visualforceGeneratePage } from '../../../../src/commands/templates';
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Visualforce Generate Page', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -28,10 +27,7 @@ describe('Visualforce Generate Page', () => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -50,24 +46,16 @@ describe('Visualforce Generate Page', () => {
     // arrange
     const fileName = 'testVFPage';
     const outputPath = 'force-app/main/default/components';
-    const vfPagePath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testVFPage.page'
-    );
-    const vfPageMetaPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testVFPage.page-meta.xml'
-    );
-    shell.rm('-f', path.join(vfPagePath));
-    shell.rm('-f', path.join(vfPageMetaPath));
+    const vfPagePath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFPage.page');
+    const vfPageMetaPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFPage.page-meta.xml');
+    await fs.promises.rm(path.join(vfPagePath), { force: true });
+    await fs.promises.rm(path.join(vfPageMetaPath), { force: true });
     assert.noFile([vfPagePath, vfPageMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    await visualforceGeneratePage();
+    visualforceGeneratePage();
 
     // assert
     assert.file([vfPagePath, vfPageMetaPath]);
@@ -75,9 +63,9 @@ describe('Visualforce Generate Page', () => {
     sinon.assert.calledWith(openTextDocumentStub, vfPagePath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), {
+      recursive: true,
+      force: true
+    });
   });
 });

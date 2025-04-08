@@ -23,14 +23,9 @@ describe('Source Tracking Service', () => {
 
     it('Should update an instance of SourceTracking using the retrieve result', async () => {
       const dummyRetrieveResult = {} as any;
-      await SourceTrackingService.updateSourceTrackingAfterRetrieve(
-        dummySourceTracking,
-        dummyRetrieveResult
-      );
+      await SourceTrackingService.updateSourceTrackingAfterRetrieve(dummySourceTracking, dummyRetrieveResult);
 
-      expect(updateTrackingFromRetrieveSpy).toHaveBeenCalledWith(
-        dummyRetrieveResult
-      );
+      expect(updateTrackingFromRetrieveSpy).toHaveBeenCalledWith(dummyRetrieveResult);
     });
   });
 
@@ -39,25 +34,15 @@ describe('Source Tracking Service', () => {
       onOrgChange: jest.fn(),
       getConnection: jest.fn()
     };
-    const updateTrackingFromRetrieveSpy = jest.fn();
     const getStatusMock = jest.fn();
-    const dummySourceTracking = {
-      updateTrackingFromRetrieve: updateTrackingFromRetrieveSpy
-    } as any;
 
-    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let getSourceTrackingForCurrentProjectMock: jest.SpyInstance;
 
     beforeEach(() => {
-      workspaceContextUtilGetInstanceSpy = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(mockWorkspaceContextUtil as any);
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil as any);
 
       getSourceTrackingForCurrentProjectMock = jest
-        .spyOn(
-          SourceTrackingService as any,
-          'getSourceTrackingForCurrentProject'
-        )
+        .spyOn(SourceTrackingService as any, 'getSourceTrackingForCurrentProject')
         .mockResolvedValue({
           getStatus: getStatusMock
         } as any);
@@ -68,9 +53,7 @@ describe('Source Tracking Service', () => {
       getStatusMock.mockResolvedValue(testData.statusResponse as any);
 
       // Act
-      const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary(
-        {}
-      );
+      const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary({});
 
       // Assert
       expect(getSourceTrackingForCurrentProjectMock).toHaveBeenCalled();
@@ -81,9 +64,7 @@ describe('Source Tracking Service', () => {
     it('Should return a friendly message when no changes exist', async () => {
       getStatusMock.mockResolvedValue(testData.noChangesResponse as any);
 
-      const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary(
-        {}
-      );
+      const formattedOutput: string = await SourceTrackingService.getSourceStatusSummary({});
 
       expect(getSourceTrackingForCurrentProjectMock).toHaveBeenCalled();
       expect(getStatusMock).toHaveBeenCalled();

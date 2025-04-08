@@ -13,7 +13,7 @@ on:
 jobs:
   # Check if the issue is a feature request, and if it is, tag it with 'type:enhancements' (this job is a prerequisite to all the other jobs)
   check-feature-request:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && !contains(github.event.issue.labels.*.name, 'pending release') }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'announcement') && !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:bug') && !contains(github.event.issue.labels.*.name, 'pending release') }}
     outputs:
       is_feature_request: ${{ steps.check_feature_request.outputs.is_feature_request }}
     runs-on: ubuntu-latest
@@ -31,7 +31,7 @@ jobs:
           repo-token: ${{ secrets.IDEE_GH_TOKEN }}
 
   new-issue:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && !contains(github.event.issue.labels.*.name, 'pending release') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'announcement') && !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:bug') && !contains(github.event.issue.labels.*.name, 'pending release') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
     needs: [check-feature-request]
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +52,7 @@ jobs:
             If you require immediate assistance, contact Salesforce Customer Support.
 
   validate-new-issue:
-    if: ${{ !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'bug') && !contains(github.event.issue.labels.*.name, 'pending release') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
+    if: ${{ !contains(github.event.issue.labels.*.name, 'announcement') && !contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:bug') && !contains(github.event.issue.labels.*.name, 'pending release') && (needs.check-feature-request.outputs.is_feature_request != 'true') }}
     needs: [check-feature-request, new-issue]
     runs-on: ubuntu-latest
     steps:

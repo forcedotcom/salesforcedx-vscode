@@ -1,17 +1,14 @@
 #!/usr/bin/env node
 
-const shell = require('shelljs');
+const fs = require('fs');
+const { execSync } = require('child_process');
 const { checkVSCodeVersion, checkBaseBranch } = require('./validation-utils');
 const logger = require('./logger-util');
 
 const RELEASE_TYPE = process.env['RELEASE_TYPE'];
 
-shell.set('-e');
-shell.set('+v');
-
 function getReleaseVersion() {
-  const currentVersion = require('../packages/salesforcedx-vscode/package.json')
-    .version;
+  const currentVersion = require('../packages/salesforcedx-vscode/package.json').version;
   let [version, major, minor, patch] = currentVersion.match(/^(\d+)\.?(\d+)\.?(\*|\d+)$/);
 
   switch (RELEASE_TYPE) {
@@ -44,7 +41,7 @@ function isBetaRelease() {
   return /beta/.exec(`${RELEASE_TYPE}`);
 }
 
-shell.env['SALESFORCEDX_VSCODE_VERSION'] = getReleaseVersion();
+process.env['SALESFORCEDX_VSCODE_VERSION'] = getReleaseVersion();
 checkVSCodeVersion();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
@@ -56,11 +53,9 @@ if (!isBetaRelease()) {
 const releaseBranchName = `release/v${nextVersion}`;
 
 // Check if release branch has already been created
-const remoteReleaseBranchExists = shell
-  .exec(`git ls-remote --heads origin ${releaseBranchName}`, {
-    silent: true
-  })
-  .stdout.trim();
+const remoteReleaseBranchExists = execSync(`git ls-remote --heads origin ${releaseBranchName}`, {
+  encoding: 'utf8'
+}).trim();
 
 if (remoteReleaseBranchExists) {
   logger.error(
@@ -70,51 +65,49 @@ if (remoteReleaseBranchExists) {
 }
 
 // Create the new release branch and switch to it
-shell.exec(`git checkout -b ${releaseBranchName}`);
+execSync(`git checkout -b ${releaseBranchName}`);
 
 // git clean but keeping node_modules around
-shell.exec('git clean -xfd -e node_modules');
+execSync('git clean -xfd -e node_modules');
 
 // lerna version
 // increment the version number in all packages without publishing to npmjs
 // only run on branch named develop and do not create git tags
-shell.exec(
-  `lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`
-);
+execSync(`lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`);
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
 // all the version bump changes so we'll now need to commit those using git add & commit.
 // Add all package.json version update changes
-shell.exec(`git add "**/package.json"`);
+execSync(`git add "**/package.json"`);
 
-// Execute an npm install so that we update the package-lock.json file with the new version 
+// Execute an npm install so that we update the package-lock.json file with the new version
 // found in the packages for each submodule.
-shell.exec(`npm install --ignore-scripts --package-lock-only --no-audit`);
+execSync(`npm install --ignore-scripts --package-lock-only --no-audit`);
 
 // Add change to package lockfile that includes version bump
-shell.exec('git add package-lock.json');
+execSync('git add package-lock.json');
 
 // Add change to lerna.json
-shell.exec('git add lerna.json');
+execSync('git add lerna.json');
 
 // If it is a beta release, add all files
 if (isBetaRelease()) {
-  shell.exec('git add .');
+  execSync('git add .');
 }
 
 // Git commit
-shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
+execSync(`git commit -m "chore: update to version ${nextVersion}"`);
 
 // Merge release branch to develop as soon as it is cut.
 // In this way, we can resolve conflicts between main branch and develop branch when merge main back to develop after the release.
 // beta versions should not be merged directly to develop, so we don't merge back to main
 if (!isBetaRelease()) {
-  shell.exec(`git checkout develop`)
-  shell.exec(`git merge ${releaseBranchName}`)
-  shell.exec(`git push -u origin develop`)
-  shell.exec(`git checkout ${releaseBranchName}`)
-  shell.exec(`git fetch`)
+  execSync(`git checkout develop`);
+  execSync(`git merge ${releaseBranchName}`);
+  execSync(`git push -u origin develop`);
+  execSync(`git checkout ${releaseBranchName}`);
+  execSync(`git fetch`);
 }
 
 // Push new release branch to remote
-shell.exec(`git push -u origin ${releaseBranchName}`);
+execSync(`git push -u origin ${releaseBranchName}`);

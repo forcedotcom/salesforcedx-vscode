@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJsonObject } from '../../helpers';
+import { extractJson } from '../../helpers';
 
-export const CONFLICT_ERROR_NAME = 'SourceConflictError';
+const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
 export type ProjectRetrieveStartResult = {
   columnNumber?: string;
@@ -23,7 +23,7 @@ export type ProjectRetrieveStartErrorResponse = {
   message: string;
   name: string;
   status: number;
-  files: ProjectRetrieveStartResult[];
+  files?: ProjectRetrieveStartResult[];
   warnings: any[];
 };
 
@@ -39,8 +39,8 @@ export class ProjectRetrieveStartResultParser {
 
   constructor(stdout: string) {
     try {
-      this.response = extractJsonObject(stdout);
-    } catch (e) {
+      this.response = extractJson(stdout);
+    } catch {
       const err = new Error('Error parsing pull result');
       err.name = 'ProjectRetrieveStartParserFail';
       throw err;
@@ -49,14 +49,15 @@ export class ProjectRetrieveStartResultParser {
 
   public getErrors(): ProjectRetrieveStartErrorResponse | undefined {
     if (this.response.status === 1) {
+      const files = this.response.data ?? this.response.result?.files;
+
       return {
         message: this.response.message ?? 'Pull failed. ',
         name: this.response.name ?? 'RetrieveFailed',
         status: this.response.status,
-        files: (this.response.data ?? this.response.result.files).filter(
-          (file: { state: string }) =>
-            file.state === 'Failed' || file.state === 'Conflict'
-        )
+        ...(files && {
+          files: files.filter((file: { state: string }) => file.state === 'Failed' || file.state === 'Conflict')
+        })
       } as ProjectRetrieveStartErrorResponse;
     }
   }
@@ -76,8 +77,6 @@ export class ProjectRetrieveStartResultParser {
   }
 
   public hasConflicts(): boolean {
-    return (
-      this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
-    );
+    return this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME;
   }
 }

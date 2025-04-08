@@ -45,11 +45,8 @@ export const enum TestInfoKind {
 /**
  * Confirms if the TestExecutionInfo kind is TestCaseInfo
  */
-export const isTestCaseInfo = (
-  testExecutionInfo: TestExecutionInfo
-): testExecutionInfo is TestCaseInfo => {
-  return testExecutionInfo.kind === TestInfoKind.TEST_CASE;
-};
+export const isTestCaseInfo = (testExecutionInfo: TestExecutionInfo): testExecutionInfo is TestCaseInfo =>
+  testExecutionInfo.kind === TestInfoKind.TEST_CASE;
 
 /**
  * Raw Test Results generated from Jest output.
@@ -131,13 +128,7 @@ export type LwcJestTestResults = {
  * - 'failed' transforms to TestResultStatus.FAILED
  * - All other statuses tranform to TestResultStatus.SKIPPED
  */
-type LwcJestTestResultStatus =
-  | 'passed'
-  | 'failed'
-  | 'pending'
-  | 'skipped'
-  | 'todo'
-  | 'disabled';
+type LwcJestTestResultStatus = 'passed' | 'failed' | 'pending' | 'skipped' | 'todo' | 'disabled';
 
 /**
  * Jest Test File Result

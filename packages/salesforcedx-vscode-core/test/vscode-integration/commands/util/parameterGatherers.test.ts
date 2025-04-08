@@ -4,16 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentSet,
-  registry,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve-bundle';
+import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { ComponentSet, registry, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import { expect } from 'chai';
 import * as path from 'path';
 import { join } from 'path';
@@ -31,17 +23,13 @@ import {
   SfCommandlet,
   SimpleGatherer
 } from '../../../../src/commands/util';
-import {
-  PromptConfirmGatherer,
-  SelectLwcComponentDir
-} from '../../../../src/commands/util/parameterGatherers';
+import { PromptConfirmGatherer, SelectLwcComponentDir } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
 import { SalesforcePackageDirectories } from '../../../../src/salesforceProject';
 import { workspaceUtils } from '../../../../src/util';
 
 const SFDX_SIMPLE_NUM_OF_DIRS = 16;
 
-// tslint:disable:no-unused-expression
 describe('Parameter Gatherers', () => {
   describe('EmptyParametersGatherer', () => {
     it('Should always return continue with empty object as data', async () => {
@@ -58,16 +46,12 @@ describe('Parameter Gatherers', () => {
     it('Should proceed to next gatherer if previous gatherer in composite gatherer is CONTINUE', async () => {
       const compositeParameterGatherer = new CompositeParametersGatherer(
         new (class implements ParametersGatherer<{}> {
-          public async gather(): Promise<
-            CancelResponse | ContinueResponse<{}>
-          > {
+          public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
             return { type: 'CONTINUE', data: {} };
           }
         })(),
         new (class implements ParametersGatherer<{}> {
-          public async gather(): Promise<
-            CancelResponse | ContinueResponse<{}>
-          > {
+          public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
             return { type: 'CONTINUE', data: {} };
           }
         })()
@@ -80,16 +64,12 @@ describe('Parameter Gatherers', () => {
     it('Should not proceed to next gatherer if previous gatherer in composite gatherer is CANCEL', async () => {
       const compositeParameterGatherer = new CompositeParametersGatherer(
         new (class implements ParametersGatherer<{}> {
-          public async gather(): Promise<
-            CancelResponse | ContinueResponse<{}>
-          > {
+          public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
             return { type: 'CANCEL' };
           }
         })(),
         new (class implements ParametersGatherer<{}> {
-          public async gather(): Promise<
-            CancelResponse | ContinueResponse<{}>
-          > {
+          public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
             throw new Error('This should not be called');
           }
         })()
@@ -108,9 +88,7 @@ describe('Parameter Gatherers', () => {
         })(),
         new CompositeParametersGatherer(
           new (class implements ParametersGatherer<{}> {
-            public async gather(): Promise<
-              CancelResponse | ContinueResponse<{}>
-            > {
+            public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
               return { type: 'CONTINUE', data: {} };
             }
           })()
@@ -136,9 +114,7 @@ describe('Parameter Gatherers', () => {
         })(),
         new CompositeParametersGatherer(
           new (class implements ParametersGatherer<{}> {
-            public async gather(): Promise<
-              CancelResponse | ContinueResponse<{}>
-            > {
+            public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
               return { type: 'CANCEL' };
             }
           })()
@@ -157,11 +133,7 @@ describe('Parameter Gatherers', () => {
   describe('FileSelectionGatherer', () => {
     const displayMessage = 'My sample info';
     const errorMessage = 'You hit an error!';
-    const gatherer = new FileSelector(
-      displayMessage,
-      errorMessage,
-      'config/**/*-scratch-def.json'
-    );
+    const gatherer = new FileSelector(displayMessage, errorMessage, 'config/**/*-scratch-def.json');
     let showQuickPickStub: sinon.SinonStub;
     let notificationStub: sinon.SinonStub;
     let fileFinderStub: sinon.SinonStub;
@@ -179,16 +151,13 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should return continue if file has been selected', async () => {
-      fileFinderStub.returns([
-        vscode.Uri.file('/somepath/project-scratch-def.json')
-      ]);
+      fileFinderStub.returns([vscode.Uri.file('/somepath/project-scratch-def.json')]);
       showQuickPickStub.returns({
         label: 'project-scratch-def.json',
         description: '/somepath/project-scratch-def.json'
       });
 
-      const response =
-        (await gatherer.gather()) as ContinueResponse<FileSelection>;
+      const response = (await gatherer.gather()) as ContinueResponse<FileSelection>;
 
       expect(showQuickPickStub.callCount).to.equal(1);
       expect(response.type).to.equal('CONTINUE');
@@ -196,9 +165,7 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should return cancel if no file was selected', async () => {
-      fileFinderStub.returns([
-        vscode.Uri.file('/somepath/project-scratch-def.json')
-      ]);
+      fileFinderStub.returns([vscode.Uri.file('/somepath/project-scratch-def.json')]);
       showQuickPickStub.returns(undefined);
 
       const response = await gatherer.gather();
@@ -224,11 +191,11 @@ describe('Parameter Gatherers', () => {
   describe('DemoModePrompGatherer', () => {
     let showInformationMessageStub: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       showInformationMessageStub = sinon.stub(window, 'showInformationMessage');
     });
 
-    after(() => {
+    afterEach(() => {
       showInformationMessageStub.restore();
     });
 
@@ -264,19 +231,13 @@ describe('Parameter Gatherers', () => {
 
     it('Should generate correct number of custom options for a workspace', async () => {
       const selector = new SelectOutputDir('test');
-      const options = selector.getCustomOptions(
-        packageDirs,
-        workspaceUtils.getRootWorkspacePath()
-      );
+      const options = selector.getCustomOptions(packageDirs, workspaceUtils.getRootWorkspacePath());
       expect(options.length).to.be.equal(SFDX_SIMPLE_NUM_OF_DIRS);
     });
 
     it('Should correctly append type folder to paths for type that requires specific parent folder', () => {
       const selector = new SelectOutputDir('aura', true);
-      const options = selector.getCustomOptions(
-        packageDirs,
-        workspaceUtils.getRootWorkspacePath()
-      );
+      const options = selector.getCustomOptions(packageDirs, workspaceUtils.getRootWorkspacePath());
 
       expect(
         options.every(outputDir => {
@@ -289,14 +250,8 @@ describe('Parameter Gatherers', () => {
     it('Should gather paths from correct sources and prompt custom dir if chosen', async () => {
       const selector = new SelectOutputDir('test');
       const defaultOptions = selector.getDefaultOptions(packageDirs);
-      const customOptions = selector.getCustomOptions(
-        packageDirs,
-        workspaceUtils.getRootWorkspacePath()
-      );
-      const getPackageDirPathsStub = sinon.stub(
-        SalesforcePackageDirectories,
-        'getPackageDirectoryPaths'
-      );
+      const customOptions = selector.getCustomOptions(packageDirs, workspaceUtils.getRootWorkspacePath());
+      const getPackageDirPathsStub = sinon.stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths');
       const showMenuStub = sinon.stub(selector, 'showMenu');
       const choice = customOptions[5];
       getPackageDirPathsStub.returns(packageDirs);
@@ -332,16 +287,9 @@ describe('Parameter Gatherers', () => {
         []
       );
       const mockComponents = new ComponentSet([component]);
-      const getPackageDirPathsStub = sinon.stub(
-        SalesforcePackageDirectories,
-        'getPackageDirectoryPaths'
-      );
+      const getPackageDirPathsStub = sinon.stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths');
       const getLwcsStub = sinon.stub(ComponentSet, 'fromSource');
-      getLwcsStub
-        .withArgs(
-          path.join(workspaceUtils.getRootWorkspacePath(), packageDirs[0])
-        )
-        .returns(mockComponents);
+      getLwcsStub.withArgs(path.join(workspaceUtils.getRootWorkspacePath(), packageDirs[0])).returns(mockComponents);
       const showMenuStub = sinon.stub(selector, 'showMenu');
       getPackageDirPathsStub.returns(packageDirs);
       const dirChoice = packageDirs[0];
@@ -376,16 +324,9 @@ describe('Parameter Gatherers', () => {
         []
       );
       const mockComponents = new ComponentSet([component]);
-      const getPackageDirPathsStub = sinon.stub(
-        SalesforcePackageDirectories,
-        'getPackageDirectoryPaths'
-      );
+      const getPackageDirPathsStub = sinon.stub(SalesforcePackageDirectories, 'getPackageDirectoryPaths');
       const getLwcsStub = sinon.stub(ComponentSet, 'fromSource');
-      getLwcsStub
-        .withArgs(
-          path.join(workspaceUtils.getRootWorkspacePath(), packageDirs[0])
-        )
-        .returns(mockComponents);
+      getLwcsStub.withArgs(path.join(workspaceUtils.getRootWorkspacePath(), packageDirs[0])).returns(mockComponents);
       const showMenuStub = sinon.stub(selector, 'showMenu');
       getPackageDirPathsStub.returns(packageDirs);
       const dirChoice = packageDirs[0];

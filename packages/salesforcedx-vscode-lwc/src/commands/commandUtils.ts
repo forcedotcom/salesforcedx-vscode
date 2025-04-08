@@ -14,13 +14,9 @@ import { telemetryService } from '../telemetry';
 export const showError = (e: Error, logName: string, commandName: string) => {
   telemetryService.sendException(`${logName}_error`, e.message);
   notificationService.showErrorMessage(e.message);
-  notificationService.showErrorMessage(
-    nls.localize('command_failure', commandName)
-  );
+  notificationService.showErrorMessage(nls.localize('command_failure', commandName));
   channelService.appendLine(`Error: ${e.message}`);
   channelService.showChannelOutput();
 };
 
-export const openBrowser = (url: string) => {
-  return env.openExternal(Uri.parse(url));
-};
+export const openBrowser = (url: string) => env.openExternal(Uri.parse(url));

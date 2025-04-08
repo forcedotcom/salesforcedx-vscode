@@ -7,10 +7,7 @@
 
 import { expect } from 'chai';
 import { Range, RelativePattern, Uri, window, workspace } from 'vscode';
-import {
-  CodeCoverageHandler,
-  getLineRange
-} from '../../../src/codecoverage/colorizer';
+import { CodeCoverageHandler, getLineRange } from '../../../src/codecoverage/colorizer';
 import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 
 describe('Code coverage colorizer', () => {
@@ -18,14 +15,8 @@ describe('Code coverage colorizer', () => {
 
   beforeEach(async () => {
     testCoverage = await workspace.findFiles(
-      new RelativePattern(
-        workspace.workspaceFolders![0],
-        '**/DemoController.cls'
-      ),
-      new RelativePattern(
-        workspace.workspaceFolders![0],
-        '**/DemoControllerTest.cls'
-      )
+      new RelativePattern(workspace.workspaceFolders![0], '**/DemoController.cls'),
+      new RelativePattern(workspace.workspaceFolders![0], '**/DemoControllerTest.cls')
     );
   });
 
@@ -69,9 +60,9 @@ describe('Code coverage colorizer', () => {
 
     colorizer.toggleCoverage();
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.coveredLines).to.be.empty;
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.uncoveredLines).to.be.empty;
   });
 
@@ -83,9 +74,9 @@ describe('Code coverage colorizer', () => {
     const colorizer = new CodeCoverageHandler(statusBarToggle);
 
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.coveredLines).to.be.empty;
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.uncoveredLines).to.be.empty;
 
     colorizer.toggleCoverage();
@@ -94,9 +85,9 @@ describe('Code coverage colorizer', () => {
 
     colorizer.toggleCoverage();
     expect(statusBarToggle.isHighlightingEnabled).to.equal(false);
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.coveredLines).to.be.empty;
-    // tslint:disable-next-line:no-unused-expression
+
     expect(colorizer.uncoveredLines).to.be.empty;
   });
 });

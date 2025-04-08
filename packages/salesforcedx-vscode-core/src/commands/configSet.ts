@@ -21,11 +21,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { nls } from '../messages';
-import {
-  EmptyParametersGatherer,
-  SfCommandlet,
-  SfWorkspaceChecker
-} from './util';
+import { EmptyParametersGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
 export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
@@ -33,15 +29,10 @@ export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private outputTableRow: Row = {};
 
   constructor(usernameOrAlias: string) {
-    super(
-      nls.localize(CONFIG_SET_EXECUTOR),
-      CONFIG_SET_EXECUTOR,
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize(CONFIG_SET_EXECUTOR), CONFIG_SET_EXECUTOR, OUTPUT_CHANNEL);
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     let result: boolean;
     let message: string | undefined;
@@ -86,10 +77,6 @@ const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export const configSet = async (usernameOrAlias: string): Promise<void> => {
-  const commandlet = new SfCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new ConfigSetExecutor(usernameOrAlias)
-  );
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ConfigSetExecutor(usernameOrAlias));
   await commandlet.run();
 };

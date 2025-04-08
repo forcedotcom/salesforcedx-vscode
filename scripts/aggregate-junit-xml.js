@@ -24,14 +24,14 @@
  * By default, all categories will be tested. To only process specific
  * categories, call the script with desired categories separated by a space.
  *
- * e.g. 
+ * e.g.
  * node aggregate-junit-xml.js -t integration vscode-integration
  * npm run aggregateJUnit -- -t integration vscode-integration
  */
 
 const fs = require('fs-extra');
 const path = require('path');
-const shell = require('shelljs');
+const { execSync } = require('child_process');
 
 const TEST_TYPE_ARG = '-t';
 
@@ -63,18 +63,21 @@ function getTestCategories() {
 
 function createAggregateDirectory() {
   const aggregateDir = path.join(process.cwd(), 'junit-aggregate');
-  if (!fs.existsSync(aggregateDir)) {
-    shell.mkdir(aggregateDir);
-  }
+  fs.mkdirSync(aggregateDir, { recursive: true });
 }
 
 function getTestDirectory(packagePath) {
-  if (fs.statSync(packagePath).isDirectory()) {
-    // scan test directory for each package that has one
-    const testDir = path.join(packagePath, 'test');
-    if (fs.existsSync(testDir) && fs.statSync(testDir).isDirectory()) {
-      return testDir;
+  try {
+    if (fs.statSync(packagePath).isDirectory()) {
+      // scan test directory for each package that has one
+      const testDir = path.join(packagePath, 'test');
+      if (fs.statSync(testDir).isDirectory()) {
+        return testDir;
+      }
     }
+  } catch (error) {
+    // Path doesn't exist or isn't accessible
+    return '';
   }
   return '';
 }
@@ -82,16 +85,12 @@ function getTestDirectory(packagePath) {
 function getMissingResults(flags) {
   const packagesDir = path.join(process.cwd(), 'packages');
   for (const packageName of fs.readdirSync(packagesDir)) {
-
     const packagePath = path.join(packagesDir, packageName);
     const testDir = getTestDirectory(packagePath);
     if (testDir) {
-
       for (const testEntry of fs.readdirSync(testDir)) {
         if (flags.has(`${testEntry}`)) {
-
           if (!copyJunitTestResult(packagePath, packageName, testEntry)) {
-
             if (testEntry === 'vscode-integration') {
               rerunCrashedVSCodeIntegrationTests(packagePath, packageName, testEntry);
             } else {
@@ -106,27 +105,21 @@ function getMissingResults(flags) {
 
 /*
  * If the current test directory is one we want to aggregate, copy the
- * junit results to the aggregate folder. 
- * 
+ * junit results to the aggregate folder.
+ *
  * Return true or false if the test result was found.
  */
 function copyJunitTestResult(packagePath, packageName, testEntry) {
-  const junitFilePath = path.join(
-    packagePath,
-    categoryToFile[testEntry]
-  );
-  if (fs.existsSync(junitFilePath)) {
-    shell.cp(
+  const junitFilePath = path.join(packagePath, categoryToFile[testEntry]);
+  try {
+    fs.copyFileSync(
       junitFilePath,
-      path.join(
-        process.cwd(),
-        'junit-aggregate',
-        `${packageName}-${categoryToFile[testEntry]}`
-      )
+      path.join(process.cwd(), 'junit-aggregate', `${packageName}-${categoryToFile[testEntry]}`)
     );
     return true;
+  } catch (error) {
+    return false;
   }
-  return false;
 }
 
 /*
@@ -136,7 +129,7 @@ function copyJunitTestResult(packagePath, packageName, testEntry) {
 function rerunCrashedVSCodeIntegrationTests(packagePath, packageName, testEntry) {
   console.assert(testEntry === 'vscode-integration');
   console.log(`\nRerunning vscode integration test suite ${packageName} due to crash.`);
-  shell.exec(`npm run --prefix ${packagePath} test:vscode-integration`);
+  execSync(`npm run --prefix ${packagePath} test:vscode-integration`, { stdio: 'inherit' });
 
   if (!copyJunitTestResult(packagePath, packageName, testEntry)) {
     missingResults[testEntry].push(packageName);
@@ -151,10 +144,7 @@ function generateMissingMessage(missingResults) {
         missingMessage = '\nMissing junit results for the following packages:\n';
       }
       missingMessage += `\n* ${testType}:`;
-      missingMessage = pkgs.reduce(
-        (previous, current) => `${previous}\n\t- ${current}`,
-        missingMessage
-      );
+      missingMessage = pkgs.reduce((previous, current) => `${previous}\n\t- ${current}`, missingMessage);
     }
   }
   return missingMessage;
@@ -163,8 +153,7 @@ function generateMissingMessage(missingResults) {
 function checkMissingMessage(missingMessage) {
   if (missingMessage) {
     missingMessage += '\n\nPossible Issues:\n\n';
-    missingMessage +=
-      "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.).\n";
+    missingMessage += "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.).\n";
     missingMessage +=
       '2) An unexpected test runner or reporter failure while running tests. Sometimes extension activation issues or issues in the tests can silently fail.\n';
     missingMessage += '3) Test run configuration is improperly set up.\n';

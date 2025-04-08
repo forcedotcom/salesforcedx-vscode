@@ -4,10 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  OrgUserInfo,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
@@ -78,11 +75,7 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
     super();
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(
-      workspaceUtils.getRootWorkspacePath(),
-      SFDX_FOLDER,
-      SFDX_CONFIG_FILE
-    );
+    const cliConfigPath = join(workspaceUtils.getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
     this.cliConfigWatcher = new MockFileWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
@@ -114,15 +107,11 @@ describe('WorkspaceContext', () => {
   let workspaceContext: WorkspaceContext;
 
   beforeEach(async () => {
-    setupWorkspaceOrgTypeStub = env
-      .stub(workspaceContextUtils, 'setupWorkspaceOrgType')
-      .resolves();
+    setupWorkspaceOrgTypeStub = env.stub(workspaceContextUtils, 'setupWorkspaceOrgType').resolves();
 
     workspaceContextUtil = TestWorkspaceContextUtil.getInstance();
     env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtil);
-    usernameStub = env
-      .stub(workspaceContextUtil, 'username')
-      .get(() => testUser);
+    usernameStub = env.stub(workspaceContextUtil, 'username').get(() => testUser);
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
     showOrgStub = env.stub(decorators, 'showOrg').resolves();
 
@@ -146,9 +135,7 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => testUser2);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtil as TestWorkspaceContextUtil)
-      .getFileWatcher()
-      .fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
 
     expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(testUser2);
@@ -159,46 +146,26 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => undefined);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtil as TestWorkspaceContextUtil)
-      .getFileWatcher()
-      .fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
 
     expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(undefined);
     expect(workspaceContext.alias).to.equal(undefined);
   });
 
-  // tslint:disable-next-line:only-arrow-functions
-  it('should notify subscribers that the default org may have changed', async function () {
+  it('should notify subscribers that the default org may have changed', async () => {
     const someLogic = env.stub();
     workspaceContext.onOrgChange((orgInfo: OrgUserInfo) => {
       someLogic(orgInfo);
     });
 
     // awaiting to ensure subscribers run their logic
-    const fileChangedPromise = (
-      workspaceContextUtil as TestWorkspaceContextUtil
-    )
-      .getFileWatcher()
-      .fire('change');
-    const fileCreatedPromise = (
-      workspaceContextUtil as TestWorkspaceContextUtil
-    )
-      .getFileWatcher()
-      .fire('create');
-    const fileDeletedPromise = (
-      workspaceContextUtil as TestWorkspaceContextUtil
-    )
-      .getFileWatcher()
-      .fire('delete');
+    const fileChangedPromise = (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    const fileCreatedPromise = (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('create');
+    const fileDeletedPromise = (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
 
     // Test runs in CI build in approx: 45000ms
-    this.timeout(60000);
-    await Promise.all([
-      fileChangedPromise,
-      fileCreatedPromise,
-      fileDeletedPromise
-    ]);
+    await Promise.all([fileChangedPromise, fileCreatedPromise, fileDeletedPromise]);
 
     expect(someLogic.callCount).to.equal(3);
     expect(showOrgStub.called).to.equal(true);

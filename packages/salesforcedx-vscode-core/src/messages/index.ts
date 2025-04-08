@@ -5,13 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Config,
-  DEFAULT_LOCALE,
-  LOCALE_JA,
-  Localization,
-  Message
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Config, DEFAULT_LOCALE, LOCALE_JA, Localization, Message } from '@salesforce/salesforcedx-utils-vscode';
 import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 const supportedLocales = [DEFAULT_LOCALE, LOCALE_JA];
@@ -34,7 +28,7 @@ const loadMessageBundle = (config?: Config): Message => {
 
 const getNlsConfig = (): Config | undefined => {
   const procNlsConfig = process.env.VSCODE_NLS_CONFIG;
-  return procNlsConfig ? JSON.parse(procNlsConfig) : null;
+  return procNlsConfig ? JSON.parse(procNlsConfig) : undefined;
 };
 
 export const nls = new Localization(loadMessageBundle(getNlsConfig()));

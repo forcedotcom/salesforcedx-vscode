@@ -8,17 +8,11 @@
 
 import { SoqlItemContext } from '@salesforce/soql-language-server';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
-import { Middleware } from 'vscode-languageclient';
-import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
+import { Middleware } from 'vscode-languageclient/node';
 
 import { telemetryService } from '../telemetry';
-import {
-  FileSystemOrgDataSource,
-  JsforceOrgDataSource,
-  OrgDataSource,
-  SObject,
-  SObjectField
-} from './orgMetadata';
+import { FileSystemOrgDataSource, JsforceOrgDataSource, OrgDataSource, SObject, SObjectField } from './orgMetadata';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -28,21 +22,13 @@ export const middleware: Middleware = {
   // We do that here as middleware, transforming the server response before passing
   // it up to VSCode.
   provideCompletionItem: async (document, position, context, token, next) => {
-    const items = (await next(
-      document,
-      position,
-      context,
-      token
-    )) as ProtocolCompletionItem[];
+    const items = (await next(document, position, context, token)) as ProtocolCompletionItem[];
 
     const dataSource: OrgDataSource = document.uri.scheme.includes('embedded')
       ? new FileSystemOrgDataSource()
       : new JsforceOrgDataSource();
 
-    return expandPlaceholders(
-      await filterByContext(items, dataSource),
-      dataSource
-    );
+    return expandPlaceholders(await filterByContext(items, dataSource), dataSource);
   }
 };
 
@@ -59,18 +45,10 @@ async function filterByContext(
       item?.data?.soqlContext?.sobjectName &&
       item?.data?.soqlContext?.fieldName
     ) {
-      const objMetadata = await safeRetrieveSObject(
-        dataSource,
-        item.data.soqlContext.sobjectName
-      );
+      const objMetadata = await safeRetrieveSObject(dataSource, item.data.soqlContext.sobjectName);
       if (objMetadata) {
-        const fieldMeta = objMetadata.fields.find(
-          field => field.name === item.data.soqlContext.fieldName
-        );
-        if (
-          fieldMeta &&
-          !objectFieldMatchesSOQLContext(fieldMeta, item.data.soqlContext)
-        ) {
+        const fieldMeta = objMetadata.fields.find(field => field.name === item.data.soqlContext.fieldName);
+        if (fieldMeta && !objectFieldMatchesSOQLContext(fieldMeta, item.data.soqlContext)) {
           continue;
         }
       }
@@ -82,7 +60,6 @@ async function filterByContext(
   return filteredItems;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isString(x: any): x is string {
   return typeof x === 'string';
 }
@@ -101,11 +78,7 @@ async function expandPlaceholders(
 
       const handler = expandFunctions[commandName];
       if (handler) {
-        expandedItems.splice(
-          index,
-          1,
-          ...(await handler(item?.data?.soqlContext || {}, dataSource))
-        );
+        expandedItems.splice(index, 1, ...(await handler(item?.data?.soqlContext || {}, dataSource)));
       } else {
         telemetryService.sendException(
           'SOQLLanguageServerException',
@@ -119,23 +92,18 @@ async function expandPlaceholders(
 }
 
 const expandFunctions: {
-  [key: string]: (
-    soqlContext: SoqlItemContext,
-    dataSource: OrgDataSource
-  ) => Promise<ProtocolCompletionItem[]>;
+  [key: string]: (soqlContext: SoqlItemContext, dataSource: OrgDataSource) => Promise<ProtocolCompletionItem[]>;
 } = {
   SOBJECTS_PLACEHOLDER: async (
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
     try {
-      const sobjectItems = (await dataSource.retrieveSObjectsList()).map(
-        objName => {
-          const item = new ProtocolCompletionItem(objName);
-          item.kind = CompletionItemKind.Class;
-          return item;
-        }
-      );
+      const sobjectItems = (await dataSource.retrieveSObjectsList()).map(objName => {
+        const item = new ProtocolCompletionItem(objName);
+        item.kind = CompletionItemKind.Class;
+        return item;
+      });
 
       return sobjectItems;
     } catch (metadataErrors) {
@@ -147,10 +115,7 @@ const expandFunctions: {
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(
-      dataSource,
-      soqlContext.sobjectName
-    );
+    const objMetadata = await safeRetrieveSObject(dataSource, soqlContext.sobjectName);
     if (!objMetadata) {
       return [];
     }
@@ -168,33 +133,27 @@ const expandFunctions: {
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(
-      dataSource,
-      soqlContext.sobjectName
-    );
+    const objMetadata = await safeRetrieveSObject(dataSource, soqlContext.sobjectName);
     if (!objMetadata) {
       return [];
     }
 
-    const sobjectFields = objMetadata.childRelationships.reduce(
-      (fieldItems, childRelationship) => {
-        if (!childRelationship.relationshipName) {
-          return fieldItems;
-        }
-
-        fieldItems.push(
-          newCompletionItem(
-            `${childRelationship.relationshipName}`,
-            childRelationship.relationshipName,
-            CompletionItemKind.Class,
-            { detail: childRelationship.childSObject }
-          )
-        );
-
+    const sobjectFields = objMetadata.childRelationships.reduce((fieldItems, childRelationship) => {
+      if (!childRelationship.relationshipName) {
         return fieldItems;
-      },
-      [] as ProtocolCompletionItem[]
-    );
+      }
+
+      fieldItems.push(
+        newCompletionItem(
+          `${childRelationship.relationshipName}`,
+          childRelationship.relationshipName,
+          CompletionItemKind.Class,
+          { detail: childRelationship.childSObject }
+        )
+      );
+
+      return fieldItems;
+    }, [] as ProtocolCompletionItem[]);
     return sobjectFields;
   },
 
@@ -202,10 +161,7 @@ const expandFunctions: {
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const parentObject = await safeRetrieveSObject(
-      dataSource,
-      soqlContext.sobjectName
-    );
+    const parentObject = await safeRetrieveSObject(dataSource, soqlContext.sobjectName);
     if (!parentObject) {
       return [];
     }
@@ -218,10 +174,7 @@ const expandFunctions: {
       return [];
     }
 
-    const objMetadata = await safeRetrieveSObject(
-      dataSource,
-      relationship?.childSObject
-    );
+    const objMetadata = await safeRetrieveSObject(dataSource, relationship?.childSObject);
     if (!objMetadata) {
       return [];
     }
@@ -239,30 +192,22 @@ const expandFunctions: {
     soqlContext: SoqlItemContext,
     dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(
-      dataSource,
-      soqlContext.sobjectName
-    );
+    const objMetadata = await safeRetrieveSObject(dataSource, soqlContext.sobjectName);
     if (!objMetadata || !soqlContext.fieldName) {
       return [];
     }
 
     let items: ProtocolCompletionItem[] = [];
-    const fieldMeta = objMetadata.fields.find(
-      field => field.name === soqlContext.fieldName
-    );
+    const fieldMeta = objMetadata.fields.find(field => field.name === soqlContext.fieldName);
     if (fieldMeta) {
-      if (
-        ['picklist', 'multipicklist'].includes(fieldMeta.type) &&
-        fieldMeta?.picklistValues
-      ) {
+      if (['picklist', 'multipicklist'].includes(fieldMeta.type) && fieldMeta?.picklistValues) {
         items = items.concat(
           fieldMeta.picklistValues
             .filter(v => v.active)
             .map(v =>
               newCompletionItem(
                 v.value,
-                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+
                 "'" + v.value + "'",
                 CompletionItemKind.Value
               )
@@ -275,32 +220,21 @@ const expandFunctions: {
   }
 };
 
-async function safeRetrieveSObject(
-  dataSource: OrgDataSource,
-  sobjectName?: string
-): Promise<SObject | undefined> {
+async function safeRetrieveSObject(dataSource: OrgDataSource, sobjectName?: string): Promise<SObject | undefined> {
   if (!sobjectName) {
-    telemetryService.sendException(
-      'SOQLanguageServerException',
-      'Missing `sobjectName` from SOQL completion context!'
-    );
+    telemetryService.sendException('SOQLanguageServerException', 'Missing `sobjectName` from SOQL completion context!');
     return Promise.resolve(undefined);
   }
   return await dataSource.retrieveSObject(sobjectName);
 }
 
-function objectFieldMatchesSOQLContext(
-  field: SObjectField,
-  soqlContext: SoqlItemContext
-) {
+function objectFieldMatchesSOQLContext(field: SObjectField, soqlContext: SoqlItemContext) {
   return (
     (field.aggregatable || !soqlContext.onlyAggregatable) &&
     (field.groupable || !soqlContext.onlyGroupable) &&
     (field.sortable || !soqlContext.onlySortable) &&
     (field.nillable || !soqlContext.onlyNillable) &&
-    (!soqlContext.onlyTypes ||
-      soqlContext.onlyTypes.length === 0 ||
-      soqlContext.onlyTypes.includes(field.type))
+    (!soqlContext.onlyTypes || soqlContext.onlyTypes.length === 0 || soqlContext.onlyTypes.includes(field.type))
   );
 }
 
@@ -312,10 +246,7 @@ function newCompletionItem(
 ): ProtocolCompletionItem {
   const item = new ProtocolCompletionItem(label);
   item.kind = kind;
-  item.insertText =
-    kind === CompletionItemKind.Snippet
-      ? new SnippetString(insertText)
-      : insertText;
+  item.insertText = kind === CompletionItemKind.Snippet ? new SnippetString(insertText) : insertText;
   if (extraOptions) {
     Object.assign(item, extraOptions);
   }
@@ -323,15 +254,10 @@ function newCompletionItem(
   return item;
 }
 
-function newFieldCompletionItems(
-  field: SObjectField,
-  soqlContext: SoqlItemContext
-): ProtocolCompletionItem[] {
+function newFieldCompletionItems(field: SObjectField, soqlContext: SoqlItemContext): ProtocolCompletionItem[] {
   const fieldItems = [];
   const fieldNameLowercase = field.name.toLowerCase();
-  const isPreferredItem = soqlContext.mostLikelyItems?.some(
-    f => f.toLowerCase() === fieldNameLowercase
-  );
+  const isPreferredItem = soqlContext.mostLikelyItems?.some(f => f.toLowerCase() === fieldNameLowercase);
 
   fieldItems.push(
     newCompletionItem(
@@ -353,12 +279,9 @@ function newFieldCompletionItems(
   );
   if (field.relationshipName && !soqlContext.dontShowRelationshipField) {
     fieldItems.push(
-      newCompletionItem(
-        `${field.relationshipName}`,
-        field.relationshipName + '.',
-        CompletionItemKind.Class,
-        { detail: 'Ref. to ' + field.referenceTo.join(',') }
-      )
+      newCompletionItem(`${field.relationshipName}`, field.relationshipName + '.', CompletionItemKind.Class, {
+        detail: 'Ref. to ' + field.referenceTo.join(',')
+      })
     );
   }
   return fieldItems;

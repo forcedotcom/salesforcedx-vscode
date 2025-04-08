@@ -7,22 +7,12 @@
 
 import * as chai from 'chai';
 import * as fs from 'fs';
-import { userInfo } from 'os';
 import { join } from 'path';
-import { rm } from 'shelljs';
-import {
-  CUSTOMOBJECTS_DIR,
-  SOQLMETADATA_DIR,
-  STANDARDOBJECTS_DIR
-} from '../../src/constants';
+import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectShortDescription } from '../../src/describe';
 import { SOQLMetadataGenerator } from '../../src/generator/soqlMetadataGenerator';
 import { MinObjectRetriever } from '../../src/retriever';
-import {
-  SObject,
-  SObjectCategory,
-  SObjectRefreshOutput
-} from '../../src/types';
+import { SObject, SObjectCategory, SObjectRefreshOutput } from '../../src/types';
 
 const expect = chai.expect;
 
@@ -33,21 +23,14 @@ describe('SOQL metadata files generator', () => {
   const customFolder = join(soqlMetadataFolder, CUSTOMOBJECTS_DIR);
 
   const cleanupMetadata = () => {
-    if (fs.existsSync(soqlMetadataFolder)) {
-      rm('-rf', soqlMetadataFolder);
-    }
+    fs.rmSync(standardFolder, { recursive: true, force: true });
   };
-
-  const username = userInfo().username;
-  const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
-  const standardFolderExists = fs.existsSync(standardFolder);
-  const customFolderExists = fs.existsSync(standardFolder);
 
   beforeEach(() => {
     cleanupMetadata();
     fs.mkdirSync(soqlMetadataFolder, { recursive: true });
-    fs.mkdirSync(standardFolder);
-    fs.mkdirSync(customFolder);
+    fs.mkdirSync(standardFolder, { recursive: true });
+    fs.mkdirSync(customFolder, { recursive: true });
   });
 
   afterAll(() => {
@@ -98,7 +81,7 @@ class TestSObjectRefreshOutput implements SObjectRefreshOutput {
   private custom: SObject[] = [];
   public error: { message?: string; stack?: string } = {};
 
-  public constructor(public sfdxPath: string) { }
+  public constructor(public sfdxPath: string) {}
 
   public addTypeNames(sobjShort: SObjectShortDescription[]): void {
     this.typeNames.push(...sobjShort);

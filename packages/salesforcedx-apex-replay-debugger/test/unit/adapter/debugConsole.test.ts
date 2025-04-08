@@ -9,13 +9,9 @@ import { Source } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  ApexReplayDebug,
-  LaunchRequestArguments
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 
-// tslint:disable:no-unused-expression
 describe('Debug console', () => {
   let sendEventSpy: sinon.SinonSpy;
   let adapter: MockApexReplayDebug;
@@ -61,11 +57,7 @@ describe('Debug console', () => {
 
       adapter.setupLogger(args);
 
-      expect(adapter.getTraceConfig()).to.be.eql([
-        'all',
-        'launch',
-        'breakpoints'
-      ]);
+      expect(adapter.getTraceConfig()).to.be.eql(['all', 'launch', 'breakpoints']);
       expect(adapter.getTraceAllConfig()).to.be.true;
     });
 
@@ -97,15 +89,11 @@ describe('Debug console', () => {
     });
 
     it('Should send Output event', () => {
-      const source = new Source(
-        logFileName,
-        encodeURI(`file://${logFilePath}`)
-      );
+      const source = new Source(logFileName, encodeURI(`file://${logFilePath}`));
       adapter.printToDebugConsole('test', source, 5, 'stdout');
 
       expect(sendEventSpy.calledOnce).to.be.true;
-      const outputEvent: DebugProtocol.OutputEvent =
-        sendEventSpy.getCall(0).args[0];
+      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
       expect(outputEvent.body.output).to.have.string('test');
       expect(outputEvent.body.category).to.equal('stdout');
       expect(outputEvent.body.line).to.equal(5);
@@ -134,8 +122,7 @@ describe('Debug console', () => {
       adapter.warnToDebugConsole('test');
 
       expect(sendEventSpy.calledOnce).to.be.true;
-      const outputEvent: DebugProtocol.OutputEvent =
-        sendEventSpy.getCall(0).args[0];
+      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
       expect(outputEvent.body.output).to.have.string('test');
       expect(outputEvent.body.category).to.equal('console');
     });
@@ -161,8 +148,7 @@ describe('Debug console', () => {
       adapter.errorToDebugConsole('test');
 
       expect(sendEventSpy.calledOnce).to.be.true;
-      const outputEvent: DebugProtocol.OutputEvent =
-        sendEventSpy.getCall(0).args[0];
+      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
       expect(outputEvent.body.output).to.have.string('test');
       expect(outputEvent.body.category).to.equal('stderr');
     });

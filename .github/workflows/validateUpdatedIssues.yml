@@ -21,9 +21,9 @@ jobs:
     # - 'feature'
     # - 'type:enhancements'
     # - 'status:owned by another team'
-    # - 'bug'
+    # - 'type:bug'
     # - 'pending release'
-    if: contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'investigating') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') && !contains(github.event.issue.labels.*.name, 'bug') && !contains(github.event.issue.labels.*.name, 'pending release')
+    if: contains(github.event.issue.labels.*.name, 'missing required information') && !contains(github.event.issue.labels.*.name, 'announcement') && !contains(github.event.issue.labels.*.name, 'validated') && !contains(github.event.issue.labels.*.name, 'investigating') && !contains(github.event.issue.labels.*.name, 'feature') && !contains(github.event.issue.labels.*.name, 'type:enhancements') && !contains(github.event.issue.labels.*.name, 'status:owned by another team') && !contains(github.event.issue.labels.*.name, 'type:bug') && !contains(github.event.issue.labels.*.name, 'pending release')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -9,12 +9,7 @@ import { ProjectDeployStartErrorResponse } from '@salesforce/salesforcedx-utils-
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
-import {
-  getAbsoluteFilePath,
-  getFileUri,
-  getRange,
-  handlePushDiagnosticErrors
-} from '../../../src/diagnostics';
+import { getAbsoluteFilePath, getFileUri, getRange, handlePushDiagnosticErrors } from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
   let pushErrorResult: ProjectDeployStartErrorResponse;
@@ -63,18 +58,11 @@ describe('Diagnostics', () => {
       fullName: 'Testing'
     };
 
-    pushErrorResult.files.push(resultItem);
+    pushErrorResult.files?.push(resultItem);
 
-    handlePushDiagnosticErrors(
-      pushErrorResult,
-      workspacePath,
-      sourcePath,
-      errorCollection
-    );
+    handlePushDiagnosticErrors(pushErrorResult, workspacePath, sourcePath, errorCollection);
 
-    const testDiagnostics = languages.getDiagnostics(
-      Uri.file(path.join(workspacePath, resultItem.filePath))
-    );
+    const testDiagnostics = languages.getDiagnostics(Uri.file(path.join(workspacePath, resultItem.filePath)));
 
     expect(testDiagnostics).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics[0].message).to.be.equals(resultItem.error);
@@ -106,19 +94,12 @@ describe('Diagnostics', () => {
       fullName: 'SomeController'
     };
 
-    pushErrorResult.files.push(resultItem1);
-    pushErrorResult.files.push(resultItem2);
+    pushErrorResult.files?.push(resultItem1);
+    pushErrorResult.files?.push(resultItem2);
 
-    handlePushDiagnosticErrors(
-      pushErrorResult,
-      workspacePath,
-      sourcePath,
-      errorCollection
-    );
+    handlePushDiagnosticErrors(pushErrorResult, workspacePath, sourcePath, errorCollection);
 
-    const testDiagnostics = languages.getDiagnostics(
-      Uri.file(path.join(workspacePath, resultItem1.filePath))
-    );
+    const testDiagnostics = languages.getDiagnostics(Uri.file(path.join(workspacePath, resultItem1.filePath)));
 
     expect(testDiagnostics).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics[0].message).to.be.equals(resultItem1.error);
@@ -126,15 +107,10 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[0].source).to.be.equals(resultItem1.type);
     expect(testDiagnostics[0].range).to.be.an('object');
 
-    const testRange = getRange(
-      resultItem1.lineNumber,
-      resultItem1.columnNumber
-    );
+    const testRange = getRange(resultItem1.lineNumber, resultItem1.columnNumber);
     expect(testDiagnostics[0].range).to.deep.equal(testRange);
 
-    const testDiagnostics1 = languages.getDiagnostics(
-      Uri.file(path.join(workspacePath, resultItem2.filePath))
-    );
+    const testDiagnostics1 = languages.getDiagnostics(Uri.file(path.join(workspacePath, resultItem2.filePath)));
 
     expect(testDiagnostics1).to.be.an('array').to.have.lengthOf(1);
     expect(testDiagnostics1[0].message).to.be.equals(resultItem2.error);
@@ -142,10 +118,7 @@ describe('Diagnostics', () => {
     expect(testDiagnostics1[0].source).to.be.equals(resultItem2.type);
     expect(testDiagnostics1[0].range).to.be.an('object');
 
-    const testRange1 = getRange(
-      resultItem2.lineNumber,
-      resultItem2.columnNumber
-    );
+    const testRange1 = getRange(resultItem2.lineNumber, resultItem2.columnNumber);
     expect(testDiagnostics1[0].range).to.deep.equal(testRange1);
   });
 
@@ -158,13 +131,8 @@ describe('Diagnostics', () => {
       type: 'ApexClass'
     };
 
-    pushErrorResult.files.push(resultItem);
-    handlePushDiagnosticErrors(
-      pushErrorResult,
-      workspacePath,
-      sourcePath,
-      errorCollection
-    );
+    pushErrorResult.files?.push(resultItem);
+    handlePushDiagnosticErrors(pushErrorResult, workspacePath, sourcePath, errorCollection);
 
     const testDiagnostics = languages.getDiagnostics(Uri.file(sourcePath));
 
@@ -187,20 +155,14 @@ describe('Diagnostics', () => {
       type: 'ApexClass'
     };
     const resultItem2 = {
-      error:
-        'In field: application - no CustomApplication named Permstachio found',
+      error: 'In field: application - no CustomApplication named Permstachio found',
       type: 'PermissionSet',
       filePath: 'N/A'
     };
 
-    pushErrorResult.files.push(resultItem1);
-    pushErrorResult.files.push(resultItem2);
-    handlePushDiagnosticErrors(
-      pushErrorResult,
-      workspacePath,
-      sourcePath,
-      errorCollection
-    );
+    pushErrorResult.files?.push(resultItem1);
+    pushErrorResult.files?.push(resultItem2);
+    handlePushDiagnosticErrors(pushErrorResult, workspacePath, sourcePath, errorCollection);
 
     const testDiagnostics = languages.getDiagnostics(Uri.file(sourcePath));
     expect(testDiagnostics).to.be.an('array').to.have.lengthOf(2);
@@ -208,10 +170,7 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[0].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0
     expect(testDiagnostics[0].source).to.be.equals(resultItem1.type);
     expect(testDiagnostics[0].range).to.be.an('object');
-    const testRange = getRange(
-      resultItem1.lineNumber,
-      resultItem1.columnNumber
-    );
+    const testRange = getRange(resultItem1.lineNumber, resultItem1.columnNumber);
     expect(testDiagnostics[0].range).to.deep.equal(testRange);
     expect(testDiagnostics[1].message).to.be.equals(resultItem2.error);
     expect(testDiagnostics[1].severity).to.be.equals(0); // vscode.DiagnosticSeverity.Error === 0

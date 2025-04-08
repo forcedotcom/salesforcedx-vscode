@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -21,14 +21,10 @@ import {
 } from 'vscode';
 
 class MockMemento implements Memento {
-  private telemetryGS: boolean;
-
   private keyValues: string[] = [];
   private values: any[] = [];
 
-  constructor(setTelemetryGlobalState: boolean) {
-    this.telemetryGS = setTelemetryGlobalState;
-  }
+  constructor() {}
 
   private getIndex(key: string): number {
     return this.keys().findIndex(value => value === key);
@@ -39,10 +35,7 @@ class MockMemento implements Memento {
     return readOnlyKeys;
   }
 
-  public get<T>(key: string): T {
-    if (this.telemetryGS === true) {
-      return true as any;
-    }
+  public get<T>(key: string): T | undefined {
     const index = this.getIndex(key);
     return index !== -1 ? this.values[index] : undefined;
   }
@@ -63,8 +56,7 @@ class MockMemento implements Memento {
   }
 }
 
-class MockEnvironmentVariableCollection
-  implements EnvironmentVariableCollection {
+class MockEnvironmentVariableCollection implements EnvironmentVariableCollection {
   public [Symbol.iterator](): Iterator<[variable: string, mutator: EnvironmentVariableMutator], any, undefined> {
     throw new Error('Method not implemented.');
   }
@@ -83,11 +75,7 @@ class MockEnvironmentVariableCollection
     throw new Error('Method not implemented.');
   }
   public forEach(
-    callback: (
-      variable: string,
-      mutator: EnvironmentVariableMutator,
-      collection: EnvironmentVariableCollection
-    ) => any,
+    callback: (variable: string, mutator: EnvironmentVariableMutator, collection: EnvironmentVariableCollection) => any,
     thisArg?: any
   ): void {
     throw new Error('Method not implemented.');
@@ -105,21 +93,15 @@ class MockEnvironmentVariableCollection
 }
 
 export class MockExtensionContext implements ExtensionContext {
-  constructor(mm: boolean, mode?: ExtensionMode) {
+  constructor(mode?: ExtensionMode) {
     this.extensionMode = mode || ExtensionMode.Test;
-    this.globalState = new MockMemento(mm);
-    this.workspaceState = new MockMemento(false);
+    this.globalState = new MockMemento();
+    this.workspaceState = new MockMemento();
     this.secrets = {
       onDidChange: {} as any,
-      get: (key: string): Thenable<string | undefined> => {
-        return Promise.resolve(undefined);
-      },
-      store: (key: string, value: string): Thenable<void> => {
-        return Promise.resolve();
-      },
-      delete: (key: string): Thenable<void> => {
-        return Promise.resolve();
-      }
+      get: (key: string): Thenable<string | undefined> => Promise.resolve(undefined),
+      store: (key: string, value: string): Thenable<void> => Promise.resolve(),
+      delete: (key: string): Thenable<void> => Promise.resolve()
     };
     this.extension = {
       packageJSON: {
@@ -148,10 +130,9 @@ export class MockExtensionContext implements ExtensionContext {
   public storagePath: string = 'myStoragePath';
   public languageModelAccessInformation: LanguageModelAccessInformation = {
     onDidChange: new EventEmitter<void>().event,
-    canSendRequest: (chat: LanguageModelChat) => {
+    canSendRequest: (chat: LanguageModelChat) =>
       // Implement your logic here
       // For example, return true, false, or undefined based on some condition
-      return true; // or false or undefined
-    }
+      true // or false or undefined
   };
 }

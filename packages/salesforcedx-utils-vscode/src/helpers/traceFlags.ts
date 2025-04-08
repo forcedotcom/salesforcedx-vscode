@@ -57,18 +57,14 @@ export class TraceFlags {
       }
 
       const expirationDate = this.calculateExpirationDate(
-        traceFlag.ExpirationDate
-          ? new Date(traceFlag.ExpirationDate)
-          : new Date()
+        traceFlag.ExpirationDate ? new Date(traceFlag.ExpirationDate) : new Date()
       );
       return await this.updateTraceFlag(traceFlag.Id, expirationDate);
     } else {
       // create a debug level
       const debugLevelId = await this.createDebugLevel();
       if (!debugLevelId) {
-        throw new Error(
-          nls.localize('trace_flags_failed_to_create_debug_level')
-        );
+        throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
       }
 
       // create a trace flag
@@ -87,10 +83,7 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.update(
-      'DebugLevel',
-      debugLevel
-    )) as DataRecordResult;
+    const result = (await this.connection.tooling.update('DebugLevel', debugLevel)) as DataRecordResult;
     return result.success;
   }
 
@@ -102,26 +95,17 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.create(
-      'DebugLevel',
-      debugLevel
-    )) as DataRecordResult;
+    const result = (await this.connection.tooling.create('DebugLevel', debugLevel)) as DataRecordResult;
     return result.success && result.id ? result.id : undefined;
   }
 
-  private async updateTraceFlag(
-    id: string,
-    expirationDate: Date
-  ): Promise<boolean> {
+  private async updateTraceFlag(id: string, expirationDate: Date): Promise<boolean> {
     const traceFlag = {
       Id: id,
       StartDate: Date.now(),
       ExpirationDate: expirationDate.toUTCString()
     };
-    const result = (await this.connection.tooling.update(
-      'TraceFlag',
-      traceFlag
-    )) as DataRecordResult;
+    const result = (await this.connection.tooling.update('TraceFlag', traceFlag)) as DataRecordResult;
     return result.success;
   }
 
@@ -138,15 +122,10 @@ export class TraceFlags {
       ExpirationDate: expirationDate.toUTCString()
     };
 
-    const result = (await this.connection.tooling.create(
-      'TraceFlag',
-      traceFlag
-    )) as DataRecordResult;
+    const result = (await this.connection.tooling.create('TraceFlag', traceFlag)) as DataRecordResult;
 
     if (result.success && result.id) {
-      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(
-        result.id
-      );
+      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(result.id);
       return result.id;
     } else {
       return undefined;
@@ -155,18 +134,12 @@ export class TraceFlags {
 
   private isValidDateLength(expirationDate: Date) {
     const currDate = new Date().valueOf();
-    return (
-      expirationDate.getTime() - currDate >
-      this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE
-    );
+    return expirationDate.getTime() - currDate > this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE;
   }
 
   private calculateExpirationDate(expirationDate: Date): Date {
     if (!this.isValidDateLength(expirationDate)) {
-      expirationDate = new Date(
-        Date.now() +
-          this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE
-      );
+      expirationDate = new Date(Date.now() + this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE);
     }
     return expirationDate;
   }
@@ -181,16 +154,13 @@ export class TraceFlags {
     return userResult.records[0];
   }
 
-  private async getTraceFlagForUser(
-    userId: string
-  ): Promise<TraceFlagRecord | undefined> {
+  private async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
     const traceFlagQuery = `
       SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce
       FROM TraceFlag
       WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}'
     `;
-    const traceFlagResult =
-      await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
+    const traceFlagResult = await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
 
     if (traceFlagResult.totalSize > 0) {
       return traceFlagResult.records[0];

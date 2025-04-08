@@ -109,8 +109,7 @@ export const mockAPIResponse = {
         updateable: false,
         urls: {
           rowTemplate: '/services/data/v50.0/sobjects/ApexPageInfo/{ID}',
-          defaultValues:
-            '/services/data/v50.0/sobjects/ApexPageInfo/defaultValues?recordTypeId&fields',
+          defaultValues: '/services/data/v50.0/sobjects/ApexPageInfo/defaultValues?recordTypeId&fields',
           describe: '/services/data/v50.0/sobjects/ApexPageInfo/describe',
           sobject: '/services/data/v50.0/sobjects/ApexPageInfo'
         }
@@ -145,74 +144,4 @@ export const mockMinimizedResponseResult: SObject = {
   label: 'Apex Page Info',
   name: 'ApexPageInfo',
   queryable: true
-};
-
-export const mockBatchResponse = {
-  hasErrors: false,
-  results: [
-    {
-      statusCode: 200,
-      result: { name: 'Account' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Attachment' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Case' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Contact' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Contract' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Lead' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Note' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Opportunity' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Order' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Pricebook2' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'PricebookEntry' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Product2' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'RecordType' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Report' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'Task' }
-    },
-    {
-      statusCode: 200,
-      result: { name: 'User' }
-    }
-  ]
 };

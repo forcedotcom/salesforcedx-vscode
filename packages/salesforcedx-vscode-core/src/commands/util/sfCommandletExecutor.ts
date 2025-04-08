@@ -5,21 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandExecution,
-  ContinueResponse,
-  Measurements,
-  Properties,
-  TelemetryData
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor, Command, CommandExecution, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
-import {
-  PROJECT_RETRIEVE_START_LOG_NAME,
-  PROJECT_DEPLOY_START_LOG_NAME
-} from '../../constants';
+import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
 import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
@@ -28,15 +18,11 @@ import { workspaceUtils } from '../../util';
 import { CommandletExecutor } from './commandletExecutor';
 
 export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
-  public static errorCollection =
-    vscode.languages.createDiagnosticCollection('push-errors');
+  public static errorCollection = vscode.languages.createDiagnosticCollection('push-errors');
   protected showChannelOutput = true;
   protected executionCwd = workspaceUtils.getRootWorkspacePath();
-  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
-    [number, number]
-  >();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> =
-    this.onDidFinishExecutionEventEmitter.event;
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<[number, number]>();
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this.onDidFinishExecutionEventEmitter.event;
 
   protected attachExecution(
     execution: CommandExecution,
@@ -46,12 +32,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     const commandLogName = execution.command.logName;
     // If Push or Pull operation, output text will be
     // generated later using a parser.
-    if (
-      !(
-        commandLogName === PROJECT_RETRIEVE_START_LOG_NAME ||
-        commandLogName === PROJECT_DEPLOY_START_LOG_NAME
-      )
-    ) {
+    if (!(commandLogName === PROJECT_RETRIEVE_START_LOG_NAME || commandLogName === PROJECT_DEPLOY_START_LOG_NAME)) {
       channelService.streamCommandOutput(execution);
     }
 
@@ -59,10 +40,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
       channelService.showChannelOutput();
     }
 
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
-    );
+    notificationService.reportCommandExecutionStatus(execution, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
@@ -73,12 +51,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     properties?: Properties,
     measurements?: Measurements
   ) {
-    telemetryService.sendCommandEvent(
-      logName,
-      hrstart,
-      properties,
-      measurements
-    );
+    telemetryService.sendCommandEvent(logName, hrstart, properties, measurements);
   }
 
   public execute(response: ContinueResponse<T>): void {
@@ -96,23 +69,14 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     });
 
     execution.processExitSubject.subscribe(exitCode => {
-      const telemetryData = this.getTelemetryData(
-        exitCode === 0,
-        response,
-        output
-      );
+      const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
       let properties;
       let measurements;
       if (telemetryData) {
         properties = telemetryData.properties;
         measurements = telemetryData.measurements;
       }
-      this.logMetric(
-        execution.command.logName,
-        startTime,
-        properties,
-        measurements
-      );
+      this.logMetric(execution.command.logName, startTime, properties, measurements);
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
@@ -129,24 +93,18 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     try {
       parsed = JSON.parse(output);
     } catch (error) {
-      console.log(
-        `There was an error parsing the output. Raw output: ${output}`
-      );
+      console.log(`There was an error parsing the output. Raw output: ${output}`);
 
-      notificationService.showWarningMessage(
-        nls.localize('lib_retrieve_result_parse_error')
-      );
+      notificationService.showWarningMessage(nls.localize('lib_retrieve_result_parse_error'));
       throw error;
     }
     return parsed;
   }
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected getTelemetryData(
     success: boolean,
     response: ContinueResponse<T>,
     output: string
-    /* eslint-enable @typescript-eslint/no-unused-vars */
   ): TelemetryData | undefined {
     return;
   }
@@ -157,7 +115,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   protected updateCache(result: any): void {}
 
   public abstract build(data: T): Command;

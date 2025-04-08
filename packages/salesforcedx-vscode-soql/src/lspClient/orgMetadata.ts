@@ -9,7 +9,6 @@ import {
   CUSTOMOBJECTS_DIR,
   SObject,
   SObjectField,
-  SObjectShortDescription,
   SOQLMETADATA_DIR,
   STANDARDOBJECTS_DIR,
   toMinimalSObject
@@ -56,44 +55,29 @@ export class FileSystemOrgDataSource implements OrgDataSource {
     }
 
     if (files.length === 0) {
-      const message = nls.localize(
-        'error_sobjects_fs_request',
-        soqlMetadataPath
-      );
+      const message = nls.localize('error_sobjects_fs_request', soqlMetadataPath);
       channelService.appendLine(message);
     }
 
-    return files
-      .filter(fileName => fileName.endsWith('.json'))
-      .map(fileName => fileName.replace(/.json$/, ''));
+    return files.filter(fileName => fileName.endsWith('.json')).map(fileName => fileName.replace(/.json$/, ''));
   }
 
-  public async retrieveSObject(
-    sobjectName: string
-  ): Promise<SObject | undefined> {
+  public async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
     const soqlMetadataPath = this.getLocalDatapath();
     if (!soqlMetadataPath) {
       return undefined;
     }
 
-    let filePath = path.join(
-      soqlMetadataPath,
-      STANDARDOBJECTS_DIR,
-      sobjectName + '.json'
-    );
+    let filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, sobjectName + '.json');
     if (!fs.existsSync(filePath)) {
-      filePath = path.join(
-        soqlMetadataPath,
-        CUSTOMOBJECTS_DIR,
-        sobjectName + '.json'
-      );
+      filePath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, sobjectName + '.json');
     }
 
     try {
       const file = await fs.promises.readFile(filePath);
       // TODO: validate content against a schema
       return JSON.parse(file.toString());
-    } catch (e) {
+    } catch {
       const message = nls.localize(
         'error_sobject_metadata_fs_request',
         sobjectName,
@@ -103,27 +87,13 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       return undefined;
     }
   }
-
-  private async readTypeDescriptions(
-    soqlMetadataPath: string
-  ): Promise<SObjectShortDescription[]> {
-    const savedTypeNamesBuffer = await fs.promises.readFile(
-      path.join(soqlMetadataPath, 'typeNames.json')
-    );
-    // TODO: validate content against a schema
-    const savedTypeNames = JSON.parse(
-      savedTypeNamesBuffer.toString()
-    ) as SObjectShortDescription[];
-
-    return savedTypeNames;
-  }
 }
 
 export class JsforceOrgDataSource implements OrgDataSource {
   async retrieveSObjectsList(): Promise<string[]> {
     try {
       return await retrieveSObjects();
-    } catch (metadataError) {
+    } catch {
       const message = nls.localize('error_sobjects_request');
       channelService.appendLine(message);
       return [];
@@ -133,11 +103,8 @@ export class JsforceOrgDataSource implements OrgDataSource {
   async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
     try {
       return toMinimalSObject(await retrieveSObject(sobjectName));
-    } catch (metadataError) {
-      const message = nls.localize(
-        'error_sobject_metadata_request',
-        sobjectName
-      );
+    } catch {
+      const message = nls.localize('error_sobject_metadata_request', sobjectName);
       channelService.appendLine(message);
       return undefined;
     }

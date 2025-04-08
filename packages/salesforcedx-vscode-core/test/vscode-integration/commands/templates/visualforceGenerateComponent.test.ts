@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
-import * as shell from 'shelljs';
+import * as fs from 'node:fs';
 import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
@@ -15,7 +15,6 @@ import { visualforceGenerateComponent } from '../../../../src/commands/templates
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Visualforce Generate Component', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -28,10 +27,7 @@ describe('Visualforce Generate Component', () => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    showSuccessfulExecutionStub = stub(notificationService, 'showSuccessfulExecution');
     showSuccessfulExecutionStub.returns(Promise.resolve());
     showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
@@ -50,20 +46,12 @@ describe('Visualforce Generate Component', () => {
     // arrange
     const fileName = 'testVFCmp';
     const outputPath = 'force-app/main/default/components';
-    const vfCmpPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testVFCmp.component'
-    );
-    const vfCmpMetaPath = path.join(
-      workspaceUtils.getRootWorkspacePath(),
-      outputPath,
-      'testVFCmp.component-meta.xml'
-    );
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    const vfCmpPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFCmp.component');
+    const vfCmpMetaPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testVFCmp.component-meta.xml');
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([vfCmpPath, vfCmpMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -77,9 +65,9 @@ describe('Visualforce Generate Component', () => {
     sinon.assert.calledWith(openTextDocumentStub, vfCmpPath);
 
     // clean up
-    shell.rm(
-      '-rf',
-      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
-    );
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), {
+      recursive: true,
+      force: true
+    });
   });
 });

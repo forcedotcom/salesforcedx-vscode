@@ -2,9 +2,7 @@
 
 ## Pre-requisites
 
-1.  We are requiring Node 16 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
-    1. npm v6 is declared as a dependency in the workspace root and gets used by vsce packaging due to [issues with vsce packaging and npm v7/8](https://github.com/forcedotcom/salesforcedx-vscode/pull/4092)
-    1. npm v8 that comes installed with node 16 would be used when npm is invoked via npm run scripts or manually via shell. Hence the new lock file format of npm v8 with workspaces support is used by `npm install`.
+1.  We are requiring Node 20 and npm v10 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
 1.  This repository uses [Lerna](https://lerna.js.org) to manage it as a
     _monorepo_. Please install Lerna globally using `npm install --global lerna`.
 1.  We use `eslint` so please install it using `npm install --global eslint`.
@@ -105,9 +103,7 @@ launch configuration would be like the following.
   "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/adapter/apexDebug.js",
   "args": ["--server=4711"],
   "sourceMaps": true,
-  "outFiles": [
-    "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/**/*.js"
-  ]
+  "outFiles": ["${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/**/*.js"]
 }
 ```
 
@@ -206,7 +202,14 @@ Add any missing peer dependencies identified to the package's dev dependency.
 
 ### `npm run vsix:install`
 
-This finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code Insiders.
+This finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code.
+
+- The installation would overwrite any installed packages in vscode with same name and version (under `~/.vscode/extensions`).
+- To debug installed extensions you can use Command Palette: `Developer > Show Logs .. > Extension Host`
+
+### `npm run vsix:install-insiders`
+
+Similar to the above command, this finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code Insiders.
 
 - The installation would overwrite any installed packages in insiders with same name and version (under `~/.vscode-insiders/extensions`).
 - To debug installed extensions you can use Command Palette: `Developer > Show Logs .. > Extension Host`
