@@ -13,7 +13,7 @@ import * as path from 'path';
 import { CommonDirDirectoryDiffer } from '../../src/conflict';
 
 describe('Directory Differ', () => {
-  const TEST_DATA_FOLDER = path.join(__dirname, '..', '..', '..', '..', 'system-tests', 'assets', 'differ-testdata');
+  const TEST_DATA_FOLDER = path.join(__dirname, '..', '..', '..', 'test-assets', 'differ-testdata');
   let testRoot: string;
   let dirOne: string;
   let dirTwo: string;

@@ -18,7 +18,6 @@ The test types from most preferred to least preferred are:
 1. vscode-integration - Tests that are somewhere between integration and unit tests. These are being phased out and there should be no new additions.
    - Close all instances of vscode.
    - `npm run test:integration`
-1. system-tests - These have been disabled for a long time and will soon be deleted.
 
 To run all tests, execute `npm run compile && npm run test` from the root
 folder. Note the compile is only necessary for the integration tests.

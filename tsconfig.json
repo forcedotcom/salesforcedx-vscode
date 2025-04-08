@@ -53,9 +53,6 @@
       "path": "packages/salesforcedx-vscode-visualforce"
     },
     {
-      "path": "packages/system-tests"
-    },
-    {
       "path": "./.github/actions/new-issue"
     },
     {
