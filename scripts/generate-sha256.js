@@ -16,7 +16,7 @@ process.chdir(vsixfilesLocation);
 for (let i = 0; i < vsixes.length; i++) {
   const vsix = vsixes[i];
   try {
-    execSync(`/win32/.test(process.platform) ? \`CertUtil -hashfile ${vsix} SHA256\` : \`shasum -a 256 ${vsix}\``, {
+    execSync(process.platform === 'win32' ? `CertUtil -hashfile ${vsix} SHA256` : `shasum -a 256 ${vsix}`, {
       stdio: 'inherit'
     });
   } catch (error) {
