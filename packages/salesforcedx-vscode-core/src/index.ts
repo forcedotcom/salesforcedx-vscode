@@ -194,52 +194,21 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const lightningGenerateLwcCmd = vscode.commands.registerCommand('sf.lightning.generate.lwc', lightningGenerateLwc);
 
-  const debuggerStopCmd = vscode.commands.registerCommand(
-    'sf.debugger.stop',
-    debuggerStop
-  );
-  const configListCmd = vscode.commands.registerCommand(
-    'sf.config.list',
-    configList
-  );
-  const forceAliasListCmd = vscode.commands.registerCommand(
-    'sf.alias.list',
-    aliasList
-  );
-  const orgDeleteDefaultCmd = vscode.commands.registerCommand(
-    'sf.org.delete.default',
-    orgDelete
-  );
-  const orgDeleteUsernameCmd = vscode.commands.registerCommand(
-    'sf.org.delete.username',
-    orgDelete,
-    { flag: '--target-org' }
-  );
-  const orgDisplayDefaultCmd = vscode.commands.registerCommand(
-    'sf.org.display.default',
-    orgDisplay
-  );
-  const orgDisplayUsernameCmd = vscode.commands.registerCommand(
-    'sf.org.display.username',
-    orgDisplay,
-    { flag: '--target-org' }
-  );
-  const orgListCleanCmd = vscode.commands.registerCommand(
-    'sf.org.list.clean',
-    orgList
-  );
-  const dataQueryInputCmd = vscode.commands.registerCommand(
-    'sf.data.query.input',
-    dataQuery
-  );
-  const dataQuerySelectionCmd = vscode.commands.registerCommand(
-    'sf.data.query.selection',
-    dataQuery
-  );
-  const projectGenerateCmd = vscode.commands.registerCommand(
-    'sf.project.generate',
-    sfProjectGenerate
-  );
+  const debuggerStopCmd = vscode.commands.registerCommand('sf.debugger.stop', debuggerStop);
+  const configListCmd = vscode.commands.registerCommand('sf.config.list', configList);
+  const forceAliasListCmd = vscode.commands.registerCommand('sf.alias.list', aliasList);
+  const orgDeleteDefaultCmd = vscode.commands.registerCommand('sf.org.delete.default', orgDelete);
+  const orgDeleteUsernameCmd = vscode.commands.registerCommand('sf.org.delete.username', orgDelete, {
+    flag: '--target-org'
+  });
+  const orgDisplayDefaultCmd = vscode.commands.registerCommand('sf.org.display.default', orgDisplay);
+  const orgDisplayUsernameCmd = vscode.commands.registerCommand('sf.org.display.username', orgDisplay, {
+    flag: '--target-org'
+  });
+  const orgListCleanCmd = vscode.commands.registerCommand('sf.org.list.clean', orgList);
+  const dataQueryInputCmd = vscode.commands.registerCommand('sf.data.query.input', dataQuery);
+  const dataQuerySelectionCmd = vscode.commands.registerCommand('sf.data.query.selection', dataQuery);
+  const projectGenerateCmd = vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate);
 
   const packageInstallCmd = vscode.commands.registerCommand('sf.package.install', packageInstall);
   const projectGenerateWithManifestCmd = vscode.commands.registerCommand(

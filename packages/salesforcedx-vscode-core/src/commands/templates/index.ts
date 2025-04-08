@@ -9,14 +9,8 @@ export { analyticsGenerateTemplate } from './analyticsGenerateTemplate';
 export { apexGenerateClass } from './apexGenerateClass';
 export { apexGenerateTrigger } from './apexGenerateTrigger';
 export * from './apexGenerateUnitTestClass';
-export {
-  FileInternalPathGatherer,
-  InternalDevWorkspaceChecker
-} from './internalCommandUtils';
-export {
-  internalLightningGenerateApp,
-  lightningGenerateApp
-} from './lightningGenerateApp';
+export { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './internalCommandUtils';
+export { internalLightningGenerateApp, lightningGenerateApp } from './lightningGenerateApp';
 export {
   internalLightningGenerateAuraComponent,
   lightningGenerateAuraComponent
