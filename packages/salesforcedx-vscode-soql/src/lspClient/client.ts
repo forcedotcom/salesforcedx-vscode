@@ -6,7 +6,7 @@
  */
 import * as path from 'path';
 import { ExtensionContext, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import * as codeCompletion from './codeCompletion';
 import * as queryValidation from './queryValidation';
 
@@ -47,8 +47,7 @@ export const startLanguageClient = async (extensionContext: ExtensionContext): P
   client = queryValidation.init(client);
 
   // Start the client. This will also launch the server
-  client.start();
-  await client.onReady();
+  await client.start();
   client = queryValidation.afterStart(client);
 };
 
