@@ -1,3 +1,13 @@
+# 63.8.0 - April 9, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed an issue where an Apex variable with a number in the middle of its name was previously treated as two separate variables. ([PR #6184](https://github.com/forcedotcom/salesforcedx-vscode/pull/6184))
+- We fixed an issue where the `SFDX: Restart Apex Language Server` command wasn't always visible. Now it's always visible. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
+- We made some changes under the hood. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
+
 # 63.7.0 - April 2, 2025
 
 ## Added
