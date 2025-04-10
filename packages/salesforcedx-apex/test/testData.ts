@@ -178,6 +178,51 @@ export const testResultData: TestResult = {
   setup: []
 };
 
+export const flowTestResultData: TestResult = {
+  // @ts-ignore
+  summary: {
+    failRate: '0%',
+    failing: 0,
+    hostname: 'https://na139.salesforce.com',
+    testsRan: 1,
+    outcome: 'Passed',
+    passRate: '100%',
+    passing: 1,
+    skipRate: '0%',
+    skipped: 0,
+    testStartTime: localStartTime,
+    testSetupTimeInMs: undefined,
+    testExecutionTimeInMs: 0,
+    testTotalTimeInMs: 0,
+    commandTimeInMs: 2000,
+    testRunId,
+    userId: '005xx000000abcDAAU'
+  },
+  tests: [
+    {
+      id: '07Mxx00000F2Xx6UAF',
+      queueItemId: '7092M000000Vt94QAC',
+      stackTrace: '',
+      message: '',
+      asyncApexJobId: '7092M000000Vt94QAC',
+      methodName: 'FlowName_FlowTestName',
+      outcome: ApexTestResultOutcome.Pass,
+      apexLogId: '',
+      apexClass: {
+        id: '7092M000000Vt94QAC',
+        name: 'FlowName',
+        namespacePrefix: '',
+        fullName: 'FlowName'
+      },
+      runTime: 0,
+      testTimestamp: '3',
+      fullName: 'FlowName.FlowName_FlowTestName'
+    }
+  ],
+  setup: [],
+  codecoverage: undefined
+};
+
 export const missingTimeTestData: TestResult = {
   // @ts-ignore
   summary: {
@@ -254,7 +299,7 @@ export const skippedTestData: TestResult = {
       outcome: ApexTestResultOutcome.Skip,
       apexLogId: null,
       apexClass: {
-        id: '01pxx00000O6tXZQAZ',
+        id: '7092M000000Vt94QAC',
         name: 'TestLogger',
         namespacePrefix: 't3st',
         fullName: 't3st.TestLogger'

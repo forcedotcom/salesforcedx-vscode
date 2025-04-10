@@ -30,7 +30,9 @@ import {
   AsyncTestConfiguration,
   TestResult,
   TestResultRaw,
-  TestRunIdResult
+  TestRunIdResult,
+  FlowTestResult,
+  ApexTestResultRecord
 } from './types';
 import {
   calculatePercentage,
@@ -340,35 +342,79 @@ export class AsyncTests {
   ): Promise<ApexTestResult[]> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
     const hasIsTestSetupField = await this.supportsTestSetupFeature();
-
     try {
-      const apexTestResultQuery = hasIsTestSetupField
-        ? `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`
-        : `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`;
-
-      const apexResultIds = testQueueResult.records.map((record) => record.Id);
+      const resultIds = testQueueResult.records.map((record) => record.Id);
+      const isFlowRunTest = await this.isJobIdForFlowTestRun(resultIds[0]);
+      const testResultQuery = isFlowRunTest
+        ? `SELECT Id, ApexTestQueueItemId, Result, TestStartDateTime,TestEndDateTime, FlowTest.DeveloperName, FlowDefinition.DeveloperName, FlowDefinition.NamespacePrefix FROM FlowTestResult WHERE ApexTestQueueItemId IN (%s)`
+        : hasIsTestSetupField
+          ? `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`
+          : `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`;
 
       // iterate thru ids, create query with id, & compare query length to char limit
       const queries: string[] = [];
-      for (let i = 0; i < apexResultIds.length; i += QUERY_RECORD_LIMIT) {
-        const recordSet: string[] = apexResultIds
+      for (let i = 0; i < resultIds.length; i += QUERY_RECORD_LIMIT) {
+        const recordSet: string[] = resultIds
           .slice(i, i + QUERY_RECORD_LIMIT)
           .map((id) => `'${id}'`);
-        const query: string = util.format(
-          apexTestResultQuery,
-          recordSet.join(',')
-        );
+        const query: string = util.format(testResultQuery, recordSet.join(','));
         queries.push(query);
       }
       const connection = await this.defineApiVersion();
       const queryPromises = queries.map(async (query) => {
         return queryAll(connection, query, true);
       });
-      const apexTestResults = await Promise.all(queryPromises);
-      return apexTestResults as ApexTestResult[];
+      const testResults = await Promise.all(queryPromises);
+      if (isFlowRunTest) {
+        return this.convertFlowTestResult(testResults as FlowTestResult[]);
+      }
+      return testResults as ApexTestResult[];
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
     }
+  }
+  /**
+   * @returns Convert FlowTest result to ApexTestResult type
+   */
+
+  private convertFlowTestResult(
+    flowtestResults: FlowTestResult[]
+  ): ApexTestResult[] {
+    return flowtestResults.map((flowtestResult) => {
+      const tmpRecords: ApexTestResultRecord[] = flowtestResult.records.map(
+        (record) => ({
+          Id: record.Id,
+          QueueItemId: record.ApexTestQueueItemId,
+          StackTrace: '', // Default value
+          Message: '', // Default value
+          AsyncApexJobId: record.ApexTestQueueItemId, // Assuming this maps from ApexTestQueueItem
+          MethodName: record.FlowTest.DeveloperName,
+          Outcome: record.Result,
+          ApexLogId: '', // Default value
+          IsTestSetup: false,
+          ApexClass: {
+            Id: record.ApexTestQueueItemId,
+            Name: record.FlowDefinition.DeveloperName,
+            NamespacePrefix: record.FlowDefinition.NamespacePrefix,
+            FullName: record.FlowDefinition.NamespacePrefix
+              ? `${record.FlowDefinition.NamespacePrefix}.${record.FlowTest.DeveloperName}`
+              : record.FlowTest.DeveloperName
+          },
+          RunTime: Number.isNaN(Number(record.TestEndDateTime))
+            ? 0
+            : Number(record.TestEndDateTime) - Number(record.TestStartDateTime)
+              ? 0
+              : Number(record.TestStartDateTime), // Default value, replace with actual runtime if available
+          TestTimestamp: record.TestStartDateTime
+        })
+      );
+
+      return {
+        done: flowtestResult.done,
+        totalSize: tmpRecords.length,
+        records: tmpRecords
+      };
+    });
   }
 
   @elapsedTime()
@@ -520,6 +566,30 @@ export class AsyncTests {
       );
     } catch (e) {
       throw new Error(`Error retrieving max api version`);
+    }
+  }
+
+  /**
+   * @returns A boolean indicating if this is running FlowTest.
+   */
+  public async isJobIdForFlowTestRun(testRunId: string): Promise<boolean> {
+    const apexIdQuery = `SELECT ApexClassId FROM ApexTestQueueItem WHERE Id = '${testRunId}'`;
+    try {
+      const testRunApexIdResults =
+        await this.connection.tooling.query<ApexTestQueueItemRecord>(
+          apexIdQuery
+        );
+      if (testRunApexIdResults.records.length > 0) {
+        for (const record of testRunApexIdResults.records) {
+          if (record.ApexClassId === null) {
+            return true;
+          }
+        }
+        return false;
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
   }
 

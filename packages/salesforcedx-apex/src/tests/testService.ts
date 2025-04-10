@@ -393,11 +393,17 @@ export class TestService {
   public async buildSyncPayload(
     testLevel: TestLevel,
     tests?: string,
-    classnames?: string
+    classnames?: string,
+    category?: string
   ): Promise<SyncTestConfiguration> {
     try {
       if (tests) {
-        const payload = await this.buildTestPayload(tests);
+        let payload;
+        if (this.isFlowTest(category)) {
+          payload = await this.buildTestPayloadForFlow(tests);
+        } else {
+          payload = await this.buildTestPayload(tests);
+        }
         const classes = payload.tests
           ?.filter((testItem) => testItem.className)
           .map((testItem) => testItem.className);
@@ -406,11 +412,22 @@ export class TestService {
         }
         return payload;
       } else if (classnames) {
-        const prop = isValidApexClassID(classnames) ? 'classId' : 'className';
-        return {
-          tests: [{ [prop]: classnames }],
-          testLevel
-        };
+        if (this.isFlowTest(category)) {
+          const payload = await this.buildClassPayloadForFlow(classnames);
+          const classes = (payload.tests || [])
+            .filter((testItem) => testItem.className)
+            .map((testItem) => testItem.className);
+          if (new Set(classes).size !== 1) {
+            throw new Error(nls.localize('syncClassErr'));
+          }
+          return payload;
+        } else {
+          const prop = isValidApexClassID(classnames) ? 'classId' : 'className';
+          return {
+            tests: [{ [prop]: classnames }],
+            testLevel
+          };
+        }
       }
       throw new Error(nls.localize('payloadErr'));
     } catch (e) {
@@ -423,16 +440,34 @@ export class TestService {
     testLevel: TestLevel,
     tests?: string,
     classNames?: string,
-    suiteNames?: string
+    suiteNames?: string,
+    category?: string
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
     try {
       if (tests) {
-        return (await this.buildTestPayload(
-          tests
-        )) as AsyncTestArrayConfiguration;
+        if (this.isFlowTest(category)) {
+          return (await this.buildTestPayloadForFlow(
+            tests
+          )) as AsyncTestArrayConfiguration;
+        } else {
+          return (await this.buildTestPayload(
+            tests
+          )) as AsyncTestArrayConfiguration;
+        }
       } else if (classNames) {
-        return await this.buildAsyncClassPayload(classNames);
+        if (this.isFlowTest(category)) {
+          return await this.buildClassPayloadForFlow(classNames);
+        } else {
+          return await this.buildAsyncClassPayload(classNames);
+        }
       } else {
+        if (this.isFlowTest(category)) {
+          return {
+            suiteNames,
+            testLevel,
+            category
+          };
+        }
         return {
           suiteNames,
           testLevel
@@ -451,12 +486,21 @@ export class TestService {
     const classItems = classNameArray.map((item) => {
       const classParts = item.split('.');
       if (classParts.length > 1) {
-        return {
-          className: `${classParts[0]}.${classParts[1]}`
-        };
+        return { className: `${classParts[0]}.${classParts[1]}` };
       }
       const prop = isValidApexClassID(item) ? 'classId' : 'className';
       return { [prop]: item } as TestItem;
+    });
+    return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
+  }
+
+  @elapsedTime()
+  private async buildClassPayloadForFlow(
+    classNames: string
+  ): Promise<AsyncTestArrayConfiguration> {
+    const classNameArray = classNames.split(',') as string[];
+    const classItems = classNameArray.map((item) => {
+      return { className: item } as TestItem;
     });
     return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
   }
@@ -536,6 +580,91 @@ export class TestService {
     };
   }
 
+  @elapsedTime()
+  private async buildTestPayloadForFlow(
+    testNames: string
+  ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {
+    const testNameArray = testNames.split(',');
+    const testItems: TestItem[] = [];
+    const classes: string[] = [];
+    let namespaceInfos: NamespaceInfo[];
+
+    for (const test of testNameArray) {
+      if (test.indexOf('.') > 0) {
+        const testParts = test.split('.');
+        if (testParts.length === 4) {
+          // for flow test, we will prefix flowtesting global namespace always. so, test string will be look like:
+          // flowtesting.myNamespace.myFlow.myTest
+          // the class name is always the full string including all the namespaces, eg: flowtesting.myNamespace.myFlow.
+          if (
+            !classes.includes(`${testParts[0]}.${testParts[1]}.${testParts[2]}`)
+          ) {
+            testItems.push({
+              namespace: `${testParts[0]}.${testParts[1]}`,
+              className: `${testParts[0]}.${testParts[1]}.${testParts[2]}`,
+              testMethods: [testParts[3]]
+            });
+            classes.push(`${testParts[0]}.${testParts[1]}.${testParts[2]}`);
+          } else {
+            testItems.forEach((element) => {
+              if (
+                element.className ===
+                `${testParts[0]}.${testParts[1]}.${testParts[2]}`
+              ) {
+                element.namespace = `${testParts[0]}.${testParts[1]}`;
+                element.testMethods.push(`${testParts[3]}`);
+              }
+            });
+          }
+        } else {
+          if (typeof namespaceInfos === 'undefined') {
+            namespaceInfos = await queryNamespaces(this.connection);
+          }
+          const currentNamespace = namespaceInfos.find(
+            (namespaceInfo) => namespaceInfo.namespace === testParts[1]
+          );
+          // NOTE: Installed packages require the namespace to be specified as part of the className field
+          // The namespace field should not be used with subscriber orgs
+          if (currentNamespace) {
+            // with installed namespace, no need to push namespace separately to tooling layer
+            if (currentNamespace.installedNs) {
+              testItems.push({
+                className: `${testParts[0]}.${testParts[1]}.${testParts[2]}`
+              });
+            } else {
+              // pushing namespace as part of the payload
+              testItems.push({
+                namespace: `${testParts[0]}.${testParts[1]}`,
+                className: `${testParts[0]}.${testParts[1]}.${testParts[2]}`
+              });
+            }
+          } else {
+            if (!classes.includes(`${testParts[0]}.${testParts[1]}`)) {
+              testItems.push({
+                className: `${testParts[0]}.${testParts[1]}`,
+                testMethods: [testParts[2]]
+              });
+              classes.push(`${testParts[0]}.${testParts[1]}`);
+            } else {
+              testItems.forEach((element) => {
+                if (element.className === `${testParts[0]}.${testParts[1]}`) {
+                  element.testMethods.push(testParts[2]);
+                }
+              });
+            }
+          }
+        }
+      } else {
+        const prop = isValidApexClassID(test) ? 'classId' : 'className';
+        testItems.push({ [prop]: test });
+      }
+    }
+    return {
+      tests: testItems,
+      testLevel: TestLevel.RunSpecifiedTests
+    };
+  }
+
   private async runPipeline(
     readable: Readable,
     filePath: string,
@@ -552,5 +681,8 @@ export class TestService {
 
   public createStream(filePath: string): Writable {
     return createWriteStream(filePath, 'utf8');
+  }
+  private isFlowTest(category: string): boolean {
+    return category && category.length !== 0;
   }
 }

@@ -56,6 +56,11 @@ export type AsyncTestConfiguration = {
    * Does not wait for test run to complete and returns the test run id immediately
    */
   exitOnTestRunId?: boolean;
+  /**
+   * Category for this run, for Flow or Apex
+   */
+
+  category?: string;
 };
 
 export enum ResultFormat {
@@ -91,6 +96,8 @@ export type TestItem = {
    * Namespace associated with the test class or method
    */
   namespace?: string;
+
+  category?: string;
 };
 
 export type AsyncTestArrayConfiguration = {
@@ -113,6 +120,8 @@ export type AsyncTestArrayConfiguration = {
    * Allows for faster tests by skipping code coverage
    */
   skipCodeCoverage?: boolean;
+
+  category?: string;
 };
 
 export type SyncTestConfiguration = {
@@ -184,6 +193,28 @@ export const enum ApexTestResultOutcome {
   Skip = 'Skip'
 }
 
+export type FlowTestResultRecord = {
+  Id: string;
+  ApexTestQueueItemId: string;
+  Result: ApexTestResultOutcome;
+  FlowTest: {
+    /**
+     * Name of the Flow Test Method (up to 255 characters)
+     */
+    DeveloperName: string;
+  };
+  FlowDefinition: {
+    DeveloperName: string;
+    NamespacePrefix: string;
+  };
+
+  /**
+   * The start time of the test method.
+   */
+  TestStartDateTime: string;
+  TestEndDateTime: string;
+};
+
 export type ApexTestResultRecord = {
   Id: string;
   /**
@@ -247,6 +278,12 @@ export type ApexTestResult = {
   done: boolean;
   totalSize: number;
   records: ApexTestResultRecord[];
+};
+
+export type FlowTestResult = {
+  done: boolean;
+  totalSize: number;
+  records: FlowTestResultRecord[];
 };
 
 export const enum ApexTestRunResultStatus {
