@@ -95,7 +95,7 @@ describe('Java Requirements Test', () => {
       fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
     }
   });
-  it('Should not support Java 23', async () => {
+  it('Should support Java 23', async () => {
     execFileStub.yields('', '', 'java.version = 23.0.0');
     try {
       const result = await checkJavaVersion('~/java_home');
