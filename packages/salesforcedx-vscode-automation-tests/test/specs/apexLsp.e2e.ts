@@ -8,7 +8,7 @@
 import { TestSetup } from '../testSetup';
 import * as utilities from '../utilities/index';
 import { EnvironmentSettings } from '../environmentSettings';
-import { By, InputBox, QuickPickItem, WebElement, after } from 'vscode-extension-tester';
+import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
 import path from 'path';
 import fs from 'fs';
 import { step } from 'mocha-steps';
