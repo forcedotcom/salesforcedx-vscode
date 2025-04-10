@@ -1,4 +1,4 @@
-# 63.8.0 - April 9, 2025
+# 63.8.2 - April 11, 2025
 
 ## Fixed
 
@@ -6,7 +6,9 @@
 
 - We fixed an issue where an Apex variable with a number in the middle of its name was previously treated as two separate variables. ([PR #6184](https://github.com/forcedotcom/salesforcedx-vscode/pull/6184))
 - We fixed an issue where the `SFDX: Restart Apex Language Server` command wasn't always visible. Now it's always visible. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
-- We made some changes under the hood. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
+- We improved the UX for restarting the Apex Language Server by making the notification in the Apex menu seamlessly guide users to the new `SFDX: Restart Apex Language Server`command in the Command Palette. This ensures a smoother, and more intuitive workflow.([PR #6194](https://github.com/forcedotcom/salesforcedx-vscode/pull/6194))
+- We made some changes under the hood. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187), [PR #6195](https://github.com/forcedotcom/salesforcedx-vscode/pull/6195), [PR #6189](https://github.com/forcedotcom/salesforcedx-vscode/pull/6189))
+
 
 # 63.7.0 - April 2, 2025
 
