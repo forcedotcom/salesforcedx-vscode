@@ -53,14 +53,8 @@ export class O11yService {
     // Ensure modules are loaded before using them
     this.o11yModules = await loadO11yModules();
 
-    const {
-      o11yClientVersion,
-      o11ySchemaVersion,
-      getInstrumentation,
-      registerInstrumentedApp,
-      ConsoleCollector,
-      a4d_instrumentation
-    } = this.o11yModules!;
+    const { o11yClientVersion, o11ySchemaVersion, getInstrumentation, registerInstrumentedApp, a4d_instrumentation } =
+      this.o11yModules!;
 
     this.instrumentation = getInstrumentation(extensionName + '-instrumentation');
     this.a4dO11ySchema = a4d_instrumentation;
@@ -77,10 +71,7 @@ export class O11yService {
       enableBuffering: true
     });
 
-    // STEP 2: Register log collectors
-    this._instrApp.registerLogCollector(new ConsoleCollector());
-
-    // STEP 3: Register a metrics collector
+    // STEP 2: Register a metrics collector
     this._instrApp.simpleCollector = this.initSimpleCollector(
       this._instrApp,
       {
