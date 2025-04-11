@@ -50,7 +50,7 @@
     "source-map-support": "^0.5.16",
     "ts-morph": "^23.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.8.3"
   },
   "resolutions": {
     "@jsforce/jsforce-node/node-fetch/whatwg-url": "^14.0.0"
