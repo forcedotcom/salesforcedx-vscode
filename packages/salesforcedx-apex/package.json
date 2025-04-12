@@ -45,7 +45,7 @@
     "mocha-junit-reporter": "^2.2.1",
     "nyc": "^15.1.0",
     "prettier": "^3.4.2",
-    "shx": "^0.3.4",
+    "shx": "^0.4.0",
     "sinon": "^17.0.1",
     "source-map-support": "^0.5.16",
     "ts-morph": "^23.0.0",
