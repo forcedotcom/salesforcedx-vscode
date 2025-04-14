@@ -69,7 +69,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
   const client = createLanguageClient(serverModule);
 
-  extensionContext.subscriptions.push(client.start());
+  // Start the client and add it to subscriptions
+  await client.start();
+  extensionContext.subscriptions.push(client);
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();

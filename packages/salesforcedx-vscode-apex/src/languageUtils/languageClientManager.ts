@@ -62,6 +62,8 @@ export class LanguageClientManager {
   private clientInstance: ApexLanguageClient | undefined;
   private status: LanguageClientStatus;
   private statusBarItem: ApexLSPStatusBarItem | undefined;
+  private isRestarting: boolean = false;
+  private restartTimeout: NodeJS.Timeout | undefined;
 
   private constructor() {
     this.status = new LanguageClientStatus(ClientStatus.Unavailable, '');
@@ -130,11 +132,28 @@ export class LanguageClientManager {
   }
 
   public async restartLanguageServerAndClient(extensionContext: vscode.ExtensionContext): Promise<void> {
-    const removeIndexFiles = await vscode.window.showInformationMessage(
-      nls.localize('apex_language_server_restart_dialog_prompt'),
-      nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
-      nls.localize('apex_language_server_restart_dialog_restart_only')
-    );
+    // If already restarting, show a message and return
+    if (this.isRestarting) {
+      vscode.window.showInformationMessage(nls.localize('apex_language_server_already_restarting'));
+      return;
+    }
+
+    const cleanAndRestartOption = nls.localize('apex_language_server_restart_dialog_clean_and_restart');
+    const restartOnlyOption = nls.localize('apex_language_server_restart_dialog_restart_only');
+
+    const options = [cleanAndRestartOption, restartOnlyOption];
+    const selectedOption = await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
+    });
+
+    // If no option is selected, cancel the operation
+    if (!selectedOption) {
+      return;
+    }
+
+    // Set the restarting flag to prevent multiple restarts
+    this.isRestarting = true;
+
     const alc = this.getClientInstance();
     const statusBarInstance = this.getStatusBarInstance() ?? new ApexLSPStatusBarItem();
     this.setStatusBarInstance(statusBarInstance);
@@ -144,16 +163,42 @@ export class LanguageClientManager {
       try {
         await alc.stop();
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         vscode.window.showWarningMessage(
-          nls.localize('apex_language_server_restart_dialog_restart_only') + error.message
+          `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
         );
       }
-      if (removeIndexFiles === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
+      if (selectedOption === cleanAndRestartOption) {
         await this.removeApexDB();
       }
-      setTimeout(() => {
-        void this.createLanguageClient(extensionContext, statusBarInstance);
+
+      // Clear any existing timeout
+      if (this.restartTimeout) {
+        clearTimeout(this.restartTimeout);
+      }
+
+      // Set a new timeout for the restart
+      this.restartTimeout = setTimeout(() => {
+        void (async () => {
+          try {
+            // Dispose of the old output channel before restarting the client
+            alc.outputChannel?.dispose();
+            await this.createLanguageClient(extensionContext, statusBarInstance);
+          } catch (error) {
+            // Log any errors that occur during client creation
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.error('Error creating language client:', errorMessage);
+            vscode.window.showErrorMessage(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
+          } finally {
+            // Reset the restarting flag and clear the timeout reference
+            this.isRestarting = false;
+            this.restartTimeout = undefined;
+          }
+        })();
       }, 500);
+    } else {
+      // Reset the restarting flag if there's no client instance
+      this.isRestarting = false;
     }
   }
 
@@ -208,20 +253,18 @@ export class LanguageClientManager {
         await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
         extensionContext.subscriptions.push(this.getClientInstance()!);
       } else {
-        this.setStatus(
-          ClientStatus.Error,
-          `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`
-        );
-        languageServerStatusBarItem.error(
-          `${nls.localize('apex_language_server_failed_activate')} - ${nls.localize('unknown')}`
-        );
+        const errorMessage = nls.localize('unknown');
+        this.setStatus(ClientStatus.Error, `${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
+        languageServerStatusBarItem.error(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
       }
-    } catch (e) {
+    } catch (error) {
       let errorMessage = '';
-      if (typeof e === 'string') {
-        errorMessage = e;
-      } else if (e instanceof Error) {
-        errorMessage = e.message ?? nls.localize('unknown_error');
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message ?? nls.localize('unknown_error');
+      } else {
+        errorMessage = nls.localize('unknown_error');
       }
       if (errorMessage.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))) {
         errorMessage = nls.localize('wrong_java_version_short');
