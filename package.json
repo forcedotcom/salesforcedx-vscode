@@ -19,7 +19,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.4.4",
-    "@monorepo-utils/workspaces-to-typescript-project-references": "2.9.0",
+    "@monorepo-utils/workspaces-to-typescript-project-references": "2.10.4",
     "@octokit/core": "4.2.4",
     "@octokit/webhooks-definitions": "^3.67.3",
     "@salesforce/dev-config": "^3.1.0",
