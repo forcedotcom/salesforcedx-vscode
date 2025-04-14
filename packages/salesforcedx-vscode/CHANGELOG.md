@@ -1,3 +1,11 @@
+# 63.9.0 - April 16, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- [@W-18194032@] allow jvm v11 or greater ([PR #6201](https://github.com/forcedotcom/salesforcedx-vscode/pull/6201))
+
 # 63.8.2 - April 11, 2025
 
 ## Fixed
