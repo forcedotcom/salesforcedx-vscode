@@ -65,7 +65,7 @@ const configDir = '.sfdx';
 describe('Should do completion', async () => {
   before(() => {
     // Populate filesystem with sobject's metadata. This is for the embedded-soql case
-    const workspaceDir = path.normalize(__dirname + `/../../../../../system-tests/assets/sfdx-simple/${configDir}`);
+    const workspaceDir = path.normalize(__dirname + `/../../../../test-assets/sfdx-simple/${configDir}`);
     const targetDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
     const soqlMetadataDir = path.normalize(__dirname + '/../../../../test/vscode-integration/soqlMetadata/');
 
@@ -408,7 +408,7 @@ describe('Should do completion', async () => {
 });
 
 describe('Should not do completion on metadata errors', async () => {
-  const workspaceDir = path.normalize(__dirname + `/../../../../../system-tests/assets/sfdx-simple/${configDir}`);
+  const workspaceDir = path.normalize(__dirname + `/../../../../test-assets/sfdx-simple/${configDir}`);
   const soqlMetadataDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
 
   before(() => {

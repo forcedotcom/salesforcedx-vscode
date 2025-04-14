@@ -1,7 +1,0 @@
-<apex:page >
-    <h1>Test Page</h1>
-    <p>
-        This is a new test page
-    </p>
-    <c:TestComp ></c:TestComp>
-</apex:page>
