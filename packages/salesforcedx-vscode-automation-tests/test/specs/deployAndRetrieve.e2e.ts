@@ -340,8 +340,8 @@ describe('Deploy and Retrieve', async () => {
       '=== Deleted Source',
       'MyClass',
       'ApexClass',
-      `${path.join(pathToClass)}.cls`,
-      `${path.join(pathToClass)}.cls-meta.xml`,
+      `${pathToClass}.cls`,
+      `${pathToClass}.cls-meta.xml`,
       'ended with exit code 0'
     ];
 
@@ -434,8 +434,8 @@ describe('Deploy and Retrieve', async () => {
         '=== Deleted Source',
         'ExampleApexClass1',
         'ApexClass',
-        `${path.join(pathToClass)}.cls`,
-        `${path.join(pathToClass)}.cls-meta.xml`,
+        `${pathToClass}.cls`,
+        `${pathToClass}.cls-meta.xml`,
         'ended with exit code 0'
       ];
 
@@ -505,8 +505,8 @@ describe('Deploy and Retrieve', async () => {
         '=== Deleted Source',
         'ExampleApexClass2',
         'ApexClass',
-        `${path.join(pathToClass)}.cls`,
-        `${path.join(pathToClass)}.cls-meta.xml`,
+        `${pathToClass}.cls`,
+        `${pathToClass}.cls-meta.xml`,
         'ended with exit code 0'
       ];
 
