@@ -95,7 +95,7 @@ export class O11yService {
   async upload(): Promise<void> {
     try {
       // Log anything that was buffered
-      await this.uploadAsNeededAsync(true);
+      await this.uploadAsNeededAsync(false);
     } catch (error) {
       // We log the failure but do not throw, preventing disruptions in telemetry reporting.
       console.error('Telemetry upload failed:', error);
