@@ -9,18 +9,17 @@ import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
-export const checkPackageDirectories = async (uri?: vscode.Uri) => {
+export const checkPackageDirectories = async () => {
   try {
     // If no URI is provided, try to get it from the active editor
-    if (!uri) {
-      const activeEditor = vscode.window.activeTextEditor;
-      if (activeEditor) {
-        uri = activeEditor.document.uri;
-      } else {
-        // No active editor and no URI provided, can't determine if in package directories
-        void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', false);
-        return false;
-      }
+    const activeEditor = vscode.window.activeTextEditor;
+    let uri: vscode.Uri;
+    if (activeEditor) {
+      uri = activeEditor.document.uri;
+    } else {
+      // No active editor and no URI provided, can't determine if in package directories
+      void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', false);
+      return false;
     }
 
     const projectPath = workspaceUtils.getRootWorkspacePath();
