@@ -27,7 +27,7 @@ export const checkPackageDirectories = async (uri?: vscode.Uri) => {
     const sfProject = await SfProject.resolve(projectPath);
     const sfdxProjectJson = sfProject.getSfProjectJson();
     const packageDirectories = await sfdxProjectJson.getPackageDirectories();
-    const packageDirectoryPaths = packageDirectories.map(directory => directory.path);
+    const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
 
     // Check if the file is in any of the package directories
     const filePath = uri.fsPath;
