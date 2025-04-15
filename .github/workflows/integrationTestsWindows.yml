@@ -25,4 +25,4 @@ jobs:
       - run: npm install -g junit-merge
       - run: npm ci
       - run: npm run compile
-      - run: npm run test:integration-tests-without-system-tests
+      - run: npm run test:integration

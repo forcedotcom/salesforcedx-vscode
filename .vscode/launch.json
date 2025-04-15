@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
   "configurations": [
-
     {
       "type": "node",
       "request": "attach",
@@ -41,7 +40,7 @@
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
+        "YOURKIT_PROFILER_AGENT": "${env:YOURKIT_PROFILER_AGENT}"
       },
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -74,7 +73,7 @@
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "YOURKIT_PROFILER_AGENT" : "${env:YOURKIT_PROFILER_AGENT}"
+        "YOURKIT_PROFILER_AGENT": "${env:YOURKIT_PROFILER_AGENT}"
       },
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -127,7 +126,7 @@
         "SFDX_TEST_FILE_PATH": "${file}"
       },
       "args": [
-        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
+        "${workspaceFolder}/test-assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceFolder}/packages",
         "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/vscode-integration"
       ],
@@ -146,7 +145,7 @@
         "SFDX_TEST_FILE_PATH": "${file}"
       },
       "args": [
-        "${workspaceFolder}/packages/system-tests/assets/lwc-recipes",
+        "${workspaceFolder}/test-assets/lwc-recipes",
         "--extensionDevelopmentPath=${workspaceFolder}/packages",
         "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/vscode-integration"
       ],
@@ -162,7 +161,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
+        "${workspaceFolder}/test-assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceFolder}/packages",
         "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/vscode-integration"
       ],
@@ -189,7 +188,7 @@
         "setup-and-run",
         "-s",
         "~/.vscode-test-resources",
-        "-o", 
+        "-o",
         "${workspaceFolder}/packages/salesforcedx-vscode-soql/test/ui-test/resources/settings.json",
         "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/ui-test/*.js"
       ],
@@ -204,7 +203,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
+        "${workspaceFolder}/test-assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceFolder}/packages",
         "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-apex/out/test/vscode-integration"
       ],
@@ -251,7 +250,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
+        "${workspaceFolder}/test-assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceFolder}/packages",
         "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/vscode-integration"
       ],
@@ -297,7 +296,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceFolder}/packages/system-tests/assets/lwc-recipes",
+        "${workspaceFolder}/test-assets/lwc-recipes",
         "--extensionDevelopmentPath=${workspaceFolder}/packages",
         "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-lwc/out/test/vscode-integration"
       ],
@@ -399,9 +398,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/salesforcedx-apex-debugger/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/salesforcedx-apex-debugger/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-apex-debugger/out/test/unit/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -429,9 +426,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/salesforcedx-apex-debugger/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/salesforcedx-apex-debugger/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/integration/": "${workspaceFolder}/packages/salesforcedx-apex-debugger/out/test/integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -534,9 +529,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/test/unit/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -564,9 +557,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/integration/": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/test/integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -601,20 +592,32 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-        "name": "Debug Faux Jest Unit Tests",
-        "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
-        "type": "node",
-        "request": "launch",
-        "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
-        "console": "integratedTerminal",
-        "internalConsoleOptions": "neverOpen"
-    }, 
+      "name": "Debug Faux Jest Unit Tests",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/.bin/jest",
+        "--runInBand",
+        "--coverage",
+        "false"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
     {
       "name": "Debug Apex Debug Jest Unit Tests",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
       "type": "node",
       "request": "launch",
-      "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/.bin/jest", "--runInBand", "--coverage", "false"],
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/.bin/jest",
+        "--runInBand",
+        "--coverage",
+        "false"
+      ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }
