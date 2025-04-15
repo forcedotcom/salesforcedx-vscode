@@ -1,3 +1,19 @@
+# 63.9.1 - April 17, 2025
+
+## Fixed
+
+#### salesforcedx-apex-replay-debugger
+
+- W-18257178  apex replay debugger error ([PR #6206](https://github.com/forcedotcom/salesforcedx-vscode/pull/6206))
+
+#### salesforcedx-vscode-apex
+
+- [@W-18194032@] allow jvm v11 or greater ([PR #6201](https://github.com/forcedotcom/salesforcedx-vscode/pull/6201))
+
+#### salesforcedx-vscode-core
+
+- Fix import in lwc test template ([PR #6207](https://github.com/forcedotcom/salesforcedx-vscode/pull/6207))
+
 # 63.8.2 - April 11, 2025
 
 ## Fixed
