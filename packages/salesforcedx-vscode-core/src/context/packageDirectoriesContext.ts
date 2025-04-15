@@ -18,13 +18,13 @@ export const checkPackageDirectories = async () => {
     const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
     void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPaths);
 
-    // If no URI is provided, try to get it from the active editor
+    // Get the URI from the active editor
     const activeEditor = vscode.window.activeTextEditor;
     let uri: vscode.Uri;
     if (activeEditor) {
       uri = activeEditor.document.uri;
     } else {
-      // No active editor and no URI provided, can't determine if in package directories
+      // No active editor, can fail fast
       void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', false);
       return false;
     }
@@ -33,7 +33,7 @@ export const checkPackageDirectories = async () => {
     const filePath = uri.fsPath;
     const inPackageDirectories = packageDirectoryPaths.some(path => filePath.includes(path));
 
-    // Set the context
+    // Set the context for sf:in_package_directories
     void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', inPackageDirectories);
 
     return inPackageDirectories;
