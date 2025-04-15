@@ -27,13 +27,15 @@ export const checkPackageDirectories = async (uri?: vscode.Uri) => {
     const sfProject = await SfProject.resolve(projectPath);
     const sfdxProjectJson = sfProject.getSfProjectJson();
     const packageDirectories = await sfdxProjectJson.getPackageDirectories();
+    const packageDirectoryPaths = packageDirectories.map(directory => directory.path);
 
     // Check if the file is in any of the package directories
     const filePath = uri.fsPath;
-    const inPackageDirectories = packageDirectories.some(directory => filePath.includes(directory.path));
+    const inPackageDirectories = packageDirectoryPaths.some(path => filePath.includes(path));
 
     // Set the context
     void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', inPackageDirectories);
+    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPaths);
 
     return inPackageDirectories;
   } catch (error) {
