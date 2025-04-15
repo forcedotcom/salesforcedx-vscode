@@ -93,7 +93,7 @@ import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import { checkPackageDirectories } from './context/packageDirectoriesContext';
+import { checkPackageDirectoriesEditorView, checkPackageDirectoriesExplorerView } from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { ProgressNotification, notificationService } from './notifications';
@@ -447,11 +447,12 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
 
   // Set initial context
-  await checkPackageDirectories();
+  await checkPackageDirectoriesEditorView();
+  await checkPackageDirectoriesExplorerView();
 
   // Register editor change listener
   const editorChangeDisposable = vscode.window.onDidChangeActiveTextEditor(async () => {
-    await checkPackageDirectories();
+    await checkPackageDirectoriesEditorView();
   });
 
   // Add to subscriptions

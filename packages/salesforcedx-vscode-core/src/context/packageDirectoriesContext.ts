@@ -9,14 +9,13 @@ import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
-export const checkPackageDirectories = async () => {
+export const checkPackageDirectoriesEditorView = async () => {
   try {
     const projectPath = workspaceUtils.getRootWorkspacePath();
     const sfProject = await SfProject.resolve(projectPath);
     const sfdxProjectJson = sfProject.getSfProjectJson();
     const packageDirectories = await sfdxProjectJson.getPackageDirectories();
     const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
-    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPaths);
 
     // Get the URI from the active editor
     const activeEditor = vscode.window.activeTextEditor;
@@ -41,5 +40,19 @@ export const checkPackageDirectories = async () => {
     console.error('Error checking package directories:', error);
     void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', false);
     return false;
+  }
+};
+
+export const checkPackageDirectoriesExplorerView = async () => {
+  try {
+    const projectPath = workspaceUtils.getRootWorkspacePath();
+    const sfProject = await SfProject.resolve(projectPath);
+    const sfdxProjectJson = sfProject.getSfProjectJson();
+    const packageDirectories = await sfdxProjectJson.getPackageDirectories();
+    const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
+    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPaths);
+  } catch (error) {
+    console.error('Error checking package directories:', error);
+    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', []);
   }
 };
