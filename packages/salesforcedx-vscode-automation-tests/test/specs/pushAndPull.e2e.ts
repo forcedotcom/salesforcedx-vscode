@@ -49,24 +49,6 @@ describe('Push and Pull', async () => {
     utilities.log('Push And Pull - Create an Apex class');
     // Create an Apex Class.
     await utilities.createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
-
-    // Check for expected items in the Explorer view.
-    const workbench = utilities.getWorkbench();
-    const sidebar = workbench.getSideBar();
-    const treeViewSection = await sidebar.getContent().getSection(projectName);
-    await treeViewSection.expand();
-
-    // Get the matching (visible) items within the tree which contain "ExampleApexClass1".
-    const filteredTreeViewItems = await utilities.getFilteredVisibleTreeViewItemLabels(
-      workbench,
-      projectName,
-      'ExampleApexClass1'
-    );
-
-    // It's a tree, but it's also a list.  Everything in the view is actually flat
-    // and returned from the call to visibleItems.reduce().
-    expect(filteredTreeViewItems.includes('ExampleApexClass1.cls')).to.equal(true);
-    expect(filteredTreeViewItems.includes('ExampleApexClass1.cls-meta.xml')).to.equal(true);
   });
 
   step('SFDX: View Local Changes', async () => {

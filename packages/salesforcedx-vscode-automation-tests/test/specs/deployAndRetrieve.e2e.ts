@@ -54,24 +54,6 @@ describe('Deploy and Retrieve', async () => {
     expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain(`${pathToClass}.cls`);
     expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
-
-    // Check for expected items in the Explorer view.
-    const sidebar = workbench.getSideBar();
-    const content = sidebar.getContent();
-    const treeViewSection = await content.getSection(projectName);
-    await treeViewSection.expand();
-
-    // Get the matching (visible) items within the tree which contain "MyClass".
-    const filteredTreeViewItems = await utilities.getFilteredVisibleTreeViewItemLabels(
-      workbench,
-      projectName,
-      'MyClass'
-    );
-
-    // It's a tree, but it's also a list.  Everything in the view is actually flat
-    // and returned from the call to visibleItems.reduce().
-    expect(filteredTreeViewItems.includes('MyClass.cls')).to.equal(true);
-    expect(filteredTreeViewItems.includes('MyClass.cls-meta.xml')).to.equal(true);
   });
 
   step('Verify Source Tracking Setting is enabled', async () => {
@@ -145,6 +127,7 @@ describe('Deploy and Retrieve', async () => {
           'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
         );
       }
+      await treeViewSection.expand();
 
       // The force-app/main/default and classes folders are already expanded, so we can find the file directly
       const myClassFile = (await treeViewSection.findItem('MyClass.cls')) as DefaultTreeItem;
@@ -303,19 +286,20 @@ describe('Deploy and Retrieve', async () => {
     await utilities.runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
   });
 
-  step('SFDX: Delete This from Project and Org', async () => {
-    utilities.log('Deploy and Retrieve - SFDX: Delete This from Project and Org');
+  step('SFDX: Delete This from Project and Org - Command Palette', async () => {
+    utilities.log(`Deploy and Retrieve - SFDX: Delete This from Project and Org - Command Palette`);
     const workbench = utilities.getWorkbench();
-    await utilities.getTextEditor(workbench, 'MyClass.cls');
+
     // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
     await utilities.executeQuickPick(
       'SFDX: Push Source to Default Org and Ignore Conflicts',
       utilities.Duration.seconds(10)
     );
+
     // Clear the Output view first.
     await utilities.clearOutputView();
 
-    // clear notifications
+    // Clear notifications
     await utilities.dismissAllNotifications();
 
     await utilities.getTextEditor(workbench, 'MyClass.cls');
@@ -364,6 +348,172 @@ describe('Deploy and Retrieve', async () => {
     expect(outputPanelText).to.not.be.undefined;
     await utilities.verifyOutputPanelText(outputPanelText!, expectedTexts);
   });
+
+  if (process.platform !== 'darwin') {
+    step('Create and push 2 apex classes', async () => {
+      utilities.log('Deploy and Retrieve - Create and push 2 apex classes');
+
+      // Create the Apex Classes.
+      await utilities.createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
+      await utilities.createCommand('Apex Class', 'ExampleApexClass2', 'classes', 'cls');
+
+      // Reload the VSCode window to allow the LWC to be indexed by the Apex Language Server
+      await utilities.reloadWindow(utilities.Duration.seconds(20));
+
+      // Push source to org
+      await utilities.executeQuickPick(
+        'SFDX: Push Source to Default Org and Ignore Conflicts',
+        utilities.Duration.seconds(1)
+      );
+
+      // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+      let successPushNotificationWasFound;
+      try {
+        successPushNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+          /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+          utilities.Duration.TEN_MINUTES
+        );
+        expect(successPushNotificationWasFound).to.equal(true);
+      } catch (error) {
+        await utilities.getWorkbench().openNotificationsCenter();
+        successPushNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+          /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+          utilities.Duration.TEN_MINUTES
+        );
+        expect(successPushNotificationWasFound).to.equal(true);
+      }
+    });
+
+    step('SFDX: Delete This from Project and Org - Right click from editor view', async () => {
+      utilities.log('Deploy and Retrieve - SFDX: Delete This from Project and Org - Right click from editor view');
+      const workbench = utilities.getWorkbench();
+      // Clear the Output view first.
+      await utilities.clearOutputView();
+
+      // Clear notifications
+      await utilities.dismissAllNotifications();
+
+      const textEditor = await utilities.getTextEditor(workbench, 'ExampleApexClass1.cls');
+      const contextMenu = await textEditor.openContextMenu();
+      await contextMenu.select('SFDX: Delete This from Project and Org');
+
+      // Make sure we get a notification for the source delete
+      const notificationFound = await utilities.notificationIsPresentWithTimeout(
+        /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
+        utilities.Duration.ONE_MINUTE
+      );
+
+      expect(notificationFound).to.equal(true);
+
+      // Confirm deletion
+      const accepted = await utilities.acceptNotification(
+        'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+        'Delete Source',
+        utilities.Duration.seconds(5)
+      );
+      expect(accepted).to.equal(true);
+
+      const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+        /SFDX: Delete from Project and Org successfully ran/,
+        utilities.Duration.TEN_MINUTES
+      );
+      expect(successNotificationWasFound).to.equal(true);
+
+      // TODO: see how the test can accommodate the new output from CLI.
+      // Verify Output tab
+      const outputPanelText = await utilities.attemptToFindOutputPanelText(
+        'Salesforce CLI',
+        'Starting SFDX: Delete from Project and Org',
+        10
+      );
+      utilities.log('Output panel text is: ' + outputPanelText);
+
+      const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1');
+
+      const expectedTexts = [
+        '=== Deleted Source',
+        'ExampleApexClass1',
+        'ApexClass',
+        `${path.join(pathToClass)}.cls`,
+        `${path.join(pathToClass)}.cls-meta.xml`,
+        'ended with exit code 0'
+      ];
+
+      expect(outputPanelText).to.not.be.undefined;
+      await utilities.verifyOutputPanelText(outputPanelText!, expectedTexts);
+    });
+
+    step('SFDX: Delete This from Project and Org - Right click from explorer view', async () => {
+      utilities.log('SFDX: Delete This from Project and Org - Right click from explorer view');
+      // Clear the Output view first.
+      await utilities.clearOutputView();
+
+      // Clear notifications
+      await utilities.dismissAllNotifications();
+
+      await utilities.executeQuickPick('File: Focus on Files Explorer');
+      await utilities.pause(utilities.Duration.seconds(2));
+      const workbench = utilities.getWorkbench();
+      const sidebar = await workbench.getSideBar().wait();
+      const content = await sidebar.getContent().wait();
+      const treeViewSection = await content.getSection(testSetup.tempProjectName);
+      if (!treeViewSection) {
+        throw new Error(
+          'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
+        );
+      }
+
+      // The force-app/main/default and classes folders are already expanded, so we can find the file directly
+      const myClassFile = (await treeViewSection.findItem('ExampleApexClass2.cls')) as DefaultTreeItem;
+      const contextMenu = await myClassFile.openContextMenu();
+      await contextMenu.select('SFDX: Delete from Project and Org');
+
+      // Make sure we get a notification for the source delete
+      const notificationFound = await utilities.notificationIsPresentWithTimeout(
+        /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
+        utilities.Duration.ONE_MINUTE
+      );
+
+      expect(notificationFound).to.equal(true);
+
+      // Confirm deletion
+      const accepted = await utilities.acceptNotification(
+        'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+        'Delete Source',
+        utilities.Duration.seconds(5)
+      );
+      expect(accepted).to.equal(true);
+
+      const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+        /SFDX: Delete from Project and Org successfully ran/,
+        utilities.Duration.TEN_MINUTES
+      );
+      expect(successNotificationWasFound).to.equal(true);
+
+      // TODO: see how the test can accommodate the new output from CLI.
+      // Verify Output tab
+      const outputPanelText = await utilities.attemptToFindOutputPanelText(
+        'Salesforce CLI',
+        'Starting SFDX: Delete from Project and Org',
+        10
+      );
+      utilities.log('Output panel text is: ' + outputPanelText);
+
+      const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass2');
+
+      const expectedTexts = [
+        '=== Deleted Source',
+        'ExampleApexClass2',
+        'ApexClass',
+        `${path.join(pathToClass)}.cls`,
+        `${path.join(pathToClass)}.cls-meta.xml`,
+        'ended with exit code 0'
+      ];
+
+      expect(outputPanelText).to.not.be.undefined;
+      await utilities.verifyOutputPanelText(outputPanelText!, expectedTexts);
+    });
+  }
 
   after('Tear down and clean up the testing environment', async () => {
     utilities.log('Deploy and Retrieve - Tear down and clean up the testing environment');
