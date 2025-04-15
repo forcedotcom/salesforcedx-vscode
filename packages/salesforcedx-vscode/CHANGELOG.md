@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We fixed the import in the LWC test template so that newly created LWC tests won't contain any errors in the Problems Tab. ([PR #6207](https://github.com/forcedotcom/salesforcedx-vscode/pull/6207))
+- We fixed the import in the Lightning Web Components (LWC) test template so that newly created LWC tests won't contain any errors in the Problems Tab. ([PR #6207](https://github.com/forcedotcom/salesforcedx-vscode/pull/6207))
 
 #### salesforcedx-vscode-apex
 
