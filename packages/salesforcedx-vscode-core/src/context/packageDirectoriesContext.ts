@@ -11,6 +11,13 @@ import * as vscode from 'vscode';
 
 export const checkPackageDirectories = async () => {
   try {
+    const projectPath = workspaceUtils.getRootWorkspacePath();
+    const sfProject = await SfProject.resolve(projectPath);
+    const sfdxProjectJson = sfProject.getSfProjectJson();
+    const packageDirectories = await sfdxProjectJson.getPackageDirectories();
+    const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
+    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPaths);
+
     // If no URI is provided, try to get it from the active editor
     const activeEditor = vscode.window.activeTextEditor;
     let uri: vscode.Uri;
@@ -22,19 +29,12 @@ export const checkPackageDirectories = async () => {
       return false;
     }
 
-    const projectPath = workspaceUtils.getRootWorkspacePath();
-    const sfProject = await SfProject.resolve(projectPath);
-    const sfdxProjectJson = sfProject.getSfProjectJson();
-    const packageDirectories = await sfdxProjectJson.getPackageDirectories();
-    const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
-
     // Check if the file is in any of the package directories
     const filePath = uri.fsPath;
     const inPackageDirectories = packageDirectoryPaths.some(path => filePath.includes(path));
 
     // Set the context
     void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', inPackageDirectories);
-    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPaths);
 
     return inPackageDirectories;
   } catch (error) {
