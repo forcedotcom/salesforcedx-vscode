@@ -1,12 +1,10 @@
-# 63.9.2 - April 18, 2025
-
-# 63.9.1 - April 17, 2025
+# 63.9.2 - April 17, 2025
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- We fixed the import in the Lightning web components (LWC) test template so that newly created LWC tests won't contain any errors in the Problems Tab. ([PR #6207](https://github.com/forcedotcom/salesforcedx-vscode/pull/6207))
+- We fixed the import in the Lightning web components (LWC) test template so that newly created LWC tests won't contain any errors in the Problems Tab. ([PR #661](https://github.com/forcedotcom/salesforcedx-templates/pull/661), [PR #662](https://github.com/forcedotcom/salesforcedx-templates/pull/662), [PR #6207](https://github.com/forcedotcom/salesforcedx-vscode/pull/6207), [PR #6209](https://github.com/forcedotcom/salesforcedx-vscode/pull/6209))
 
 #### salesforcedx-vscode-apex
 
