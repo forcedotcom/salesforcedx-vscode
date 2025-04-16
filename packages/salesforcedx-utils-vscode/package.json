@@ -15,6 +15,8 @@
     "@salesforce/source-tracking-bundle": "7.3.14",
     "@salesforce/vscode-service-provider": "1.4.0",
     "applicationinsights": "1.0.7",
+    "o11y": "250.12.0",
+    "o11y_schema": "254.77.0",
     "cross-spawn": "7.0.6",
     "rxjs": "^5.4.1",
     "tree-kill": "^1.1.0"
