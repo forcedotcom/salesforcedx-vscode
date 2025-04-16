@@ -7,8 +7,8 @@
 
 import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as vscode from 'vscode';
 
 /**
  * Checks if the currently active editor's file is located within any of the filepaths in the
@@ -66,7 +66,7 @@ export const checkPackageDirectoriesExplorerView = async () => {
     const sfdxProjectJson = sfProject.getSfProjectJson();
     const packageDirectories = await sfdxProjectJson.getPackageDirectories();
     const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
-    let packageDirectoryPathsCopy = [...packageDirectoryPaths];
+    const packageDirectoryPathsCopy = [...packageDirectoryPaths];
     for (const directory of packageDirectoryPaths) {
       const subdirectories = getAllSubdirectories(directory);
       packageDirectoryPathsCopy.push(...subdirectories);
@@ -83,7 +83,7 @@ export const checkPackageDirectoriesExplorerView = async () => {
  *
  * @param currentDirectory - The path of the directory to start the search from.
  * @returns An array of strings representing the paths of all subdirectories and files
- *          within the given directory, including the directory itself.
+ * within the given directory, including the directory itself.
  */
 const getAllSubdirectories = (currentDirectory: string): string[] => {
   const subdirectories: string[] = [currentDirectory];
@@ -99,4 +99,4 @@ const getAllSubdirectories = (currentDirectory: string): string[] => {
   }
 
   return subdirectories;
-}
+};

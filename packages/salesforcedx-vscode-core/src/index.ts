@@ -93,7 +93,10 @@ import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import { checkPackageDirectoriesEditorView, checkPackageDirectoriesExplorerView } from './context/packageDirectoriesContext';
+import {
+  checkPackageDirectoriesEditorView,
+  checkPackageDirectoriesExplorerView
+} from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { ProgressNotification, notificationService } from './notifications';
