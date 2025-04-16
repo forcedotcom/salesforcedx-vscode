@@ -31,7 +31,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "3.4.1",
+    "@jsforce/jsforce-node": "3.7.0",
     "@salesforce/apex-tmlanguage": "1.6.0",
     "@salesforce/core-bundle": "8.8.2",
     "@salesforce/soql-builder-ui": "1.0.0",
