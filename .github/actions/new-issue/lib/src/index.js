@@ -14,15 +14,15 @@ async function run() {
         // Sets action status to failed when issue does not exist on payload.
         const issue = github_1.context.payload.issue;
         if (!issue) {
-            (0, core_1.setFailed)("github.context.payload.issue does not exist");
+            (0, core_1.setFailed)('github.context.payload.issue does not exist');
             return;
         }
         // Get input parameters.
-        const token = (0, core_1.getInput)("repo-token");
-        const message = (0, core_1.getInput)("message");
-        const label = (0, core_1.getInput)("label");
-        console.log("message: ", message);
-        console.log("label: ", label);
+        const token = (0, core_1.getInput)('repo-token');
+        const message = (0, core_1.getInput)('message');
+        const label = (0, core_1.getInput)('label');
+        console.log('message: ', message);
+        console.log('label: ', label);
         // Create a GitHub client.
         const octokit = (0, github_1.getOctokit)(token);
         // Get owner and repo from context
@@ -30,20 +30,20 @@ async function run() {
         const repo = github_1.context.repo.repo;
         // Create a comment on Issue
         // https://octokit.github.io/rest.js/#octokit-routes-issues-create-comment
-        console.log("owner: " + owner);
-        console.log("repo: " + repo);
-        console.log("issue number: " + issue.number);
+        console.log('owner: ' + owner);
+        console.log('repo: ' + repo);
+        console.log('issue number: ' + issue.number);
         const issueLabels = issue.labels;
-        console.log("issue labels: ", issueLabels);
+        console.log('issue labels: ', issueLabels);
         const { data: comments } = await octokit.rest.issues.listComments({
             owner,
             repo,
-            issue_number: issue.number,
+            issue_number: issue.number
         });
         // If we have comments check out that this comment has not been previously commented
         if (comments.length) {
-            if (comments.some((comment) => comment.body === message)) {
-                console.log("Already commented");
+            if (comments.some(comment => comment.body === message)) {
+                console.log('Already commented');
                 return;
             }
         }
@@ -52,10 +52,10 @@ async function run() {
             repo,
             // eslint-disable-next-line @typescript-eslint/camelcase
             issue_number: issue.number,
-            body: message,
+            body: message
         });
-        console.log("created comment URL: " + response.data.html_url);
-        (0, core_1.setOutput)("comment-url", response.data.html_url);
+        console.log('created comment URL: ' + response.data.html_url);
+        (0, core_1.setOutput)('comment-url', response.data.html_url);
     }
     catch (err) {
         const error = err;
