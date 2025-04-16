@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeGlobalResult, DescribeSObjectResult, Field } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core-bundle';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
@@ -30,7 +29,7 @@ export class SObjectDescribe {
    * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
    */
   public async describeGlobal(): Promise<SObjectShortDescription[]> {
-    const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
+    const allDescriptions = await this.connection.describeGlobal();
     const requestedDescriptions = allDescriptions.sobjects.map(sobject => ({
       name: sobject.name,
       custom: sobject.custom
