@@ -23,11 +23,7 @@ import {
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { breakpointUtil, LineBreakpointInfo } from '../breakpoints';
-import {
-  SEND_METRIC_GENERAL_EVENT,
-  SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT
-} from '../constants';
+import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
@@ -38,14 +34,9 @@ const TRACE_CATEGORY_LOGFILE = 'logfile';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
 
-export type TraceCategory =
-  | 'all'
-  | 'protocol'
-  | 'logfile'
-  | 'launch'
-  | 'breakpoints';
+type TraceCategory = 'all' | 'protocol' | 'logfile' | 'launch' | 'breakpoints';
 
-export enum Step {
+enum Step {
   Over,
   In,
   Out,
@@ -65,13 +56,7 @@ export class ApexVariable extends Variable {
   public readonly apexRef: string | undefined;
   public readonly evaluateName: string;
 
-  public constructor(
-    name: string,
-    value: string,
-    type: string,
-    ref = 0,
-    apexRef?: string
-  ) {
+  public constructor(name: string, value: string, type: string, ref = 0, apexRef?: string) {
     super(name, value, ref);
     this.type = type;
     this.apexRef = apexRef;
@@ -106,7 +91,7 @@ export class ApexDebugStackFrameInfo {
   }
 }
 
-export enum SCOPE_TYPES {
+enum SCOPE_TYPES {
   LOCAL = 'local',
   STATIC = 'static',
   GLOBAL = 'global'
@@ -115,12 +100,7 @@ export enum SCOPE_TYPES {
 export abstract class VariableContainer {
   public variables: Map<string, VariableContainer>;
 
-  public constructor(
-    variables: Map<string, VariableContainer> = new Map<
-      string,
-      VariableContainer
-    >()
-  ) {
+  public constructor(variables: Map<string, VariableContainer> = new Map<string, VariableContainer>()) {
     this.variables = variables;
   }
 
@@ -128,9 +108,7 @@ export abstract class VariableContainer {
     const result: ApexVariable[] = [];
     this.variables.forEach(container => {
       const avc = container as ApexVariableContainer;
-      result.push(
-        new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef)
-      );
+      result.push(new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef));
     });
     return result;
   }
@@ -151,13 +129,7 @@ export class ApexVariableContainer extends VariableContainer {
   public type: string;
   public ref: string | undefined;
   public variablesRef: number;
-  public constructor(
-    name: string,
-    value: string,
-    type: string,
-    ref?: string,
-    variablesRef: number = 0
-  ) {
+  public constructor(name: string, value: string, type: string, ref?: string, variablesRef: number = 0) {
     super();
     this.name = name;
     this.value = value;
@@ -177,13 +149,10 @@ export class ApexVariableContainer extends VariableContainer {
   }
 }
 
-export class ScopeContainer extends VariableContainer {
+class ScopeContainer extends VariableContainer {
   public readonly type: SCOPE_TYPES;
 
-  public constructor(
-    type: SCOPE_TYPES,
-    variables: Map<string, VariableContainer>
-  ) {
+  public constructor(type: SCOPE_TYPES, variables: Map<string, VariableContainer>) {
     super(variables);
     this.type = type;
   }
@@ -192,9 +161,7 @@ export class ScopeContainer extends VariableContainer {
     const apexVariables: ApexVariable[] = [];
     this.variables.forEach(entry => {
       const avc = entry as ApexVariableContainer;
-      apexVariables.push(
-        new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef)
-      );
+      apexVariables.push(new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef));
     });
     return apexVariables;
   }
@@ -241,25 +208,17 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(this.initializedResponse);
   }
 
-  public async launchRequest(
-    response: DebugProtocol.LaunchResponse,
-    args: LaunchRequestArguments
-  ): Promise<void> {
+  public async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
     let lineBreakpointInfoAvailable = false;
     if (args?.lineBreakpointInfo) {
       lineBreakpointInfoAvailable = true;
-      breakpointUtil.createMappingsFromLineBreakpointInfo(
-        args.lineBreakpointInfo
-      );
+      breakpointUtil.createMappingsFromLineBreakpointInfo(args.lineBreakpointInfo);
       delete args.lineBreakpointInfo;
     }
     this.projectPath = args.projectPath;
     response.success = false;
     this.setupLogger(args);
-    this.log(
-      TRACE_CATEGORY_LAUNCH,
-      `launchRequest: args=${JSON.stringify(args)}`
-    );
+    this.log(TRACE_CATEGORY_LAUNCH, `launchRequest: args=${JSON.stringify(args)}`);
     this.sendEvent(
       new Event(SEND_METRIC_GENERAL_EVENT, {
         subject: `launchRequest: args=${JSON.stringify(args)}`,
@@ -298,15 +257,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
         })
       );
     } else {
-      this.printToDebugConsole(
-        nls.localize('session_started_text', this.logContext.getLogFileName())
-      );
+      this.printToDebugConsole(nls.localize('session_started_text', this.logContext.getLogFileName()));
       if (
         this.projectPath &&
         this.logContext.scanLogForHeapDumpLines() &&
-        !(await this.logContext.fetchOverlayResultsForApexHeapDumps(
-          this.projectPath
-        ))
+        !(await this.logContext.fetchOverlayResultsForApexHeapDumps(this.projectPath))
       ) {
         response.message = nls.localize('heap_dump_error_wrap_up_text');
         this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
@@ -369,10 +324,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
   }
 
-  public disconnectRequest(
-    response: DebugProtocol.DisconnectResponse,
-    args: DebugProtocol.DisconnectArguments
-  ): void {
+  public disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
     this.printToDebugConsole(nls.localize('session_terminated_text'));
     response.success = true;
     this.sendResponse(response);
@@ -392,10 +344,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  public stackTraceRequest(
-    response: DebugProtocol.StackTraceResponse,
-    args: DebugProtocol.StackTraceArguments
-  ): void {
+  public stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): void {
     response.body = {
       stackFrames: this.logContext.getFrames().slice().reverse()
     };
@@ -421,14 +370,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           })
         );
         this.logContext.revertStateAfterHeapDump();
-        this.warnToDebugConsole(
-          nls.localize(
-            'reconcile_heapdump_error',
-            error,
-            heapDumpId,
-            heapDumpId
-          )
-        );
+        this.warnToDebugConsole(nls.localize('reconcile_heapdump_error', error, heapDumpId, heapDumpId));
       } finally {
         this.logContext.resetLastSeenHeapDumpLogLine();
       }
@@ -445,27 +387,21 @@ export class ApexReplayDebug extends LoggingDebugSession {
     scopes.push(
       new Scope(
         'Local',
-        this.logContext
-          .getVariableHandler()
-          .create(new ScopeContainer(SCOPE_TYPES.LOCAL, frameInfo.locals)),
+        this.logContext.getVariableHandler().create(new ScopeContainer(SCOPE_TYPES.LOCAL, frameInfo.locals)),
         false
       )
     );
     scopes.push(
       new Scope(
         'Static',
-        this.logContext
-          .getVariableHandler()
-          .create(new ScopeContainer(SCOPE_TYPES.STATIC, frameInfo.statics)),
+        this.logContext.getVariableHandler().create(new ScopeContainer(SCOPE_TYPES.STATIC, frameInfo.statics)),
         false
       )
     );
     scopes.push(
       new Scope(
         'Global',
-        this.logContext
-          .getVariableHandler()
-          .create(new ScopeContainer(SCOPE_TYPES.GLOBAL, frameInfo.globals)),
+        this.logContext.getVariableHandler().create(new ScopeContainer(SCOPE_TYPES.GLOBAL, frameInfo.globals)),
         false
       )
     );
@@ -486,9 +422,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
   ): Promise<void> {
     response.success = true;
     try {
-      const scopesContainer = this.logContext
-        .getVariableHandler()
-        .get(args.variablesReference);
+      const scopesContainer = this.logContext.getVariableHandler().get(args.variablesReference);
       response.body = {
         variables: scopesContainer ? scopesContainer.getAllVariables() : []
       };
@@ -506,10 +440,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     }
   }
 
-  protected evaluateRequest(
-    response: DebugProtocol.EvaluateResponse,
-    args: DebugProtocol.EvaluateArguments
-  ): void {
+  protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
     response.body = {
       result: args.expression,
       variablesReference: 0
@@ -518,38 +449,23 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  public continueRequest(
-    response: DebugProtocol.ContinueResponse,
-    args: DebugProtocol.ContinueArguments
-  ): void {
+  public continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
     this.executeStep(response, Step.Run);
   }
 
-  public nextRequest(
-    response: DebugProtocol.NextResponse,
-    args: DebugProtocol.NextArguments
-  ): void {
+  public nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
     this.executeStep(response, Step.Over);
   }
 
-  public stepInRequest(
-    response: DebugProtocol.StepInResponse,
-    args: DebugProtocol.StepInArguments
-  ): void {
+  public stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
     this.executeStep(response, Step.In);
   }
 
-  public stepOutRequest(
-    response: DebugProtocol.StepOutResponse,
-    args: DebugProtocol.StepOutArguments
-  ): void {
+  public stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
     this.executeStep(response, Step.Out);
   }
 
-  protected executeStep(
-    response: DebugProtocol.Response,
-    stepType: Step
-  ): void {
+  protected executeStep(response: DebugProtocol.Response, stepType: Step): void {
     response.success = true;
     this.sendResponse(response);
     try {
@@ -558,17 +474,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
         this.logContext.updateFrames();
         const curNumOfFrames = this.logContext.getNumOfFrames();
         if (
-          (stepType === Step.Over &&
-            curNumOfFrames !== 0 &&
-            curNumOfFrames <= prevNumOfFrames) ||
+          (stepType === Step.Over && curNumOfFrames !== 0 && curNumOfFrames <= prevNumOfFrames) ||
           (stepType === Step.In && curNumOfFrames >= prevNumOfFrames) ||
-          (stepType === Step.Out &&
-            curNumOfFrames !== 0 &&
-            curNumOfFrames < prevNumOfFrames)
+          (stepType === Step.Out && curNumOfFrames !== 0 && curNumOfFrames < prevNumOfFrames)
         ) {
-          return this.sendEvent(
-            new StoppedEvent('step', ApexReplayDebug.THREAD_ID)
-          );
+          return this.sendEvent(new StoppedEvent('step', ApexReplayDebug.THREAD_ID));
         }
         if (this.shouldStopForBreakpoint()) {
           return;
@@ -593,14 +503,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
     const topFrameLine = topFrame?.line ?? null;
     if (sourcePath && topFrameLine) {
       const topFrameUri = this.convertClientPathToDebugger(sourcePath);
-      const topFrameLineDebugger =
-        this.convertClientLineToDebugger(topFrameLine);
+      const topFrameLineDebugger = this.convertClientLineToDebugger(topFrameLine);
 
       const breakpointsForUri = this.breakpoints.get(topFrameUri) ?? []; // Use empty array if breakpoints for the URI are undefined
       if (breakpointsForUri.includes(topFrameLineDebugger)) {
-        this.sendEvent(
-          new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID)
-        );
+        this.sendEvent(new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID));
         return true;
       }
     }
@@ -618,25 +525,18 @@ export class ApexReplayDebug extends LoggingDebugSession {
         TRACE_CATEGORY_BREAKPOINTS,
         `setBreakPointsRequest: path=${
           args.source.path
-        } uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
-          args.breakpoints
-        )}`
+        } uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(args.breakpoints)}`
       );
       this.breakpoints.set(uri, []);
       for (const bp of args.breakpoints) {
-        const isVerified = breakpointUtil.canSetLineBreakpoint(
-          uri,
-          this.convertClientLineToDebugger(bp.line)
-        );
+        const isVerified = breakpointUtil.canSetLineBreakpoint(uri, this.convertClientLineToDebugger(bp.line));
         response.body.breakpoints.push({
           verified: isVerified,
           source: args.source,
           line: bp.line
         });
         if (isVerified) {
-          this.breakpoints
-            .get(uri)!
-            .push(this.convertClientLineToDebugger(bp.line));
+          this.breakpoints.get(uri)!.push(this.convertClientLineToDebugger(bp.line));
         } else {
           // Report an error metric when a breakpoint fails to verify
           this.sendEvent(
@@ -650,17 +550,13 @@ export class ApexReplayDebug extends LoggingDebugSession {
       }
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
-        `setBreakPointsRequest: path=${
-          args.source.path
-        } verified lines=${this.breakpoints.get(uri)!.join(',')}`
+        `setBreakPointsRequest: path=${args.source.path} verified lines=${this.breakpoints.get(uri)!.join(',')}`
       );
       this.sendEvent(
         new Event(SEND_METRIC_GENERAL_EVENT, {
           subject: 'setBreakPointsRequest',
           type: 'apexReplayDebuggerSetBreakpoints',
-          numberOfVerifiedBreakpoints: response.body.breakpoints.filter(
-            bp => bp.verified
-          ).length
+          numberOfVerifiedBreakpoints: response.body.breakpoints.filter(bp => bp.verified).length
         })
       );
     } else {
@@ -676,10 +572,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   public log(traceCategory: TraceCategory, message: string) {
-    if (
-      this.trace &&
-      (this.traceAll || this.trace.indexOf(traceCategory) >= 0)
-    ) {
+    if (this.trace && (this.traceAll || this.trace.indexOf(traceCategory) >= 0)) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
@@ -688,17 +581,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
     return this.traceAll || this.trace.indexOf(TRACE_CATEGORY_LOGFILE) !== -1;
   }
 
-  public printToDebugConsole(
-    msg: string,
-    sourceFile?: Source,
-    sourceLine?: number,
-    category = 'stdout'
-  ): void {
+  public printToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number, category = 'stdout'): void {
     if (msg?.length !== 0) {
-      const event: DebugProtocol.OutputEvent = new OutputEvent(
-        `${msg}${EOL}`,
-        category
-      );
+      const event: DebugProtocol.OutputEvent = new OutputEvent(`${msg}${EOL}`, category);
       event.body.source = sourceFile;
       event.body.line = sourceLine;
       event.body.column = 0;
@@ -706,19 +591,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
     }
   }
 
-  public warnToDebugConsole(
-    msg: string,
-    sourceFile?: Source,
-    sourceLine?: number
-  ): void {
+  public warnToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number): void {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'console');
   }
 
-  public errorToDebugConsole(
-    msg: string,
-    sourceFile?: Source,
-    sourceLine?: number
-  ): void {
+  public errorToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number): void {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
   }
 }

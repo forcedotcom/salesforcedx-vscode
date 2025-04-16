@@ -201,9 +201,9 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   if (salesforceApexExtension && salesforceApexExtension.exports) {
     let expired = false;
     let i = 0;
-    while (!salesforceApexExtension.exports.languageClientUtils.getStatus().isReady() && !expired) {
-      if (salesforceApexExtension.exports.languageClientUtils.getStatus().failedToInitialize()) {
-        throw Error(salesforceApexExtension.exports.languageClientUtils.getStatus().getStatusMessage());
+    while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
+      if (salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
+        throw Error(salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
       }
 
       await imposeSlightDelay(100);
@@ -235,9 +235,7 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   }
 };
 
-const imposeSlightDelay = (ms = 0) => {
-  return new Promise(r => setTimeout(r, ms));
-};
+const imposeSlightDelay = (ms = 0) => new Promise(r => setTimeout(r, ms));
 
 export const writeToDebuggerOutputWindow = (
   output: string,

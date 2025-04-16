@@ -2,7 +2,7 @@
   "packages": [
     "packages/*"
   ],
-  "version": "63.6.0",
+  "version": "63.9.2",
   "command": {
     "version": {
       "allowBranch": [

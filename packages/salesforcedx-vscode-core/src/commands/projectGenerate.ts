@@ -40,7 +40,7 @@ export class ProjectTemplateItem implements vscode.QuickPickItem {
   }
 }
 
-export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
+class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
   private readonly options: projectGenerateOptions;
 
   public constructor(options = { isProjectWithManifest: false }) {
@@ -75,7 +75,7 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
 
 export type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & ProjectTemplate;
 
-export type ProjectURI = {
+type ProjectURI = {
   projectUri: string;
 };
 
@@ -83,17 +83,11 @@ export type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = {
+type ProjectTemplate = {
   projectTemplate: string;
 };
 
 export class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate> {
-  private readonly prefillValueProvider?: () => string;
-
-  constructor(prefillValueProvider?: () => string) {
-    this.prefillValueProvider = prefillValueProvider;
-  }
-
   public async gather(): Promise<CancelResponse | ContinueResponse<ProjectTemplate>> {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),

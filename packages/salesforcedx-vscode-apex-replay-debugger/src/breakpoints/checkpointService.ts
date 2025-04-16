@@ -459,7 +459,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
 export const checkpointService = CheckpointService.getInstance();
 
-export abstract class BaseNode extends TreeItem {
+abstract class BaseNode extends TreeItem {
   public abstract getChildren(): BaseNode[];
 }
 
@@ -593,7 +593,7 @@ export class CheckpointNode extends BaseNode {
   }
 }
 
-export class CheckpointInfoNode extends BaseNode {
+class CheckpointInfoNode extends BaseNode {
   public getChildren(): BaseNode[] {
     return [];
   }

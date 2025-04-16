@@ -7,7 +7,7 @@
 
 import { extractJson } from '../../helpers';
 
-export const CONFLICT_ERROR_NAME = 'SourceConflictError';
+const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
 export type ProjectRetrieveStartResult = {
   columnNumber?: string;
@@ -40,7 +40,7 @@ export class ProjectRetrieveStartResultParser {
   constructor(stdout: string) {
     try {
       this.response = extractJson(stdout);
-    } catch (e) {
+    } catch {
       const err = new Error('Error parsing pull result');
       err.name = 'ProjectRetrieveStartParserFail';
       throw err;

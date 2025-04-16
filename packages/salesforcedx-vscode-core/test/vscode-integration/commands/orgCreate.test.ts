@@ -13,7 +13,6 @@ import { AliasGatherer, OrgCreateExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { workspaceUtils } from '../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Org Create', () => {
   describe('Alias Gatherer', () => {
     const EVENT_CANCEL = 'CANCEL';
@@ -22,8 +21,6 @@ describe('Org Create', () => {
     const TEST_WORKSPACE = 'sfsimple'; // FYI: This test uses the workspace created by the system tests to run
     const TEST_ORG_EXPIRATION_DAYS = '7';
     const TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY = '8';
-    const TEST_ORG_EXPIRATION_DAYS_INPUT_FLOAT = '8.2';
-    const TEST_ORG_EXPIRATION_DAYS_INPUT_INVALID_RANGE = '31';
     let inputBoxSpy: sinon.SinonStub;
 
     beforeEach(() => {
@@ -89,9 +86,7 @@ describe('Org Create', () => {
       expect(response.type).to.equal(EVENT_CONTINUE);
       if (response.type === EVENT_CONTINUE) {
         expect(response.data.alias).to.equal(TEST_ALIAS);
-        expect(response.data.expirationDays).to.equal(
-          TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY
-        );
+        expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY);
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
@@ -134,9 +129,7 @@ describe('Org Create', () => {
       expect(createCommand.toCommand()).to.equal(
         `sf org:create:scratch --definition-file ${CONFIG_FILE} --alias ${TEST_ALIAS} --duration-days ${TEST_ORG_EXPIRATION_DAYS} --set-default --json`
       );
-      expect(createCommand.description).to.equal(
-        nls.localize('org_create_default_scratch_org_text')
-      );
+      expect(createCommand.description).to.equal(nls.localize('org_create_default_scratch_org_text'));
     });
   });
 });

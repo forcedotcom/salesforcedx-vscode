@@ -90,6 +90,7 @@ const getMockVSCode = () => {
       Left: 1,
       Right: 2
     },
+    ThemeColor: jest.fn(),
     window: {
       activeTextEditor: jest.fn(),
       showInformationMessage: jest.fn(),
@@ -98,6 +99,7 @@ const getMockVSCode = () => {
       showQuickPick: jest.fn(),
       showInputBox: jest.fn(),
       setStatusBarMessage: jest.fn(),
+      showWarningModal: jest.fn(),
       withProgress: jest.fn(),
       createOutputChannel: jest.fn(),
       showSaveDialog: jest.fn(),

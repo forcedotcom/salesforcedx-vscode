@@ -21,14 +21,11 @@ import { SObject } from '../src/types';
 
 import { Connection, Org } from '@salesforce/core-bundle';
 
-// tslint:disable-next-line:no-floating-promises
 (async () => {
   const args = process.argv.slice(2);
 
   if (args.length <= 0) {
-    console.log(
-      'Usage:\n ./scripts/' + path.basename(__filename) + ' <aliasOrUsername>'
-    );
+    console.log('Usage:\n ./scripts/' + path.basename(__filename) + ' <aliasOrUsername>');
     process.exit(1);
   }
   const aliasOrUsername = args[0];
@@ -72,17 +69,18 @@ async function generateLocalSobjectJSON(connection: Connection) {
   await retriever.retrieve(output);
   console.log(JSON.stringify(output.getTypeNames(), null, 2));
 
-  const targetFileName = path.join(
-    path.basename(__filename),
-    '../src/data/minSObjects.new.json'
-  );
+  const targetFileName = path.join(path.basename(__filename), '../src/data/minSObjects.new.json');
   console.log('Generating: ' + targetFileName);
   fs.writeFileSync(
     targetFileName,
-    JSON.stringify({
-      typeNames: output.getTypeNames(),
-      standard: output.getStandard().map(removeCustomFields)
-    }, undefined, 2)
+    JSON.stringify(
+      {
+        typeNames: output.getTypeNames(),
+        standard: output.getStandard().map(removeCustomFields)
+      },
+      undefined,
+      2
+    )
   );
 }
 function initializeOutput(sobjectNames: string[]) {
@@ -95,7 +93,6 @@ function initializeOutput(sobjectNames: string[]) {
   const custom: SObject[] = [];
   const result = { error: {} };
 
-  /* tslint:disable */
   return {
     sfdxPath: '',
     addTypeNames: (sobjShort: SObjectShortDescription[]) => {

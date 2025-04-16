@@ -39,7 +39,7 @@ export const enum errorHints {
   INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
 }
 
-export type LightningLwcStartOptions = {
+type LightningLwcStartOptions = {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
   /** component name to preview in the browser */
@@ -79,9 +79,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     const executionName = execution.command.toString();
 
     const serverHandler: ServerHandler = {
-      stop: async () => {
-        return execution.killExecution('SIGTERM');
-      }
+      stop: async () => execution.killExecution('SIGTERM')
     };
     DevServerService.instance.registerServerHandler(serverHandler);
 

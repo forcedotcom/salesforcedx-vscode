@@ -8,27 +8,35 @@ import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-lan
 import * as path from 'path';
 import * as url from 'url';
 import {
+  ColorPresentationParams,
+  CompletionItem,
+  CompletionList,
+  CompletionParams,
+  Connection,
   createConnection,
   Disposable,
+  DocumentColorParams,
   DocumentRangeFormattingRequest,
   DocumentSelector,
-  IConnection,
   InitializeParams,
   InitializeResult,
   Position,
   RequestType,
   ServerCapabilities,
+  SignatureHelp,
   TextDocumentPositionParams,
-  TextDocuments
-} from 'vscode-languageserver';
+  TextDocuments,
+  TextDocumentSyncKind
+} from 'vscode-languageserver/node';
 import {
   ColorInformation,
   ColorPresentationRequest,
-  DocumentColorRequest,
-  ServerCapabilities as CPServerCapabilities
+  ConfigurationParams,
+  ConfigurationRequest,
+  DocumentColorRequest
 } from 'vscode-languageserver-protocol';
-import { ConfigurationParams, ConfigurationRequest } from 'vscode-languageserver-protocol';
-import { Diagnostic, DocumentLink, SymbolInformation, TextDocument } from 'vscode-languageserver-types';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Diagnostic, DocumentLink, SymbolInformation } from 'vscode-languageserver-types';
 import * as nls from 'vscode-nls';
 import uri from 'vscode-uri';
 import { format } from './modes/formatting';
@@ -39,18 +47,18 @@ import { pushAll } from './utils/arrays';
 nls.config(process.env['VSCODE_NLS_CONFIG']);
 
 namespace TagCloseRequest {
-  export const type: RequestType<TextDocumentPositionParams, string, any, any> = new RequestType('html/tag');
+  export const type: RequestType<TextDocumentPositionParams, string, any> = new RequestType('html/tag');
 }
 
 // Create a connection for the server
-const connection: IConnection = createConnection();
+const connection: Connection = createConnection();
 
 console.log = connection.console.log.bind(connection.console);
 console.error = connection.console.error.bind(connection.console);
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-const documents: TextDocuments = new TextDocuments();
+const documents: TextDocuments<TextDocument> = new TextDocuments<TextDocument>(TextDocument);
 // Make the text document manager listen on the connection
 // for open, change and close text document events
 documents.listen(connection);
@@ -91,8 +99,8 @@ const getDocumentSettings = (textDocument: TextDocument, needsDocumentSettings: 
   return Promise.resolve(void 0);
 };
 
-// After the server has started the client sends an initilize request. The server receives
-// in the passed params the rootPath of the workspace plus the client capabilites
+// After the server has started the client sends an initialize request. The server receives
+// in the passed params the rootPath of the workspace plus the client capabilities
 connection.onInitialize((params: InitializeParams): InitializeResult => {
   const initializationOptions = params.initializationOptions;
 
@@ -121,7 +129,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   scopedSettingsSupport = hasClientCapability('workspace', 'configuration');
   const capabilities: ServerCapabilities = {
     // Tell the client that the server works in FULL text document sync mode
-    textDocumentSync: documents.syncKind,
+    textDocumentSync: TextDocumentSyncKind.Full,
     completionProvider: clientSnippetSupport
       ? {
           resolveProvider: true,
@@ -158,11 +166,7 @@ connection.onDidChangeConfiguration(change => {
 
   // dynamically enable & disable the formatter
   if (clientDynamicRegisterSupport) {
-    const enableFormatter =
-      globalSettings &&
-      globalSettings.visualforce &&
-      globalSettings.visualforce.format &&
-      globalSettings.visualforce.format.enable;
+    const enableFormatter = globalSettings?.visualforce?.format?.enable;
     if (enableFormatter) {
       if (!formatterRegistration) {
         const documentSelector: DocumentSelector = [{ language: 'visualforce', scheme: 'file' }];
@@ -204,13 +208,13 @@ const triggerValidation = (textDocument: TextDocument): void => {
   cleanPendingValidation(textDocument);
   pendingValidationRequests[textDocument.uri] = setTimeout(() => {
     delete pendingValidationRequests[textDocument.uri];
-    // tslint:disable-next-line:no-floating-promises
+
     validateTextDocument(textDocument);
   }, validationDelayMs);
 };
 
 const isValidationEnabled = (languageId: string, settings: Settings = globalSettings) => {
-  const validationSettings = settings && settings.visualforce && settings.visualforce.validate;
+  const validationSettings = settings?.visualforce?.validate;
   if (validationSettings) {
     return (
       (languageId === 'css' && validationSettings.styles !== false) ||
@@ -234,7 +238,7 @@ const validateTextDocument = async (textDocument: TextDocument) => {
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 };
 
-connection.onCompletion(async textDocumentPosition => {
+connection.onCompletion(async (textDocumentPosition: CompletionParams): Promise<CompletionList | CompletionItem[]> => {
   const document = documents.get(textDocumentPosition.textDocument.uri);
   const mode = languageModes.getModeAtPosition(document, textDocumentPosition.position);
   if (mode && mode.doComplete) {
@@ -245,18 +249,18 @@ connection.onCompletion(async textDocumentPosition => {
       });
     }
     const settings = await getDocumentSettings(document, () => mode.doComplete.length > 2);
-    return mode.doComplete(document, textDocumentPosition.position, settings);
+    return mode.doComplete(document, textDocumentPosition.position, settings) as CompletionList | CompletionItem[];
   }
   return { isIncomplete: true, items: [] };
 });
 
-connection.onCompletionResolve(item => {
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   const data = item.data;
-  if (data && data.languageId && data.uri) {
+  if (data?.languageId && data?.uri) {
     const mode = languageModes.getMode(data.languageId);
     const document = documents.get(data.uri);
-    if (mode && mode.doResolve && document) {
-      return mode.doResolve(document, item);
+    if (mode?.doResolve && document) {
+      return mode.doResolve(document, item) as CompletionItem;
     }
   }
   return item;
@@ -298,13 +302,18 @@ connection.onReferences(referenceParams => {
   return [];
 });
 
-connection.onSignatureHelp(signatureHelpParms => {
+connection.onSignatureHelp((signatureHelpParms: TextDocumentPositionParams): SignatureHelp => {
+  const result: SignatureHelp = {
+    activeSignature: 0,
+    activeParameter: 0,
+    signatures: []
+  };
   const document = documents.get(signatureHelpParms.textDocument.uri);
   const mode = languageModes.getModeAtPosition(document, signatureHelpParms.position);
   if (mode && mode.doSignatureHelp) {
-    return mode.doSignatureHelp(document, signatureHelpParms.position);
+    return mode.doSignatureHelp(document, signatureHelpParms.position) as SignatureHelp;
   }
-  return null;
+  return result;
 });
 
 connection.onDocumentRangeFormatting(async formatParams => {
@@ -313,8 +322,7 @@ connection.onDocumentRangeFormatting(async formatParams => {
   if (!settings) {
     settings = globalSettings;
   }
-  const unformattedTags: string =
-    (settings && settings.visualforce && settings.visualforce.format && settings.visualforce.format.unformatted) || '';
+  const unformattedTags: string = settings?.visualforce?.format?.unformatted || '';
   const enabledModes = {
     css: !unformattedTags.match(/\bstyle\b/),
     javascript: !unformattedTags.match(/\bscript\b/)
@@ -356,26 +364,28 @@ connection.onDocumentSymbol(documentSymbolParms => {
   return symbols;
 });
 
-connection.onRequest(DocumentColorRequest.type, params => {
-  const infos: ColorInformation[] = [];
+connection.onRequest(DocumentColorRequest.type, (params: DocumentColorParams) => {
   const document = documents.get(params.textDocument.uri);
-  if (document) {
-    languageModes.getAllModesInDocument(document).forEach(m => {
-      if (m.findDocumentColors) {
-        pushAll(infos, m.findDocumentColors(document));
-      }
-    });
+  if (!document) {
+    throw new Error('Document not found');
   }
+  const infos: ColorInformation[] = [];
+  languageModes.getAllModesInDocument(document).forEach(m => {
+    if (m.findDocumentColors) {
+      pushAll(infos, m.findDocumentColors(document));
+    }
+  });
   return infos;
 });
 
-connection.onRequest(ColorPresentationRequest.type, params => {
+connection.onRequest(ColorPresentationRequest.type, (params: ColorPresentationParams) => {
   const document = documents.get(params.textDocument.uri);
-  if (document) {
-    const mode = languageModes.getModeAtPosition(document, params.range.start);
-    if (mode && mode.getColorPresentations) {
-      return mode.getColorPresentations(document, params as ColorInformation);
-    }
+  if (!document) {
+    throw new Error('Document not found');
+  }
+  const mode = languageModes.getModeAtPosition(document, params.range.start);
+  if (mode && mode.getColorPresentations) {
+    return mode.getColorPresentations(document, params);
   }
   return [];
 });

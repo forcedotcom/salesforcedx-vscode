@@ -14,7 +14,7 @@ import { nls } from '../../messages';
 import { SfCommandlet, SfWorkspaceChecker } from '../util';
 import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
 
-export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
+class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
   constructor() {
     super(nls.localize('org_login_access_token_text'), 'org_login_access_token', OUTPUT_CHANNEL);
   }

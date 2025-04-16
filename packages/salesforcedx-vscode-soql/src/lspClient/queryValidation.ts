@@ -6,19 +6,19 @@
  */
 import { QueryValidationFeature } from '@salesforce/soql-language-server';
 import { workspace } from 'vscode';
-import { LanguageClient } from 'vscode-languageclient';
+import { LanguageClient } from 'vscode-languageclient/node';
 import { SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG } from '../constants';
 import { QueryRunner } from '../editor/queryRunner';
 import { withSFConnection } from '../sf';
 
 export const init = (client: LanguageClient): LanguageClient => {
-  client.registerFeature(new QueryValidationFeature());
+  const validationFeature = new QueryValidationFeature();
+  if (typeof validationFeature.initialize === 'function') {
+    validationFeature.initialize();
+  }
+  client.registerFeature(validationFeature as any);
   return client;
 };
-
-// When bundled and run in a pure JS env the RequestTypes.RunQuery enum is not defined
-// so default to the string value here as a work around.
-const runQueryString = 'runQuery';
 
 const emptyQueryResults = { done: true, totalSize: 0, records: [] };
 export const afterStart = (client: LanguageClient): LanguageClient => {

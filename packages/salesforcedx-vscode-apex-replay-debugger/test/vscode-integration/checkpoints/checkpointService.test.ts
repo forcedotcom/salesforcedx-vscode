@@ -49,7 +49,7 @@ describe('Checkpoint Service - unit', () => {
     clearOutCheckpoints();
   });
 
-  it('Verify checkpoint arguments and pre-set default values', async () => {
+  it('Verify checkpoint arguments and pre-set default values', () => {
     const checkpointOverlayActionWithNoTypeRef: ApexExecutionOverlayAction = {
       ActionScript: '',
       ActionScriptType: ActionScriptEnum.None,
@@ -94,7 +94,7 @@ describe('Checkpoint Service - unit', () => {
     expect(overlayAction.ActionScript).to.be.equal('');
   });
 
-  it('Verify CheckpointNode has 3 child CheckpointInfoNodes after creation', async () => {
+  it('Verify CheckpointNode has 3 child CheckpointInfoNodes after creation', () => {
     const cpNode = checkpointService.createCheckpointNode(
       breakpointId,
       breakpointEnabled,
@@ -168,10 +168,6 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 
   const uriInput = 'file:///bar.cls';
   const lineInput = 5;
-  // The breakpoint Id is a string, for tests with multiple breakpoints use this
-  // as a base and append a number onto it.
-  const breakpointId = '6c1d848c-fake-4c2c-8b90-5fabe1740da4';
-
   let lockSpy: sinon.SinonSpy;
   beforeEach(() => {
     lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
@@ -358,7 +354,7 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
   const uriInput = 'file:///bar.cls';
   const lineInput = 5;
 
-  it('parse overlay action with default values', async () => {
+  it('parse overlay action with default values', () => {
     // Create the range (line 5 of the file but 0 base means we need to subtract one for the breakpoint range)
     const range = new vscode.Range(lineInput - 1, 0, lineInput - 1, 0);
     const uri = vscode.Uri.parse(uriInput);
@@ -373,7 +369,7 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
     expect(overlayAction.ExecutableEntityName).to.be.equal(undefined);
   });
 
-  it('parse overlay action with hitCondition (iteration)', async () => {
+  it('parse overlay action with hitCondition (iteration)', () => {
     // Create the range (line 5 of the file but 0 base means we need to subtract one for the breakpoint range)
     const range = new vscode.Range(lineInput - 1, 0, lineInput - 1, 0);
     const uri = vscode.Uri.parse(uriInput);
@@ -388,7 +384,7 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
     expect(overlayAction.ExecutableEntityName).to.be.equal(undefined);
   });
 
-  it('parse overlay action with logMessage that is SOQL', async () => {
+  it('parse overlay action with logMessage that is SOQL', () => {
     // Create the range (line 5 of the file but 0 base means we need to subtract one for the breakpoint range)
     const range = new vscode.Range(lineInput - 1, 0, lineInput - 1, 0);
     const uri = vscode.Uri.parse(uriInput);
@@ -405,7 +401,7 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
     expect(overlayAction.ExecutableEntityName).to.be.equal(undefined);
   });
 
-  it('parse overlay action with logMessage that is Apex', async () => {
+  it('parse overlay action with logMessage that is Apex', () => {
     // Create the range (line 5 of the file but 0 base means we need to subtract one for the breakpoint range)
     const range = new vscode.Range(lineInput - 1, 0, lineInput - 1, 0);
     const uri = vscode.Uri.parse(uriInput);

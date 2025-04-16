@@ -1,6 +1,0 @@
-<aura:component implements="force:appHostable">
-  <div>
-    <div class="slds-text-color--default">Text 1</div>
-    <div class="slds-text-align--left">Text 2</div>
-  </div>
-</aura:component>

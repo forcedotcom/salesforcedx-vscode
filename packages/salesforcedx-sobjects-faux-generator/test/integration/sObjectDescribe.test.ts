@@ -17,24 +17,8 @@ const CONNECTION_DATA = {
   instanceUrl: 'https://na1.salesforce.com'
 };
 
-const SOBJECTS_DESCRIBE_SAMPLE = {
-  sobjects: [
-    { custom: true, name: 'MyCustomObj1' },
-    { custom: true, name: 'MyCustomObj2' },
-    { custom: true, name: 'Custom_History_Obj' },
-    { custom: true, name: 'MyCustomObj1Share' },
-    { custom: true, name: 'MyCustomObj2History' },
-    { custom: true, name: 'MyCustomObj1Feed' },
-    { custom: true, name: 'MyCustomObj2Event' },
-    { custom: false, name: 'Account' },
-    { custom: false, name: 'Contact' },
-    { custom: false, name: 'Lead' },
-    { custom: false, name: 'Event' }
-  ]
-};
 const env = createSandbox();
 
-// tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
   const USERNAME = 'test@example.com';
   let connection: Connection;

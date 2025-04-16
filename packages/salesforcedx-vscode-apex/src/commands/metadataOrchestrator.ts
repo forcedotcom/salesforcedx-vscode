@@ -7,7 +7,7 @@
 import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { languageClientUtils } from '../languageUtils';
+import { languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import {
@@ -19,27 +19,6 @@ import {
   ApexOASResource
 } from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
-/**
- * Interface representing the metadata of a method.
- */
-export interface MethodMetadata {
-  name: string;
-  parameters: Parameter[];
-  returnType: string;
-  isAuraEnabled: boolean;
-  className?: string;
-}
-
-/**
- * Interface representing a parameter of a method.
- */
-export interface Parameter {
-  name: string;
-  in: string;
-  required: boolean;
-  description: string;
-  schema: { type: string };
-}
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -85,7 +64,7 @@ export class MetadataOrchestrator {
     gil.addApexClassOASEligibleRequest(requests.payload);
     const telemetryService = await getTelemetryService();
     let response;
-    const languageClient = languageClientUtils.getClientInstance();
+    const languageClient = languageClientManager.getClientInstance();
     if (languageClient) {
       const classNumbers = requests.payload.length.toString();
       const requestTarget = this.requestTarget(requests);
@@ -112,7 +91,7 @@ export class MetadataOrchestrator {
   ): Promise<ApexClassOASGatherContextResponse | undefined> => {
     const telemetryService = await getTelemetryService();
     let response: ApexClassOASGatherContextResponse | undefined;
-    const languageClient = languageClientUtils.getClientInstance();
+    const languageClient = languageClientManager.getClientInstance();
     if (languageClient) {
       try {
         response = await languageClient?.gatherOpenAPIContext(
@@ -197,7 +176,6 @@ export class MetadataOrchestrator {
       } else return ApexOASResource.class;
     }
   }
-  getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
-    return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
-  };
+  getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
+    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 }

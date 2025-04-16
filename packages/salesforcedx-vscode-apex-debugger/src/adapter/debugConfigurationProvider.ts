@@ -38,9 +38,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    return this.asyncDebugConfig(folder, config).catch(async err => {
-      return vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined);
-    });
+    return this.asyncDebugConfig(folder, config).catch(async err =>
+      vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined)
+    );
   }
 
   private async asyncDebugConfig(
@@ -84,11 +84,11 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     while (
       this.salesforceApexExtension &&
       this.salesforceApexExtension.exports &&
-      !this.salesforceApexExtension.exports.languageClientUtils.getStatus().isReady() &&
+      !this.salesforceApexExtension.exports.languageClientManager.getStatus().isReady() &&
       !expired
     ) {
-      if (this.salesforceApexExtension.exports.languageClientUtils.getStatus().failedToInitialize()) {
-        throw Error(this.salesforceApexExtension.exports.languageClientUtils.getStatus().getStatusMessage());
+      if (this.salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
+        throw Error(this.salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
       }
 
       await new Promise(r => setTimeout(r, 100));

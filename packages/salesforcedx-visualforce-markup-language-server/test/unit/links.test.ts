@@ -10,16 +10,14 @@ import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Link Detection', () => {
-  const getDocumentContext = (documentUrl: string): htmlLanguageService.DocumentContext => {
-    return {
-      resolveReference: (ref, base) => {
-        if (base) {
-          documentUrl = url.resolve(documentUrl, base);
-        }
-        return url.resolve(documentUrl, ref);
+  const getDocumentContext = (documentUrl: string): htmlLanguageService.DocumentContext => ({
+    resolveReference: (ref, base) => {
+      if (base) {
+        documentUrl = url.resolve(documentUrl, base);
       }
-    };
-  };
+      return url.resolve(documentUrl, ref);
+    }
+  });
 
   const testLinkCreation = (modelUrl: string, tokenContent: string, expected: string): void => {
     const document = TextDocument.create(modelUrl, 'html', 0, `<a href="${tokenContent}">`);

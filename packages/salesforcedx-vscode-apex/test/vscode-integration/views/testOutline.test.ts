@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// tslint:disable:no-unused-expression
 import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as events from 'events';
@@ -13,7 +12,8 @@ import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT } from '../../../src/constants';
-import { ClientStatus, LanguageClientUtils } from '../../../src/languageUtils/languageClientUtils';
+import { ClientStatus } from '../../../src/languageUtils/languageClientManager';
+import { LanguageClientManager } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
 import * as settings from '../../../src/settings';
 import { apexTestRunCacheService } from '../../../src/testRunCache';
@@ -37,13 +37,13 @@ describe('TestView', () => {
   describe('Code Coverage', () => {
     let commandletSpy: SinonSpy;
     let getCoverageStub: SinonStub;
-    let languageClientUtils: LanguageClientUtils;
+    let languageClientManager: LanguageClientManager;
 
     beforeEach(() => {
       commandletSpy = sb.spy(SfCommandlet.prototype, 'run');
       getCoverageStub = sb.stub(settings, 'retrieveTestCodeCoverage');
-      languageClientUtils = LanguageClientUtils.getInstance();
-      languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
+      languageClientManager = LanguageClientManager.getInstance();
+      languageClientManager.setStatus(ClientStatus.Ready, 'Apex client is ready');
     });
 
     it('Should honor code coverage setting with Apex Library', async () => {
@@ -66,11 +66,11 @@ describe('TestView', () => {
     const testMethod = 'MyTestMethod';
     const testClass = 'MyTestClass';
     const testRunAll = 'RunAll';
-    let languageClientUtils: LanguageClientUtils;
+    let languageClientManager: LanguageClientManager;
 
     beforeEach(() => {
-      languageClientUtils = LanguageClientUtils.getInstance();
-      languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
+      languageClientManager = LanguageClientManager.getInstance();
+      languageClientManager.setStatus(ClientStatus.Ready, 'Apex client is ready');
     });
 
     it('Should cache the last run test method', async () => {
@@ -196,20 +196,14 @@ describe('TestView', () => {
 
     beforeEach(() => {
       readFolderStub = sb.stub(fs, 'readdirSync');
-      readFolderStub.callsFake(folderName => {
-        return ['test-result.json'];
-      });
+      readFolderStub.callsFake(folderName => ['test-result.json']);
       readFileStub = sb.stub(fs, 'readFileSync');
-      readFileStub.callsFake(fileName => {
-        return 'nonsense';
-      });
+      readFileStub.callsFake(fileName => 'nonsense');
       parseJSONStub = sb.stub(JSON, 'parse');
     });
 
     it('Should update single test with Pass result using Apex library', () => {
-      parseJSONStub.callsFake(() => {
-        return apexLibOneFileResult;
-      });
+      parseJSONStub.callsFake(() => apexLibOneFileResult);
 
       testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
       testOutline.updateTestResults('oneFilePass');
@@ -220,9 +214,7 @@ describe('TestView', () => {
     });
 
     it('Should update tests and test groups with passing/failing tests using Apex library', () => {
-      parseJSONStub.callsFake(() => {
-        return apexLibMultipleResult;
-      });
+      parseJSONStub.callsFake(() => apexLibMultipleResult);
       testOutline = new ApexTestOutlineProvider(apexLibTestInfo);
       testOutline.updateTestResults('multipleFilesMixed');
 

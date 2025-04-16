@@ -8,14 +8,13 @@ import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
-import { mkdir, rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
-export const APEX_CLASS_EXTENSION = '.cls';
+const APEX_CLASS_EXTENSION = '.cls';
 const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
 
 export class FauxClassGenerator implements SObjectGenerator {
@@ -77,13 +76,11 @@ export class FauxClassGenerator implements SObjectGenerator {
     const className = definition.name;
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort((first, second): number => {
-      return first.name || first.type > second.name || second.type ? 1 : -1;
-    });
+    declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
 
-    declarations = declarations.filter((value, index, array): boolean => {
-      return !index || value.name !== array[index - 1].name;
-    });
+    declarations = declarations.filter(
+      (value, index, array): boolean => !index || value.name !== array[index - 1].name
+    );
 
     const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
     const declarationLines = declarations.map(FauxClassGenerator.fieldDeclToString).join(`${EOL}`);
@@ -98,10 +95,10 @@ export class FauxClassGenerator implements SObjectGenerator {
 
   private resetOutputFolder(pathToClean: string): boolean {
     if (fs.existsSync(pathToClean)) {
-      rm('-rf', pathToClean);
+      fs.rmSync(pathToClean, { recursive: true, force: true });
     }
     if (!fs.existsSync(pathToClean)) {
-      mkdir('-p', pathToClean);
+      fs.mkdirSync(pathToClean, { recursive: true });
       return fs.existsSync(pathToClean);
     }
     return true;

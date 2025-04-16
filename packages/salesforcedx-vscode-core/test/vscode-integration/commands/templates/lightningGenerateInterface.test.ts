@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as fs from 'node:fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
@@ -19,7 +19,6 @@ import { notificationService } from '../../../../src/notifications';
 import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Lightning Generate Interface', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
@@ -67,7 +66,10 @@ describe('Lightning Generate Interface', () => {
       fileName,
       'testInterface.intf-meta.xml'
     );
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([auraInterfacePath, auraInterfaceMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -81,7 +83,10 @@ describe('Lightning Generate Interface', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
   });
 
   it('Should generate internal Aura Interface', async () => {
@@ -95,13 +100,16 @@ describe('Lightning Generate Interface', () => {
       fileName,
       'testInterface.intf'
     );
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([auraInterfacePath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir('-p', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
+    await fs.promises.mkdir(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), { recursive: true });
     await internalLightningGenerateInterface(
       vscode.Uri.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath))
     );
@@ -118,6 +126,9 @@ describe('Lightning Generate Interface', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
   });
 });

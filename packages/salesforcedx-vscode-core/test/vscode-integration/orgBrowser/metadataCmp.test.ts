@@ -67,7 +67,6 @@ const expectedFieldList = [
   'Age__c (number)'
 ];
 
-// tslint:disable:no-unused-expression
 describe('get metadata components path', () => {
   let getUsernameStub: SinonStub;
   let metadataFolderStub: SinonStub;
@@ -226,9 +225,6 @@ describe('build metadata components list', () => {
 
 describe('load metadata components and custom objects fields list', () => {
   let mockConnection: Connection;
-  let connectionStub: SinonStub;
-  let getComponentsPathStub: SinonStub;
-  let getUsernameStub: SinonStub;
   let fileExistsStub: SinonStub;
   let buildComponentsListStub: SinonStub;
   let buildCustomObjectFieldsListStub: SinonStub;
@@ -258,9 +254,9 @@ describe('load metadata components and custom objects fields list', () => {
       contents: await testData.getConfig()
     });
     mockConnection = await testData.getConnection();
-    getComponentsPathStub = sb.stub(ComponentUtils.prototype, 'getComponentsPath').returns(filePath);
-    connectionStub = sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
-    getUsernameStub = sb.stub(OrgAuthInfo, 'getUsername').returns('test-username1@example.com');
+    sb.stub(ComponentUtils.prototype, 'getComponentsPath').returns(filePath);
+    sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
+    sb.stub(OrgAuthInfo, 'getUsername').returns('test-username1@example.com');
     fileExistsStub = sb.stub(fs, 'existsSync');
     buildComponentsListStub = sb.stub(ComponentUtils.prototype, 'buildComponentsList');
     buildCustomObjectFieldsListStub = sb.stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList');
@@ -278,7 +274,7 @@ describe('load metadata components and custom objects fields list', () => {
 
   it('should load metadata components through sfdx-core library if file does not exist', async () => {
     fileExistsStub.returns(false);
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
+    await cmpUtil.loadComponents(defaultOrg, metadataType);
     expect(fetchAndSaveMetadataComponentPropertiesStub.calledOnce).to.equal(true);
     expect(fetchAndSaveMetadataComponentPropertiesStub.calledWith(metadataType, mockConnection, filePath)).to.be.true;
     expect(buildComponentsListStub.calledOnce).to.be.true;
@@ -287,7 +283,7 @@ describe('load metadata components and custom objects fields list', () => {
 
   it('should load metadata components from json file if the file exists', async () => {
     fileExistsStub.returns(true);
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
+    await cmpUtil.loadComponents(defaultOrg, metadataType);
     expect(fetchAndSaveMetadataComponentPropertiesStub.called).to.equal(false);
     expect(buildComponentsListStub.calledWith(metadataType, undefined, filePath)).to.be.true;
   });
@@ -303,7 +299,7 @@ describe('load metadata components and custom objects fields list', () => {
 
   it('should load metadata components listed under folders of Dashboards through sfdx-core library if file does not exist', async () => {
     fileExistsStub.returns(false);
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeDashboard, folderName, undefined);
+    await cmpUtil.loadComponents(defaultOrg, metadataTypeDashboard, folderName, undefined);
     expect(fetchAndSaveMetadataComponentPropertiesStub.calledOnce).to.equal(true);
     expect(
       fetchAndSaveMetadataComponentPropertiesStub.calledWith(
@@ -319,7 +315,7 @@ describe('load metadata components and custom objects fields list', () => {
 
   it('should load metadata components listed under folders of Dashboards from json file if the file exists', async () => {
     fileExistsStub.returns(true);
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeDashboard, folderName, undefined);
+    await cmpUtil.loadComponents(defaultOrg, metadataTypeDashboard, folderName, undefined);
     expect(fetchAndSaveMetadataComponentPropertiesStub.called).to.equal(false);
     expect(buildComponentsListStub.calledWith(metadataTypeDashboard, undefined, filePath)).to.be.true;
   });
@@ -327,7 +323,7 @@ describe('load metadata components and custom objects fields list', () => {
   it('should load sobject fields list through sfdx-core if file does not exist', async () => {
     fileExistsStub.returns(false);
     buildCustomObjectFieldsListStub.returns('');
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, undefined);
+    await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, undefined);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.called).to.equal(true);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.calledWith(mockConnection, filePath, sObjectName)).to.be.true;
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
@@ -337,7 +333,7 @@ describe('load metadata components and custom objects fields list', () => {
   it('should load sobject fields list from json file if the file exists', async () => {
     fileExistsStub.returns(true);
     buildCustomObjectFieldsListStub.returns('');
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, undefined);
+    await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, undefined);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.called).to.equal(false);
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
     expect(buildCustomObjectFieldsListStub.calledWith(undefined, filePath)).to.be.true;
@@ -346,7 +342,7 @@ describe('load metadata components and custom objects fields list', () => {
   it('should load sobject fields list through sfdx-core if forceRefresh is set to true and file exists', async () => {
     fileExistsStub.returns(true);
     buildCustomObjectFieldsListStub.returns('');
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, true);
+    await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, true);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.called).to.equal(true);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.calledWith(mockConnection, filePath, sObjectName)).to.be.true;
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
@@ -369,13 +365,11 @@ describe('load metadata components and custom objects fields list', () => {
 
 describe('fetch metadata components and custom objects fields list', () => {
   let mockConnection: Connection;
-  let connectionStub: SinonStub;
   let fileExistsStub: SinonStub;
   let fetchCustomObjectsFieldsStub: SinonStub;
   let fetchExistingCustomObjectsFieldsStub: SinonStub;
   let fetchMetadataComponentsStub: SinonStub;
   let fetchExistingMetadataComponentsStub: SinonStub;
-  let getComponentsPathStub: SinonStub;
   const cmpUtil = new ComponentUtils();
   const defaultOrg = 'defaultOrg@test.com';
   const customObjectMetadataType = 'CustomObject';
@@ -392,8 +386,8 @@ describe('fetch metadata components and custom objects fields list', () => {
     });
     mockConnection = await testData.getConnection();
     fileExistsStub = sb.stub(fs, 'existsSync');
-    connectionStub = sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
-    getComponentsPathStub = sb.stub(ComponentUtils.prototype, 'getComponentsPath').returns(filePath);
+    sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
+    sb.stub(ComponentUtils.prototype, 'getComponentsPath').returns(filePath);
     fetchCustomObjectsFieldsStub = sb.stub(ComponentUtils.prototype, 'fetchCustomObjectsFields').resolves(fieldsList);
     fetchExistingCustomObjectsFieldsStub = sb
       .stub(ComponentUtils.prototype, 'fetchExistingCustomObjectsFields')
@@ -410,42 +404,42 @@ describe('fetch metadata components and custom objects fields list', () => {
 
   it('should call fetchCustomObjectsFields() to fetch fields of a sobject if json file does not exist', async () => {
     fileExistsStub.returns(false);
-    const components = await cmpUtil.loadComponents(defaultOrg, customObjectMetadataType, sObject);
+    await cmpUtil.loadComponents(defaultOrg, customObjectMetadataType, sObject);
     expect(fetchCustomObjectsFieldsStub.called).to.equal(true);
     expect(fetchCustomObjectsFieldsStub.calledWith(mockConnection, filePath, sObject)).to.be.true;
   });
 
   it('should call fetchExistingCustomObjectsFields() to fetch fields of a sobject if json file exists', async () => {
     fileExistsStub.returns(true);
-    const components = await cmpUtil.loadComponents(defaultOrg, customObjectMetadataType, sObject);
+    await cmpUtil.loadComponents(defaultOrg, customObjectMetadataType, sObject);
     expect(fetchExistingCustomObjectsFieldsStub.called).to.equal(true);
     expect(fetchExistingCustomObjectsFieldsStub.calledWith(filePath)).to.be.true;
   });
 
   it('should call fetchCustomObjectsFields() to fetch fields of a sobject if json file exists and force is set to true', async () => {
     fileExistsStub.returns(true);
-    const components = await cmpUtil.loadComponents(defaultOrg, customObjectMetadataType, sObject, true);
+    await cmpUtil.loadComponents(defaultOrg, customObjectMetadataType, sObject, true);
     expect(fetchCustomObjectsFieldsStub.called).to.be.true;
     expect(fetchCustomObjectsFieldsStub.calledWith(mockConnection, filePath, sObject)).to.be.true;
   });
 
   it('should call fetchMetadataComponents() to fetch metadata components if json file does not exist', async () => {
     fileExistsStub.returns(false);
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
+    await cmpUtil.loadComponents(defaultOrg, metadataType);
     expect(fetchMetadataComponentsStub.called).to.equal(true);
     expect(fetchMetadataComponentsStub.calledWith(metadataType, mockConnection, filePath, undefined)).to.be.true;
   });
 
   it('should call fetchExistingMetadataComponents() to fetch metadata components if json file exists', async () => {
     fileExistsStub.returns(true);
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
+    await cmpUtil.loadComponents(defaultOrg, metadataType);
     expect(fetchExistingMetadataComponentsStub.called).to.equal(true);
     expect(fetchExistingMetadataComponentsStub.calledWith(metadataType, filePath)).to.be.true;
   });
 
   it('should call fetchMetadataComponents() to fetch metadata components if json file exists and force is set to true', async () => {
     fileExistsStub.returns(true);
-    const components = await cmpUtil.loadComponents(defaultOrg, metadataType, undefined, true);
+    await cmpUtil.loadComponents(defaultOrg, metadataType, undefined, true);
     expect(fetchMetadataComponentsStub.called).to.be.true;
     expect(fetchMetadataComponentsStub.calledWith(metadataType, mockConnection, filePath, undefined)).to.be.true;
   });
@@ -453,11 +447,9 @@ describe('fetch metadata components and custom objects fields list', () => {
 
 describe('fetch fields of a standard or custom object', () => {
   let mockConnection: Connection;
-  let connectionStub: SinonStub;
   let fetchAndSaveSObjectFieldsPropertiesStub: SinonStub;
   let buildCustomObjectFieldsListStub: SinonStub;
   const cmpUtil = new ComponentUtils();
-  const metadataType = 'CustomObject';
   const sObject = 'DemoCustomObject';
   const filePath = '/test/metadata/CustomObject_DemoCustomObject.json';
   const fieldData = JSON.stringify(mockFieldData);
@@ -476,7 +468,7 @@ describe('fetch fields of a standard or custom object', () => {
     buildCustomObjectFieldsListStub = sb
       .stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList')
       .returns(fieldsList);
-    connectionStub = sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
+    sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
   });
 
   afterEach(() => {
@@ -484,29 +476,27 @@ describe('fetch fields of a standard or custom object', () => {
   });
 
   it('should call fetchAndSaveSObjectFieldsProperties() and buildCustomObjectFields() while fetching custom object fields if file does not exist or forceRefresh is set to true', async () => {
-    const fieldList = await cmpUtil.fetchCustomObjectsFields(mockConnection, filePath, sObject);
+    await cmpUtil.fetchCustomObjectsFields(mockConnection, filePath, sObject);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.called).to.equal(true);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.calledWith(mockConnection, filePath, sObject)).to.be.true;
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
     expect(buildCustomObjectFieldsListStub.calledWith(fieldData, filePath)).to.be.true;
   });
 
-  it('should validate that buildCustomObjectFields() is called while fetching custom object fields if file exists', async () => {
-    const fieldList = await cmpUtil.fetchExistingCustomObjectsFields(filePath);
+  it('should validate that buildCustomObjectFields() is called while fetching custom object fields if file exists', () => {
+    cmpUtil.fetchExistingCustomObjectsFields(filePath);
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
     expect(buildCustomObjectFieldsListStub.calledWith(undefined, filePath)).to.be.true;
   });
 
-  it('should validate that fetchAndSaveSObjectFieldsProperties() is not called while fetching custom object fields if file exists', async () => {
-    const fieldList = await cmpUtil.fetchExistingCustomObjectsFields(filePath);
+  it('should validate that fetchAndSaveSObjectFieldsProperties() is not called while fetching custom object fields if file exists', () => {
+    cmpUtil.fetchExistingCustomObjectsFields(filePath);
     expect(fetchAndSaveSObjectFieldsPropertiesStub.called).to.equal(false);
   });
 });
 
 describe('retrieve fields data of a sobject to write in a json file designated for the sobject', () => {
   let mockConnection: Connection;
-  let connectionStub: SinonStub;
-  let describeSObjectFieldsStub: SinonStub;
   let writeFileStub: SinonStub;
   const cmpUtil = new ComponentUtils();
   const sObjectName = 'DemoAccount';
@@ -519,8 +509,8 @@ describe('retrieve fields data of a sobject to write in a json file designated f
       contents: await testData.getConfig()
     });
     mockConnection = await testData.getConnection();
-    connectionStub = sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
-    describeSObjectFieldsStub = sb.stub(mockConnection, 'describe').resolves(sObjectDescribeResult);
+    sb.stub(WorkspaceContext.prototype, 'getConnection').resolves(mockConnection);
+    sb.stub(mockConnection, 'describe').resolves(sObjectDescribeResult);
     writeFileStub = sb.stub(fs, 'writeFileSync').returns({});
   });
 
@@ -529,7 +519,7 @@ describe('retrieve fields data of a sobject to write in a json file designated f
   });
 
   it('should validate that fetchAndSaveSObjectFieldsProperties() writes a json file at sobject components path', async () => {
-    const sObjectFields = await cmpUtil.fetchAndSaveSObjectFieldsProperties(mockConnection, filePath, sObjectName);
+    await cmpUtil.fetchAndSaveSObjectFieldsProperties(mockConnection, filePath, sObjectName);
     expect(writeFileStub.called).to.equal(true);
     expect(writeFileStub.calledWith(filePath)).to.be.true;
   });

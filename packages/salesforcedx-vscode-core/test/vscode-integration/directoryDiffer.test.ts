@@ -10,11 +10,10 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import { CommonDirDirectoryDiffer } from '../../src/conflict';
 
 describe('Directory Differ', () => {
-  const TEST_DATA_FOLDER = path.join(__dirname, '..', '..', '..', '..', 'system-tests', 'assets', 'differ-testdata');
+  const TEST_DATA_FOLDER = path.join(__dirname, '..', '..', '..', 'test-assets', 'differ-testdata');
   let testRoot: string;
   let dirOne: string;
   let dirTwo: string;
@@ -31,7 +30,7 @@ describe('Directory Differ', () => {
 
     // make directory membership slightly different
     const toRemove = path.join(dirTwo, 'pages', 'TestPage.page');
-    shell.rm(toRemove);
+    fs.rmSync(toRemove);
   });
 
   it('Should detect no differences', () => {
@@ -87,7 +86,7 @@ describe('Directory Differ', () => {
     const target = path.join(dirOne, 'staticresources', 'leaflet', 'images', 'marker-icon.png');
 
     // overwrite the target
-    shell.cp(source, target);
+    fs.cpSync(source, target);
     const results = differ.diff(dirOne, dirTwo);
 
     expect(results.different).to.eql(

@@ -22,7 +22,6 @@ const runtimePath = `~/java_home/real/jdk/${jdk}`;
 describe('Java Requirements Test', () => {
   let sandbox: SinonSandbox;
   let settingStub: SinonStub;
-  let pathExistsStub: SinonStub;
   let execFileStub: SinonStub;
 
   beforeEach(() => {
@@ -31,7 +30,7 @@ describe('Java Requirements Test', () => {
     sandbox.stub(vscode.workspace, 'getConfiguration').withArgs().returns({
       get: settingStub
     });
-    pathExistsStub = sandbox.stub(fs, 'existsSync').resolves(true);
+    sandbox.stub(fs, 'existsSync').resolves(true);
     execFileStub = sandbox.stub(cp, 'execFile');
   });
 
@@ -96,13 +95,13 @@ describe('Java Requirements Test', () => {
       fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
     }
   });
-  it('Should not support Java 20', async () => {
-    execFileStub.yields('', '', 'java.version = 20.0.0');
+  it('Should support Java 23', async () => {
+    execFileStub.yields('', '', 'java.version = 23.0.0');
     try {
-      await checkJavaVersion('~/java_home');
-      fail('Should have thrown when the Java version is not supported');
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).to.equal(true);
     } catch (err) {
-      expect(err).to.equal(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
+      fail(`Should not have thrown when the Java version is 23.  The error was: ${err}`);
     }
   });
 

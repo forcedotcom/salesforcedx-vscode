@@ -85,7 +85,6 @@ describe('SfCommandlet', () => {
 
     await commandlet.run();
 
-    // tslint:disable-next-line:no-unused-expression
     expect(executed).to.be.true;
   });
 
@@ -108,7 +107,7 @@ describe('SfCommandlet', () => {
       })()
     );
     await commandlet.run();
-    // tslint:disable-next-line:no-unused-expression
+
     expect(clearStub.called).to.be.false;
   });
 
@@ -131,7 +130,7 @@ describe('SfCommandlet', () => {
       })()
     );
     await commandlet.run();
-    // tslint:disable-next-line:no-unused-expression
+
     expect(clearStub.called).to.be.false;
   });
 });

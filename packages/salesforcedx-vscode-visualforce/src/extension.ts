@@ -17,8 +17,10 @@ import {
   languages,
   Position,
   Range,
-  TextDocument
+  TextDocument,
+  Disposable
 } from 'vscode';
+import { ConfigurationFeature } from 'vscode-languageclient/lib/common/configuration';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -26,25 +28,25 @@ import {
   ServerOptions,
   TextDocumentPositionParams,
   TransportKind
-} from 'vscode-languageclient';
-import { ConfigurationFeature } from 'vscode-languageclient/lib/configuration';
+} from 'vscode-languageclient/node';
 import {
   ColorPresentationParams,
   ColorPresentationRequest,
   DocumentColorParams,
-  DocumentColorRequest
+  DocumentColorRequest,
+  ColorInformation as LSPColorInformation,
+  ColorPresentation as LSPColorPresentation
 } from 'vscode-languageserver-protocol';
 import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
 import { activateTagClosing } from './tagClosing';
 
 import { telemetryService } from './telemetry';
 
-// tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
-  export const type: RequestType<TextDocumentPositionParams, string, any, any> = new RequestType('html/tag');
+  export const type: RequestType<TextDocumentPositionParams, string, any> = new RequestType('html/tag');
 }
 
-export const activate = (context: ExtensionContext) => {
+export const activate = async (context: ExtensionContext) => {
   const extensionHRStart = process.hrtime();
   const toDispose = context.subscriptions;
 
@@ -87,57 +89,58 @@ export const activate = (context: ExtensionContext) => {
   const client = new LanguageClient('visualforce', 'Visualforce Language Server', serverOptions, clientOptions);
   client.registerFeature(new ConfigurationFeature(client));
 
-  let disposable = client.start();
-  toDispose.push(disposable);
-  client
-    .onReady()
-    .then(() => {
-      disposable = languages.registerColorProvider(documentSelector, {
-        provideDocumentColors: (document: TextDocument): Thenable<ColorInformation[]> => {
-          const params: DocumentColorParams = {
-            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(document)
-          };
-          return client.sendRequest(DocumentColorRequest.type, params).then(symbols => {
-            return symbols.map(symbol => {
-              const range = client.protocol2CodeConverter.asRange(symbol.range);
-              const color = new Color(symbol.color.red, symbol.color.green, symbol.color.blue, symbol.color.alpha);
-              return new ColorInformation(range, color);
-            });
-          });
-        },
-        provideColorPresentations: (
-          color: Color,
-          colorContext: { document: TextDocument; range: Range }
-        ): Thenable<ColorPresentation[]> => {
-          const params: ColorPresentationParams = {
-            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(colorContext.document),
-            range: client.code2ProtocolConverter.asRange(colorContext.range),
-            color
-          };
-          return client.sendRequest(ColorPresentationRequest.type, params).then(presentations => {
-            return presentations.map(p => {
-              const presentation = new ColorPresentation(p.label);
-              presentation.textEdit = p.textEdit && client.protocol2CodeConverter.asTextEdit(p.textEdit);
-              presentation.additionalTextEdits =
-                p.additionalTextEdits && client.protocol2CodeConverter.asTextEdits(p.additionalTextEdits);
-              return presentation;
-            });
-          });
-        }
-      });
-      toDispose.push(disposable);
-
-      const tagRequestor = (document: TextDocument, position: Position) => {
-        const param = client.code2ProtocolConverter.asTextDocumentPositionParams(document, position);
-        return client.sendRequest(TagCloseRequest.type, param);
-      };
-      disposable = activateTagClosing(tagRequestor, { visualforce: true }, 'visualforce.autoClosingTags');
-      toDispose.push(disposable);
-    })
-    .catch(err => {
-      // Handled by clients
-      telemetryService.sendExtensionActivationEvent(err);
+  await client.start();
+  toDispose.push(client);
+  let disposable: Disposable;
+  try {
+    disposable = languages.registerColorProvider(documentSelector, {
+      provideDocumentColors: (document: TextDocument): Thenable<ColorInformation[]> => {
+        const params: DocumentColorParams = {
+          textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(document)
+        };
+        return client.sendRequest(DocumentColorRequest.type, params).then((symbols: LSPColorInformation[]) =>
+          symbols.map((symbol: LSPColorInformation) => {
+            const range = client.protocol2CodeConverter.asRange(symbol.range);
+            const color = new Color(symbol.color.red, symbol.color.green, symbol.color.blue, symbol.color.alpha);
+            return new ColorInformation(range, color);
+          })
+        );
+      },
+      provideColorPresentations: (
+        color: Color,
+        colorContext: { document: TextDocument; range: Range }
+      ): Thenable<ColorPresentation[]> => {
+        const params: ColorPresentationParams = {
+          textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(colorContext.document),
+          range: client.code2ProtocolConverter.asRange(colorContext.range),
+          color
+        };
+        return client
+          .sendRequest(ColorPresentationRequest.type, params)
+          .then(async (presentations: LSPColorPresentation[]) =>
+            Promise.all(
+              presentations.map(async (p: LSPColorPresentation) => {
+                const presentation = new ColorPresentation(p.label);
+                presentation.textEdit = p.textEdit && client.protocol2CodeConverter.asTextEdit(p.textEdit);
+                presentation.additionalTextEdits =
+                  p.additionalTextEdits && (await client.protocol2CodeConverter.asTextEdits(p.additionalTextEdits));
+                return presentation;
+              })
+            )
+          );
+      }
     });
+    toDispose.push(disposable);
+
+    const tagRequestor = (document: TextDocument, position: Position) => {
+      const param = client.code2ProtocolConverter.asTextDocumentPositionParams(document, position);
+      return client.sendRequest(TagCloseRequest.type, param);
+    };
+    disposable = activateTagClosing(tagRequestor, { visualforce: true }, 'visualforce.autoClosingTags');
+    toDispose.push(disposable);
+  } catch (err: unknown) {
+    telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  }
   languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
       increaseIndentPattern:

@@ -15,7 +15,6 @@ import {
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
@@ -64,7 +63,6 @@ export class MetadataCacheService {
   private static PROPERTIES_FOLDER = ['prop'];
   private static PROPERTIES_FILE = 'file-props.json';
 
-  private username: string;
   private cachePath: string;
   private componentPath?: string;
   private projectPath?: string;
@@ -72,7 +70,6 @@ export class MetadataCacheService {
   private sourceComponents: ComponentSet;
 
   public constructor(username: string) {
-    this.username = username;
     this.sourceComponents = new ComponentSet();
     this.cachePath = this.makeCachePath(username);
   }
@@ -359,7 +356,7 @@ export class MetadataCacheService {
 
   private clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {
     try {
-      shell.rm('-rf', dirToRemove);
+      fs.rmSync(dirToRemove, { recursive: true, force: true });
     } catch (error) {
       if (throwErrorOnFailure) {
         throw error;

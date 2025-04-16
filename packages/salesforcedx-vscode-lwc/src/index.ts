@@ -69,7 +69,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
   const client = createLanguageClient(serverModule);
 
-  extensionContext.subscriptions.push(client.start());
+  // Start the client and add it to subscriptions
+  await client.start();
+  extensionContext.subscriptions.push(client);
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
@@ -114,11 +116,10 @@ const getActivationMode = (): string => {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 };
 
-const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
-  return Disposable.from(
+const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
+  Disposable.from(
     commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
     commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
     commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
     commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
-};

@@ -6,10 +6,9 @@
  */
 
 import { FileProperties, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
-import { fail } from 'assert';
 import { expect } from 'chai';
+import * as fs from 'node:fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import { channelService } from '../../../src/channels';
 import { PersistentStorageService } from '../../../src/conflict';
@@ -17,24 +16,13 @@ import * as differ from '../../../src/conflict/componentDiffer';
 import { TimestampFileProperties } from '../../../src/conflict/directoryDiffer';
 import { MetadataCacheResult } from '../../../src/conflict/metadataCacheService';
 import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
-import { nls } from '../../../src/messages';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 describe('Timestamp Conflict Detector Execution', () => {
   const TODAY = '2023-01-28T00:15:28.000Z';
   const YESTERDAY = '2023-01-27T00:15:28.000Z';
   const PROJ_ROOT = path.join(__dirname, '..', '..', '..', '..', 'test', 'vscode-integration', 'conflict');
-  const TEST_DATA_FOLDER = path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    '..',
-    '..',
-    'system-tests',
-    'assets',
-    'proj-testdata'
-  );
+
   const PROJECT_DIR = path.join(PROJ_ROOT, 'proj');
 
   let workspaceStub: sinon.SinonStub;
@@ -59,7 +47,8 @@ describe('Timestamp Conflict Detector Execution', () => {
     workspaceStub.restore();
     cacheStub.restore();
     channelServiceStub.restore();
-    shell.rm('-rf', PROJECT_DIR);
+
+    fs.rmSync(PROJECT_DIR, { recursive: true, force: true });
   });
 
   it('Should report differences', async () => {

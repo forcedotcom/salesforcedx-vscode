@@ -6,7 +6,7 @@
  */
 
 import { Uri, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export const code2ProtocolConverter = (value: Uri) => {
@@ -19,9 +19,7 @@ export const code2ProtocolConverter = (value: Uri) => {
   }
 };
 
-const protocol2CodeConverter = (value: string) => {
-  return Uri.parse(value);
-};
+const protocol2CodeConverter = (value: string) => Uri.parse(value);
 
 export const createLanguageClient = (serverPath: string): LanguageClient => {
   // Setup the language server

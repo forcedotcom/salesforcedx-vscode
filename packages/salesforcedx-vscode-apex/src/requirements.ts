@@ -22,7 +22,7 @@ const findJavaHome = require('find-java-home');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
-export type RequirementsData = {
+type RequirementsData = {
   java_home: string;
   java_memory: number | null;
 };
@@ -41,8 +41,8 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
   });
 };
 
-const checkJavaRuntime = async (): Promise<string> => {
-  return new Promise((resolve, reject) => {
+const checkJavaRuntime = async (): Promise<string> =>
+  new Promise((resolve, reject) => {
     let source: string;
     let javaHome: string | undefined = readJavaConfig();
 
@@ -80,16 +80,13 @@ const checkJavaRuntime = async (): Promise<string> => {
       }
     });
   });
-};
 
 const readJavaConfig = (): string => {
   const config = workspace.getConfiguration();
   return config.get<string>('salesforcedx-vscode-apex.java.home', '');
 };
 
-const isLocal = (javaHome: string): boolean => {
-  return !path.isAbsolute(javaHome);
-};
+const isLocal = (javaHome: string): boolean => !path.isAbsolute(javaHome);
 
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
   const cmdFile = path.join(javaHome, 'bin', 'java');
@@ -101,11 +98,17 @@ export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
           nls.localize('java_version_check_command_failed', `${cmdFile} ${commandOptions.join(' ')}`, error.message)
         );
       }
-      if (!/java\.version\s*=\s*(?:11|17|21)/g.test(stderr)) {
-        reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
-      } else {
-        resolve(true);
+
+      const versionMatch = stderr.match(/java\.version\s*=\s*(\d+)(?:\.(\d+))?/);
+      if (versionMatch) {
+        const majorVersion = parseInt(versionMatch[1], 10);
+        if (majorVersion >= 11) {
+          resolve(true);
+          return;
+        }
       }
+
+      reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
     });
   });
 };

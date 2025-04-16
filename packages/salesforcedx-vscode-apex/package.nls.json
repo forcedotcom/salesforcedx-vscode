@@ -4,6 +4,7 @@
   "apex_code_completion_stats_description": "Allow the Apex Language Server to collect telemetry on code completion usage",
   "apex_code_disable-warnings-for-missing-coverage": "Disable UI warning when Apex test coverage is missing.",
   "apex_log_get_text": "SFDX: Get Apex Debug Logs",
+  "apex_language_server_restart": "SFDX: Restart Apex Language Server",
   "apex_messages_level_trace_description": "Only output high-level messages of notifications and responses received by the client, and requests sent by the server.",
   "apex_oas_general_class_access-modifiers": "The general eligibility of class access modifiers for the generation of Apex Open API Specs.",
   "apex_oas_general_method_access-modifiers": "The general eligibility of method access modifiers for the generation of Apex Open API Specs.",

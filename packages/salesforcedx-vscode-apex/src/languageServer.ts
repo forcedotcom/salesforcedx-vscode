@@ -127,9 +127,7 @@ export const code2ProtocolConverter = (value: vscode.Uri) => {
   }
 };
 
-const protocol2CodeConverter = (value: string) => {
-  return vscode.Uri.parse(value);
-};
+const protocol2CodeConverter = (value: string) => vscode.Uri.parse(value);
 
 export const createLanguageServer = async (extensionContext: vscode.ExtensionContext): Promise<ApexLanguageClient> => {
   const telemetryService = await getTelemetryService();

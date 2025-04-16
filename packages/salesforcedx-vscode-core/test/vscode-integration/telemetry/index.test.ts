@@ -94,7 +94,6 @@ jest.mock('@salesforce/vscode-service-provider', () => ({
 }));
 
 describe('Telemetry', () => {
-  const machineId = '45678903';
   let mShowInformation: SinonStub;
   let settings: SinonStub;
   let mockExtensionContext: MockExtensionContext;

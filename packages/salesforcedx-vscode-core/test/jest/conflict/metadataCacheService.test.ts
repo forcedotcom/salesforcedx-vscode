@@ -24,9 +24,7 @@ describe('MetadataCacheService', () => {
 
     beforeEach(() => {
       workspaceContextStub = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-        getConnection: async () => {
-          return {};
-        }
+        getConnection: async () => ({})
       } as any);
       getSourceComponentsStub = jest.spyOn(MetadataCacheService.prototype, 'getSourceComponents');
 
@@ -39,7 +37,7 @@ describe('MetadataCacheService', () => {
       getSourceComponentsStub.mockResolvedValue(dummyComponentSet);
       const metadataCacheService = new MetadataCacheService('');
 
-      const retrieveOperation = await metadataCacheService.createRetrieveOperation();
+      await metadataCacheService.createRetrieveOperation();
 
       expect(workspaceContextStub).toHaveBeenCalled();
       expect(getSourceComponentsStub).toHaveBeenCalled();
@@ -53,7 +51,7 @@ describe('MetadataCacheService', () => {
         getSourceComponentsStub.mockResolvedValue(dummyEmptyComponentSet);
         const metadataCacheService = new MetadataCacheService('');
 
-        const cacheResult = await metadataCacheService.loadCache('', '');
+        await metadataCacheService.loadCache('', '');
 
         expect(getSourceComponentsStub).toHaveBeenCalled();
         expect(retrieveStub).not.toHaveBeenCalled();

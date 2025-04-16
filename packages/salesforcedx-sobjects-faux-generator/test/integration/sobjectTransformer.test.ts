@@ -29,7 +29,6 @@ const CONNECTION_DATA = {
 const env = createSandbox();
 const tempFolder = path.join(os.tmpdir(), PROJECT_NAME);
 
-// tslint:disable:no-unused-expression
 describe('Transform sobject definitions', () => {
   let cancellationTokenSource: CancellationTokenSource;
   let emitter: EventEmitter;

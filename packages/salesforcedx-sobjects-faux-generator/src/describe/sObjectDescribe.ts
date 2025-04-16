@@ -11,7 +11,7 @@ import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { SObjectField } from '../types/describe';
 import { SObjectShortDescription } from '.';
-export const MAX_BATCH_REQUEST_SIZE = 25;
+const MAX_BATCH_REQUEST_SIZE = 25;
 
 export class SObjectDescribe {
   private connection: Connection;
@@ -31,9 +31,10 @@ export class SObjectDescribe {
    */
   public async describeGlobal(): Promise<SObjectShortDescription[]> {
     const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
-    const requestedDescriptions = allDescriptions.sobjects.map(sobject => {
-      return { name: sobject.name, custom: sobject.custom };
-    });
+    const requestedDescriptions = allDescriptions.sobjects.map(sobject => ({
+      name: sobject.name,
+      custom: sobject.custom
+    }));
     return requestedDescriptions;
   }
 
@@ -122,15 +123,13 @@ export class SObjectDescribe {
  * @param describeSObject full metadata of an sobject, as returned by the jsforce's sobject/describe api
  * @returns SObject containing a subset of DescribeSObjectResult information
  */
-export const toMinimalSObject = (describeSObject: DescribeSObjectResult): SObject => {
-  return {
-    fields: describeSObject.fields ? describeSObject.fields.map(toMinimalSObjectField) : [],
-    ...pick(describeSObject, 'label', 'childRelationships', 'custom', 'name', 'queryable')
-  };
-};
+export const toMinimalSObject = (describeSObject: DescribeSObjectResult): SObject => ({
+  fields: describeSObject.fields ? describeSObject.fields.map(toMinimalSObjectField) : [],
+  ...pick(describeSObject, 'label', 'childRelationships', 'custom', 'name', 'queryable')
+});
 
-const toMinimalSObjectField = (describeField: Field): SObjectField => {
-  return pick(
+const toMinimalSObjectField = (describeField: Field): SObjectField =>
+  pick(
     describeField,
     'aggregatable',
     'custom',
@@ -148,7 +147,6 @@ const toMinimalSObjectField = (describeField: Field): SObjectField => {
     'sortable',
     'type'
   );
-};
 
 const pick = <T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> => {
   const ret: any = {};

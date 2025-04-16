@@ -9,7 +9,6 @@ import {
   CUSTOMOBJECTS_DIR,
   SObject,
   SObjectField,
-  SObjectShortDescription,
   SOQLMETADATA_DIR,
   STANDARDOBJECTS_DIR,
   toMinimalSObject
@@ -78,7 +77,7 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       const file = await fs.promises.readFile(filePath);
       // TODO: validate content against a schema
       return JSON.parse(file.toString());
-    } catch (e) {
+    } catch {
       const message = nls.localize(
         'error_sobject_metadata_fs_request',
         sobjectName,
@@ -88,21 +87,13 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       return undefined;
     }
   }
-
-  private async readTypeDescriptions(soqlMetadataPath: string): Promise<SObjectShortDescription[]> {
-    const savedTypeNamesBuffer = await fs.promises.readFile(path.join(soqlMetadataPath, 'typeNames.json'));
-    // TODO: validate content against a schema
-    const savedTypeNames = JSON.parse(savedTypeNamesBuffer.toString()) as SObjectShortDescription[];
-
-    return savedTypeNames;
-  }
 }
 
 export class JsforceOrgDataSource implements OrgDataSource {
   async retrieveSObjectsList(): Promise<string[]> {
     try {
       return await retrieveSObjects();
-    } catch (metadataError) {
+    } catch {
       const message = nls.localize('error_sobjects_request');
       channelService.appendLine(message);
       return [];
@@ -112,7 +103,7 @@ export class JsforceOrgDataSource implements OrgDataSource {
   async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
     try {
       return toMinimalSObject(await retrieveSObject(sobjectName));
-    } catch (metadataError) {
+    } catch {
       const message = nls.localize('error_sobject_metadata_request', sobjectName);
       channelService.appendLine(message);
       return undefined;

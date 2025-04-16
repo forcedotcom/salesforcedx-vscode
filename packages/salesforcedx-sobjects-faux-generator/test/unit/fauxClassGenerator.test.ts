@@ -9,7 +9,6 @@ import * as chai from 'chai';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import { join } from 'path';
-import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
@@ -24,9 +23,7 @@ describe('SObject faux class generator', () => {
   let classPath = '';
   const declGenerator = new DeclarationGenerator();
 
-  const getGenerator = (): FauxClassGenerator => {
-    return new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
-  };
+  const getGenerator = (): FauxClassGenerator => new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
 
   afterEach(() => {
     if (classPath) {
@@ -324,9 +321,7 @@ describe('SObject faux class generator', () => {
     });
 
     afterEach(() => {
-      if (fs.existsSync(sobjectsFolder)) {
-        rm('-rf', sobjectsFolder);
-      }
+      fs.rmSync(sobjectsFolder, { recursive: true, force: true });
     });
 
     it('Should remove standardObjects folder when category is STANDARD', () => {

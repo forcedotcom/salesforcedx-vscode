@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import * as shell from 'shelljs';
+import * as fs from 'node:fs';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
@@ -15,7 +15,6 @@ import { apexGenerateTrigger } from '../../../../src/commands/templates/apexGene
 import { notificationService } from '../../../../src/notifications';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Apex Generate Trigger', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -49,8 +48,9 @@ describe('Apex Generate Trigger', () => {
       outputPath,
       'TestApexTrigger.trigger-meta.xml'
     );
-    shell.rm('-f', apexTriggerPath);
-    shell.rm('-f', apexTriggerMetaPath);
+    await fs.promises.rm(apexTriggerPath, { force: true });
+    await fs.promises.rm(apexTriggerMetaPath, { force: true });
+
     assert.noFile([apexTriggerPath, apexTriggerMetaPath]);
     showInputBoxStub.returns('TestApexTrigger');
     quickPickStub.returns(outputPath);

@@ -23,6 +23,13 @@ export class MockApexExtension implements Extension<any> {
     return Promise.resolve('activated');
   }
   public exports: any;
+  public languageClientManager = {
+    getStatus: () => ({
+      isReady: () => true,
+      failedToInitialize: () => false,
+      getStatusMessage: () => ''
+    })
+  };
 }
 
 class MockJorje {
@@ -37,20 +44,4 @@ class MockJorje {
     ];
     return Promise.resolve(response);
   }
-
-  public languageClientUtils = {
-    getStatus: () => {
-      return {
-        isReady: () => {
-          return true;
-        },
-        failedToInitialize: () => {
-          return false;
-        },
-        getStatusMessage: () => {
-          return '';
-        }
-      };
-    }
-  };
 }

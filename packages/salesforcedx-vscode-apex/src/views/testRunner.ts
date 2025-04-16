@@ -15,7 +15,7 @@ import * as events from 'events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
-import { languageClientUtils } from '../languageUtils';
+import { languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService } from '../testRunCache';
@@ -97,7 +97,7 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientUtils.getStatus();
+    const languageClientStatus = languageClientManager.getStatus();
     if (!languageClientStatus.isReady()) {
       if (languageClientStatus.failedToInitialize()) {
         vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());

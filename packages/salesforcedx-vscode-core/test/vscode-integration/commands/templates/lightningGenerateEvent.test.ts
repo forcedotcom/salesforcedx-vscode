@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
-import * as shell from 'shelljs';
+import * as fs from 'node:fs';
 import { SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -19,7 +19,6 @@ import { notificationService } from '../../../../src/notifications';
 import { SalesforceCoreSettings } from '../../../../src/settings/salesforceCoreSettings';
 import { workspaceUtils } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Lightning Generate Event', () => {
   let getInternalDevStub: SinonStub;
   let showInputBoxStub: SinonStub;
@@ -62,7 +61,10 @@ describe('Lightning Generate Event', () => {
       fileName,
       'testEvent.evt-meta.xml'
     );
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([auraEventPath, auraEventMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -76,7 +78,10 @@ describe('Lightning Generate Event', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
   });
 
   it('Should generate internal Aura Event', async () => {
@@ -85,13 +90,18 @@ describe('Lightning Generate Event', () => {
     const fileName = 'testEvent';
     const outputPath = 'force-app/main/default/aura';
     const auraEventPath = path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName, 'testEvent.evt');
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
     assert.noFile([auraEventPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir('-p', path.join(workspaceUtils.getRootWorkspacePath(), outputPath));
+    await fs.promises.mkdir(path.join(workspaceUtils.getRootWorkspacePath(), outputPath), {
+      recursive: true
+    });
     await internalLightningGenerateEvent(vscode.Uri.file(path.join(workspaceUtils.getRootWorkspacePath(), outputPath)));
 
     // assert
@@ -101,6 +111,9 @@ describe('Lightning Generate Event', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
     // clean up
-    shell.rm('-rf', path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName));
+    await fs.promises.rm(path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName), {
+      recursive: true,
+      force: true
+    });
   });
 });

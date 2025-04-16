@@ -16,7 +16,7 @@ import { nls } from '../messages';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-export const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
+const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
 export const getLineRange = (document: TextDocument, lineNumber: number): Range => {
   let adjustedLineNumber: number;
@@ -24,7 +24,7 @@ export const getLineRange = (document: TextDocument, lineNumber: number): Range 
   try {
     adjustedLineNumber = lineNumber - 1;
     firstLine = document.lineAt(adjustedLineNumber);
-  } catch (e) {
+  } catch {
     throw new Error(nls.localize('colorizer_out_of_sync_code_coverage_data'));
   }
 
@@ -36,13 +36,7 @@ export const getLineRange = (document: TextDocument, lineNumber: number): Range 
   );
 };
 
-export type CoverageTestResult = {
-  coverage: {
-    coverage: CoverageItem[];
-  };
-};
-
-export type CoverageItem = {
+type CoverageItem = {
   id: string;
   name: string;
   totalLines: number;
@@ -73,9 +67,7 @@ const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
   return testResult.codecoverage || testResult.coverage.coverage;
 };
 
-const isApexMetadata = (filePath: string): boolean => {
-  return IS_CLS_OR_TRIGGER.test(filePath);
-};
+const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);
 
 const getApexMemberName = (filePath: string): string => {
   if (isApexMetadata(filePath)) {
@@ -187,9 +179,4 @@ const applyCoverageToSource = (
     }
   }
   return { coveredLines, uncoveredLines };
-};
-
-// export is for testing
-export const colorizer = {
-  applyCoverageToSource
 };
