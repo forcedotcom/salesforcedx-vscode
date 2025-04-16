@@ -12,7 +12,7 @@ import {
   SFDX_LWC_EXTENSION_NAME
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
-import { glob } from 'glob';
+import { globSync } from 'glob';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
