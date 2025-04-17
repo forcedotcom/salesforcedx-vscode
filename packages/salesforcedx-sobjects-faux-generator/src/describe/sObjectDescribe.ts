@@ -8,7 +8,7 @@
 import { Connection } from '@salesforce/core-bundle';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
-import { SObjectField } from '../types/describe';
+import { SObjectField, DescribeSObjectResult, Field } from '../types/describe';
 import { SObjectShortDescription } from '.';
 const MAX_BATCH_REQUEST_SIZE = 25;
 
