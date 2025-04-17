@@ -24,9 +24,9 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "8.1.12",
+    "@salesforce/apex-node-bundle": "8.1.20",
     "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core-bundle": "8.8.2",
+    "@salesforce/core-bundle": "8.9.1",
     "@salesforce/salesforcedx-utils-vscode": "63.9.2",
     "@salesforce/vscode-service-provider": "1.4.0",
     "@stoplight/spectral-core": "1.19.5",
