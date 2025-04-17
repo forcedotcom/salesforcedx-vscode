@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getInput, setOutput, setFailed } from "@actions/core";
-import { context, getOctokit } from "@actions/github";
-import { Label } from "@octokit/webhooks-definitions/schema";
+import { getInput, setOutput, setFailed } from '@actions/core';
+import { context, getOctokit } from '@actions/github';
+import { Label } from '@octokit/webhooks-types';
 
 async function run() {
   try {
@@ -15,16 +15,16 @@ async function run() {
     // Sets action status to failed when issue does not exist on payload.
     const issue = context.payload.issue;
     if (!issue) {
-      setFailed("github.context.payload.issue does not exist");
+      setFailed('github.context.payload.issue does not exist');
       return;
     }
 
     // Get input parameters.
-    const token = getInput("repo-token");
-    const message = getInput("message");
-    const label = getInput("label");
-    console.log("message: ", message);
-    console.log("label: ", label);
+    const token = getInput('repo-token');
+    const message = getInput('message');
+    const label = getInput('label');
+    console.log('message: ', message);
+    console.log('label: ', label);
 
     // Create a GitHub client.
     const octokit = getOctokit(token);
@@ -35,24 +35,23 @@ async function run() {
 
     // Create a comment on Issue
     // https://octokit.github.io/rest.js/#octokit-routes-issues-create-comment
-    console.log("owner: " + owner);
-    console.log("repo: " + repo);
-    console.log("issue number: " + issue.number);
+    console.log('owner: ' + owner);
+    console.log('repo: ' + repo);
+    console.log('issue number: ' + issue.number);
 
     const issueLabels = issue.labels as Label[];
-    console.log("issue labels: ", issueLabels);
-
+    console.log('issue labels: ', issueLabels);
 
     const { data: comments } = await octokit.rest.issues.listComments({
       owner,
       repo,
-      issue_number: issue.number,
+      issue_number: issue.number
     });
 
     // If we have comments check out that this comment has not been previously commented
     if (comments.length) {
-      if (comments.some((comment) => comment.body === message)) {
-        console.log("Already commented");
+      if (comments.some(comment => comment.body === message)) {
+        console.log('Already commented');
         return;
       }
     }
@@ -62,11 +61,11 @@ async function run() {
       repo,
       // eslint-disable-next-line @typescript-eslint/camelcase
       issue_number: issue.number,
-      body: message,
+      body: message
     });
-    console.log("created comment URL: " + response.data.html_url);
+    console.log('created comment URL: ' + response.data.html_url);
 
-    setOutput("comment-url", response.data.html_url);
+    setOutput('comment-url', response.data.html_url);
   } catch (err) {
     const error = err as Error;
     setFailed(error.message);
