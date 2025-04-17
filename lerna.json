@@ -1,7 +1,4 @@
 {
-  "packages": [
-    "packages/*"
-  ],
   "version": "63.9.2",
   "command": {
     "version": {
@@ -11,6 +8,5 @@
       ]
     }
   },
-  "useNx": true,
-  "useWorkspaces": true
+  "useNx": true
 }

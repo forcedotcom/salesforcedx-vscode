@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.11.0",
-    "@actions/github": "^5.1.1",
+    "@actions/github": "^6.0.0",
     "node": "^20.17.0",
     "npm": "^10",
     "semver": "^7.5.4",
@@ -20,8 +20,8 @@
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.4.4",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.10.4",
-    "@octokit/core": "4.2.4",
-    "@octokit/webhooks-definitions": "^3.67.3",
+    "@octokit/core": "^5",
+    "@octokit/webhooks-types": "7.6.1",
     "@salesforce/dev-config": "^3.1.0",
     "@stylistic/eslint-plugin-ts": "2.10.1",
     "@tony.ganchev/eslint-plugin-header": "3.1.2",
@@ -51,7 +51,7 @@
     "jest-junit": "14.0.1",
     "jsdom": "^16.5.0",
     "junit-report-merger": "7.0.0",
-    "lerna": "5.5.4",
+    "lerna": "8.2.2",
     "markdown-link-check": "^3.9.3",
     "mocha-multi-reporters": "^1.1.7",
     "nyc": "15.1.0",
@@ -65,14 +65,14 @@
     "yaml": "2.6.0"
   },
   "scripts": {
-    "postinstall": "npm run bootstrap && npm run reformat && npm run check:peer-deps && npm run check:typescript-project-references",
-    "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock",
+    "postinstall": "npm run reformat && npm run check:peer-deps && npm run check:typescript-project-references",
+    "bootstrap": "npm install",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
     "clean": "lerna run clean && git clean -xfd",
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
-    "compile": "tsc --build",
+    "compile": "lerna run compile",
     "postcompile": "lerna run copy:files",
     "compile:clean": "tsc  --build --clean && npm run compile",
     "compile:watch": "npm run compile && tsc --build --watch",
@@ -111,7 +111,8 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-push": "npm run lint && npm run reformat"
+      "pre-commit": "npm run reformat && npx lerna run compile,lint",
+      "pre-push": "npx lerna run compile,lint,test:unit"
     }
   },
   "config": {
