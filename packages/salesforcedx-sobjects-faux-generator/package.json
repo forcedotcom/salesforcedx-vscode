@@ -10,7 +10,6 @@
   },
   "main": "out/src",
   "dependencies": {
-    "@jsforce/jsforce-node": "3.7.0",
     "@salesforce/core-bundle": "8.9.1",
     "@salesforce/salesforcedx-utils-vscode": "63.9.2"
   },
