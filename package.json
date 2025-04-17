@@ -72,7 +72,7 @@
     "changelog": "ts-node ./scripts/create-release-notes.ts",
     "clean": "lerna run clean && git clean -xfd",
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
-    "compile": "lerna run compile --loglevel silly",
+    "compile": "lerna run compile",
     "postcompile": "lerna run copy:files",
     "compile:clean": "tsc  --build --clean && npm run compile",
     "compile:watch": "npm run compile && tsc --build --watch",
