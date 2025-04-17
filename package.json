@@ -111,8 +111,8 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npm run reformat && npm run compile && npm run lint",
-      "pre-push": "npm run compile && npm run lint && npm run test:unit"
+      "pre-commit": "npm run reformat && npx lerna run compile,lint",
+      "pre-push": "npx lerna run compile,lint,test:unit"
     }
   },
   "config": {
