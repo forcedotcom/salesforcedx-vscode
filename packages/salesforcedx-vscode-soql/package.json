@@ -71,7 +71,6 @@
   ],
   "scripts": {
     "bundle:extension": "node ./esbuild.config.js",
-    "build": "npm run compile",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
