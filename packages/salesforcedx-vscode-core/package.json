@@ -43,7 +43,6 @@
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "63.9.2",
     "@salesforce/ts-sinon": "^1.4.30",
-    "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
     "@types/jest": "^29.5.5",
     "@types/mocha": "^10",
@@ -51,7 +50,6 @@
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",
     "@types/yeoman-assert": "^3.1.1",
-    "adm-zip": "0.5.10",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
