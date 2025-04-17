@@ -7,7 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core-bundle';
 import { JsonMap } from '@salesforce/ts-types';
-import { QueryResult } from '@jsforce/jsforce-node';
+import type { QueryResult } from '../../src/types';
 import { SinonSandbox, SinonSpy } from 'sinon';
 import * as vscode from 'vscode';
 import { SoqlEditorEvent, SOQLEditorInstance } from '../../src/editor/soqlEditorInstance';

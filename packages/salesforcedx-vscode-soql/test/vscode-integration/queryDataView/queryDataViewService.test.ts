@@ -7,22 +7,14 @@
 
 import { JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
-import { QueryResult } from '@jsforce/jsforce-node';
+import type { QueryResult } from '../../../src/types';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../../../src/commonUtils';
 import * as commonUtils from '../../../src/commonUtils';
-import {
-  FileFormat,
-  QueryDataFileService
-} from '../../../src/queryDataView/queryDataFileService';
+import { FileFormat, QueryDataFileService } from '../../../src/queryDataView/queryDataFileService';
 import { QueryDataViewService } from '../../../src/queryDataView/queryDataViewService';
-import {
-  mockColumnData,
-  mockQueryData,
-  MockTextDocumentProvider,
-  TestQueryDataViewService
-} from '../testUtilities';
+import { mockColumnData, mockQueryData, MockTextDocumentProvider, TestQueryDataViewService } from '../testUtilities';
 
 describe('Query Data View Service', () => {
   let mockTextDocument: vscode.TextDocument;
@@ -34,11 +26,10 @@ describe('Query Data View Service', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    docProviderDisposable =
-      vscode.workspace.registerTextDocumentContentProvider(
-        'sfdc-test',
-        new MockTextDocumentProvider()
-      );
+    docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
+      'sfdc-test',
+      new MockTextDocumentProvider()
+    );
     mockTextDocument = await vscode.workspace.openTextDocument(
       vscode.Uri.parse('sfdc-test:test/examples/soql/mocksoql.soql')
     );
@@ -58,11 +49,7 @@ describe('Query Data View Service', () => {
   });
 
   it('should post message to webview with query data on activation event ', () => {
-    const dataViewService = new TestQueryDataViewService(
-      mockSubscription,
-      queryRecords,
-      mockTextDocument
-    );
+    const dataViewService = new TestQueryDataViewService(mockSubscription, queryRecords, mockTextDocument);
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
     QueryDataViewService.extensionPath = '';
@@ -77,23 +64,14 @@ describe('Query Data View Service', () => {
       columnData: mockColumnData,
       ...mockQueryData
     });
-    expect(postMessageArgs.documentName).equal(
-      getDocumentName(mockTextDocument)
-    );
+    expect(postMessageArgs.documentName).equal(getDocumentName(mockTextDocument));
     expect(postMessageArgs.type).equal('update');
   });
 
   it('should save with save_records event', () => {
-    const dataViewService = new TestQueryDataViewService(
-      mockSubscription,
-      queryRecords,
-      mockTextDocument
-    );
+    const dataViewService = new TestQueryDataViewService(mockSubscription, queryRecords, mockTextDocument);
     const saveRecordsSpy = sandbox.spy(dataViewService, 'handleSaveRecords');
-    const fileServiceStub = sandbox.stub(
-      QueryDataFileService.prototype,
-      'save'
-    );
+    const fileServiceStub = sandbox.stub(QueryDataFileService.prototype, 'save');
     QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();
@@ -110,11 +88,7 @@ describe('Query Data View Service', () => {
 
   it('should track error via telemetry if event type is not handled', () => {
     const trackSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
-    const dataViewService = new TestQueryDataViewService(
-      mockSubscription,
-      queryRecords,
-      mockTextDocument
-    );
+    const dataViewService = new TestQueryDataViewService(mockSubscription, queryRecords, mockTextDocument);
     dataViewService.createOrShowWebView();
     dataViewService.mockReceiveEvent({
       type: 'unsupported',
@@ -125,14 +99,8 @@ describe('Query Data View Service', () => {
 
   it('should display error when save fails', () => {
     const trackSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
-    const dataViewService = new TestQueryDataViewService(
-      mockSubscription,
-      queryRecords,
-      mockTextDocument
-    );
-    const fileServiceStub = sandbox
-      .stub(QueryDataFileService.prototype, 'save')
-      .throws();
+    const dataViewService = new TestQueryDataViewService(mockSubscription, queryRecords, mockTextDocument);
+    const fileServiceStub = sandbox.stub(QueryDataFileService.prototype, 'save').throws();
     QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();

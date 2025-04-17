@@ -24,7 +24,6 @@
     "Other"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "3.4.1",
     "@salesforce/core-bundle": "8.8.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "63.9.2",
     "@salesforce/salesforcedx-utils-vscode": "63.9.2",
