@@ -24,7 +24,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core-bundle": "8.8.2",
+    "@salesforce/core-bundle": "8.9.1",
     "@salesforce/lightning-lsp-common": "4.12.3",
     "@salesforce/lwc-language-server": "4.12.3",
     "@salesforce/salesforcedx-utils-vscode": "63.9.2",
