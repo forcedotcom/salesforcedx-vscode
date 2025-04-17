@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.9.1",
+  "version": "63.9.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,31 +26,30 @@
   "dependencies": {
     "@jsforce/jsforce-node": "3.4.1",
     "@salesforce/core-bundle": "8.8.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "63.9.1",
-    "@salesforce/salesforcedx-utils-vscode": "63.9.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "63.9.2",
+    "@salesforce/salesforcedx-utils-vscode": "63.9.2",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "12.15.0",
-    "@salesforce/templates": "63.0.3",
+    "@salesforce/templates": "63.0.4",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-service-provider": "1.4.0",
     "applicationinsights": "1.0.7",
+    "o11y": "250.12.0",
+    "o11y_schema": "254.77.0",
     "glob": "^11.0.1",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.9.1",
+    "@salesforce/salesforcedx-test-utils-vscode": "63.9.2",
     "@salesforce/ts-sinon": "^1.4.30",
-    "@types/adm-zip": "^0.5.0",
     "@types/chai": "4.3.3",
     "@types/jest": "^29.5.5",
     "@types/mocha": "^10",
     "@types/node": "^20.0.0",
-    "@types/proxyquire": "1.3.28",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",
     "@types/yeoman-assert": "^3.1.1",
-    "adm-zip": "0.5.10",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
@@ -63,7 +62,6 @@
     "mock-spawn": "0.2.6",
     "nyc": "^15",
     "prettier": "3.3.3",
-    "proxyquire": "2.1.3",
     "sinon": "^13.0.1",
     "ts-jest": "^29.1.1",
     "typescript": "^5.6.2",
@@ -86,6 +84,8 @@
       "main": "dist/src/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
+        "o11y": "250.12.0",
+        "o11y_schema": "254.77.0",
         "@salesforce/schemas": "1.9.0"
       },
       "devDependencies": {}
