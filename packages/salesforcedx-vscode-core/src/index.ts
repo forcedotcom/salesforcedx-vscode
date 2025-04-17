@@ -458,8 +458,15 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     await checkPackageDirectoriesEditorView();
   });
 
+  // Register explorer change listener
+  const watcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, true);
+  const explorerChangeDisposable = watcher.onDidCreate(async uri => {
+    await checkPackageDirectoriesExplorerView();
+  });
+
   // Add to subscriptions
   extensionContext.subscriptions.push(editorChangeDisposable);
+  extensionContext.subscriptions.push(explorerChangeDisposable);
 
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);
