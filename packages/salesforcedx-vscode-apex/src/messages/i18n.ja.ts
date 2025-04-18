@@ -86,7 +86,7 @@ export const messages = {
   source_missing_text:
     '指定されたフォルダ %s は存在しません。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
   wrong_java_version_text:
-    'サポートされていない Java のバージョンが検出されました。拡張機能を実行するには、[Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html)、[Java 17](https://www.oracle.com/java/technologies/downloads/#java17)、または [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) をダウンロードし、インストールしてください。詳細については、[Java バージョンを設定する](%s) を参照してください。',
+    'We detected an unsupported Java version. Java versions 11 or higher are supported. We recommend [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](%s).',
   apex_test_suite_build_text: 'SFDX: Apex テストスイートを作成',
   unable_to_locate_editor: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unable_to_locate_document: 'ソースファイルに対してのみこのコマンドを実行できます。',
