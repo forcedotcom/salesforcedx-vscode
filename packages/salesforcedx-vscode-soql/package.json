@@ -31,9 +31,8 @@
     "soql builder"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "3.4.1",
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core-bundle": "8.8.2",
+    "@salesforce/core-bundle": "8.9.1",
     "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
@@ -72,7 +71,6 @@
   ],
   "scripts": {
     "bundle:extension": "node ./esbuild.config.js",
-    "build": "npm run compile",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
