@@ -8,6 +8,7 @@
 import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 /**
@@ -65,7 +66,7 @@ export const checkPackageDirectoriesExplorerView = async () => {
     const sfProject = await SfProject.resolve(projectPath);
     const sfdxProjectJson = sfProject.getSfProjectJson();
     const packageDirectories = await sfdxProjectJson.getPackageDirectories();
-    const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
+    const packageDirectoryPaths = packageDirectories.map(directory => path.join(projectPath, directory.path));
     const packageDirectoryPathsCopy = [...packageDirectoryPaths];
     for (const directory of packageDirectoryPaths) {
       const subdirectories = getAllSubdirectories(directory);
@@ -90,7 +91,7 @@ const getAllSubdirectories = (currentDirectory: string): string[] => {
   const entries = fs.readdirSync(currentDirectory, { withFileTypes: true });
 
   for (const entry of entries) {
-    const fullPath = `${currentDirectory}/${entry.name}`;
+    const fullPath = path.join(currentDirectory, entry.name);
     if (entry.isDirectory()) {
       subdirectories.push(...getAllSubdirectories(fullPath));
     } else if (entry.isFile()) {
