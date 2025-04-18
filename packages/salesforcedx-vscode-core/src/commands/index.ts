@@ -94,7 +94,6 @@ export {
   apexGenerateClass,
   apexGenerateTrigger,
   apexGenerateUnitTestClass,
-  forceLightningLwcTestCreate,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,
