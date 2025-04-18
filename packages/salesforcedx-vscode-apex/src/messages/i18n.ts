@@ -92,7 +92,7 @@ export const messages = {
   source_missing_text:
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   wrong_java_version_text:
-    'An unsupported Java version was detected. Download and install [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html), [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) or [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](%s).',
+    'We detected an unsupported Java version. Java versions 11 or higher are supported. We recommend [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](%s).',
   wrong_java_version_short: 'Unsupported Java version',
   java_version_check_command_failed: 'Running java command %s failed with error: %s',
   apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
