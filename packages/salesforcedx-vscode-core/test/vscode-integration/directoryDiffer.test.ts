@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -13,7 +12,7 @@ import * as path from 'path';
 import { CommonDirDirectoryDiffer } from '../../src/conflict';
 
 describe('Directory Differ', () => {
-  const TEST_DATA_FOLDER = path.join(__dirname, '..', '..', '..', '..', 'system-tests', 'assets', 'differ-testdata');
+  const TEST_DATA_FOLDER = path.join(__dirname, '..', '..', '..', 'test-assets', 'differ-testdata');
   let testRoot: string;
   let dirOne: string;
   let dirTwo: string;
@@ -23,10 +22,13 @@ describe('Directory Differ', () => {
     dirOne = path.join(testRoot, 'One');
     dirTwo = path.join(testRoot, 'Two');
 
-    const testZip = new AdmZip();
-    testZip.addLocalFolder(TEST_DATA_FOLDER);
-    testZip.extractAllTo(dirOne);
-    testZip.extractAllTo(dirTwo);
+    // Create directories
+    fs.mkdirSync(dirOne, { recursive: true });
+    fs.mkdirSync(dirTwo, { recursive: true });
+
+    // Copy test data recursively to both directories
+    fs.cpSync(TEST_DATA_FOLDER, dirOne, { recursive: true });
+    fs.cpSync(TEST_DATA_FOLDER, dirTwo, { recursive: true });
 
     // make directory membership slightly different
     const toRemove = path.join(dirTwo, 'pages', 'TestPage.page');

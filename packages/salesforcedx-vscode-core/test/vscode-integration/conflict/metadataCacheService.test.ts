@@ -17,7 +17,6 @@ import {
   MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
-import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -82,18 +81,24 @@ describe('Metadata Cache', () => {
 
   describe('Metadata Cache Service', () => {
     const PROJ_ROOT = path.join(__dirname, '..', '..', '..', '..', 'test', 'vscode-integration', 'diffs');
-    const TEST_ASSETS_FOLDER = path.join(__dirname, '..', '..', '..', '..', '..', 'system-tests', 'assets');
+    const TEST_ASSETS_FOLDER = path.join(__dirname, '..', '..', '..', '..', 'test-assets');
     const TEST_DATA_FOLDER = path.join(TEST_ASSETS_FOLDER, 'differ-testdata');
     const usernameOrAlias = 'admin@ut-sandbox.org';
     const PROJECT_DIR = path.join(PROJ_ROOT, 'meta-proj2');
     let workspaceStub: sinon.SinonStub;
     let packageStub: sinon.SinonStub;
     let service: MetadataCacheService;
+    let projectPath: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       service = new MetadataCacheService(usernameOrAlias);
       packageStub = sinon.stub(SalesforcePackageDirectories, 'getPackageDirectoryFullPaths').resolves([]);
       workspaceStub = stubRootWorkspace(PROJECT_DIR);
+      projectPath = path.join(PROJECT_DIR, 'src');
+
+      // populate project metadata
+      await fs.promises.mkdir(projectPath, { recursive: true });
+      await fs.promises.cp(TEST_DATA_FOLDER, projectPath, { recursive: true });
     });
 
     afterEach(() => {
@@ -119,13 +124,6 @@ describe('Metadata Cache', () => {
     });
 
     it('Should find one component', async () => {
-      const projectPath = path.join(PROJECT_DIR, 'src');
-
-      // populate project metadata
-      const projectZip = new AdmZip();
-      projectZip.addLocalFolder(TEST_DATA_FOLDER);
-      projectZip.extractAllTo(projectPath);
-
       const componentPath = path.join(projectPath, 'aura', 'PictureGalleryCard', 'PictureGalleryCard.cmp');
       service.initialize(componentPath, PROJECT_DIR);
       const components = await service.getSourceComponents();
@@ -134,13 +132,6 @@ describe('Metadata Cache', () => {
     });
 
     it('Should find components', async () => {
-      const projectPath = path.join(PROJECT_DIR, 'src');
-
-      // populate project metadata
-      const projectZip = new AdmZip();
-      projectZip.addLocalFolder(TEST_DATA_FOLDER);
-      projectZip.extractAllTo(projectPath);
-
       service.initialize(projectPath, PROJECT_DIR);
       const components = await service.getSourceComponents();
 
@@ -148,14 +139,7 @@ describe('Metadata Cache', () => {
     });
 
     it('Should find components using a manifest', async () => {
-      const projectPath = path.join(PROJECT_DIR, 'src');
       const manifestPath = path.join(TEST_ASSETS_FOLDER, 'proj-testdata', 'manifest', 'one-class.xml');
-
-      // populate project metadata
-      const projectZip = new AdmZip();
-      projectZip.addLocalFolder(TEST_DATA_FOLDER);
-      projectZip.extractAllTo(projectPath);
-
       service.initialize(manifestPath, PROJECT_DIR, true);
       const components = await service.getSourceComponents();
 
@@ -163,15 +147,13 @@ describe('Metadata Cache', () => {
     });
 
     it('Should return cache results', async () => {
-      const projectPath = path.join(PROJECT_DIR, 'src');
       const cachePath = service.getCachePath();
       const retrieveRoot = path.join('main', 'default');
+      const cacheTargetPath = path.join(cachePath, retrieveRoot);
 
-      // populate project metadata
-      const projectZip = new AdmZip();
-      projectZip.addLocalFolder(TEST_DATA_FOLDER);
-      projectZip.extractAllTo(projectPath);
-      projectZip.extractAllTo(path.join(cachePath, retrieveRoot));
+      // populate cache directory
+      await fs.promises.mkdir(cacheTargetPath, { recursive: true });
+      await fs.promises.cp(TEST_DATA_FOLDER, cacheTargetPath, { recursive: true });
 
       service.initialize(projectPath, PROJECT_DIR);
       await service.getSourceComponents();
@@ -193,7 +175,7 @@ describe('Metadata Cache', () => {
       // verify contents of prop file
       if (cache?.cachePropPath) {
         const propObj = JSON.parse(
-          fs.readFileSync(cache?.cachePropPath, {
+          await fs.promises.readFile(cache?.cachePropPath, {
             encoding: 'utf-8'
           })
         );

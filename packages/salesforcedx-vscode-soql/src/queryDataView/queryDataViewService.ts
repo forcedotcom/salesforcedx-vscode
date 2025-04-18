@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { QueryResult } from '@jsforce/jsforce-node';
+import type { QueryResult } from '../types';
 import { JsonMap } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
