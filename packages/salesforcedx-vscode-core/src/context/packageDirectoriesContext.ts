@@ -6,7 +6,7 @@
  */
 
 import { SfProject } from '@salesforce/core-bundle';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -69,11 +69,16 @@ export const checkPackageDirectoriesExplorerView = async () => {
     const packageDirectoryPathsCopy = [...packageDirectoryPaths];
 
     // Using a for loop instead of a for...of loop because the for...of loop is 4 times slower
+    const startTime = process.hrtime();
     for (let x = 0; x < packageDirectoryPaths.length; x++) {
       const directory = packageDirectoryPaths[x];
       const subdirectories = await getAllSubdirectories(directory);
       packageDirectoryPathsCopy.push(...subdirectories);
     }
+    const telemetryService = TelemetryService.getInstance();
+    const duration = telemetryService.hrTimeToMilliseconds(process.hrtime(startTime));
+    console.debug(`getAllSubdirectories duration: ${duration} milliseconds`);
+
     void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPathsCopy);
   } catch (error) {
     console.error('Error checking package directories:', error);
