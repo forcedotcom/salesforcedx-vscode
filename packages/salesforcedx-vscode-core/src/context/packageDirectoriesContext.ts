@@ -27,7 +27,7 @@ export const checkPackageDirectoriesEditorView = async (): Promise<boolean> => {
     const sfProject = await SfProject.resolve(projectPath);
     const sfdxProjectJson = sfProject.getSfProjectJson();
     const packageDirectories = await sfdxProjectJson.getPackageDirectories();
-    const packageDirectoryPaths = packageDirectories.map(directory => projectPath + '/' + directory.path);
+    const packageDirectoryPaths = packageDirectories.map(directory => path.join(projectPath, directory.path));
 
     // Get the URI from the active editor
     const activeEditor = vscode.window.activeTextEditor;
