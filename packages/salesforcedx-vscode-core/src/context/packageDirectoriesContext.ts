@@ -7,7 +7,6 @@
 
 import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -42,7 +41,7 @@ export const checkPackageDirectoriesEditorView = async (): Promise<boolean> => {
 
     // Check if the file is in any of the package directories
     const filePath = uri.fsPath;
-    const inPackageDirectories = packageDirectoryPaths.some(path => filePath.includes(path));
+    const inPackageDirectories = packageDirectoryPaths.some(directoryPath => filePath.includes(directoryPath));
 
     // Set the context for sf:in_package_directories
     void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', inPackageDirectories);
@@ -69,7 +68,7 @@ export const checkPackageDirectoriesExplorerView = async () => {
     const packageDirectoryPaths = packageDirectories.map(directory => path.join(projectPath, directory.path));
     const packageDirectoryPathsCopy = [...packageDirectoryPaths];
     for (const directory of packageDirectoryPaths) {
-      const subdirectories = getAllSubdirectories(directory);
+      const subdirectories = await getAllSubdirectories(directory);
       packageDirectoryPathsCopy.push(...subdirectories);
     }
     void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPathsCopy);
@@ -86,15 +85,16 @@ export const checkPackageDirectoriesExplorerView = async () => {
  * @returns An array of strings representing the paths of all subdirectories and files
  * within the given directory, including the directory itself.
  */
-const getAllSubdirectories = (currentDirectory: string): string[] => {
+const getAllSubdirectories = async (currentDirectory: string): Promise<string[]> => {
   const subdirectories: string[] = [currentDirectory];
-  const entries = fs.readdirSync(currentDirectory, { withFileTypes: true });
+  const uri = vscode.Uri.file(currentDirectory);
+  const entries = await vscode.workspace.fs.readDirectory(uri);
 
-  for (const entry of entries) {
-    const fullPath = path.join(currentDirectory, entry.name);
-    if (entry.isDirectory()) {
-      subdirectories.push(...getAllSubdirectories(fullPath));
-    } else if (entry.isFile()) {
+  for (const [name, type] of entries) {
+    const fullPath = path.join(currentDirectory, name);
+    if (type === vscode.FileType.Directory) {
+      subdirectories.push(...(await getAllSubdirectories(fullPath)));
+    } else if (type === vscode.FileType.File) {
       subdirectories.push(fullPath);
     }
   }
