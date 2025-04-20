@@ -67,7 +67,10 @@ export const checkPackageDirectoriesExplorerView = async () => {
     const packageDirectories = await sfdxProjectJson.getPackageDirectories();
     const packageDirectoryPaths = packageDirectories.map(directory => path.join(projectPath, directory.path));
     const packageDirectoryPathsCopy = [...packageDirectoryPaths];
-    for (const directory of packageDirectoryPaths) {
+
+    // Using a for loop instead of a for...of loop because the for...of loop is 4 times slower
+    for (let x = 0; x < packageDirectoryPaths.length; x++) {
+      const directory = packageDirectoryPaths[x];
       const subdirectories = await getAllSubdirectories(directory);
       packageDirectoryPathsCopy.push(...subdirectories);
     }
@@ -90,7 +93,9 @@ const getAllSubdirectories = async (currentDirectory: string): Promise<string[]>
   const uri = vscode.Uri.file(currentDirectory);
   const entries = await vscode.workspace.fs.readDirectory(uri);
 
-  for (const [name, type] of entries) {
+  // Using a for loop instead of a for...of loop because the for...of loop is 4 times slower
+  for (let x = 0; x < entries.length; x++) {
+    const [name, type] = entries[x];
     const fullPath = path.join(currentDirectory, name);
     if (type === vscode.FileType.Directory) {
       subdirectories.push(...(await getAllSubdirectories(fullPath)));
