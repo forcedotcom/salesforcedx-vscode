@@ -4,19 +4,17 @@
 
 #### salesforcedx-vscode-core
 
-- W-11472751 - remove SFDX: Create a Lightning Web Component Test command ([PR #6225](https://github.com/forcedotcom/salesforcedx-vscode/pull/6225))
+- We removed the SFDX: Create a Lightning Web Component Test command. ([PR #6225](https://github.com/forcedotcom/salesforcedx-vscode/pull/6225))
 
-- Bump core, sdr, st, apex-node and jsforce ([PR #6223](https://github.com/forcedotcom/salesforcedx-vscode/pull/6223))
+- We bumped SDR and some other libraries to catch up with the latest and fixed an issue happening during deploy and retrieve of DigitalExperienceBundle metadata. ([PR #6223](https://github.com/forcedotcom/salesforcedx-vscode/pull/6223))
 
-- @W-18052519 -  a4d olly integration changes ([PR #6171](https://github.com/forcedotcom/salesforcedx-vscode/pull/6171))
+- We made some changes under the hood to enhance telemetry for A4D. ([PR #6171](https://github.com/forcedotcom/salesforcedx-vscode/pull/6171))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- [W-18309862]  fix error message for wrong_java_version_text ([PR #6229](https://github.com/forcedotcom/salesforcedx-vscode/pull/6229))
-
-- Text for java home setting ([PR #6228](https://github.com/forcedotcom/salesforcedx-vscode/pull/6228))
+- We updated the text for the java home setting to reflect current supported versions. ([PR #6228](https://github.com/forcedotcom/salesforcedx-vscode/pull/6228), [PR #6229](https://github.com/forcedotcom/salesforcedx-vscode/pull/6229))
 
 # 63.9.2 - April 17, 2025
 
