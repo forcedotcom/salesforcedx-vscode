@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.9.2",
+  "version": "63.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,14 +26,14 @@
   "dependencies": {
     "@salesforce/apex-node-bundle": "8.1.20",
     "@salesforce/core-bundle": "8.9.1",
-    "@salesforce/salesforcedx-apex-replay-debugger": "63.9.2",
-    "@salesforce/salesforcedx-utils": "63.9.2",
-    "@salesforce/salesforcedx-utils-vscode": "63.9.2",
+    "@salesforce/salesforcedx-apex-replay-debugger": "63.10.0",
+    "@salesforce/salesforcedx-utils": "63.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "63.10.0",
     "async-lock": "1.4.1",
     "vscode-extension-telemetry": "^0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.9.2",
+    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
     "@salesforce/ts-sinon": "1.4.30",
     "@types/async-lock": "1.4.2",
     "@types/chai": "4.3.3",
