@@ -59,7 +59,8 @@ console.debug = jest.fn();
 describe('packageDirectoriesContext', () => {
   const mockProjectPath = '/mock/project/path';
   const mockPackageDirectories = [
-    { path: 'force-app' }
+    { path: 'force-app' },
+    { path: 'path2' }
   ];
 
   // Define the specific paths we want to verify
@@ -67,7 +68,19 @@ describe('packageDirectoriesContext', () => {
   const packageMain = path.join(mockProjectPath, 'force-app', 'main');
   const packageDefault = path.join(mockProjectPath, 'force-app', 'main', 'default');
   const packageClasses = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes');
-  const packageFile = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes', 'elephant.apex');
+  const packageClass1 = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes', 'Class1.cls');
+  const packageClass1Metadata = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes', 'Class1.cls-meta.xml');
+  const packageClass2 = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes', 'Class2.cls');
+  const packageClass2Metadata = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes', 'Class2.cls-meta.xml');
+  const packageLwc = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc');
+  const packageLwc1 = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1');
+  const packageLwc1TestsFolder = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1', '__tests__');
+  const packageLwc1Test = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1', '__tests__', 'lwc1.test.js');
+  const packageLwc1Html = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1', 'lwc1.html');
+  const packageLwc1Js = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1', 'lwc1.js');
+  const packageLwc1Metadata = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1', 'lwc1.js-meta.xml');
+  const packageRoot2 = path.join(mockProjectPath, 'path2');
+  const packageRoot2File = path.join(mockProjectPath, 'path2', 'file.txt');
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,9 +106,27 @@ describe('packageDirectoriesContext', () => {
         } else if (currentPath === path.join(mockProjectPath, 'force-app', 'main')) {
           return Promise.resolve([['default', vscode.FileType.Directory]]);
         } else if (currentPath === packageDefault) {
-          return Promise.resolve([['classes', vscode.FileType.Directory]]);
+          return Promise.resolve([['classes', vscode.FileType.Directory], ['lwc', vscode.FileType.Directory]]);
         } else if (currentPath === packageClasses) {
-          return Promise.resolve([['elephant.apex', vscode.FileType.File]]);
+          return Promise.resolve([
+            ['Class1.cls', vscode.FileType.File],
+            ['Class1.cls-meta.xml', vscode.FileType.File],
+            ['Class2.cls', vscode.FileType.File],
+            ['Class2.cls-meta.xml', vscode.FileType.File]
+          ]);
+        } else if (currentPath === packageLwc) {
+          return Promise.resolve([['lwc1', vscode.FileType.Directory]]);
+        } else if (currentPath === packageLwc1) {
+          return Promise.resolve([
+            ['__tests__', vscode.FileType.Directory],
+            ['lwc1.html', vscode.FileType.File],
+            ['lwc1.js', vscode.FileType.File],
+            ['lwc1.js-meta.xml', vscode.FileType.File]
+          ]);
+        } else if (currentPath === packageLwc1TestsFolder) {
+          return Promise.resolve([['lwc1.test.js', vscode.FileType.File]]);
+        } else if (currentPath === packageRoot2) {
+          return Promise.resolve([['file.txt', vscode.FileType.File]]);
         }
         return Promise.resolve([]);
       });
@@ -203,7 +234,19 @@ describe('packageDirectoriesContext', () => {
           packageMain,
           packageDefault,
           packageClasses,
-          packageFile
+          packageClass1,
+          packageClass1Metadata,
+          packageClass2,
+          packageClass2Metadata,
+          packageLwc,
+          packageLwc1,
+          packageLwc1TestsFolder,
+          packageLwc1Test,
+          packageLwc1Html,
+          packageLwc1Js,
+          packageLwc1Metadata,
+          packageRoot2,
+          packageRoot2File
         ]
       );
     });
