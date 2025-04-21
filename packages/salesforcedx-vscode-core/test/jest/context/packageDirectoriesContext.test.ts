@@ -208,45 +208,16 @@ describe('packageDirectoriesContext', () => {
       );
     });
 
-    // it('should include files from packageDirectories defined in sfdx-project.json', async () => {
-    //   await checkPackageDirectoriesExplorerView();
+    it('should handle errors gracefully', async () => {
+      (SfProject.resolve as jest.Mock).mockRejectedValue(new Error('Test error'));
 
-    //   // Get the actual paths that were set in the context
-    //   const setContextCall = (vscode.commands.executeCommand as jest.Mock).mock.calls.find(
-    //     call => call[0] === 'setContext' && call[1] === 'packageDirectoriesFolders'
-    //   );
-    //   const actualPaths = setContextCall[2];
+      await checkPackageDirectoriesExplorerView();
 
-    //   // Verify each specific path is included
-    //   expect(actualPaths).toContain(packageRoot);
-    //   expect(actualPaths).toContain(packageMain);
-    //   expect(actualPaths).toContain(packageDefault);
-    //   expect(actualPaths).toContain(packageClasses);
-    //   expect(actualPaths).toContain(packageFile);
-
-    //   // Verify the paths are in the correct order (parent directories before their children)
-    //   const packageRootIndex = actualPaths.indexOf(packageRoot);
-    //   const packageMainIndex = actualPaths.indexOf(packageMain);
-    //   const packageDefaultIndex = actualPaths.indexOf(packageDefault);
-    //   const packageClassesIndex = actualPaths.indexOf(packageClasses);
-    //   const packageFileIndex = actualPaths.indexOf(packageFile);
-
-    //   expect(packageRootIndex).toBeLessThan(packageMainIndex);
-    //   expect(packageMainIndex).toBeLessThan(packageDefaultIndex);
-    //   expect(packageDefaultIndex).toBeLessThan(packageClassesIndex);
-    //   expect(packageClassesIndex).toBeLessThan(packageFileIndex);
-    // });
-
-    // it('should handle errors gracefully', async () => {
-    //   (SfProject.resolve as jest.Mock).mockRejectedValue(new Error('Test error'));
-
-    //   await checkPackageDirectoriesExplorerView();
-
-    //   expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-    //     'setContext',
-    //     'packageDirectoriesFolders',
-    //     []
-    //   );
-    // });
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'packageDirectoriesFolders',
+        []
+      );
+    });
   });
 });
