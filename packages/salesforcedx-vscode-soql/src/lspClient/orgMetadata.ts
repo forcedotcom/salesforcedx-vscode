@@ -14,8 +14,8 @@ import {
   toMinimalSObject
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { nls } from '../messages';
 import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
 

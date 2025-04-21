@@ -7,7 +7,7 @@
 
 import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
 import * as vscode from 'vscode';
 
 export const getDialogStartingPath = (extContext: vscode.ExtensionContext): vscode.Uri | undefined => {

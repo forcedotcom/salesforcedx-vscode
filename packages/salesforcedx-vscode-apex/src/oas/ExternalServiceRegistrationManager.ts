@@ -7,9 +7,9 @@
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
 import { workspaceContext } from '../context';

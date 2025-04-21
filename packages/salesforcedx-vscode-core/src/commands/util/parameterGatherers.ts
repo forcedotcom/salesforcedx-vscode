@@ -13,7 +13,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
 import { globSync } from 'glob';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';

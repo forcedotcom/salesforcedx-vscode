@@ -16,6 +16,7 @@ import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import eslintPluginJest from 'eslint-plugin-jest';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
 export default [
   {
@@ -59,9 +60,11 @@ export default [
       jsdoc: eslintPluginJsdoc,
       'jest-formatting': eslintPluginJestFormatting,
       'prefer-arrow': eslintPluginPreferArrow,
-      '@stylistic/eslint-plugin-ts': stylistic
+      '@stylistic/eslint-plugin-ts': stylistic,
+      unicorn: eslintPluginUnicorn
     },
     rules: {
+      'unicorn/prefer-node-protocol': 'error',
       'header/header': [
         'error',
         'block',

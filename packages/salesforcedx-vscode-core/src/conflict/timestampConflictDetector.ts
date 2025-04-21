@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join, relative } from 'path';
+import { join, relative } from 'node:path';
 import { DirectoryDiffResults, MetadataCacheResult, PersistentStorageService } from './';
 import { diffComponents } from './componentDiffer';
 import { TimestampFileProperties } from './directoryDiffer';

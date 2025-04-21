@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import * as path from 'path';
+import * as path from 'node:path';
 import { Location, Position, commands, window, workspace } from 'vscode';
 import URI from 'vscode-uri';
 

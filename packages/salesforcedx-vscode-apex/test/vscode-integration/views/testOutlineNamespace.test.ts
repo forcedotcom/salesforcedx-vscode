@@ -6,8 +6,8 @@
  */
 
 import { expect } from 'chai';
-import * as events from 'events';
-import * as fs from 'fs';
+import * as events from 'node:events';
+import * as fs from 'node:fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT } from '../../../src/constants';
