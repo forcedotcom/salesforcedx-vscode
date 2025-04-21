@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-// import { checkPackageDirectoriesEditorView, checkPackageDirectoriesExplorerView } from '../../../src/context/packageDirectoriesContext';
-import { checkPackageDirectoriesExplorerView } from '../../../src/context/packageDirectoriesContext';
+import { checkPackageDirectoriesEditorView, checkPackageDirectoriesExplorerView } from '../../../src/context/packageDirectoriesContext';
 
 // Mock all external dependencies
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
@@ -132,71 +131,71 @@ describe('packageDirectoriesContext', () => {
       });
   });
 
-  // describe('checkPackageDirectoriesEditorView', () => {
-  //   it('should return true when file is in package directories', async () => {
-  //     const mockUri = {
-  //       fsPath: path.join(mockProjectPath, 'force-app', 'test.cls')
-  //     };
-  //     (vscode.window.activeTextEditor as any) = {
-  //       document: { uri: mockUri }
-  //     };
+  describe('checkPackageDirectoriesEditorView', () => {
+    it('should return true when file is in package directories', async () => {
+      const mockUri = {
+        fsPath: path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes', 'Class1.cls')
+      };
+      (vscode.window.activeTextEditor as any) = {
+        document: { uri: mockUri }
+      };
 
-  //     const result = await checkPackageDirectoriesEditorView();
-  //     expect(result).toBe(true);
-  //     expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-  //       'setContext',
-  //       'sf:in_package_directories',
-  //       true
-  //     );
-  //   });
+      const result = await checkPackageDirectoriesEditorView();
+      expect(result).toBe(true);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'sf:in_package_directories',
+        true
+      );
+    });
 
-  //   it('should return false when file is not in package directories', async () => {
-  //     const mockUri = {
-  //       fsPath: path.join(mockProjectPath, 'other', 'test.cls')
-  //     };
-  //     (vscode.window.activeTextEditor as any) = {
-  //       document: { uri: mockUri }
-  //     };
+    it('should return false when file is not in package directories', async () => {
+      const mockUri = {
+        fsPath: path.join(mockProjectPath, 'this', 'is', 'an', 'invalid', 'path', 'helloworld.txt')
+      };
+      (vscode.window.activeTextEditor as any) = {
+        document: { uri: mockUri }
+      };
 
-  //     const result = await checkPackageDirectoriesEditorView();
-  //     expect(result).toBe(false);
-  //     expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-  //       'setContext',
-  //       'sf:in_package_directories',
-  //       false
-  //     );
-  //   });
+      const result = await checkPackageDirectoriesEditorView();
+      expect(result).toBe(false);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'sf:in_package_directories',
+        false
+      );
+    });
 
-  //   it('should return false when there is no active editor', async () => {
-  //     (vscode.window.activeTextEditor as any) = undefined;
+    it('should return false when there is no active editor', async () => {
+      (vscode.window.activeTextEditor as any) = undefined;
 
-  //     const result = await checkPackageDirectoriesEditorView();
-  //     expect(result).toBe(false);
-  //     expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-  //       'setContext',
-  //       'sf:in_package_directories',
-  //       false
-  //     );
-  //   });
+      const result = await checkPackageDirectoriesEditorView();
+      expect(result).toBe(false);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'sf:in_package_directories',
+        false
+      );
+    });
 
-  //   it('should handle errors gracefully', async () => {
-  //     (SfProject.resolve as jest.Mock).mockRejectedValue(new Error('Test error'));
-  //     const mockUri = {
-  //       fsPath: path.join(mockProjectPath, 'force-app', 'test.cls')
-  //     };
-  //     (vscode.window.activeTextEditor as any) = {
-  //       document: { uri: mockUri }
-  //     };
+    it('should handle errors gracefully', async () => {
+      (SfProject.resolve as jest.Mock).mockRejectedValue(new Error('Test error'));
+      const mockUri = {
+        fsPath: path.join(mockProjectPath, 'force-app', 'test.cls')
+      };
+      (vscode.window.activeTextEditor as any) = {
+        document: { uri: mockUri }
+      };
 
-  //     const result = await checkPackageDirectoriesEditorView();
-  //     expect(result).toBe(false);
-  //     expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-  //       'setContext',
-  //       'sf:in_package_directories',
-  //       false
-  //     );
-  //   });
-  // });
+      const result = await checkPackageDirectoriesEditorView();
+      expect(result).toBe(false);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'sf:in_package_directories',
+        false
+      );
+    });
+  });
 
   describe('checkPackageDirectoriesExplorerView', () => {
     it('should set packageDirectoriesFolders context with all directories', async () => {
@@ -214,15 +213,10 @@ describe('packageDirectoriesContext', () => {
         call => call[0] === 'setContext' && call[1] === 'packageDirectoriesFolders'
       );
 
-      // Debug information
-      console.log('All mock calls:', (vscode.commands.executeCommand as jest.Mock).mock.calls);
-      console.log('Filtered setContext calls:', setContextCalls);
-
       // Check if we found any matching calls
       expect(setContextCalls.length).toBeGreaterThan(0);
 
       const actualPaths = setContextCalls[0][2];
-      console.log('Actual paths:', actualPaths);
 
       // Verify that the package directory path is included
       expect(actualPaths).toContain(packageRoot);
