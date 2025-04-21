@@ -79,7 +79,11 @@ export const checkPackageDirectoriesExplorerView = async () => {
     const duration = telemetryService.hrTimeToMilliseconds(process.hrtime(startTime));
     console.debug(`getAllSubdirectories duration: ${duration} milliseconds`);
 
-    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPathsWithSubdirectories);
+    void vscode.commands.executeCommand(
+      'setContext',
+      'packageDirectoriesFolders',
+      packageDirectoryPathsWithSubdirectories
+    );
   } catch (error) {
     console.error('Error checking package directories:', error);
     void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', []);
