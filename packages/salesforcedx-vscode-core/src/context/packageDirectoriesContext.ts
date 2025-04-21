@@ -66,20 +66,20 @@ export const checkPackageDirectoriesExplorerView = async () => {
     const sfdxProjectJson = sfProject.getSfProjectJson();
     const packageDirectories = await sfdxProjectJson.getPackageDirectories();
     const packageDirectoryPaths = packageDirectories.map(directory => path.join(projectPath, directory.path));
-    const packageDirectoryPathsCopy = [...packageDirectoryPaths];
+    const packageDirectoryPathsWithSubdirectories: string[] = [];
 
     // Using a for loop instead of a for...of loop because the for...of loop is 4 times slower
     const startTime = process.hrtime();
     for (let x = 0; x < packageDirectoryPaths.length; x++) {
       const directory = packageDirectoryPaths[x];
       const subdirectories = await getAllSubdirectories(directory);
-      packageDirectoryPathsCopy.push(...subdirectories);
+      packageDirectoryPathsWithSubdirectories.push(...subdirectories);
     }
     const telemetryService = TelemetryService.getInstance();
     const duration = telemetryService.hrTimeToMilliseconds(process.hrtime(startTime));
     console.debug(`getAllSubdirectories duration: ${duration} milliseconds`);
 
-    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPathsCopy);
+    void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', packageDirectoryPathsWithSubdirectories);
   } catch (error) {
     console.error('Error checking package directories:', error);
     void vscode.commands.executeCommand('setContext', 'packageDirectoriesFolders', []);
