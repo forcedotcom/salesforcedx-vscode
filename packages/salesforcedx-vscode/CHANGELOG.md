@@ -4,17 +4,17 @@
 
 #### salesforcedx-vscode-core
 
-- We removed the SFDX: Create a Lightning Web Component Test command. ([PR #6225](https://github.com/forcedotcom/salesforcedx-vscode/pull/6225))
+- We've now [deprecated](https://github.com/forcedotcom/salesforcedx-vscode/issues/6199) the `SFDX: Create a Lightning Web Component Test` command. It's no longer available from the command palette. ([PR #6225](https://github.com/forcedotcom/salesforcedx-vscode/pull/6225))
 
-- We bumped SDR and some other libraries to catch up with the latest and fixed an issue happening during deploy and retrieve of DigitalExperienceBundle metadata. ([PR #6223](https://github.com/forcedotcom/salesforcedx-vscode/pull/6223))
+- We bumped SDR and some libraries to catch up with the latest. This update fixed an issue with deploying and retrieving `DigitalExperienceBundle` metadata. ([PR #6223](https://github.com/forcedotcom/salesforcedx-vscode/pull/6223))
 
-- We made some changes under the hood to enhance telemetry for A4D. ([PR #6171](https://github.com/forcedotcom/salesforcedx-vscode/pull/6171))
+- We enhanced telemetry for Agentforce for Developers by making changes under the hood. ([PR #6171](https://github.com/forcedotcom/salesforcedx-vscode/pull/6171))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- We updated the text for the java home setting to reflect current supported versions. ([PR #6228](https://github.com/forcedotcom/salesforcedx-vscode/pull/6228), [PR #6229](https://github.com/forcedotcom/salesforcedx-vscode/pull/6229))
+- We updated the text for the Java home setting to reflect currently supported versions. ([PR #6228](https://github.com/forcedotcom/salesforcedx-vscode/pull/6228), [PR #6229](https://github.com/forcedotcom/salesforcedx-vscode/pull/6229))
 
 # 63.9.2 - April 17, 2025
 
