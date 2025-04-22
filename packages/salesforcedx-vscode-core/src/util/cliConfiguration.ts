@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ConfigUtil, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
-import { execSync } from 'child_process';
+import { execSync } from 'node:child_process';
 import { ENV_NODE_EXTRA_CA_CERTS, ENV_SF_DISABLE_TELEMETRY, ENV_SF_LOG_LEVEL } from '../constants';
 import { salesforceCoreSettings } from '../settings';
 

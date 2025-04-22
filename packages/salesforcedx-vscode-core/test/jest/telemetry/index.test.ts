@@ -6,7 +6,7 @@
  */
 
 import { TELEMETRY_GLOBAL_USER_ID } from '@salesforce/salesforcedx-utils-vscode';
-import * as os from 'os';
+import * as os from 'node:os';
 import { extensions, window, Extension } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';

@@ -6,7 +6,7 @@
  */
 
 import { getMessageFromError, notificationService, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { nls } from '../../messages';
 import { ContinueOrCancel, getComponentName, getComponentPath, isContinue, OneOrMany } from '../../util';
 import { isComponentName, isDirFileNameSelection } from '../../util/types';

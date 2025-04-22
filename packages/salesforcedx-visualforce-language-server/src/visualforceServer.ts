@@ -5,8 +5,8 @@
 'use strict';
 
 import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import * as path from 'path';
-import * as url from 'url';
+import * as path from 'node:path';
+import * as url from 'node:url';
 import {
   ColorPresentationParams,
   CompletionItem,

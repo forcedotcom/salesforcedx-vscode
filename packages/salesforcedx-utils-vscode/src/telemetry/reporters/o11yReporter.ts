@@ -8,7 +8,7 @@
 'use strict';
 
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import * as os from 'os';
+import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { O11yService } from '../../services/o11yService';

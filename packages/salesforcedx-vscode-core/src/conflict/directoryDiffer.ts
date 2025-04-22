@@ -6,8 +6,8 @@
  */
 
 import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { conflictView } from '../conflict';

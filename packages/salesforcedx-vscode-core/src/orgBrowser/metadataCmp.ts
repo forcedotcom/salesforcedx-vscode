@@ -7,8 +7,8 @@
 import { Connection } from '@salesforce/core-bundle';
 import { isNullOrUndefined, projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve-bundle/lib/src/registry';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';

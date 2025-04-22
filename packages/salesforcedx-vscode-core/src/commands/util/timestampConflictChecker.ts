@@ -6,7 +6,7 @@
  */
 
 import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
-import { basename, normalize } from 'path';
+import { basename, normalize } from 'node:path';
 import { channelService } from '../../channels';
 import { conflictView, DirectoryDiffResults, MetadataCacheService } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';

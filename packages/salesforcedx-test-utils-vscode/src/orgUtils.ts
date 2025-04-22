@@ -6,9 +6,9 @@
  */
 
 import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as util from 'util';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as util from 'node:util';
 import { Uri } from 'vscode';
 
 // Used only for CI purposes. Must call delete if you call create
