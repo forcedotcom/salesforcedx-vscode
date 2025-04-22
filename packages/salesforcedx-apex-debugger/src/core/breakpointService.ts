@@ -170,7 +170,7 @@ export class BreakpointService {
       }
     }
     for (const clientLine of clientLines) {
-      if (!knownBreakpoints || !knownBreakpoints.find(knownBreakpoint => knownBreakpoint.line === clientLine)) {
+      if (!knownBreakpoints || !knownBreakpoints.some(knownBreakpoint => knownBreakpoint.line === clientLine)) {
         const typeref = this.getTyperefFor(uri, clientLine);
         if (typeref) {
           try {

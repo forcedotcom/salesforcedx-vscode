@@ -24,39 +24,37 @@ export const provideLwcTestCodeLens = async (
   const fsPath = document.uri.fsPath;
   const parseResults = parse(fsPath, document.getText());
   const { itBlocks } = parseResults;
-  return itBlocks
-    .map(itBlock => {
-      const { name, nameRange } = itBlock;
-      // VS Code position is zero-based
-      const range = new Range(
-        new Position(nameRange.start.line - 1, nameRange.start.column - 1),
-        new Position(nameRange.end.line - 1, nameRange.end.column - 1)
-      );
+  return itBlocks.flatMap(itBlock => {
+    const { name, nameRange } = itBlock;
+    // VS Code position is zero-based
+    const range = new Range(
+      new Position(nameRange.start.line - 1, nameRange.start.column - 1),
+      new Position(nameRange.end.line - 1, nameRange.end.column - 1)
+    );
 
-      const testExecutionInfo: TestExecutionInfo = {
-        kind: TestInfoKind.TEST_CASE,
-        testType: TestType.LWC,
-        testUri: document.uri,
-        testName: name
-      };
-      const runTestTitle = nls.localize('run_test_title');
-      const runTestCaseCommand: Command = {
-        command: 'sf.lightning.lwc.test.case.run',
-        title: runTestTitle,
-        tooltip: runTestTitle,
-        arguments: [{ testExecutionInfo }]
-      };
-      const runTestCaseCodeLens = new CodeLens(range, runTestCaseCommand);
+    const testExecutionInfo: TestExecutionInfo = {
+      kind: TestInfoKind.TEST_CASE,
+      testType: TestType.LWC,
+      testUri: document.uri,
+      testName: name
+    };
+    const runTestTitle = nls.localize('run_test_title');
+    const runTestCaseCommand: Command = {
+      command: 'sf.lightning.lwc.test.case.run',
+      title: runTestTitle,
+      tooltip: runTestTitle,
+      arguments: [{ testExecutionInfo }]
+    };
+    const runTestCaseCodeLens = new CodeLens(range, runTestCaseCommand);
 
-      const debugTestTitle = nls.localize('debug_test_title');
-      const debugTestCaseCommand: Command = {
-        command: 'sf.lightning.lwc.test.case.debug',
-        title: debugTestTitle,
-        tooltip: debugTestTitle,
-        arguments: [{ testExecutionInfo }]
-      };
-      const debugTestCaseCodeLens = new CodeLens(range, debugTestCaseCommand);
-      return [runTestCaseCodeLens, debugTestCaseCodeLens];
-    })
-    .reduce((xs, x) => xs.concat(x), []);
+    const debugTestTitle = nls.localize('debug_test_title');
+    const debugTestCaseCommand: Command = {
+      command: 'sf.lightning.lwc.test.case.debug',
+      title: debugTestTitle,
+      tooltip: debugTestTitle,
+      arguments: [{ testExecutionInfo }]
+    };
+    const debugTestCaseCodeLens = new CodeLens(range, debugTestCaseCommand);
+    return [runTestCaseCodeLens, debugTestCaseCodeLens];
+  });
 };

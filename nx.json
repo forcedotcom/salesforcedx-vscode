@@ -15,7 +15,7 @@
         "^lint"
       ],
       "inputs": [
-        "{projectRoot}/eslint.config.mjs"
+        "{workspaceRoot}/eslint.config.mjs"
       ]
     },
     "test:unit": {

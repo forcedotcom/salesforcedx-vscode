@@ -27,7 +27,7 @@ class MockMemento implements Memento {
   constructor() {}
 
   private getIndex(key: string): number {
-    return this.keys().findIndex(value => value === key);
+    return this.keys().indexOf(key);
   }
 
   public keys() {
