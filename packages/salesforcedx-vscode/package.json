@@ -38,6 +38,7 @@
     "salesforce.salesforcedx-vscode-visualforce",
     "salesforce.salesforcedx-vscode-lwc",
     "salesforce.salesforcedx-vscode-soql",
-    "salesforce.salesforce-vscode-slds"
+    "salesforce.salesforce-vscode-slds",
+    "salesforce.sfdx-code-analyzer-vscode"
   ]
 }
