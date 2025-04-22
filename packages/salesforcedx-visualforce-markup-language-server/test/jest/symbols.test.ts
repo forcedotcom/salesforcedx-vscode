@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { expect } from 'chai';
 import { Location, Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
@@ -12,7 +11,7 @@ describe('HTML Symbols', () => {
   const TEST_URI = 'test://test/test.html';
 
   const assertSymbols = (symbols: SymbolInformation[], expected: SymbolInformation[]) => {
-    expect(symbols).to.deep.equal(expected);
+    expect(symbols).toEqual(expected);
   };
 
   const testSymbolsFor = (value: string, expected: SymbolInformation[]) => {
@@ -23,7 +22,7 @@ describe('HTML Symbols', () => {
     assertSymbols(symbols, expected);
   };
 
-  it('Simple', () => {
+  test('Simple', () => {
     testSymbolsFor('<div></div>', [
       {
         containerName: '',
@@ -48,7 +47,7 @@ describe('HTML Symbols', () => {
     ]);
   });
 
-  it('Id and classes', () => {
+  test('Id and classes', () => {
     const content = '<html id=\'root\'><body id="Foo" class="bar"><div class="a b"></div></body></html>';
 
     const expected = [
@@ -75,7 +74,7 @@ describe('HTML Symbols', () => {
     testSymbolsFor(content, expected);
   });
 
-  it('Self closing', () => {
+  test('Self closing', () => {
     const content = '<html><br id="Foo"><br id=Bar></html>';
 
     const expected = [
@@ -102,7 +101,7 @@ describe('HTML Symbols', () => {
     testSymbolsFor(content, expected);
   });
 
-  it('No attrib', () => {
+  test('No attrib', () => {
     const content = '<html><body><div></div></body></html>';
 
     const expected = [

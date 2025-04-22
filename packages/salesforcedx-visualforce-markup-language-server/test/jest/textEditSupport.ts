@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as assert from 'node:assert';
 import { TextDocument, TextEdit } from 'vscode-languageserver-types';
 
 export const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
@@ -14,8 +13,8 @@ export const applyEdits = (document: TextDocument, edits: TextEdit[]): string =>
   sortedEdits.forEach(e => {
     const startOffset = document.offsetAt(e.range.start);
     const endOffset = document.offsetAt(e.range.end);
-    assert.ok(startOffset <= endOffset);
-    assert.ok(endOffset <= lastOffset);
+    expect(startOffset).toBeLessThanOrEqual(endOffset);
+    expect(endOffset).toBeLessThanOrEqual(lastOffset);
     text = text.substring(0, startOffset) + e.newText + text.substring(endOffset, text.length);
     lastOffset = startOffset;
   });

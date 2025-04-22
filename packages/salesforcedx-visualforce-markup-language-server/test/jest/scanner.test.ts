@@ -5,7 +5,6 @@
 
 'use strict';
 
-import * as assert from 'node:assert';
 import { createScanner, ScannerState, TokenType } from '../../src/parser/htmlScanner';
 
 describe('HTML Scanner', () => {
@@ -32,12 +31,12 @@ describe('HTML Scanner', () => {
         actual.push(actualToken);
         tokenType = scanner.scan();
       }
-      assert.deepEqual(actual, t.tokens);
+      expect(actual).toEqual(t.tokens);
       scannerState = scanner.getScannerState();
     }
   };
 
-  it('Open Start Tag #1', () => {
+  test('Open Start Tag #1', () => {
     assertTokens([
       {
         input: '<abc',
@@ -49,7 +48,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Open Start Tag #2', () => {
+  test('Open Start Tag #2', () => {
     assertTokens([
       {
         input: '<input',
@@ -61,7 +60,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Open Start Tag with Invalid Tag', () => {
+  test('Open Start Tag with Invalid Tag', () => {
     assertTokens([
       {
         input: '< abc',
@@ -74,7 +73,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Open Start Tag #3', () => {
+  test('Open Start Tag #3', () => {
     assertTokens([
       {
         input: '< abc>',
@@ -88,7 +87,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Open Start Tag #4', () => {
+  test('Open Start Tag #4', () => {
     assertTokens([
       {
         input: 'i <len;',
@@ -102,7 +101,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Open Start Tag #5', () => {
+  test('Open Start Tag #5', () => {
     assertTokens([
       {
         input: '<',
@@ -111,7 +110,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Open End Tag', () => {
+  test('Open End Tag', () => {
     assertTokens([
       {
         input: '</a',
@@ -123,7 +122,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Complete Start Tag', () => {
+  test('Complete Start Tag', () => {
     assertTokens([
       {
         input: '<abc>',
@@ -136,7 +135,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Complete Start Tag with Whitespace', () => {
+  test('Complete Start Tag with Whitespace', () => {
     assertTokens([
       {
         input: '<abc >',
@@ -150,7 +149,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('bug 9809 - Complete Start Tag with Namespaceprefix', () => {
+  test('bug 9809 - Complete Start Tag with Namespaceprefix', () => {
     assertTokens([
       {
         input: '<foo:bar>',
@@ -163,7 +162,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Complete End Tag', () => {
+  test('Complete End Tag', () => {
     assertTokens([
       {
         input: '</abc>',
@@ -176,7 +175,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Complete End Tag with Whitespace', () => {
+  test('Complete End Tag with Whitespace', () => {
     assertTokens([
       {
         input: '</abc  >',
@@ -190,7 +189,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Empty Tag', () => {
+  test('Empty Tag', () => {
     assertTokens([
       {
         input: '<abc />',
@@ -204,7 +203,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #1', () => {
+  test('Embedded Content #1', () => {
     assertTokens([
       {
         input: '<script type="text/javascript">var i= 10;</script>',
@@ -225,7 +224,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #2', () => {
+  test('Embedded Content #2', () => {
     assertTokens([
       {
         input: '<script type="text/javascript">',
@@ -254,7 +253,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #3', () => {
+  test('Embedded Content #3', () => {
     assertTokens([
       {
         input: '<script type="text/javascript">var i= 10;',
@@ -280,7 +279,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #4', () => {
+  test('Embedded Content #4', () => {
     assertTokens([
       {
         input: '<script type="text/javascript">',
@@ -306,7 +305,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #5', () => {
+  test('Embedded Content #5', () => {
     assertTokens([
       {
         input: '<script type="text/plain">a\n<a</script>',
@@ -327,7 +326,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #6', () => {
+  test('Embedded Content #6', () => {
     assertTokens([
       {
         input: '<script>a</script><script>b</script>',
@@ -351,7 +350,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #7', () => {
+  test('Embedded Content #7', () => {
     assertTokens([
       {
         input: '<script type="text/javascript"></script>',
@@ -371,7 +370,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #8', () => {
+  test('Embedded Content #8', () => {
     assertTokens([
       {
         input: '<script>var i= 10;</script>',
@@ -388,7 +387,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #9', () => {
+  test('Embedded Content #9', () => {
     assertTokens([
       {
         input: '<script type="text/javascript" src="main.js"></script>',
@@ -412,7 +411,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #10', () => {
+  test('Embedded Content #10', () => {
     assertTokens([
       {
         input: '<script><!-- alert("<script></script>"); --></script>',
@@ -429,7 +428,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #11', () => {
+  test('Embedded Content #11', () => {
     assertTokens([
       {
         input: '<script><!-- alert("<script></script>"); </script>',
@@ -446,7 +445,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #12', () => {
+  test('Embedded Content #12', () => {
     assertTokens([
       {
         input: '<script><!-- alert("</script>"); </script>',
@@ -467,7 +466,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Embedded Content #13', () => {
+  test('Embedded Content #13', () => {
     assertTokens([
       {
         input: '<script> alert("<script></script>"); </script>',
@@ -488,7 +487,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Attribute', () => {
+  test('Tag with Attribute', () => {
     assertTokens([
       {
         input: '<abc foo="bar">',
@@ -505,7 +504,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Empty Attribute Value', () => {
+  test('Tag with Empty Attribute Value', () => {
     assertTokens([
       {
         input: "<abc foo='bar'>",
@@ -522,7 +521,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with empty attributes', () => {
+  test('Tag with empty attributes', () => {
     assertTokens([
       {
         input: '<abc foo="">',
@@ -539,7 +538,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Attributes', () => {
+  test('Tag with Attributes', () => {
     assertTokens([
       {
         input: '<abc foo="bar" bar=\'foo\'>',
@@ -560,7 +559,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Attributes, no quotes', () => {
+  test('Tag with Attributes, no quotes', () => {
     assertTokens([
       {
         input: '<abc foo=bar bar=help-me>',
@@ -581,7 +580,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Attributes, no quotes, self close', () => {
+  test('Tag with Attributes, no quotes, self close', () => {
     assertTokens([
       {
         input: '<abc foo=bar/>',
@@ -598,7 +597,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Attribute And Whitespace', () => {
+  test('Tag with Attribute And Whitespace', () => {
     assertTokens([
       {
         input: '<abc foo=  "bar">',
@@ -616,7 +615,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Attribute And Whitespace #2', () => {
+  test('Tag with Attribute And Whitespace #2', () => {
     assertTokens([
       {
         input: '<abc foo = "bar">',
@@ -635,7 +634,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Name-Only-Attribute #1', () => {
+  test('Tag with Name-Only-Attribute #1', () => {
     assertTokens([
       {
         input: '<abc foo>',
@@ -650,7 +649,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Name-Only-Attribute #2', () => {
+  test('Tag with Name-Only-Attribute #2', () => {
     assertTokens([
       {
         input: '<abc foo bar>',
@@ -667,7 +666,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Interesting Attribute Name', () => {
+  test('Tag with Interesting Attribute Name', () => {
     assertTokens([
       {
         input: '<abc foo!@#="bar">',
@@ -684,7 +683,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Angular Attribute Name', () => {
+  test('Tag with Angular Attribute Name', () => {
     assertTokens([
       {
         input: '<abc #myinput (click)="bar" [value]="someProperty" *ngIf="someCondition">',
@@ -711,7 +710,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Tag with Invalid Attribute Value', () => {
+  test('Tag with Invalid Attribute Value', () => {
     assertTokens([
       {
         input: '<abc foo=">',
@@ -727,7 +726,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Simple Comment 1', () => {
+  test('Simple Comment 1', () => {
     assertTokens([
       {
         input: '<!--a-->',
@@ -740,7 +739,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Simple Comment 2', () => {
+  test('Simple Comment 2', () => {
     assertTokens([
       {
         input: '<!--a>foo bar</a -->',
@@ -753,7 +752,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Multiline Comment', () => {
+  test('Multiline Comment', () => {
     assertTokens([
       {
         input: '<!--a>\nfoo \nbar</a -->',
@@ -766,7 +765,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Simple Doctype', () => {
+  test('Simple Doctype', () => {
     assertTokens([
       {
         input: '<!Doctype a>',
@@ -779,7 +778,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Simple Doctype #2', () => {
+  test('Simple Doctype #2', () => {
     assertTokens([
       {
         input: '<!doctype a>',
@@ -792,7 +791,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Simple Doctype #4', () => {
+  test('Simple Doctype #4', () => {
     assertTokens([
       {
         input: '<!DOCTYPE a\n"foo" \'bar\'>',
@@ -805,7 +804,7 @@ describe('HTML Scanner', () => {
     ]);
   });
 
-  it('Incomplete', () => {
+  test('Incomplete', () => {
     assertTokens([
       {
         input: '    ',

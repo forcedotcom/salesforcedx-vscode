@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as assert from 'node:assert';
 import { Range, TextDocument } from 'vscode-languageserver-types';
 import { getLanguageService } from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
 describe('JSON Formatter', () => {
   const format = (unformatted: string, expected: string, insertSpaces = true) => {
-    let range: Range = null;
+    let range: Range | null = null;
     const uri = 'test://test.html';
 
     const rangeStart = unformatted.indexOf('|');
@@ -35,66 +34,60 @@ describe('JSON Formatter', () => {
       unformatted: ''
     });
     const formatted = applyEdits(document, edits);
-    assert.equal(formatted, expected);
+    expect(formatted).toBe(expected);
   };
 
-  it('full document', () => {
+  test('full document', () => {
     const content = ['<div  class = "foo">', '<br>', ' </div>'].join('\n');
     const expected = ['<div class="foo">', '  <br>', '</div>'].join('\n');
 
     format(content, expected);
   });
 
-  it('range', () => {
+  test('range', () => {
     const content = ['<div  class = "foo">', '  |<img  src = "foo">|', ' </div>'].join('\n');
-
     const expected = ['<div  class = "foo">', '  <img src="foo">', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
-  it('range 2', () => {
+  test('range 2', () => {
     const content = ['<div  class = "foo">', '  |<img  src = "foo">|', '  ', ' </div>'].join('\n');
-
     const expected = ['<div  class = "foo">', '  <img src="foo">', '  ', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
-  it('range 3', () => {
+  test('range 3', () => {
     const content = ['<div  class = "foo">', '  |<img  src = "foo">|    ', '  ', ' </div>'].join('\n');
-
     const expected = ['<div  class = "foo">', '  <img src="foo">', '  ', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
-  it('range 3', () => {
+  test('range with class', () => {
     const content = ['<div |class= "foo"|>'].join('\n');
     const expected = ['<div class= "foo">'].join('\n');
 
     format(content, expected);
   });
 
-  it('range with indent', () => {
+  test('range with indent', () => {
     const content = ['<div  class = "foo">', '  |<img src = "foo">', '  <img  src = "foo">|', ' </div>'].join('\n');
-
     const expected = ['<div  class = "foo">', '  <img src="foo">', '  <img src="foo">', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
-  it('range with indent 2', () => {
+  test('range with indent 2', () => {
     const content = ['<div  class = "foo">', '|  <img  src = "foo">', '  <img  src = "foo">|', ' </div>'].join('\n');
-
     const expected = ['<div  class = "foo">', '  <img src="foo">', '  <img src="foo">', ' </div>'].join('\n');
 
     format(content, expected);
   });
 
-  it('range with indent 3', () => {
+  test('range with indent 3', () => {
     const content = ['<div  class = "foo">', '  <div></div>   |<img  src = "foo"|>', ' </div>'].join('\n');
-
     const expected = ['<div  class = "foo">', '  <div></div> <img src="foo">', ' </div>'].join('\n');
 
     format(content, expected);

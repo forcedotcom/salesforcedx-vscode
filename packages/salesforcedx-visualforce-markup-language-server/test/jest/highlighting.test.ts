@@ -4,12 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as assert from 'node:assert';
 import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Highlighting', () => {
-  const assertHighlights = (value: string, expectedMatches: number[], elementName: string): void => {
+  const assertHighlights = (value: string, expectedMatches: number[], elementName: string | null): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -20,18 +19,18 @@ describe('HTML Highlighting', () => {
     const htmlDoc = ls.parseHTMLDocument(document);
 
     const highlights = ls.findDocumentHighlights(document, position, htmlDoc);
-    assert.equal(highlights.length, expectedMatches.length);
+    expect(highlights.length).toBe(expectedMatches.length);
     for (let i = 0; i < highlights.length; i++) {
       const actualStartOffset = document.offsetAt(highlights[i].range.start);
-      assert.equal(actualStartOffset, expectedMatches[i]);
+      expect(actualStartOffset).toBe(expectedMatches[i]);
       const actualEndOffset = document.offsetAt(highlights[i].range.end);
-      assert.equal(actualEndOffset, expectedMatches[i] + elementName.length);
+      expect(actualEndOffset).toBe(expectedMatches[i] + elementName!.length);
 
-      assert.equal(document.getText().substring(actualStartOffset, actualEndOffset).toLowerCase(), elementName);
+      expect(document.getText().substring(actualStartOffset, actualEndOffset).toLowerCase()).toBe(elementName);
     }
   };
 
-  it('Single', () => {
+  test('Single', () => {
     assertHighlights('|<html></html>', [], null);
     assertHighlights('<|html></html>', [1, 8], 'html');
     assertHighlights('<h|tml></html>', [1, 8], 'html');
@@ -47,7 +46,7 @@ describe('HTML Highlighting', () => {
     assertHighlights('<html></html>|', [], null);
   });
 
-  it('Nested', () => {
+  test('Nested', () => {
     assertHighlights('<html>|<div></div></html>', [], null);
     assertHighlights('<html><|div></div></html>', [7, 13], 'div');
     assertHighlights('<html><div>|</div></html>', [], null);
@@ -60,13 +59,13 @@ describe('HTML Highlighting', () => {
     assertHighlights('<html><div></div><div></d|iv></html>', [18, 24], 'div');
   });
 
-  it('Selfclosed', () => {
+  test('Selfclosed', () => {
     assertHighlights('<html><|div/></html>', [7], 'div');
     assertHighlights('<html><|br></html>', [7], 'br');
     assertHighlights('<html><div><d|iv/></div></html>', [12], 'div');
   });
 
-  it('Case insensivity', () => {
+  test('Case insensivity', () => {
     assertHighlights('<HTML><diV><Div></dIV></dI|v></html>', [7, 24], 'div');
     assertHighlights('<HTML><diV|><Div></dIV></dIv></html>', [7, 24], 'div');
   });
