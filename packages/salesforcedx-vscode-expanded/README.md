@@ -58,14 +58,12 @@ The Salesforce Extension Pack (Expanded) installs these Salesforce-developed ext
 - [Salesforce Lightning Design System (SLDS) Validator](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds)
   This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting, and validation with recommended tokens and utility classes.
 - [Agentforce for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) This extension (`salesforcedx-einstein-gpt`) uses generative AI to make Salesforce development in Visual Studio Code richer with features such as a Dev Assistant that helps with writing, documenting, and understanding code. It also provides inline autocompletion, and test case generation for Apex and LWC code.
-- [Salesforce Code Analyzer](https://marketplace.visualstudio.com/items?itemName=salesforce.sfdx-code-analyzer-vscode) This extension (`sfdx-code-analyzer-vscode`) scans your code using multiple rule engines to produce lists of violations that you can use to improve your code.
+- [Salesforce Code Analyzer](https://marketplace.visualstudio.com/items?itemName=salesforce.sfdx-code-analyzer-vscode) This extension (`sfdx-code-analyzer-vscode`) scans your code using multiple rule engines to produce lists of violations that you can use to improve your code. v5 also includes all the functionality of the ESLint and Apex PMD extensions. Now, the Salesforce Code Analyzer extension statically analyzes both your Apex and JavaScript code to quickly find problems.
 
 It also includes the following community-built extensions.
 
 - [Apex Log Analyzer](https://marketplace.visualstudio.com/items?itemName=financialforce.lana) is an analyzer for Salesforce debug logs aimed at making performance analysis much easier and quicker. You may also find it generally useful for quickly understanding how your code is executing.
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) is an opinionated code formatter. It enforces a consistent style by parsing your code and re-printing it with its own rules that take the maximum line length into account, wrapping code when necessary.
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) statically analyzes your JavaScript code to quickly find problems.
-- [Apex PMD](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd) statically analyzes your Apex code to quickly find problems.
 - [XML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml) provides support for creating and editing XML documents.
 
 ---
