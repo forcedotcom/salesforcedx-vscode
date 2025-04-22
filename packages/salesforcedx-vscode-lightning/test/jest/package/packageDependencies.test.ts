@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -23,8 +22,12 @@ const readJsonFile = (jsonFilePath: string): any => {
   }
 };
 
-const packageJsonPath = path.join(__dirname, '..', '..', '..', '..', 'package.json');
-const packageJson = readJsonFile(packageJsonPath);
+const packageJsonPath = path.join(__dirname, '..', '..', '..', 'package.json');
+const packageJson = readJsonFile(packageJsonPath) as {
+  name: string;
+  dependencies: Record<string, string>;
+  devDependencies: Record<string, string>;
+};
 
 describe(`package.json dependencies for ${packageJson.name}`, () => {
   const { dependencies, devDependencies } = packageJson;
@@ -33,11 +36,11 @@ describe(`package.json dependencies for ${packageJson.name}`, () => {
     const versionRange = dependencies[name];
     checkedPackagePatterns.forEach(pattern => {
       if (pattern.test(name)) {
-        it(`should use a strict version for dependency ${name}`, () => {
-          expect(versionRange.trim()).to.not.include('^');
-          expect(versionRange.trim()).to.not.include('~');
-          expect(versionRange.trim()).to.not.include('>');
-          expect(versionRange.trim()).to.not.include('<');
+        test(`should use a strict version for dependency ${name}`, () => {
+          expect(versionRange.trim()).not.toContain('^');
+          expect(versionRange.trim()).not.toContain('~');
+          expect(versionRange.trim()).not.toContain('>');
+          expect(versionRange.trim()).not.toContain('<');
         });
       }
     });
@@ -47,11 +50,11 @@ describe(`package.json dependencies for ${packageJson.name}`, () => {
     const versionRange = devDependencies[name];
     checkedPackagePatterns.forEach(pattern => {
       if (pattern.test(name)) {
-        it(`should use a strict version for devDependency ${name}`, () => {
-          expect(versionRange.trim()).to.not.include('^');
-          expect(versionRange.trim()).to.not.include('~');
-          expect(versionRange.trim()).to.not.include('>');
-          expect(versionRange.trim()).to.not.include('<');
+        test(`should use a strict version for devDependency ${name}`, () => {
+          expect(versionRange.trim()).not.toContain('^');
+          expect(versionRange.trim()).not.toContain('~');
+          expect(versionRange.trim()).not.toContain('>');
+          expect(versionRange.trim()).not.toContain('<');
         });
       }
     });

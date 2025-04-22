@@ -44,7 +44,6 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
-    "@salesforce/ts-sinon": "1.4.30",
     "@types/async-lock": "1.4.2",
     "@types/chai": "4.3.3",
     "@types/ejs": "3.1.5",

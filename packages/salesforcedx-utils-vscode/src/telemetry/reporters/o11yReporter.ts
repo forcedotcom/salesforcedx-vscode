@@ -100,9 +100,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
 
       this.o11yService.logEvent({
         name: `${this.extensionId}/${eventName}`,
-        // tslint:disable-next-line:object-literal-shorthand
         properties: props,
-        // tslint:disable-next-line:object-literal-shorthand
         measurements
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
