@@ -13,15 +13,6 @@ import { format } from '../../src/modes/formatting';
 import { getLanguageModes } from '../../src/modes/languageModes';
 
 describe('HTML Embedded Formatting', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
-  });
-
   const assertFormat = (
     value: string,
     expected: string,
