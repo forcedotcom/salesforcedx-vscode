@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as assert from 'assert';
 import { expect } from 'chai';
+import * as assert from 'node:assert';
 import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';

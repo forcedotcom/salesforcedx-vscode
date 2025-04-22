@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import { EOL } from 'os';
-import { join } from 'path';
+import { EOL } from 'node:os';
+import { join } from 'node:path';
 import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
 import { FauxClassGenerator } from '../../../src/generator';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';

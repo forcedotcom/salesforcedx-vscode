@@ -11,8 +11,8 @@ import {
   SObjectTransformerFactory
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode';
-import { EventEmitter } from 'events';
-import * as fs from 'fs';
+import { EventEmitter } from 'node:events';
+import * as fs from 'node:fs';
 import { channelService } from '../../../src/channels';
 import { RefreshSObjectsExecutor } from '../../../src/commands';
 

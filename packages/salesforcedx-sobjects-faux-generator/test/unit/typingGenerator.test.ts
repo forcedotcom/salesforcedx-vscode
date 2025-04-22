@@ -6,7 +6,7 @@
  */
 
 import * as chai from 'chai';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import { TypingGenerator } from '../../src/generator/typingGenerator';
 

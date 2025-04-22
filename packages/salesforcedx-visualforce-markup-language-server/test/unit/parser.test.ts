@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as assert from 'assert';
+import * as assert from 'node:assert';
 import { Node, parse } from '../../src/parser/htmlParser';
 
 describe('HTML Parser', () => {

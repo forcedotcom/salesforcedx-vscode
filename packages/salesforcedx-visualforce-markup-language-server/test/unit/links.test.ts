@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as assert from 'assert';
-import * as url from 'url';
+import * as assert from 'node:assert';
+import * as url from 'node:url';
 import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src/htmlLanguageService';
 

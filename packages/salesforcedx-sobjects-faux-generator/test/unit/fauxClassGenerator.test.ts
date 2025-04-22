@@ -6,9 +6,9 @@
  */
 
 import * as chai from 'chai';
-import * as fs from 'fs';
-import { EOL } from 'os';
-import { join } from 'path';
+import * as fs from 'node:fs';
+import { EOL } from 'node:os';
+import { join } from 'node:path';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';

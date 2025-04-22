@@ -6,8 +6,8 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core-bundle';
-import { fail } from 'assert';
 import { expect } from 'chai';
+import { fail } from 'node:assert';
 import { createSandbox } from 'sinon';
 import { SObjectDescribe } from '../../src/describe';
 import { mockAPIResponse, mockMinimizedResponseResult } from './mockData';
