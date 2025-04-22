@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as assert from 'node:assert';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 import { FormattingOptions, Range, TextDocument, TextEdit } from 'vscode-languageserver-types';
 import { format } from '../../src/modes/formatting';

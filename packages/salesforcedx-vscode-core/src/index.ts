@@ -12,8 +12,8 @@ import {
   TelemetryService,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as os from 'os';
-import * as path from 'path';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -92,6 +92,10 @@ import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
+import {
+  checkPackageDirectoriesEditorView,
+  checkPackageDirectoriesExplorerView
+} from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { ProgressNotification, notificationService } from './notifications';
@@ -437,6 +441,25 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void vscode.commands.executeCommand('setContext', 'sf:replay_debugger_extension', replayDebuggerExtensionInstalled);
 
   void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
+
+  // Set initial context
+  await checkPackageDirectoriesEditorView();
+  await checkPackageDirectoriesExplorerView();
+
+  // Register editor change listener
+  const editorChangeDisposable = vscode.window.onDidChangeActiveTextEditor(async () => {
+    await checkPackageDirectoriesEditorView();
+  });
+
+  // Register explorer change listener
+  const watcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, true);
+  const explorerChangeDisposable = watcher.onDidCreate(async uri => {
+    await checkPackageDirectoriesExplorerView();
+  });
+
+  // Add to subscriptions
+  extensionContext.subscriptions.push(editorChangeDisposable);
+  extensionContext.subscriptions.push(explorerChangeDisposable);
 
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);

@@ -6,7 +6,7 @@
  */
 
 import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { VSCODE_LWC_EXTENSION_NAME } from '../../constants';
 import { TestResult, TestResultStatus } from '../types';

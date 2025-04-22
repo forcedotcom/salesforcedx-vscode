@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as util from 'util';
+import * as util from 'node:util';
 
 export const DEFAULT_LOCALE = 'en';
 const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';

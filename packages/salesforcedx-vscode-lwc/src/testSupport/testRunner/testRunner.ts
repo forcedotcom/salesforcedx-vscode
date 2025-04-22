@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { escapeStrForRegex } from 'jest-regex-util';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';

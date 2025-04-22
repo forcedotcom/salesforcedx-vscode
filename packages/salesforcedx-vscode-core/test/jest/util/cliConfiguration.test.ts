@@ -7,7 +7,7 @@
 
 // Mock child_process
 const mockExecSync = jest.fn();
-jest.mock('child_process', () => ({
+jest.mock('node:child_process', () => ({
   execSync: mockExecSync
 }));
 

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
-import { join } from 'path';
+import { join } from 'node:path';
 import { BrowserNode } from '../../orgBrowser';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { RetrieveDescriber } from '.';
