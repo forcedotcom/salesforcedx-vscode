@@ -9,8 +9,8 @@ import * as path from 'node:path';
 import { WorkspaceContextUtil } from '../../../../src';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
+jest.mock('node:fs', () => ({
+  ...jest.requireActual('node:fs'),
   createWriteStream: jest.fn()
 }));
 const fsMocked = jest.mocked(fs);

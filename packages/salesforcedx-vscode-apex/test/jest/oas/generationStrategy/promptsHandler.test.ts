@@ -7,7 +7,7 @@
 import * as fs from 'node:fs';
 import { ensurePromptsExist, PROMPTS_DIR, PROMPTS_FILE } from '../../../../src/oas/generationStrategy/promptsHandler';
 
-jest.mock('fs');
+jest.mock('node:fs');
 
 describe('ensurePromptsExist', () => {
   beforeEach(() => {

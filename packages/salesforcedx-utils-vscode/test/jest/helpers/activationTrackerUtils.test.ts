@@ -14,7 +14,7 @@ import {
   readExtensionHostLog
 } from '../../../src/helpers/activationTrackerUtils';
 
-jest.mock('fs/promises', () => ({
+jest.mock('node:fs/promises', () => ({
   readFile: jest.fn()
 }));
 

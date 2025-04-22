@@ -7,8 +7,8 @@
 import * as fs from 'node:fs';
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
+jest.mock('node:fs', () => ({
+  ...jest.requireActual('node:fs'),
   promises: {
     appendFile: jest.fn().mockResolvedValue({})
   }

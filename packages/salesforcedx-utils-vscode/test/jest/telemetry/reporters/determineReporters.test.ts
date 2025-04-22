@@ -13,8 +13,8 @@ import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamCo
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
 import { TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
+jest.mock('node:fs', () => ({
+  ...jest.requireActual('node:fs'),
   createWriteStream: jest.fn()
 }));
 

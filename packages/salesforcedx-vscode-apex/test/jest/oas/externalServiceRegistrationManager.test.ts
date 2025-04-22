@@ -16,7 +16,7 @@ import { ExternalServiceRegistrationManager } from '../../../src/oas/ExternalSer
 import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
-jest.mock('fs');
+jest.mock('node:fs');
 describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;
