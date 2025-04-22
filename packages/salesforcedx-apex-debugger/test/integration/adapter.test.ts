@@ -10,8 +10,8 @@ import { CliCommandExecutor, CommandExecution, SfCommandBuilder } from '@salesfo
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
-import * as fsPromises from 'fs/promises';
-import * as path from 'path';
+import * as fsPromises from 'node:fs/promises';
+import * as path from 'node:path';
 import Uri from 'vscode-uri';
 import { LaunchRequestArguments } from '../../src/adapter/apexDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints/lineBreakpoint';

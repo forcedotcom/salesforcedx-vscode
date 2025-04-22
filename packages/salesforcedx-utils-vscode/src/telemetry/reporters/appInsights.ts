@@ -7,7 +7,7 @@
 
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as appInsights from 'applicationinsights';
-import * as os from 'os';
+import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';

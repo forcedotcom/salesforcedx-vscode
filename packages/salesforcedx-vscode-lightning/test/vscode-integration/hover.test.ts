@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import * as path from 'path';
+import * as path from 'node:path';
 import { Hover, Position, MarkdownString, commands, window, workspace } from 'vscode';
 
 describe('Aura Hovers', function () {

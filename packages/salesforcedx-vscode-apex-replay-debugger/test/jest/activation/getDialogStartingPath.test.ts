@@ -7,7 +7,7 @@
 
 import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger/src';
 import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import * as vscode from 'vscode';
 import { getDialogStartingPath } from '../../../src/activation/getDialogStartingPath';
 

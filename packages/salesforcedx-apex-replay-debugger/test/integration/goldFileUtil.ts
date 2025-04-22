@@ -8,7 +8,7 @@
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol/lib/debugProtocol';
 import { expect } from 'chai';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 
 export class GoldFileUtil {
   private readonly delimiter = '====================';

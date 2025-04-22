@@ -6,8 +6,8 @@
  */
 
 import { LocalComponent, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';

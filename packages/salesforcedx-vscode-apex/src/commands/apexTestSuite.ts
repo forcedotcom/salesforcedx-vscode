@@ -15,8 +15,8 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { readFileSync } from 'fs';
-import { basename } from 'path';
+import { readFileSync } from 'node:fs';
+import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';

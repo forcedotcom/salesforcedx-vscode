@@ -8,7 +8,7 @@
 import { ContinueResponse, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve-bundle/lib/src/resolve/types';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';

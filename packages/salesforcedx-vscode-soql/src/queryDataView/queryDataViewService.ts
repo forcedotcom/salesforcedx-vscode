@@ -7,7 +7,7 @@
 
 import type { QueryResult } from '../types';
 import { JsonMap } from '@salesforce/ts-types';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getDocumentName, trackErrorWithTelemetry } from '../commonUtils';
 import {

@@ -12,9 +12,9 @@ import {
   identifyJsonTypeInString,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import * as yaml from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';

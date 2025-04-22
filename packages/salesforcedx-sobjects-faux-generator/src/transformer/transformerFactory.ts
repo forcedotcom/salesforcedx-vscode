@@ -6,7 +6,7 @@
  */
 import { AuthInfo, Connection, SfProject } from '@salesforce/core-bundle';
 import { ConfigUtil, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';

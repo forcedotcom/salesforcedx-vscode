@@ -8,9 +8,9 @@
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'fs';
-import { join, parse } from 'path';
-import { format } from 'util';
+import * as fs from 'node:fs';
+import { join, parse } from 'node:path';
+import { format } from 'node:util';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';

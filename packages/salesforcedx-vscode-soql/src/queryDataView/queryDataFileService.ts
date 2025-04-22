@@ -7,8 +7,8 @@
 
 import type { QueryResult } from '../types';
 import { JsonMap } from '@salesforce/ts-types';
-import { homedir } from 'os';
-import * as path from 'path';
+import { homedir } from 'node:os';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
 import { nls } from '../messages';

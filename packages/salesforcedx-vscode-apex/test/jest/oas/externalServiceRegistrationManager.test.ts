@@ -6,9 +6,9 @@
  */
 import { WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
@@ -16,7 +16,7 @@ import { ExternalServiceRegistrationManager } from '../../../src/oas/ExternalSer
 import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
-jest.mock('fs');
+jest.mock('node:fs');
 describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;

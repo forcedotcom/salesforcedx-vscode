@@ -6,7 +6,7 @@
  */
 import { SfProject, SfProjectJson } from '@salesforce/core-bundle';
 import { JsonArray } from '@salesforce/ts-types';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';

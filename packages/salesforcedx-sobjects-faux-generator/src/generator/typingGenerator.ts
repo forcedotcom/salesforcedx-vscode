@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'fs';
-import { EOL } from 'os';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import { EOL } from 'node:os';
+import * as path from 'node:path';
 import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { DeclarationGenerator } from './declarationGenerator';
 

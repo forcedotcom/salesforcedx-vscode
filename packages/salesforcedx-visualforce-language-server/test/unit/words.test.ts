@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as assert from 'assert';
+import * as assert from 'node:assert';
 import * as words from '../../src/utils/strings';
 
 describe('Words', () => {

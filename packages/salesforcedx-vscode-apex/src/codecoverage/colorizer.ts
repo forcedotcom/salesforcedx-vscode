@@ -7,8 +7,8 @@
 
 import { CodeCoverageResult } from '@salesforce/apex-node-bundle';
 import { SFDX_FOLDER, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import { existsSync, readFileSync } from 'fs';
-import { join, extname, basename } from 'path';
+import { existsSync, readFileSync } from 'node:fs';
+import { join, extname, basename } from 'node:path';
 import { Range, TextDocument, TextEditor, TextLine, window, workspace } from 'vscode';
 import { channelService } from '../channels';
 import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';

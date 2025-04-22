@@ -11,7 +11,7 @@ import {
   SfWorkspaceChecker,
   getTestResultsFolder
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as events from 'events';
+import * as events from 'node:events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';

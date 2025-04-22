@@ -6,8 +6,8 @@
  */
 
 import * as chai from 'chai';
-import * as fs from 'fs';
-import { join } from 'path';
+import * as fs from 'node:fs';
+import { join } from 'node:path';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectShortDescription } from '../../src/describe';
 import { SOQLMetadataGenerator } from '../../src/generator/soqlMetadataGenerator';

@@ -7,7 +7,7 @@
 
 import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 /**

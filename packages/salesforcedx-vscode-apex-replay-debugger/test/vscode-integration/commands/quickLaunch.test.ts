@@ -17,7 +17,7 @@ import {
   TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import * as path from 'path';
+import * as path from 'node:path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { CheckpointService } from '../../../src/breakpoints/checkpointService';

@@ -6,8 +6,8 @@
  */
 import { notificationService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { XMLParser } from 'fast-xml-parser';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocumentFromYaml } from '../oasUtils';

@@ -22,7 +22,7 @@ import {
   TraceFlags,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import { checkpointService, CheckpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';

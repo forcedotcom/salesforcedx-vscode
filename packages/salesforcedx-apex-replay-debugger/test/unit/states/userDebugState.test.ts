@@ -7,7 +7,7 @@
 
 import { Source, StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import * as sinon from 'sinon';
 import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';

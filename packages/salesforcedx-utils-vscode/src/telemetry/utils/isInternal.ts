@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as os from 'os';
+import * as os from 'node:os';
 import { INTERNAL_FILTER } from '../../constants';
 
 export const isInternalHost = (): boolean => (os.hostname().endsWith(INTERNAL_FILTER) ? true : false);

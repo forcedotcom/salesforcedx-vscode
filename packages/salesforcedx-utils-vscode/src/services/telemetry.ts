@@ -12,7 +12,7 @@ import {
   TelemetryReporter,
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
-import * as util from 'util';
+import * as util from 'node:util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import {
   DEFAULT_AIKEY,

@@ -7,12 +7,12 @@
 
 import { AuthInfo } from '@salesforce/core-bundle';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import { fail } from 'assert';
 import { expect } from 'chai';
-import { EventEmitter } from 'events';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
+import { fail } from 'node:assert';
+import { EventEmitter } from 'node:events';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { createSandbox } from 'sinon';
 import { SObjectTransformer } from '../../src';
 import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../../src/constants';

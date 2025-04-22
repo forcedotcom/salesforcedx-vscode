@@ -8,7 +8,7 @@
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
-import * as path from 'path';
+import * as path from 'node:path';
 import Uri from 'vscode-uri';
 import { ApexReplayDebug, LaunchRequestArguments } from '../../src/adapter/apexReplayDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
-import { execSync } from 'child_process';
+import { execSync } from 'node:child_process';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';

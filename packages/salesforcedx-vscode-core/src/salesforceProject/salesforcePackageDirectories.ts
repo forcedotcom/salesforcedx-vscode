@@ -6,7 +6,7 @@
  */
 
 import { JsonArray, JsonMap } from '@salesforce/ts-types';
-import * as path from 'path';
+import * as path from 'node:path';
 import { SalesforceProjectConfig } from '../salesforceProject';
 import { workspaceUtils } from '../util';
 

@@ -6,7 +6,7 @@
  */
 
 import { assert } from 'chai';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 describe('Aura Intellisense Test Suite', () => {

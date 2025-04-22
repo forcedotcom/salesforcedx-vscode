@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join, normalize } from 'path';
+import { join, normalize } from 'node:path';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const testRunner = require('@salesforce/salesforcedx-test-utils-vscode/out/src/testrunner');
