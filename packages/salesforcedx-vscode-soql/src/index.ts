@@ -22,8 +22,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   QueryDataViewService.register(extensionContext);
   await workspaceContext.initialize(extensionContext);
 
-  extensionContext.subscriptions.push(vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew));
-  extensionContext.subscriptions.push(vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle));
+  extensionContext.subscriptions.push(
+    vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew),
+    vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle)
+  );
 
   await startLanguageClient(extensionContext);
   void activationTracker.markActivationStop();

@@ -65,6 +65,7 @@ export default [
     },
     rules: {
       'unicorn/prefer-node-protocol': 'error',
+      'unicorn/no-array-push-push': 'error',
       'header/header': [
         'error',
         'block',

@@ -45,16 +45,18 @@ describe.skip('Interactive debugger adapter - integration', () => {
       apexClassUri = apexClassUri.replace('%3A', ':');
     }
     console.log(`apexClassUri: ${apexClassUri}`);
-    LINE_BREAKPOINT_INFO.push({
-      uri: apexClassUri,
-      typeref: 'BasicVariables',
-      lines: [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31, 32, 33, 34, 36, 37, 39, 40, 42]
-    });
-    LINE_BREAKPOINT_INFO.push({
-      uri: apexClassUri,
-      typeref: 'BasicVariables$MyInnerClass',
-      lines: [6, 7]
-    });
+    LINE_BREAKPOINT_INFO.push(
+      {
+        uri: apexClassUri,
+        typeref: 'BasicVariables',
+        lines: [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 29, 30, 31, 32, 33, 34, 36, 37, 39, 40, 42]
+      },
+      {
+        uri: apexClassUri,
+        typeref: 'BasicVariables$MyInnerClass',
+        lines: [6, 7]
+      }
+    );
     userName = await util.createScratchOrg(PROJECT_NAME);
     // Push source to scratch org
     await util.pushSource(SOURCE_FOLDER, PROJECT_NAME, userName);

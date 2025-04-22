@@ -51,8 +51,7 @@ export class SObjectTransformerFactory {
       }
     }
 
-    generators.push(new TypingGenerator());
-    generators.push(new SOQLMetadataGenerator(category));
+    generators.push(new TypingGenerator(), new SOQLMetadataGenerator(category));
 
     return new SObjectTransformer(emitter, retrievers, generators, cancellationToken);
   }

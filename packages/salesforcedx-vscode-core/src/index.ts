@@ -458,8 +458,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   });
 
   // Add to subscriptions
-  extensionContext.subscriptions.push(editorChangeDisposable);
-  extensionContext.subscriptions.push(explorerChangeDisposable);
+  extensionContext.subscriptions.push(editorChangeDisposable, explorerChangeDisposable);
 
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);
@@ -467,9 +466,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Commands
   const commands = registerCommands(extensionContext);
-  extensionContext.subscriptions.push(commands);
-  extensionContext.subscriptions.push(registerConflictView());
-  extensionContext.subscriptions.push(CommandEventDispatcher.getInstance());
+  extensionContext.subscriptions.push(commands, registerConflictView(), CommandEventDispatcher.getInstance());
 
   const api: any = {
     channelService,

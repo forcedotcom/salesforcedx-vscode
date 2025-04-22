@@ -68,19 +68,17 @@ export class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> 
       type: TestType.Suite
     }));
 
-    fileItems.push({
-      label: nls.localize('apex_test_run_all_local_test_label'),
-      description: nls.localize('apex_test_run_all_local_tests_description_text'),
-      type: TestType.AllLocal
-    });
-
-    fileItems.push({
-      label: nls.localize('apex_test_run_all_test_label'),
-      description: nls.localize('apex_test_run_all_tests_description_text'),
-      type: TestType.All
-    });
-
     fileItems.push(
+      {
+        label: nls.localize('apex_test_run_all_local_test_label'),
+        description: nls.localize('apex_test_run_all_local_tests_description_text'),
+        type: TestType.AllLocal
+      },
+      {
+        label: nls.localize('apex_test_run_all_test_label'),
+        description: nls.localize('apex_test_run_all_tests_description_text'),
+        type: TestType.All
+      },
       ...apexClasses
         .filter(apexClass => {
           const fileContent = readFileSync(apexClass.fsPath, 'utf-8');

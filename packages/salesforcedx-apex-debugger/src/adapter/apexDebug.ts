@@ -1025,10 +1025,11 @@ export class ApexDebug extends LoggingDebugSession {
       return;
     }
 
-    const scopes = new Array<Scope>();
-    scopes.push(new Scope('Local', this.variableHandles.create(new ScopeContainer('local', frameInfo)), false));
-    scopes.push(new Scope('Static', this.variableHandles.create(new ScopeContainer('static', frameInfo)), false));
-    scopes.push(new Scope('Global', this.variableHandles.create(new ScopeContainer('global', frameInfo)), false));
+    const scopes = [
+      new Scope('Local', this.variableHandles.create(new ScopeContainer('local', frameInfo)), false),
+      new Scope('Static', this.variableHandles.create(new ScopeContainer('static', frameInfo)), false),
+      new Scope('Global', this.variableHandles.create(new ScopeContainer('global', frameInfo)), false)
+    ];
     scopes.forEach(scope => {
       this.log(
         TRACE_CATEGORY_VARIABLES,

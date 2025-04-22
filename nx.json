@@ -13,6 +13,9 @@
       "cache": true,
       "dependsOn": [
         "^lint"
+      ],
+      "inputs": [
+        "{projectRoot}/eslint.config.mjs"
       ]
     },
     "test:unit": {

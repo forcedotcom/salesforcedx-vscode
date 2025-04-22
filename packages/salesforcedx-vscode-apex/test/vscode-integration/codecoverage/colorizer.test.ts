@@ -49,12 +49,14 @@ describe('Code coverage colorizer', () => {
     uncovered.push(getLineRange(apexDocument, 5));
     expect(uncovered).to.deep.equal(colorizer.uncoveredLines);
     const covered = Array<Range>();
-    covered.push(getLineRange(apexDocument, 10));
-    covered.push(getLineRange(apexDocument, 12));
-    covered.push(getLineRange(apexDocument, 14));
-    covered.push(getLineRange(apexDocument, 16));
-    covered.push(getLineRange(apexDocument, 19));
-    covered.push(getLineRange(apexDocument, 27));
+    covered.push(
+      getLineRange(apexDocument, 10),
+      getLineRange(apexDocument, 12),
+      getLineRange(apexDocument, 14),
+      getLineRange(apexDocument, 16),
+      getLineRange(apexDocument, 19),
+      getLineRange(apexDocument, 27)
+    );
     expect(covered).to.deep.equal(colorizer.coveredLines);
     expect(statusBarToggle.isHighlightingEnabled).to.equal(true);
 

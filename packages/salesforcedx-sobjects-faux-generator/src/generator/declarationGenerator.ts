@@ -155,10 +155,7 @@ export class DeclarationGenerator {
             type: field.referenceTo && field.referenceTo.length > 1 ? 'SObject' : `${field.referenceTo.join()}`
           },
           comment ? { comment } : {}
-        )
-      );
-      // field.type will be "reference", but the actual type is an Id for Apex
-      decls.push(
+        ),
         Object.assign(
           {
             modifier: MODIFIER,

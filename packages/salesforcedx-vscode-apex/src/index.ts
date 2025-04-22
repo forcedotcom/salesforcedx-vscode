@@ -107,9 +107,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
   }
   // Commands
   const commands = registerCommands();
-  extensionContext.subscriptions.push(commands);
-
-  extensionContext.subscriptions.push(registerTestView());
+  extensionContext.subscriptions.push(commands, registerTestView());
 
   const exportedApi = {
     getLineBreakpointInfo,
@@ -233,46 +231,26 @@ const registerTestView = (): vscode.Disposable => {
   const testViewItems = new Array<vscode.Disposable>();
 
   const testProvider = vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider);
-  testViewItems.push(testProvider);
-
-  // Run Test Button on Test View command
   testViewItems.push(
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests())
-  );
-  // Show Error Message command
-  testViewItems.push(
+    testProvider,
+    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests()),
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.showError`, (test: TestNode) =>
       testRunner.showErrorMessage(test)
-    )
-  );
-  // Show Definition command
-  testViewItems.push(
+    ),
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.goToDefinition`, (test: TestNode) =>
       testRunner.showErrorMessage(test)
-    )
-  );
-  // Run Class Tests command
-  testViewItems.push(
+    ),
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runClassTests`, (test: TestNode) =>
       testRunner.runApexTests([test.name], TestRunType.Class)
-    )
-  );
-  // Run Single Test command
-  testViewItems.push(
+    ),
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runSingleTest`, (test: TestNode) =>
       testRunner.runApexTests([test.name], TestRunType.Method)
-    )
-  );
-  // Refresh Test View command
-  testViewItems.push(
+    ),
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, () => {
       if (languageClientManager.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
-    })
-  );
-  // Collapse All Apex Tests command
-  testViewItems.push(
+    }),
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.collapseAll`, () =>
       testOutlineProvider.collapseAll()
     )

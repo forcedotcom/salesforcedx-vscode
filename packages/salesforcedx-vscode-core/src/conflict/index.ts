@@ -36,9 +36,10 @@ export const setupConflictView = async (extensionContext: ExtensionContext): Pro
 export const registerConflictView = (): Disposable => {
   const viewItems: Disposable[] = [];
 
-  viewItems.push(commands.registerCommand('sf.conflict.diff', (entry: ConflictFile) => conflictDiff(entry)));
-
-  viewItems.push(commands.registerCommand('sf.conflict.open', (entry: ConflictNode) => openResource(entry)));
+  viewItems.push(
+    commands.registerCommand('sf.conflict.diff', (entry: ConflictFile) => conflictDiff(entry)),
+    commands.registerCommand('sf.conflict.open', (entry: ConflictNode) => openResource(entry))
+  );
 
   return Disposable.from(...viewItems);
 };

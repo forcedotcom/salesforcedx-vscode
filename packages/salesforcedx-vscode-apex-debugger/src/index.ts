@@ -225,8 +225,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const fileWatchers = registerFileWatchers();
-  extensionContext.subscriptions.push(commands, fileWatchers, debugHandlers);
   extensionContext.subscriptions.push(
+    commands,
+    fileWatchers,
+    debugHandlers,
     vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
   );
 
