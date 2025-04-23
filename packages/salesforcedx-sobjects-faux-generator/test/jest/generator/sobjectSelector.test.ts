@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import { GeneralSObjectSelector } from '../../src/transformer/transformerFactory';
-import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
+import { GeneralSObjectSelector } from '../../../src/transformer/transformerFactory';
+import { SObjectCategory, SObjectRefreshSource } from '../../../src/types';
 
 const SOBJECTS_DESCRIBE_SAMPLE = {
   sobjects: [
@@ -32,8 +31,8 @@ describe('Select sObjects', () => {
 
     const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
-    expect(results.length).to.eql(3);
-    expect(results).to.deep.equal([
+    expect(results).toHaveLength(3);
+    expect(results).toEqual([
       { custom: true, name: 'MyCustomObj1' },
       { custom: true, name: 'MyCustomObj2' },
       { custom: true, name: 'Custom_History_Obj' }
@@ -45,8 +44,8 @@ describe('Select sObjects', () => {
 
     const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
-    expect(results.length).to.eql(4);
-    expect(results).to.deep.equal([
+    expect(results).toHaveLength(4);
+    expect(results).toEqual([
       { custom: false, name: 'Account' },
       { custom: false, name: 'Contact' },
       { custom: false, name: 'Lead' },
@@ -59,8 +58,8 @@ describe('Select sObjects', () => {
 
     const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
-    expect(results.length).to.eql(3);
-    expect(results).to.deep.equal([
+    expect(results).toHaveLength(3);
+    expect(results).toEqual([
       { custom: true, name: 'MyCustomObj1' },
       { custom: true, name: 'MyCustomObj2' },
       { custom: true, name: 'Custom_History_Obj' }
@@ -72,8 +71,8 @@ describe('Select sObjects', () => {
 
     const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
-    expect(results.length).to.eql(4);
-    expect(results).to.deep.equal([
+    expect(results).toHaveLength(4);
+    expect(results).toEqual([
       { custom: false, name: 'Account' },
       { custom: false, name: 'Contact' },
       { custom: false, name: 'Lead' },
@@ -86,8 +85,8 @@ describe('Select sObjects', () => {
 
     const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
-    expect(results.length).to.eql(7);
-    expect(results).to.deep.equal([
+    expect(results).toHaveLength(7);
+    expect(results).toEqual([
       { custom: true, name: 'MyCustomObj1' },
       { custom: true, name: 'MyCustomObj2' },
       { custom: true, name: 'Custom_History_Obj' },
@@ -103,8 +102,8 @@ describe('Select sObjects', () => {
 
     const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
 
-    expect(results.length).to.eql(7);
-    expect(results).to.deep.equal([
+    expect(results).toHaveLength(7);
+    expect(results).toEqual([
       { custom: true, name: 'MyCustomObj1' },
       { custom: true, name: 'MyCustomObj2' },
       { custom: true, name: 'Custom_History_Obj' },
