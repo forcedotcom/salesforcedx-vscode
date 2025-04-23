@@ -31,15 +31,11 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
-    "@types/chai": "4.3.3",
-    "@types/mocha": "^10",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.90.0",
-    "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "mocha": "^10",
     "prettier": "3.3.3"
   },
   "extensionDependencies": [

@@ -7,7 +7,6 @@
 
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol/lib/debugProtocol';
-import { expect } from 'chai';
 import * as fs from 'node:fs';
 
 export class GoldFileUtil {
@@ -36,10 +35,10 @@ export class GoldFileUtil {
     const scopesResponse = await this.dc.scopesRequest({
       frameId: stackTraceResponse.body.stackFrames[0].id
     });
-    expect(scopesResponse.body.scopes.length).to.equal(3);
-    expect(scopesResponse.body.scopes[0].name).to.equal('Local');
-    expect(scopesResponse.body.scopes[1].name).to.equal('Static');
-    expect(scopesResponse.body.scopes[2].name).to.equal('Global');
+    expect(scopesResponse.body.scopes).toHaveLength(3);
+    expect(scopesResponse.body.scopes[0].name).toBe('Local');
+    expect(scopesResponse.body.scopes[1].name).toBe('Static');
+    expect(scopesResponse.body.scopes[2].name).toBe('Global');
 
     const localScope = scopesResponse.body.scopes[0];
     await this.assertVariables(localScope);
@@ -55,10 +54,10 @@ export class GoldFileUtil {
       const scopesResponse = await this.dc.scopesRequest({
         frameId: frame.id
       });
-      expect(scopesResponse.body.scopes.length).to.equal(3);
-      expect(scopesResponse.body.scopes[0].name).to.equal('Local');
-      expect(scopesResponse.body.scopes[1].name).to.equal('Static');
-      expect(scopesResponse.body.scopes[2].name).to.equal('Global');
+      expect(scopesResponse.body.scopes).toHaveLength(3);
+      expect(scopesResponse.body.scopes[0].name).toBe('Local');
+      expect(scopesResponse.body.scopes[1].name).toBe('Static');
+      expect(scopesResponse.body.scopes[2].name).toBe('Global');
 
       const localScope = scopesResponse.body.scopes[0];
       await this.assertVariables(localScope);
@@ -98,7 +97,7 @@ export class GoldFileUtil {
   private compareGoldValue(actual: string) {
     if (this.goldIndex < this.golds.length) {
       const expected = this.golds[this.goldIndex++];
-      expect(actual).to.equal(expected);
+      expect(actual).toBe(expected);
     }
   }
 }

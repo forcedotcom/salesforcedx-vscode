@@ -8,6 +8,7 @@ import * as assert from 'node:assert';
 import * as words from '../../src/utils/strings';
 
 describe('Words', () => {
+  // eslint-disable-next-line no-useless-escape
   const wordRegex = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
 
   const assertWord = (value: string, expected: string): void => {
