@@ -113,7 +113,7 @@ describe('HTML Embedded Formatting', () => {
     );
   });
 
-  it.skip('Should handle HTML & styles', () => {
+  it('Should handle HTML & styles', () => {
     assertFormat(
       '<html><head>\n<style>\n.foo{display:none;}\n</style></head></html>',
       '<html>\n\n<head>\n  <style>\n    .foo {\n      display: none;\n    }\n  </style>\n</head>\n\n</html>'
