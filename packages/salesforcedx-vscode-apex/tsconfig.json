@@ -2,24 +2,13 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "out",
+    "outDir": "out"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/oas/generationStrategy/*.json",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out"
-  ],
+  "include": ["src/**/*.ts", "src/oas/generationStrategy/*.json", "test/**/*.ts"],
+  "exclude": ["node_modules", ".vscode-test", "out"],
   "references": [
     {
       "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-test-utils-vscode"
     }
   ]
 }

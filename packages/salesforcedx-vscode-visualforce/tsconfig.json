@@ -2,22 +2,15 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "out",
+    "outDir": "out"
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out"
-  ],
+  "exclude": ["node_modules", ".vscode-test", "out"],
   "references": [
     {
       "path": "../salesforcedx-visualforce-language-server"
     },
     {
       "path": "../salesforcedx-visualforce-markup-language-server"
-    },
-    {
-      "path": "../salesforcedx-test-utils-vscode"
     }
   ]
 }

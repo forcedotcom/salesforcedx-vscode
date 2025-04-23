@@ -15,9 +15,6 @@ The test types from most preferred to least preferred are:
 
 1. Unit Tests - mocha: Found under the test/unit directory. Not under active development.
    - `npm run test:unit`
-1. vscode-integration - Tests that are somewhere between integration and unit tests. These are being phased out and there should be no new additions.
-   - Close all instances of vscode.
-   - `npm run test:integration`
 
 To run all tests, execute `npm run compile && npm run test` from the root
 folder. Note the compile is only necessary for the integration tests.
@@ -49,7 +46,6 @@ Unit tests priorities are as follows:
   - Command line: `npx jest` will execute all unit tests in a package by default. If the integration tests are configured for jest in the package you may execute those using `npx jest -c jest.integration.config`. There are many options for configuring the test run see the [docs](https://jestjs.io/docs/cli) or `npx jest -h` for further guidance.
   - npm scripts:
     - `npm run test:unit`
-    - `npm run test:integration`
     - `npm run test`
 
 #### Jest Information

@@ -33,22 +33,13 @@
     "vscode-extension-telemetry": "^0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
-    "@salesforce/ts-sinon": "1.4.30",
     "@types/async-lock": "1.4.2",
-    "@types/chai": "4.3.3",
-    "@types/mocha": "^10",
     "@types/node": "^20.0.0",
-    "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",
-    "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "mocha": "^10",
-    "prettier": "3.3.3",
-    "request-light": "^0.7.0",
-    "sinon": "^13.0.1"
+    "prettier": "3.3.3"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",

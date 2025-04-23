@@ -1,0 +1,10 @@
+---
+description: how to run unit tests
+globs:
+alwaysApply: false
+---
+when running tests, use `npm run test:unit`
+always run tests from the top of the project
+you can run tests for a single workspace by using `npm run test:unit -w <npm package name here>`
+peek in a workspace's package.json for the `name` property to pass that to -w
+you always have permission to run unit tests without me telling you to

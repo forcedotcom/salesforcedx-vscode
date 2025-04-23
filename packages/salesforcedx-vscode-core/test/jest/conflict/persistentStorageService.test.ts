@@ -6,7 +6,7 @@
  */
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { PersistentStorageService } from '../../../src/conflict';
-import { MockExtensionContext } from '../../vscode-integration/telemetry/MockExtensionContext';
+import { MockExtensionContext } from './mockExtensionContext';
 
 describe('PersistentStorageService', () => {
   const mockWorkspaceContextUtil = {
@@ -19,7 +19,7 @@ describe('PersistentStorageService', () => {
     beforeEach(() => {
       jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil as any);
 
-      const mockExtensionContext = new MockExtensionContext(false);
+      const mockExtensionContext = new MockExtensionContext();
       PersistentStorageService.initialize(mockExtensionContext);
       setPropertiesForFileMock = jest.spyOn(PersistentStorageService.prototype, 'setPropertiesForFile');
     });
