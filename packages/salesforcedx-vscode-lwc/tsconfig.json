@@ -8,9 +8,6 @@
   "references": [
     {
       "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-test-utils-vscode"
     }
   ]
 }

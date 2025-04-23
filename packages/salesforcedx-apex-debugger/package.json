@@ -20,7 +20,6 @@
     "request-light": "^0.7.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
     "@types/async-lock": "1.4.2",
     "@types/chai": "4.3.3",
     "@types/jest": "^29.5.5",
