@@ -30,7 +30,6 @@
     "vscode-extension-telemetry": "^0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.90.0",
     "cross-env": "5.2.0",

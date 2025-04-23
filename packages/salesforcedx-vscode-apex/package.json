@@ -43,7 +43,6 @@
     "yaml": "2.6.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "@types/node": "^20.0.0",

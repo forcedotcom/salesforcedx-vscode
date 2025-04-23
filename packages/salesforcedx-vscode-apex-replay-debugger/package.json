@@ -33,7 +33,6 @@
     "vscode-extension-telemetry": "^0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
     "@types/async-lock": "1.4.2",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.90.0",

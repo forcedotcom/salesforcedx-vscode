@@ -37,7 +37,6 @@
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
     "@types/node": "^20.0.0",
     "@types/uuid": "^3.4.8",
     "@types/vscode": "^1.90.0",
