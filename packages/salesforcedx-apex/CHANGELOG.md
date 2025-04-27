@@ -1,3 +1,12 @@
+## [8.1.23](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.22...8.1.23) (2025-04-27)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/core from 8.9.1 to 8.10.0 ([363e903](https://github.com/forcedotcom/salesforcedx-apex/commit/363e9038afe32611505b8f78b6295750d87d6ade))
+
+
+
 ## [8.1.22](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.21...8.1.22) (2025-04-20)
 
 
