@@ -1,3 +1,11 @@
+# 63.11.0 - April 30, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- [W-18067088]  limit the visibility of deploy, retrieve, diff, delete from org, and create manifest commands to filepaths inside packageDirectories array in sfdx-project.json ([PR #6224](https://github.com/forcedotcom/salesforcedx-vscode/pull/6224))
+
 # 63.10.0 - April 23, 2025
 
 ## Added
