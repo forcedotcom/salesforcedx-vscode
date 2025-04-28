@@ -4,27 +4,26 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+jest.mock('@salesforce/salesforcedx-utils');
+import { CommandOutput } from '@salesforce/salesforcedx-utils';
 import { SfCommandBuilder } from '../../../src/cli/commandBuilder';
 import { CliCommandExecutor } from '../../../src/cli/commandExecutor';
 import { ORG_DISPLAY_COMMAND, OrgDisplay, OrgInfo } from '../../../src/cli/orgDisplay';
 
 const mockGetCmdResult = jest.fn();
 
-jest.mock('@salesforce/salesforcedx-utils', () => {
-  class MockCommandOutput {
-    public async getCmdResult(execution: any): Promise<string> {
-      return mockGetCmdResult(execution);
-    }
-  }
-  return {
-    CommandOutput: MockCommandOutput
-  };
-});
 jest.mock('../../../src/cli/commandExecutor');
 jest.mock('../../../src/cli/commandBuilder');
 
 const sfCommandBuilderMock = jest.mocked(SfCommandBuilder);
 const cliCommandExecutorMock = jest.mocked(CliCommandExecutor);
+
+beforeEach(() => {
+  const mockOutput = new CommandOutput();
+  jest.spyOn(mockOutput, 'getCmdResult').mockImplementation(mockGetCmdResult);
+  jest.mocked(CommandOutput).mockImplementation(() => mockOutput);
+});
 
 describe('orgDisplay Unit Tests.', () => {
   const fakeProjectPath = '/this/is/a/fake/path';
