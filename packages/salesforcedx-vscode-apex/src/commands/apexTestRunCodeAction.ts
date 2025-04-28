@@ -33,6 +33,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
+import { getZeroBasedRange } from './range';
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;
@@ -116,17 +117,12 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
           message: `${diagnostic.exceptionMessage}\n${diagnostic.exceptionStackTrace}`,
           severity: vscode.DiagnosticSeverity.Error,
           source: componentPath,
-          range: this.getZeroBasedRange(diagnostic.lineNumber ?? 1, diagnostic.columnNumber ?? 1)
+          range: getZeroBasedRange(diagnostic.lineNumber ?? 1, diagnostic.columnNumber ?? 1)
         };
 
         ApexLibraryTestRunExecutor.diagnostics.set(vscode.Uri.file(componentPath), [vscDiagnostic]);
       }
     });
-  }
-
-  private getZeroBasedRange(line: number, column: number): vscode.Range {
-    const pos = new vscode.Position(line > 0 ? line - 1 : 0, column > 0 ? column - 1 : 0);
-    return new vscode.Range(pos, pos);
   }
 
   private async mapApexArtifactToFilesystem(
