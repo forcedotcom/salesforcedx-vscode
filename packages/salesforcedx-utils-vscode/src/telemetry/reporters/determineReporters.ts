@@ -16,17 +16,17 @@ import { TelemetryReporterConfig } from './telemetryReporterConfig';
 let o11yReporterInstance: O11yReporter | null = null;
 let o11yInitializationPromise: Promise<void> | null = null;
 
-export const setO11yInitializationPromise = (promise: Promise<void>) => {
+const setO11yInitializationPromise = (promise: Promise<void>) => {
   o11yInitializationPromise = promise;
 };
 
 // prettier-ignore
 // eslint-disable-next-line arrow-body-style
-export const getO11yInitializationPromise = (): Promise<void> | null => {
+const getO11yInitializationPromise = (): Promise<void> | null => {
   return o11yInitializationPromise;
 };
 
-export const clearO11yInitializationPromise = () => {
+const clearO11yInitializationPromise = () => {
   o11yInitializationPromise = null;
 };
 
@@ -89,7 +89,7 @@ export const initializeO11yReporter = async (
   await initPromise;
 };
 
-export const addO11yReporter = (reporters: TelemetryReporter[], extName: string): void => {
+const addO11yReporter = (reporters: TelemetryReporter[], extName: string): void => {
   if (o11yReporterInstance) {
     reporters.push(o11yReporterInstance);
     console.log('Added O11y reporter to reporters list');

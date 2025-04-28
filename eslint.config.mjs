@@ -35,8 +35,7 @@ export default [
       'packages/salesforcedx-vscode-soql/test/vscode-integration',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-lwc/test/vscode-integration',
-      'packages/salesforcedx-vscode-core/test/vscode-integration/**',
-      'packages/salesforcedx-test-utils-vscode/src/testrunner.ts'
+      'packages/salesforcedx-vscode-core/test/vscode-integration/**'
     ]
   },
   eslintPluginPrettierRecommended,
