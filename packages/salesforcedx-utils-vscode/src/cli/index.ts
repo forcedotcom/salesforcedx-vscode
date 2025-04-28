@@ -25,7 +25,6 @@ export {
   GlobalCliEnvironment
 } from './commandExecutor';
 export { DiffErrorResponse, DiffResultParser, DiffSuccessResponse } from './diffResultParser';
-export { ConfigGet } from './configGet';
 export { LocalCommandExecution } from './localCommandExecutor';
 export { OrgCreateErrorResult, OrgCreateResultParser, OrgCreateSuccessResult } from './orgCreateResultParser';
 export { OrgDisplay, OrgInfo } from './orgDisplay';
