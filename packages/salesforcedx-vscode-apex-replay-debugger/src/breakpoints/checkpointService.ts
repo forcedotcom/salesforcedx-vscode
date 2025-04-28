@@ -14,6 +14,7 @@ import {
   OVERLAY_ACTION_DELETE_URL
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
+import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import {
@@ -852,17 +853,6 @@ const fetchExistingBreakpointForUriAndLineNumber = (
     }
   }
   return undefined;
-};
-
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-const code2ProtocolConverter = (value: vscode.Uri) => {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
-  }
 };
 
 export const checkpointUtils = {
