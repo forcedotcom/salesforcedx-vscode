@@ -4,9 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
+  Command,
+  SfCommandBuilder,
+  workspaceUtils,
+  fileUtils,
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
@@ -19,7 +21,6 @@ import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import { SfCommandlet } from './util/sfCommandlet';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 

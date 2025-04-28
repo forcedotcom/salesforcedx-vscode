@@ -9,7 +9,8 @@ import {
   ContinueResponse,
   LocalComponent,
   ParametersGatherer,
-  SFDX_LWC_EXTENSION_NAME
+  SFDX_LWC_EXTENSION_NAME,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
 import { globSync } from 'glob';
@@ -17,7 +18,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
-import { workspaceUtils } from '../../util';
 import { RetrieveDescriber } from '../retrieveMetadata';
 
 export const CONTINUE = 'CONTINUE';

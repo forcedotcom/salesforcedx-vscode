@@ -10,11 +10,11 @@ import {
   CliCommandExecutor,
   Command,
   CommandOutput,
-  SfCommandBuilder
+  SfCommandBuilder,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { workspaceUtils } from '../util';
 import { SfCommandletExecutor } from './util';
 
 export class DescribeMetadataExecutor extends SfCommandletExecutor<string> {

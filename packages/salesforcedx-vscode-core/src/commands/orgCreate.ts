@@ -15,7 +15,8 @@ import {
   OrgCreateErrorResult,
   OrgCreateResultParser,
   ParametersGatherer,
-  SfCommandBuilder
+  SfCommandBuilder,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -25,7 +26,6 @@ import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import {
   CompositeParametersGatherer,
   CompositePreconditionChecker,

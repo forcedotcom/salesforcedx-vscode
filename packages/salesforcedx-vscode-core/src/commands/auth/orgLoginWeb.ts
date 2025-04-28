@@ -5,10 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse, isSFContainerMode } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  Command,
+  SfCommandBuilder,
+  CommandOutput,
+  workspaceUtils,
+  CliCommandExecutor,
+  ContinueResponse,
+  isSFContainerMode
+} from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -20,7 +25,6 @@ import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
 import { notificationService, ProgressNotification } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils } from '../../util';
 import { DemoModePromptGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from '../util';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';

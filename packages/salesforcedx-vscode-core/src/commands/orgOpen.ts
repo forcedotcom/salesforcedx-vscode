@@ -11,16 +11,17 @@ import {
   OrgOpenContainerResultParser,
   OrgOpenErrorResult,
   OrgOpenSuccessResult,
-  SfCommandBuilder
+  SfCommandBuilder,
+  workspaceUtils,
+  ContinueResponse,
+  isSFContainerMode
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse, isSFContainerMode } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {

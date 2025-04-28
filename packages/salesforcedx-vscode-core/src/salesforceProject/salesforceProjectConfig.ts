@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SfProject, SfProjectJson } from '@salesforce/core-bundle';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { JsonArray } from '@salesforce/ts-types';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -13,7 +14,6 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { isSalesforceProjectOpened } from '../predicates';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 
 /**
  * Class representing the local sfdx-project.json file.

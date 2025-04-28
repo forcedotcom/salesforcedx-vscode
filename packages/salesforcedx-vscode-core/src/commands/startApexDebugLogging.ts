@@ -13,7 +13,8 @@ import {
   CommandOutput,
   CompositeCliCommandExecutor,
   ContinueResponse,
-  SfCommandBuilder
+  SfCommandBuilder,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -21,7 +22,7 @@ import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { OrgAuthInfo } from '../util';
 import { developerLogTraceFlag } from '.';
 import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
