@@ -16,11 +16,11 @@ import {
   projectPaths,
   SfCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SpawnOptions } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import { SpawnOptions } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { URL } from 'node:url';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
-import { URL } from 'url';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';

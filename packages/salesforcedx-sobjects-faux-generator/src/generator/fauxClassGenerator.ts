@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import { EOL } from 'os';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import { EOL } from 'node:os';
+import * as path from 'node:path';
 import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';

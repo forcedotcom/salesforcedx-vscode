@@ -22,7 +22,7 @@ import {
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve-bundle';
 import { ComponentStatus, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
-import { join } from 'path';
+import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';

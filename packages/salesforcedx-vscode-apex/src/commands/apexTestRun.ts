@@ -25,8 +25,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
-import { readFileSync } from 'fs';
-import { basename } from 'path';
+import { readFileSync } from 'node:fs';
+import { basename } from 'node:path';
 import { languages, workspace, window, CancellationToken, QuickPickItem, Uri } from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT, IS_TEST_REG_EXP } from '../constants';

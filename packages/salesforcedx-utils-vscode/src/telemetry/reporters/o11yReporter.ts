@@ -8,7 +8,7 @@
 'use strict';
 
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import * as os from 'os';
+import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { O11yService } from '../../services/o11yService';
@@ -100,9 +100,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
 
       this.o11yService.logEvent({
         name: `${this.extensionId}/${eventName}`,
-        // tslint:disable-next-line:object-literal-shorthand
         properties: props,
-        // tslint:disable-next-line:object-literal-shorthand
         measurements
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises

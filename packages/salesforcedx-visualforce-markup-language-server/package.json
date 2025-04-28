@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "63.10.0",
+  "version": "63.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -13,14 +13,8 @@
   "main": "./out/src/htmlLanguageService.js",
   "typings": "./out/src/htmlLanguageService.d.ts",
   "devDependencies": {
-    "@types/chai": "4.3.3",
-    "@types/mocha": "^10",
     "@types/node": "^20.0.0",
-    "chai": "^4.0.2",
     "eslint-plugin-jest": "28.9.0",
-    "mocha": "^10",
-    "mocha-junit-reporter": "^1.23.3",
-    "mocha-multi-reporters": "^1.1.7",
     "prettier": "3.3.3",
     "shx": "0.3.4",
     "typescript": "^5.6.2"
@@ -37,8 +31,7 @@
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "test": "npm run test:unit",
-    "test:jest": "jest --coverage",
-    "test:unit": "mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "test:unit": "jest --coverage",
     "watch": "tsc -watch -p ."
   }
 }

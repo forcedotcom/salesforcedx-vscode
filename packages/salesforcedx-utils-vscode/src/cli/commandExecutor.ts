@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ChildProcess, SpawnOptions } from 'child_process';
-import * as os from 'os';
+import { ChildProcess, SpawnOptions } from 'node:child_process';
+import * as os from 'node:os';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';

@@ -7,8 +7,7 @@
 
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { expect } from 'chai';
-import * as path from 'path';
+import * as path from 'node:path';
 import Uri from 'vscode-uri';
 import { ApexReplayDebug, LaunchRequestArguments } from '../../src/adapter/apexReplayDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints';
@@ -41,13 +40,6 @@ describe('Replay debugger adapter - integration', () => {
     if (dc) {
       await dc.stop();
     }
-  });
-
-  it('Should not attach', async () => {
-    try {
-      await dc.attachRequest({});
-      expect.fail('Debugger client should have thrown an error');
-    } catch {}
   });
 
   it('Recursive stack', async () => {
@@ -92,7 +84,7 @@ describe('Replay debugger adapter - integration', () => {
       lineBreakpointInfo: lineBpInfo,
       projectPath: undefined
     } as LaunchRequestArguments);
-    expect(launchResponse.success).to.equal(true);
+    expect(launchResponse.success).toBe(true);
 
     try {
       const classAPath = Uri.parse(classA).fsPath;
@@ -110,7 +102,7 @@ describe('Replay debugger adapter - integration', () => {
         path: logFilePath,
         line: 1
       });
-      expect(stackTraceResponse.body.stackFrames.length).to.equal(1);
+      expect(stackTraceResponse.body.stackFrames).toHaveLength(1);
       // Verify stopped on first breakpoint
       await dc.continueRequest({
         threadId: ApexReplayDebug.THREAD_ID
@@ -128,7 +120,7 @@ describe('Replay debugger adapter - integration', () => {
       await goldFileUtil.assertTopState('step', classRecursivePath, classRecursiveValidLines[0]);
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});
-      expect(disconnectResponse.success).to.equal(true);
+      expect(disconnectResponse.success).toBe(true);
     }
   });
 
@@ -156,7 +148,7 @@ describe('Replay debugger adapter - integration', () => {
       lineBreakpointInfo: lineBpInfo,
       projectPath: undefined
     } as LaunchRequestArguments);
-    expect(launchResponse.success).to.equal(true);
+    expect(launchResponse.success).toBe(true);
 
     try {
       const classStaticVarsAPath = Uri.parse(classStaticVarsA).fsPath;
@@ -173,7 +165,7 @@ describe('Replay debugger adapter - integration', () => {
         path: logFilePath,
         line: 1
       });
-      expect(stackTraceResponse.body.stackFrames.length).to.equal(1);
+      expect(stackTraceResponse.body.stackFrames).toHaveLength(1);
       // Verify stopped on first breakpoint
       await dc.continueRequest({
         threadId: ApexReplayDebug.THREAD_ID
@@ -181,7 +173,7 @@ describe('Replay debugger adapter - integration', () => {
       await goldFileUtil.assertEntireState('breakpoint', classStaticVarsAPath, classStaticVarsAValidLines[0]);
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});
-      expect(disconnectResponse.success).to.equal(true);
+      expect(disconnectResponse.success).toBe(true);
     }
   });
 });
@@ -204,11 +196,11 @@ const assertBreakpointsCreated = (
   expectedSourcePath: string,
   expectedLineNumbers: number[]
 ) => {
-  expect(response.success).to.equal(true);
-  expect(response.body.breakpoints.length).to.equal(expectedNumOfBreakpoints);
+  expect(response.success).toBe(true);
+  expect(response.body.breakpoints).toHaveLength(expectedNumOfBreakpoints);
   response.body.breakpoints.forEach(bp => {
-    expect(bp.verified).to.be.true;
-    expect(bp.source!.path).to.equal(expectedSourcePath);
-    expect(expectedLineNumbers).to.include(bp.line!);
+    expect(bp.verified).toBe(true);
+    expect(bp.source?.path).toBe(expectedSourcePath);
+    expect(expectedLineNumbers).toContain(bp.line);
   });
 };

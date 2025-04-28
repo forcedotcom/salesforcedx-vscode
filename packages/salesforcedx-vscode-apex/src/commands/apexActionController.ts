@@ -6,7 +6,7 @@
  */
 
 import { notificationService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { ExternalServiceRegistrationManager } from '../oas/ExternalServiceRegistrationManager';

@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { readFile } from 'fs/promises';
-import { EOL } from 'os';
-import { sep } from 'path';
+import { readFile } from 'node:fs/promises';
+import { EOL } from 'node:os';
+import { sep } from 'node:path';
 import { ExtensionContext, Uri } from 'vscode';
 import {
   getExtensionHostLogActivationRecords,
@@ -14,7 +14,7 @@ import {
   readExtensionHostLog
 } from '../../../src/helpers/activationTrackerUtils';
 
-jest.mock('fs/promises', () => ({
+jest.mock('node:fs/promises', () => ({
   readFile: jest.fn()
 }));
 
