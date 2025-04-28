@@ -24,7 +24,6 @@ export {
   CompositeCliCommandExecutor,
   GlobalCliEnvironment
 } from './commandExecutor';
-export { CommandOutput } from './commandOutput';
 export { DiffErrorResponse, DiffResultParser, DiffSuccessResponse } from './diffResultParser';
 export { ConfigGet } from './configGet';
 export { LocalCommandExecution } from './localCommandExecutor';

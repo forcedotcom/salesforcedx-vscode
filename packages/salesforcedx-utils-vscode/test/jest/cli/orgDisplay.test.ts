@@ -6,15 +6,24 @@
  */
 import { SfCommandBuilder } from '../../../src/cli/commandBuilder';
 import { CliCommandExecutor } from '../../../src/cli/commandExecutor';
-import { CommandOutput } from '../../../src/cli/commandOutput';
 import { ORG_DISPLAY_COMMAND, OrgDisplay, OrgInfo } from '../../../src/cli/orgDisplay';
 
+const mockGetCmdResult = jest.fn();
+
+jest.mock('@salesforce/salesforcedx-utils', () => {
+  class MockCommandOutput {
+    public async getCmdResult(execution: any): Promise<string> {
+      return mockGetCmdResult(execution);
+    }
+  }
+  return {
+    CommandOutput: MockCommandOutput
+  };
+});
 jest.mock('../../../src/cli/commandExecutor');
 jest.mock('../../../src/cli/commandBuilder');
-jest.mock('../../../src/cli/commandOutput');
 
 const sfCommandBuilderMock = jest.mocked(SfCommandBuilder);
-const commandOutputMock = jest.mocked(CommandOutput);
 const cliCommandExecutorMock = jest.mocked(CliCommandExecutor);
 
 describe('orgDisplay Unit Tests.', () => {
@@ -49,7 +58,7 @@ describe('orgDisplay Unit Tests.', () => {
         build: jest.fn().mockReturnValue(fakeCommandOuput)
       });
       (sfCommandBuilderMock.prototype.withJson as any).mockReturnValue(SfCommandBuilder.prototype);
-      (commandOutputMock.prototype.getCmdResult as any).mockResolvedValue(
+      mockGetCmdResult.mockResolvedValue(
         JSON.stringify({
           result: fakeOrgInfo
         })
@@ -73,14 +82,12 @@ describe('orgDisplay Unit Tests.', () => {
       const mockClicCommandExecutor = cliCommandExecutorMock.mock.instances[0];
       expect(mockClicCommandExecutor.execute).toHaveBeenCalled();
 
-      expect(commandOutputMock).toHaveBeenCalledTimes(1);
-      const mockCommandOutput = commandOutputMock.mock.instances[0];
-      expect(mockCommandOutput.getCmdResult).toHaveBeenCalledTimes(1);
+      expect(mockGetCmdResult).toHaveBeenCalledTimes(1);
     });
 
     it('Should reject if fails to parse orgInfo.', () => {
       const badJson = '{so:not:value:json}';
-      (commandOutputMock.prototype.getCmdResult as any).mockResolvedValue(badJson);
+      mockGetCmdResult.mockResolvedValue(badJson);
 
       const orgDisplay = new OrgDisplay();
 

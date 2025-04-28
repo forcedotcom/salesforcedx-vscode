@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CommandOutput } from '@salesforce/salesforcedx-utils';
 import { SfCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
-import { CommandOutput } from './commandOutput';
 
 export const ORG_DISPLAY_COMMAND = 'org:display';
 export type OrgInfo = {
