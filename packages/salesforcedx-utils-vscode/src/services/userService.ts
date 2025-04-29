@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandOutput } from '@salesforce/salesforcedx-utils';
+import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { randomBytes } from 'node:crypto';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecutor, SfCommandBuilder, workspaceUtils } from '..';
+import { CliCommandExecutor, workspaceUtils } from '..';
 import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
 
 export class UserService {

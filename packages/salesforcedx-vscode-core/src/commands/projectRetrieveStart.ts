@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command } from '@salesforce/salesforcedx-utils';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecution,
   CliCommandExecutor,
@@ -13,7 +13,6 @@ import {
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult,
   Row,
-  SfCommandBuilder,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';

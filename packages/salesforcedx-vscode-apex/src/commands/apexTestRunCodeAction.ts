@@ -16,13 +16,13 @@ import {
 } from '@salesforce/apex-node-bundle';
 import { ApexDiagnostic } from '@salesforce/apex-node-bundle/lib/src/utils';
 import { NamedPackageDir, SfProject } from '@salesforce/core-bundle';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
   EmptyParametersGatherer,
   getRootWorkspacePath,
   getTestResultsFolder,
   LibraryCommandletExecutor,
+  notificationService,
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';

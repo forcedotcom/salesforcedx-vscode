@@ -6,13 +6,12 @@
  */
 
 import { AuthRemover } from '@salesforce/core-bundle';
-import { Command } from '@salesforce/salesforcedx-utils';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
   ContinueResponse,
   LibraryCommandletExecutor,
-  notificationService,
-  SfCommandBuilder
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';

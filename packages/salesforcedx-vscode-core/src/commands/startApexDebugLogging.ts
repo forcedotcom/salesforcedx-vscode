@@ -4,13 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommandOutput, CommandBuilder, Command } from '@salesforce/salesforcedx-utils';
+import { CommandOutput, CommandBuilder, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
   CommandExecution,
   CompositeCliCommandExecutor,
   ContinueResponse,
-  SfCommandBuilder,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';

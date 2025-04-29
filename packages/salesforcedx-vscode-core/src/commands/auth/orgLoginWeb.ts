@@ -4,9 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommandOutput, Command } from '@salesforce/salesforcedx-utils';
+import { Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
-  SfCommandBuilder,
   workspaceUtils,
   CliCommandExecutor,
   ContinueResponse,

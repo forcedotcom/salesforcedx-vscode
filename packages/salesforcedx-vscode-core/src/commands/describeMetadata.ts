@@ -4,13 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommandOutput, Command } from '@salesforce/salesforcedx-utils';
-import {
-  CliCommandExecution,
-  CliCommandExecutor,
-  SfCommandBuilder,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { CliCommandExecution, CliCommandExecutor, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { SfCommandletExecutor } from './util';

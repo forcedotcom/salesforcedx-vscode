@@ -12,7 +12,7 @@ import {
   SObjectTransformerFactory,
   STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { Command } from '@salesforce/salesforcedx-utils';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   ContinueResponse,
@@ -22,7 +22,6 @@ import {
   ParametersGatherer,
   ProgressNotification,
   projectPaths,
-  SfCommandBuilder,
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';

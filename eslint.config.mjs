@@ -260,6 +260,7 @@ export default [
       'no-cond-assign': 'error',
       'no-console': 'off',
       'no-debugger': 'error',
+      'no-duplicate-imports': 'error',
       'no-empty': 'off',
       'no-empty-function': 'off',
       'no-eval': 'error',

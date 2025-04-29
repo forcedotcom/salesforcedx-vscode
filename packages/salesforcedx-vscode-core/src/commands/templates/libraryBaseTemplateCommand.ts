@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, workspaceUtils, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateOptions, TemplateService, TemplateType } from '@salesforce/templates';
 import { Properties } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
