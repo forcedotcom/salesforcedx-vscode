@@ -197,6 +197,7 @@ export default [
       'guard-for-in': 'error',
       'id-denylist': 'error',
       'id-match': 'error',
+      'import/no-empty-named-blocks': 'error',
       'import/newline-after-import': 'error',
       'import/no-cycle': 'error',
       'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
