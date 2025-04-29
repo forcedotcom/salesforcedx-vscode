@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { Command } from '@salesforce/salesforcedx-utils';
+import { SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,

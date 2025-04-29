@@ -6,8 +6,8 @@
  */
 
 import { AuthRemover } from '@salesforce/core-bundle';
+import { Command } from '@salesforce/salesforcedx-utils';
 import {
-  Command,
   ConfigUtil,
   ContinueResponse,
   LibraryCommandletExecutor,

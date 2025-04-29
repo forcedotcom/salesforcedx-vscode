@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { Command } from '@salesforce/salesforcedx-utils';
 import { ChildProcess, SpawnOptions } from 'node:child_process';
 import * as os from 'node:os';
 import 'rxjs/add/observable/fromEvent';
@@ -15,7 +15,6 @@ import { Subscription } from 'rxjs/Subscription';
 
 // Below two dependencies are not structured correctly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Command } from './';
 const cross_spawn = require('cross-spawn');
 const kill = require('tree-kill');
 /* eslint-enable @typescript-eslint/no-var-requires */
