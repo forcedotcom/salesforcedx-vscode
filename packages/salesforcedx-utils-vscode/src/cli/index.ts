@@ -15,7 +15,7 @@ export type Command = {
   toCommand(): string;
 };
 
-export { CommandBuilder, SfCommandBuilder } from './commandBuilder';
+export { SfCommandBuilder } from './commandBuilder';
 export {
   CliCommandExecution,
   CliCommandExecutor,
