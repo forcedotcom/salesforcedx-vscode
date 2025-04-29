@@ -11,7 +11,8 @@ import {
   workspaceUtils,
   CliCommandExecutor,
   ContinueResponse,
-  isSFContainerMode
+  isSFContainerMode,
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import { Observable } from 'rxjs/Observable';
@@ -21,7 +22,7 @@ import { channelService } from '../../channels/index';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
-import { notificationService, ProgressNotification } from '../../notifications/index';
+import { notificationService } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
 import { DemoModePromptGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from '../util';

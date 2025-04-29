@@ -10,14 +10,15 @@ import {
   Command,
   CommandExecution,
   ContinueResponse,
-  workspaceUtils
+  workspaceUtils,
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
+import { notificationService } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { CommandletExecutor } from './commandletExecutor';

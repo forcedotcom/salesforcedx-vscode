@@ -10,7 +10,8 @@ import {
   ChannelService,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
-  getRootWorkspacePath
+  getRootWorkspacePath,
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -98,7 +99,7 @@ import {
 } from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demo-mode';
-import { ProgressNotification, notificationService } from './notifications';
+import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSalesforceProjectOpened } from './predicates';

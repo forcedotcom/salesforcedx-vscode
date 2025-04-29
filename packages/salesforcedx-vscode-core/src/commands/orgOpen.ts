@@ -14,12 +14,13 @@ import {
   SfCommandBuilder,
   workspaceUtils,
   ContinueResponse,
-  isSFContainerMode
+  isSFContainerMode,
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
+import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';

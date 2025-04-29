@@ -13,7 +13,8 @@ import {
   ContinueResponse,
   ParametersGatherer,
   projectPaths,
-  SfCommandBuilder
+  SfCommandBuilder,
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -23,7 +24,7 @@ import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instr
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
+import { notificationService } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import {
   PathExistsChecker,
