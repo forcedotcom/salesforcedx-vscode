@@ -10,8 +10,7 @@ export {
   CliCommandExecutor,
   CommandExecution,
   CompositeCliCommandExecution,
-  CompositeCliCommandExecutor,
-  GlobalCliEnvironment
+  CompositeCliCommandExecutor
 } from './commandExecutor';
 export { DiffErrorResponse, DiffResultParser, DiffSuccessResponse } from './diffResultParser';
 export { LocalCommandExecution } from './localCommandExecutor';

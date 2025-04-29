@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command } from '@salesforce/salesforcedx-utils';
+import { Command, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils';
 import { ChildProcess, SpawnOptions } from 'node:child_process';
 import * as os from 'node:os';
 import 'rxjs/add/observable/fromEvent';
@@ -22,10 +22,6 @@ const kill = require('tree-kill');
 export type CancellationToken = {
   isCancellationRequested: boolean;
 };
-
-export class GlobalCliEnvironment {
-  public static readonly environmentVariables = new Map<string, string>();
-}
 
 export class CliCommandExecutor {
   protected static patchEnv(options: SpawnOptions, baseEnvironment: Map<string, string>): SpawnOptions {
