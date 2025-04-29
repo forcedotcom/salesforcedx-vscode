@@ -23,7 +23,6 @@ import {
   projectPaths,
   SfCommandBuilder,
   SfCommandlet,
-  SfCommandletExecutor,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
@@ -32,6 +31,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
 export type RefreshSelection = {
   category: SObjectCategory;
