@@ -4,9 +4,10 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": [
-    "node_modules",
-    "out"
-  ],
-  "references": []
+  "exclude": ["node_modules", "out"],
+  "references": [
+    {
+      "path": "../salesforcedx-utils"
+    }
+  ]
 }
