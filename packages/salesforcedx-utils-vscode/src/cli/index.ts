@@ -27,7 +27,6 @@ export {
 export { DiffErrorResponse, DiffResultParser, DiffSuccessResponse } from './diffResultParser';
 export { LocalCommandExecution } from './localCommandExecutor';
 export { OrgCreateErrorResult, OrgCreateResultParser, OrgCreateSuccessResult } from './orgCreateResultParser';
-export { OrgDisplay, OrgInfo } from './orgDisplay';
 export { OrgOpenContainerResultParser, OrgOpenErrorResult, OrgOpenSuccessResult } from './orgOpenContainerResultParser';
 export {
   ProjectRetrieveStartResultParser,
