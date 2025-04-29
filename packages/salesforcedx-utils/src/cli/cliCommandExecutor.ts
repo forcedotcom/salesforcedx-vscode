@@ -13,6 +13,7 @@ import { TELEMETRY_HEADER } from '../constants';
 import { CancellationToken, Command } from '../types';
 import { CliCommandExecution } from './cliCommandExecution';
 import { GlobalCliEnvironment } from './globalCliEnvironment';
+
 export class CliCommandExecutor {
   protected static patchEnv(options: SpawnOptions, baseEnvironment: Map<string, string>): SpawnOptions {
     // start with current process environment

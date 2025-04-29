@@ -6,6 +6,7 @@
  */
 
 import { SObject } from '../types';
+
 export { SObjectDescribe, toMinimalSObject } from './sObjectDescribe';
 
 export type SObjectShortDescription = Pick<SObject, 'name' | 'custom'>;

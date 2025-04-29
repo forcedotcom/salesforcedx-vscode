@@ -10,6 +10,7 @@ import { commands, Disposable, ExtensionContext, Uri, window } from 'vscode';
 import { nls } from '../messages';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
+
 export {
   CommonDirDirectoryDiffer,
   diffFolder,

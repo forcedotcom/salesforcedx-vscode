@@ -7,6 +7,7 @@
 
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 import { JsonMethodByMethodStrategy } from './json/jsonMethodByMethod';
+
 export enum GenerationStrategy {
   JSON_METHOD_BY_METHOD = 'JsonMethodByMethod'
 }
