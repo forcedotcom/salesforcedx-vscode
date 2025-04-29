@@ -24,6 +24,7 @@
     "Debuggers"
   ],
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "63.11.0",
     "@salesforce/salesforcedx-apex-debugger": "63.11.0",
     "@salesforce/salesforcedx-utils-vscode": "63.11.0",
     "@vscode/debugprotocol": "1.68.0",

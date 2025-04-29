@@ -26,6 +26,7 @@
   "dependencies": {
     "@salesforce/core-bundle": "8.9.1",
     "@salesforce/salesforcedx-sobjects-faux-generator": "63.11.0",
+    "@salesforce/salesforcedx-utils": "63.11.0",
     "@salesforce/salesforcedx-utils-vscode": "63.11.0",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "12.19.2",

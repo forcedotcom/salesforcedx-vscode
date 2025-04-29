@@ -6,10 +6,10 @@
  */
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
 
-import { SoqlItemContext } from '@salesforce/soql-language-server';
+import type { SoqlItemContext } from '@salesforce/soql-language-server';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
-import { Middleware } from 'vscode-languageclient/node';
+import type { Middleware } from 'vscode-languageclient/node';
 
 import { telemetryService } from '../telemetry';
 import { FileSystemOrgDataSource, JsforceOrgDataSource, OrgDataSource, SObject, SObjectField } from './orgMetadata';
