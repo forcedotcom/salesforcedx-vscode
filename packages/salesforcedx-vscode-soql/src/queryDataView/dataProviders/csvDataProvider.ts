@@ -6,7 +6,7 @@
  */
 
 import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 import * as Papa from 'papaparse';
 import { DATA_CSV_EXT } from '../../constants';
 import { DataProvider } from './iDataProvider';

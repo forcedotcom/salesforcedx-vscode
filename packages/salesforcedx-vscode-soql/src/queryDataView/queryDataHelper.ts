@@ -6,7 +6,7 @@
  */
 import type { QueryResult } from '../types';
 import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 
 type ExtendedQueryData = QueryResult<JsonMap> & {
   columnData: ColumnData;

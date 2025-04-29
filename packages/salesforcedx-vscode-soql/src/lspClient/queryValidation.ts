@@ -6,7 +6,7 @@
  */
 import { QueryValidationFeature } from '@salesforce/soql-language-server';
 import { workspace } from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
+import type { LanguageClient } from 'vscode-languageclient/node';
 import { SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG } from '../constants';
 import { QueryRunner } from '../editor/queryRunner';
 import { withSFConnection } from '../sf';

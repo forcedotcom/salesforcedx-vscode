@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgInfo } from '@salesforce/salesforcedx-utils';
+import type { OrgInfo } from '@salesforce/salesforcedx-utils';
 import * as sf from '../../src/sf';
 
 describe('sf utils', () => {
