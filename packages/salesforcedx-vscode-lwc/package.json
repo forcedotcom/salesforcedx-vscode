@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.10.0",
+  "version": "63.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,7 @@
     "@salesforce/core-bundle": "8.9.1",
     "@salesforce/lightning-lsp-common": "4.12.3",
     "@salesforce/lwc-language-server": "4.12.3",
-    "@salesforce/salesforcedx-utils-vscode": "63.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "63.11.0",
     "applicationinsights": "1.0.7",
     "jest-editor-support": "30.3.1",
     "jest-regex-util": "^24.9.0",
