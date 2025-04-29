@@ -4,7 +4,19 @@
 
 #### salesforcedx-vscode-core
 
-- [W-18067088]  limit the visibility of deploy, retrieve, diff, delete from org, and create manifest commands to filepaths inside packageDirectories array in sfdx-project.json ([PR #6224](https://github.com/forcedotcom/salesforcedx-vscode/pull/6224))
+- The following commands are now only visible and executable for files and folders within the paths specified in the `packageDirectories` array of `sfdx-project.json`:
+
+- `SDFX:Deploy to Org`
+
+-  `SFDX:Retrieve from Org`
+
+ - `SFDX:Diff Against Org`
+
+ - `SFDX:Delete from Org`
+
+ - `SFDX:Create Manifest`
+
+These commands no longer appear in the Explorer View context menu, Editor View context menu, or Command Palette for resources outside the defined `packageDirectories`, including anything outside the `force-app` directory. Previously, attempting to run these commands on files or folders outside the configured package directories resulted in errors during deployment or retrieval. ([PR #6224](https://github.com/forcedotcom/salesforcedx-vscode/pull/6224))
 
 # 63.10.0 - April 23, 2025
 
