@@ -50,4 +50,8 @@ export class TraceFlagsRemover {
       }
     }
   }
+
+  public async removeTraceFlag(traceFlagId: string) {
+    await this.connection.tooling.delete('TraceFlag', traceFlagId);
+  }
 }

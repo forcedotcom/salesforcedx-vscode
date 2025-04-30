@@ -5,77 +5,65 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor, Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+import { CancelResponse, ContinueResponse, ParametersGatherer, TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
 import { hideTraceFlagExpiration } from '../decorators';
-import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import { developerLogTraceFlag } from '.';
-import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfWorkspaceChecker } from './util';
+import { WorkspaceContext } from '../context';
 
-export class StopApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
-  public build(): Command {
-    return deleteTraceFlag();
-  }
-
+export class StopApexDebugLoggingExecutor {
   public execute(response: ContinueResponse<{}>): void {
+    console.log('Enter execute()');
     const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
 
-    const execution = new CliCommandExecutor(this.build(), {
-      cwd: workspaceUtils.getRootWorkspacePath()
-    }).execute(cancellationToken);
-
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
-      if (data !== undefined && String(data) === '0') {
+    void (async () => {
+      try {
+        console.log('Enter try block');
+        await deleteTraceFlag();
         developerLogTraceFlag.turnOffLogging();
         hideTraceFlagExpiration();
+        telemetryService.sendCommandEvent('stop_apex_debug_logging', startTime);
+      } catch (error) {
+        console.log('Enter catch block');
+        telemetryService.sendException('stop_apex_debug_logging', error);
       }
-    });
+      console.log('Exit execute()');
+    })();
   }
 }
 
 export const turnOffLogging = async (): Promise<void> => {
   if (developerLogTraceFlag.isActive()) {
-    const execution = new CliCommandExecutor(deleteTraceFlag(), {
-      cwd: workspaceUtils.getRootWorkspacePath()
-    }).execute();
-    telemetryService.sendCommandEvent(execution.command.logName);
-    const resultPromise = new CommandOutput().getCmdResult(execution);
-    const result = await resultPromise;
-    const resultJson = JSON.parse(result);
-    if (resultJson.status === 0) {
+    try {
+      await deleteTraceFlag();
+      telemetryService.sendCommandEvent('stop_apex_debug_logging');
       return Promise.resolve();
-    } else {
+    } catch (e) {
       return Promise.reject('Restoring the debug levels failed.');
     }
   }
 };
 
-const deleteTraceFlag = (): Command => {
+const deleteTraceFlag = async (): Promise<void> => {
+  console.log('Enter deleteTraceFlag()');
   const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
-  return new SfCommandBuilder()
-    .withDescription(nls.localize('stop_apex_debug_logging'))
-    .withArg('data:delete:record')
-    .withFlag('--sobject', 'TraceFlag')
-    .withFlag('--record-id', nonNullTraceFlag)
-    .withArg('--use-tooling-api')
-    .withLogName('stop_apex_debug_logging')
-    .build();
+  const connection = await WorkspaceContext.getInstance().getConnection();
+  await TraceFlagsRemover.getInstance(connection).removeTraceFlag(nonNullTraceFlag);
+  console.log('Exit deleteTraceFlag()');
 };
+
 class ActiveLogging implements ParametersGatherer<{}> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    console.log('Enter gather()');
+    console.log('developerLogTraceFlag.isActive()', developerLogTraceFlag.isActive());
     if (developerLogTraceFlag.isActive()) {
       return { type: 'CONTINUE', data: {} };
     }
     return { type: 'CANCEL' };
   }
 }
+
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new ActiveLogging();
 const executor = new StopApexDebugLoggingExecutor();
