@@ -24,7 +24,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "8.1.20",
+    "@salesforce/apex-node-bundle": "8.1.24",
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core-bundle": "8.9.1",
     "@salesforce/source-deploy-retrieve-bundle": "^12.19.2",
