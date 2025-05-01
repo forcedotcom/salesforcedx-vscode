@@ -5,27 +5,21 @@
 'use strict';
 
 import { Range, TextDocument } from 'vscode-languageserver-types';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { DocumentContext, DocumentLink } from '../htmlLanguageService';
 import { createScanner, TokenType } from '../parser/htmlScanner';
 
 function stripQuotes(url: string): string {
-  return url
-    .replace(/^'([^']*)'$/, (substr, match1) => match1)
-    .replace(/^"([^"]*)"$/, (substr, match1) => match1);
+  return url.replace(/^'([^']*)'$/, (substr, match1) => match1).replace(/^"([^"]*)"$/, (substr, match1) => match1);
 }
 
 function getWorkspaceUrl(
-  modelAbsoluteUri: Uri,
+  modelAbsoluteUri: URI,
   tokenContent: string,
   documentContext: DocumentContext,
   base: string
 ): string {
-  if (
-    /^\s*javascript\:/i.test(tokenContent) ||
-    /^\s*\#/i.test(tokenContent) ||
-    /[\n\r]/.test(tokenContent)
-  ) {
+  if (/^\s*javascript\:/i.test(tokenContent) || /^\s*\#/i.test(tokenContent) || /[\n\r]/.test(tokenContent)) {
     return null;
   }
   tokenContent = tokenContent.replace(/^\s*/g, '');
@@ -57,7 +51,7 @@ function createLink(
   endOffset: number,
   base: string
 ): DocumentLink {
-  const documentUri = Uri.parse(document.uri);
+  const documentUri = URI.parse(document.uri);
   const tokenContent = stripQuotes(attributeValue);
   if (tokenContent.length === 0) {
     return null;
@@ -66,37 +60,31 @@ function createLink(
     startOffset++;
     endOffset--;
   }
-  const workspaceUrl = getWorkspaceUrl(
-    documentUri,
-    tokenContent,
-    documentContext,
-    base
-  );
+  const workspaceUrl = getWorkspaceUrl(documentUri, tokenContent, documentContext, base);
   if (!workspaceUrl || !isValidURI(workspaceUrl)) {
     return null;
   }
   return {
-    range: Range.create(
-      document.positionAt(startOffset),
-      document.positionAt(endOffset)
-    ),
+    range: Range.create(document.positionAt(startOffset), document.positionAt(endOffset)),
     target: workspaceUrl
   };
 }
 
 function isValidURI(uri: string) {
   try {
-    Uri.parse(uri);
+    // reject URIs with bare % not followed by 2 hex digits
+    // I don't know if this was a requirement, but it was in the UT
+    if (uri.includes('%') && !uri.match(/%[0-9A-Fa-f]{2}/)) {
+      return false;
+    }
+    URI.parse(uri);
     return true;
   } catch (e) {
     return false;
   }
 }
 
-export function findDocumentLinks(
-  document: TextDocument,
-  documentContext: DocumentContext
-): DocumentLink[] {
+export function findDocumentLinks(document: TextDocument, documentContext: DocumentContext): DocumentLink[] {
   const newLinks: DocumentLink[] = [];
 
   const scanner = createScanner(document.getText(), 0);

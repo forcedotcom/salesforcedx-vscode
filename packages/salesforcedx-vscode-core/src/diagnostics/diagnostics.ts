@@ -9,6 +9,7 @@ import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve-bundle';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { SfCommandletExecutor } from '../commands/util';
 
 const notApplicable = 'N/A';
@@ -71,7 +72,7 @@ export const handlePushDiagnosticErrors = (
   }
 
   handleDuplicateDiagnostics(diagnosticMap).forEach((diagMap: vscode.Diagnostic[], file) => {
-    const fileUri = vscode.Uri.file(file);
+    const fileUri = URI.file(file);
     errorCollection.set(fileUri, diagMap);
   });
 
@@ -112,7 +113,7 @@ export const handleDeployDiagnostics = (
   }
 
   handleDuplicateDiagnostics(diagnosticMap).forEach((diagMap: vscode.Diagnostic[], file) => {
-    const fileUri = vscode.Uri.file(file);
+    const fileUri = URI.file(file);
     errorCollection.set(fileUri, diagMap);
   });
 
@@ -137,15 +138,14 @@ const handleDuplicateDiagnostics = (
   diagnosticMap: Map<string, vscode.Diagnostic[]>
 ): Map<string, vscode.Diagnostic[]> => {
   diagnosticMap.forEach((diagnostics, file) => {
-    const fileUri = vscode.Uri.file(file);
+    const fileUri = URI.file(file);
     const existingDiagnostics = vscode.languages.getDiagnostics(fileUri);
     const existingDiagnosticKeys = new Set(existingDiagnostics.map(d => d.message));
     diagnostics.forEach((diagnostic, index) => {
-      // delete the diagnostic to the map if it's not already present
       if (existingDiagnosticKeys.has(diagnostic.message)) {
         delete diagnostics[index];
       } else {
-        existingDiagnosticKeys.add(diagnostic.message); // prevent multiple dups for the same key
+        existingDiagnosticKeys.add(diagnostic.message);
       }
     });
   });

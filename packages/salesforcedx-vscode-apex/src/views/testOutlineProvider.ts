@@ -8,6 +8,7 @@ import { TestResult } from '@salesforce/apex-node-bundle';
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { getApexTests, languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
@@ -132,7 +133,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     }
   }
 
-  public getTestClassName(uri: vscode.Uri): string | undefined {
+  public getTestClassName(uri: URI): string | undefined {
     return this.testIndex.get(uri.toString());
   }
 

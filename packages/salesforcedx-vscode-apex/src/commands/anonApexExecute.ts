@@ -21,6 +21,7 @@ import {
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL, channelService } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -188,7 +189,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
         range: this.adjustErrorRange(Number(lineNumber), Number(columnNumber), selection)
       };
 
-      AnonApexLibraryExecuteExecutor.diagnostics.set(vscode.Uri.file(filePath), [vscDiagnostic]);
+      AnonApexLibraryExecuteExecutor.diagnostics.set(URI.file(filePath), [vscDiagnostic]);
     }
   }
 

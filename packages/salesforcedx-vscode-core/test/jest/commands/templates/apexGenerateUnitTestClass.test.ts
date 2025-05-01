@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { apexGenerateUnitTestClass } from '../../../../src/commands/templates';
 import { clearGathererCache } from '../../../../src/commands/templates/apexGenerateClass';
 import { LibraryApexGenerateUnitTestClassExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor';
@@ -69,9 +69,8 @@ describe('apexGenerateUnitTestClass Unit Tests.', () => {
 
   it('Should not prompt if called with a file URI', async () => {
     // This happens when the command is executed from the context menu in the explorer on the classes folder.
-    const selectedPathUri = {
-      fsPath: '/path1/path2/project/force-app/main/default/classes'
-    } as unknown as vscode.Uri;
+    const selectedPathUri = URI.file('/path1/path2/project/force-app/main/default/classes');
+
     const selectedPathUris = [selectedPathUri];
     await apexGenerateUnitTestClass(selectedPathUri, selectedPathUris);
     expect(simpleGathererMocked).toHaveBeenCalledTimes(1);

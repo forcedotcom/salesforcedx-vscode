@@ -17,6 +17,7 @@ import {
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { getTestOutlineProvider } from '../views/testOutlineProvider';
 import { anonApexDebug } from './anonApexExecute';
@@ -53,29 +54,24 @@ export const launchApexReplayDebuggerWithCurrentFile = async () => {
   void notificationService.showErrorMessage(nls.localize('launch_apex_replay_debugger_unsupported_file'));
 };
 
-const isLogFile = (sourceUri: vscode.Uri): boolean => fileExtensionsMatch(sourceUri, 'log');
+const isLogFile = (sourceUri: URI): boolean => fileExtensionsMatch(sourceUri, 'log');
 
-const isAnonymousApexFile = (sourceUri: vscode.Uri): boolean => fileExtensionsMatch(sourceUri, 'apex');
+const isAnonymousApexFile = (sourceUri: URI): boolean => fileExtensionsMatch(sourceUri, 'apex');
 
-const launchReplayDebuggerLogFile = async (sourceUri: vscode.Uri) => {
+const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
   await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile', {
     fsPath: sourceUri.fsPath
   });
 };
 
-const getApexTestClassName = async (sourceUri: vscode.Uri): Promise<string | undefined> => {
+const getApexTestClassName = async (sourceUri: URI): Promise<string | undefined> => {
   if (!sourceUri) {
     return undefined;
   }
 
   const testOutlineProvider = getTestOutlineProvider();
   await testOutlineProvider.refresh();
-  // This is a little bizarre.  Intellisense is reporting that getTestClassName() returns a string,
-  // but it actually it returns string | undefined.  Well, regardless, since flushFilePath() takes
-  // a string (and guards against empty strings) using the Non-null assertion operator
-  // (https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator)
-  // fixes the issue.
-  const flushedUri = vscode.Uri.file(fileUtils.flushFilePath(sourceUri.fsPath));
+  const flushedUri = URI.file(fileUtils.flushFilePath(sourceUri.fsPath));
 
   return testOutlineProvider.getTestClassName(flushedUri);
 };

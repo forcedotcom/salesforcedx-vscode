@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { apexGenerateClass } from '../../../../src/commands/templates';
 import { clearGathererCache } from '../../../../src/commands/templates/apexGenerateClass';
 import { LibraryApexGenerateClassExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateClassExecutor';
@@ -70,9 +70,7 @@ describe('apexGenerateClass Unit Tests.', () => {
 
   it('Should not prompt if called from file context menu', async () => {
     // This happens when the command is executed from the context menu in the explorer on the classes folder.
-    const selectedPathUri = {
-      fsPath: '/path1/path2/project/force-app/main/default/classes'
-    } as unknown as vscode.Uri;
+    const selectedPathUri = URI.file('/path1/path2/project/force-app/main/default/classes');
     await apexGenerateClass(selectedPathUri);
     expect(selectFileNameMocked).toHaveBeenCalledWith(APEX_CLASS_NAME_MAX_LENGTH);
     // still called to initialize, not actually used

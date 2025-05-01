@@ -6,9 +6,9 @@
  */
 
 import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
+import { Utils } from 'vscode-uri';
 import { VSCODE_APEX_EXTENSION_NAME } from '../../constants';
 import { iconKey, ICONS } from './IconsEnum';
-
 /**
  * Get the Uri for an icon located in the resources directory.
  * @param key A key from the {@link IconsEnum}
@@ -16,7 +16,7 @@ import { iconKey, ICONS } from './IconsEnum';
  */
 const getIconPath = (key: iconKey) => {
   const baseExtensionPath = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
-  const iconUri = extensionUris.join(baseExtensionPath, ICONS[key]);
+  const iconUri = Utils.joinPath(baseExtensionPath, ICONS[key]);
   return iconUri;
 };
 

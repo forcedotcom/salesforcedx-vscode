@@ -8,6 +8,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
 import { getConflictMessagesFor } from '../conflict/messages';
@@ -38,7 +39,7 @@ export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   }
 }
 
-export const deployManifest = async (manifestUri: vscode.Uri) => {
+export const deployManifest = async (manifestUri: URI) => {
   if (!manifestUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {

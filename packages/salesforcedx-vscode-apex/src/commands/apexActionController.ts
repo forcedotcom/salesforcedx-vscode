@@ -8,14 +8,16 @@
 import { notificationService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { ExternalServiceRegistrationManager } from '../oas/ExternalServiceRegistrationManager';
+import { ExternalServiceRegistrationManager, FullPath } from '../oas/ExternalServiceRegistrationManager';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
 import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
+
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
   private gil = GenerationInteractionLogger.getInstance();
@@ -33,7 +35,7 @@ export class ApexActionController {
    * Creates an OpenAPI Document.
    * @param isClass - Indicates if the action is for a class or a method.
    */
-  public createApexAction = async (isClass: boolean, sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
+  public createApexAction = async (isClass: boolean, sourceUri: URI | URI[]): Promise<void> => {
     const type = isClass ? 'Class' : 'Method';
     const createdMessage = `OASDocumentFor${type}Created`;
     const command = isClass
@@ -66,7 +68,7 @@ export class ApexActionController {
     };
 
     try {
-      let fullPath: [string, string, boolean] = ['', '', false];
+      let fullPath: FullPath = ['', ''];
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,

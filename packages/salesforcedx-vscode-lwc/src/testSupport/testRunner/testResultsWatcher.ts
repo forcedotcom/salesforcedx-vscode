@@ -8,6 +8,7 @@ import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { lwcTestIndexer } from '../testIndexer';
 import { TestExecutionInfo } from '../types';
 
@@ -63,7 +64,7 @@ class TestResultsWatcher implements vscode.Disposable {
     }
   }
 
-  private updateTestResultsFromTestResultsJson(testResultsUri: vscode.Uri) {
+  private updateTestResultsFromTestResultsJson(testResultsUri: URI) {
     try {
       const { fsPath: testResultsFsPath } = testResultsUri;
       const testResultsJSON = fs.readFileSync(testResultsFsPath, {

@@ -11,6 +11,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -19,6 +20,7 @@ import { ProcessorInputOutput } from './documentProcessorPipeline/processorStep'
 import GenerationInteractionLogger from './generationInteractionLogger';
 import { ApexOASInfo, ExternalServiceOperation } from './schemas';
 
+export type FullPath = [originalPath: string, newPath: string];
 /*
  * Handles the creation and management of External Service Registration (ESR) metadata.
  * This includes saving OpenAPI specifications as ESR metadata, managing named credentials,
@@ -38,7 +40,7 @@ export class ExternalServiceRegistrationManager {
   private async initialize(
     isESRDecomposed: boolean,
     processedOasResult: ProcessorInputOutput,
-    fullPath: [string, string, boolean]
+    fullPath: [originalPath: string, newPath: string]
   ) {
     this.isESRDecomposed = isESRDecomposed;
     this.processedOasResult = processedOasResult;
@@ -63,7 +65,7 @@ export class ExternalServiceRegistrationManager {
   public async generateEsrMD(
     isESRDecomposed: boolean,
     processedOasResult: ProcessorInputOutput,
-    fullPath: [string, string, boolean]
+    fullPath: FullPath
   ): Promise<void> {
     this.initialize(isESRDecomposed, processedOasResult, fullPath);
     const orgVersion = await (await workspaceContext.getConnection()).retrieveMaxApiVersion();
@@ -387,12 +389,7 @@ export class ExternalServiceRegistrationManager {
    * @param diffWindowName The title of the diff editor.
    */
   public openDiffFile = async (filepath1: string, filepath2: string, diffWindowName: string): Promise<void> => {
-    await vscode.commands.executeCommand(
-      'vscode.diff',
-      vscode.Uri.file(filepath1),
-      vscode.Uri.file(filepath2),
-      diffWindowName
-    );
+    await vscode.commands.executeCommand('vscode.diff', URI.file(filepath1), URI.file(filepath2), diffWindowName);
   };
 
   /**
@@ -400,7 +397,7 @@ export class ExternalServiceRegistrationManager {
    * @param filename
    * @returns Promise<[string, string, boolean]> - [className.externalServiceRegistration-meta.xml, the file name of the generated ESR, a boolean indicating if the file already exists]
    */
-  pathExists = async (filename: string): Promise<[string, string, boolean]> => {
+  pathExists = async (filename: string): Promise<FullPath> => {
     // Step 1: Prompt for Folder
     const folder = await this.getFolderForArtifact();
     if (!folder) {
@@ -409,12 +406,11 @@ export class ExternalServiceRegistrationManager {
 
     // Step 2: Verify folder exists and if not create it
     if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder);
+      fs.mkdirSync(folder, { recursive: true });
     }
 
     // Step 3: Check if File Exists
     const fullPath = path.join(folder, filename);
-    let esrExists = false;
     if (fs.existsSync(fullPath)) {
       const whatToDo = await this.handleExistingESR();
       if (whatToDo === 'cancel') {
@@ -428,26 +424,23 @@ export class ExternalServiceRegistrationManager {
           fs.mkdirSync(esr_files_for_merge_folder);
         }
         const newFullPath = path.join(esr_files_for_merge_folder, newFileName);
-        esrExists = true;
-        return [fullPath, newFullPath, esrExists];
+        return [fullPath, newFullPath];
       }
     }
-    return [fullPath, fullPath, esrExists];
+    return [fullPath, fullPath];
   };
 
   /**
    * Handles the scenario where an ESR file already exists.
    * @returns A string indicating the user's choice: 'overwrite', 'merge', or 'cancel'.
    */
-  handleExistingESR = async (): Promise<string> => {
-    const response = await vscode.window.showWarningMessage(
+  handleExistingESR = async (): Promise<string> =>
+    (await vscode.window.showWarningMessage(
       nls.localize('file_exists'),
       { modal: true },
       nls.localize('overwrite'),
       nls.localize('merge')
-    );
-    return response || 'cancel';
-  };
+    )) ?? 'cancel';
 
   getFolderForArtifact = async (): Promise<string | undefined> => {
     const registryAccess = new RegistryAccess();

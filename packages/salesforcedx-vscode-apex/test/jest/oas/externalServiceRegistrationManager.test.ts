@@ -10,9 +10,10 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
 import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
-import { ExternalServiceRegistrationManager } from '../../../src/oas/ExternalServiceRegistrationManager';
+import { ExternalServiceRegistrationManager, FullPath } from '../../../src/oas/ExternalServiceRegistrationManager';
 import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
@@ -21,7 +22,7 @@ describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;
   let processedOasResult: ProcessorInputOutput;
-  let fullPath: [string, string, boolean];
+  let fullPath: FullPath;
   let workspaceContextGetInstanceSpy: any;
   let registryAccess: RegistryAccess;
   let getTypeByNameMock: jest.SpyInstance;
@@ -64,7 +65,7 @@ describe('ExternalServiceRegistrationManager', () => {
     workspaceContextGetInstanceSpy = jest
       .spyOn(WorkspaceContextUtil, 'getInstance')
       .mockReturnValue(mockWorkspaceContext as any);
-    fullPath = ['/path/to/original', '/path/to/new', false];
+    fullPath = ['/path/to/original', '/path/to/new'];
     jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
     oasSpec = {
       openapi: '3.0.0',
@@ -101,12 +102,16 @@ describe('ExternalServiceRegistrationManager', () => {
     });
 
     it('should initialize with overwrite set to true when paths are the same', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.xml', true]);
+      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.xml']);
       expect(esrHandler['overwrite']).toBe(true);
+    });
+    it('should initialize with overwrite set to false when paths differ only by extension', async () => {
+      await esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.pdf']);
+      expect(esrHandler['overwrite']).toBe(false);
     });
 
     it('should initialize with overwrite set to false when paths are different', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.xml', false]);
+      await esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.xml']);
       expect(esrHandler['overwrite']).toBe(false);
     });
   });
@@ -163,17 +168,45 @@ describe('ExternalServiceRegistrationManager', () => {
     });
   });
 
-  it('displayFileDifferences', async () => {
-    esrHandler['initialize'](true, processedOasResult, fullPath);
+  describe('displayFileDifferences', () => {
+    const xmlOriginal = '/path/to/original.externalServiceRegistration-meta.xml';
+    const xmlNew = '/path/to/new.externalServiceRegistration-meta.xml';
+    it('displayFileDifferences composed', async () => {
+      esrHandler['initialize'](false, processedOasResult, [xmlOriginal, xmlNew]);
 
-    await esrHandler.displayFileDifferences();
+      await esrHandler.displayFileDifferences();
 
-    expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-      'vscode.diff',
-      vscode.Uri.file('/path/to/original.xml'),
-      vscode.Uri.file('/path/to/new.xml'),
-      'Manual Diff of ESR XML Files'
-    );
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'vscode.diff',
+        URI.file(xmlOriginal),
+        URI.file(xmlNew),
+        'Manual Diff of ESR XML Files'
+      );
+    });
+
+    it('displayFileDifferences decomposed', async () => {
+      const yamlOriginal = '/path/to/original.yaml';
+      const yamlNew = '/path/to/new.yaml';
+      esrHandler['initialize'](true, processedOasResult, [xmlOriginal, xmlNew]);
+
+      await esrHandler.displayFileDifferences();
+
+      expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(
+        1,
+        'vscode.diff',
+        URI.file(xmlOriginal),
+        URI.file(xmlNew),
+        'Manual Diff of ESR XML Files'
+      );
+
+      expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(
+        2,
+        'vscode.diff',
+        URI.file(yamlOriginal),
+        URI.file(yamlNew),
+        'Manual Diff of ESR YAML Files'
+      );
+    });
   });
 
   it('should handle existing ESR file', async () => {

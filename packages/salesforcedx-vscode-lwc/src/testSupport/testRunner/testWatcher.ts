@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { TestExecutionInfo } from '../types';
 import { LWC_TEST_WATCH_LOG_NAME } from '../types/constants';
 import { SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
@@ -65,7 +66,7 @@ class TestWatcher {
         watchTestTask.terminate();
       }
       this.watchedTests.delete(fsPath);
-      this.setWatchingContext(vscode.Uri.file(fsPath));
+      this.setWatchingContext(URI.file(fsPath));
     }
   }
 
@@ -73,7 +74,7 @@ class TestWatcher {
    * Determine if we are watching the test uri
    * @param testUri uri of the test
    */
-  public isWatchingTest(testUri: vscode.Uri) {
+  public isWatchingTest(testUri: URI) {
     const { fsPath } = testUri;
     return this.watchedTests.has(fsPath);
   }
@@ -83,7 +84,7 @@ class TestWatcher {
    * display appropriately in editor/title
    * @param testUri uri of the test
    */
-  public setWatchingContext(testUri: vscode.Uri) {
+  public setWatchingContext(testUri: URI) {
     if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.uri.fsPath === testUri.fsPath) {
       vscode.commands.executeCommand(
         'setContext',

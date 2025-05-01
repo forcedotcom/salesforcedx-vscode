@@ -12,6 +12,7 @@ import * as fs from 'node:fs';
 import { join, parse } from 'node:path';
 import { format } from 'node:util';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { workspaceUtils } from '../util';
@@ -53,7 +54,7 @@ export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> 
   }
 }
 
-export const projectGenerateManifest = async (sourceUri: vscode.Uri, uris: vscode.Uri[] | undefined): Promise<void> => {
+export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | undefined): Promise<void> => {
   if (!uris || uris.length < 1) {
     uris = [];
     uris.push(sourceUri);

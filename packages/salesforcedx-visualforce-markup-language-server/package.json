@@ -22,7 +22,7 @@
   "dependencies": {
     "vscode-languageserver-types": "^3.4.0",
     "vscode-nls": "^2.0.2",
-    "vscode-uri": "^1.0.1"
+    "vscode-uri": "^3.1.0"
   },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",

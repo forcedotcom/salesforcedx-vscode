@@ -7,6 +7,7 @@
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
 import { execSync } from 'node:child_process';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
@@ -205,14 +206,14 @@ export class LanguageClientManager {
   private async removeApexDB(): Promise<void> {
     if (hasRootWorkspace() && vscode.workspace.workspaceFolders) {
       const wsrf = vscode.workspace.workspaceFolders[0].uri;
-      const toolsUri = vscode.Uri.joinPath(wsrf, '.sfdx', 'tools');
+      const toolsUri = URI.parse(wsrf.toString()).with({ path: wsrf.path + '/.sfdx/tools' });
       try {
         const entries = await vscode.workspace.fs.readDirectory(toolsUri);
         const releaseFolders = entries
           .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
           .map(([name]) => name);
         for (const folder of releaseFolders) {
-          const folderUri = vscode.Uri.joinPath(toolsUri, folder);
+          const folderUri = URI.parse(toolsUri.toString()).with({ path: toolsUri.path + '/' + folder });
           await vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true });
         }
       } catch (error) {

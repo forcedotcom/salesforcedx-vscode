@@ -8,6 +8,7 @@
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
@@ -117,7 +118,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
 };
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export const code2ProtocolConverter = (value: vscode.Uri) => {
+export const code2ProtocolConverter = (value: URI) => {
   if (/^win32/.test(process.platform)) {
     // The *first* : is also being encoded which is not the standard for URI on Windows
     // Here we transform it back to the standard way
@@ -127,7 +128,7 @@ export const code2ProtocolConverter = (value: vscode.Uri) => {
   }
 };
 
-const protocol2CodeConverter = (value: string) => vscode.Uri.parse(value);
+const protocol2CodeConverter = (value: string) => URI.parse(value);
 
 export const createLanguageServer = async (extensionContext: vscode.ExtensionContext): Promise<ApexLanguageClient> => {
   const telemetryService = await getTelemetryService();
