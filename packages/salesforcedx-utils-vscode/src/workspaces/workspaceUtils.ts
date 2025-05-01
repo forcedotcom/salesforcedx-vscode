@@ -8,7 +8,7 @@
 import { workspace, WorkspaceFolder } from 'vscode';
 
 export const hasRootWorkspace = (ws: typeof workspace = workspace) =>
-  ws && ws.workspaceFolders && ws.workspaceFolders.length > 0;
+  ws?.workspaceFolders?.length ?? 0 > 0;
 
 export const getRootWorkspace = (): WorkspaceFolder =>
   hasRootWorkspace() ? workspace.workspaceFolders![0] : ({} as WorkspaceFolder);
