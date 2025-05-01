@@ -111,9 +111,11 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;
     if (workspaceUtils.hasRootWorkspace()) {
-      const folderName = workspaceUtils
-        .getRootWorkspace()
-        .name.replace(/\W/g /* Replace all non-alphanumeric characters */, '');
+      const rootWorkspace = workspaceUtils.getRootWorkspace();
+      if (!rootWorkspace) {
+        throw new Error('Workspace folder is not defined');
+      }
+      const folderName = rootWorkspace.name.replace(/\W/g /* Replace all non-alphanumeric characters */, '');
       defaultAlias = isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
     }
     const aliasInputOptions = {
