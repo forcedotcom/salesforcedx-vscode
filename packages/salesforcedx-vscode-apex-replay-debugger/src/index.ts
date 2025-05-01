@@ -17,7 +17,7 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
@@ -201,9 +201,9 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   if (salesforceApexExtension && salesforceApexExtension.exports) {
     let expired = false;
     let i = 0;
-    while (!salesforceApexExtension.exports.languageClientUtils.getStatus().isReady() && !expired) {
-      if (salesforceApexExtension.exports.languageClientUtils.getStatus().failedToInitialize()) {
-        throw Error(salesforceApexExtension.exports.languageClientUtils.getStatus().getStatusMessage());
+    while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
+      if (salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
+        throw Error(salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
       }
 
       await imposeSlightDelay(100);

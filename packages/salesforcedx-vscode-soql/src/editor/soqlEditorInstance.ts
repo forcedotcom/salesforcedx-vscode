@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeSObjectResult, QueryResult } from '@jsforce/jsforce-node';
+import type { QueryResult, DescribeSObjectResult } from '../types';
 import { Connection } from '@salesforce/core-bundle';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
 import { trackErrorWithTelemetry } from '../commonUtils';

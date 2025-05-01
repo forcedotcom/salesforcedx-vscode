@@ -22,7 +22,6 @@
   "diff_folder_against_org": "SFDX: Diff Folder Against Org",
   "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false).",
   "enable_source_tracking_for_deploy_and_retrieve": "Specifies whether source-tracking is enabled for deploy or retrieve operations in a source-tracked org. Disable source-tracking if you are experiencing performance issues using deploy or retrieve commands on your source-tracked orgs.",
-  "force_lightning_lwc_test_create_text": "SFDX: Create Lightning Web Component Test",
   "ignore_conflicts_on_push_description": "Specifies whether to always use --ignore-conflicts when you run project:deploy:start on save",
   "isv_bootstrap_command_text": "SFDX: Create and Set Up Project for ISV Debugging",
   "launch_apex_replay_debugger_with_current_file": "SFDX: Launch Apex Replay Debugger with Current File",

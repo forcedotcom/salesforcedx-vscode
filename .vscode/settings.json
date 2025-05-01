@@ -21,8 +21,6 @@
     "./packages/salesforcedx-visualforce-markup-language-server",
     "./packages/salesforcedx-visualforce-language-server",
     "./@typescript-eslint/no-unsafe-return",
-    "./packages/salesforcedx-test-utils-vscode",
-    "./packages/system-tests",
     "./packages/salesforcedx-vscode-apex-debugger",
     "./packages/salesforcedx-vscode-lwc",
     "./packages/salesforcedx-apex-debugger",
@@ -50,7 +48,5 @@
   "prettier.useTabs": false,
   "prettier.printWidth": 120,
   "prettier.arrowParens": "avoid",
-  "editor.rulers": [
-    120
-  ]
+  "editor.rulers": [120]
 }

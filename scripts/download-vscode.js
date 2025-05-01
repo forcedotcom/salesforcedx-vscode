@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const ncp = require('ncp');
 const path = require('path');
 const fs = require('fs');
 const downloadAndUnzipVSCode = require('@vscode/test-electron').downloadAndUnzipVSCode;
@@ -70,7 +69,7 @@ downloadAndUnzipVSCode(vscodeVersion)
             fs.mkdirSync(copyDestination, { recursive: true });
           }
           logger.debug(`Copying to: ${copyDestination}`);
-          ncp(vscodeFullPath, copyDestination, function (err) {
+          fs.cp(vscodeFullPath, copyDestination, { recursive: true }, err => {
             if (err) {
               return console.error(err);
             }

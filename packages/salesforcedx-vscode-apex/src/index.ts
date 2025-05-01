@@ -6,7 +6,7 @@
  */
 
 import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
@@ -34,13 +34,13 @@ import { MetadataOrchestrator } from './commands/metadataOrchestrator';
 import { workspaceContext } from './context';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
-  enableJavaDocSymbols,
+  configureApexLanguage,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
-  languageClientUtils
+  languageClientManager
 } from './languageUtils';
-import { restartLanguageServerAndClient, createLanguageClient } from './languageUtils/languageClientUtils';
+import { restartLanguageServerAndClient, createLanguageClient } from './languageUtils';
 import { nls } from './messages';
 import { checkIfESRIsDecomposed } from './oasUtils';
 import { getTelemetryService } from './telemetry/telemetry';
@@ -84,11 +84,11 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   // start the language server and client
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
-  languageClientUtils.setStatusBarInstance(languageServerStatusBarItem);
+  languageClientManager.setStatusBarInstance(languageServerStatusBarItem);
   await createLanguageClient(extensionContext, languageServerStatusBarItem);
 
   // Javadoc support
-  enableJavaDocSymbols();
+  configureApexLanguage();
 
   // Initialize the apexActionController
   await apexActionController.initialize(extensionContext);
@@ -115,7 +115,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
     getApexTests,
-    languageClientUtils
+    languageClientManager
   };
 
   void activationTracker.markActivationStop(new Date());
@@ -266,7 +266,7 @@ const registerTestView = (): vscode.Disposable => {
   // Refresh Test View command
   testViewItems.push(
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, () => {
-      if (languageClientUtils.getStatus().isReady()) {
+      if (languageClientManager.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
     })
@@ -282,7 +282,7 @@ const registerTestView = (): vscode.Disposable => {
 };
 
 export const deactivate = async () => {
-  await languageClientUtils.getClientInstance()?.stop();
+  await languageClientManager.getClientInstance()?.stop();
   const telemetryService = await getTelemetryService();
   telemetryService?.sendExtensionDeactivationEvent();
 };

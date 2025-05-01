@@ -32,8 +32,8 @@ import {
   logger
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import * as os from 'os';
-import { basename } from 'path';
+import * as os from 'node:os';
+import { basename } from 'node:path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import { LineBreakpointInfo, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {

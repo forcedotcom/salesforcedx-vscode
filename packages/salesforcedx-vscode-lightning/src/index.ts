@@ -7,9 +7,9 @@
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import { ExtensionContext, ProgressLocation, Uri, window, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { nls } from './messages';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
@@ -134,20 +134,15 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Create the language client and start the client.
   const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
 
-  client
-    .onReady()
-    .then(() => {
-      client.onNotification('salesforce/indexingStarted', startIndexing);
-      client.onNotification('salesforce/indexingEnded', endIndexing);
-    })
-    .catch();
-
+  // Set up notifications
+  client.onNotification('salesforce/indexingStarted', startIndexing);
+  client.onNotification('salesforce/indexingEnded', endIndexing);
   // Start the language server
-  const disp = client.start();
+  await client.start();
 
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
-  extensionContext.subscriptions.push(disp);
+  extensionContext.subscriptions.push(client);
 
   // Notify telemetry that our extension is now active
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);

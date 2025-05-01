@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fail } from 'assert';
-import { expect } from 'chai';
-import * as cp from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import { fail } from 'node:assert';
+import * as cp from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
@@ -43,17 +42,17 @@ describe('Java Requirements Test', () => {
     try {
       await resolveRequirements();
     } catch (err) {
-      expect(err).contains(localRuntime);
+      expect(err).toContain(localRuntime);
       exceptionThrown = true;
     }
-    expect(exceptionThrown).to.be.true;
+    expect(exceptionThrown).toEqual(true);
   });
 
   it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
     execFileStub.yields('', '', 'java.version = 11.0.0');
     const requirements = await resolveRequirements();
-    expect(requirements.java_home).contains(jdk);
+    expect(requirements.java_home).toContain(jdk);
   });
 
   it('Should not support Java 8', async () => {
@@ -62,7 +61,7 @@ describe('Java Requirements Test', () => {
       await checkJavaVersion('~/java_home');
       fail('Should have thrown when the Java version is not supported');
     } catch (err) {
-      expect(err).to.equal(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
+      expect(err).toEqual(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
     }
   });
 
@@ -70,7 +69,7 @@ describe('Java Requirements Test', () => {
     execFileStub.yields('', '', 'java.version = 11.0.0');
     try {
       const result = await checkJavaVersion('~/java_home');
-      expect(result).to.equal(true);
+      expect(result).toBe(true);
     } catch (err) {
       fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
     }
@@ -80,7 +79,7 @@ describe('Java Requirements Test', () => {
     execFileStub.yields('', '', 'java.version = 17.2.3');
     try {
       const result = await checkJavaVersion('~/java_home');
-      expect(result).to.equal(true);
+      expect(result).toBe(true);
     } catch (err) {
       fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
     }
@@ -90,18 +89,18 @@ describe('Java Requirements Test', () => {
     execFileStub.yields('', '', 'java.version = 21.0.0');
     try {
       const result = await checkJavaVersion('~/java_home');
-      expect(result).to.equal(true);
+      expect(result).toBe(true);
     } catch (err) {
       fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
     }
   });
-  it('Should not support Java 20', async () => {
-    execFileStub.yields('', '', 'java.version = 20.0.0');
+  it('Should support Java 23', async () => {
+    execFileStub.yields('', '', 'java.version = 23.0.0');
     try {
-      await checkJavaVersion('~/java_home');
-      fail('Should have thrown when the Java version is not supported');
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).toBe(true);
     } catch (err) {
-      expect(err).to.equal(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
+      fail(`Should not have thrown when the Java version is 23.  The error was: ${err}`);
     }
   });
 
@@ -111,7 +110,7 @@ describe('Java Requirements Test', () => {
       await checkJavaVersion(path.join('~', 'java_home'));
       fail('Should have thrown when the Java version is not supported');
     } catch (err) {
-      expect(err).to.equal(
+      expect(err).toEqual(
         nls.localize(
           'java_version_check_command_failed',
           `${path.join('~', 'java_home', 'bin', 'java')} -XshowSettings:properties -version`,

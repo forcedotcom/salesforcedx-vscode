@@ -17,7 +17,7 @@ import { OutputEvent, Source, StackFrame, StoppedEvent, ThreadEvent } from '@vsc
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
-import * as os from 'os';
+import * as os from 'node:os';
 import * as sinon from 'sinon';
 import Uri from 'vscode-uri';
 import {
@@ -56,6 +56,8 @@ import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } f
 import { nls } from '../../../src/messages';
 import { ApexDebugForTest } from './apexDebugForTest';
 import { DummyContainer, newStringValue } from './apexDebugVariablesHandling.test';
+
+jest.setTimeout(30_000);
 
 describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;

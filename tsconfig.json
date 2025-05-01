@@ -14,9 +14,6 @@
       "path": "packages/salesforcedx-sobjects-faux-generator"
     },
     {
-      "path": "packages/salesforcedx-test-utils-vscode"
-    },
-    {
       "path": "packages/salesforcedx-utils"
     },
     {
@@ -51,9 +48,6 @@
     },
     {
       "path": "packages/salesforcedx-vscode-visualforce"
-    },
-    {
-      "path": "packages/system-tests"
     },
     {
       "path": "./.github/actions/new-issue"

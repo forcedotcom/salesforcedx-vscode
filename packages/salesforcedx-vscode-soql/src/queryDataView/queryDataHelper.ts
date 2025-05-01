@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { QueryResult } from '@jsforce/jsforce-node';
+import type { QueryResult } from '../types';
 import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 
 type ExtendedQueryData = QueryResult<JsonMap> & {
   columnData: ColumnData;

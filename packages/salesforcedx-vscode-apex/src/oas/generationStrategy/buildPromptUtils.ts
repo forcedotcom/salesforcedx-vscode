@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as ejs from 'ejs';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { DocumentSymbol } from 'vscode';
 import { nls } from '../../messages';
 import { ejsTemplateHelpers, EjsTemplatesEnum } from '../../oasUtils';

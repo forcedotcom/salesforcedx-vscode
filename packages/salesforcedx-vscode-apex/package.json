@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.7.0",
+  "version": "63.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,10 +24,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "8.1.12",
+    "@salesforce/apex-node-bundle": "8.1.20",
     "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core-bundle": "8.8.2",
-    "@salesforce/salesforcedx-utils-vscode": "63.7.0",
+    "@salesforce/core-bundle": "8.9.1",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.2",
+    "@salesforce/salesforcedx-utils-vscode": "63.11.0",
     "@salesforce/vscode-service-provider": "1.4.0",
     "@stoplight/spectral-core": "1.19.5",
     "@stoplight/spectral-functions": "1.9.3",
@@ -39,31 +40,21 @@
     "find-java-home": "0.2.0",
     "jsonpath-plus": "10.3.0",
     "openapi-types": "12.1.3",
-    "shelljs": "0.8.5",
-    "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "8.1.0",
+    "vscode-languageclient": "^9.0.1",
     "yaml": "2.6.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.7.0",
-    "@salesforce/ts-sinon": "1.4.30",
     "@types/async-lock": "1.4.2",
-    "@types/chai": "4.3.3",
     "@types/ejs": "3.1.5",
-    "@types/mocha": "^5",
     "@types/node": "^20.0.0",
-    "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",
-    "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "mocha": "^10",
     "prettier": "3.3.3",
     "sinon": "^13.0.1",
-    "typescript": "^5.6.2",
-    "vscode-extension-telemetry": "0.0.17"
+    "typescript": "^5.6.2"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -88,7 +79,7 @@
   },
   "packaging": {
     "assets": [
-      "License.txt",
+      "LICENSE.txt",
       "package.nls.ja.json",
       "package.nls.json",
       "README.md",
@@ -106,7 +97,6 @@
       "languageServerDir": "dist",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "shelljs": "0.8.5",
         "jsonpath": "1.1.1",
         "jsonc-parser": "2.2.1"
       },
@@ -202,7 +192,7 @@
       "commandPalette": [
         {
           "command": "sf.apex.languageServer.restart",
-          "when": "resource =~ /.\\.(cls)?$/"
+          "when": "sf:project_opened"
         },
         {
           "command": "sf.anon.apex.execute.selection",

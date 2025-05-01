@@ -47,7 +47,6 @@ export {
 export { ConfirmationAndSourcePathGatherer, DeleteSourceExecutor, ManifestChecker, deleteSource } from './deleteSource';
 export { projectGenerateManifest } from './projectGenerateManifest';
 export { DescribeMetadataExecutor, describeMetadata } from './describeMetadata';
-export { ListMetadataExecutor, listMetadata } from './listMetadata';
 export { PackageInstallExecutor, SelectInstallationKey, SelectPackageID, packageInstall } from './packageInstall';
 export { RefreshSObjectsExecutor, refreshSObjects, initSObjectDefinitions } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
@@ -94,7 +93,6 @@ export {
   apexGenerateClass,
   apexGenerateTrigger,
   apexGenerateUnitTestClass,
-  forceLightningLwcTestCreate,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
   internalLightningGenerateEvent,

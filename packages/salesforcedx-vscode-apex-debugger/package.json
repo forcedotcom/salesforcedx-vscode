@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.7.0",
+  "version": "63.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,25 +24,19 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "63.7.0",
-    "@salesforce/salesforcedx-utils-vscode": "63.7.0",
+    "@salesforce/salesforcedx-utils": "63.11.0",
+    "@salesforce/salesforcedx-apex-debugger": "63.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "63.11.0",
     "@vscode/debugprotocol": "1.68.0",
-    "vscode-extension-telemetry": "0.0.17"
+    "vscode-extension-telemetry": "^0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.7.0",
-    "@types/chai": "4.3.3",
-    "@types/mocha": "^5",
     "@types/node": "^20.0.0",
-    "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",
-    "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "mocha": "^10",
-    "prettier": "3.3.3",
-    "sinon": "^13.0.1"
+    "prettier": "3.3.3"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -73,7 +67,7 @@
   "main": "./out/src",
   "packaging": {
     "assets": [
-      "License.txt",
+      "LICENSE.txt",
       "package.nls.ja.json",
       "package.nls.json",
       "README.md",

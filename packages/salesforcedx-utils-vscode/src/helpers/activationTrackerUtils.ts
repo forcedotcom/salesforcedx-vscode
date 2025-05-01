@@ -6,9 +6,9 @@
  */
 
 import { ExtensionInfo, ExtensionsInfo } from '@salesforce/vscode-service-provider';
-import { readFile } from 'fs/promises';
-import { EOL } from 'os';
-import { join, sep } from 'path';
+import { readFile } from 'node:fs/promises';
+import { EOL } from 'node:os';
+import { join, sep } from 'node:path';
 import { extensions, ExtensionContext, Uri } from 'vscode';
 
 type ParsedLog = {

@@ -2,23 +2,18 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "out",
+    "outDir": "out"
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
     {
       "path": "../salesforcedx-sobjects-faux-generator"
     },
     {
-      "path": "../salesforcedx-utils-vscode"
+      "path": "../salesforcedx-utils"
     },
     {
-      "path": "../salesforcedx-test-utils-vscode"
+      "path": "../salesforcedx-utils-vscode"
     }
   ]
 }

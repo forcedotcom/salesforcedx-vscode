@@ -16,6 +16,7 @@ import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import eslintPluginJest from 'eslint-plugin-jest';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
 export default [
   {
@@ -28,16 +29,13 @@ export default [
       '**/jest.integration.config.js',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-apex-replay-debugger/src/**',
-      'packages/system-tests/assets/**',
-      'packages/system-tests/scenarios/**',
-      'packages/system-tests/src/**',
+      'test-assets/**',
       'packages/salesforcedx-sobjects-faux-generator/scripts/**',
       'packages/salesforcedx-sobjects-faux-generator/coverage/**',
       'packages/salesforcedx-vscode-soql/test/vscode-integration',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-lwc/test/vscode-integration',
-      'packages/salesforcedx-vscode-core/test/vscode-integration/**',
-      'packages/salesforcedx-test-utils-vscode/src/testrunner.ts'
+      'packages/salesforcedx-vscode-core/test/vscode-integration/**'
     ]
   },
   eslintPluginPrettierRecommended,
@@ -61,9 +59,11 @@ export default [
       jsdoc: eslintPluginJsdoc,
       'jest-formatting': eslintPluginJestFormatting,
       'prefer-arrow': eslintPluginPreferArrow,
-      '@stylistic/eslint-plugin-ts': stylistic
+      '@stylistic/eslint-plugin-ts': stylistic,
+      unicorn: eslintPluginUnicorn
     },
     rules: {
+      'unicorn/prefer-node-protocol': 'error',
       'header/header': [
         'error',
         'block',
@@ -197,6 +197,7 @@ export default [
       'guard-for-in': 'error',
       'id-denylist': 'error',
       'id-match': 'error',
+      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
       'import/order': [
         'error',
         {

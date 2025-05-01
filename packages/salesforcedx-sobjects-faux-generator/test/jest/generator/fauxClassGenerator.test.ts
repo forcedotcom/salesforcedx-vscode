@@ -5,18 +5,34 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import { EOL } from 'os';
-import { join } from 'path';
+import * as fs from 'node:fs';
+import { EOL } from 'node:os';
+import { join } from 'node:path';
 import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
 import { FauxClassGenerator } from '../../../src/generator';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { INDENT } from '../../../src/generator/fauxClassGenerator';
+import { nls } from '../../../src/messages';
 jest.mock('../../../src/generator/declarationGenerator');
 
 const declarationGeneratorMocked = jest.mocked(DeclarationGenerator);
 
 describe('FauxClassGenerator Unit Tests.', () => {
   const fakePath = './this/is/a/path';
+  let classPath = '';
+
+  const getGenerator = (): FauxClassGenerator => new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
+
+  afterEach(() => {
+    if (classPath) {
+      try {
+        fs.unlinkSync(classPath);
+      } catch (e) {
+        console.log(e);
+      }
+      classPath = '';
+    }
+  });
 
   it('Should be able to create an instance.', () => {
     const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
@@ -29,6 +45,20 @@ describe('FauxClassGenerator Unit Tests.', () => {
     expect(() => {
       new FauxClassGenerator(SObjectCategory.ALL, fakePath);
     }).toThrowError(`SObject category cannot be used to generate metadata ${SObjectCategory.ALL}`);
+  });
+
+  it('Should generate a faux class with a proper header comment', async () => {
+    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
+    const closeHeader = ' ], "childRelationships": [] }';
+
+    const sobject1 = `${fieldsHeader}${closeHeader}`;
+
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
+    expect(fs.existsSync(classPath)).toBeTruthy();
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).toContain(nls.localize('class_header_generated_comment'));
   });
 
   describe('commentToString()', () => {

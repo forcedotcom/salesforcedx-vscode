@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { QueryResult } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core-bundle';
 import { soqlComments } from '@salesforce/soql-common';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+
+type QueryResult<T> = Awaited<ReturnType<Connection['query']>>;
 export class QueryRunner {
   constructor(private connection: Connection) {}
 
