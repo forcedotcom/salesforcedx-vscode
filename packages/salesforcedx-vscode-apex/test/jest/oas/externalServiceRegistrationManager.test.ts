@@ -13,7 +13,12 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
 import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
-import { ExternalServiceRegistrationManager, FullPath } from '../../../src/oas/ExternalServiceRegistrationManager';
+import {
+  ExternalServiceRegistrationManager,
+  FullPath,
+  promptNamedCredentialSelection,
+  replaceXmlToYaml
+} from '../../../src/oas/ExternalServiceRegistrationManager';
 import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
@@ -94,7 +99,6 @@ describe('ExternalServiceRegistrationManager', () => {
       esrHandler['initialize'](true, processedOasResult, fullPath);
 
       expect(esrHandler['isESRDecomposed']).toBe(true);
-      expect(esrHandler['processedOasResult']).toBe(processedOasResult);
       expect(esrHandler['oasSpec']).toBe(processedOasResult.openAPIDoc);
       expect(esrHandler['overwrite']).toBe(false);
       expect(esrHandler['originalPath']).toBe(fullPath[0]);
@@ -149,11 +153,13 @@ describe('ExternalServiceRegistrationManager', () => {
   describe('promptNamedCredentialSelection', () => {
     it('should prompt the user to select a named credential', async () => {
       const namedCredentials = {
+        done: true,
+        totalSize: 2,
         records: [{ MasterLabel: 'TestCredential1' }, { MasterLabel: 'TestCredential2' }]
       };
       const quickPickSpy = (vscode.window.showQuickPick as jest.Mock).mockResolvedValue('TestCredential1');
 
-      const result = await esrHandler.promptNamedCredentialSelection(namedCredentials);
+      const result = await promptNamedCredentialSelection(namedCredentials);
 
       expect(quickPickSpy).toHaveBeenCalledWith(['TestCredential1', 'TestCredential2', nls.localize('enter_new_nc')], {
         placeHolder: nls.localize('select_named_credential')
@@ -162,8 +168,7 @@ describe('ExternalServiceRegistrationManager', () => {
     });
 
     it('should return undefined if no named credentials are provided', async () => {
-      const result = await esrHandler.promptNamedCredentialSelection(undefined);
-
+      const result = await promptNamedCredentialSelection({ records: [], done: true, totalSize: 0 });
       expect(result).toBeUndefined();
     });
   });
@@ -293,8 +298,7 @@ describe('ExternalServiceRegistrationManager', () => {
     const result = esrHandler.extractInfoProperties();
 
     expect(result).toEqual({
-      description: 'oas description',
-      version: '1.0.0'
+      description: 'oas description'
     });
   });
 
@@ -307,10 +311,10 @@ describe('ExternalServiceRegistrationManager', () => {
 
   it('buildESRXml', async () => {
     jest.spyOn(esrHandler, 'extractInfoProperties').mockReturnValue({
-      description: 'oas description',
-      version: '1.0.0'
+      description: 'oas description'
     });
     jest.spyOn(esrHandler, 'getOperationsFromYaml').mockReturnValue([{ active: true, name: 'getPets' }]);
+    await esrHandler['initialize'](true, processedOasResult, fullPath);
     const existingContent = '<xml></xml>';
     const namedCredential = 'TestCredential';
     const orgVersion = '50.0';
@@ -323,8 +327,7 @@ describe('ExternalServiceRegistrationManager', () => {
   });
 
   it('buildESRYaml', () => {
-    jest.spyOn(esrHandler, 'replaceXmlToYaml').mockReturnValue('/path/to/esr.yaml');
-    const esrXmlPath = '/path/to/esr.xml';
+    const esrXmlPath = '/path/to/esr.externalServiceRegistration-meta.xml';
     const safeOasSpec = 'safeOasSpec';
 
     esrHandler.buildESRYaml(esrXmlPath, safeOasSpec);
@@ -334,7 +337,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
   it('replaceXmlToYaml', () => {
     const filePath = '/path/to/esr.externalServiceRegistration-meta.xml';
-    const result = esrHandler.replaceXmlToYaml(filePath);
+    const result = replaceXmlToYaml(filePath);
 
     expect(result).toBe('/path/to/esr.yaml');
   });

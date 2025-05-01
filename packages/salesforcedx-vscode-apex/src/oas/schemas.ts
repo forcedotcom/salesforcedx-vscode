@@ -90,7 +90,6 @@ export enum ApexOASResource {
 
 export type ApexOASInfo = {
   description: string;
-  version: string;
 };
 
 export type ExternalServiceOperation = {

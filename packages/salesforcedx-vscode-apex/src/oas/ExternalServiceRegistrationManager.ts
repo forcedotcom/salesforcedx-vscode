@@ -6,7 +6,10 @@
  */
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
+import { isString } from '@salesforce/ts-types';
+import type { NamedCredential } from '@salesforce/types/tooling';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
+import type { QueryResult } from 'jsforce';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
@@ -27,11 +30,10 @@ export type FullPath = [originalPath: string, newPath: string];
  * and building the ESR XML and YAML files.
  */
 export class ExternalServiceRegistrationManager {
-  private isESRDecomposed: boolean = false;
+  private isESRDecomposed = false;
   private gil = GenerationInteractionLogger.getInstance();
-  private processedOasResult: ProcessorInputOutput = {} as any;
-  private oasSpec: OpenAPIV3.Document = {} as any;
-  private overwrite: boolean = false;
+  private oasSpec?: OpenAPIV3.Document;
+  private overwrite = false;
   private originalPath: string = '';
   private newPath: string = '';
 
@@ -43,7 +45,6 @@ export class ExternalServiceRegistrationManager {
     fullPath: [originalPath: string, newPath: string]
   ) {
     this.isESRDecomposed = isESRDecomposed;
-    this.processedOasResult = processedOasResult;
     this.oasSpec = processedOasResult.openAPIDoc;
     this.overwrite = fullPath[0] === fullPath[1];
     this.originalPath = fullPath[0];
@@ -67,20 +68,17 @@ export class ExternalServiceRegistrationManager {
     processedOasResult: ProcessorInputOutput,
     fullPath: FullPath
   ): Promise<void> {
-    this.initialize(isESRDecomposed, processedOasResult, fullPath);
+    await this.initialize(isESRDecomposed, processedOasResult, fullPath);
     const orgVersion = await (await workspaceContext.getConnection()).retrieveMaxApiVersion();
     if (!orgVersion) {
       throw new Error(nls.localize('error_retrieving_org_version'));
     }
 
-    let existingContent;
-    let namedCredential;
-    if (fs.existsSync(this.newPath)) {
-      existingContent = fs.readFileSync(this.newPath, 'utf8');
-    }
-
+    const existingContent = fs.existsSync(this.newPath) ? fs.readFileSync(this.newPath, 'utf8') : undefined;
     //Step 1: Let user choose or enter a named credential
-    if (!this.isVersionGte(orgVersion, '63.0')) namedCredential = await this.showNamedCredentialsQuickPick();
+    const namedCredential = this.isVersionGte(orgVersion, '63.0')
+      ? undefined
+      : await this.showNamedCredentialsQuickPick();
 
     //Step 2: Build the content of the ESR Xml file
     const updatedContent = await this.buildESRXml(existingContent, namedCredential, orgVersion);
@@ -89,12 +87,12 @@ export class ExternalServiceRegistrationManager {
     await this.writeAndOpenEsrFile(updatedContent);
 
     // Step 4: If the user chose to merge, open a diff between the original and new ESR files
-    this.displayFileDifferences();
+    await this.displayFileDifferences();
 
     // Step: 5 Create entries in problems tab for generated file
     createProblemTabEntriesForOasDocument(
-      this.isESRDecomposed ? this.replaceXmlToYaml(this.newPath) : this.newPath,
-      this.processedOasResult,
+      this.isESRDecomposed ? replaceXmlToYaml(this.newPath) : this.newPath,
+      processedOasResult,
       this.isESRDecomposed
     );
   }
@@ -114,7 +112,7 @@ export class ExternalServiceRegistrationManager {
       });
       if (this.isESRDecomposed) {
         await vscode.workspace
-          .openTextDocument(this.replaceXmlToYaml(this.newPath))
+          .openTextDocument(replaceXmlToYaml(this.newPath))
           .then((newDocument: vscode.TextDocument) => {
             void vscode.window.showTextDocument(newDocument);
           });
@@ -125,44 +123,13 @@ export class ExternalServiceRegistrationManager {
   }
 
   /**
-   * Prompts the user to select or enter a named credential.
-   * This method queries the available named credentials and presents them in a quick pick menu.
-   * If the user selects "Enter new named credential", they are prompted to enter the name manually.
-   *
-   * @returns A promise that resolves to the selected or entered named credential, or undefined if none was selected.
-   */
-  public async showNamedCredentialsQuickPick(): Promise<string | undefined> {
-    const namedCredentials = await this.queryNamedCredentials();
-    const selectedNamedCredential = await this.promptNamedCredentialSelection(namedCredentials);
-    return this.getFinalNamedCredential(selectedNamedCredential);
-  }
-
-  /**
-   * Queries the available named credentials.
-   * @returns A promise that resolves to the named credentials.
-   */
-  public async queryNamedCredentials(): Promise<any> {
-    try {
-      return await (await workspaceContext.getConnection()).query('SELECT MasterLabel FROM NamedCredential');
-    } catch {
-      throw new Error(nls.localize('error_parsing_nc'));
-    }
-  }
-
-  /**
    * Prompts the user to select a named credential from the available options.
-   * @param namedCredentials - The available named credentials.
    * @returns A promise that resolves to the selected named credential.
    */
-  public async promptNamedCredentialSelection(namedCredentials: any): Promise<string | undefined> {
-    if (namedCredentials) {
-      const quickPicks = namedCredentials.records.map((nc: any) => nc.MasterLabel as string);
-      quickPicks.push(nls.localize('enter_new_nc'));
-      return await vscode.window.showQuickPick(quickPicks, {
-        placeHolder: nls.localize('select_named_credential')
-      });
-    }
-    return undefined;
+  public async showNamedCredentialsQuickPick(): Promise<string | undefined> {
+    const namedCredentials = await queryNamedCredentials();
+    const selectedNamedCredential = await promptNamedCredentialSelection(namedCredentials);
+    return this.getFinalNamedCredential(selectedNamedCredential);
   }
 
   /**
@@ -191,22 +158,19 @@ export class ExternalServiceRegistrationManager {
     orgVersion: string
   ): Promise<string> {
     const baseName = path.basename(this.newPath).split('.')[0];
-    let className;
-    if (this.newPath.includes('esr_files_for_merge')) {
-      // The class name is the part before the second to last underscore
-      const parts = baseName.split('_');
-      className = parts.slice(0, -2).join('_');
-    } else {
-      className = baseName;
-    }
+    const className = this.newPath.includes('esr_files_for_merge')
+      ? // The class name is the part before the second to last underscore
+        baseName.split('_').slice(0, -2).join('_')
+      : baseName;
 
     const { description } = this.extractInfoProperties();
     const operations = this.getOperationsFromYaml();
 
     // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
-    let safeOasSpec = stringify(this.oasSpec);
     const replaceElement = this.isESRDecomposed ? "'" : '&apos;';
-    safeOasSpec = safeOasSpec.replaceAll('"', replaceElement).replaceAll('type: Id', 'type: string');
+    const safeOasSpec = stringify(this.oasSpec ?? {})
+      .replaceAll('"', replaceElement)
+      .replaceAll('type: Id', 'type: string');
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
 
@@ -312,8 +276,7 @@ export class ExternalServiceRegistrationManager {
    */
   public extractInfoProperties(): ApexOASInfo {
     return {
-      description: this.oasSpec?.info?.description || '',
-      version: this.oasSpec?.info?.version
+      description: this.oasSpec?.info?.description || ''
     };
   }
 
@@ -322,7 +285,7 @@ export class ExternalServiceRegistrationManager {
    * @returns An array of ExternalServiceOperation objects.
    */
   public getOperationsFromYaml(): ExternalServiceOperation[] | [] {
-    const operations = Object.entries(this.oasSpec.paths).flatMap(([, pathItem]) => {
+    const operations = Object.entries(this.oasSpec?.paths ?? {}).flatMap(([, pathItem]) => {
       if (!pathItem || typeof pathItem !== 'object') return [];
       return Object.entries(pathItem).map(([, operation]) => {
         if ((operation as OpenAPIV3.OperationObject).operationId) {
@@ -345,7 +308,7 @@ export class ExternalServiceRegistrationManager {
    */
   public buildESRYaml(esrXmlPath: string, safeOasSpec: string) {
     this.gil.addFinalDoc(safeOasSpec);
-    const esrYamlPath = this.replaceXmlToYaml(esrXmlPath);
+    const esrYamlPath = replaceXmlToYaml(esrXmlPath);
     try {
       fs.writeFileSync(esrYamlPath, safeOasSpec, 'utf8');
       console.log(`File created at ${esrYamlPath}`);
@@ -355,13 +318,6 @@ export class ExternalServiceRegistrationManager {
   }
 
   /**
-   * Replaces the XML file extension with a YAML file extension.
-   * @param filePath - The path to the XML file.
-   * @returns The path to the YAML file.
-   */
-  replaceXmlToYaml = (filePath: string): string => filePath.replace('.externalServiceRegistration-meta.xml', '.yaml');
-
-  /**
    * Opens a diff editor for the original and new ESR files.
    * @param originalFilePath The file path of the original ESR file.
    * @param newFilePath The file path of the new ESR file.
@@ -369,28 +325,18 @@ export class ExternalServiceRegistrationManager {
    */
   public async displayFileDifferences(): Promise<void> {
     if (!this.overwrite) {
-      void this.openDiffFile(this.originalPath, this.newPath, 'Manual Diff of ESR XML Files');
+      void openDiffFile(this.originalPath, this.newPath, 'Manual Diff of ESR XML Files');
 
       // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
       if (this.isESRDecomposed) {
-        void this.openDiffFile(
-          this.replaceXmlToYaml(this.originalPath),
-          this.replaceXmlToYaml(this.newPath),
+        void openDiffFile(
+          replaceXmlToYaml(this.originalPath),
+          replaceXmlToYaml(this.newPath),
           'Manual Diff of ESR YAML Files'
         );
       }
     }
   }
-
-  /**
-   * Opens a diff editor for the two files.
-   * @param filepath1 The file on the left side of the diff editor.
-   * @param filepath2 The file on the right side of the diff editor.
-   * @param diffWindowName The title of the diff editor.
-   */
-  public openDiffFile = async (filepath1: string, filepath2: string, diffWindowName: string): Promise<void> => {
-    await vscode.commands.executeCommand('vscode.diff', URI.file(filepath1), URI.file(filepath2), diffWindowName);
-  };
 
   /**
    * Checks if the ESR file already exists and prompts the user on what to do.
@@ -469,3 +415,48 @@ export class ExternalServiceRegistrationManager {
     return folderUri ? path.resolve(folderUri) : undefined;
   };
 }
+
+const queryNamedCredentials = async (): Promise<QueryResult<NamedCredential>> => {
+  try {
+    return await (await workspaceContext.getConnection()).query('SELECT MasterLabel FROM NamedCredential');
+  } catch {
+    throw new Error(nls.localize('error_parsing_nc'));
+  }
+};
+
+/**
+ * Prompts the user to select a named credential from the available options.
+ * @param namedCredentials - The available named credentials.
+ * @returns A promise that resolves to the selected named credential.
+ */
+export const promptNamedCredentialSelection = async (
+  namedCredentials: QueryResult<Pick<NamedCredential, 'MasterLabel'>>
+): Promise<string | undefined> => {
+  if (namedCredentials) {
+    const quickPicks = namedCredentials.records
+      .map(nc => nc.MasterLabel)
+      .filter(isString)
+      .concat(nls.localize('enter_new_nc'));
+    return vscode.window.showQuickPick(quickPicks, {
+      placeHolder: nls.localize('select_named_credential')
+    });
+  }
+};
+
+/**
+ * Replaces the XML file extension with a YAML file extension.
+ * @param filePath - The path to the XML file.
+ * @returns The path to the YAML file.
+ */
+export const replaceXmlToYaml = (filePath: string): string =>
+  filePath.replace('.externalServiceRegistration-meta.xml', '.yaml');
+
+/**
+ * Opens a diff editor for the two files.
+ * @param filepath1 The file on the left side of the diff editor.
+ * @param filepath2 The file on the right side of the diff editor.
+ * @param diffWindowName The title of the diff editor.
+ */
+const openDiffFile = async (filepath1: string, filepath2: string, diffWindowName: string): Promise<void> => {
+  await vscode.commands.executeCommand('vscode.diff', URI.file(filepath1), URI.file(filepath2), diffWindowName);
+};
