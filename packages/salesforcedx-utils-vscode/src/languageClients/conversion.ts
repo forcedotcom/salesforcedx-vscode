@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Uri } from 'vscode';
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 
+// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export const code2ProtocolConverter = (value: Uri) => {
   if (/^win32/.test(process.platform)) {
     // The *first* : is also being encoded which is not the standard for URI on Windows
