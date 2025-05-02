@@ -26,6 +26,13 @@ jest.mock('../../../../src/commands/templates/executors/LibraryApexGenerateTrigg
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
+  const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
+  return {
+    ...actual,
+    CompositeParametersGatherer: jest.fn()
+  };
+});
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
