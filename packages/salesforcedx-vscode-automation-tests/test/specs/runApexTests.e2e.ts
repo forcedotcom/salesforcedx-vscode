@@ -4,11 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { Duration, log, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  createApexClassWithBugs,
+  createApexClassWithTest
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import {
+  getTestsSection,
+  verifyTestItemsInSideBar,
+  verifyTestIconColor,
+  runTestCaseFromSideBar
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
@@ -21,17 +29,9 @@ import {
   notificationIsPresentWithTimeout,
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
-import {
-  createApexClassWithBugs,
-  createApexClassWithTest
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import {
-  getTestsSection,
-  verifyTestItemsInSideBar,
-  verifyTestIconColor,
-  runTestCaseFromSideBar
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 
 describe('Run Apex Tests', async () => {
   let prompt: InputBox | QuickOpenBox;

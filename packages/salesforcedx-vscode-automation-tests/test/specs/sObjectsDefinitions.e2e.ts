@@ -4,12 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { DefaultTreeItem, TreeItem, ViewSection, Workbench, after } from 'vscode-extension-tester';
 import { Duration, log, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
@@ -18,7 +16,9 @@ import {
   notificationIsPresentWithTimeout,
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
+import { DefaultTreeItem, TreeItem, ViewSection, Workbench, after } from 'vscode-extension-tester';
 
 describe('SObjects Definitions', async () => {
   let testSetup: TestSetup;

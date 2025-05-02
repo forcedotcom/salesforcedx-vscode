@@ -5,21 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import {
-  getWorkbench,
-  getStatusBarItemWhichIncludes,
-  getTextEditor,
-  getOutputViewText
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { getFolderName, removeFolder } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
-import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
-import path from 'path';
-import fs from 'fs';
-import { step } from 'mocha-steps';
-import { expect } from 'chai';
-import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
 import {
   Duration,
   log,
@@ -27,10 +12,25 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
+import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { getFolderName, removeFolder } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
+import {
+  getWorkbench,
+  getStatusBarItemWhichIncludes,
+  getTextEditor,
+  getOutputViewText
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import {
   executeQuickPick,
   selectQuickPickItem
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/commandPrompt';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
+import fs from 'node:fs';
+import path from 'node:path';
+import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
 
 // Types
 interface LspStatus {
@@ -149,14 +149,14 @@ const testAutocompletion = async (testSetup: TestSetup): Promise<void> => {
   expect(ariaLabel).to.contain('SayHello(name)');
 
   await autocompletionOptions[0].click();
-  await textEditor.typeText(`'Jack`);
+  await textEditor.typeText("'Jack");
   await textEditor.typeTextAt(7, 38, ';');
   await textEditor.save();
 
   // Allow time for LSP to process the changes and update the editor
   await pause(Duration.seconds(2));
   const line7Text = await textEditor.getTextAtLine(7);
-  expect(line7Text).to.include(`ExampleClass.SayHello('Jack');`);
+  expect(line7Text).to.include("ExampleClass.SayHello('Jack');");
 };
 
 const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<void> => {

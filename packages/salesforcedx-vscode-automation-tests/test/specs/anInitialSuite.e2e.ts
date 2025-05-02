@@ -4,22 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { pause, Duration, log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
 import { ProjectShapeOption, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/types';
+import {
+  findExtensionsInRunningExtensionsList,
+  getExtensionsToVerifyActive
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing/extensionUtils';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
+import { openCommandPromptWithCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/commandPrompt';
 import {
   getWorkbench,
   zoom,
   zoomReset
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/workbench';
-import { openCommandPromptWithCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/commandPrompt';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
 import { after } from 'vscode-extension-tester';
-import {
-  findExtensionsInRunningExtensionsList,
-  getExtensionsToVerifyActive
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing/extensionUtils';
 /*
 anInitialSuite.e2e.ts is a special case.  We want to validate that the Salesforce extensions and
 most SFDX commands are not present at start up.

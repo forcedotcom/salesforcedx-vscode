@@ -4,9 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   Duration,
   findElementByText,
@@ -16,12 +13,6 @@ import {
 import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import {
-  closeCurrentEditor,
-  dismissAllNotifications,
-  getWorkbench
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { By, ModalDialog, after } from 'vscode-extension-tester';
-import {
   createApexClass,
   findTypeInOrgBrowser,
   openOrgBrowser,
@@ -29,6 +20,15 @@ import {
   validateCommand,
   verifyOrgBrowserIsOpen
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
+import {
+  closeCurrentEditor,
+  dismissAllNotifications,
+  getWorkbench
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
+import { By, ModalDialog, after } from 'vscode-extension-tester';
 
 describe('Org Browser', async () => {
   let testSetup: TestSetup;

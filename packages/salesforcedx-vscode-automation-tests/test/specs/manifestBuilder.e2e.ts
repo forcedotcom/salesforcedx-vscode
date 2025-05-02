@@ -4,22 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import path from 'path';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
 import { Duration, log, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { validateCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   clearOutputView,
   executeQuickPick,
   getTextEditor,
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { validateCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
+import path from 'node:path';
+import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
 
 describe('Manifest Builder', async () => {
   let testSetup: TestSetup;

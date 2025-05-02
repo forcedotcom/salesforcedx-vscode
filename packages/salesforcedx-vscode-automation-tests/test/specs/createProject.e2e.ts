@@ -4,22 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { step } from 'mocha-steps';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { after } from 'vscode-extension-tester';
 import {
   TestReqConfig,
   ProjectShapeOption,
   pause,
   Duration
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
   waitForQuickPick,
   clickFilePathOkButton,
   verifyProjectLoaded
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
+import { step } from 'mocha-steps';
+import { after } from 'vscode-extension-tester';
 
 describe('SFDX: Create Project', async () => {
   let testSetup: TestSetup;

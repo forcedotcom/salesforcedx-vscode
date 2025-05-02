@@ -27,7 +27,10 @@
     "./packages/salesforcedx-vscode-soql",
     "./packages/salesforcedx-utils",
     "./packages/salesforcedx-vscode-lightning",
-    "./packages/salesforcedx-sobjects-faux-generator"
+    "./packages/salesforcedx-sobjects-faux-generator",
+    {
+      "pattern": "packages/*/"
+    }
   ],
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
@@ -40,8 +43,9 @@
   "eslint.enable": true,
   "eslint.run": "onSave",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "always"
+    "source.fixAll.eslint": "explicit"
   },
+  "eslint.validate": ["javascript", "typescript"],
   "prettier.singleQuote": true,
   "prettier.trailingComma": "none",
   "prettier.tabWidth": 2,

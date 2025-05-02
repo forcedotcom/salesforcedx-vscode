@@ -4,9 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   Duration,
   log,
@@ -14,7 +11,9 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { By, InputBox, QuickOpenBox, TextEditor, after } from 'vscode-extension-tester';
+import { createApexClassWithBugs } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { continueDebugging } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
@@ -25,8 +24,9 @@ import {
   notificationIsPresentWithTimeout,
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { createApexClassWithBugs } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import { continueDebugging } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
+import { By, InputBox, QuickOpenBox, TextEditor, after } from 'vscode-extension-tester';
 /**
  * This test suite walks through the same steps performed in the "Find and Fix Bugs with Apex Replay Debugger" Trailhead Module;
  * which can be found with the following link:

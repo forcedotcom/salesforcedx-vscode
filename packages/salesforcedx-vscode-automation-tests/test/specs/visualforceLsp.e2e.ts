@@ -4,11 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
-import path from 'path';
+
+import {
+  Duration,
+  log,
+  pause,
+  ProjectShapeOption,
+  TestReqConfig
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  createApexController,
+  createVisualforcePage
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { By, after } from 'vscode-extension-tester';
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
@@ -17,15 +25,10 @@ import {
   getWorkbench,
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { createVisualforcePage } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import {
-  Duration,
-  log,
-  pause,
-  ProjectShapeOption,
-  TestReqConfig
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { createApexController } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { expect } from 'chai';
+import { step, xstep } from 'mocha-steps';
+import path from 'node:path';
+import { By, after } from 'vscode-extension-tester';
 
 describe('Visualforce LSP', async () => {
   let testSetup: TestSetup;

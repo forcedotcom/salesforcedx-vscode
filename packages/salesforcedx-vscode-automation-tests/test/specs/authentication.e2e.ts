@@ -5,28 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { By, InputBox, after } from 'vscode-extension-tester';
 import {
   Duration,
   log,
   pause,
+  ProjectShapeOption,
   TestReqConfig,
   transformedUserName
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
+import { authorizeDevHub } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
-  getStatusBarItemWhichIncludes,
-  getWorkbench,
-  notificationIsPresentWithTimeout,
   attemptToFindOutputPanelText,
   executeQuickPick,
-  findQuickPickItem
+  findQuickPickItem,
+  getStatusBarItemWhichIncludes,
+  getWorkbench,
+  notificationIsPresentWithTimeout
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { authorizeDevHub } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
+import { By, InputBox, after } from 'vscode-extension-tester';
+
 describe('Authentication', async () => {
   let scratchOrgAliasName: string;
   let testSetup: TestSetup;

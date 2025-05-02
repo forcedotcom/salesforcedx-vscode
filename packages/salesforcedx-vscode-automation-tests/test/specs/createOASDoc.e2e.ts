@@ -4,20 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import path from 'path';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import {
-  InputBox,
-  QuickOpenBox,
-  ExtensionsViewSection,
-  ActivityBar,
-  after,
-  By,
-  ExtensionsViewItem,
-  DefaultTreeItem
-} from 'vscode-extension-tester';
 import { Duration } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import {
   TestReqConfig,
@@ -26,6 +12,7 @@ import {
   createCommand,
   openFile
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
 import {
   createApexClass,
   runAndValidateCommand
@@ -35,6 +22,7 @@ import {
   verifyExtensionsAreRunning,
   getExtensionsToVerifyActive
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
   reloadWindow,
@@ -47,7 +35,19 @@ import {
   clickButtonOnModalDialog,
   isCommandAvailable
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
+import path from 'node:path';
+import {
+  InputBox,
+  QuickOpenBox,
+  ExtensionsViewSection,
+  ActivityBar,
+  after,
+  By,
+  ExtensionsViewItem,
+  DefaultTreeItem
+} from 'vscode-extension-tester';
 
 describe('Create OpenAPI v3 Specifications', async () => {
   let prompt: QuickOpenBox | InputBox;

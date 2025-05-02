@@ -4,18 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { By, after } from 'vscode-extension-tester';
 import { Duration, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { createAnonymousApexFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { createGlobalSnippetsFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
+import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { getTextEditor } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { executeQuickPick } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { createGlobalSnippetsFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { expect } from 'chai';
+import { step, xstep } from 'mocha-steps';
+import { By, after } from 'vscode-extension-tester';
 
 describe('Miscellaneous', async () => {
   let testSetup: TestSetup;

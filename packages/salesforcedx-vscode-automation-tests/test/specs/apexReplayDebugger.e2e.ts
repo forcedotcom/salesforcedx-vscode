@@ -4,12 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import path from 'path';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { continueDebugging } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
-import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import {
   Duration,
   log,
@@ -21,6 +15,8 @@ import {
   createApexClassWithTest,
   createAnonymousApexFile
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { continueDebugging } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
   notificationIsPresentWithTimeout,
@@ -31,6 +27,10 @@ import {
   getTextEditor,
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { expect } from 'chai';
+import { step } from 'mocha-steps';
+import path from 'node:path';
+import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 
 describe('Apex Replay Debugger', async () => {
   let prompt: QuickOpenBox | InputBox;

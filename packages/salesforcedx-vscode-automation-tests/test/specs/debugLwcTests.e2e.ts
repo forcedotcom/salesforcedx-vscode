@@ -4,11 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { fail } from 'assert';
-import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
-import path from 'path';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   TestReqConfig,
   ProjectShapeOption,
@@ -16,7 +11,6 @@ import {
   log,
   pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
@@ -25,6 +19,7 @@ import {
   continueDebugging,
   verifyTestIconColor
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   closeAllEditors,
   reloadWindow,
@@ -35,6 +30,11 @@ import {
   runCommandFromCommandPrompt,
   getTextEditor
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { expect } from 'chai';
+import { step, xstep } from 'mocha-steps';
+import { fail } from 'node:assert';
+import path from 'node:path';
+import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
 
 describe('Debug LWC Tests', async () => {
   let testSetup: TestSetup;

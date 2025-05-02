@@ -5,12 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import fs from 'fs';
-import { step, xstep } from 'mocha-steps';
-import path from 'path';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { after } from 'vscode-extension-tester';
 import {
   createCommand,
   Duration,
@@ -20,6 +14,8 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { createUser } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
@@ -31,7 +27,11 @@ import {
   notificationIsPresentWithTimeout,
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { createUser } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { expect } from 'chai';
+import { step, xstep } from 'mocha-steps';
+import fs from 'node:fs';
+import path from 'node:path';
+import { after } from 'vscode-extension-tester';
 
 describe('Push and Pull', async () => {
   let adminName = '';

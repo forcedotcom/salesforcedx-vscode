@@ -4,15 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { fail } from 'assert';
-import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
-import path from 'path';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { TreeItem, after } from 'vscode-extension-tester';
 import { Duration, log, pause, ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import {
+  getTestsSection,
+  runTestCaseFromSideBar,
+  verifyTestIconColor,
+  verifyTestItemsInSideBar
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   closeAllEditors,
   executeQuickPick,
@@ -22,13 +24,11 @@ import {
   reloadWindow,
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import {
-  getTestsSection,
-  runTestCaseFromSideBar,
-  verifyTestIconColor,
-  verifyTestItemsInSideBar
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { expect } from 'chai';
+import { step, xstep } from 'mocha-steps';
+import { fail } from 'node:assert';
+import path from 'node:path';
+import { TreeItem, after } from 'vscode-extension-tester';
 
 describe('Run LWC Tests', async () => {
   let testSetup: TestSetup;

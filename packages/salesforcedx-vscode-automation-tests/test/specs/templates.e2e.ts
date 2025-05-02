@@ -4,12 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
-import child_process from 'child_process';
-import { step, xstep } from 'mocha-steps';
-import util from 'util';
-import path from 'path';
-import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   createCommand,
   Duration,
@@ -18,6 +12,7 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   getWorkbench,
   getTextEditor,
@@ -30,6 +25,11 @@ import {
   clearOutputView,
   getVisibleItemsFromSidebar
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { expect } from 'chai';
+import { step, xstep } from 'mocha-steps';
+import child_process from 'node:child_process';
+import path from 'node:path';
+import util from 'node:util';
 import { after } from 'vscode-extension-tester';
 import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
 
