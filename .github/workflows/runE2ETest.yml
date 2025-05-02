@@ -99,6 +99,7 @@ jobs:
           THROTTLE_FACTOR: ${{ env.THROTTLE_FACTOR }}
           VSIX_TO_INSTALL: ${{ env.VSIX_TO_INSTALL }}
           DEV_HUB_ALIAS_NAME: ${{ env.DEV_HUB_ALIAS_NAME }}
+          DEV_HUB_USER_NAME: ${{ secrets.DEV_HUB_USER_NAME_E2E }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
