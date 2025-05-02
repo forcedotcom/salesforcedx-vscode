@@ -46,11 +46,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   }
 
   public getHead(): TestNode {
-    if (this.rootNode === null) {
-      return this.getAllApexTests();
-    } else {
-      return this.rootNode;
-    }
+    return this.rootNode === null ? this.getAllApexTests() : this.rootNode;
   }
 
   public getId(): string {
