@@ -6,15 +6,22 @@
  */
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
-import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { after } from 'vscode-extension-tester';
+import { Duration, log, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  executeQuickPick,
+  getTextEditor,
+  getWorkbench,
+  reloadWindow
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 
 describe('SOQL', async () => {
   let testSetup: TestSetup;
-  const testReqConfig: utilities.TestReqConfig = {
+  const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: utilities.ProjectShapeOption.NEW
+      projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'SOQL'
@@ -25,13 +32,13 @@ describe('SOQL', async () => {
   });
 
   step('SFDX: Create Query in SOQL Builder', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - SFDX: Create Query in SOQL Builder`);
-    await utilities.pause(utilities.Duration.seconds(20));
+    log(`${testSetup.testSuiteSuffixName} - SFDX: Create Query in SOQL Builder`);
+    await pause(Duration.seconds(20));
     // Run SFDX: Create Query in SOQL Builder
-    await utilities.executeQuickPick('SFDX: Create Query in SOQL Builder', utilities.Duration.seconds(3));
+    await executeQuickPick('SFDX: Create Query in SOQL Builder', Duration.seconds(3));
 
     // Verify the command took us to the soql builder
-    const workbench = await utilities.getWorkbench();
+    const workbench = await getWorkbench();
     const editorView = workbench.getEditorView();
     const activeTab = await editorView.getActiveTab();
     const title = await activeTab?.getTitle();
@@ -39,10 +46,10 @@ describe('SOQL', async () => {
   });
 
   step('Switch Between SOQL Builder and Text Editor - from SOQL Builder', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Switch Between SOQL Builder and Text Editor - from SOQL Builder`);
+    log(`${testSetup.testSuiteSuffixName} - Switch Between SOQL Builder and Text Editor - from SOQL Builder`);
 
     // Click Switch Between SOQL Builder and Text Editor
-    const workbench = await utilities.getWorkbench();
+    const workbench = await getWorkbench();
     const editorView = workbench.getEditorView();
     const toggleSOQLButton = await editorView.getAction('Switch Between SOQL Builder and Text Editor');
     expect(toggleSOQLButton).to.not.be.undefined;
@@ -59,11 +66,11 @@ describe('SOQL', async () => {
   });
 
   step('Switch Between SOQL Builder and Text Editor - from file', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Switch Between SOQL Builder and Text Editor - from file`);
-    await utilities.reloadWindow(utilities.Duration.seconds(5));
+    log(`${testSetup.testSuiteSuffixName} - Switch Between SOQL Builder and Text Editor - from file`);
+    await reloadWindow(Duration.seconds(5));
 
     // Click Switch Between SOQL Builder and Text Editor
-    const workbench = await utilities.getWorkbench();
+    const workbench = await getWorkbench();
     const editorView = workbench.getEditorView();
     const toggleSOQLButton = await editorView.getAction('Switch Between SOQL Builder and Text Editor');
     expect(toggleSOQLButton).to.not.be.undefined;
@@ -79,14 +86,14 @@ describe('SOQL', async () => {
 
   xstep('Verify the contents of the soql file', async () => {
     const expectedText = ['SELECT COUNT()', 'from Account'].join('\n');
-    const workbench = await utilities.getWorkbench();
-    const textEditor = await utilities.getTextEditor(workbench, 'countAccounts.soql');
+    const workbench = await getWorkbench();
+    const textEditor = await getTextEditor(workbench, 'countAccounts.soql');
     const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
     expect(textGeneratedFromTemplate).to.be(expectedText);
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
+    log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
     await testSetup?.tearDown();
   });
 });

@@ -5,16 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { step } from 'mocha-steps';
-import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { after } from 'vscode-extension-tester';
+import {
+  TestReqConfig,
+  ProjectShapeOption,
+  pause,
+  Duration
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  executeQuickPick,
+  waitForQuickPick,
+  clickFilePathOkButton,
+  verifyProjectLoaded
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
 
 describe('SFDX: Create Project', async () => {
   let testSetup: TestSetup;
 
-  const testReqConfig: utilities.TestReqConfig = {
+  const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: utilities.ProjectShapeOption.NONE
+      projectShape: ProjectShapeOption.NONE
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'sfdxCreateProject'
@@ -25,31 +37,31 @@ describe('SFDX: Create Project', async () => {
   });
 
   step('Execute command SFDX: Create Project', async () => {
-    utilities.log('Starting command SFDX: Create Project...');
-    const prompt = await utilities.executeQuickPick('SFDX: Create Project');
-    await utilities.waitForQuickPick(prompt, 'Standard', {
+    log('Starting command SFDX: Create Project...');
+    const prompt = await executeQuickPick('SFDX: Create Project');
+    await waitForQuickPick(prompt, 'Standard', {
       msg: 'Expected extension salesforcedx-core to be available within 5 seconds',
-      timeout: utilities.Duration.seconds(5)
+      timeout: Duration.seconds(5)
     });
 
     // Enter the project's name.
-    await utilities.pause(utilities.Duration.seconds(1));
+    await pause(Duration.seconds(1));
     await prompt.setText(testSetup.tempProjectName);
-    await utilities.pause(utilities.Duration.seconds(2));
+    await pause(Duration.seconds(2));
 
     // Press Enter/Return.
     await prompt.confirm();
 
     // Set the location of the project.
     await prompt.setText(testSetup.tempFolderPath!);
-    await utilities.pause(utilities.Duration.seconds(2));
-    await utilities.clickFilePathOkButton();
-    await utilities.pause(utilities.Duration.seconds(2));
+    await pause(Duration.seconds(2));
+    await clickFilePathOkButton();
+    await pause(Duration.seconds(2));
   });
 
   step('Verify the project is created and open in the workspace', async () => {
     // Verify the project was created and was loaded.
-    await utilities.verifyProjectLoaded(testSetup.tempProjectName);
+    await verifyProjectLoaded(testSetup.tempProjectName);
   });
 
   after('Tear down and clean up the testing environment', async () => {

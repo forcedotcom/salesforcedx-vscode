@@ -7,15 +7,25 @@
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import path from 'path';
-import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
+import { Duration, log, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import {
+  clearOutputView,
+  executeQuickPick,
+  getTextEditor,
+  getWorkbench
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { validateCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 
 describe('Manifest Builder', async () => {
   let testSetup: TestSetup;
-  const testReqConfig: utilities.TestReqConfig = {
+  const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: utilities.ProjectShapeOption.NEW
+      projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'ManifestBuilder'
@@ -30,13 +40,13 @@ describe('Manifest Builder', async () => {
     // accessible via a context menu, and wdio-vscode-service isn't able to interact with
     // context menus, so instead the manifest file is manually created:
 
-    utilities.log(`${testSetup.testSuiteSuffixName} - calling createCustomObjects()`);
-    await utilities.createCustomObjects(testSetup);
+    log(`${testSetup.testSuiteSuffixName} - calling createCustomObjects()`);
+    await createCustomObjects(testSetup);
 
     if (process.platform !== 'darwin') {
-      utilities.log(`${testSetup.testSuiteSuffixName} - creating manifest file`);
+      log(`${testSetup.testSuiteSuffixName} - creating manifest file`);
 
-      const workbench = utilities.getWorkbench();
+      const workbench = getWorkbench();
       const sidebar = await workbench.getSideBar().wait();
       const content = await sidebar.getContent().wait();
       const treeViewSection = await content.getSection(testSetup.tempProjectName);
@@ -65,7 +75,7 @@ describe('Manifest Builder', async () => {
 
     if (process.platform === 'darwin') {
       // Using the Command palette, run File: New File...
-      const inputBox = await utilities.executeQuickPick('Create: New File...', utilities.Duration.seconds(1));
+      const inputBox = await executeQuickPick('Create: New File...', Duration.seconds(1));
 
       // Set the name of the new manifest file
       const filePath = path.join('manifest', 'manifest.xml');
@@ -76,8 +86,8 @@ describe('Manifest Builder', async () => {
       await inputBox.confirm();
       await inputBox.confirm();
 
-      const workbench = utilities.getWorkbench();
-      const textEditor = await utilities.getTextEditor(workbench, 'manifest.xml');
+      const workbench = getWorkbench();
+      const textEditor = await getTextEditor(workbench, 'manifest.xml');
       const content = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<Package xmlns="http://soap.sforce.com/2006/04/metadata">',
@@ -91,17 +101,17 @@ describe('Manifest Builder', async () => {
 
       await textEditor.setText(content);
       await textEditor.save();
-      await utilities.pause(utilities.Duration.seconds(1));
+      await pause(Duration.seconds(1));
     }
   });
 
   step('SFDX: Deploy Source in Manifest to Org', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - SFDX: Deploy Source in Manifest to Org`);
+    log(`${testSetup.testSuiteSuffixName} - SFDX: Deploy Source in Manifest to Org`);
 
     // Clear output before running the command
-    await utilities.clearOutputView();
-    const workbench = utilities.getWorkbench();
-    await utilities.getTextEditor(workbench, 'manifest.xml');
+    await clearOutputView();
+    const workbench = getWorkbench();
+    await getTextEditor(workbench, 'manifest.xml');
 
     if (process.platform === 'linux') {
       // Dismiss all notifications using the button in the status bar
@@ -144,19 +154,19 @@ describe('Manifest Builder', async () => {
       await contextMenu.select('SFDX: Deploy Source in Manifest to Org');
     } else {
       // Using the Command palette, run SFDX: Deploy Source in Manifest to Org
-      await utilities.executeQuickPick('SFDX: Deploy Source in Manifest to Org', utilities.Duration.seconds(10));
+      await executeQuickPick('SFDX: Deploy Source in Manifest to Org', Duration.seconds(10));
     }
 
-    await utilities.validateCommand('Deploy', 'to', 'ST', 'CustomObject', ['Customer__c', 'Product__c'], 'Created  ');
+    await validateCommand('Deploy', 'to', 'ST', 'CustomObject', ['Customer__c', 'Product__c'], 'Created  ');
   });
 
   step('SFDX: Retrieve Source in Manifest from Org', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - SFDX: Retrieve Source in Manifest from Org`);
+    log(`${testSetup.testSuiteSuffixName} - SFDX: Retrieve Source in Manifest from Org`);
 
     // Clear output before running the command
-    await utilities.clearOutputView();
-    const workbench = utilities.getWorkbench();
-    await utilities.getTextEditor(workbench, 'manifest.xml');
+    await clearOutputView();
+    const workbench = getWorkbench();
+    await getTextEditor(workbench, 'manifest.xml');
 
     if (process.platform === 'linux') {
       // Dismiss all notifications using the button in the status bar
@@ -199,14 +209,14 @@ describe('Manifest Builder', async () => {
       await contextMenu.select('SFDX: Retrieve Source in Manifest from Org');
     } else {
       // Using the Command palette, run SFDX: Retrieve Source in Manifest from Org
-      await utilities.executeQuickPick('SFDX: Retrieve Source in Manifest from Org', utilities.Duration.seconds(10));
+      await executeQuickPick('SFDX: Retrieve Source in Manifest from Org', Duration.seconds(10));
     }
 
-    await utilities.validateCommand('Retrieve', 'from', 'ST', 'CustomObject', ['Customer__c', 'Product__c']);
+    await validateCommand('Retrieve', 'from', 'ST', 'CustomObject', ['Customer__c', 'Product__c']);
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
+    log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
     await testSetup?.tearDown();
   });
 });

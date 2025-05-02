@@ -1,4 +1,16 @@
 {
   "timeout": 300000,
-  "reporter": "./packages/salesforcedx-vscode-automation-tests/lib/custom-summary-reporter.js"
+  "require": [
+    "ts-node/register"
+  ],
+  "extension": [
+    "ts"
+  ],
+  "spec": [
+    "test/specs/**/*.e2e.ts"
+  ],
+  "reporter": "spec",
+  "slow": 75,
+  "retries": 3,
+  "exit": true
 }

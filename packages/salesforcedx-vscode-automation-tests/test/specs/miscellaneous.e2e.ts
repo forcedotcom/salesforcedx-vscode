@@ -6,15 +6,22 @@
  */
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
-import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { By, after } from 'vscode-extension-tester';
+import { Duration, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { createAnonymousApexFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { getTextEditor } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { executeQuickPick } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { createGlobalSnippetsFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 
 describe('Miscellaneous', async () => {
   let testSetup: TestSetup;
-  const testReqConfig: utilities.TestReqConfig = {
+  const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: utilities.ProjectShapeOption.NEW
+      projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'Miscellaneous'
@@ -25,18 +32,18 @@ describe('Miscellaneous', async () => {
   });
 
   xstep('Use out-of-the-box Apex Snippets', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Use Apex Snippets`);
-    const workbench = await utilities.getWorkbench();
+    log(`${testSetup.testSuiteSuffixName} - Use Apex Snippets`);
+    const workbench = await getWorkbench();
     const apexSnippet = 'String.isBlank(inputString)';
 
     // Create anonymous apex file
-    await utilities.createAnonymousApexFile();
+    await createAnonymousApexFile();
 
     // Type snippet "isb" in a new line and check it inserted the expected string
-    const textEditor = await utilities.getTextEditor(workbench, 'Anonymous.apex');
-    const inputBox = await utilities.executeQuickPick('Snippets: Insert Snippet', utilities.Duration.seconds(1));
+    const textEditor = await getTextEditor(workbench, 'Anonymous.apex');
+    const inputBox = await executeQuickPick('Snippets: Insert Snippet', Duration.seconds(1));
     await inputBox.setText('isb');
-    await utilities.pause(utilities.Duration.seconds(1));
+    await pause(Duration.seconds(1));
     await inputBox.confirm();
     await textEditor.save();
     const fileContent = await textEditor.getText();
@@ -44,19 +51,19 @@ describe('Miscellaneous', async () => {
   });
 
   step('Use Custom Apex Snippets', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Use Apex Snippets`);
+    log(`${testSetup.testSuiteSuffixName} - Use Apex Snippets`);
 
     // Using the Command palette, run Snippets: Configure Snippets
-    const workbench = await utilities.getWorkbench();
-    await utilities.createGlobalSnippetsFile(testSetup);
+    const workbench = await getWorkbench();
+    await createGlobalSnippetsFile(testSetup);
 
     // Create anonymous apex file
-    await utilities.createAnonymousApexFile();
+    await createAnonymousApexFile();
 
     // Type snippet "soql" and check it inserted the expected query
-    const textEditor = await utilities.getTextEditor(workbench, 'Anonymous.apex');
+    const textEditor = await getTextEditor(workbench, 'Anonymous.apex');
     await textEditor.typeText('soql');
-    await utilities.pause(utilities.Duration.seconds(1));
+    await pause(Duration.seconds(1));
     const autocompletionOptions = await workbench.findElements(By.css('div.monaco-list-row.show-file-icons'));
     const ariaLabel = await autocompletionOptions[0].getAttribute('aria-label');
     expect(ariaLabel).to.contain('soql');
@@ -69,8 +76,8 @@ describe('Miscellaneous', async () => {
   });
 
   step('Use out-of-the-box LWC Snippets - HTML', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Use out-of-the-box LWC Snippets - HTML`);
-    const workbench = await utilities.getWorkbench();
+    log(`${testSetup.testSuiteSuffixName} - Use out-of-the-box LWC Snippets - HTML`);
+    const workbench = await getWorkbench();
 
     const lwcSnippet = [
       '<lightning-button',
@@ -81,17 +88,17 @@ describe('Miscellaneous', async () => {
     ].join('\n');
 
     // Create simple lwc.html file
-    let inputBox = await utilities.executeQuickPick('Create: New File...', utilities.Duration.seconds(1));
+    let inputBox = await executeQuickPick('Create: New File...', Duration.seconds(1));
     await inputBox.setText('lwc.html');
     await inputBox.confirm();
     await inputBox.confirm();
 
     // Type snippet "lwc-button" and check it inserted the right lwc
-    const textEditor = await utilities.getTextEditor(workbench, 'lwc.html');
+    const textEditor = await getTextEditor(workbench, 'lwc.html');
 
-    inputBox = await utilities.executeQuickPick('Snippets: Insert Snippet', utilities.Duration.seconds(1));
+    inputBox = await executeQuickPick('Snippets: Insert Snippet', Duration.seconds(1));
     await inputBox.setText('lwc-button');
-    await utilities.pause(utilities.Duration.seconds(2));
+    await pause(Duration.seconds(2));
     await inputBox.confirm();
     await textEditor.save();
     const fileContent = await textEditor.getText();
@@ -105,21 +112,21 @@ describe('Miscellaneous', async () => {
   });
 
   step('Use out-of-the-box LWC Snippets - JS', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Use out-of-the-box LWC Snippets - JS`);
-    const workbench = await utilities.getWorkbench();
+    log(`${testSetup.testSuiteSuffixName} - Use out-of-the-box LWC Snippets - JS`);
+    const workbench = await getWorkbench();
 
     const lwcSnippet = 'this.dispatchEvent(new CustomEvent("event-name"));';
 
     // Create simple lwc.js file
-    const inputBox = await utilities.executeQuickPick('Create: New File...', utilities.Duration.seconds(1));
+    const inputBox = await executeQuickPick('Create: New File...', Duration.seconds(1));
     await inputBox.setText('lwc.js');
     await inputBox.confirm();
     await inputBox.confirm();
 
     // Type snippet "lwc", select "lwc-event" and check it inserted the right thing
-    const textEditor = await utilities.getTextEditor(workbench, 'lwc.js');
+    const textEditor = await getTextEditor(workbench, 'lwc.js');
     await textEditor.typeText('lwc');
-    await utilities.pause(utilities.Duration.seconds(1));
+    await pause(Duration.seconds(1));
     const autocompletionOptions = await workbench.findElements(By.css('div.monaco-list-row.show-file-icons'));
     const ariaLabel = await autocompletionOptions[2].getAttribute('aria-label');
     expect(ariaLabel).to.contain('lwc-event');
@@ -133,7 +140,7 @@ describe('Miscellaneous', async () => {
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
+    log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
     await testSetup?.tearDown();
   });
 });

@@ -6,15 +6,25 @@
  */
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { DefaultTreeItem, TreeItem, ViewSection, Workbench, after } from 'vscode-extension-tester';
+import { Duration, log, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  attemptToFindOutputPanelText,
+  clearOutputView,
+  executeQuickPick,
+  getWorkbench,
+  notificationIsPresentWithTimeout,
+  verifyOutputPanelText
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 
 describe('SObjects Definitions', async () => {
   let testSetup: TestSetup;
-  const testReqConfig: utilities.TestReqConfig = {
+  const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: utilities.ProjectShapeOption.NEW
+      projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'sObjectsDefinitions'
@@ -25,15 +35,15 @@ describe('SObjects Definitions', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     projectName = testSetup.tempProjectName;
 
-    utilities.log(`${testSetup.testSuiteSuffixName} - calling createCustomObjects()`);
-    await utilities.createCustomObjects(testSetup);
+    log(`${testSetup.testSuiteSuffixName} - calling createCustomObjects()`);
+    await createCustomObjects(testSetup);
   });
 
   step("Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder", async () => {
-    utilities.log(
+    log(
       `${testSetup.testSuiteSuffixName} - Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder`
     );
-    const workbench = await utilities.getWorkbench();
+    const workbench = await getWorkbench();
     const sidebar = await workbench.getSideBar().wait();
     const content = await sidebar.getContent().wait();
 
@@ -64,17 +74,17 @@ describe('SObjects Definitions', async () => {
   });
 
   step('Push Source to Org', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Push Source to Org`);
-    await utilities.executeQuickPick('SFDX: Push Source to Default Org', utilities.Duration.seconds(5));
-    await utilities.pause(utilities.Duration.seconds(1));
+    log(`${testSetup.testSuiteSuffixName} - Push Source to Org`);
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
+    await pause(Duration.seconds(1));
 
-    const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+    const successNotificationWasFound = await notificationIsPresentWithTimeout(
       /SFDX: Push Source to Default Org successfully ran/,
-      utilities.Duration.TEN_MINUTES
+      Duration.TEN_MINUTES
     );
     expect(successNotificationWasFound).to.equal(true);
 
-    const outputPanelText = await utilities.attemptToFindOutputPanelText(
+    const outputPanelText = await attemptToFindOutputPanelText(
       'Salesforce CLI',
       'Starting SFDX: Push Source to Default Org',
       5
@@ -84,12 +94,12 @@ describe('SObjects Definitions', async () => {
   });
 
   step('Refresh SObject Definitions for Custom SObjects', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for Custom SObjects`);
+    log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for Custom SObjects`);
     await refreshSObjectDefinitions('Custom SObjects');
 
-    await verifyOutputPanelText('Custom sObjects', 2);
+    await verifyOutputPanelTxt('Custom sObjects', 2);
 
-    const workbench = await utilities.getWorkbench();
+    const workbench = await getWorkbench();
     const treeViewSection = await verifySObjectFolders(workbench, projectName, 'customObjects');
 
     // Verify if custom Objects Customer__c and Product__c are within 'customObjects' folder
@@ -100,12 +110,12 @@ describe('SObjects Definitions', async () => {
   });
 
   step('Refresh SObject Definitions for Standard SObjects', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for Standard SObjects`);
+    log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for Standard SObjects`);
     await refreshSObjectDefinitions('Standard SObjects');
 
-    await verifyOutputPanelText('Standard sObjects');
+    await verifyOutputPanelTxt('Standard sObjects');
 
-    const workbench = await utilities.getWorkbench();
+    const workbench = await getWorkbench();
     const treeViewSection = await verifySObjectFolders(workbench, projectName, 'standardObjects');
 
     const accountSObject = await treeViewSection.findItem('Account.cls');
@@ -119,11 +129,11 @@ describe('SObjects Definitions', async () => {
   });
 
   step('Refresh SObject Definitions for All SObjects', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for All SObjects`);
+    log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for All SObjects`);
     await refreshSObjectDefinitions('All SObjects');
 
-    await verifyOutputPanelText('Standard sObjects');
-    await verifyOutputPanelText('Custom sObjects', 2);
+    await verifyOutputPanelTxt('Standard sObjects');
+    await verifyOutputPanelTxt('Custom sObjects', 2);
   });
 
   after('Tear down and clean up the testing environment', async () => {
@@ -131,9 +141,9 @@ describe('SObjects Definitions', async () => {
   });
 });
 
-async function verifyOutputPanelText(type: string, qty?: number): Promise<void> {
-  utilities.log(`calling verifyOutputPanelText(${type})`);
-  const outputPanelText = (await utilities.attemptToFindOutputPanelText('Salesforce CLI', 'sObjects', 10)) as string;
+async function verifyOutputPanelTxt(type: string, qty?: number): Promise<void> {
+  log(`calling verifyOutputPanelText(${type})`);
+  const outputPanelText = (await attemptToFindOutputPanelText('Salesforce CLI', 'sObjects', 10)) as string;
   expect(outputPanelText).to.not.be.undefined;
   const expectedTexts = [
     'Starting SFDX: Refresh SObject Definitions',
@@ -142,26 +152,26 @@ async function verifyOutputPanelText(type: string, qty?: number): Promise<void> 
     `${type}`,
     'ended with exit code 0'
   ];
-  await utilities.verifyOutputPanelText(outputPanelText, expectedTexts);
+  await verifyOutputPanelText(outputPanelText, expectedTexts);
 }
 
 async function refreshSObjectDefinitions(type: string): Promise<void> {
-  utilities.log(`calling refreshSObjectDefinitions(${type})`);
-  await utilities.clearOutputView(utilities.Duration.seconds(2));
-  const prompt = await utilities.executeQuickPick('SFDX: Refresh SObject Definitions', utilities.Duration.seconds(2));
+  log(`calling refreshSObjectDefinitions(${type})`);
+  await clearOutputView(Duration.seconds(2));
+  const prompt = await executeQuickPick('SFDX: Refresh SObject Definitions', Duration.seconds(2));
   await prompt.setText(type);
   await prompt.selectQuickPick(type);
-  await utilities.pause(utilities.Duration.seconds(1));
+  await pause(Duration.seconds(1));
 
-  const successNotificationWasFound = await utilities.notificationIsPresentWithTimeout(
+  const successNotificationWasFound = await notificationIsPresentWithTimeout(
     /SFDX: Refresh SObject Definitions successfully ran/,
-    utilities.Duration.TEN_MINUTES
+    Duration.TEN_MINUTES
   );
   expect(successNotificationWasFound).to.equal(true);
 }
 
 async function verifySObjectFolders(workbench: Workbench, projectName: string, folder: string): Promise<ViewSection> {
-  utilities.log(`calling verifySObjectFolders(workbench, ${projectName}, ${folder})`);
+  log(`calling verifySObjectFolders(workbench, ${projectName}, ${folder})`);
   const sidebar = workbench.getSideBar();
   const content = sidebar.getContent();
   const treeViewSection = await content.getSection(projectName);
@@ -172,28 +182,28 @@ async function verifySObjectFolders(workbench: Workbench, projectName: string, f
   expect(sfdxTreeItem).to.not.be.undefined;
   await sfdxTreeItem.expand();
   expect(await sfdxTreeItem.isExpanded()).to.equal(true);
-  await utilities.pause(utilities.Duration.seconds(1));
+  await pause(Duration.seconds(1));
 
   // Verify if 'tools' folder is within '.sfdx'
   const toolsTreeItem = (await sfdxTreeItem.findChildItem('tools')) as TreeItem;
   expect(toolsTreeItem).to.not.be.undefined;
   await toolsTreeItem.expand();
   expect(await toolsTreeItem.isExpanded()).to.equal(true);
-  await utilities.pause(utilities.Duration.seconds(1));
+  await pause(Duration.seconds(1));
 
   // Verify if 'sobjects' folder is within 'tools'
   const sobjectsTreeItem = (await toolsTreeItem.findChildItem('sobjects')) as TreeItem;
   expect(sobjectsTreeItem).to.not.be.undefined;
   await sobjectsTreeItem.expand();
   expect(await sobjectsTreeItem.isExpanded()).to.equal(true);
-  await utilities.pause(utilities.Duration.seconds(1));
+  await pause(Duration.seconds(1));
 
   // Verify if 'type' folder is within 'sobjects'
   const objectsTreeItem = (await sobjectsTreeItem.findChildItem(folder)) as TreeItem;
   expect(objectsTreeItem).to.not.be.undefined;
   await objectsTreeItem.expand();
   expect(await objectsTreeItem.isExpanded()).to.equal(true);
-  await utilities.pause(utilities.Duration.seconds(1));
+  await pause(Duration.seconds(1));
 
   return treeViewSection;
 }

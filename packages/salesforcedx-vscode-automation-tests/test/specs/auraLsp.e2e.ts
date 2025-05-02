@@ -6,53 +6,64 @@
  */
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { By, after } from 'vscode-extension-tester';
+import { log, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
+import { Duration } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { createAura } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import {
+  executeQuickPick,
+  getOutputViewText,
+  getTextEditor,
+  getWorkbench,
+  reloadWindow
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 
 describe('Aura LSP', async () => {
   let testSetup: TestSetup;
 
-  const testReqConfig: utilities.TestReqConfig = {
+  const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: utilities.ProjectShapeOption.NEW
+      projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'AuraLsp'
   };
 
   step('Set up the testing environment', async () => {
-    utilities.log('AuraLsp - Set up the testing environment');
+    log('AuraLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Aura Component
-    await utilities.createAura('aura1');
+    await createAura('aura1');
 
     // Reload the VSCode window to allow the Aura Component to be indexed by the Aura Language Server
-    await utilities.reloadWindow(utilities.Duration.seconds(20));
+    await reloadWindow(Duration.seconds(20));
   });
 
   step('Verify LSP finished indexing', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
+    log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
 
     // Get output text from the LSP
-    const outputViewText = await utilities.getOutputViewText('Aura Language Server');
+    const outputViewText = await getOutputViewText('Aura Language Server');
     expect(outputViewText).to.contain('language server started');
-    utilities.log('Output view text');
-    utilities.log(outputViewText);
+    log('Output view text');
+    log(outputViewText);
   });
 
   step('Go to Definition', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
+    log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
     // Get open text editor
-    const workbench = await utilities.getWorkbench();
-    const textEditor = await utilities.getTextEditor(workbench, 'aura1.cmp');
+    const workbench = await getWorkbench();
+    const textEditor = await getTextEditor(workbench, 'aura1.cmp');
 
     // Move cursor to the middle of "simpleNewContact"
     await textEditor.moveCursor(8, 15);
 
     // Go to definition through F12
-    await utilities.executeQuickPick('Go to Definition', utilities.Duration.seconds(2));
+    await executeQuickPick('Go to Definition', Duration.seconds(2));
 
     // Verify 'Go to definition'
     const definition = await textEditor.getCoordinates();
@@ -61,12 +72,12 @@ describe('Aura LSP', async () => {
   });
 
   step('Autocompletion', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
+    log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
     // Get open text editor
-    const workbench = await utilities.getWorkbench();
-    const textEditor = await utilities.getTextEditor(workbench, 'aura1.cmp');
+    const workbench = await getWorkbench();
+    const textEditor = await getTextEditor(workbench, 'aura1.cmp');
     await textEditor.typeTextAt(2, 1, '<aura:appl');
-    await utilities.pause(utilities.Duration.seconds(1));
+    await pause(Duration.seconds(1));
 
     // Verify autocompletion options are present
     const autocompletionOptions = await workbench.findElements(By.css('div.monaco-list-row.show-file-icons'));
@@ -77,13 +88,13 @@ describe('Aura LSP', async () => {
     await autocompletionOptions[0].click();
     await textEditor.typeText('>');
     await textEditor.save();
-    await utilities.pause(utilities.Duration.seconds(1));
+    await pause(Duration.seconds(1));
     const line3Text = await textEditor.getTextAtLine(2);
     expect(line3Text).to.include('aura:application');
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
+    log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
     await testSetup?.tearDown();
   });
 });

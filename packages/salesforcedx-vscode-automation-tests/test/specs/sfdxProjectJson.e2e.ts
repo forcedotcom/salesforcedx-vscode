@@ -7,15 +7,22 @@
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import path from 'path';
-import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { after } from 'vscode-extension-tester';
+import { openFile, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { getTextEditor, getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import {
+  getExtensionsToVerifyActive,
+  reloadAndEnableExtensions,
+  verifyExtensionsAreRunning
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 
 describe('Customize sfdx-project.json', async () => {
   let testSetup: TestSetup;
-  const testReqConfig: utilities.TestReqConfig = {
+  const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: utilities.ProjectShapeOption.NEW
+      projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'sfdxProjectJson'
@@ -24,11 +31,11 @@ describe('Customize sfdx-project.json', async () => {
   step('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     await createSfdxProjectJsonWithAllFields(testSetup);
-    await utilities.reloadAndEnableExtensions();
+    await reloadAndEnableExtensions();
   });
 
   step('Verify our extensions are loaded after updating sfdx-project.json', async () => {
-    expect(await utilities.verifyExtensionsAreRunning(utilities.getExtensionsToVerifyActive())).to.equal(true);
+    expect(await verifyExtensionsAreRunning(getExtensionsToVerifyActive())).to.equal(true);
   });
 
   after('Tear down and clean up the testing environment', async () => {
@@ -37,7 +44,7 @@ describe('Customize sfdx-project.json', async () => {
 });
 
 async function createSfdxProjectJsonWithAllFields(testSetup: TestSetup): Promise<void> {
-  const workbench = utilities.getWorkbench();
+  const workbench = getWorkbench();
   const sfdxConfig = [
     '{',
     '\t"packageDirectories": [',
@@ -51,9 +58,9 @@ async function createSfdxProjectJsonWithAllFields(testSetup: TestSetup): Promise
     '\t"sourceBehaviorOptions": ["decomposeCustomLabelsBeta", "decomposePermissionSetBeta", "decomposeWorkflowBeta", "decomposeSharingRulesBeta"]',
     '}'
   ].join('\n');
-  await utilities.openFile(path.join(testSetup.projectFolderPath!, 'sfdx-project.json'));
-  const textEditor = await utilities.getTextEditor(workbench, 'sfdx-project.json');
+  await openFile(path.join(testSetup.projectFolderPath!, 'sfdx-project.json'));
+  const textEditor = await getTextEditor(workbench, 'sfdx-project.json');
   await textEditor.setText(sfdxConfig);
   await textEditor.save();
-  await utilities.pause();
+  await pause();
 }

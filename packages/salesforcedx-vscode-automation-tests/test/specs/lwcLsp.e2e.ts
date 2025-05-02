@@ -6,42 +6,50 @@
  */
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import { TestSetup } from 'salesforcedx-vscode-automation-tests-redhat/test/testSetup';
-import * as utilities from 'salesforcedx-vscode-automation-tests-redhat/test/utilities';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { By, after } from 'vscode-extension-tester';
+import { getTextEditor } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { Duration, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { executeQuickPick } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import { reloadWindow } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 
 describe('LWC LSP', async () => {
   let testSetup: TestSetup;
-  const testReqConfig: utilities.TestReqConfig = {
+  const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: utilities.ProjectShapeOption.NEW
+      projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'LwcLsp'
   };
 
   step('Set up the testing environment', async () => {
-    utilities.log('LwcLsp - Set up the testing environment');
+    log('LwcLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Lightning Web Component
-    await utilities.createLwc('lwc1');
+    await createLwc('lwc1');
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
-    await utilities.reloadWindow(utilities.Duration.seconds(20));
+    await reloadWindow(Duration.seconds(20));
   });
 
   step('Go to Definition (JavaScript)', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Go to Definition (Javascript)`);
+    log(`${testSetup.testSuiteSuffixName} - Go to Definition (Javascript)`);
     // Get open text editor
-    const workbench = await utilities.getWorkbench();
-    const textEditor = await utilities.getTextEditor(workbench, 'lwc1.js');
+    const workbench = await getWorkbench();
+    const textEditor = await getTextEditor(workbench, 'lwc1.js');
 
     // Move cursor to the middle of "LightningElement"
     await textEditor.moveCursor(3, 40);
 
     // Go to definition through F12
-    await utilities.executeQuickPick('Go to Definition', utilities.Duration.seconds(2));
+    await executeQuickPick('Go to Definition', Duration.seconds(2));
 
     // Verify 'Go to definition' took us to the definition file
     const editorView = workbench.getEditorView();
@@ -52,16 +60,16 @@ describe('LWC LSP', async () => {
 
   step('Go to Definition (HTML)', async () => {
     if (process.platform !== 'win32') {
-      utilities.log(`${testSetup.testSuiteSuffixName} - Go to Definition (HTML)`);
+      log(`${testSetup.testSuiteSuffixName} - Go to Definition (HTML)`);
       // Get open text editor
-      const workbench = await utilities.getWorkbench();
-      const textEditor = await utilities.getTextEditor(workbench, 'lwc1.html');
+      const workbench = await getWorkbench();
+      const textEditor = await getTextEditor(workbench, 'lwc1.html');
 
       // Move cursor to the middle of "greeting"
       await textEditor.moveCursor(3, 58);
 
       // Go to definition through F12
-      await utilities.executeQuickPick('Go to Definition', utilities.Duration.seconds(2));
+      await executeQuickPick('Go to Definition', Duration.seconds(2));
 
       // Verify 'Go to definition' took us to the definition file
       const editorView = workbench.getEditorView();
@@ -72,12 +80,12 @@ describe('LWC LSP', async () => {
   });
 
   step('Autocompletion', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
+    log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
     // Get open text editor
-    const workbench = await utilities.getWorkbench().wait();
-    const textEditor = await utilities.getTextEditor(workbench, 'lwc1.html');
+    const workbench = await getWorkbench().wait();
+    const textEditor = await getTextEditor(workbench, 'lwc1.html');
     await textEditor.typeTextAt(5, 1, '<lightnin');
-    await utilities.pause(utilities.Duration.seconds(1));
+    await pause(Duration.seconds(1));
 
     // Verify autocompletion options are present
     const autocompletionOptions = await workbench.findElements(By.css('div.monaco-list-row.show-file-icons'));
@@ -88,13 +96,13 @@ describe('LWC LSP', async () => {
     await autocompletionOptions[0].click();
     await textEditor.typeText('>');
     await textEditor.save();
-    await utilities.pause(utilities.Duration.seconds(1));
+    await pause(Duration.seconds(1));
     const line5Text = await textEditor.getTextAtLine(5);
     expect(line5Text).to.contain('lightning-accordion');
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    utilities.log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
+    log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
     await testSetup?.tearDown();
   });
 });
