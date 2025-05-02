@@ -9,6 +9,7 @@ import {
   CliCommandExecutor,
   workspaceUtils,
   ContinueResponse,
+  EmptyParametersGatherer,
   ParametersGatherer,
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -17,7 +18,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
-import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 type QueryResponse = {
   status: number;
@@ -107,7 +108,7 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
       } else {
         void notificationService.showInformationMessage(nls.localize('debugger_stop_none_found_text'));
       }
-    } catch {}
+    } catch { }
 
     return Promise.resolve();
   }

@@ -7,6 +7,7 @@
 
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   DirFileNameSelection,
   ParametersGatherer
@@ -15,7 +16,6 @@ import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import {
-  CompositeParametersGatherer,
   PathStrategyFactory,
   SelectOutputDir,
   SfCommandlet,

@@ -8,6 +8,7 @@
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
+  EmptyParametersGatherer,
   OrgOpenContainerResultParser,
   OrgOpenErrorResult,
   OrgOpenSuccessResult,
@@ -22,7 +23,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   public build(data: {}): Command {

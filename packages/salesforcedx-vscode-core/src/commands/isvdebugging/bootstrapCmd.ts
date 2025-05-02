@@ -9,6 +9,7 @@ import {
   CancelResponse,
   CliCommandExecutor,
   CommandExecution,
+  CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
   projectPaths,
@@ -30,7 +31,7 @@ import {
   SelectProjectFolder,
   SelectProjectName
 } from '../projectGenerate';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
+import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
 
 type InstalledPackageInfo = {
   id: string;

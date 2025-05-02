@@ -79,8 +79,6 @@ import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { getUserId } from './commands/startApexDebugLogging';
 import {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
   FlagParameter,
   SelectFileName,
   SelectOutputDir,
@@ -413,7 +411,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     // Api
     const internalApi: any = {
       channelService,
-      EmptyParametersGatherer,
       isCLIInstalled,
       notificationService,
       OrgAuthInfo,
@@ -474,8 +471,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   const api: any = {
     channelService,
-    CompositeParametersGatherer,
-    EmptyParametersGatherer,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
     getUserId,
     isCLIInstalled,

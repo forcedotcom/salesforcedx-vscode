@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
+import { CompositeParametersGatherer, DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import {
-  CompositeParametersGatherer,
   CompositePostconditionChecker,
   LwcAuraDuplicateComponentCheckerForCreate,
   MetadataTypeGatherer,

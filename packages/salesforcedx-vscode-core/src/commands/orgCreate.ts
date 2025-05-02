@@ -8,6 +8,7 @@ import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   CliCommandExecutor,
+  CompositeParametersGatherer,
   ContinueResponse,
   isAlphaNumSpaceString,
   isIntegerInRange,
@@ -26,7 +27,6 @@ import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import {
-  CompositeParametersGatherer,
   CompositePreconditionChecker,
   DevUsernameChecker,
   FileSelection,

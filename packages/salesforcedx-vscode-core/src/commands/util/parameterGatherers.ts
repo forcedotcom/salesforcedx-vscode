@@ -40,36 +40,6 @@ type ApexTestTemplateParameter = {
   template: string;
 };
 
-export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: ParametersGatherer<any>[];
-  public constructor(...gatherers: ParametersGatherer<any>[]) {
-    this.gatherers = gatherers;
-  }
-  public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
-    const aggregatedData: any = {};
-    for (const gatherer of this.gatherers) {
-      const input = await gatherer.gather();
-      if (input.type === CONTINUE) {
-        Object.keys(input.data).map(key => (aggregatedData[key] = input.data[key]));
-      } else {
-        return {
-          type: CANCEL
-        };
-      }
-    }
-    return {
-      type: CONTINUE,
-      data: aggregatedData
-    };
-  }
-}
-
-export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return Promise.resolve({ type: CONTINUE, data: {} });
-  }
-}
-
 export class FilePathGatherer implements ParametersGatherer<string> {
   private filePath: string;
   public constructor(uri: vscode.Uri) {
@@ -131,8 +101,8 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
         validateInput: value =>
           value.length > this.maxFileNameLength
             ? nls
-                .localize('parameter_gatherer_file_name_max_length_validation_error_message')
-                .replace('{0}', this.maxFileNameLength.toString())
+              .localize('parameter_gatherer_file_name_max_length_validation_error_message')
+              .replace('{0}', this.maxFileNameLength.toString())
             : null
       })
     } as vscode.InputBoxOptions;
@@ -205,9 +175,9 @@ export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: str
 
     return outputdir && fileName
       ? {
-          type: CONTINUE,
-          data: { fileName, outputdir }
-        }
+        type: CONTINUE,
+        data: { fileName, outputdir }
+      }
       : { type: CANCEL };
   }
 
@@ -344,9 +314,9 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
       const lwcComponentType = await this.showMenu(lwcComponentTypes, 'parameter_gatherer_select_lwc_type');
       return lwcComponentType
         ? {
-            type: CONTINUE,
-            data: { extension: lwcComponentType }
-          }
+          type: CONTINUE,
+          data: { extension: lwcComponentType }
+        }
         : { type: CANCEL };
     }
     return { type: CONTINUE, data: { extension: 'JavaScript' } };

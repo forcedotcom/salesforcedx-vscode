@@ -10,6 +10,7 @@ import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
   ContinueResponse,
+  EmptyParametersGatherer,
   LibraryCommandletExecutor,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -19,7 +20,6 @@ import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import {
-  EmptyParametersGatherer,
   SfCommandlet,
   SfCommandletExecutor,
   SfWorkspaceChecker,

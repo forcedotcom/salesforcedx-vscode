@@ -10,6 +10,7 @@ import {
   CliCommandExecution,
   CliCommandExecutor,
   ContinueResponse,
+  EmptyParametersGatherer,
   ProjectDeployStartResultParser,
   ProjectDeployStartResult,
   Row,
@@ -28,7 +29,6 @@ import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
 import {
   CommandParams,
-  EmptyParametersGatherer,
   FlagParameter,
   SfCommandlet,
   SfCommandletExecutor,

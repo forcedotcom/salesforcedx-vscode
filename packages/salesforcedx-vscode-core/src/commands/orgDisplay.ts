@@ -6,9 +6,9 @@
  */
 
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { EmptyParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
-  EmptyParametersGatherer,
   FlagParameter,
   SelectUsername,
   SfCommandlet,

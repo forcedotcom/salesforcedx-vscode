@@ -4,10 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { CompositeParametersGatherer, LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import {
-  CompositeParametersGatherer,
   MetadataTypeGatherer,
   OverwriteComponentPrompt,
   SfCommandlet,
@@ -36,11 +35,11 @@ export const apexGenerateUnitTestClass = async (
     outputDirGatherer =
       typeof outputDirectory === 'string'
         ? new SimpleGatherer<OutputDirParameter>({
-            outputdir: outputDirectory
-          })
+          outputdir: outputDirectory
+        })
         : new SimpleGatherer<OutputDirParameter>({
-            outputdir: outputDirectory.fsPath
-          });
+          outputdir: outputDirectory.fsPath
+        });
   } else {
     outputDirGatherer = gatherers.outputDirGatherer;
   }

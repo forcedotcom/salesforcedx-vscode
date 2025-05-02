@@ -10,6 +10,7 @@ import {
   CommandExecution,
   CompositeCliCommandExecutor,
   ContinueResponse,
+  EmptyParametersGatherer,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -20,7 +21,7 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo } from '../util';
 import { developerLogTraceFlag } from '.';
-import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -172,8 +173,7 @@ export class CreateTraceFlag extends SfCommandletExecutor<{}> {
       .withFlag('--sobject', 'TraceFlag')
       .withFlag(
         '--values',
-        `tracedentityid='${
-          this.userId
+        `tracedentityid='${this.userId
         }' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()} StartDate='' ExpirationDate='${developerLogTraceFlag
           .getExpirationDate()
           .toUTCString()}`

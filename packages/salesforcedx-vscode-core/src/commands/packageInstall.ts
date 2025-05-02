@@ -8,6 +8,7 @@
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   isRecordIdFormat,
   ParametersGatherer
@@ -15,7 +16,7 @@ import {
 import * as vscode from 'vscode';
 import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
+import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
 
 export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
   public build(data: PackageIdAndInstallationKey): Command {

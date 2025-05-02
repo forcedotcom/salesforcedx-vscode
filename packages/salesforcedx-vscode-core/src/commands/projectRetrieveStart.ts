@@ -10,6 +10,7 @@ import {
   CliCommandExecution,
   CliCommandExecutor,
   ContinueResponse,
+  EmptyParametersGatherer,
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult,
   Row,
@@ -22,7 +23,6 @@ import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
 import { nls } from '../messages';
 import {
   CommandParams,
-  EmptyParametersGatherer,
   FlagParameter,
   SfCommandlet,
   SfCommandletExecutor,

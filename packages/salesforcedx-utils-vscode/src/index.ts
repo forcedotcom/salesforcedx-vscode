@@ -6,7 +6,7 @@
  */
 
 export * from './commands';
-export { EmptyParametersGatherer } from './commands/parameterGatherers';
+export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
 export { EmptyPostChecker } from './commands/postconditionCheckers';
 export { EmptyPreChecker, SfWorkspaceChecker } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
