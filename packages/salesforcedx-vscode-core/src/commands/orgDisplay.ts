@@ -8,13 +8,7 @@
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { EmptyParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
-import {
-  FlagParameter,
-  SelectUsername,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { FlagParameter, SelectUsername, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class OrgDisplay extends SfCommandletExecutor<{}> {
   private flag: string | undefined;

@@ -21,13 +21,7 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
 import { nls } from '../messages';
-import {
-  CommandParams,
-  FlagParameter,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 const pullCommand: CommandParams = {
   command: 'project:retrieve:start',

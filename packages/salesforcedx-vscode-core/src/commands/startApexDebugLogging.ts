@@ -173,7 +173,8 @@ export class CreateTraceFlag extends SfCommandletExecutor<{}> {
       .withFlag('--sobject', 'TraceFlag')
       .withFlag(
         '--values',
-        `tracedentityid='${this.userId
+        `tracedentityid='${
+          this.userId
         }' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()} StartDate='' ExpirationDate='${developerLogTraceFlag
           .getExpirationDate()
           .toUTCString()}`

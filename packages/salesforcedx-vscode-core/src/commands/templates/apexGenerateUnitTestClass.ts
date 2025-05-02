@@ -35,11 +35,11 @@ export const apexGenerateUnitTestClass = async (
     outputDirGatherer =
       typeof outputDirectory === 'string'
         ? new SimpleGatherer<OutputDirParameter>({
-          outputdir: outputDirectory
-        })
+            outputdir: outputDirectory
+          })
         : new SimpleGatherer<OutputDirParameter>({
-          outputdir: outputDirectory.fsPath
-        });
+            outputdir: outputDirectory.fsPath
+          });
   } else {
     outputDirGatherer = gatherers.outputDirGatherer;
   }

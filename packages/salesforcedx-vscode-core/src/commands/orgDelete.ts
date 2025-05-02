@@ -49,9 +49,9 @@ export async function orgDelete(this: FlagParameter<string>) {
 
   const parameterGatherer = flag
     ? new CompositeParametersGatherer(
-      new SelectUsername(),
-      new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_selected_org'))
-    )
+        new SelectUsername(),
+        new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_selected_org'))
+      )
     : new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_default_org'));
 
   const executor = new OrgDeleteExecutor(flag);

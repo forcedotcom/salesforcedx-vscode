@@ -19,12 +19,7 @@ import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import {
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker,
-  SimpleGatherer
-} from '../util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker, SimpleGatherer } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 
 export class OrgLogoutAll extends SfCommandletExecutor<{}> {
