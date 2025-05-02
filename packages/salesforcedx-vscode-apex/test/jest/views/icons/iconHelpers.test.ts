@@ -7,7 +7,7 @@
 import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
 import { URI } from 'vscode-uri';
 import { VSCODE_APEX_EXTENSION_NAME } from '../../../../src/constants';
-import { iconHelpers, IconsEnum } from '../../../../src/views/icons';
+import { iconHelpers } from '../../../../src/views/icons';
 
 describe('iconHelpers Unit Tests.', () => {
   describe('getIconPath()', () => {
@@ -17,7 +17,7 @@ describe('iconHelpers Unit Tests.', () => {
     });
 
     it('Should return the path for enum value.', () => {
-      const iconUri = iconHelpers.getIconPath(IconsEnum.LIGHT_BLUE_BUTTON);
+      const iconUri = iconHelpers.getIconPath('LIGHT_BLUE_BUTTON');
       expect(extensionUris.extensionUri).toHaveBeenCalledWith(VSCODE_APEX_EXTENSION_NAME);
       expect(iconUri.path).toEqual('/some/place/apexy/resources/light/testNotRun.svg');
     });
