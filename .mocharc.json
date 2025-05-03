@@ -7,9 +7,8 @@
     "ts"
   ],
   "spec": [
-    "test/specs/**/*.e2e.ts"
+    "packages/salesforcedx-vscode-automation-tests/lib/test/specs/**/*.e2e.js"
   ],
-  "reporter": "spec",
   "slow": 75,
   "retries": 3,
   "exit": true
