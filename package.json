@@ -123,7 +123,7 @@
     "unlink-lsp": "yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
     "report:installs": "ts-node scripts/reportInstalls.ts",
     "automation-test": "npm run compile && node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/specs/apexLsp.e2e.js",
-    "automation-tests": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js",
+    "automation-tests": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/specs/*.e2e.js",
     "setup": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/setup/anInitialSetUp.e2e.js"
   },
   "husky": {
