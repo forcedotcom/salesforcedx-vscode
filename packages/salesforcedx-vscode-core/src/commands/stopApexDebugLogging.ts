@@ -29,20 +29,24 @@ export const turnOffLogging = async (): Promise<void> => {
           await TraceFlagsRemover.getInstance(connection).removeTraceFlag(nonNullTraceFlag);
           telemetryService.sendCommandEvent('stop_apex_debug_logging');
           return Promise.resolve();
-        });
-        await notificationService.showInformationMessage('SFDX: Turn Off Apex Debug Log for Replay Debugger successfully ran');
-      } catch (error) {
-        console.error('Error in turnOffLogging(): ', error);
-        telemetryService.sendException('stop_apex_debug_logging', error);
-        // await notificationService.showErrorMessage(error);
-        await notificationService.showErrorMessage('Failed to turn off Apex Debug Log for Replay Debugger');
-        return Promise.reject('Restoring the debug levels failed.');
-      }
-    } else {
-      console.log('Developer log trace flag is not active');
-      telemetryService.sendCommandEvent('stop_apex_debug_logging');
-      await notificationService.showErrorMessage('No active trace flag found');
-      return Promise.resolve();
+        }
+      );
+
+      await notificationService.showInformationMessage(
+        'SFDX: Turn Off Apex Debug Log for Replay Debugger successfully ran'
+      );
+    } catch (error) {
+      console.error('Error in turnOffLogging(): ', error);
+      telemetryService.sendException('stop_apex_debug_logging', error);
+      // await notificationService.showErrorMessage(error);
+      await notificationService.showErrorMessage('Failed to turn off Apex Debug Log for Replay Debugger');
+      return Promise.reject('Restoring the debug levels failed.');
     }
-    console.log('Exit turnOffLogging()');
-  };
+  } else {
+    console.log('Developer log trace flag is not active');
+    telemetryService.sendCommandEvent('stop_apex_debug_logging');
+    await notificationService.showErrorMessage('No active trace flag found');
+    return Promise.resolve();
+  }
+  console.log('Exit turnOffLogging()');
+};
