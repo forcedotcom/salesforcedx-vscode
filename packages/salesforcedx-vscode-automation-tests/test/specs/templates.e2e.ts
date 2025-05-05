@@ -27,7 +27,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
-import child_process from 'node:child_process';
+import * as child_process from 'node:child_process';
 import * as path from 'node:path';
 import * as util from 'node:util';
 import { after } from 'vscode-extension-tester';
