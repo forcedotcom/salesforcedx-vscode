@@ -1,3 +1,15 @@
+# 63.12.0 - May 7, 2025
+
+## Added
+
+#### salesforcedx-vscode
+
+- [W-18002850]  add Code Analyzer v5 to standard pack + remove ESLint and Apex PMD from expanded pack ([PR #6246](https://github.com/forcedotcom/salesforcedx-vscode/pull/6246))
+
+#### salesforcedx-vscode-expanded
+
+- [W-18002850]  add Code Analyzer v5 to standard pack + remove ESLint and Apex PMD from expanded pack ([PR #6246](https://github.com/forcedotcom/salesforcedx-vscode/pull/6246))
+
 # 63.11.0 - April 30, 2025
 
 ## Fixed
