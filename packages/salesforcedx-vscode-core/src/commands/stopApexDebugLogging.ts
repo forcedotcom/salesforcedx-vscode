@@ -38,15 +38,12 @@ export const turnOffLogging = async (): Promise<void> => {
     } catch (error) {
       console.error('Error in turnOffLogging(): ', error);
       telemetryService.sendException('stop_apex_debug_logging', error);
-      // await notificationService.showErrorMessage(error);
-      await notificationService.showErrorMessage('Failed to turn off Apex Debug Log for Replay Debugger');
       return Promise.reject('Restoring the debug levels failed.');
     }
   } else {
     console.log('Developer log trace flag is not active');
-    telemetryService.sendCommandEvent('stop_apex_debug_logging');
-    await notificationService.showErrorMessage('No active trace flag found');
-    return Promise.resolve();
+    telemetryService.sendException('stop_apex_debug_logging', 'No active trace flag found.');
+    return Promise.reject('No active trace flag found.');
   }
   console.log('Exit turnOffLogging()');
 };
