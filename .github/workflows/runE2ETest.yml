@@ -85,6 +85,9 @@ jobs:
       - name: Set THROTTLE_FACTOR for Windows
         if: matrix.os == 'windows-latest'
         run: echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
+      - name: Compile packages
+        run: npm run compile
+        working-directory: salesforcedx-vscode
       - name: List all files in specs folder and save to variable
         id: list_specs
         run: |
