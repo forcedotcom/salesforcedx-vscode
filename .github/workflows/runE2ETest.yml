@@ -108,7 +108,7 @@ jobs:
           working-directory: salesforcedx-vscode
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SPEC_FILES: ${{ inputs.testToRun || steps.specs_files_str.outputs.specs_files_str }}
+          SPEC_FILES: ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
           THROTTLE_FACTOR: ${{ env.THROTTLE_FACTOR }}
