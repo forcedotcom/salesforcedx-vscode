@@ -88,7 +88,7 @@ jobs:
       - name: List all files in specs folder and save to variable
         id: list_specs
         run: |
-          ls packages/salesforcedx-vscode-automation-tests/test/specs > specs_files.txt
+          ls packages/salesforcedx-vscode-automation-tests/lib/test/specs/*.e2e.js > specs_files.txt
           cat specs_files.txt
           echo "specs_files=$(cat specs_files.txt | jq -R . | jq -sc .)" >> $GITHUB_OUTPUT
         working-directory: salesforcedx-vscode
