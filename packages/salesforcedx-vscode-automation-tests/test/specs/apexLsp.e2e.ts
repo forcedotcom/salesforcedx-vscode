@@ -29,7 +29,7 @@ import {
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import fs from 'node:fs';
-import path from 'node:path';
+import * as path from 'node:path';
 import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
 
 // Types
@@ -46,9 +46,12 @@ interface LspRestartOptions {
 
 // Constants
 const PATHS = {
-  project: path.join(__dirname, '..', '..', 'e2e-temp', 'TempProject-ApexLsp'),
+  project: path.join(__dirname, '..', '..', '..', '..', '..', 'e2e-temp', 'TempProject-ApexLsp'),
   apexClass: path.join(
     __dirname,
+    '..',
+    '..',
+    '..',
     '..',
     '..',
     'e2e-temp',
@@ -58,7 +61,7 @@ const PATHS = {
     'default',
     'classes'
   ),
-  tools: path.join(__dirname, '..', '..', 'e2e-temp', 'TempProject-ApexLsp', '.sfdx', 'tools')
+  tools: path.join(__dirname, '..', '..', '..', '..', '..', 'e2e-temp', 'TempProject-ApexLsp', '.sfdx', 'tools')
 } as const;
 
 const LSP_STATUS: LspStatus = {

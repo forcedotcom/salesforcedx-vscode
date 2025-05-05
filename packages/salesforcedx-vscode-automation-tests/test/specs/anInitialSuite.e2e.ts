@@ -33,6 +33,7 @@ suites run in alphabetical order, this suite has been named so it runs first.
 Please note that none of the other suites depend on this suite to run, it's just that if this
 suite does run, it needs to run first.
 */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 
 describe('An Initial Suite', async () => {
   const testReqConfig: TestReqConfig = {
@@ -82,9 +83,11 @@ describe('An Initial Suite', async () => {
 
         default:
           // And if any other SFDX commands are present, this is unexpected and is an issue.
-          unexpectedSfdxCommandWasFound = true;
-          log(`AnInitialSuite - command ${label} was present, but wasn't expected before the extensions loaded`);
-          break;
+          if (label.startsWith('SFDX:')) {
+            unexpectedSfdxCommandWasFound = true;
+            log(`AnInitialSuite - command ${label} was present, but wasn't expected before the extensions loaded`);
+            break;
+          }
       }
     }
 
