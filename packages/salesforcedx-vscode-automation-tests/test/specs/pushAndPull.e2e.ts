@@ -30,7 +30,7 @@ import {
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
 import fs from 'node:fs';
-import path from 'node:path';
+import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
 describe('Push and Pull', async () => {

@@ -17,7 +17,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import path from 'node:path';
+import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
 // In future we will merge the test together with deployAndRetrieve

@@ -28,7 +28,7 @@ import {
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
 import child_process from 'node:child_process';
-import path from 'node:path';
+import * as path from 'node:path';
 import util from 'node:util';
 import { after } from 'vscode-extension-tester';
 import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';

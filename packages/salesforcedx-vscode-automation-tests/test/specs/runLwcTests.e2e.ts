@@ -27,7 +27,7 @@ import {
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
 import { fail } from 'node:assert';
-import path from 'node:path';
+import * as path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
 
 describe('Run LWC Tests', async () => {

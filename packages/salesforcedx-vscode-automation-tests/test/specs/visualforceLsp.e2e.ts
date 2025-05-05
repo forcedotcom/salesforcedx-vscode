@@ -27,7 +27,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
-import path from 'node:path';
+import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 
 describe('Visualforce LSP', async () => {

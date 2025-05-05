@@ -15,7 +15,7 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import { getTextEditor, getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import path from 'node:path';
+import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
 describe('Customize sfdx-project.json', async () => {

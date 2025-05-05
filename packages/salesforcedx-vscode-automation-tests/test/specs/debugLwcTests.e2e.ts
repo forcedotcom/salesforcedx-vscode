@@ -33,7 +33,7 @@ import {
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
 import { fail } from 'node:assert';
-import path from 'node:path';
+import * as path from 'node:path';
 import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
 
 describe('Debug LWC Tests', async () => {

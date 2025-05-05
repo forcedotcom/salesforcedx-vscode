@@ -40,10 +40,10 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
-import path from 'node:path';
+import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
 
-describe('Deploy and Retrieve', () => {
+describe('Deploy and Retrieve', async () => {
   const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'MyClass');
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
@@ -53,313 +53,368 @@ describe('Deploy and Retrieve', () => {
     isOrgRequired: true,
     testSuiteSuffixName: 'DeployAndRetrieve'
   };
-  step('Set up the testing environment', () => {
-    async () => {
-      log('Deploy and Retrieve - Set up the testing environment');
-      testSetup = await TestSetup.setUp(testReqConfig);
+  step('Set up the testing environment', async () => {
+    log('Deploy and Retrieve - Set up the testing environment');
+    testSetup = await TestSetup.setUp(testReqConfig);
 
-      // Create Apex Class
-      const classText = [
-        'public with sharing class MyClass {',
-        '',
-        '\tpublic static void SayHello(string name){',
-        "\t\tSystem.debug('Hello, ' + name + '!');",
-        '\t}',
-        '}'
-      ].join('\n');
-      await dismissAllNotifications();
-      await createApexClass('MyClass', classText);
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Create Apex Class successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
+    // Create Apex Class
+    const classText = [
+      'public with sharing class MyClass {',
+      '',
+      '\tpublic static void SayHello(string name){',
+      "\t\tSystem.debug('Hello, ' + name + '!');",
+      '\t}',
+      '}'
+    ].join('\n');
+    await dismissAllNotifications();
+    await createApexClass('MyClass', classText);
+    const successNotificationWasFound = await notificationIsPresentWithTimeout(
+      /SFDX: Create Apex Class successfully ran/,
+      Duration.TEN_MINUTES
+    );
+    expect(successNotificationWasFound).to.equal(true);
 
-      const outputPanelText = await attemptToFindOutputPanelText(
-        'Salesforce CLI',
-        'Finished SFDX: Create Apex Class',
-        10
-      );
-      expect(outputPanelText).to.not.be.undefined;
-      expect(outputPanelText).to.contain(`${pathToClass}.cls`);
-      expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
-    };
+    const outputPanelText = await attemptToFindOutputPanelText(
+      'Salesforce CLI',
+      'Finished SFDX: Create Apex Class',
+      10
+    );
+    expect(outputPanelText).to.not.be.undefined;
+    expect(outputPanelText).to.contain(`${pathToClass}.cls`);
+    expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
   });
 
-  step('Verify Source Tracking Setting is enabled', () => {
-    async () => {
-      log('Deploy and Retrieve - Verify Source Tracking Setting is enabled');
-      expect(await isBooleanSettingEnabled(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE));
-    };
+  step('Verify Source Tracking Setting is enabled', async () => {
+    log('Deploy and Retrieve - Verify Source Tracking Setting is enabled');
+    expect(await isBooleanSettingEnabled(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE));
   });
 
-  step('Deploy with SFDX: Deploy This Source to Org - ST enabled', () => {
-    async () => {
-      log('Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST enabled');
-      const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
-      await getTextEditor(workbench, 'MyClass.cls');
-      await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass');
-    };
+  step('Deploy with SFDX: Deploy This Source to Org - ST enabled', async () => {
+    log('Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST enabled');
+    const workbench = getWorkbench();
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
+    await getTextEditor(workbench, 'MyClass.cls');
+    await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass');
   });
 
-  step('Deploy again (with no changes) - ST enabled', () => {
-    async () => {
-      log('Deploy and Retrieve - Deploy again (with no changes) - ST enabled');
-      const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
-      await getTextEditor(workbench, 'MyClass.cls');
+  step('Deploy again (with no changes) - ST enabled', async () => {
+    log('Deploy and Retrieve - Deploy again (with no changes) - ST enabled');
+    const workbench = getWorkbench();
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
+    await getTextEditor(workbench, 'MyClass.cls');
 
-      await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Unchanged  ');
-    };
+    await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Unchanged  ');
   });
 
-  step('Modify the file and deploy again - ST enabled', () => {
-    async () => {
-      log('Deploy and Retrieve - Modify the file and deploy again - ST enabled');
-      const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
+  step('Modify the file and deploy again - ST enabled', async () => {
+    log('Deploy and Retrieve - Modify the file and deploy again - ST enabled');
+    const workbench = getWorkbench();
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
 
-      // Modify the file by adding a comment.
-      const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-      await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-      await textEditor.save();
+    // Modify the file by adding a comment.
+    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
+    await textEditor.save();
 
-      // Deploy running SFDX: Deploy This Source to Org
-      await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Changed  ');
-    };
+    // Deploy running SFDX: Deploy This Source to Org
+    await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Changed  ');
   });
 
   // Use context menu only for Windows and Ubuntu
   if (process.platform !== 'darwin') {
-    step('Deploy with context menu from editor view', () => {
-      async () => {
-        log('Deploy with context menu from editor view');
-        const workbench = getWorkbench();
-        // Clear the Output view first.
-        await clearOutputView(Duration.seconds(2));
+    step('Deploy with context menu from editor view', async () => {
+      log('Deploy with context menu from editor view');
+      const workbench = getWorkbench();
+      // Clear the Output view first.
+      await clearOutputView(Duration.seconds(2));
 
-        const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-        const contextMenu = await textEditor.openContextMenu();
-        await contextMenu.select('SFDX: Deploy This Source to Org');
+      const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+      const contextMenu = await textEditor.openContextMenu();
+      await contextMenu.select('SFDX: Deploy This Source to Org');
 
-        await validateCommand('Deploy', 'to', 'ST', 'ApexClass', ['MyClass'], 'Unchanged  ');
-      };
+      await validateCommand('Deploy', 'to', 'ST', 'ApexClass', ['MyClass'], 'Unchanged  ');
     });
   }
 
   if (process.platform !== 'darwin') {
-    step('Deploy with context menu from explorer view', () => {
-      async () => {
-        log('Deploy with context menu from explorer view');
-        // Clear the Output view first.
-        await clearOutputView(Duration.seconds(2));
-        await executeQuickPick('File: Focus on Files Explorer');
-        await pause(Duration.seconds(2));
-        const workbench = getWorkbench();
-        const sidebar = await workbench.getSideBar().wait();
-        const content = await sidebar.getContent().wait();
-        const treeViewSection = await content.getSection(testSetup.tempProjectName);
-        if (!treeViewSection) {
-          throw new Error(
-            'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
-          );
-        }
-        await treeViewSection.expand();
+    step('Deploy with context menu from explorer view', async () => {
+      log('Deploy with context menu from explorer view');
+      // Clear the Output view first.
+      await clearOutputView(Duration.seconds(2));
+      await executeQuickPick('File: Focus on Files Explorer');
+      await pause(Duration.seconds(2));
+      const workbench = getWorkbench();
+      const sidebar = await workbench.getSideBar().wait();
+      const content = await sidebar.getContent().wait();
+      const treeViewSection = await content.getSection(testSetup.tempProjectName);
+      if (!treeViewSection) {
+        throw new Error(
+          'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
+        );
+      }
+      await treeViewSection.expand();
 
-        // The force-app/main/default and classes folders are already expanded, so we can find the file directly
-        const myClassFile = (await treeViewSection.findItem('MyClass.cls')) as DefaultTreeItem;
-        const contextMenu = await myClassFile.openContextMenu();
-        await contextMenu.select('SFDX: Deploy This Source to Org');
+      // The force-app/main/default and classes folders are already expanded, so we can find the file directly
+      const myClassFile = (await treeViewSection.findItem('MyClass.cls')) as DefaultTreeItem;
+      const contextMenu = await myClassFile.openContextMenu();
+      await contextMenu.select('SFDX: Deploy This Source to Org');
 
-        await validateCommand('Deploy', 'to', 'ST', 'ApexClass', ['MyClass'], 'Unchanged  ');
-      };
+      await validateCommand('Deploy', 'to', 'ST', 'ApexClass', ['MyClass'], 'Unchanged  ');
     });
   }
 
-  step('Retrieve with SFDX: Retrieve This Source from Org', () => {
-    async () => {
-      log('Deploy and Retrieve - Retrieve with SFDX: Retrieve This Source from Org');
-      const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
-      await getTextEditor(workbench, 'MyClass.cls');
+  step('Retrieve with SFDX: Retrieve This Source from Org', async () => {
+    log('Deploy and Retrieve - Retrieve with SFDX: Retrieve This Source from Org');
+    const workbench = getWorkbench();
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
+    await getTextEditor(workbench, 'MyClass.cls');
 
-      await runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
-    };
+    await runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
   });
 
-  step('Modify the file and retrieve again', () => {
-    async () => {
-      log('Deploy and Retrieve - Modify the file and retrieve again');
-      const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
+  step('Modify the file and retrieve again', async () => {
+    log('Deploy and Retrieve - Modify the file and retrieve again');
+    const workbench = getWorkbench();
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
 
-      // Modify the file by changing the comment.
-      const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-      await textEditor.setTextAtLine(2, '\t//modified comment');
-      await textEditor.save();
+    // Modify the file by changing the comment.
+    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+    await textEditor.setTextAtLine(2, '\t//modified comment');
+    await textEditor.save();
 
-      // Retrieve running SFDX: Retrieve This Source from Org
+    // Retrieve running SFDX: Retrieve This Source from Org
 
-      await runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
-      // Retrieve operation will overwrite the file, hence the the comment will remain as before the modification
-      const textAfterRetrieve = await textEditor.getText();
-      expect(textAfterRetrieve).to.not.contain('modified comment');
-    };
+    await runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
+    // Retrieve operation will overwrite the file, hence the the comment will remain as before the modification
+    const textAfterRetrieve = await textEditor.getText();
+    expect(textAfterRetrieve).to.not.contain('modified comment');
   });
 
   // Use context menu only for Windows and Ubuntu
   if (process.platform !== 'darwin') {
-    step('Retrieve with context menu from editor view', () => {
-      async () => {
-        log('Retrieve with context menu from editor view');
-        const workbench = getWorkbench();
-        // Clear the Output view first.
-        await clearOutputView(Duration.seconds(2));
+    step('Retrieve with context menu from editor view', async () => {
+      log('Retrieve with context menu from editor view');
+      const workbench = getWorkbench();
+      // Clear the Output view first.
+      await clearOutputView(Duration.seconds(2));
 
-        const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-        const contextMenu = await textEditor.openContextMenu();
-        await contextMenu.select('SFDX: Retrieve This Source from Org');
+      const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+      const contextMenu = await textEditor.openContextMenu();
+      await contextMenu.select('SFDX: Retrieve This Source from Org');
 
-        await validateCommand('Retrieve', 'from', 'ST', 'ApexClass', ['MyClass']);
-      };
+      await validateCommand('Retrieve', 'from', 'ST', 'ApexClass', ['MyClass']);
     });
   }
 
   if (process.platform !== 'darwin') {
-    step('Retrieve with context menu from explorer view', () => {
-      async () => {
-        log('Retrieve with context menu from explorer view');
-        // Clear the Output view first.
-        await clearOutputView(Duration.seconds(2));
-        await executeQuickPick('File: Focus on Files Explorer');
-        await pause(Duration.seconds(2));
-        const workbench = getWorkbench();
-        const sidebar = await workbench.getSideBar().wait();
-        const content = await sidebar.getContent().wait();
-        const treeViewSection = await content.getSection(testSetup.tempProjectName);
-        if (!treeViewSection) {
-          throw new Error(
-            'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
-          );
-        }
+    step('Retrieve with context menu from explorer view', async () => {
+      log('Retrieve with context menu from explorer view');
+      // Clear the Output view first.
+      await clearOutputView(Duration.seconds(2));
+      await executeQuickPick('File: Focus on Files Explorer');
+      await pause(Duration.seconds(2));
+      const workbench = getWorkbench();
+      const sidebar = await workbench.getSideBar().wait();
+      const content = await sidebar.getContent().wait();
+      const treeViewSection = await content.getSection(testSetup.tempProjectName);
+      if (!treeViewSection) {
+        throw new Error(
+          'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
+        );
+      }
 
-        // The force-app/main/default and classes folders are already expanded, so we can find the file directly
-        const myClassFile = (await treeViewSection.findItem('MyClass.cls')) as DefaultTreeItem;
-        const contextMenu = await myClassFile.openContextMenu();
-        await contextMenu.select('SFDX: Retrieve This Source from Org');
+      // The force-app/main/default and classes folders are already expanded, so we can find the file directly
+      const myClassFile = (await treeViewSection.findItem('MyClass.cls')) as DefaultTreeItem;
+      const contextMenu = await myClassFile.openContextMenu();
+      await contextMenu.select('SFDX: Retrieve This Source from Org');
 
-        await validateCommand('Retrieve', 'from', 'ST', 'ApexClass', ['MyClass']);
-      };
+      await validateCommand('Retrieve', 'from', 'ST', 'ApexClass', ['MyClass']);
     });
   }
 
-  step('Prefer Deploy on Save when `Push or deploy on save` is enabled', () => {
-    async () => {
-      log("Deploy and Retrieve - Prefer Deploy on Save when 'Push or deploy on save' is enabled");
-      const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
+  step('Prefer Deploy on Save when `Push or deploy on save` is enabled', async () => {
+    log("Deploy and Retrieve - Prefer Deploy on Save when 'Push or deploy on save' is enabled");
+    const workbench = getWorkbench();
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
 
-      expect(await enableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_ENABLED)).to.equal(true);
-      await pause(Duration.seconds(3));
+    expect(await enableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_ENABLED)).to.equal(true);
+    await pause(Duration.seconds(3));
 
-      expect(await enableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_PREFER_DEPLOY_ON_SAVE)).to.equal(true);
+    expect(await enableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_PREFER_DEPLOY_ON_SAVE)).to.equal(true);
 
-      // Clear all notifications so clear output button is reachable
-      await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
+    // Clear all notifications so clear output button is reachable
+    await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
 
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
-      // Modify the file and save to trigger deploy
-      const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-      await textEditor.setTextAtLine(2, "\t// let's trigger deploy");
-      await textEditor.save();
-      await pause(Duration.seconds(5));
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
+    // Modify the file and save to trigger deploy
+    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+    await textEditor.setTextAtLine(2, "\t// let's trigger deploy");
+    await textEditor.save();
+    await pause(Duration.seconds(5));
 
-      // At this point there should be no conflicts since this is a new class.
-      await validateCommand('Deploy', 'to', 'on save', 'ApexClass', ['MyClass']);
-    };
+    // At this point there should be no conflicts since this is a new class.
+    await validateCommand('Deploy', 'to', 'on save', 'ApexClass', ['MyClass']);
   });
 
-  step('Disable Source Tracking Setting', () => {
-    async () => {
-      log('Deploy and Retrieve - Disable Source Tracking Setting');
-      await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
+  step('Disable Source Tracking Setting', async () => {
+    log('Deploy and Retrieve - Disable Source Tracking Setting');
+    await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
 
-      expect(await disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
+    expect(await disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
 
-      // Reload window to update cache and get the setting behavior to work
-      await reloadWindow();
-      await verifyExtensionsAreRunning(getExtensionsToVerifyActive(), Duration.seconds(100));
-    };
+    // Reload window to update cache and get the setting behavior to work
+    await reloadWindow();
+    await verifyExtensionsAreRunning(getExtensionsToVerifyActive(), Duration.seconds(100));
   });
 
-  step('Deploy with SFDX: Deploy This Source to Org - ST disabled', () => {
-    async () => {
-      log('Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST disabled');
-      const workbench = getWorkbench();
-      // Clear all notifications so clear output button is visible
-      await executeQuickPick('Notifications: Clear All Notifications');
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
-      await getTextEditor(workbench, 'MyClass.cls');
+  step('Deploy with SFDX: Deploy This Source to Org - ST disabled', async () => {
+    log('Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST disabled');
+    const workbench = getWorkbench();
+    // Clear all notifications so clear output button is visible
+    await executeQuickPick('Notifications: Clear All Notifications');
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
+    await getTextEditor(workbench, 'MyClass.cls');
 
-      await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass');
-    };
+    await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass');
   });
 
-  step('Deploy again (with no changes) - ST disabled', () => {
-    async () => {
-      log('Deploy and Retrieve - Deploy again (with no changes) - ST enabled');
-      const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
-      await getTextEditor(workbench, 'MyClass.cls');
+  step('Deploy again (with no changes) - ST disabled', async () => {
+    log('Deploy and Retrieve - Deploy again (with no changes) - ST enabled');
+    const workbench = getWorkbench();
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
+    await getTextEditor(workbench, 'MyClass.cls');
 
-      await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Unchanged  ');
-    };
+    await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Unchanged  ');
   });
 
-  step('Modify the file and deploy again - ST disabled', () => {
-    async () => {
-      log('Deploy and Retrieve - Modify the file and deploy again - ST disabled');
-      const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView(Duration.seconds(2));
+  step('Modify the file and deploy again - ST disabled', async () => {
+    log('Deploy and Retrieve - Modify the file and deploy again - ST disabled');
+    const workbench = getWorkbench();
+    // Clear the Output view first.
+    await clearOutputView(Duration.seconds(2));
 
-      // Modify the file by adding a comment.
-      const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-      await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-      await textEditor.save();
+    // Modify the file by adding a comment.
+    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
+    await textEditor.save();
 
-      // Deploy running SFDX: Deploy This Source to Org
-      await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
-    };
+    // Deploy running SFDX: Deploy This Source to Org
+    await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
   });
 
-  step('SFDX: Delete This from Project and Org - Command Palette', () => {
-    async () => {
-      log('Deploy and Retrieve - SFDX: Delete This from Project and Org - Command Palette');
+  step('SFDX: Delete This from Project and Org - Command Palette', async () => {
+    log('Deploy and Retrieve - SFDX: Delete This from Project and Org - Command Palette');
+    const workbench = getWorkbench();
+
+    // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
+    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+
+    // Clear the Output view first.
+    await clearOutputView();
+
+    // Clear notifications
+    await dismissAllNotifications();
+
+    await getTextEditor(workbench, 'MyClass.cls');
+    await pause(Duration.seconds(1));
+    await executeQuickPick('SFDX: Delete This from Project and Org', Duration.seconds(2));
+
+    // Make sure we get a notification for the source delete
+    const notificationFound = await notificationIsPresentWithTimeout(
+      /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
+      Duration.ONE_MINUTE
+    );
+
+    expect(notificationFound).to.equal(true);
+
+    // Confirm deletion
+    const accepted = await acceptNotification(
+      'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+      'Delete Source',
+      Duration.seconds(5)
+    );
+    expect(accepted).to.equal(true);
+    const successNotificationWasFound = await notificationIsPresentWithTimeout(
+      /SFDX: Delete from Project and Org successfully ran/,
+      Duration.TEN_MINUTES
+    );
+    expect(successNotificationWasFound).to.equal(true);
+
+    // TODO: see how the test can accommodate the new output from CLI.
+    // Verify Output tab
+    const outputPanelText = await attemptToFindOutputPanelText(
+      'Salesforce CLI',
+      'Starting SFDX: Delete from Project and Org',
+      10
+    );
+    log('Output panel text is: ' + outputPanelText);
+
+    const expectedTexts = [
+      '=== Deleted Source',
+      'MyClass',
+      'ApexClass',
+      `${pathToClass}.cls`,
+      `${pathToClass}.cls-meta.xml`,
+      'ended with exit code 0'
+    ];
+
+    expect(outputPanelText).to.not.be.undefined;
+    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+  });
+
+  if (process.platform !== 'darwin') {
+    step('Create and push 2 apex classes', async () => {
+      log('Deploy and Retrieve - Create and push 2 apex classes');
+
+      // Create the Apex Classes.
+      await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
+      await createCommand('Apex Class', 'ExampleApexClass2', 'classes', 'cls');
+
+      // Reload the VSCode window to allow the LWC to be indexed by the Apex Language Server
+      await reloadWindow(Duration.seconds(20));
+
+      // Push source to org
+      await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+
+      // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+      let successPushNotificationWasFound;
+      try {
+        successPushNotificationWasFound = await notificationIsPresentWithTimeout(
+          /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+          Duration.TEN_MINUTES
+        );
+        expect(successPushNotificationWasFound).to.equal(true);
+      } catch (error) {
+        await getWorkbench().openNotificationsCenter();
+        successPushNotificationWasFound = await notificationIsPresentWithTimeout(
+          /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+          Duration.TEN_MINUTES
+        );
+        expect(successPushNotificationWasFound).to.equal(true);
+      }
+    });
+
+    step('SFDX: Delete This from Project and Org - Right click from editor view', async () => {
+      log('Deploy and Retrieve - SFDX: Delete This from Project and Org - Right click from editor view');
       const workbench = getWorkbench();
-
-      // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
-      await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
-
       // Clear the Output view first.
       await clearOutputView();
 
       // Clear notifications
       await dismissAllNotifications();
 
-      await getTextEditor(workbench, 'MyClass.cls');
-      await pause(Duration.seconds(1));
-      await executeQuickPick('SFDX: Delete This from Project and Org', Duration.seconds(2));
+      const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
+      const contextMenu = await textEditor.openContextMenu();
+      await contextMenu.select('SFDX: Delete This from Project and Org');
 
       // Make sure we get a notification for the source delete
       const notificationFound = await notificationIsPresentWithTimeout(
@@ -376,6 +431,7 @@ describe('Deploy and Retrieve', () => {
         Duration.seconds(5)
       );
       expect(accepted).to.equal(true);
+
       const successNotificationWasFound = await notificationIsPresentWithTimeout(
         /SFDX: Delete from Project and Org successfully ran/,
         Duration.TEN_MINUTES
@@ -391,198 +447,102 @@ describe('Deploy and Retrieve', () => {
       );
       log('Output panel text is: ' + outputPanelText);
 
+      const pathToClassDeleteFromProjectAndOrg = path.join(
+        'force-app',
+        'main',
+        'default',
+        'classes',
+        'ExampleApexClass1'
+      );
+
       const expectedTexts = [
         '=== Deleted Source',
-        'MyClass',
+        'ExampleApexClass1',
         'ApexClass',
-        `${pathToClass}.cls`,
-        `${pathToClass}.cls-meta.xml`,
+        `${pathToClassDeleteFromProjectAndOrg}.cls`,
+        `${pathToClassDeleteFromProjectAndOrg}.cls-meta.xml`,
         'ended with exit code 0'
       ];
 
       expect(outputPanelText).to.not.be.undefined;
       await verifyOutputPanelText(outputPanelText!, expectedTexts);
-    };
-  });
-
-  if (process.platform !== 'darwin') {
-    step('Create and push 2 apex classes', () => {
-      async () => {
-        log('Deploy and Retrieve - Create and push 2 apex classes');
-
-        // Create the Apex Classes.
-        await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
-        await createCommand('Apex Class', 'ExampleApexClass2', 'classes', 'cls');
-
-        // Reload the VSCode window to allow the LWC to be indexed by the Apex Language Server
-        await reloadWindow(Duration.seconds(20));
-
-        // Push source to org
-        await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
-
-        // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-        let successPushNotificationWasFound;
-        try {
-          successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-            /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-            Duration.TEN_MINUTES
-          );
-          expect(successPushNotificationWasFound).to.equal(true);
-        } catch (error) {
-          await getWorkbench().openNotificationsCenter();
-          successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-            /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-            Duration.TEN_MINUTES
-          );
-          expect(successPushNotificationWasFound).to.equal(true);
-        }
-      };
     });
 
-    step('SFDX: Delete This from Project and Org - Right click from editor view', () => {
-      async () => {
-        log('Deploy and Retrieve - SFDX: Delete This from Project and Org - Right click from editor view');
-        const workbench = getWorkbench();
-        // Clear the Output view first.
-        await clearOutputView();
+    step('SFDX: Delete This from Project and Org - Right click from explorer view', async () => {
+      log('SFDX: Delete This from Project and Org - Right click from explorer view');
+      // Clear the Output view first.
+      await clearOutputView();
 
-        // Clear notifications
-        await dismissAllNotifications();
+      // Clear notifications
+      await dismissAllNotifications();
 
-        const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
-        const contextMenu = await textEditor.openContextMenu();
-        await contextMenu.select('SFDX: Delete This from Project and Org');
-
-        // Make sure we get a notification for the source delete
-        const notificationFound = await notificationIsPresentWithTimeout(
-          /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
-          Duration.ONE_MINUTE
+      await executeQuickPick('File: Focus on Files Explorer');
+      await pause(Duration.seconds(2));
+      const workbench = getWorkbench();
+      const sidebar = await workbench.getSideBar().wait();
+      const content = await sidebar.getContent().wait();
+      const treeViewSection = await content.getSection(testSetup.tempProjectName);
+      if (!treeViewSection) {
+        throw new Error(
+          'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
         );
+      }
 
-        expect(notificationFound).to.equal(true);
+      // The force-app/main/default and classes folders are already expanded, so we can find the file directly
+      const myClassFile = (await treeViewSection.findItem('ExampleApexClass2.cls')) as DefaultTreeItem;
+      const contextMenu = await myClassFile.openContextMenu();
+      await contextMenu.select('SFDX: Delete from Project and Org');
 
-        // Confirm deletion
-        const accepted = await acceptNotification(
-          'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
-          'Delete Source',
-          Duration.seconds(5)
-        );
-        expect(accepted).to.equal(true);
+      // Make sure we get a notification for the source delete
+      const notificationFound = await notificationIsPresentWithTimeout(
+        /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
+        Duration.ONE_MINUTE
+      );
 
-        const successNotificationWasFound = await notificationIsPresentWithTimeout(
-          /SFDX: Delete from Project and Org successfully ran/,
-          Duration.TEN_MINUTES
-        );
-        expect(successNotificationWasFound).to.equal(true);
+      expect(notificationFound).to.equal(true);
 
-        // TODO: see how the test can accommodate the new output from CLI.
-        // Verify Output tab
-        const outputPanelText = await attemptToFindOutputPanelText(
-          'Salesforce CLI',
-          'Starting SFDX: Delete from Project and Org',
-          10
-        );
-        log('Output panel text is: ' + outputPanelText);
+      // Confirm deletion
+      const accepted = await acceptNotification(
+        'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+        'Delete Source',
+        Duration.seconds(5)
+      );
+      expect(accepted).to.equal(true);
 
-        const pathToClassDeleteFromProjectAndOrg = path.join(
-          'force-app',
-          'main',
-          'default',
-          'classes',
-          'ExampleApexClass1'
-        );
+      const successNotificationWasFound = await notificationIsPresentWithTimeout(
+        /SFDX: Delete from Project and Org successfully ran/,
+        Duration.TEN_MINUTES
+      );
+      expect(successNotificationWasFound).to.equal(true);
 
-        const expectedTexts = [
-          '=== Deleted Source',
-          'ExampleApexClass1',
-          'ApexClass',
-          `${pathToClassDeleteFromProjectAndOrg}.cls`,
-          `${pathToClassDeleteFromProjectAndOrg}.cls-meta.xml`,
-          'ended with exit code 0'
-        ];
+      // TODO: see how the test can accommodate the new output from CLI.
+      // Verify Output tab
+      const outputPanelText = await attemptToFindOutputPanelText(
+        'Salesforce CLI',
+        'Starting SFDX: Delete from Project and Org',
+        10
+      );
+      log('Output panel text is: ' + outputPanelText);
 
-        expect(outputPanelText).to.not.be.undefined;
-        await verifyOutputPanelText(outputPanelText!, expectedTexts);
-      };
-    });
+      const pathToClassDeleteFromProjectAndOrg = path.join(
+        'force-app',
+        'main',
+        'default',
+        'classes',
+        'ExampleApexClass2'
+      );
 
-    step('SFDX: Delete This from Project and Org - Right click from explorer view', () => {
-      async () => {
-        log('SFDX: Delete This from Project and Org - Right click from explorer view');
-        // Clear the Output view first.
-        await clearOutputView();
+      const expectedTexts = [
+        '=== Deleted Source',
+        'ExampleApexClass2',
+        'ApexClass',
+        `${pathToClassDeleteFromProjectAndOrg}.cls`,
+        `${pathToClassDeleteFromProjectAndOrg}.cls-meta.xml`,
+        'ended with exit code 0'
+      ];
 
-        // Clear notifications
-        await dismissAllNotifications();
-
-        await executeQuickPick('File: Focus on Files Explorer');
-        await pause(Duration.seconds(2));
-        const workbench = getWorkbench();
-        const sidebar = await workbench.getSideBar().wait();
-        const content = await sidebar.getContent().wait();
-        const treeViewSection = await content.getSection(testSetup.tempProjectName);
-        if (!treeViewSection) {
-          throw new Error(
-            'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
-          );
-        }
-
-        // The force-app/main/default and classes folders are already expanded, so we can find the file directly
-        const myClassFile = (await treeViewSection.findItem('ExampleApexClass2.cls')) as DefaultTreeItem;
-        const contextMenu = await myClassFile.openContextMenu();
-        await contextMenu.select('SFDX: Delete from Project and Org');
-
-        // Make sure we get a notification for the source delete
-        const notificationFound = await notificationIsPresentWithTimeout(
-          /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
-          Duration.ONE_MINUTE
-        );
-
-        expect(notificationFound).to.equal(true);
-
-        // Confirm deletion
-        const accepted = await acceptNotification(
-          'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
-          'Delete Source',
-          Duration.seconds(5)
-        );
-        expect(accepted).to.equal(true);
-
-        const successNotificationWasFound = await notificationIsPresentWithTimeout(
-          /SFDX: Delete from Project and Org successfully ran/,
-          Duration.TEN_MINUTES
-        );
-        expect(successNotificationWasFound).to.equal(true);
-
-        // TODO: see how the test can accommodate the new output from CLI.
-        // Verify Output tab
-        const outputPanelText = await attemptToFindOutputPanelText(
-          'Salesforce CLI',
-          'Starting SFDX: Delete from Project and Org',
-          10
-        );
-        log('Output panel text is: ' + outputPanelText);
-
-        const pathToClassDeleteFromProjectAndOrg = path.join(
-          'force-app',
-          'main',
-          'default',
-          'classes',
-          'ExampleApexClass2'
-        );
-
-        const expectedTexts = [
-          '=== Deleted Source',
-          'ExampleApexClass2',
-          'ApexClass',
-          `${pathToClassDeleteFromProjectAndOrg}.cls`,
-          `${pathToClassDeleteFromProjectAndOrg}.cls-meta.xml`,
-          'ended with exit code 0'
-        ];
-
-        expect(outputPanelText).to.not.be.undefined;
-        await verifyOutputPanelText(outputPanelText!, expectedTexts);
-      };
+      expect(outputPanelText).to.not.be.undefined;
+      await verifyOutputPanelText(outputPanelText!, expectedTexts);
     });
   }
 
