@@ -1,0 +1,11 @@
+{
+  "timeout": 300000,
+  "require": [
+    "ts-node/register"
+  ],
+  "extension": [
+    "ts"
+  ],
+  "slow": 75,
+  "exit": true
+}
