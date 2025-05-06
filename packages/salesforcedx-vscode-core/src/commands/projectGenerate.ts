@@ -7,6 +7,7 @@
 
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
   PostconditionChecker
@@ -19,7 +20,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet } from './util';
+import { EmptyPreChecker, SfCommandlet } from './util';
 
 export enum projectTemplateEnum {
   standard = 'standard',

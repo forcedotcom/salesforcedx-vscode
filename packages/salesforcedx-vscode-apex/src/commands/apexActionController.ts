@@ -16,6 +16,7 @@ import { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../
 import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
+
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
   private gil = GenerationInteractionLogger.getInstance();

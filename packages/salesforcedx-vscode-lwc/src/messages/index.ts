@@ -9,6 +9,7 @@ import { Config, DEFAULT_LOCALE, LOCALE_JA, Localization, Message } from '@sales
 
 import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
+
 const supportedLocales = [DEFAULT_LOCALE, LOCALE_JA];
 
 const loadMessageBundle = (config?: Config): Message => {
