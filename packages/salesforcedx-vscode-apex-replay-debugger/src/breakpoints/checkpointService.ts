@@ -14,6 +14,7 @@ import {
   OVERLAY_ACTION_DELETE_URL
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
+import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
@@ -212,9 +213,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           const errorMessage = nls.localize('local_source_is_out_of_sync_with_the_server');
           writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
         } else {
-          const errorMessage = `${
-            result[0].message
-          }. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+          const errorMessage = `${result[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
           writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
         }
       } catch (error) {
@@ -835,17 +834,6 @@ const fetchExistingBreakpointForUriAndLineNumber = (uriInput: URI, lineInput: nu
       bp.location.uri.toString() === uriInput.toString() &&
       bp.location.range.start.line === lineInput
   );
-
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-const code2ProtocolConverter = (value: URI) => {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
-  }
-};
 
 export const checkpointUtils = {
   fetchActiveEditorUri,

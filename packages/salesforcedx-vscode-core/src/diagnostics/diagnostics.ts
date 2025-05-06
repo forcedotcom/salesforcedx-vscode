@@ -4,8 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { fixupError, ProjectDeployStartErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  fixupError,
+  ProjectDeployStartErrorResponse,
+  getRootWorkspacePath
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve-bundle';
 import * as path from 'node:path';
 import * as vscode from 'vscode';

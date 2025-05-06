@@ -7,8 +7,7 @@
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { TestExecutionInfo } from '../types';
-import { LWC_TEST_WATCH_LOG_NAME } from '../types/constants';
-import { SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
+import { LWC_TEST_WATCH_LOG_NAME, SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
 import { SfTask } from './taskService';
 import { TestRunner, TestRunType } from './testRunner';
 

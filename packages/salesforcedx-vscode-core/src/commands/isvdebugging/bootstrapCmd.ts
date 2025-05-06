@@ -4,17 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { CommandOutput, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   CliCommandExecutor,
-  Command,
   CommandExecution,
-  CommandOutput,
+  CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
   projectPaths,
-  SfCommandBuilder
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -25,7 +24,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
+import { notificationService } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import {
   PathExistsChecker,
@@ -33,7 +32,7 @@ import {
   SelectProjectFolder,
   SelectProjectName
 } from '../projectGenerate';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
+import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
 
 type InstalledPackageInfo = {
   id: string;

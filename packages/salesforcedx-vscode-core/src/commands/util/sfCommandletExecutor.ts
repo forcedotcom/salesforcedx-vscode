@@ -5,16 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor, Command, CommandExecution, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { Command } from '@salesforce/salesforcedx-utils';
+import {
+  CliCommandExecutor,
+  CommandExecution,
+  ContinueResponse,
+  workspaceUtils,
+  ProgressNotification
+} from '@salesforce/salesforcedx-utils-vscode';
 import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
+import { notificationService } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils } from '../../util';
 import { CommandletExecutor } from './commandletExecutor';
 
 export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {

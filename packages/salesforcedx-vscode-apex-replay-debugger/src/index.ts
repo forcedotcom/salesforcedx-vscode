@@ -34,6 +34,7 @@ import { setupAndDebugTests } from './commands/quickLaunch';
 import { workspaceContext } from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
+
 let extContext: vscode.ExtensionContext;
 
 export enum VSCodeWindowTypeEnum {
