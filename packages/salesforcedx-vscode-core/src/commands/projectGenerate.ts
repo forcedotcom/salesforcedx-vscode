@@ -136,7 +136,7 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
       canSelectFolders: true,
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
-    } as vscode.OpenDialogOptions);
+    });
     return projectUri && projectUri.length === 1
       ? { type: 'CONTINUE', data: { projectUri: projectUri[0].fsPath } }
       : { type: 'CANCEL' };

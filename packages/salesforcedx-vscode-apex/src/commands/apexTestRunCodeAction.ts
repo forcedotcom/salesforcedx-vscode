@@ -98,7 +98,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     const projectPath = getRootWorkspacePath();
     const project = await SfProject.resolve(projectPath);
 
-    const testsWithDiagnostics = result.tests.filter(test => test.diagnostic);
+    const testsWithDiagnostics = result.tests.filter(isTestWithDiagnostic);
     if (testsWithDiagnostics.length === 0) {
       return;
     }
@@ -109,7 +109,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     );
 
     testsWithDiagnostics.forEach(test => {
-      const diagnostic = test.diagnostic as ApexDiagnostic;
+      const diagnostic = test.diagnostic;
       const componentPath = correlatedArtifacts.get(test.apexClass.fullName ?? test.apexClass.name);
 
       if (componentPath) {
@@ -267,3 +267,7 @@ export const apexTestMethodRunCodeAction = async (testMethod: string) => {
 
   await apexTestRunCodeAction([testMethod]);
 };
+
+const isTestWithDiagnostic = (
+  test: ApexTestResultData
+): test is ApexTestResultData & { diagnostic: ApexDiagnostic[] } => 'diagnostic' in test;

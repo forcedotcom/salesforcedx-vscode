@@ -66,7 +66,7 @@ export class SObjectDescribe {
   }
 
   public async runRequest(batchRequest: BatchRequest): Promise<BatchResponse> {
-    return this.connection.request({
+    return this.connection.request<BatchResponse>({
       method: 'POST',
       url: this.buildBatchRequestURL(),
       body: JSON.stringify(batchRequest),
@@ -74,7 +74,7 @@ export class SObjectDescribe {
         'User-Agent': 'salesforcedx-extension',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       }
-    }) as unknown as BatchResponse;
+    });
   }
 
   public async describeSObjectBatchRequest(types: string[]): Promise<SObject[]> {

@@ -72,11 +72,11 @@ class GetComponentName implements ParametersGatherer<ComponentName> {
     this.sourceFsPath = sourceFsPath;
   }
   public async gather(): Promise<CancelResponse | ContinueResponse<ComponentName>> {
-    const inputOptions = {
+    const inputOptions: vscode.InputBoxOptions = {
       value: getComponentName(await getComponentPath(this.sourceFsPath)),
       placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
-      promopt: nls.localize(RENAME_INPUT_PROMPT)
-    } as vscode.InputBoxOptions;
+      prompt: nls.localize(RENAME_INPUT_PROMPT)
+    };
     const inputResult = await vscode.window.showInputBox(inputOptions);
     return inputResult ? { type: 'CONTINUE', data: { name: inputResult } } : { type: 'CANCEL' };
   }

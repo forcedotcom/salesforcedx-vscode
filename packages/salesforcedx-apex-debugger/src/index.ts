@@ -24,7 +24,6 @@ export type WorkspaceSettings = {
   proxyStrictSSL: boolean;
   proxyAuth: string;
   connectionTimeoutMs: number;
-  setBreakpointTimeoutMs: number;
 };
 
 // Define Metric object to be used for sending attributes to AppInsights telemetry

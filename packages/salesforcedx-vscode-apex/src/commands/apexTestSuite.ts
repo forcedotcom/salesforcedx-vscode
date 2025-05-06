@@ -93,9 +93,9 @@ export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions
 
 export class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
-    const testSuiteInput = {
+    const testSuiteInput: vscode.InputBoxOptions = {
       prompt: 'Enter desired Apex test suite name:'
-    } as vscode.InputBoxOptions;
+    };
     const testSuiteName = await vscode.window.showInputBox(testSuiteInput);
 
     if (testSuiteName) {

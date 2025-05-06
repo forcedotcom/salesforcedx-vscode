@@ -104,7 +104,7 @@ export class DeclarationGenerator {
   }
 
   private getTargetType(describeType: string): string {
-    const gentype = DeclarationGenerator.typeMapping.get(describeType) as string;
+    const gentype = DeclarationGenerator.typeMapping.get(describeType);
     return gentype ? gentype : this.capitalize(describeType);
   }
 

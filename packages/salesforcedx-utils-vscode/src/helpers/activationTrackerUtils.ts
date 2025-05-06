@@ -130,13 +130,11 @@ export const getExtensionHostLogActivationRecords = async (
     const { dateTimeStr, level, eventName, extensionId, properties: propertiesString } = matches.groups as RegexGroups;
     const dateTime = new Date(dateTimeStr);
 
-    const propertiesParts = propertiesString.split(', ');
-    const properties = propertiesParts.reduce(
-      (props: Record<string, string>, propertyPart: string) => {
-        const [key, value] = propertyPart.split(': ');
-        return { ...props, [key]: value };
-      },
-      {} as Record<string, string>
+    const properties = Object.fromEntries(
+      propertiesString
+        .split(', ')
+        .map(p => p.split(': '))
+        .map(([k, v]) => [k, v])
     );
     return {
       ...result,

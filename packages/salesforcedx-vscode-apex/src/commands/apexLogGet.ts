@@ -50,7 +50,7 @@ export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTi
           startTime: localDateFormatted,
           detail: localDateFormatted + ' - ' + logInfo.Status.substring(0, 150),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
-        } as ApexDebugLogItem;
+        } satisfies ApexDebugLogItem;
       });
       const logItem = await vscode.window.showQuickPick(
         logItems,
@@ -67,7 +67,7 @@ export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTi
       return {
         type: 'CANCEL',
         msg: nls.localize('apex_log_get_no_logs_text')
-      } as CancelResponse;
+      };
     }
     return { type: 'CANCEL' };
   }

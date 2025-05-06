@@ -57,10 +57,10 @@ export const projectGenerateManifest = async (sourceUri: vscode.Uri, uris: vscod
     uris.push(sourceUri);
   }
   const sourcePaths = uris.map(uri => uri.fsPath);
-  const inputOptions = {
+  const inputOptions: vscode.InputBoxOptions = {
     placeHolder: nls.localize(MANIFEST_SAVE_PLACEHOLDER),
     prompt: nls.localize(MANIFEST_SAVE_PROMPT)
-  } as vscode.InputBoxOptions;
+  };
   const responseText = await vscode.window.showInputBox(inputOptions);
   if (sourcePaths) {
     const commandlet = new SfCommandlet(

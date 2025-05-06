@@ -83,7 +83,7 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.update('DebugLevel', debugLevel)) as DataRecordResult;
+    const result = await this.connection.tooling.update('DebugLevel', debugLevel);
     return result.success;
   }
 
@@ -95,7 +95,7 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.create('DebugLevel', debugLevel)) as DataRecordResult;
+    const result = await this.connection.tooling.create('DebugLevel', debugLevel);
     return result.success && result.id ? result.id : undefined;
   }
 
@@ -105,7 +105,7 @@ export class TraceFlags {
       StartDate: Date.now(),
       ExpirationDate: expirationDate.toUTCString()
     };
-    const result = (await this.connection.tooling.update('TraceFlag', traceFlag)) as DataRecordResult;
+    const result = await this.connection.tooling.update('TraceFlag', traceFlag);
     return result.success;
   }
 

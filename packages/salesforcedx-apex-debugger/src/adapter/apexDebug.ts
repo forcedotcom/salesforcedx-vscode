@@ -1465,7 +1465,7 @@ export class ApexDebug extends LoggingDebugSession {
         new Event(SHOW_MESSAGE_EVENT, {
           type: VscodeDebuggerMessageType.Error,
           message: message.sobject.Description
-        } as VscodeDebuggerMessage)
+        } satisfies VscodeDebuggerMessage)
       );
     }
     this.mySessionService.forceStop();
@@ -1517,7 +1517,7 @@ export class ApexDebug extends LoggingDebugSession {
         new Event(SHOW_MESSAGE_EVENT, {
           type: VscodeDebuggerMessageType.Error,
           message: message.sobject.Description
-        } as VscodeDebuggerMessage)
+        } satisfies VscodeDebuggerMessage)
       );
     }
   }
@@ -1533,7 +1533,7 @@ export class ApexDebug extends LoggingDebugSession {
         new Event(SHOW_MESSAGE_EVENT, {
           type: VscodeDebuggerMessageType.Warning,
           message: message.sobject.Description
-        } as VscodeDebuggerMessage)
+        } satisfies VscodeDebuggerMessage)
       );
     }
   }

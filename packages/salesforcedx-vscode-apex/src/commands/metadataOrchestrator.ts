@@ -121,14 +121,14 @@ export class MetadataOrchestrator {
       await gil.addSourceUnderStudy(sourceUri);
       // if sourceUri is an array, then multiple classes/folders are selected
       for (const uri of sourceUri) {
-        const request = {
+        const request: ApexClassOASEligibleRequest = {
           resourceUri: uri,
           includeAllMethods: true,
           includeAllProperties: true,
           methodNames: [],
           position: null,
           propertyNames: []
-        } as ApexClassOASEligibleRequest;
+        };
         requests.push(request);
       }
     } else {

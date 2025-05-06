@@ -67,22 +67,16 @@ export class ConflictView {
   }
 
   public createConflictEntries(diffResults: DirectoryDiffResults, remoteLabel: string): ConflictFile[] {
-    const conflicts: ConflictFile[] = [];
-
-    diffResults.different.forEach(p => {
-      conflicts.push({
-        remoteLabel,
-        localRelPath: p.localRelPath,
-        remoteRelPath: p.remoteRelPath,
-        fileName: path.basename(p.localRelPath),
-        localPath: diffResults.localRoot,
-        remotePath: diffResults.remoteRoot,
-        localLastModifiedDate: p.localLastModifiedDate,
-        remoteLastModifiedDate: p.remoteLastModifiedDate
-      } as ConflictFile);
-    });
-
-    return conflicts;
+    return Array.from(diffResults.different).map(p => ({
+      remoteLabel,
+      localRelPath: p.localRelPath,
+      remoteRelPath: p.remoteRelPath,
+      fileName: path.basename(p.localRelPath),
+      localPath: diffResults.localRoot,
+      remotePath: diffResults.remoteRoot,
+      localLastModifiedDate: p.localLastModifiedDate,
+      remoteLastModifiedDate: p.remoteLastModifiedDate
+    }));
   }
 
   public async init(extensionContext: ExtensionContext) {

@@ -86,14 +86,14 @@ export class ApexLanguageClient extends LanguageClient {
       };
     });
 
-    const adjustedRequests = {
+    const adjustedRequests: ApexOASEligiblePayloadForLSPProtocol = {
       payload
-    } as ApexOASEligiblePayloadForLSPProtocol;
+    };
 
-    const results = (await this.sendRequest(
+    const results: ApexClassOASEligibleResponsesForLSPProtocol = await this.sendRequest(
       'apexoas/isEligible',
       adjustedRequests
-    )) as ApexClassOASEligibleResponsesForLSPProtocol;
+    );
 
     return results.map(result => {
       const { resourceUri, ...adjustedResult } = result;

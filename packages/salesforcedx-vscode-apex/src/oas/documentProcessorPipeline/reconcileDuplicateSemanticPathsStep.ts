@@ -67,14 +67,11 @@ export class ReconcileDuplicateSemanticPathsStep implements ProcessorStep {
 
     return Object.keys(paths)
       .filter(path => path.match(/\{[^}]+}/))
-      .reduce(
-        (acc, path, index, thePaths) => {
-          const toPath = thePaths[0];
-          acc[path] = toPath;
-          return acc;
-        },
-        {} as Record<string, string>
-      );
+      .reduce<Record<string, string>>((acc, path, index, thePaths) => {
+        const toPath = thePaths[0];
+        acc[path] = toPath;
+        return acc;
+      }, {});
   }
 
   private getNameFromPath(path: string): string | undefined {

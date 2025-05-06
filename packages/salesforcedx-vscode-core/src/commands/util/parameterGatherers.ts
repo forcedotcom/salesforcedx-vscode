@@ -95,7 +95,7 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string }>> {
-    const fileNameInputBoxOptions = {
+    const fileNameInputBoxOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_file_name'),
       ...(this.maxFileNameLength !== Infinity && {
         validateInput: value =>
@@ -105,7 +105,7 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
                 .replace('{0}', this.maxFileNameLength.toString())
             : null
       })
-    } as vscode.InputBoxOptions;
+    };
 
     const fileName = await vscode.window.showInputBox(fileNameInputBoxOptions);
     return fileName ? { type: CONTINUE, data: { fileName } } : { type: CANCEL };
@@ -114,9 +114,9 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
 
 export class SelectUsername implements ParametersGatherer<{ username: string }> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{ username: string }>> {
-    const usernameInputOptions = {
+    const usernameInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_username_name')
-    } as vscode.InputBoxOptions;
+    } satisfies vscode.InputBoxOptions;
     const username = await vscode.window.showInputBox(usernameInputOptions);
     return username ? { type: CONTINUE, data: { username } } : { type: CANCEL };
   }
@@ -184,7 +184,7 @@ export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: str
   public async showMenu(options: string[], message: string): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: nls.localize(message)
-    } as vscode.QuickPickOptions);
+    } satisfies vscode.QuickPickOptions);
   }
 }
 
@@ -238,7 +238,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
   public async showMenu(options: string[]): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
-    } as vscode.QuickPickOptions);
+    } satisfies vscode.QuickPickOptions);
   }
 }
 
@@ -300,7 +300,7 @@ export class PromptConfirmGatherer implements ParametersGatherer<{ choice: strin
   public async showMenu(options: string[]): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: this.question
-    } as vscode.QuickPickOptions);
+    } satisfies vscode.QuickPickOptions);
   }
 }
 
@@ -325,6 +325,6 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
   public async showMenu(options: string[], message: string): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: nls.localize(message)
-    } as vscode.QuickPickOptions);
+    } satisfies vscode.QuickPickOptions);
   }
 }
