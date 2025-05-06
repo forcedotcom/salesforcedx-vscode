@@ -1,3 +1,18 @@
+# 63.12.0 - May 7, 2025
+
+## Added
+
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
+
+We removed the ESLint and Apex PMD extensions from the Salesforce Expanded Pack. Instead, we recommend that you use the ESLint and PMD engines included in the Salesforce Code Analyzer extension, which we also added to the Salesforce Standard Pack. To learn more about the Code Analyzer extension, go to https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/analyze-vscode.html.
+
+If you’re already familiar with Code Analyzer v4 (which is soon reaching its end of life), use this document to migrate to Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/migrate.html.
+
+If you use ESLint and have custom ESLint configurations, see this document to learn how to use and configure the ESLint engine of Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/engine-eslint.html. Code Analyzer v5 currently supports only ESLint v8.x, and not v9.x.
+
+Similarly, if you use PMD and have custom PMD configurations, see this document to learn how to use and configure the PMD engine of Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/engine-pmd.html.
+
 # 63.11.0 - April 30, 2025
 
 ## Fixed

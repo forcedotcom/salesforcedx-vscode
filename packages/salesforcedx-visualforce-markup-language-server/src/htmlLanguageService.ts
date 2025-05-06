@@ -20,7 +20,7 @@ import {
   TextEdit
 } from 'vscode-languageserver-types';
 import { parse } from './parser/htmlParser';
-import { createScanner } from './parser/htmlScanner';
+import { createScanner, Scanner } from './parser/htmlScanner';
 import { doComplete, doTagComplete } from './services/htmlCompletion';
 import { format } from './services/htmlFormatter';
 import { findDocumentHighlights } from './services/htmlHighlighting';
@@ -51,11 +51,7 @@ export type HTMLFormatConfiguration = {
   unformatted?: string;
   contentUnformatted?: string;
   indentInnerHtml?: boolean;
-  wrapAttributes?:
-    | 'auto'
-    | 'force'
-    | 'force-aligned'
-    | 'force-expand-multiline';
+  wrapAttributes?: 'auto' | 'force' | 'force-aligned' | 'force-expand-multiline';
   preserveNewLines?: boolean;
   maxPreserveNewLines?: number;
   indentHandlebars?: boolean;
@@ -117,17 +113,6 @@ export enum ScannerState {
   BeforeAttributeValue
 }
 
-export type Scanner = {
-  scan(): TokenType;
-  getTokenType(): TokenType;
-  getTokenOffset(): number;
-  getTokenLength(): number;
-  getTokenEnd(): number;
-  getTokenText(): string;
-  getTokenError(): string;
-  getScannerState(): ScannerState;
-};
-
 export declare type HTMLDocument = {
   roots: Node[];
   findNodeBefore(offset: number): Node;
@@ -141,40 +126,18 @@ export type DocumentContext = {
 export type LanguageService = {
   createScanner(input: string): Scanner;
   parseHTMLDocument(document: TextDocument): HTMLDocument;
-  findDocumentHighlights(
-    document: TextDocument,
-    position: Position,
-    htmlDocument: HTMLDocument
-  ): DocumentHighlight[];
+  findDocumentHighlights(document: TextDocument, position: Position, htmlDocument: HTMLDocument): DocumentHighlight[];
   doComplete(
     document: TextDocument,
     position: Position,
     htmlDocument: HTMLDocument,
     options?: CompletionConfiguration
   ): CompletionList;
-  doHover(
-    document: TextDocument,
-    position: Position,
-    htmlDocument: HTMLDocument
-  ): Hover;
-  format(
-    document: TextDocument,
-    range: Range,
-    options: HTMLFormatConfiguration
-  ): TextEdit[];
-  findDocumentLinks(
-    document: TextDocument,
-    documentContext: DocumentContext
-  ): DocumentLink[];
-  findDocumentSymbols(
-    document: TextDocument,
-    htmlDocument: HTMLDocument
-  ): SymbolInformation[];
-  doTagComplete(
-    document: TextDocument,
-    position: Position,
-    htmlDocument: HTMLDocument
-  ): string;
+  doHover(document: TextDocument, position: Position, htmlDocument: HTMLDocument): Hover;
+  format(document: TextDocument, range: Range, options: HTMLFormatConfiguration): TextEdit[];
+  findDocumentLinks(document: TextDocument, documentContext: DocumentContext): DocumentLink[];
+  findDocumentSymbols(document: TextDocument, htmlDocument: HTMLDocument): SymbolInformation[];
+  doTagComplete(document: TextDocument, position: Position, htmlDocument: HTMLDocument): string;
 };
 
 export function getLanguageService(): LanguageService {

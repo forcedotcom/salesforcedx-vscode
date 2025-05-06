@@ -197,6 +197,9 @@ export default [
       'guard-for-in': 'error',
       'id-denylist': 'error',
       'id-match': 'error',
+      'import/no-empty-named-blocks': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-cycle': 'error',
       'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
       'import/order': [
         'error',
@@ -249,6 +252,7 @@ export default [
           ]
         }
       ],
+      'import/no-self-import': 'error',
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-indentation': 'error',
       'jsdoc/newline-after-description': 'off',
@@ -260,6 +264,7 @@ export default [
       'no-cond-assign': 'error',
       'no-console': 'off',
       'no-debugger': 'error',
+      'no-duplicate-imports': 'error',
       'no-empty': 'off',
       'no-empty-function': 'off',
       'no-eval': 'error',

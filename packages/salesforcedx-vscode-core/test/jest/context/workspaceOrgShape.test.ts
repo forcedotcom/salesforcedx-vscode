@@ -4,17 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { getOrgShape } from '../../../src/context/workspaceOrgShape';
-import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
+import { OrgAuthInfo } from '../../../src/util';
+
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  workspaceUtils: {
+    hasRootWorkspace: jest.fn()
+  }
+}));
 
 jest.mock('../../../src/util', () => ({
   OrgAuthInfo: {
     isASandboxOrg: jest.fn(),
     isAScratchOrg: jest.fn(),
     getTargetOrgOrAlias: jest.fn()
-  },
-  workspaceUtils: {
-    hasRootWorkspace: jest.fn()
   }
 }));
 describe('getOrgShape', () => {

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as fs from 'node:fs';
+
 export const ensureCurrentWorkingDirIsProjectPath = (rootWorkspacePath: string): void => {
   if (rootWorkspacePath && process.cwd() !== rootWorkspacePath && fs.existsSync(rootWorkspacePath)) {
     process.chdir(rootWorkspacePath);

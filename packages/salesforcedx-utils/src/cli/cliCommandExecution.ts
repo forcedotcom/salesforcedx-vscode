@@ -13,6 +13,7 @@ import { Command } from './command';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const treeKill = require('tree-kill');
+
 export const NO_PID_ERROR = 'No process associated with sfdx command.';
 export const NO_STDOUT_ERROR = 'No stdout found for childProcess';
 export const NO_STDERR_ERROR = 'No stderr found for childProcess';
