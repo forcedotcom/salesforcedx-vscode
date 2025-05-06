@@ -48,11 +48,11 @@ export class ApexLanguageClient extends LanguageClient {
     id: string,
     name: string,
     serverOptions: ServerOptions,
-    clientOptions: LanguageClientOptions,
+    clientOptions: LanguageClientOptions & { errorHandler?: ApexErrorHandler },
     forceDebug?: boolean
   ) {
     super(id, name, serverOptions, clientOptions, forceDebug);
-    this._errorHandler = clientOptions.errorHandler as ApexErrorHandler;
+    this._errorHandler = clientOptions.errorHandler;
   }
 
   /**
@@ -110,6 +110,7 @@ export class ApexLanguageClient extends LanguageClient {
   public async gatherOpenAPIContext(sourceUri: Uri | Uri[]): Promise<ApexClassOASGatherContextResponse> {
     if (!Array.isArray(sourceUri)) {
       return this.sendRequest('apexoas/gatherContext', this.code2ProtocolConverter.asUri(sourceUri)).then(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         gatheredContext => gatheredContext as ApexClassOASGatherContextResponse
       );
     }

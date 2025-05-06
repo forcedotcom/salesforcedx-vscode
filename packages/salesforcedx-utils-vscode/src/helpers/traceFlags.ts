@@ -26,12 +26,6 @@ type TraceFlagRecord = {
   DebugLevel: DebugLevelRecord;
 };
 
-type DataRecordResult = {
-  id?: string;
-  errors?: any[];
-  success: boolean;
-};
-
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
   private readonly MILLISECONDS_PER_MINUTE = 60000;
@@ -122,7 +116,7 @@ export class TraceFlags {
       ExpirationDate: expirationDate.toUTCString()
     };
 
-    const result = (await this.connection.tooling.create('TraceFlag', traceFlag)) as DataRecordResult;
+    const result = await this.connection.tooling.create('TraceFlag', traceFlag);
 
     if (result.success && result.id) {
       TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(result.id);

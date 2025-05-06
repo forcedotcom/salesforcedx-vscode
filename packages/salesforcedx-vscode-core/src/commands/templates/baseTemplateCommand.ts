@@ -47,6 +47,8 @@ export abstract class BaseTemplateCommand extends SfCommandletExecutor<DirFileNa
 
     notificationService.reportExecutionError(
       execution.command.toString(),
+      // TODO: fix when we update rxjs
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       execution.stderrSubject as any as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);

@@ -131,21 +131,15 @@ export interface Prompts {
   };
 }
 
-export enum HttpRequestMethod {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE'
-}
+export type HttpRequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-export const httpMethodMap = new Map<string, string>([
-  ['HttpGet', 'get'],
-  ['HttpPost', 'post'],
-  ['HttpPut', 'put'],
-  ['HttpPatch', 'patch'],
-  ['HttpDelete', 'delete']
-]);
+export const httpMethodMap: Record<string, HttpRequestMethod> = {
+  HttpGet: 'GET',
+  HttpPost: 'POST',
+  HttpPut: 'PUT',
+  HttpPatch: 'PATCH',
+  HttpDelete: 'DELETE'
+} as const;
 
 export type OASGenerationCommandProperties = {
   isClass: string;

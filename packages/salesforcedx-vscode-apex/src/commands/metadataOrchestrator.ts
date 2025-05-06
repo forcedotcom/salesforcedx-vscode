@@ -69,7 +69,7 @@ export class MetadataOrchestrator {
       const classNumbers = requests.payload.length.toString();
       const requestTarget = this.requestTarget(requests);
       try {
-        response = (await languageClient?.isOpenAPIEligible(requests)) as ApexClassOASEligibleResponses;
+        response = await languageClient?.isOpenAPIEligible(requests);
         telemetryService.sendEventData('isEligibleResponseSucceeded', {
           classNumbers,
           requestTarget

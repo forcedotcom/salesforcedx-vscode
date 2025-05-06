@@ -21,7 +21,12 @@ import {
   MetadataApiRetrieve,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve-bundle';
-import { ComponentStatus, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+import {
+  ComponentStatus,
+  FileResponse,
+  FileResponseFailure,
+  RequestStatus
+} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -147,11 +152,11 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const rowsWithRelativePaths = result.getFileResponses().map(response => {
       response.filePath = getRelativeProjectPath(response.filePath, relativePackageDirs);
       return response;
-    }) as unknown as Row[];
+    });
 
     let output: string;
 
-    if (result.response.status === RequestStatus.Succeeded) {
+    if (result.response.status !== RequestStatus.Succeeded) {
       output = table.createTable(
         rowsWithRelativePaths,
         [
@@ -167,7 +172,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
       );
     } else {
       output = table.createTable(
-        rowsWithRelativePaths.filter(row => row.error),
+        rowsWithRelativePaths.filter(isSdrFailure),
         [
           {
             key: 'filePath',
@@ -240,12 +245,11 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     const failures: Row[] = [];
 
     for (const response of result.getFileResponses()) {
-      const asRow = response as unknown as Row;
       response.filePath = getRelativeProjectPath(response.filePath, relativePackageDirs);
       if (response.state !== ComponentStatus.Failed) {
-        successes.push(asRow);
+        successes.push(response);
       } else {
-        failures.push(asRow);
+        failures.push(response);
       }
     }
 
@@ -290,3 +294,6 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     return output;
   }
 }
+
+export const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
+  fileResponse.state === ComponentStatus.Failed;

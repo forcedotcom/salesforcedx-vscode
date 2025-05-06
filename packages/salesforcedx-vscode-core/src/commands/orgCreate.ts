@@ -83,6 +83,8 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
           // once it's GA this will have to be updated
           workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
         } else {
+          // remove when we drop CLI invocations
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
           if (errorResponse) {
             channelService.appendLine(errorResponse.message);

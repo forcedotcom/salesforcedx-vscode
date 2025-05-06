@@ -67,7 +67,6 @@ import {
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';
 import {
-  ApexDebuggerEventType,
   BreakpointService,
   DebuggerMessage,
   SessionService,
@@ -144,8 +143,8 @@ export class ApexVariable extends Variable {
     this.kind = kind;
     this.type = value.nameForMessages;
     this.evaluateName = this.value;
-    if ((value as LocalValue).slot !== undefined) {
-      this.slot = (value as LocalValue).slot;
+    if ('slot' in value && typeof value.slot === 'number') {
+      this.slot = value.slot;
     } else {
       this.slot = Number.MAX_SAFE_INTEGER;
     }
@@ -1296,8 +1295,8 @@ export class ApexDebug extends LoggingDebugSession {
         .withErrorHandler((reason: string) => {
           this.errorToDebugConsole(reason);
         })
-        .withMsgHandler((message: any) => {
-          const data = message as DebuggerMessage;
+        .withMsgHandler((message: DebuggerMessage) => {
+          const data = message;
           if (data && data.sobject && data.event) {
             this.handleEvent(data);
           }
@@ -1312,65 +1311,64 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   public handleEvent(message: DebuggerMessage): void {
-    const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[message.sobject.Type];
     this.log(TRACE_CATEGORY_STREAMINGAPI, `handleEvent: received ${JSON.stringify(message)}`);
     if (
       !this.mySessionService.isConnected() ||
       this.mySessionService.getSessionId() !== message.sobject.SessionId ||
-      this.myStreamingService.hasProcessedEvent(type, message.event.replayId)
+      this.myStreamingService.hasProcessedEvent(message.sobject.Type, message.event.replayId)
     ) {
       this.log(TRACE_CATEGORY_STREAMINGAPI, 'handleEvent: event ignored');
       return;
     }
-    switch (type) {
-      case ApexDebuggerEventType.ApexException: {
+    switch (message.sobject.Type) {
+      case 'ApexException': {
         this.handleApexException(message);
         break;
       }
-      case ApexDebuggerEventType.Debug: {
+      case 'Debug': {
         this.handleDebug(message);
         break;
       }
-      case ApexDebuggerEventType.RequestFinished: {
+      case 'RequestFinished': {
         this.handleRequestFinished(message);
         break;
       }
-      case ApexDebuggerEventType.RequestStarted: {
+      case 'RequestStarted': {
         this.handleRequestStarted(message);
         break;
       }
-      case ApexDebuggerEventType.Resumed: {
+      case 'Resumed': {
         this.handleResumed(message);
         break;
       }
-      case ApexDebuggerEventType.SessionTerminated: {
+      case 'SessionTerminated': {
         this.handleSessionTerminated(message);
         break;
       }
-      case ApexDebuggerEventType.Stopped: {
+      case 'Stopped': {
         this.handleStopped(message);
         break;
       }
-      case ApexDebuggerEventType.SystemGack: {
+      case 'SystemGack': {
         this.handleSystemGack(message);
         break;
       }
-      case ApexDebuggerEventType.SystemInfo: {
+      case 'SystemInfo': {
         this.handleSystemInfo(message);
         break;
       }
-      case ApexDebuggerEventType.SystemWarning: {
+      case 'SystemWarning': {
         this.handleSystemWarning(message);
         break;
       }
-      case ApexDebuggerEventType.LogLine:
-      case ApexDebuggerEventType.OrgChange:
-      case ApexDebuggerEventType.Ready:
+      case 'LogLine':
+      case 'OrgChange':
+      case 'Ready':
       default: {
         break;
       }
     }
-    this.myStreamingService.markEventProcessed(type, message.event.replayId);
+    this.myStreamingService.markEventProcessed(message.sobject.Type, message.event.replayId);
   }
 
   public logEvent(message: DebuggerMessage): void {

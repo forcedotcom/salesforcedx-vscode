@@ -60,7 +60,7 @@ export class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickIt
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const quickPickItems = await listApexTestSuiteItems();
 
-    const testSuiteName = (await vscode.window.showQuickPick(quickPickItems)) as ApexTestQuickPickItem;
+    const testSuiteName = await vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems);
 
     return testSuiteName ? { type: 'CONTINUE', data: testSuiteName } : { type: 'CANCEL' };
   }
@@ -70,15 +70,16 @@ export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
     const quickPickItems = await listApexTestSuiteItems();
 
-    const testSuiteName = (await vscode.window.showQuickPick(quickPickItems)) as ApexTestQuickPickItem;
+    const testSuiteName = await vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems);
 
     if (testSuiteName) {
       const apexClassItems = await listApexClassItems();
 
-      const apexClassSelection = (await vscode.window.showQuickPick(apexClassItems, {
-        canPickMany: true
-      })) as ApexTestQuickPickItem[];
-      const apexClassNames = apexClassSelection?.map(selection => selection.label);
+      const apexClassSelection =
+        (await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
+          canPickMany: true
+        })) ?? [];
+      const apexClassNames = apexClassSelection.map(selection => selection.label);
 
       return apexClassSelection
         ? {
@@ -101,9 +102,10 @@ export class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions
     if (testSuiteName) {
       const apexClassItems = await listApexClassItems();
 
-      const apexClassSelection = (await vscode.window.showQuickPick(apexClassItems, {
-        canPickMany: true
-      })) as ApexTestQuickPickItem[];
+      const apexClassSelection =
+        (await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
+          canPickMany: true
+        })) ?? [];
       const apexClassNames = apexClassSelection?.map(selection => selection.label);
 
       return apexClassSelection

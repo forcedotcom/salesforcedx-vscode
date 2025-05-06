@@ -110,10 +110,7 @@ export class SObjectDescribe {
       const batchTypes = types.slice(i, i + batchSize);
       requests.push(this.describeSObjectBatchRequest(batchTypes));
     }
-
-    const results = await Promise.all(requests);
-    const fetchedSObjects = ([] as SObject[]).concat(...results);
-    return fetchedSObjects;
+    return (await Promise.all(requests)).flat();
   }
 }
 

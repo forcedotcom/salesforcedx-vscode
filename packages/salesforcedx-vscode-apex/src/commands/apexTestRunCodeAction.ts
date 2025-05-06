@@ -69,6 +69,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
         }
       }
     };
+    // TODO: fix in apex-node W-18453221
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const result = (await testService.runTestAsynchronous(
       payload,
       this.codeCoverage,

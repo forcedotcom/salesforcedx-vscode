@@ -6,18 +6,12 @@
  */
 
 import * as minSObjectsFromFile from '../../src/data/minSObjects.json';
-import { SObjectShortDescription } from '../describe';
-import { SObject, SObjectDefinitionRetriever, SObjectRefreshOutput } from '../types';
-
-type minSObjectsFileFormat = {
-  typeNames: SObjectShortDescription[];
-  standard: SObject[];
-};
+import { SObjectDefinitionRetriever, SObjectRefreshOutput } from '../types';
 
 export class MinObjectRetriever implements SObjectDefinitionRetriever {
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
     // TODO: validate the file format at runtime
-    const minMetadata = minSObjectsFromFile as minSObjectsFileFormat;
+    const minMetadata = minSObjectsFromFile;
     output.addTypeNames(minMetadata.typeNames);
     output.addStandard(minMetadata.standard);
   }

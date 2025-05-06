@@ -59,11 +59,11 @@ export class ReconcileDuplicateSemanticPathsStep implements ProcessorStep {
   }
 
   private getPathsToFix(yaml: OpenAPIV3.Document): Record<string, string> {
-    const paths = JSONPath({
+    const paths = JSONPath<Record<string, OpenAPIV3.PathItemObject>>({
       path: '$.paths',
       json: yaml,
       resultType: 'value'
-    })[0] as Record<string, OpenAPIV3.PathItemObject>;
+    })[0];
 
     return Object.keys(paths)
       .filter(path => path.match(/\{[^}]+}/))

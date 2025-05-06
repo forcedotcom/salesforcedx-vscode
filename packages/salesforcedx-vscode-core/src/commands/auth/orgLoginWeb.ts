@@ -95,15 +95,17 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   }
 
   private parseAuthUrlFromStdOut(stdOut: string): string | undefined {
-    let authUrl;
     try {
+      // remove when we drop CLI invocations
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const response = JSON.parse(stdOut) as DeviceCodeResponse;
       const verificationUrl = response.verification_uri;
       const userCode = response.user_code;
 
       if (verificationUrl && userCode) {
-        authUrl = `${verificationUrl}?user_code=${userCode}&prompt=login`;
+        const authUrl = `${verificationUrl}?user_code=${userCode}&prompt=login`;
         this.logToOutputChannel(userCode, verificationUrl);
+        return authUrl;
       }
     } catch (error) {
       channelService.appendLine(nls.localize('org_login_device_code_parse_error'));
@@ -113,8 +115,6 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
         `There was an error when parsing the cli response ${error}`
       );
     }
-
-    return authUrl;
   }
 
   private logToOutputChannel(code: string, url: string) {
@@ -158,6 +158,8 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
 
     notificationService.reportExecutionError(
       execution.command.toString(),
+      // TODO: fix when we update rxjs
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       execution.stderrSubject as any as Observable<Error | undefined>
     );
 

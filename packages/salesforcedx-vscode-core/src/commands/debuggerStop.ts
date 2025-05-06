@@ -94,6 +94,8 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
 
     try {
       const result = await resultPromise;
+      // remove when we drop CLI invocations
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const queryResponse = JSON.parse(result) as QueryResponse;
       if (queryResponse && queryResponse.result && queryResponse.result.size === 1) {
         const sessionIdToUpdate = queryResponse.result.records[0].Id;

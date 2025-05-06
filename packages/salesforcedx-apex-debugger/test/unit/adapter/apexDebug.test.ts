@@ -1637,7 +1637,10 @@ describe('Interactive debugger adapter - unit', () => {
         reason: ''
       });
       expect(markEventProcessedSpy.calledOnce).to.equal(true);
-      expect(markEventProcessedSpy.getCall(0).args).to.have.same.members([ApexDebuggerEventType.Stopped, 0]);
+      expect(markEventProcessedSpy.getCall(0).args).to.have.same.members([
+        'Stopped' satisfies ApexDebuggerEventType,
+        0
+      ]);
 
       expect(adapter.getVariableContainer(variableReference)).to.be.undefined;
       expect(adapter.getStackFrameInfo(frameId)).to.be.undefined;

@@ -81,6 +81,8 @@ class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
+      // W-18453221
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const result: TestResult = (await testService.runTestSynchronous(payload, true)) as TestResult;
       if (workspaceUtils.hasRootWorkspace()) {
         const apexTestResultsPath = projectPaths.apexTestResultsFolder();

@@ -11,22 +11,21 @@ import * as os from 'node:os';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 
-export enum ApexDebuggerEventType {
-  ApexException,
-  Debug,
-  HeartBeat,
-  LogLine,
-  OrgChange,
-  Ready,
-  RequestStarted,
-  RequestFinished,
-  Resumed,
-  SessionTerminated,
-  Stopped,
-  SystemInfo,
-  SystemGack,
-  SystemWarning
-}
+export type ApexDebuggerEventType =
+  | 'ApexException'
+  | 'Debug'
+  | 'HeartBeat'
+  | 'LogLine'
+  | 'OrgChange'
+  | 'Ready'
+  | 'RequestStarted'
+  | 'RequestFinished'
+  | 'Resumed'
+  | 'SessionTerminated'
+  | 'Stopped'
+  | 'SystemInfo'
+  | 'SystemGack'
+  | 'SystemWarning';
 
 export type StreamingEvent = {
   createdDate: string;
@@ -38,7 +37,7 @@ export type ApexDebuggerEvent = {
   SessionId: string;
   RequestId?: string;
   BreakpointId?: string;
-  Type: string;
+  Type: ApexDebuggerEventType;
   Description?: string;
   FileName?: string;
   Line?: number;
