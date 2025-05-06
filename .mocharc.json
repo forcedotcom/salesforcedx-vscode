@@ -7,6 +7,5 @@
     "ts"
   ],
   "slow": 75,
-  "retries": 3,
   "exit": true
 }
