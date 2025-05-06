@@ -21,10 +21,12 @@ import {
   LibraryCommandletExecutor,
   SFDX_FOLDER,
   SfCommandlet,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  getTestResultsFolder,
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import { languages, workspace, window, CancellationToken, QuickPickItem, Uri } from 'vscode';

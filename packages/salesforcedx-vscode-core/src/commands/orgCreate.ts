@@ -4,30 +4,29 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   CliCommandExecutor,
-  Command,
+  CompositeParametersGatherer,
   ContinueResponse,
   isAlphaNumSpaceString,
   isIntegerInRange,
   OrgCreateErrorResult,
   OrgCreateResultParser,
   ParametersGatherer,
-  SfCommandBuilder
+  workspaceUtils,
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
+import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import {
-  CompositeParametersGatherer,
   CompositePreconditionChecker,
   DevUsernameChecker,
   FileSelection,

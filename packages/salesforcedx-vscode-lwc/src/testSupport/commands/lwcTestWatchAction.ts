@@ -44,32 +44,28 @@ export const lwcTestStopWatchingAllTests = () => {
  * Start watching the test of currently focused editor
  */
 export const lwcTestStartWatchingCurrentFile = () => {
-  const { activeTextEditor } = vscode.window;
-  if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
-    const testExecutionInfo: TestFileInfo = {
-      kind: TestInfoKind.TEST_FILE,
-      testType: TestType.LWC,
-      testUri: activeTextEditor.document.uri
-    };
-    return lwcTestStartWatching({
-      testExecutionInfo
-    });
-  }
+  const testExecutionInfo = getCurrentFileTestInfo();
+  return testExecutionInfo ? lwcTestStartWatching({ testExecutionInfo }) : undefined;
 };
 
 /**
  * Stop watching the test of currently focused editor
  */
 export const lwcTestStopWatchingCurrentFile = () => {
+  const testExecutionInfo = getCurrentFileTestInfo();
+  return testExecutionInfo ? lwcTestStopWatching({ testExecutionInfo }) : undefined;
+};
+
+/**
+ * Gets test execution info for the currently focused editor if it's a valid LWC test
+ */
+const getCurrentFileTestInfo = (): TestFileInfo | undefined => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
-    const testExecutionInfo: TestFileInfo = {
+    return {
       kind: TestInfoKind.TEST_FILE,
       testType: TestType.LWC,
       testUri: activeTextEditor.document.uri
     };
-    return lwcTestStopWatching({
-      testExecutionInfo
-    });
   }
 };

@@ -5,18 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
-  Command,
+  CompositeParametersGatherer,
   ContinueResponse,
   isRecordIdFormat,
-  ParametersGatherer,
-  SfCommandBuilder
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
+import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
 
 export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
   public build(data: PackageIdAndInstallationKey): Command {

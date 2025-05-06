@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
@@ -113,17 +114,6 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     void vscode.window.showErrorMessage(err);
     telemetryService.sendException(LSP_ERR, err.error);
     throw err;
-  }
-};
-
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export const code2ProtocolConverter = (value: vscode.Uri) => {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
   }
 };
 

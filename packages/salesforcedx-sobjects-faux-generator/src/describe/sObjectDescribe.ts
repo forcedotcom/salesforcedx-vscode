@@ -10,6 +10,7 @@ import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { DescribeSObjectResult, Field, SObjectField } from '../types/describe';
 import { SObjectShortDescription } from '.';
+
 const MAX_BATCH_REQUEST_SIZE = 25;
 
 export class SObjectDescribe {

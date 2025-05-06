@@ -5,14 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CommandOutput } from '@salesforce/salesforcedx-utils';
 import { ExtensionContext } from 'vscode';
-import {
-  CliCommandExecution,
-  CliCommandExecutor,
-  CommandOutput,
-  TelemetryService,
-  workspaceUtils
-} from '../../../../src';
+import { CliCommandExecution, CliCommandExecutor, TelemetryService, workspaceUtils } from '../../../../src';
 import { UserService } from '../../../../src/services/userService';
 
 describe('UserService', () => {

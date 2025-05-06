@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecution,
   CliCommandExecutor,
-  Command,
   ContinueResponse,
+  EmptyParametersGatherer,
   ProjectDeployStartResultParser,
   ProjectDeployStartResult,
   Row,
-  SfCommandBuilder,
   Table,
   TelemetryBuilder,
   workspaceUtils
@@ -27,14 +27,7 @@ import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
-import {
-  CommandParams,
-  EmptyParametersGatherer,
-  FlagParameter,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export enum DeployType {
   Deploy = 'deploy',

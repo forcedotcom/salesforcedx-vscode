@@ -8,6 +8,7 @@ import * as cross_spawn from 'cross-spawn';
 import { CliCommandExecutor, Command, TELEMETRY_HEADER } from '../../../src';
 import { CliCommandExecution } from '../../../src/cli/cliCommandExecution';
 import { GlobalCliEnvironment } from '../../../src/cli/globalCliEnvironment';
+
 jest.mock('cross-spawn');
 jest.mock('../../../src/cli/cliCommandExecution');
 const crossSpawnMocked = jest.mocked(cross_spawn);

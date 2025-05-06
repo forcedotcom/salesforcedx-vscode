@@ -13,7 +13,7 @@ jest.mock('node:child_process', () => ({
 
 jest.mock('@salesforce/salesforcedx-utils-vscode');
 
-import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
+import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { ENV_SF_DISABLE_TELEMETRY } from '../../../src/constants';
 import { disableCLITelemetry, isCLIInstalled, isCLITelemetryAllowed } from '../../../src/util';

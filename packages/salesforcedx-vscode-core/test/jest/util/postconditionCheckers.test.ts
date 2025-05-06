@@ -4,11 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
+import { LocalComponent, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { OverwriteComponentPrompt } from '../../../src/commands/util';
-import { workspaceUtils } from '../../../src/util';
 
 describe('Postcondition Checkers', () => {
   describe('OverwriteComponentPrompt', () => {

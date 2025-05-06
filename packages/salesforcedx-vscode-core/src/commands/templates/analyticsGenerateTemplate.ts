@@ -7,6 +7,7 @@
 
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   DirFileNameSelection,
   ParametersGatherer
@@ -14,14 +15,7 @@ import {
 import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import {
-  CompositeParametersGatherer,
-  PathStrategyFactory,
-  SelectOutputDir,
-  SfCommandlet,
-  SfWorkspaceChecker,
-  SourcePathStrategy
-} from '../util';
+import { PathStrategyFactory, SelectOutputDir, SfCommandlet, SfWorkspaceChecker, SourcePathStrategy } from '../util';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { ANALYTICS_TEMPLATE_DIRECTORY, ANALYTICS_TEMPLATE_TYPE } from './metadataTypeConstants';
 

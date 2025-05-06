@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isNullOrUndefined, MISSING_LABEL_MSG, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  isNullOrUndefined,
+  MISSING_LABEL_MSG,
+  projectPaths,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { describeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 
 export type MetadataObject = {
   directoryName: string;

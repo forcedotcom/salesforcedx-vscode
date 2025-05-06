@@ -13,6 +13,7 @@ import { nls } from './messages';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debounce = require('debounce');
+
 export const channelService = ChannelService.getInstance(nls.localize('soql_channel_name'));
 
 export const workspaceContext = WorkspaceContextUtil.getInstance();

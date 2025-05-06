@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Config, DEFAULT_LOCALE, Localization, Message } from '@salesforce/salesforcedx-utils-vscode';
 import { LOCALE_JA } from '../constants';
 import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
-import { Config, DEFAULT_LOCALE, Localization, Message } from './localization';
 
 const supportedLocales = [DEFAULT_LOCALE, LOCALE_JA];
 

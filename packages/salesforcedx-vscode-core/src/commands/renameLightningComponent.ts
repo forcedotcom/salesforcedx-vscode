@@ -5,9 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer,
+  notificationService,
+  LibraryCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode';
 import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -15,8 +19,7 @@ import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { ComponentName, getComponentName, getComponentPath, isLwcComponent, TEST_FOLDER } from '../util';
-import { SfCommandlet, SfWorkspaceChecker } from './util';
-import { LwcAuraDuplicateComponentCheckerForRename } from './util';
+import { SfCommandlet, SfWorkspaceChecker, LwcAuraDuplicateComponentCheckerForRename } from './util';
 import {
   isNameMatch,
   RENAME_ERROR,

@@ -13,6 +13,7 @@ import { FauxClassGenerator } from '../../../src/generator';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { INDENT } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
+
 jest.mock('../../../src/generator/declarationGenerator');
 
 const declarationGeneratorMocked = jest.mocked(DeclarationGenerator);

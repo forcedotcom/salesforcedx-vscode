@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import { componentUtil } from '@salesforce/lightning-lsp-common';
-import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
+  notificationService,
+  CliCommandExecutor,
   EmptyParametersGatherer,
   isSFContainerMode,
   SfCommandlet,

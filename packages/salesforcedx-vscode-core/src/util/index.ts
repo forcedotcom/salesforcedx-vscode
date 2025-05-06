@@ -13,7 +13,6 @@ export {
   setNodeExtraCaCerts,
   setSfLogLevel
 } from './cliConfiguration';
-export { workspaceUtils } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
 export {
   checkForSoonToBeExpiredOrgs,
