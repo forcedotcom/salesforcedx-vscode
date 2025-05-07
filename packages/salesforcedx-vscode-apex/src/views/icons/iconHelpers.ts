@@ -8,7 +8,7 @@
 import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
 import { Utils } from 'vscode-uri';
 import { VSCODE_APEX_EXTENSION_NAME } from '../../constants';
-import { ICONS } from './IconsEnum';
+import { ICONS } from './iconsEnum';
 /**
  * Get the Uri for an icon located in the resources directory.
  * @param key A key from the {@link IconsEnum}

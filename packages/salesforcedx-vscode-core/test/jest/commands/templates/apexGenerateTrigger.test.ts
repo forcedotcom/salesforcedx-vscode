@@ -7,7 +7,7 @@
 
 import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { apexGenerateTrigger } from '../../../../src/commands/templates';
-import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateTriggerExecutor';
+import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateTriggerExecutor';
 import {
   APEX_TRIGGER_DIRECTORY,
   APEX_TRIGGER_NAME_MAX_LENGTH,

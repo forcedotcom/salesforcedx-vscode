@@ -22,7 +22,7 @@ import {
   MetadataTypeParameter,
   OutputDirParameter
 } from '../util/parameterGatherers';
-import { LibraryApexGenerateClassExecutor } from './executors/LibraryApexGenerateClassExecutor';
+import { LibraryApexGenerateClassExecutor } from './executors/libraryApexGenerateClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,

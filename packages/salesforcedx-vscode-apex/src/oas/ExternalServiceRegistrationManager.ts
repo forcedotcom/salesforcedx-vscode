@@ -7,8 +7,6 @@
 import { Connection } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
-import { isString } from '@salesforce/ts-types';
-import type { NamedCredential } from '@salesforce/types/tooling';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -80,21 +78,17 @@ export class ExternalServiceRegistrationManager {
     }
 
     const existingContent = fs.existsSync(this.newPath) ? fs.readFileSync(this.newPath, 'utf8') : undefined;
-    //Step 1: Let user choose or enter a named credential
-    const namedCredential = this.isVersionGte(orgVersion, '63.0')
-      ? undefined
-      : await this.showNamedCredentialsQuickPick();
 
-    //Step 2: Build the content of the ESR Xml file
-    const updatedContent = await this.buildESRXml(existingContent, namedCredential, orgVersion);
+    //Step 1: Build the content of the ESR Xml file
+    const updatedContent = await this.buildESRXml(existingContent, orgVersion);
 
-    //Step 3: Write OpenAPI Document to File
+    //Step 2: Write OpenAPI Document to File
     await this.writeAndOpenEsrFile(updatedContent);
 
-    // Step 4: If the user chose to merge, open a diff between the original and new ESR files
+    // Step 3: If the user chose to merge, open a diff between the original and new ESR files
     await this.displayFileDifferences();
 
-    // Step: 5 Create entries in problems tab for generated file
+    // Step: 4 Create entries in problems tab for generated file
     createProblemTabEntriesForOasDocument(
       this.isESRDecomposed ? replaceXmlToYaml(this.newPath) : this.newPath,
       processedOasResult,
@@ -128,40 +122,12 @@ export class ExternalServiceRegistrationManager {
   }
 
   /**
-   * Prompts the user to select a named credential from the available options.
-   * @returns A promise that resolves to the selected named credential.
-   */
-  public async showNamedCredentialsQuickPick(): Promise<string | undefined> {
-    const namedCredentials = await queryNamedCredentials();
-    const selectedNamedCredential = await promptNamedCredentialSelection(namedCredentials);
-    return this.getFinalNamedCredential(selectedNamedCredential);
-  }
-
-  /**
-   * Prompts the user to enter a named credential if none was selected.
-   * @param selectedNamedCredential - The selected named credential.
-   * @returns A promise that resolves to the final named credential.
-   */
-  public async getFinalNamedCredential(selectedNamedCredential: string | undefined): Promise<string | undefined> {
-    if (!selectedNamedCredential || selectedNamedCredential === nls.localize('enter_new_nc')) {
-      return await vscode.window.showInputBox({
-        prompt: nls.localize('enter_nc_name')
-      });
-    }
-    return selectedNamedCredential;
-  }
-
-  /**
    * Builds the ESR XML content.
    * @param existingContent - The existing XML content, if any.
    * @param namedCredential - The named credential to be used.
    * @param orgVersion - Highest api version that is supported by the target server instance.
    */
-  public async buildESRXml(
-    existingContent: string | undefined,
-    namedCredential: string | undefined,
-    orgVersion: string
-  ): Promise<string> {
+  public async buildESRXml(existingContent: string | undefined, orgVersion: string): Promise<string> {
     const baseName = path.basename(this.newPath).split('.')[0];
     const className = this.newPath.includes('esr_files_for_merge')
       ? // The class name is the part before the second to last underscore
@@ -179,20 +145,8 @@ export class ExternalServiceRegistrationManager {
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
 
-    // Ensure namedCredential is provided and not blank
-    if (!this.isVersionGte(orgVersion, '63.0') && (!namedCredential || namedCredential.trim() === '')) {
-      throw new Error(nls.localize('invalid_named_credential'));
-    }
-
     // Create ESR Object
-    const esrObject = this.createESRObject(
-      description,
-      className,
-      safeOasSpec,
-      operations,
-      orgVersion,
-      namedCredential
-    );
+    const esrObject = this.createESRObject(description, className, safeOasSpec, operations, orgVersion);
 
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
@@ -207,7 +161,6 @@ export class ExternalServiceRegistrationManager {
         }
       }
       jsonObj.ExternalServiceRegistration.operations = operations;
-      jsonObj.ExternalServiceRegistration.namedCredentialReference = namedCredential;
     } else {
       jsonObj = esrObject;
       if (this.isESRDecomposed) this.buildESRYaml(this.newPath, safeOasSpec);
@@ -233,8 +186,7 @@ export class ExternalServiceRegistrationManager {
     className: string,
     safeOasSpec: string,
     operations: any,
-    orgVersion: string,
-    namedCredential: string | undefined
+    orgVersion: string
   ) {
     return {
       '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
@@ -250,15 +202,8 @@ export class ExternalServiceRegistrationManager {
         systemVersion: '3',
         operations,
         registrationProvider: className,
-        ...(this.isVersionGte(orgVersion, '63.0')
-          ? {
-              registrationProviderType: 'ApexRest',
-              namedCredential: 'null'
-            }
-          : {
-              registrationProviderType: 'Custom',
-              namedCredentialReference: namedCredential
-            })
+        registrationProviderType: 'ApexRest',
+        namedCredential: 'null'
       }
     };
   }
@@ -420,33 +365,6 @@ export class ExternalServiceRegistrationManager {
     return folderUri ? path.resolve(folderUri) : undefined;
   };
 }
-
-const queryNamedCredentials = async (): Promise<QueryResult<NamedCredential>> => {
-  try {
-    return await (await workspaceContext.getConnection()).query('SELECT MasterLabel FROM NamedCredential');
-  } catch {
-    throw new Error(nls.localize('error_parsing_nc'));
-  }
-};
-
-/**
- * Prompts the user to select a named credential from the available options.
- * @param namedCredentials - The available named credentials.
- * @returns A promise that resolves to the selected named credential.
- */
-export const promptNamedCredentialSelection = async (
-  namedCredentials: QueryResult<Pick<NamedCredential, 'MasterLabel'>>
-): Promise<string | undefined> => {
-  if (namedCredentials) {
-    const quickPicks = namedCredentials.records
-      .map(nc => nc.MasterLabel)
-      .filter(isString)
-      .concat(nls.localize('enter_new_nc'));
-    return vscode.window.showQuickPick(quickPicks, {
-      placeHolder: nls.localize('select_named_credential')
-    });
-  }
-};
 
 /**
  * Replaces the XML file extension with a YAML file extension.

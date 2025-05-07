@@ -77,7 +77,7 @@ function isValidURI(uri: string) {
     if (uri.includes('%') && !uri.match(/%[0-9A-Fa-f]{2}/)) {
       return false;
     }
-    URI.parse(uri);
+    URI.parse(uri, true);
     return true;
   } catch (e) {
     return false;

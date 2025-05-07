@@ -20,7 +20,7 @@ import { URI } from 'vscode-uri';
 import { channelService } from '../../channels/index';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
-import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
+import { isDemoMode, isProdOrg } from '../../modes/demoMode';
 import { notificationService } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';

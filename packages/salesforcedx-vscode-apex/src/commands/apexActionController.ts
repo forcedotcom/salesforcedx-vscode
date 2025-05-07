@@ -10,7 +10,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { ExternalServiceRegistrationManager, FullPath } from '../oas/ExternalServiceRegistrationManager';
+import { ExternalServiceRegistrationManager, FullPath } from '../oas/externalServiceRegistrationManager';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';

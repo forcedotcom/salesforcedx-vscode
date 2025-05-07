@@ -15,7 +15,7 @@ import {
   SimpleGatherer
 } from '../util';
 import { getParamGatherers } from './apexGenerateClass';
-import { LibraryApexGenerateUnitTestClassExecutor } from './executors/LibraryApexGenerateUnitTestClassExecutor';
+import { LibraryApexGenerateUnitTestClassExecutor } from './executors/libraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from './metadataTypeConstants';
 
 type OutputDirParameter = {

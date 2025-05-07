@@ -16,9 +16,8 @@ import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline
 import {
   ExternalServiceRegistrationManager,
   FullPath,
-  promptNamedCredentialSelection,
   replaceXmlToYaml
-} from '../../../src/oas/ExternalServiceRegistrationManager';
+} from '../../../src/oas/externalServiceRegistrationManager';
 import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
@@ -110,7 +109,7 @@ describe('ExternalServiceRegistrationManager', () => {
       expect(esrHandler['overwrite']).toBe(true);
     });
     it('should initialize with overwrite set to false when paths differ only by extension', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.pdf']);
+      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.pdf']);
       expect(esrHandler['overwrite']).toBe(false);
     });
 
@@ -147,29 +146,6 @@ describe('ExternalServiceRegistrationManager', () => {
       expect(esrHandler.writeAndOpenEsrFile).toHaveBeenCalled();
       expect(esrHandler.displayFileDifferences).toHaveBeenCalled();
       expect(createProblemTabEntriesForOasDocument).toHaveBeenCalledWith(fullPath[1], processedOasResult, true);
-    });
-  });
-
-  describe('promptNamedCredentialSelection', () => {
-    it('should prompt the user to select a named credential', async () => {
-      const namedCredentials = {
-        done: true,
-        totalSize: 2,
-        records: [{ MasterLabel: 'TestCredential1' }, { MasterLabel: 'TestCredential2' }]
-      };
-      const quickPickSpy = (vscode.window.showQuickPick as jest.Mock).mockResolvedValue('TestCredential1');
-
-      const result = await promptNamedCredentialSelection(namedCredentials);
-
-      expect(quickPickSpy).toHaveBeenCalledWith(['TestCredential1', 'TestCredential2', nls.localize('enter_new_nc')], {
-        placeHolder: nls.localize('select_named_credential')
-      });
-      expect(result).toBe('TestCredential1');
-    });
-
-    it('should return undefined if no named credentials are provided', async () => {
-      const result = await promptNamedCredentialSelection({ records: [], done: true, totalSize: 0 });
-      expect(result).toBeUndefined();
     });
   });
 
@@ -274,23 +250,14 @@ describe('ExternalServiceRegistrationManager', () => {
     const safeOasSpec = 'safeOasSpec';
     const operations: any = [{ active: true, name: 'getPets' }];
     const orgVersion = '50.0';
-    const namedCredential = 'TestCredential';
 
-    const result = esrHandler.createESRObject(
-      description,
-      className,
-      safeOasSpec,
-      operations,
-      orgVersion,
-      namedCredential
-    );
+    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations, orgVersion);
 
     expect(result).toHaveProperty('ExternalServiceRegistration');
     expect(result.ExternalServiceRegistration).toHaveProperty('description', description);
     expect(result.ExternalServiceRegistration).toHaveProperty('label', className);
     expect(result.ExternalServiceRegistration).toHaveProperty('schema', safeOasSpec);
     expect(result.ExternalServiceRegistration).toHaveProperty('operations', operations);
-    expect(result.ExternalServiceRegistration).toHaveProperty('namedCredentialReference', namedCredential);
   });
 
   it('extractInfoProperties', () => {
@@ -316,10 +283,9 @@ describe('ExternalServiceRegistrationManager', () => {
     jest.spyOn(esrHandler, 'getOperationsFromYaml').mockReturnValue([{ active: true, name: 'getPets' }]);
     await esrHandler['initialize'](true, processedOasResult, fullPath);
     const existingContent = '<xml></xml>';
-    const namedCredential = 'TestCredential';
     const orgVersion = '50.0';
 
-    const result = await esrHandler.buildESRXml(existingContent, namedCredential, orgVersion);
+    const result = await esrHandler.buildESRXml(existingContent, orgVersion);
 
     expect(result).toContain('<ExternalServiceRegistration');
     expect(result).toContain('<operations>');

@@ -6,7 +6,7 @@
  */
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { MetricsReporter } from '../../../src/telemetry/MetricsReporter';
+import { MetricsReporter } from '../../../src/telemetry/metricsReporter';
 
 describe('MetricsReporter', () => {
   describe('extensionPackStatus', () => {

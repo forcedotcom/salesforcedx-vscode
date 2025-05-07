@@ -9,7 +9,7 @@ import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vsco
 import { URI } from 'vscode-uri';
 import { apexGenerateUnitTestClass } from '../../../../src/commands/templates';
 import { clearGathererCache } from '../../../../src/commands/templates/apexGenerateClass';
-import { LibraryApexGenerateUnitTestClassExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor';
+import { LibraryApexGenerateUnitTestClassExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateUnitTestClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,
