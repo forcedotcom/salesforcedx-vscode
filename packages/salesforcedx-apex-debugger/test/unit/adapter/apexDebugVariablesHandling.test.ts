@@ -40,7 +40,7 @@ describe('Debugger adapter variable handling - unit', () => {
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
     });
 
-    it('Should use proper values from Value', async () => {
+    it('Should use proper values from Value', () => {
       expect(variable.name).to.equal(value.name);
       expect(variable.type).to.equal(value.nameForMessages);
       expect(variable.declaredTypeRef).to.equal(value.declaredTypeRef);
@@ -50,11 +50,11 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable['kind']).to.equal(ApexVariableKind.Local);
     });
 
-    it('Should set slot to MAX integer for non local value', async () => {
+    it('Should set slot to MAX integer for non local value', () => {
       expect(variable['slot']).to.equal(Number.MAX_SAFE_INTEGER);
     });
 
-    it('Should set slot to specific value for LocalValue', async () => {
+    it('Should set slot to specific value for LocalValue', () => {
       const localvalue: LocalValue = {
         name: 'name',
         nameForMessages: 'nameForMessages',
@@ -66,7 +66,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable['slot']).to.equal(localvalue.slot);
     });
 
-    it('Should correctly print null string as "null"', async () => {
+    it('Should correctly print null string as "null"', () => {
       value.value = undefined;
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
@@ -74,7 +74,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable.evaluateName).to.equal('null');
     });
 
-    it('Should correctly print empty string', async () => {
+    it('Should correctly print empty string', () => {
       value.value = '';
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
@@ -82,7 +82,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable.evaluateName).to.equal("''");
     });
 
-    it('Should correctly print string', async () => {
+    it('Should correctly print string', () => {
       value.value = '123';
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
@@ -90,7 +90,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable.evaluateName).to.equal("'123'");
     });
 
-    it('Should correctly print value', async () => {
+    it('Should correctly print value', () => {
       value.value = '123';
       value.nameForMessages = 'a-type';
       value.declaredTypeRef = 'a/specific/type';
@@ -99,7 +99,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable.evaluateName).to.equal('123');
     });
 
-    it('Should correctly print null', async () => {
+    it('Should correctly print null', () => {
       value.value = undefined;
       value.nameForMessages = 'a-type';
       value.declaredTypeRef = 'a/specific/type';
@@ -108,7 +108,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable.evaluateName).to.equal('null');
     });
 
-    it('Should compare Value of different kinds', async () => {
+    it('Should compare Value of different kinds', () => {
       // given
       const v1 = new ApexVariable(value, ApexVariableKind.Local);
       const v2 = new ApexVariable(value, ApexVariableKind.Static);
@@ -121,7 +121,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(result).to.equal(ApexVariableKind.Local - ApexVariableKind.Static);
     });
 
-    it('Should compare Value of same kinds', async () => {
+    it('Should compare Value of same kinds', () => {
       // given
       const v1 = new ApexVariable(value, ApexVariableKind.Local);
       const v2 = new ApexVariable(value, ApexVariableKind.Local);
@@ -133,7 +133,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(result).to.equal(0);
     });
 
-    it('Should compare based on slot for Local', async () => {
+    it('Should compare based on slot for Local', () => {
       // given
       const v1 = new ApexVariable(newStringValue('a_name', 'value', 10), ApexVariableKind.Local);
       const v2 = new ApexVariable(newStringValue('z_name', 'value', 9), ApexVariableKind.Local);
@@ -147,7 +147,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(result2).to.be.lessThan(0); // slot 9 is less than 10
     });
 
-    it('Should compare based on slot for Field', async () => {
+    it('Should compare based on slot for Field', () => {
       // given
       const v1 = new ApexVariable(newStringValue('a_name', 'value', 10), ApexVariableKind.Field);
       const v2 = new ApexVariable(newStringValue('z_name', 'value', 9), ApexVariableKind.Field);
@@ -161,7 +161,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(result2).to.be.lessThan(0); // slot 9 is less than 10
     });
 
-    it('Should compare based on name for others', async () => {
+    it('Should compare based on name for others', () => {
       // given
       const v1 = new ApexVariable(newStringValue('a_name', 'value'), ApexVariableKind.Static);
       const v2 = new ApexVariable(newStringValue('z_name', 'value'), ApexVariableKind.Static);
@@ -175,7 +175,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(result2).to.be.greaterThan(0); // 'z...' after 'a...'
     });
 
-    it('Should compare based on numbered name (eg. array index)', async () => {
+    it('Should compare based on numbered name (eg. array index)', () => {
       // given
       const v1 = new ApexVariable(newStringValue('[124]', 'value'), ApexVariableKind.Static);
       const v2 = new ApexVariable(newStringValue('123', 'value'), ApexVariableKind.Static);
@@ -189,7 +189,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(result2).to.be.lessThan(0); // '123' before '124'
     });
 
-    it('Should compare numbered name with string', async () => {
+    it('Should compare numbered name with string', () => {
       // given
       const v1 = new ApexVariable(newStringValue('12', 'value'), ApexVariableKind.Static);
       const v2 = new ApexVariable(newStringValue('a_name', 'value'), ApexVariableKind.Static);
@@ -386,7 +386,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(mapContainer.tupleContainers.get(1000)!.getNumberOfChildren()).to.be.undefined;
     });
 
-    it('Should not expand unknown reference type', async () => {
+    it('Should not expand unknown reference type', () => {
       adapter = new ApexDebugForTest(new RequestService());
 
       const references: Reference[] = [
@@ -609,7 +609,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(frameInfo.globals).to.be.ok;
     });
 
-    it('Should propulates as part of fetchFrameVariables', async () => {
+    it('Should populates as part of fetchFrameVariables', async () => {
       // given
       const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 1000);
       const frameRespObj: any = {

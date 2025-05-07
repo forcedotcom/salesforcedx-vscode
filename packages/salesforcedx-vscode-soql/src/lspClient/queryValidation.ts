@@ -16,6 +16,8 @@ export const init = (client: LanguageClient): LanguageClient => {
   if (typeof validationFeature.initialize === 'function') {
     validationFeature.initialize();
   }
+  // class exists in soql-language-server, but does not match vscode "Feature" interface
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   client.registerFeature(validationFeature as any);
   return client;
 };

@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+// TODO: clean up the types for all of this
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import { ActionScriptEnum, OrgInfoError } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/commands';
 import {
@@ -105,17 +108,19 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     return element;
   }
 
-  public getChildren(element?: BaseNode): BaseNode[] {
+  public getChildren(element?: BaseNode): CheckpointNode[] {
     if (!element) {
       return this.checkpoints;
     }
 
-    return element.getChildren();
+    // all the consumers were already asserting CheckpointNode[]
+
+    return element.getChildren() as CheckpointNode[];
   }
 
   public hasFiveOrLessActiveCheckpoints(displayError: boolean): boolean {
     let numEnabledCheckpoints = 0;
-    for (const cpNode of this.getChildren() as CheckpointNode[]) {
+    for (const cpNode of this.getChildren()) {
       if (cpNode.isCheckpointEnabled()) {
         numEnabledCheckpoints++;
       }
@@ -130,7 +135,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   public hasOneOrMoreActiveCheckpoints(displayError: boolean): boolean {
     let numEnabledCheckpoints = 0;
-    for (const cpNode of this.getChildren() as CheckpointNode[]) {
+    for (const cpNode of this.getChildren()) {
       if (cpNode.isCheckpointEnabled()) {
         numEnabledCheckpoints++;
       }
@@ -420,7 +425,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               message: localizedProgressMessage
             });
             // This should probably be batched but it makes dealing with errors kind of a pain
-            for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
+            for (const cpNode of checkpointService.getChildren()) {
               if (cpNode.isCheckpointEnabled()) {
                 if (!(await checkpointService.executeCreateApexExecutionOverlayActionCommand(cpNode))) {
                   updateError = true;
@@ -725,7 +730,7 @@ export const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreak
 
   // If the log message is defined and isn't empty then set the action script
   // based upon whether or not the string starts with SELECT
-  const logMessage = (breakpoint as any).logMessage as string;
+  const logMessage = breakpoint.logMessage;
   if (logMessage && logMessage.length > 0) {
     if (logMessage.toLocaleLowerCase().startsWith('select')) {
       checkpointOverlayAction.ActionScriptType = ActionScriptEnum.SOQL;
@@ -739,7 +744,7 @@ export const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreak
 
 const setTypeRefsForEnabledCheckpoints = (): boolean => {
   let everythingSet = true;
-  for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
+  for (const cpNode of checkpointService.getChildren()) {
     if (cpNode.isCheckpointEnabled()) {
       const checkpointUri = cpNode.getCheckpointUri();
       const checkpointLine = cpNode.getCheckpointLineNumber();

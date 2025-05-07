@@ -131,14 +131,14 @@ export interface Prompts {
   };
 }
 
-export type HttpRequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type HttpRequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export const httpMethodMap: Record<string, HttpRequestMethod> = {
-  HttpGet: 'GET',
-  HttpPost: 'POST',
-  HttpPut: 'PUT',
-  HttpPatch: 'PATCH',
-  HttpDelete: 'DELETE'
+  HttpGet: 'get',
+  HttpPost: 'post',
+  HttpPut: 'put',
+  HttpPatch: 'patch',
+  HttpDelete: 'delete'
 } as const;
 
 export type OASGenerationCommandProperties = {

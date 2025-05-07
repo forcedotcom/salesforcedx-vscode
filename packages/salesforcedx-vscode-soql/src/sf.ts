@@ -29,7 +29,7 @@ export const debouncedShowChannelAndErrorMessage = debounce(showChannelAndErrorM
 export const withSFConnection = async (f: (conn: Connection) => void, showErrorMessage = true): Promise<void> => {
   try {
     const conn = await workspaceContext.getConnection();
-    return f(conn as unknown as Connection);
+    return f(conn);
   } catch (e) {
     if (showErrorMessage) {
       debouncedShowChannelAndErrorMessage(e);

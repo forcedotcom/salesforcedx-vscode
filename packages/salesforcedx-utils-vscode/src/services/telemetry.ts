@@ -109,7 +109,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.extensionContext = extensionContext;
     this.extensionName = name;
     this.version = version;
-    this.aiKey ??= aiKey;
+    this.aiKey ??= aiKey ?? DEFAULT_AIKEY;
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
@@ -324,7 +324,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 const extensionPackageJsonSchema = z.object({
   name: z.string({ message: 'Extension name is not defined in package.json' }),
   version: z.string({ message: 'Extension version is not defined in package.json' }),
-  aiKey: z.string(),
+  aiKey: z.string().optional(),
   o11yUploadEndpoint: z.string().optional(),
   enableO11y: z.string().optional()
 });

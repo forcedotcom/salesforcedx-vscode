@@ -6,7 +6,6 @@
  */
 
 import type { QueryResult, DescribeSObjectResult } from '../types';
-import { Connection } from '@salesforce/core-bundle';
 import type { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
