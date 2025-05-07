@@ -25,7 +25,7 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
-jest.mock('../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor');
+jest.mock('../../../../src/commands/templates/executors/libraryApexGenerateUnitTestClassExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
