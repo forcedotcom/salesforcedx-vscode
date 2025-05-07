@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fail } from 'node:assert';
+import { fail, strict as assert } from 'node:assert';
 import * as cp from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -42,7 +42,8 @@ describe('Java Requirements Test', () => {
     try {
       await resolveRequirements();
     } catch (err) {
-      expect(err).toContain(localRuntime);
+      assert(err instanceof Error);
+      expect(err.message).toContain(localRuntime);
       exceptionThrown = true;
     }
     expect(exceptionThrown).toEqual(true);
