@@ -28,7 +28,7 @@
     "@salesforce/apex-tmlanguage": "1.8.0",
     "@salesforce/core-bundle": "8.9.1",
     "@salesforce/salesforcedx-utils-vscode": "63.12.0",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.19.2",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.5",
     "@salesforce/salesforcedx-utils": "63.12.0",
     "@salesforce/vscode-service-provider": "1.4.0",
     "@stoplight/spectral-core": "1.19.5",
