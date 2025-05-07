@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -27,7 +27,6 @@ describe('ExternalServiceRegistrationManager', () => {
   let oasSpec: OpenAPIV3.Document;
   let processedOasResult: ProcessorInputOutput;
   let fullPath: FullPath;
-  let workspaceContextGetInstanceSpy: any;
   let registryAccess: RegistryAccess;
   let getTypeByNameMock: jest.SpyInstance;
   const fakeWorkspace = path.join('test', 'workspace');
@@ -55,20 +54,8 @@ describe('ExternalServiceRegistrationManager', () => {
       }
     }
   };
-  const mockWorkspaceContext = {
-    onOrgChange: jest.fn(),
-    getConnection: async () => ({
-      retrieveMaxApiVersion: () => '50.0',
-      query: () => ({
-        records: [{ MasterLabel: 'TestCredential' }]
-      })
-    })
-  } as any;
 
   beforeEach(() => {
-    workspaceContextGetInstanceSpy = jest
-      .spyOn(WorkspaceContextUtil, 'getInstance')
-      .mockReturnValue(mockWorkspaceContext as any);
     fullPath = ['/path/to/original', '/path/to/new'];
     jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
     oasSpec = {
@@ -120,18 +107,6 @@ describe('ExternalServiceRegistrationManager', () => {
   });
 
   describe('generateEsrMD', () => {
-    it('should throw an error if org version is not retrieved', async () => {
-      workspaceContextGetInstanceSpy.mockReturnValue({
-        getConnection: async () => ({
-          retrieveMaxApiVersion: () => undefined
-        })
-      });
-
-      await expect(esrHandler.generateEsrMD(true, processedOasResult, fullPath)).rejects.toThrow(
-        nls.localize('error_retrieving_org_version')
-      );
-    });
-
     it('should call the necessary methods to generate ESR metadata', async () => {
       (vscode.window.showQuickPick as jest.Mock).mockResolvedValue('TestCredential');
       (fs.existsSync as jest.Mock).mockReturnValue(false);
@@ -249,9 +224,8 @@ describe('ExternalServiceRegistrationManager', () => {
     const className = 'TestClass';
     const safeOasSpec = 'safeOasSpec';
     const operations: any = [{ active: true, name: 'getPets' }];
-    const orgVersion = '50.0';
 
-    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations, orgVersion);
+    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
 
     expect(result).toHaveProperty('ExternalServiceRegistration');
     expect(result.ExternalServiceRegistration).toHaveProperty('description', description);
@@ -283,9 +257,8 @@ describe('ExternalServiceRegistrationManager', () => {
     jest.spyOn(esrHandler, 'getOperationsFromYaml').mockReturnValue([{ active: true, name: 'getPets' }]);
     await esrHandler['initialize'](true, processedOasResult, fullPath);
     const existingContent = '<xml></xml>';
-    const orgVersion = '50.0';
 
-    const result = await esrHandler.buildESRXml(existingContent, orgVersion);
+    const result = await esrHandler.buildESRXml(existingContent);
 
     expect(result).toContain('<ExternalServiceRegistration');
     expect(result).toContain('<operations>');

@@ -14,7 +14,6 @@ import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
-import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { createProblemTabEntriesForOasDocument, getCurrentTimestamp } from '../oasUtils';
 import { ProcessorInputOutput } from './documentProcessorPipeline/processorStep';
@@ -72,15 +71,11 @@ export class ExternalServiceRegistrationManager {
     fullPath: FullPath
   ): Promise<void> {
     await this.initialize(isESRDecomposed, processedOasResult, fullPath);
-    const orgVersion = await (await workspaceContext.getConnection()).retrieveMaxApiVersion();
-    if (!orgVersion) {
-      throw new Error(nls.localize('error_retrieving_org_version'));
-    }
 
     const existingContent = fs.existsSync(this.newPath) ? fs.readFileSync(this.newPath, 'utf8') : undefined;
 
     //Step 1: Build the content of the ESR Xml file
-    const updatedContent = await this.buildESRXml(existingContent, orgVersion);
+    const updatedContent = await this.buildESRXml(existingContent);
 
     //Step 2: Write OpenAPI Document to File
     await this.writeAndOpenEsrFile(updatedContent);
@@ -125,9 +120,8 @@ export class ExternalServiceRegistrationManager {
    * Builds the ESR XML content.
    * @param existingContent - The existing XML content, if any.
    * @param namedCredential - The named credential to be used.
-   * @param orgVersion - Highest api version that is supported by the target server instance.
    */
-  public async buildESRXml(existingContent: string | undefined, orgVersion: string): Promise<string> {
+  public async buildESRXml(existingContent: string | undefined): Promise<string> {
     const baseName = path.basename(this.newPath).split('.')[0];
     const className = this.newPath.includes('esr_files_for_merge')
       ? // The class name is the part before the second to last underscore
@@ -146,7 +140,7 @@ export class ExternalServiceRegistrationManager {
     let jsonObj;
 
     // Create ESR Object
-    const esrObject = this.createESRObject(description, className, safeOasSpec, operations, orgVersion);
+    const esrObject = this.createESRObject(description, className, safeOasSpec, operations);
 
     if (existingContent) {
       jsonObj = parser.parse(existingContent);
@@ -177,17 +171,9 @@ export class ExternalServiceRegistrationManager {
    * @param className - The name of the class associated with the ESR.
    * @param safeOasSpec - The sanitized OpenAPI specification.
    * @param operations - The operations defined in the ESR.
-   * @param orgVersion - The version of the organization.
-   * @param namedCredential - The named credential reference, if any.
    * @returns An object representing the ESR.
    */
-  public createESRObject(
-    description: string,
-    className: string,
-    safeOasSpec: string,
-    operations: any,
-    orgVersion: string
-  ) {
+  public createESRObject(description: string, className: string, safeOasSpec: string, operations: any) {
     return {
       '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
       ExternalServiceRegistration: {
@@ -206,18 +192,6 @@ export class ExternalServiceRegistrationManager {
         namedCredential: 'null'
       }
     };
-  }
-
-  /**
-   * Checks if the given version is greater than or equal to the target version.
-   * @param version - The version to check.
-   * @param targetVersion - The target version to compare against.
-   * @returns True if the version is greater than or equal to the target version, false otherwise.
-   */
-  public isVersionGte(version: string, targetVersion: string): boolean {
-    const major = parseInt(version.split('.')[0], 10);
-    const targetMajor = parseInt(targetVersion.split('.')[0], 10);
-    return major >= targetMajor;
   }
 
   /**
