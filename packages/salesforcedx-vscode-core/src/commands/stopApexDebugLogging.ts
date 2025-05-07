@@ -5,14 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService, TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
+import { ChannelService, notificationService, SettingsService, TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from '.';
+import { OUTPUT_CHANNEL } from '../channels';
 
 export const turnOffLogging = async (): Promise<void> => {
   console.log('Enter turnOffLogging()');
+  const channelService = new ChannelService(OUTPUT_CHANNEL);
+  if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
+    channelService.clear();
+  }
   if (developerLogTraceFlag.isActive()) {
     console.log('Developer log trace flag is active');
     try {
