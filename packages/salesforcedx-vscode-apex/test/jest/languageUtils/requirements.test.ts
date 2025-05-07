@@ -37,7 +37,7 @@ describe('Java Requirements Test', () => {
 
   it('Should prevent local java runtime path', async () => {
     const localRuntime = './java_home/donthackmebro';
-    settingStub.withArgs(JAVA_HOME_KEY).returns('./java_home/donthackmebro');
+    settingStub.withArgs(JAVA_HOME_KEY).returns(localRuntime);
     let exceptionThrown = false;
     try {
       await resolveRequirements();
