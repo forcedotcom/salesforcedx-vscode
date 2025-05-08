@@ -1,39 +1,28 @@
-/*
- * Copyright (c) 2017, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
-
 import {
   ChannelService,
-  notificationService,
-  SettingsService,
   TraceFlagsRemover
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { WorkspaceContext } from '../context';
-import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from '.';
+import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
+
+const command = 'SFDX: Turn Off Apex Debug Log for Replay Debugger';
 
 export const turnOffLogging = async (): Promise<void> => {
   console.log('Enter turnOffLogging()');
   const channelService = new ChannelService(OUTPUT_CHANNEL);
-  if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
-    channelService.clear();
-  }
-  channelService.showCommandWithTimestamp(
-    `${nls.localize('channel_starting_message')}SFDX: Turn Off Apex Debug Log for Replay Debugger\n`
-  );
+  handleStartCommand(channelService, command);
+
   if (developerLogTraceFlag.isActive()) {
     console.log('Developer log trace flag is active');
     try {
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: 'SFDX: Turn Off Apex Debug Log for Replay Debugger',
+          title: command,
           cancellable: false
         },
         async progress => {
@@ -42,27 +31,32 @@ export const turnOffLogging = async (): Promise<void> => {
           const connection = await WorkspaceContext.getInstance().getConnection();
           await TraceFlagsRemover.getInstance(connection).removeTraceFlag(nonNullTraceFlag);
           telemetryService.sendCommandEvent('stop_apex_debug_logging');
-          channelService.showCommandWithTimestamp('SFDX: Turn Off Apex Debug Log for Replay Debugger');
-          channelService.appendLine(' ' + nls.localize('channel_end_with_exit_code', '0'));
-          return Promise.resolve();
         }
       );
 
-      await notificationService.showInformationMessage(
-        'SFDX: Turn Off Apex Debug Log for Replay Debugger successfully ran'
+      await handleFinishCommand(
+        channelService,
+        command,
+        true
       );
     } catch (error) {
       console.error('Error in turnOffLogging(): ', error);
       telemetryService.sendException('stop_apex_debug_logging', error);
-      channelService.showCommandWithTimestamp('SFDX: Turn Off Apex Debug Log for Replay Debugger');
-      channelService.appendLine(' ' + nls.localize('channel_end_with_exit_code', '1'));
+      await handleFinishCommand(
+        channelService,
+        command,
+        false
+      );
       return Promise.reject('Restoring the debug levels failed.');
     }
   } else {
     console.log('Developer log trace flag is not active');
     telemetryService.sendException('stop_apex_debug_logging', 'No active trace flag found.');
-    channelService.showCommandWithTimestamp('SFDX: Turn Off Apex Debug Log for Replay Debugger');
-    channelService.appendLine(' ' + nls.localize('channel_end_with_exit_code', '1'));
+    await handleFinishCommand(
+      channelService,
+      command,
+      false
+    );
     return Promise.reject('No active trace flag found.');
   }
   console.log('Exit turnOffLogging()');
