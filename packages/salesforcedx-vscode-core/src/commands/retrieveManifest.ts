@@ -8,6 +8,7 @@ import { ContinueResponse, workspaceUtils } from '@salesforce/salesforcedx-utils
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -36,7 +37,7 @@ export class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   }
 }
 
-export const retrieveManifest = async (explorerPath: vscode.Uri): Promise<void> => {
+export const retrieveManifest = async (explorerPath: URI): Promise<void> => {
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {

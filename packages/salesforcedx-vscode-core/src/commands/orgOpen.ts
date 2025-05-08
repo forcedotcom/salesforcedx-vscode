@@ -18,6 +18,7 @@ import {
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -72,7 +73,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
 
           channelService.appendLine(this.buildUserMessageWith(cliOrgData));
           // open the default browser
-          vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
+          vscode.env.openExternal(URI.parse(authenticatedOrgUrl));
         } else {
           const errorResponse = orgOpenParser.getResult() as OrgOpenErrorResult;
           channelService.appendLine(errorResponse.message);

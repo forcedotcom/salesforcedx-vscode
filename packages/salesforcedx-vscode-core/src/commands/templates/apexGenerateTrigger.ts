@@ -8,7 +8,7 @@
 import { CompositeParametersGatherer, LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet, SfWorkspaceChecker } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
-import { LibraryApexGenerateTriggerExecutor } from './executors/LibraryApexGenerateTriggerExecutor';
+import { LibraryApexGenerateTriggerExecutor } from './executors/libraryApexGenerateTriggerExecutor';
 import { APEX_TRIGGER_DIRECTORY, APEX_TRIGGER_NAME_MAX_LENGTH, APEX_TRIGGER_TYPE } from './metadataTypeConstants';
 
 let initialized = false;
