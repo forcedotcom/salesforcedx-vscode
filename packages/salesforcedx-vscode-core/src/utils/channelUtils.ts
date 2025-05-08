@@ -1,29 +1,29 @@
-/*
- * Copyright (c) 2025, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
 import { ChannelService, notificationService, SettingsService } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 
 export const handleStartCommand = (channelService: ChannelService, command: string): void => {
   if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
     channelService.clear();
   }
-  channelService.showCommandWithTimestamp(`${nls.localize('channel_starting_message')}${command}\n`);
+  channelService.showCommandWithTimestamp(`${nls.localize('channel_starting_message')}${nls.localize(command)}\n`);
 };
 
 export const handleFinishCommand = async (
   channelService: ChannelService,
   command: string,
-  isSuccess: boolean
+  isSuccess: boolean,
+  error: string = 'Command failed'
 ): Promise<void> => {
   const exitCode = isSuccess ? '0' : '1';
-  channelService.showCommandWithTimestamp(command);
+  channelService.showCommandWithTimestamp(nls.localize(command));
   channelService.appendLine(' ' + nls.localize('channel_end_with_exit_code', exitCode));
+  // TODO: MOVE TELEMETRY HERE
 
   if (isSuccess) {
-    await notificationService.showInformationMessage(`${command} successfully ran`);
+    await notificationService.showInformationMessage(`${nls.localize(command)} successfully ran`);
+    telemetryService.sendCommandEvent(command);
+  } else {
+    telemetryService.sendException(command, error);
   }
 };
