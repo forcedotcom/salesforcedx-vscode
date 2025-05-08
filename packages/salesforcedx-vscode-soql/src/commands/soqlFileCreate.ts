@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { telemetryService } from '../telemetry';
 
@@ -14,7 +15,7 @@ export const soqlOpenNew = (): Promise<void> => {
 
   if (vscode.workspace) {
     const fileName = 'untitled.soql';
-    const newUri = vscode.Uri.file(fileName).with({
+    const newUri = URI.file(fileName).with({
       scheme: 'untitled',
       path: fileName
     });

@@ -15,7 +15,7 @@ import {
 import * as vscode from 'vscode';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
-import { isDemoMode } from '../../modes/demo-mode';
+import { isDemoMode } from '../../modes/demoMode';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from '../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 import { AuthDemoModeExecutor, OrgLoginWebContainerExecutor } from './orgLoginWeb';

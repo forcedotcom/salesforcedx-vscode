@@ -9,6 +9,7 @@ import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import {
   checkPackageDirectoriesEditorView,
   checkPackageDirectoriesExplorerView
@@ -134,7 +135,7 @@ describe('packageDirectoriesContext', () => {
     });
 
     // Mock the directory reading for each level
-    (vscode.workspace.fs.readDirectory as jest.Mock).mockImplementation((uri: vscode.Uri) => {
+    (vscode.workspace.fs.readDirectory as jest.Mock).mockImplementation((uri: URI) => {
       const currentPath = uri.fsPath;
       if (currentPath === packageRoot) {
         return Promise.resolve([['main', vscode.FileType.Directory]]);

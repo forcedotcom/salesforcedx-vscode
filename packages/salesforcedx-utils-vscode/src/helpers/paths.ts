@@ -8,7 +8,7 @@
 import { Global } from '@salesforce/core-bundle';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '..';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
 
@@ -63,7 +63,7 @@ export const getRelativeProjectPath = (fsPath: string = '', packageDirs: string[
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
 };
 
-export const fileExtensionsMatch = (sourceUri: vscode.Uri, targetExtension: string): boolean => {
+export const fileExtensionsMatch = (sourceUri: URI, targetExtension: string): boolean => {
   const extension = sourceUri.path.split('.').pop()?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 };

@@ -17,6 +17,7 @@ import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesf
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { URI } from 'vscode-uri';
 import {
   ApexExecutionOverlayActionCommand,
   ApexExecutionOverlayFailureResult,
@@ -75,7 +76,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   public async retrieveOrgInfo(): Promise<boolean> {
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
-      this.salesforceProject = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      this.salesforceProject = URI.file(vscode.workspace.workspaceFolders[0].uri.fsPath).fsPath;
       try {
         this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
       } catch (error) {
@@ -212,9 +213,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           const errorMessage = nls.localize('local_source_is_out_of_sync_with_the_server');
           writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
         } else {
-          const errorMessage = `${
-            result[0].message
-          }. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+          const errorMessage = `${result[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
           writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
         }
       } catch (error) {
@@ -823,37 +822,18 @@ export const sfToggleCheckpoint = async () => {
 };
 
 // This methods was broken out of sfToggleCheckpoint for testing purposes.
-const fetchActiveEditorUri = (): vscode.Uri | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    return editor.document.uri;
-  }
-};
+const fetchActiveEditorUri = (): URI | undefined => vscode.window.activeTextEditor?.document.uri;
 
 // This methods was broken out of sfToggleCheckpoint for testing purposes.
-const fetchActiveSelectionLineNumber = (): number | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor && editor.selection) {
-    return editor.selection.start.line;
-  }
-  return undefined;
-};
+const fetchActiveSelectionLineNumber = (): number | undefined => vscode.window.activeTextEditor?.selection?.start.line;
 
-const fetchExistingBreakpointForUriAndLineNumber = (
-  uriInput: vscode.Uri,
-  lineInput: number
-): vscode.Breakpoint | undefined => {
-  for (const bp of vscode.debug.breakpoints) {
-    if (bp instanceof vscode.SourceBreakpoint) {
-      // Uri comparison doesn't work even if they're contain the same
-      // information. toString both URIs
-      if (bp.location.uri.toString() === uriInput.toString() && bp.location.range.start.line === lineInput) {
-        return bp;
-      }
-    }
-  }
-  return undefined;
-};
+const fetchExistingBreakpointForUriAndLineNumber = (uriInput: URI, lineInput: number): vscode.Breakpoint | undefined =>
+  vscode.debug.breakpoints.find(
+    bp =>
+      bp instanceof vscode.SourceBreakpoint &&
+      bp.location.uri.toString() === uriInput.toString() &&
+      bp.location.range.start.line === lineInput
+  );
 
 export const checkpointUtils = {
   fetchActiveEditorUri,

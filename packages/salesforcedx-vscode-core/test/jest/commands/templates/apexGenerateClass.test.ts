@@ -6,10 +6,10 @@
  */
 
 import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { apexGenerateClass } from '../../../../src/commands/templates';
 import { clearGathererCache } from '../../../../src/commands/templates/apexGenerateClass';
-import { LibraryApexGenerateClassExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateClassExecutor';
+import { LibraryApexGenerateClassExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,
@@ -25,7 +25,7 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
-jest.mock('../../../../src/commands/templates/executors/LibraryApexGenerateClassExecutor');
+jest.mock('../../../../src/commands/templates/executors/libraryApexGenerateClassExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
@@ -77,9 +77,7 @@ describe('apexGenerateClass Unit Tests.', () => {
 
   it('Should not prompt if called from file context menu', async () => {
     // This happens when the command is executed from the context menu in the explorer on the classes folder.
-    const selectedPathUri = {
-      fsPath: '/path1/path2/project/force-app/main/default/classes'
-    } as unknown as vscode.Uri;
+    const selectedPathUri = URI.file('/path1/path2/project/force-app/main/default/classes');
     await apexGenerateClass(selectedPathUri);
     expect(selectFileNameMocked).toHaveBeenCalledWith(APEX_CLASS_NAME_MAX_LENGTH);
     // still called to initialize, not actually used

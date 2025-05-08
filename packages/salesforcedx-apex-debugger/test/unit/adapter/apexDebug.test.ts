@@ -19,7 +19,7 @@ import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
 import * as os from 'node:os';
 import * as sinon from 'sinon';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import {
   ApexDebugStackFrameInfo,
   ApexVariable,
@@ -1061,10 +1061,10 @@ describe('Interactive debugger adapter - unit', () => {
       const stackFrames = response.body.stackFrames;
       expect(stackFrames.length).to.equal(2);
       expect(stackFrames[0]).to.deep.equal(
-        new StackFrame(1000, 'FooDebug.test()', new Source('foo.cls', Uri.parse(fileUri).fsPath), 1, 0)
+        new StackFrame(1000, 'FooDebug.test()', new Source('foo.cls', URI.parse(fileUri).fsPath), 1, 0)
       );
       expect(stackFrames[1]).to.deep.equal(
-        new StackFrame(1001, 'BarDebug.test()', new Source('foo.cls', Uri.parse(fileUri).fsPath), 2, 0)
+        new StackFrame(1001, 'BarDebug.test()', new Source('foo.cls', URI.parse(fileUri).fsPath), 2, 0)
       );
     });
 
@@ -1334,7 +1334,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(outputEvent.body.output).to.have.string(
         `${msg.event.createdDate} | ${msg.sobject.Type} | Request: ${msg.sobject.RequestId} | Breakpoint: ${msg.sobject.BreakpointId} | Line: ${msg.sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject.Stacktrace}`
       );
-      expect(outputEvent.body.source!.path).to.equal(Uri.parse(fooUri).fsPath);
+      expect(outputEvent.body.source!.path).to.equal(URI.parse(fooUri).fsPath);
       expect(outputEvent.body.line).to.equal(4);
     });
   });

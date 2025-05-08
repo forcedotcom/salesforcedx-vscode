@@ -6,6 +6,7 @@
  */
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '../../../src';
 import { fileExtensionsMatch, projectPaths, workspaceUtils } from '../../../src/';
 import {
@@ -196,7 +197,7 @@ describe('test project paths', () => {
   describe('test fileExtensionsMatch', () => {
     const mockEditor = {
       document: {
-        uri: { path: 'foo.log' } as vscode.Uri
+        uri: URI.file('foo.log')
       }
     };
 

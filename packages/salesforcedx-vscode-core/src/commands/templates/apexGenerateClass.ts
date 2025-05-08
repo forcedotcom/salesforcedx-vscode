@@ -6,7 +6,7 @@
  */
 
 import { CompositeParametersGatherer, LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import {
   MetadataTypeGatherer,
   SelectFileName,
@@ -22,7 +22,7 @@ import {
   MetadataTypeParameter,
   OutputDirParameter
 } from '../util/parameterGatherers';
-import { LibraryApexGenerateClassExecutor } from './executors/LibraryApexGenerateClassExecutor';
+import { LibraryApexGenerateClassExecutor } from './executors/libraryApexGenerateClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,
@@ -51,7 +51,7 @@ export const getParamGatherers = () => {
 // if called from a file's context menu, will deliver the clicked file URI,
 // ignoring an additional arg that is array of selected
 // if called from the command pallet args will be empty
-export const apexGenerateClass = async (sourceUri?: vscode.Uri) => {
+export const apexGenerateClass = async (sourceUri?: URI) => {
   const gatherers = getParamGatherers();
 
   if (sourceUri) {

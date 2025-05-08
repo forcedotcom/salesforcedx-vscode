@@ -7,6 +7,7 @@
 import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -61,7 +62,7 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
   }
 }
 
-export const retrieveSourcePaths = async (sourceUri: vscode.Uri | undefined, uris: vscode.Uri[] | undefined) => {
+export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[] | undefined) => {
   if (!sourceUri) {
     // When the source is retrieved via the command palette, both sourceUri and uris are
     // each undefined, and sourceUri needs to be obtained from the active text editor.
@@ -96,7 +97,7 @@ export const retrieveSourcePaths = async (sourceUri: vscode.Uri | undefined, uri
   await commandlet.run();
 };
 
-export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
+export const getUriFromActiveEditor = (): URI | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.document.languageId !== 'forcesourcemanifest') {
     return editor.document.uri;

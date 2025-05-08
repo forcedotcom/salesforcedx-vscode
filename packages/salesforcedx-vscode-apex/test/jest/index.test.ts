@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
@@ -91,7 +92,7 @@ describe('index tests', () => {
       // Mock extension
       const mockExtension = {
         id: 'salesforce.salesforcedx-vscode-apex',
-        extensionUri: vscode.Uri.file('/mock/extension/path'),
+        extensionUri: URI.file('/mock/extension/path'),
         packageJSON: {
           name: 'salesforcedx-vscode-apex',
           publisher: 'salesforce'
@@ -110,7 +111,7 @@ describe('index tests', () => {
         subscriptions: [],
         extensionPath: '/mock/extension/path',
         extension: mockExtension,
-        extensionUri: vscode.Uri.file('/mock/extension/path'),
+        extensionUri: URI.file('/mock/extension/path'),
         extensionMode: vscode.ExtensionMode.Test
       } as unknown as vscode.ExtensionContext;
 

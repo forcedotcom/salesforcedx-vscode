@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from './messages';
 
 export default class ApexLSPStatusBarItem implements vscode.Disposable {
@@ -34,7 +35,7 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
       command: 'sf.apex.languageServer.restart'
     };
     // clear any errors that were there
-    this.diagnostics.set(vscode.Uri.file('/ApexLSP'), []);
+    this.diagnostics.set(URI.file('/ApexLSP'), []);
   }
 
   public restarting() {
@@ -49,7 +50,7 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
     this.languageStatusItem.severity = vscode.LanguageStatusSeverity.Error;
     const position = new vscode.Position(0, 0);
     const errorSeverity = (vscode.DiagnosticSeverity && vscode.DiagnosticSeverity.Error) || 0;
-    this.diagnostics.set(vscode.Uri.file('/ApexLSP'), [
+    this.diagnostics.set(URI.file('/ApexLSP'), [
       new vscode.Diagnostic(new vscode.Range(position, position), msg, errorSeverity)
     ]);
   }

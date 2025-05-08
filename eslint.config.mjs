@@ -64,6 +64,12 @@ export default [
     },
     rules: {
       'unicorn/prefer-node-protocol': 'error',
+      'unicorn/filename-case': [
+        'error',
+        {
+          case: 'camelCase'
+        }
+      ],
       'header/header': [
         'error',
         'block',
@@ -314,6 +320,7 @@ export default [
       jest: eslintPluginJest
     },
     rules: {
+      'unicorn/filename-case': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',

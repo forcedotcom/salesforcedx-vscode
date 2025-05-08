@@ -16,6 +16,7 @@ import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { ComponentName, getComponentName, getComponentPath, isLwcComponent, TEST_FOLDER } from '../util';
@@ -53,7 +54,7 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
   }
 }
 
-export const renameLightningComponent = (sourceUri: vscode.Uri): void => {
+export const renameLightningComponent = (sourceUri: URI): void => {
   const sourceFsPath = sourceUri.fsPath;
   if (sourceFsPath) {
     const commandlet = new SfCommandlet(

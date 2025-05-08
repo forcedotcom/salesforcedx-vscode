@@ -8,7 +8,7 @@
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as path from 'node:path';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { ApexReplayDebug, LaunchRequestArguments } from '../../src/adapter/apexReplayDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints';
 import { GoldFileUtil } from './goldFileUtil';
@@ -43,9 +43,9 @@ describe('Replay debugger adapter - integration', () => {
   });
 
   it('Recursive stack', async () => {
-    let classA = Uri.file(`${projectPath}/force-app/main/default/classes/A.cls`).toString();
-    let classB = Uri.file(`${projectPath}/force-app/main/default/classes/B.cls`).toString();
-    let classRecursive = Uri.file(`${projectPath}/force-app/main/default/classes/RecursiveTest.cls`).toString();
+    let classA = URI.file(`${projectPath}/force-app/main/default/classes/A.cls`).toString();
+    let classB = URI.file(`${projectPath}/force-app/main/default/classes/B.cls`).toString();
+    let classRecursive = URI.file(`${projectPath}/force-app/main/default/classes/RecursiveTest.cls`).toString();
     const classAValidLines = [42];
     const classBValidLines = [42];
     const classRecursiveValidLines = [7];
@@ -87,9 +87,9 @@ describe('Replay debugger adapter - integration', () => {
     expect(launchResponse.success).toBe(true);
 
     try {
-      const classAPath = Uri.parse(classA).fsPath;
-      const classBPath = Uri.parse(classB).fsPath;
-      const classRecursivePath = Uri.parse(classRecursive).fsPath;
+      const classAPath = URI.parse(classA).fsPath;
+      const classBPath = URI.parse(classB).fsPath;
+      const classRecursivePath = URI.parse(classRecursive).fsPath;
       console.log(`classAPath: ${classAPath}. classBPath: ${classBPath}. classRecursivePath: ${classRecursivePath}`);
       let addBreakpointsResponse = await dc.setBreakpointsRequest(createBreakpointsArgs(classAPath, classAValidLines));
       assertBreakpointsCreated(addBreakpointsResponse, 1, classAPath, classAValidLines);
@@ -125,7 +125,7 @@ describe('Replay debugger adapter - integration', () => {
   });
 
   it('Static variable of one class in different frames', async () => {
-    let classStaticVarsA = Uri.file(`${projectPath}/force-app/main/default/classes/StaticVarsA.cls`).toString();
+    let classStaticVarsA = URI.file(`${projectPath}/force-app/main/default/classes/StaticVarsA.cls`).toString();
     const classStaticVarsAValidLines = [9];
     if (process.platform === 'win32') {
       classStaticVarsA = classStaticVarsA.replace('%3A', ':');
@@ -151,7 +151,7 @@ describe('Replay debugger adapter - integration', () => {
     expect(launchResponse.success).toBe(true);
 
     try {
-      const classStaticVarsAPath = Uri.parse(classStaticVarsA).fsPath;
+      const classStaticVarsAPath = URI.parse(classStaticVarsA).fsPath;
       console.log(`classStaticVarsAPath: ${classStaticVarsAPath}`);
       const addBreakpointsResponse = await dc.setBreakpointsRequest(
         createBreakpointsArgs(classStaticVarsAPath, classStaticVarsAValidLines)

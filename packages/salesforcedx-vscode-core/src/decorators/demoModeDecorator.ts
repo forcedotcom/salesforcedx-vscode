@@ -6,7 +6,7 @@
  */
 
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
-import { nls } from '../../src/messages';
+import { nls } from '../messages';
 
 let demoModeStatusBar: StatusBarItem;
 

@@ -16,6 +16,7 @@ import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundl
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { RetrieveDescriber } from '../retrieveMetadata';
@@ -42,7 +43,7 @@ type ApexTestTemplateParameter = {
 
 export class FilePathGatherer implements ParametersGatherer<string> {
   private filePath: string;
-  public constructor(uri: vscode.Uri) {
+  public constructor(uri: URI) {
     this.filePath = uri.fsPath;
   }
 

@@ -6,4 +6,4 @@
  */
 
 export * from './iconHelpers';
-export * from './IconsEnum';
+export * from './iconsEnum';

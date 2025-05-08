@@ -4,15 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { WorkspaceContextUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
 import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
-import { ExternalServiceRegistrationManager } from '../../../src/oas/ExternalServiceRegistrationManager';
+import {
+  ExternalServiceRegistrationManager,
+  FullPath,
+  replaceXmlToYaml
+} from '../../../src/oas/externalServiceRegistrationManager';
 import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
@@ -21,8 +26,7 @@ describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;
   let processedOasResult: ProcessorInputOutput;
-  let fullPath: [string, string, boolean];
-  let workspaceContextGetInstanceSpy: any;
+  let fullPath: FullPath;
   let registryAccess: RegistryAccess;
   let getTypeByNameMock: jest.SpyInstance;
   const fakeWorkspace = path.join('test', 'workspace');
@@ -50,21 +54,9 @@ describe('ExternalServiceRegistrationManager', () => {
       }
     }
   };
-  const mockWorkspaceContext = {
-    onOrgChange: jest.fn(),
-    getConnection: async () => ({
-      retrieveMaxApiVersion: () => '50.0',
-      query: () => ({
-        records: [{ MasterLabel: 'TestCredential' }]
-      })
-    })
-  } as any;
 
   beforeEach(() => {
-    workspaceContextGetInstanceSpy = jest
-      .spyOn(WorkspaceContextUtil, 'getInstance')
-      .mockReturnValue(mockWorkspaceContext as any);
-    fullPath = ['/path/to/original', '/path/to/new', false];
+    fullPath = ['/path/to/original', '/path/to/new'];
     jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
     oasSpec = {
       openapi: '3.0.0',
@@ -93,7 +85,6 @@ describe('ExternalServiceRegistrationManager', () => {
       esrHandler['initialize'](true, processedOasResult, fullPath);
 
       expect(esrHandler['isESRDecomposed']).toBe(true);
-      expect(esrHandler['processedOasResult']).toBe(processedOasResult);
       expect(esrHandler['oasSpec']).toBe(processedOasResult.openAPIDoc);
       expect(esrHandler['overwrite']).toBe(false);
       expect(esrHandler['originalPath']).toBe(fullPath[0]);
@@ -101,29 +92,21 @@ describe('ExternalServiceRegistrationManager', () => {
     });
 
     it('should initialize with overwrite set to true when paths are the same', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.xml', true]);
+      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.xml']);
       expect(esrHandler['overwrite']).toBe(true);
+    });
+    it('should initialize with overwrite set to false when paths differ only by extension', async () => {
+      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.pdf']);
+      expect(esrHandler['overwrite']).toBe(false);
     });
 
     it('should initialize with overwrite set to false when paths are different', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.xml', false]);
+      await esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.xml']);
       expect(esrHandler['overwrite']).toBe(false);
     });
   });
 
   describe('generateEsrMD', () => {
-    it('should throw an error if org version is not retrieved', async () => {
-      workspaceContextGetInstanceSpy.mockReturnValue({
-        getConnection: async () => ({
-          retrieveMaxApiVersion: () => undefined
-        })
-      });
-
-      await expect(esrHandler.generateEsrMD(true, processedOasResult, fullPath)).rejects.toThrow(
-        nls.localize('error_retrieving_org_version')
-      );
-    });
-
     it('should call the necessary methods to generate ESR metadata', async () => {
       (vscode.window.showQuickPick as jest.Mock).mockResolvedValue('TestCredential');
       (fs.existsSync as jest.Mock).mockReturnValue(false);
@@ -141,39 +124,45 @@ describe('ExternalServiceRegistrationManager', () => {
     });
   });
 
-  describe('promptNamedCredentialSelection', () => {
-    it('should prompt the user to select a named credential', async () => {
-      const namedCredentials = {
-        records: [{ MasterLabel: 'TestCredential1' }, { MasterLabel: 'TestCredential2' }]
-      };
-      const quickPickSpy = (vscode.window.showQuickPick as jest.Mock).mockResolvedValue('TestCredential1');
+  describe('displayFileDifferences', () => {
+    const xmlOriginal = '/path/to/original.externalServiceRegistration-meta.xml';
+    const xmlNew = '/path/to/new.externalServiceRegistration-meta.xml';
+    it('displayFileDifferences composed', async () => {
+      esrHandler['initialize'](false, processedOasResult, [xmlOriginal, xmlNew]);
 
-      const result = await esrHandler.promptNamedCredentialSelection(namedCredentials);
+      await esrHandler.displayFileDifferences();
 
-      expect(quickPickSpy).toHaveBeenCalledWith(['TestCredential1', 'TestCredential2', nls.localize('enter_new_nc')], {
-        placeHolder: nls.localize('select_named_credential')
-      });
-      expect(result).toBe('TestCredential1');
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'vscode.diff',
+        URI.file(xmlOriginal),
+        URI.file(xmlNew),
+        'Manual Diff of ESR XML Files'
+      );
     });
 
-    it('should return undefined if no named credentials are provided', async () => {
-      const result = await esrHandler.promptNamedCredentialSelection(undefined);
+    it('displayFileDifferences decomposed', async () => {
+      const yamlOriginal = '/path/to/original.yaml';
+      const yamlNew = '/path/to/new.yaml';
+      esrHandler['initialize'](true, processedOasResult, [xmlOriginal, xmlNew]);
 
-      expect(result).toBeUndefined();
+      await esrHandler.displayFileDifferences();
+
+      expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(
+        1,
+        'vscode.diff',
+        URI.file(xmlOriginal),
+        URI.file(xmlNew),
+        'Manual Diff of ESR XML Files'
+      );
+
+      expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(
+        2,
+        'vscode.diff',
+        URI.file(yamlOriginal),
+        URI.file(yamlNew),
+        'Manual Diff of ESR YAML Files'
+      );
     });
-  });
-
-  it('displayFileDifferences', async () => {
-    esrHandler['initialize'](true, processedOasResult, fullPath);
-
-    await esrHandler.displayFileDifferences();
-
-    expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-      'vscode.diff',
-      vscode.Uri.file('/path/to/original.xml'),
-      vscode.Uri.file('/path/to/new.xml'),
-      'Manual Diff of ESR XML Files'
-    );
   });
 
   it('should handle existing ESR file', async () => {
@@ -235,24 +224,14 @@ describe('ExternalServiceRegistrationManager', () => {
     const className = 'TestClass';
     const safeOasSpec = 'safeOasSpec';
     const operations: any = [{ active: true, name: 'getPets' }];
-    const orgVersion = '50.0';
-    const namedCredential = 'TestCredential';
 
-    const result = esrHandler.createESRObject(
-      description,
-      className,
-      safeOasSpec,
-      operations,
-      orgVersion,
-      namedCredential
-    );
+    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
 
     expect(result).toHaveProperty('ExternalServiceRegistration');
     expect(result.ExternalServiceRegistration).toHaveProperty('description', description);
     expect(result.ExternalServiceRegistration).toHaveProperty('label', className);
     expect(result.ExternalServiceRegistration).toHaveProperty('schema', safeOasSpec);
     expect(result.ExternalServiceRegistration).toHaveProperty('operations', operations);
-    expect(result.ExternalServiceRegistration).toHaveProperty('namedCredentialReference', namedCredential);
   });
 
   it('extractInfoProperties', () => {
@@ -260,8 +239,7 @@ describe('ExternalServiceRegistrationManager', () => {
     const result = esrHandler.extractInfoProperties();
 
     expect(result).toEqual({
-      description: 'oas description',
-      version: '1.0.0'
+      description: 'oas description'
     });
   });
 
@@ -274,15 +252,13 @@ describe('ExternalServiceRegistrationManager', () => {
 
   it('buildESRXml', async () => {
     jest.spyOn(esrHandler, 'extractInfoProperties').mockReturnValue({
-      description: 'oas description',
-      version: '1.0.0'
+      description: 'oas description'
     });
     jest.spyOn(esrHandler, 'getOperationsFromYaml').mockReturnValue([{ active: true, name: 'getPets' }]);
+    await esrHandler['initialize'](true, processedOasResult, fullPath);
     const existingContent = '<xml></xml>';
-    const namedCredential = 'TestCredential';
-    const orgVersion = '50.0';
 
-    const result = await esrHandler.buildESRXml(existingContent, namedCredential, orgVersion);
+    const result = await esrHandler.buildESRXml(existingContent);
 
     expect(result).toContain('<ExternalServiceRegistration');
     expect(result).toContain('<operations>');
@@ -290,8 +266,7 @@ describe('ExternalServiceRegistrationManager', () => {
   });
 
   it('buildESRYaml', () => {
-    jest.spyOn(esrHandler, 'replaceXmlToYaml').mockReturnValue('/path/to/esr.yaml');
-    const esrXmlPath = '/path/to/esr.xml';
+    const esrXmlPath = '/path/to/esr.externalServiceRegistration-meta.xml';
     const safeOasSpec = 'safeOasSpec';
 
     esrHandler.buildESRYaml(esrXmlPath, safeOasSpec);
@@ -301,7 +276,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
   it('replaceXmlToYaml', () => {
     const filePath = '/path/to/esr.externalServiceRegistration-meta.xml';
-    const result = esrHandler.replaceXmlToYaml(filePath);
+    const result = replaceXmlToYaml(filePath);
 
     expect(result).toBe('/path/to/esr.yaml');
   });

@@ -9,6 +9,7 @@ import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { conflictView } from '../conflict';
 import { nls } from '../messages';
@@ -135,8 +136,8 @@ export const diffOneFile = async (
   }
   for (const filePath of remoteFilePaths) {
     if (filePath.endsWith(filePart)) {
-      const remoteUri = vscode.Uri.file(filePath);
-      const localUri = vscode.Uri.file(localFile);
+      const remoteUri = URI.file(filePath);
+      const localUri = URI.file(localFile);
 
       try {
         await vscode.commands.executeCommand(

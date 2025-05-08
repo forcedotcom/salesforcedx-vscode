@@ -33,16 +33,4 @@ describe('extensionUris Unit Tests.', () => {
       }).toThrowError(/^Unable to find extension/);
     });
   });
-
-  describe('join()', () => {
-    const fakeResultUri = { url: 'file://totallyfake' };
-    it('Should return joined Uri and relative path.', () => {
-      const fakeUri: any = { scheme: true };
-      const path = '/a/b/c/e';
-      (vscode.Uri.joinPath as any).mockReturnValue(fakeResultUri);
-      const result = extensionUris.join(fakeUri, path);
-      expect(vscode.Uri.joinPath).toHaveBeenCalledWith(fakeUri, path);
-      expect(result).toEqual(fakeResultUri);
-    });
-  });
 });

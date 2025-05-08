@@ -9,6 +9,7 @@ import { SfProject } from '@salesforce/core-bundle';
 import { workspaceUtils, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 /**
  * Checks if the currently active editor's file is located within any of the filepaths in the
@@ -30,14 +31,12 @@ export const checkPackageDirectoriesEditorView = async (): Promise<boolean> => {
 
     // Get the URI from the active editor
     const activeEditor = vscode.window.activeTextEditor;
-    let uri: vscode.Uri;
-    if (activeEditor) {
-      uri = activeEditor.document.uri;
-    } else {
+    if (!activeEditor) {
       // No active editor, can fail fast
       void vscode.commands.executeCommand('setContext', 'sf:in_package_directories', false);
       return false;
     }
+    const uri = activeEditor.document.uri;
 
     // Check if the file is in any of the package directories
     const filePath = uri.fsPath;
@@ -99,7 +98,7 @@ export const checkPackageDirectoriesExplorerView = async () => {
  */
 const getAllSubdirectories = async (currentDirectory: string): Promise<string[]> => {
   const subdirectories: string[] = [currentDirectory];
-  const uri = vscode.Uri.file(currentDirectory);
+  const uri = URI.file(currentDirectory);
   const entries = await vscode.workspace.fs.readDirectory(uri);
 
   // Using a for loop instead of a for...of loop because the for...of loop is 4 times slower

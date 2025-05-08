@@ -4,8 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { CompositeParametersGatherer, LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import {
   MetadataTypeGatherer,
   OverwriteComponentPrompt,
@@ -14,7 +15,7 @@ import {
   SimpleGatherer
 } from '../util';
 import { getParamGatherers } from './apexGenerateClass';
-import { LibraryApexGenerateUnitTestClassExecutor } from './executors/LibraryApexGenerateUnitTestClassExecutor';
+import { LibraryApexGenerateUnitTestClassExecutor } from './executors/libraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from './metadataTypeConstants';
 
 type OutputDirParameter = {
@@ -24,8 +25,8 @@ type OutputDirParameter = {
 // if called from a file's context menu, will deliver the clicked file URI and an array of selected files
 // if called from the command pallet args will be empty
 export const apexGenerateUnitTestClass = async (
-  outputDirectory?: string | vscode.Uri,
-  unitFileToCreate?: string | vscode.Uri[],
+  outputDirectory?: string | URI,
+  unitFileToCreate?: string | URI[],
   template?: 'BasicUnitTest' | 'ApexUnitTest'
 ) => {
   const gatherers = getParamGatherers();

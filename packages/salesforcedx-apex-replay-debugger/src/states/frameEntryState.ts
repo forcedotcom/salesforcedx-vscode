@@ -7,7 +7,7 @@
 
 import { basename } from 'path';
 import { Source, StackFrame } from '@vscode/debugadapter';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { ApexDebugStackFrameInfo } from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
@@ -20,10 +20,7 @@ export class FrameEntryState extends FrameState implements DebugLogState {
 
   public handle(logContext: LogContext): boolean {
     const sourceUri = logContext.getUriFromSignature(this._signature);
-    const frame = new ApexDebugStackFrameInfo(
-      logContext.getFrames().length,
-      this._signature
-    );
+    const frame = new ApexDebugStackFrameInfo(logContext.getFrames().length, this._signature);
     const id = logContext.getFrameHandler().create(frame);
     const className =
       this._signature.indexOf('.') > -1
@@ -40,9 +37,7 @@ export class FrameEntryState extends FrameState implements DebugLogState {
         new StackFrame(
           id,
           this._frameName,
-          sourceUri
-            ? new Source(basename(sourceUri), Uri.parse(sourceUri).fsPath)
-            : undefined,
+          sourceUri ? new Source(basename(sourceUri), URI.parse(sourceUri).fsPath) : undefined,
           undefined
         )
       );

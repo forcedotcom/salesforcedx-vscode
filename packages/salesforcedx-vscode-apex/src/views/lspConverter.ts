@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 export type LSPApexTestMethod = {
   methodName: string;
@@ -31,18 +32,17 @@ export type ApexTestMethod = {
 export class ApexLSPConverter {
   public static toApexTestMethod(requestInfo: LSPApexTestMethod): ApexTestMethod {
     const testLocation = ApexLSPConverter.toLocation(requestInfo.location);
-    const retInfo = {
+    return {
       methodName: requestInfo.methodName,
       definingType: requestInfo.definingType,
       location: testLocation
     };
-    return retInfo;
   }
 
-  public static toUri(lspUri: string): vscode.Uri {
+  public static toUri(lspUri: string): URI {
     const uriString = lspUri;
-    const uriPath = vscode.Uri.parse(uriString).path;
-    return vscode.Uri.file(uriPath);
+    const uriPath = URI.parse(uriString).path;
+    return URI.file(uriPath);
   }
 
   public static toLocation(lspLocation: LSPLocation): vscode.Location {
