@@ -4,16 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { CommandOutput, CommandBuilder, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
-  Command,
-  CommandBuilder,
   CommandExecution,
-  CommandOutput,
   CompositeCliCommandExecutor,
   ContinueResponse,
-  SfCommandBuilder
+  EmptyParametersGatherer,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -21,9 +19,9 @@ import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { OrgAuthInfo } from '../util';
 import { developerLogTraceFlag } from '.';
-import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();

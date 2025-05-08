@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import { componentUtil } from '@salesforce/lightning-lsp-common';
-import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
+  notificationService,
+  CliCommandExecutor,
   EmptyParametersGatherer,
   isSFContainerMode,
   SfCommandlet,
@@ -17,6 +17,7 @@ import {
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channel';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
@@ -104,7 +105,7 @@ const sfDeviceListCommand = 'force:lightning:local:device:list';
 const sfMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 
-export const lightningLwcPreview = async (sourceUri: vscode.Uri) => {
+export const lightningLwcPreview = async (sourceUri: URI) => {
   const preview = getPreview();
   preview(sourceUri);
 };
@@ -123,12 +124,12 @@ const lwcPreviewContainerMode = () => {
   return;
 };
 
-export const lwcPreview = async (sourceUri: vscode.Uri) => {
+export const lwcPreview = async (sourceUri: URI) => {
   const startTime = process.hrtime();
 
   if (!sourceUri) {
     if (vscode.window.activeTextEditor) {
-      sourceUri = vscode.window.activeTextEditor.document.uri;
+      sourceUri = URI.from(vscode.window.activeTextEditor.document.uri);
     } else {
       const message = nls.localize('lightning_lwc_preview_file_undefined', sourceUri);
       showError(new Error(message), logName, commandName);

@@ -7,7 +7,7 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
-import { ORG_OPEN_COMMAND } from '../../src/constants';
+import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
 
 let statusBarItem: StatusBarItem | undefined;

@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import { EventEmitter } from 'node:events';
 import 'rxjs/add/observable/fromEvent';
 import { Observable } from 'rxjs/Observable';
-import { Command } from '.';
-import { CancellationToken, CommandExecution } from './commandExecutor';
+import { CommandExecution } from './commandExecutor';
 
 export class LocalCommandExecution implements CommandExecution {
   public static readonly EXIT_EVENT = 'exitEvent';

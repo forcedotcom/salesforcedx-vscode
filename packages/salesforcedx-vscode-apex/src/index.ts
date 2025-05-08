@@ -38,9 +38,10 @@ import {
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
-  languageClientManager
+  languageClientManager,
+  restartLanguageServerAndClient,
+  createLanguageClient
 } from './languageUtils';
-import { restartLanguageServerAndClient, createLanguageClient } from './languageUtils';
 import { nls } from './messages';
 import { checkIfESRIsDecomposed } from './oasUtils';
 import { getTelemetryService } from './telemetry/telemetry';

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { DeployQueue, salesforceCoreSettings } from '../../../src/settings';
 
@@ -36,7 +37,7 @@ describe('DeployQueue', () => {
       getPushOrDeployOnSaveEnabledMock.mockReturnValue(true);
       getPreferDeployOnSaveEnabledMock.mockReturnValue(false);
 
-      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+      await DeployQueue.get().enqueue(URI.file('/sample'));
 
       expect(getPreferDeployOnSaveEnabledMock).toHaveBeenCalled();
       expect(executePushCommandSpy).toHaveBeenCalled();
@@ -47,13 +48,17 @@ describe('DeployQueue', () => {
     it('should execute a deploy command when "Push or deploy on save" and "Prefer deploy on save" are enabled', async () => {
       getPushOrDeployOnSaveEnabledMock.mockReturnValue(true);
       getPreferDeployOnSaveEnabledMock.mockReturnValue(true);
-
-      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+      const uri = URI.file('/sample');
+      await DeployQueue.get().enqueue(uri);
 
       expect(getPreferDeployOnSaveEnabledMock).toHaveBeenCalled();
       expect(executePushCommandSpy).not.toHaveBeenCalled();
       expect(executeDeployCommandSpy).toHaveBeenCalled();
-      expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith('sf.deploy.multiple.source.paths', [undefined], null, true);
+      // Original test looked like this.  It started failing when I changed the to using the URI implementation.
+      // the `[undefined]` never should have happened, but was a result of vscode.uri being type-only (so undefined when tests ran)
+      // the test was always wrong...the enqueued URI should have been passed to the command.
+      // expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith('sf.deploy.multiple.source.paths', [undefined], null, true);
+      expect(vscodeExecuteCommandSpy).toHaveBeenCalledWith('sf.deploy.multiple.source.paths', [uri], null, true);
     });
   });
 });

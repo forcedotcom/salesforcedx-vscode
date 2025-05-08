@@ -8,6 +8,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, DIST_FOLDER, HTML_FILE } from '../constants';
 import { nls } from '../messages';
 import { channelService, isDefaultOrgSet } from '../sf';
@@ -28,7 +29,6 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
-
     _token: vscode.CancellationToken
   ): Promise<void> {
     const soqlBuilderWebAssetsPathParam: string[] =
@@ -38,7 +38,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     );
     webviewPanel.webview.options = {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.file(soqlBuilderWebAssetsModule)]
+      localResourceRoots: [URI.file(soqlBuilderWebAssetsModule)]
     };
     webviewPanel.webview.html = this.getWebViewContent(webviewPanel.webview);
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
@@ -60,14 +60,14 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       path.join(...soqlBuilderWebAssetsPathParam, DIST_FOLDER)
     );
     const pathToHtml = path.join(soqlBuilderUIModule, HTML_FILE);
-    let html = fs.readFileSync(pathToHtml).toString();
-    html = HtmlUtils.transformHtml(html, soqlBuilderUIModule, webview);
-    return html;
+    const html = fs.readFileSync(pathToHtml).toString();
+    return HtmlUtils.transformHtml(html, soqlBuilderUIModule, webview);
   }
+
   private disposeInstance(instance: SOQLEditorInstance) {
-    const found = this.instances.findIndex(storedInstance => storedInstance === instance);
-    if (found > -1) {
-      this.instances.splice(found, 1);
+    const index = this.instances.indexOf(instance);
+    if (index > -1) {
+      this.instances.splice(index, 1);
     }
   }
 }

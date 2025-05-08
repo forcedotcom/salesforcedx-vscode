@@ -10,7 +10,8 @@ import {
   ChannelService,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
-  getRootWorkspacePath
+  getRootWorkspacePath,
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -77,8 +78,6 @@ import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { getUserId } from './commands/startApexDebugLogging';
 import {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
   FlagParameter,
   SelectFileName,
   SelectOutputDir,
@@ -96,8 +95,8 @@ import {
   checkPackageDirectoriesExplorerView
 } from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
-import { isDemoMode } from './modes/demo-mode';
-import { ProgressNotification, notificationService } from './notifications';
+import { isDemoMode } from './modes/demoMode';
+import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSalesforceProjectOpened } from './predicates';
@@ -106,7 +105,7 @@ import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './serv
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { MetricsReporter } from './telemetry/MetricsReporter';
+import { MetricsReporter } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
@@ -411,7 +410,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     // Api
     const internalApi: any = {
       channelService,
-      EmptyParametersGatherer,
       isCLIInstalled,
       notificationService,
       OrgAuthInfo,
@@ -472,8 +470,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   const api: any = {
     channelService,
-    CompositeParametersGatherer,
-    EmptyParametersGatherer,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
     getUserId,
     isCLIInstalled,

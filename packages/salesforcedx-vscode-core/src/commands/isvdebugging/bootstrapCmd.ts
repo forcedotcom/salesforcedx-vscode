@@ -4,17 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { CommandOutput, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   CliCommandExecutor,
-  Command,
   CommandExecution,
-  CommandOutput,
+  CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
   projectPaths,
-  SfCommandBuilder
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -22,9 +21,10 @@ import * as path from 'node:path';
 import { URL } from 'node:url';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
+import { notificationService } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import {
   PathExistsChecker,
@@ -32,7 +32,7 @@ import {
   SelectProjectFolder,
   SelectProjectName
 } from '../projectGenerate';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
+import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
 
 type InstalledPackageInfo = {
   id: string;
@@ -324,7 +324,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
     // last step: open the folder in VS Code
     channelService.appendLine(nls.localize('isv_debug_bootstrap_open_project'));
-    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(projectPath));
+    await vscode.commands.executeCommand('vscode.openFolder', URI.file(projectPath));
   }
 
   public async executeCommand(

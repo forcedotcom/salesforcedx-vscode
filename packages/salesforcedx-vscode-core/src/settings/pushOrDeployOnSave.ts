@@ -8,6 +8,7 @@
 import * as path from 'node:path';
 import { setTimeout } from 'node:timers';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
@@ -22,7 +23,7 @@ export class DeployQueue {
 
   private static instance: DeployQueue;
 
-  private readonly queue = new Set<vscode.Uri>();
+  private readonly queue = new Set<URI>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private locked = false;
   private deployWaitStart?: [number, number];
@@ -45,7 +46,7 @@ export class DeployQueue {
     }
   }
 
-  public async enqueue(document: vscode.Uri) {
+  public async enqueue(document: URI) {
     this.queue.add(document);
     await this.wait();
     await this.doDeploy();
@@ -66,7 +67,7 @@ export class DeployQueue {
     });
   }
 
-  private async executeDeployCommand(toDeploy: vscode.Uri[]) {
+  private async executeDeployCommand(toDeploy: URI[]) {
     await vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy, null, true);
   }
 

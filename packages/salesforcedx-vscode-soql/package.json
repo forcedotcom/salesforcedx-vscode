@@ -42,7 +42,8 @@
     "@salesforce/soql-model": "1.0.0",
     "debounce": "^1.2.0",
     "papaparse": "^5.3.0",
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^9.0.1",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-utils": "63.12.0",
