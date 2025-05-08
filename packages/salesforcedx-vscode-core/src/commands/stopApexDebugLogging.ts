@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ChannelService, TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
-import { OUTPUT_CHANNEL } from '../channels';
+import { TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
 import { WorkspaceContext } from '../context';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 import { developerLogTraceFlag } from '.';
@@ -13,22 +12,21 @@ import { developerLogTraceFlag } from '.';
 const command = 'stop_apex_debug_logging';
 
 export const turnOffLogging = async (): Promise<void> => {
-  const channelService = new ChannelService(OUTPUT_CHANNEL);
-  handleStartCommand(channelService, command);
+  handleStartCommand(command);
 
   if (developerLogTraceFlag.isActive()) {
     try {
       const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
       const connection = await WorkspaceContext.getInstance().getConnection();
       await TraceFlagsRemover.getInstance(connection).removeTraceFlag(nonNullTraceFlag);
-      await handleFinishCommand(channelService, command, true);
+      await handleFinishCommand(command, true);
     } catch (error) {
       console.error('Error in turnOffLogging(): ', error);
-      await handleFinishCommand(channelService, command, false, error);
+      await handleFinishCommand(command, false, error);
       throw new Error('Restoring the debug levels failed.');
     }
   } else {
-    await handleFinishCommand(channelService, command, false, 'No active trace flag found.');
+    await handleFinishCommand(command, false, 'No active trace flag found.');
     throw new Error('No active trace flag found.');
   }
 };
