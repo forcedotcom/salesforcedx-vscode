@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ChannelService, notificationService, SettingsService } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 
@@ -5,9 +11,7 @@ export const handleStartCommand = (channelService: ChannelService, command: stri
   if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
     channelService.clear();
   }
-  channelService.showCommandWithTimestamp(
-    `${nls.localize('channel_starting_message')}${command}\n`
-  );
+  channelService.showCommandWithTimestamp(`${nls.localize('channel_starting_message')}${command}\n`);
 };
 
 export const handleFinishCommand = async (
