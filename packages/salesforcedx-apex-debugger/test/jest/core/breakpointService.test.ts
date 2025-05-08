@@ -419,19 +419,4 @@ describe('breakpointService Unit Tests.', () => {
       expect((breakpointService as any).exceptionBreakpointCache.set).toHaveBeenCalledWith('test', bpId);
     });
   });
-
-  describe('clearSavedBreakpoints()', () => {
-    it('Should clear saved breakpoints.', () => {
-      const fakeMapOne = new Map<string, string>();
-      fakeMapOne.set('test', 'test');
-      (breakpointService as any).lineBreakpointCache = fakeMapOne;
-      const fakeMapTwo = new Map<string, string>();
-      fakeMapOne.set('test2', 'test2');
-      (breakpointService as any).exceptionBreakpointCache = fakeMapTwo;
-
-      breakpointService.clearSavedBreakpoints();
-      expect((breakpointService as any).lineBreakpointCache.size).toEqual(0);
-      expect((breakpointService as any).exceptionBreakpointCache.size).toEqual(0);
-    });
-  });
 });

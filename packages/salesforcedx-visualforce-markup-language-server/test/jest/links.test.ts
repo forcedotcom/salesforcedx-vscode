@@ -33,7 +33,7 @@ describe('HTML Link Detection', () => {
   };
 
   const testLinkDetection = (value: string, expectedLinks: DocumentLink[]): void => {
-    const documentUri = 'test://test/test.html' as const;
+    const documentUri = 'test://test/test.html';
     const document = createDocument(documentUri, value);
     const links = getLanguageLinks(document, document.uri);
 
@@ -45,68 +45,78 @@ describe('HTML Link Detection', () => {
     expect(mappedLinks).toEqual(expectedLinks);
   };
 
-  test('Link creation', () => {
-    // JavaScript protocol links should be null
-    testLinkCreation('http://model/1', 'javascript:void;', null);
-    testLinkCreation('http://model/1', ' \tjavascript:alert(7);', null);
-    testLinkCreation('http://model/1', ' #relative', null);
+  describe('Link creation', () => {
+    test('JavaScript protocol links should be null', () => {
+      testLinkCreation('http://model/1', 'javascript:void;', null);
+      testLinkCreation('http://model/1', ' \tjavascript:alert(7);', null);
+      testLinkCreation('http://model/1', ' #relative', null);
+    });
 
-    // File system links
-    testLinkCreation(
-      'http://model/1',
-      'file:///C:\\Alex\\src\\path\\to\\file.txt',
-      'file:///C:\\Alex\\src\\path\\to\\file.txt'
-    );
+    test('should handle file system links', () => {
+      testLinkCreation(
+        'http://model/1',
+        'file:///C:\\Alex\\src\\path\\to\\file.txt',
+        'file:///C:\\Alex\\src\\path\\to\\file.txt'
+      );
+    });
 
-    // HTTP(S) links
-    testLinkCreation('http://model/1', 'http://www.microsoft.com/', 'http://www.microsoft.com/');
-    testLinkCreation('http://model/1', 'https://www.microsoft.com/', 'https://www.microsoft.com/');
-    testLinkCreation('http://model/1', '//www.microsoft.com/', 'http://www.microsoft.com/');
+    test('should handle HTTP and HTTPS links', () => {
+      testLinkCreation('http://model/1', 'http://www.microsoft.com/', 'http://www.microsoft.com/');
+      testLinkCreation('http://model/1', 'https://www.microsoft.com/', 'https://www.microsoft.com/');
+      testLinkCreation('http://model/1', '//www.microsoft.com/', 'http://www.microsoft.com/');
+    });
 
-    // Relative paths
-    testLinkCreation('http://model/x/1', 'a.js', 'http://model/x/a.js');
-    testLinkCreation('http://model/x/1', './a2.js', 'http://model/x/a2.js');
-    testLinkCreation('http://model/x/1', '/b.js', 'http://model/b.js');
-    testLinkCreation('http://model/x/y/1', '../../c.js', 'http://model/c.js');
+    test('should handle relative paths', () => {
+      testLinkCreation('http://model/x/1', 'a.js', 'http://model/x/a.js');
+      testLinkCreation('http://model/x/1', './a2.js', 'http://model/x/a2.js');
+      testLinkCreation('http://model/x/1', '/b.js', 'http://model/b.js');
+      testLinkCreation('http://model/x/y/1', '../../c.js', 'http://model/c.js');
+    });
 
-    // File system specific tests
-    const fileBase = 'file:///C:/Alex/src/path/to/file.txt' as const;
-    testLinkCreation(fileBase, 'javascript:void;', null);
-    testLinkCreation(fileBase, ' \tjavascript:alert(7);', null);
-    testLinkCreation(fileBase, ' #relative', null);
-    testLinkCreation(
-      fileBase,
-      'file:///C:\\Alex\\src\\path\\to\\file.txt',
-      'file:///C:\\Alex\\src\\path\\to\\file.txt'
-    );
-    testLinkCreation(fileBase, 'http://www.microsoft.com/', 'http://www.microsoft.com/');
-    testLinkCreation(fileBase, 'https://www.microsoft.com/', 'https://www.microsoft.com/');
-    testLinkCreation(fileBase, '  //www.microsoft.com/', 'http://www.microsoft.com/');
-    testLinkCreation(fileBase, 'a.js', 'file:///C:/Alex/src/path/to/a.js');
-    testLinkCreation(fileBase, '/a.js', 'file:///a.js');
+    test('should handle file system specific cases', () => {
+      const fileBase = 'file:///C:/Alex/src/path/to/file.txt';
+      testLinkCreation(fileBase, 'javascript:void;', null);
+      testLinkCreation(fileBase, ' \tjavascript:alert(7);', null);
+      testLinkCreation(fileBase, ' #relative', null);
+      testLinkCreation(
+        fileBase,
+        'file:///C:\\Alex\\src\\path\\to\\file.txt',
+        'file:///C:\\Alex\\src\\path\\to\\file.txt'
+      );
+      testLinkCreation(fileBase, 'http://www.microsoft.com/', 'http://www.microsoft.com/');
+      testLinkCreation(fileBase, 'https://www.microsoft.com/', 'https://www.microsoft.com/');
+      testLinkCreation(fileBase, '  //www.microsoft.com/', 'http://www.microsoft.com/');
+      testLinkCreation(fileBase, 'a.js', 'file:///C:/Alex/src/path/to/a.js');
+      testLinkCreation(fileBase, '/a.js', 'file:///a.js');
+    });
 
-    // HTTPS specific tests
-    const httpsBase = 'https://www.test.com/path/to/file.txt' as const;
-    testLinkCreation(
-      httpsBase,
-      'file:///C:\\Alex\\src\\path\\to\\file.txt',
-      'file:///C:\\Alex\\src\\path\\to\\file.txt'
-    );
-    testLinkCreation(httpsBase, '//www.microsoft.com/', 'https://www.microsoft.com/');
+    test('should handle HTTPS specific cases', () => {
+      const httpsBase = 'https://www.test.com/path/to/file.txt';
+      testLinkCreation(
+        httpsBase,
+        'file:///C:\\Alex\\src\\path\\to\\file.txt',
+        'file:///C:\\Alex\\src\\path\\to\\file.txt'
+      );
+      testLinkCreation(httpsBase, '//www.microsoft.com/', 'https://www.microsoft.com/');
+    });
 
-    // Invalid URIs are ignored
-    testLinkCreation(httpsBase, '%', null);
+    test('should ignore invalid URIs', () => {
+      const httpsBase = 'https://www.test.com/path/to/file.txt';
+      testLinkCreation(httpsBase, '%', null);
+    });
 
-    // Bug #18314: Ctrl + Click does not open existing file if folder's name starts with 'c' character
-    testLinkCreation(
-      'file:///c:/Alex/working_dir/18314-link-detection/test.html',
-      '/class/class.js',
-      'file:///class/class.js'
-    );
+    test('should handle folders starting with c character', () => {
+      // Bug #18314: Ctrl + Click does not open existing file if folder's name starts with 'c' character
+      testLinkCreation(
+        'file:///c:/Alex/working_dir/18314-link-detection/test.html',
+        '/class/class.js',
+        'file:///class/class.js'
+      );
+    });
   });
 
   test('Link detection', () => {
-    const testUrl = 'test://test' as const;
+    const testUrl = 'test://test';
 
     testLinkDetection('<img src="foo.png">', [{ offset: 10, target: `${testUrl}/foo.png` }]);
     testLinkDetection('<a href="http://server/foo.html">', [{ offset: 9, target: 'http://server/foo.html' }]);
@@ -120,7 +130,7 @@ describe('HTML Link Detection', () => {
       { offset: 35, target: `${testUrl}/docs/foo.png` }
     ]);
 
-    const exampleBase = 'http://www.example.com' as const;
+    const exampleBase = 'http://www.example.com';
     testLinkDetection(`<html><base href="${exampleBase}/page.html"><img src="foo.png"></html>`, [
       { offset: 18, target: `${exampleBase}/page.html` },
       { offset: 62, target: `${exampleBase}/foo.png` }

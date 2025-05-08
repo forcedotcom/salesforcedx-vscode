@@ -7,6 +7,7 @@
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
@@ -34,8 +35,8 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
 }
 
 export const deploySourcePaths = async (
-  sourceUri: vscode.Uri | vscode.Uri[] | undefined,
-  uris: vscode.Uri[] | undefined,
+  sourceUri: URI | URI[] | undefined,
+  uris: URI[] | undefined,
   isDeployOnSave?: boolean | undefined
 ) => {
   if (!sourceUri) {
@@ -83,7 +84,7 @@ export const deploySourcePaths = async (
   }
 };
 
-export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
+export const getUriFromActiveEditor = (): URI | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.document.languageId !== 'forcesourcemanifest') {
     return editor.document.uri;

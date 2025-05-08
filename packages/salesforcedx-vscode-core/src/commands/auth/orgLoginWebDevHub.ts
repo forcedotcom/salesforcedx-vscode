@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   ContinueResponse,
@@ -15,7 +15,7 @@ import {
 import * as vscode from 'vscode';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
-import { isDemoMode } from '../../modes/demo-mode';
+import { isDemoMode } from '../../modes/demoMode';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from '../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 import { AuthDemoModeExecutor, OrgLoginWebContainerExecutor } from './orgLoginWeb';

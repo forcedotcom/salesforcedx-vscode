@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { nls } from '../../../src/messages';
 
@@ -36,9 +37,9 @@ describe('ApexLSPStatusBarItem', () => {
       set: jest.fn(() => Promise.resolve())
     } as unknown as vscode.DiagnosticCollection);
 
-    uriFileMock = jest.spyOn(vscode.Uri, 'file').mockReturnValue({
+    uriFileMock = jest.spyOn(URI, 'file').mockReturnValue({
       fsPath: '/ApexLSP'
-    } as unknown as vscode.Uri);
+    } as unknown as URI);
 
     statusBarItem = new ApexLSPStatusBarItem();
     setMock = jest.spyOn(statusBarItem['diagnostics'], 'set');
@@ -75,7 +76,7 @@ describe('ApexLSPStatusBarItem', () => {
       expect(statusBarItem['languageStatusItem'].severity).toBe(vscode.LanguageStatusSeverity.Error);
 
       // Verify diagnostic is created with correct properties
-      expect(vscode.Uri.file).toHaveBeenCalledWith('/ApexLSP');
+      expect(URI.file).toHaveBeenCalledWith('/ApexLSP');
 
       const setCall = (statusBarItem['diagnostics'].set as jest.Mock).mock.calls[0];
       expect(setCall[0]).toBeDefined();

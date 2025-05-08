@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -20,7 +20,6 @@ import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { workspaceUtils } from '../util';
 
 export type MetadataContext = {
   baseDirectory: string;

@@ -186,7 +186,7 @@ export enum ScannerState {
   BeforeAttributeValue
 }
 
-type Scanner = {
+export type Scanner = {
   scan(): TokenType;
   getTokenType(): TokenType;
   getTokenOffset(): number;

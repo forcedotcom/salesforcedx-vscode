@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { CancellationToken } from '@salesforce/salesforcedx-utils';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'node:events';
 import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
@@ -17,10 +18,6 @@ import {
   SObjectRefreshResult
 } from '../types';
 import { folderExists } from '../utils';
-
-export type CancellationToken = {
-  isCancellationRequested: boolean;
-};
 
 type SObjectRefreshTransformData = SObjectRefreshData & {
   typeNames: SObjectShortDescription[];

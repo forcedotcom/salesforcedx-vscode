@@ -7,6 +7,7 @@
 
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
   PostconditionChecker
@@ -15,11 +16,12 @@ import { ProjectOptions, TemplateType } from '@salesforce/templates';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet } from './util';
+import { EmptyPreChecker, SfCommandlet } from './util';
 
 export enum projectTemplateEnum {
   standard = 'standard',
@@ -55,7 +57,7 @@ class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectN
     return data.projectName;
   }
   protected async openCreatedTemplateInVSCode(outputdir: string, fileName: string) {
-    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(path.join(outputdir, fileName)));
+    await vscode.commands.executeCommand('vscode.openFolder', URI.file(path.join(outputdir, fileName)));
   }
 
   public constructTemplateOptions(data: ProjectNameAndPathAndTemplate) {

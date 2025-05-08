@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
+  workspaceUtils,
+  fileUtils,
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
@@ -14,12 +15,12 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import { SfCommandlet } from './util/sfCommandlet';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
@@ -49,7 +50,7 @@ export class DeleteSourceExecutor extends SfCommandletExecutor<{
 export class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
-  public constructor(uri: vscode.Uri) {
+  public constructor(uri: URI) {
     this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
@@ -73,7 +74,7 @@ export class ConfirmationAndSourcePathGatherer implements ParametersGatherer<{ f
   private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
-  public constructor(uri: vscode.Uri) {
+  public constructor(uri: URI) {
     this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
@@ -87,7 +88,7 @@ export class ConfirmationAndSourcePathGatherer implements ParametersGatherer<{ f
   }
 }
 
-export const deleteSource = async (sourceUri: vscode.Uri) => {
+export const deleteSource = async (sourceUri: URI) => {
   let isSourceTracked: boolean = false;
   const orgType = await workspaceContextUtils.getWorkspaceOrgType();
   if (orgType === OrgType.SourceTracked) {

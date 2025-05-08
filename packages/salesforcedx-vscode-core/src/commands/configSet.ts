@@ -7,6 +7,7 @@
 import {
   ConfigUtil,
   ContinueResponse,
+  EmptyParametersGatherer,
   LibraryCommandletExecutor,
   Row,
   Table
@@ -21,7 +22,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { nls } from '../messages';
-import { EmptyParametersGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfWorkspaceChecker } from './util';
 
 export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;

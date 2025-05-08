@@ -9,15 +9,16 @@ import {
   ContinueResponse,
   LocalComponent,
   ParametersGatherer,
-  SFDX_LWC_EXTENSION_NAME
+  SFDX_LWC_EXTENSION_NAME,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
-import { workspaceUtils } from '../../util';
 import { RetrieveDescriber } from '../retrieveMetadata';
 
 export const CONTINUE = 'CONTINUE';
@@ -40,39 +41,9 @@ type ApexTestTemplateParameter = {
   template: string;
 };
 
-export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: ParametersGatherer<any>[];
-  public constructor(...gatherers: ParametersGatherer<any>[]) {
-    this.gatherers = gatherers;
-  }
-  public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
-    const aggregatedData: any = {};
-    for (const gatherer of this.gatherers) {
-      const input = await gatherer.gather();
-      if (input.type === CONTINUE) {
-        Object.keys(input.data).map(key => (aggregatedData[key] = input.data[key]));
-      } else {
-        return {
-          type: CANCEL
-        };
-      }
-    }
-    return {
-      type: CONTINUE,
-      data: aggregatedData
-    };
-  }
-}
-
-export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return Promise.resolve({ type: CONTINUE, data: {} });
-  }
-}
-
 export class FilePathGatherer implements ParametersGatherer<string> {
   private filePath: string;
-  public constructor(uri: vscode.Uri) {
+  public constructor(uri: URI) {
     this.filePath = uri.fsPath;
   }
 
