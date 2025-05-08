@@ -13,12 +13,10 @@ import { developerLogTraceFlag } from '.';
 const command = 'stop_apex_debug_logging';
 
 export const turnOffLogging = async (): Promise<void> => {
-  console.log('Enter turnOffLogging()');
   const channelService = new ChannelService(OUTPUT_CHANNEL);
   handleStartCommand(channelService, command);
 
   if (developerLogTraceFlag.isActive()) {
-    console.log('Developer log trace flag is active');
     try {
       const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
       const connection = await WorkspaceContext.getInstance().getConnection();
@@ -30,9 +28,7 @@ export const turnOffLogging = async (): Promise<void> => {
       throw new Error('Restoring the debug levels failed.');
     }
   } else {
-    console.log('Developer log trace flag is not active');
     await handleFinishCommand(channelService, command, false, 'No active trace flag found.');
     throw new Error('No active trace flag found.');
   }
-  console.log('Exit turnOffLogging()');
 };
