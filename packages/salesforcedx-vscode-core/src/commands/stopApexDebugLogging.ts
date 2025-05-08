@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ChannelService, TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { WorkspaceContext } from '../context';
 import { telemetryService } from '../telemetry';
@@ -22,21 +21,10 @@ export const turnOffLogging = async (): Promise<void> => {
   if (developerLogTraceFlag.isActive()) {
     console.log('Developer log trace flag is active');
     try {
-      await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: command,
-          cancellable: false
-        },
-        async progress => {
-          progress.report({ message: 'Running...' });
-          const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
-          const connection = await WorkspaceContext.getInstance().getConnection();
-          await TraceFlagsRemover.getInstance(connection).removeTraceFlag(nonNullTraceFlag);
-          telemetryService.sendCommandEvent('stop_apex_debug_logging');
-        }
-      );
-
+      const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
+      const connection = await WorkspaceContext.getInstance().getConnection();
+      await TraceFlagsRemover.getInstance(connection).removeTraceFlag(nonNullTraceFlag);
+      telemetryService.sendCommandEvent('stop_apex_debug_logging');
       await handleFinishCommand(channelService, command, true);
     } catch (error) {
       console.error('Error in turnOffLogging(): ', error);
