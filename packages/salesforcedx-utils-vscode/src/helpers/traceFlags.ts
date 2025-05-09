@@ -35,7 +35,6 @@ export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
   private readonly MILLISECONDS_PER_MINUTE = 60000;
   private connection: Connection;
-  private newTraceFlagIds = new Array<string>();
 
   constructor(connection: Connection) {
     this.connection = connection;
@@ -125,7 +124,6 @@ export class TraceFlags {
     const result = (await this.connection.tooling.create('TraceFlag', traceFlag)) as DataRecordResult;
 
     if (result.success && result.id) {
-      this.newTraceFlagIds.push(result.id);
       return result.id;
     } else {
       return undefined;
