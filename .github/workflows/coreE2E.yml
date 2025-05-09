@@ -46,7 +46,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: 'stable'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -98,7 +98,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: 'stable'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -185,15 +185,8 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs: [
-        anInitialSuite,
-        authentication,
-        createProject,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
-        sfdxProjectJson
-      ]
+    needs:
+      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
@@ -207,15 +200,8 @@ jobs:
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs: [
-        anInitialSuite,
-        authentication,
-        createProject,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
-        sfdxProjectJson
-      ]
+    needs:
+      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
@@ -229,15 +215,8 @@ jobs:
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs: [
-        anInitialSuite,
-        authentication,
-        createProject,
-        miscellaneous,
-        sObjectsDefinitions,
-        templates,
-        sfdxProjectJson
-      ]
+    needs:
+      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
