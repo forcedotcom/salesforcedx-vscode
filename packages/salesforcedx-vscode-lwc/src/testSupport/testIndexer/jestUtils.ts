@@ -33,6 +33,7 @@ const populateAncestorTitlesRecursive = (
 ) => {
   node.ancestorTitles = ancestorTitles;
   if (node.type === ParsedNodeTypes.it) {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     itBlocksWithAncestorTitles.push(node as ItBlockWithAncestorTitles);
   }
   if (node.type === ParsedNodeTypes.root || node.type === ParsedNodeTypes.describe) {

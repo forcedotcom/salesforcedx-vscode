@@ -15,19 +15,10 @@ export const getDocumentName = (document: vscode.TextDocument): string => {
   return path.basename(documentPath) || '';
 };
 
-const hasRootWorkspace = (ws: typeof vscode.workspace = vscode.workspace) => ws?.workspaceFolders?.length > 0;
-
-const getRootWorkspace = (): vscode.WorkspaceFolder =>
-  hasRootWorkspace()
-    ? (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[])[0]
-    : ({} as vscode.WorkspaceFolder);
-
-export const getRootWorkspacePath = (): string => (getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '');
-
 export const trackErrorWithTelemetry = (problemId: string, error: string): Promise<void> => {
   try {
     telemetryService.sendException(`soql_error_${problemId.toLocaleLowerCase()}`, error);
-  } catch (err) {
+  } catch {
     channelService.appendLine(`soql_error_telemetry:  ${error.toString()}`);
   }
   return Promise.resolve();

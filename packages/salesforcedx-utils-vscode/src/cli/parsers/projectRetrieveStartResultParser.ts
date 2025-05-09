@@ -50,7 +50,7 @@ export class ProjectRetrieveStartResultParser {
   public getErrors(): ProjectRetrieveStartErrorResponse | undefined {
     if (this.response.status === 1) {
       const files = this.response.data ?? this.response.result?.files;
-
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return {
         message: this.response.message ?? 'Pull failed. ',
         name: this.response.name ?? 'RetrieveFailed',
@@ -69,6 +69,8 @@ export class ProjectRetrieveStartResultParser {
       if (pulledSource) {
         return { status, result: { files: pulledSource } };
       }
+
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return this.response as ProjectRetrieveStartSuccessResponse;
     }
     if (partialSuccess) {

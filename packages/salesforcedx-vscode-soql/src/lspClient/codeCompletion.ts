@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
+// leaving assertions as is.
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import type { SoqlItemContext } from '@salesforce/soql-language-server';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
