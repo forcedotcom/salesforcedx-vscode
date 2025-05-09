@@ -21,6 +21,7 @@ import * as path from 'node:path';
 import { URL } from 'node:url';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
@@ -324,7 +325,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
     // last step: open the folder in VS Code
     channelService.appendLine(nls.localize('isv_debug_bootstrap_open_project'));
-    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(projectPath));
+    await vscode.commands.executeCommand('vscode.openFolder', URI.file(projectPath));
   }
 
   public async executeCommand(

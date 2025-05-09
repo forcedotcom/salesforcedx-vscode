@@ -16,10 +16,11 @@ import { EOL } from 'node:os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../../channels/index';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
-import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
+import { isDemoMode, isProdOrg } from '../../modes/demoMode';
 import { notificationService } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
@@ -89,7 +90,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
       if (authUrl) {
         this.deviceCodeReceived = true;
         // open the default browser
-        vscode.env.openExternal(vscode.Uri.parse(authUrl, true));
+        vscode.env.openExternal(URI.parse(authUrl, true));
       }
     }
   }

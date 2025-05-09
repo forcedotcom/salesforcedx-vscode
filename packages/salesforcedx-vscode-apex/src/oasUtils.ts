@@ -17,6 +17,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import * as yaml from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { nls } from './messages';
@@ -84,7 +85,7 @@ export const createProblemTabEntriesForOasDocument = (
   processedOasResult: ProcessorInputOutput,
   isESRDecomposed: boolean
 ): void => {
-  const uri = vscode.Uri.file(fullPath);
+  const uri = URI.file(fullPath);
   OasProcessor.diagnosticCollection.clear();
 
   const adjustErrors = processedOasResult.errors.map(result => {
@@ -193,9 +194,9 @@ const copyDirectorySync = (src: string, dest: string) => {
 
 /**
  * Resolves the template directory URI.
- * @returns {vscode.Uri} - The URI of the template directory.
+ * @returns {URI} - The URI of the template directory.
  */
-const resolveTemplateDir = (): vscode.Uri => {
+const resolveTemplateDir = (): URI => {
   const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
   const extensionDir = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
   if (logLevel !== 'fatal') {
@@ -204,7 +205,7 @@ const resolveTemplateDir = (): vscode.Uri => {
       // copy contents of extensionDir to TEMPLATES_DIR
       copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
     }
-    return vscode.Uri.file(path.join(process.cwd(), DOT_SFDX));
+    return URI.file(path.join(process.cwd(), DOT_SFDX));
   }
   return extensionDir;
 };
@@ -216,11 +217,11 @@ export const ejsTemplateHelpers = {
   /**
    * Gets the template path for a given key.
    * @param {ejsTemplateKey} key - The key for the template.
-   * @returns {vscode.Uri} - The URI of the template path.
+   * @returns {URI} - The URI of the template path.
    */
-  getTemplatePath: (key: ejsTemplateKey): vscode.Uri => {
+  getTemplatePath: (key: ejsTemplateKey): URI => {
     const baseExtensionPath = resolveTemplateDir();
-    return vscode.Uri.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
+    return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
   }
 };
 

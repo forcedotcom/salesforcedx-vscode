@@ -9,6 +9,7 @@ import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
@@ -119,7 +120,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
   }
 };
 
-const protocol2CodeConverter = (value: string) => vscode.Uri.parse(value);
+const protocol2CodeConverter = (value: string) => URI.parse(value);
 
 export const createLanguageServer = async (extensionContext: vscode.ExtensionContext): Promise<ApexLanguageClient> => {
   const telemetryService = await getTelemetryService();

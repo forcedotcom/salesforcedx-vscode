@@ -7,7 +7,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { BUILDER_VIEW_TYPE, SOQL_BUILDER_WEB_ASSETS_PATH } from '../../../src/constants';
+import { URI } from 'vscode-uri';
+import { BUILDER_VIEW_TYPE } from '../../../src/constants';
 import { HtmlUtils } from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
@@ -22,10 +23,11 @@ describe('SOQLEditorProvider', () => {
 
   beforeEach(() => {
     extensionContext = {
-      extensionPath: 'path/to/extension',
+      /** The absolute file path of the directory containing the extension. */
+      extensionPath: '/path/to/extension',
       subscriptions: [],
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      asAbsolutePath: jest.fn((path: string) => `/mocked/path/${path}`),
+      /** Get the absolute path of a resource contained in the extension. */
+      asAbsolutePath: jest.fn((p: string) => `/path/to/extension/${p}`),
       extension: {
         packageJSON: {
           soqlBuilderWebAssetsPath: ['path', 'to', 'soqlBuilder']
@@ -57,7 +59,7 @@ describe('SOQLEditorProvider', () => {
 
     beforeEach(() => {
       mockDocument = {
-        uri: vscode.Uri.file('path/to/file')
+        uri: URI.file('path/to/file')
       } as vscode.TextDocument;
 
       mockWebviewPanel = {
@@ -92,7 +94,14 @@ describe('SOQLEditorProvider', () => {
 
       expect(mockWebviewPanel.webview.options).toEqual({
         enableScripts: true,
-        localResourceRoots: [vscode.Uri.file(path.join(extensionContext.extensionPath, SOQL_BUILDER_WEB_ASSETS_PATH))]
+        localResourceRoots: [
+          URI.file(
+            path.join(
+              extensionContext.extensionPath,
+              ...extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath
+            )
+          )
+        ]
       });
       expect(mockWebviewPanel.webview.html).toBe(mockTransformedHtml);
     });

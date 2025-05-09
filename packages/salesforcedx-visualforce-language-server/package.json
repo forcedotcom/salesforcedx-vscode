@@ -16,7 +16,7 @@
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-languageserver-types": "^3.17.5",
     "vscode-nls": "^2.0.2",
-    "vscode-uri": "^1.0.1"
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -24,7 +24,7 @@
     "shx": "0.3.4"
   },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/visualforceServer.ts  --bundle --outfile=dist/visualforceServer.js --format=cjs --platform=node --external:vscode-uri --external:vscode-nls --external:vscode-languageserver-types --external:vscode-languageserver-protocol --external:vscode-css-languageservice --external:vscode-languageserver --minify",
+    "bundle:debugger": "esbuild ./src/visualforceServer.ts  --bundle --outfile=dist/visualforceServer.js --format=cjs --platform=node --external:vscode-nls --external:vscode-languageserver-types --external:vscode-languageserver-protocol --external:vscode-css-languageservice --external:vscode-languageserver --minify",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "eslint .",

@@ -11,6 +11,7 @@ import type { JsonMap } from '@salesforce/ts-types';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
@@ -62,8 +63,8 @@ export class QueryDataFileService {
     }
     const queryDataDefaultFilePath = path.join(saveDir, defaultFileName);
 
-    const fileInfo: vscode.Uri | undefined = await vscode.window.showSaveDialog({
-      defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
+    const fileInfo: URI | undefined = await vscode.window.showSaveDialog({
+      defaultUri: URI.file(queryDataDefaultFilePath)
     });
 
     if (fileInfo && fileInfo.fsPath) {
@@ -80,7 +81,7 @@ export class QueryDataFileService {
   private showFileInExplorer(targetPath: string) {
     // Only reveal saved file if its inside current workspace
     if (targetPath.startsWith(getRootWorkspacePath())) {
-      vscode.commands.executeCommand('revealInExplorer', vscode.Uri.file(targetPath));
+      vscode.commands.executeCommand('revealInExplorer', URI.file(targetPath));
     }
   }
 
