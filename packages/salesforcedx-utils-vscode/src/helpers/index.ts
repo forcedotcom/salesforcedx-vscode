@@ -15,7 +15,6 @@ export {
 } from './paths';
 export * from './extensionUris';
 export { TraceFlags } from './traceFlags';
-export { TraceFlagsRemover } from './traceFlagsRemover';
 export {
   asyncFilter,
   difference,
