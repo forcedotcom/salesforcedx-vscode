@@ -66,7 +66,6 @@ import {
   sourceDiff,
   sourceFolderDiff,
   startApexDebugLogging,
-  stopApexDebugLogging,
   taskStop,
   turnOffLogging,
   viewAllChanges,
@@ -226,7 +225,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     startApexDebugLogging
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', stopApexDebugLogging);
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
