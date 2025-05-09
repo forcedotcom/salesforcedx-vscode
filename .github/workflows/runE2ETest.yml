@@ -19,7 +19,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: 'stable'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -38,10 +38,9 @@ jobs:
       matrix:
         os: ${{ fromJson(inputs.os) }}
         nodeVersion:
-          - 22.15.0
+          - 20.17.0
         vscodeVersion:
-          - 1.99.3
-          - 1.100.0
+          - ${{ inputs.vscodeVersion }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
