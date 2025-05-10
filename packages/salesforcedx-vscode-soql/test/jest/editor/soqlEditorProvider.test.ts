@@ -37,19 +37,22 @@ describe('SOQLEditorProvider', () => {
       .fn()
       .mockReturnValue(mockDisposable);
     isDefaultOrgSetSpy = jest.spyOn(sf, 'isDefaultOrgSet');
-    uriFileSpy = jest.spyOn(vscode.Uri, 'file').mockImplementation(pathFile => ({
-      scheme: 'file',
-      path: pathFile,
-      fsPath: pathFile,
-      authority: '',
-      query: '',
-      fragment: '',
-      $mid: 1,
-      _sep: undefined,
-      toString: () => `file://${pathFile}`,
-      with: jest.fn(),
-      toJSON: () => ({ scheme: 'file', path: pathFile })
-    }));
+    uriFileSpy = jest.spyOn(vscode.Uri, 'file').mockImplementation(pathFile => {
+      const normalizedPath = pathFile.replace(/\\/g, '/');
+      return {
+        scheme: 'file',
+        path: normalizedPath,
+        fsPath: normalizedPath,
+        authority: '',
+        query: '',
+        fragment: '',
+        $mid: 1,
+        _sep: 1,
+        toString: () => `file://${normalizedPath}`,
+        with: jest.fn(),
+        toJSON: () => ({ scheme: 'file', path: normalizedPath })
+      };
+    });
   });
 
   afterEach(() => {
