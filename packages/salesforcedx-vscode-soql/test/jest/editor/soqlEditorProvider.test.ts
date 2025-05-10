@@ -37,22 +37,19 @@ describe('SOQLEditorProvider', () => {
       .fn()
       .mockReturnValue(mockDisposable);
     isDefaultOrgSetSpy = jest.spyOn(sf, 'isDefaultOrgSet');
-    uriFileSpy = jest.spyOn(vscode.Uri, 'file').mockImplementation(pathFile => {
-      // const normalizedPath = pathFile.replace(/\\/g, '/');
-      return {
-        scheme: 'file',
-        path: pathFile,
-        fsPath: pathFile,
-        authority: '',
-        query: '',
-        fragment: '',
-        $mid: 1,
-        _sep: 1,
-        toString: () => `file://${pathFile}`,
-        with: jest.fn(),
-        toJSON: () => ({ scheme: 'file', path: pathFile })
-      };
-    });
+    uriFileSpy = jest.spyOn(vscode.Uri, 'file').mockImplementation(pathFile => ({
+      scheme: 'file',
+      path: pathFile,
+      fsPath: pathFile,
+      authority: '',
+      query: '',
+      fragment: '',
+      $mid: 1,
+      _sep: 1,
+      toString: () => `file://${pathFile}`,
+      with: jest.fn(),
+      toJSON: () => ({ scheme: 'file', path: pathFile })
+    }));
   });
 
   afterEach(() => {
@@ -111,9 +108,10 @@ describe('SOQLEditorProvider', () => {
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
-      const expectedPath = path
-        .join(extensionContext.extensionPath, ...extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath)
-        .replace(/\\/g, '/');
+      const expectedPath = path.join(
+        extensionContext.extensionPath,
+        ...extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath
+      );
 
       expect(mockWebviewPanel.webview.options.enableScripts).toBe(true);
       expect(mockWebviewPanel.webview.options.localResourceRoots).toHaveLength(1);
