@@ -14,7 +14,6 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -144,24 +143,31 @@ export const lwcPreview = async (sourceUri: URI) => {
     return;
   }
 
-  if (!fs.existsSync(resourcePath)) {
+  try {
+    const stat = await vscode.workspace.fs.stat(sourceUri);
+    if (!stat) {
+      const message = nls.localize('lightning_lwc_preview_file_nonexist', resourcePath);
+      showError(new Error(message), logName, commandName);
+      return;
+    }
+
+    const isSFDX = true; // TODO support non SFDX Projects
+    const isDirectory = stat.type === vscode.FileType.Directory;
+    const componentName = isDirectory
+      ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
+      : componentUtil.moduleFromFile(resourcePath, isSFDX);
+    if (!componentName) {
+      const message = nls.localize('lightning_lwc_preview_unsupported', resourcePath);
+      showError(new Error(message), logName, commandName);
+      return;
+    }
+
+    await executePreview(startTime, componentName, resourcePath);
+  } catch (error) {
     const message = nls.localize('lightning_lwc_preview_file_nonexist', resourcePath);
     showError(new Error(message), logName, commandName);
     return;
   }
-
-  const isSFDX = true; // TODO support non SFDX Projects
-  const isDirectory = fs.lstatSync(resourcePath).isDirectory();
-  const componentName = isDirectory
-    ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
-    : componentUtil.moduleFromFile(resourcePath, isSFDX);
-  if (!componentName) {
-    const message = nls.localize('lightning_lwc_preview_unsupported', resourcePath);
-    showError(new Error(message), logName, commandName);
-    return;
-  }
-
-  await executePreview(startTime, componentName, resourcePath);
 };
 
 /**
@@ -205,7 +211,7 @@ const executePreview = async (startTime: [number, number], componentName: string
   }
 
   // 3. Determine project root directory and path to the config file
-  const projectRootDir = getProjectRootDirectory(resourcePath);
+  const projectRootDir = await getProjectRootDirectory(resourcePath);
   const configFilePath = projectRootDir && path.join(projectRootDir, 'mobile-apps.json');
 
   // 4. Prompt user to select a target app (if any)
@@ -411,13 +417,19 @@ const selectTargetApp = async (
     detail: nls.localize('lightning_lwc_browserapp_description')
   };
 
-  if (configFile === undefined || fs.existsSync(configFile) === false) {
+  if (configFile === undefined) {
     return targetApp;
   }
 
   try {
-    const fileContent = fs.readFileSync(configFile, 'utf8');
-    const json = JSON.parse(fileContent);
+    const fileUri = vscode.Uri.file(configFile);
+    const fileStat = await vscode.workspace.fs.stat(fileUri);
+    if (!fileStat) {
+      return targetApp;
+    }
+
+    const fileContent = await vscode.workspace.fs.readFile(fileUri);
+    const json = JSON.parse(fileContent.toString());
     const appDefinitionsForSelectedPlatform =
       platformSelection.id === PreviewPlatformType.Android ? json.apps.android : json.apps.ios;
 
@@ -429,7 +441,8 @@ const selectTargetApp = async (
       items.push({ label, detail });
     });
   } catch {
-    // silengtly fail and default to previewing on browser
+    // silently fail and default to previewing on browser
+    return targetApp;
   }
 
   // if there are any devices available, show a pick list.
@@ -536,24 +549,35 @@ const executeMobilePreview = async (
  * @param startPath starting path to search for the config file.
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
-export const getProjectRootDirectory = (startPath: string): string | undefined => {
-  if (!fs.existsSync(startPath)) {
-    return undefined;
-  }
+export const getProjectRootDirectory = async (startPath: string): Promise<string | undefined> => {
+  try {
+    const startUri = vscode.Uri.file(startPath);
+    const stat = await vscode.workspace.fs.stat(startUri);
+    if (!stat) {
+      return undefined;
+    }
 
-  const searchingForFile = 'sfdx-project.json';
-  let dir: string | undefined = fs.lstatSync(startPath).isDirectory() ? startPath : path.dirname(startPath);
-  while (dir) {
-    const fileName = path.join(dir, searchingForFile);
-    if (fs.existsSync(fileName)) {
-      return dir;
-    } else {
+    const searchingForFile = 'sfdx-project.json';
+    let dir: string | undefined = stat.type === vscode.FileType.Directory ? startPath : path.dirname(startPath);
+    while (dir) {
+      const fileName = path.join(dir, searchingForFile);
+      try {
+        const fileUri = vscode.Uri.file(fileName);
+        const fileStat = await vscode.workspace.fs.stat(fileUri);
+        if (fileStat) {
+          return dir;
+        }
+      } catch {
+        // File doesn't exist, continue searching
+      }
       dir = directoryLevelUp(dir);
     }
-  }
 
-  // couldn't determine the root dir
-  return undefined;
+    // couldn't determine the root dir
+    return undefined;
+  } catch {
+    return undefined;
+  }
 };
 
 /**
