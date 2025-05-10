@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'node:fs';
 import { EOL } from 'node:os';
 import * as path from 'node:path';
 import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
+import { createDirectory, deleteFile, folderExists, writeFile } from '../utils';
 import { DeclarationGenerator } from './declarationGenerator';
 
 const TYPESCRIPT_TYPE_EXT = '.d.ts';
@@ -20,33 +20,31 @@ export class TypingGenerator implements SObjectGenerator {
     this.declGenerator = new DeclarationGenerator();
   }
 
-  public generate(output: SObjectRefreshOutput): void {
+  public async generate(output: SObjectRefreshOutput): Promise<void> {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
-    this.generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
+    await this.generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
   }
 
-  public generateTypes(sobjects: SObject[], targetFolder: string): void {
-    if (!fs.existsSync(targetFolder)) {
-      fs.mkdirSync(targetFolder, { recursive: true });
+  public async generateTypes(sobjects: SObject[], targetFolder: string): Promise<void> {
+    if (!(await folderExists(targetFolder))) {
+      await createDirectory(targetFolder);
     }
 
     for (const sobj of sobjects) {
       if (sobj.name) {
         const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
-        this.generateType(targetFolder, sobjDefinition);
+        await this.generateType(targetFolder, sobjDefinition);
       }
     }
   }
 
-  public generateType(folderPath: string, definition: SObjectDefinition): string {
+  public async generateType(folderPath: string, definition: SObjectDefinition): Promise<string> {
     const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
-    if (fs.existsSync(typingPath)) {
-      fs.unlinkSync(typingPath);
+    if (await folderExists(typingPath)) {
+      await deleteFile(typingPath);
     }
 
-    fs.writeFileSync(typingPath, this.convertDeclarations(definition), {
-      mode: 0o444
-    });
+    await writeFile(typingPath, this.convertDeclarations(definition));
 
     return typingPath;
   }

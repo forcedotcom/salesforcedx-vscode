@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
 import { SObject, SObjectCategory, SObjectGenerator, SObjectRefreshOutput } from '../types';
+import { createDirectory, deleteFile, folderExists, writeFile } from '../utils';
 
 const BASE_FOLDER = [TOOLS, SOQLMETADATA_DIR];
 
@@ -34,31 +34,28 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     }
   }
 
-  private generateTypesNames(folderPath: string, typeNames: SObjectShortDescription[]): void {
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath, { recursive: true });
+  private async generateTypesNames(folderPath: string, typeNames: SObjectShortDescription[]): Promise<void> {
+    if (!(await folderExists(folderPath))) {
+      await createDirectory(folderPath);
     }
     const typeNameFile = path.join(folderPath, 'typeNames.json');
-    if (fs.existsSync(typeNameFile)) {
-      fs.unlinkSync(typeNameFile);
+    if (await folderExists(typeNameFile)) {
+      await deleteFile(typeNameFile);
     }
-    fs.writeFileSync(typeNameFile, JSON.stringify(typeNames, null, 2), {
-      mode: 0o444
-    });
+    await writeFile(typeNameFile, JSON.stringify(typeNames, null, 2));
   }
 
   private generateMetadataForSObject(folderPath: string, sobject: SObject): void {
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
-    }
-    const targetPath = path.join(
-      folderPath,
-      sobject.custom ? CUSTOMOBJECTS_DIR : STANDARDOBJECTS_DIR,
-      `${sobject.name}.json`
-    );
-
-    fs.writeFileSync(targetPath, JSON.stringify(sobject, null, 2), {
-      mode: 0o444
+    folderExists(folderPath).then(exists => {
+      if (!exists) {
+        createDirectory(folderPath);
+      }
+      const targetPath = path.join(
+        folderPath,
+        sobject.custom ? CUSTOMOBJECTS_DIR : STANDARDOBJECTS_DIR,
+        `${sobject.name}.json`
+      );
+      writeFile(targetPath, JSON.stringify(sobject, null, 2));
     });
   }
 
@@ -66,14 +63,14 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     const customsFolder = path.join(outputFolder, CUSTOMOBJECTS_DIR);
     const standardsFolder = path.join(outputFolder, STANDARDOBJECTS_DIR);
 
-    if ([SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category) && fs.existsSync(standardsFolder)) {
-      await fs.promises.rm(standardsFolder, { recursive: true, force: true });
+    if ([SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category) && (await folderExists(standardsFolder))) {
+      await deleteFile(standardsFolder, { recursive: true, useTrash: false });
     }
-    if ([SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category) && fs.existsSync(customsFolder)) {
-      await fs.promises.rm(customsFolder, { recursive: true, force: true });
+    if ([SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category) && (await folderExists(customsFolder))) {
+      await deleteFile(customsFolder, { recursive: true, useTrash: false });
     }
 
-    await Promise.all([customsFolder, standardsFolder].map(folder => fs.promises.mkdir(folder, { recursive: true })));
+    await Promise.all([customsFolder, standardsFolder].map(folder => createDirectory(folder)));
 
     return true;
   }

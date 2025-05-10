@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import { EOL } from 'node:os';
 import * as path from 'node:path';
 import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
+import { createDirectory, deleteFile, folderExists, writeFile } from '../utils';
 import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
@@ -42,7 +42,7 @@ export class FauxClassGenerator implements SObjectGenerator {
     return comment ? `${INDENT}/* ${comment.replace(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
   }
 
-  public generate(output: SObjectRefreshOutput): void {
+  public async generate(output: SObjectRefreshOutput): Promise<void> {
     const outputFolderPath = path.join(output.sfdxPath, ...REL_BASE_FOLDER, this.relativePath);
     if (!this.resetOutputFolder(outputFolderPath)) {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
@@ -53,20 +53,18 @@ export class FauxClassGenerator implements SObjectGenerator {
     for (const sobj of sobjects) {
       if (sobj.name) {
         const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
-        this.generateFauxClass(outputFolderPath, sobjDefinition);
+        await this.generateFauxClass(outputFolderPath, sobjDefinition);
       }
     }
   }
 
   // VisibleForTesting
-  public generateFauxClass(folderPath: string, definition: SObjectDefinition): string {
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
+  public async generateFauxClass(folderPath: string, definition: SObjectDefinition): Promise<string> {
+    if (!(await folderExists(folderPath))) {
+      await createDirectory(folderPath);
     }
     const fauxClassPath = path.join(folderPath, `${definition.name}${APEX_CLASS_EXTENSION}`);
-    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(definition), {
-      mode: 0o444
-    });
+    await writeFile(fauxClassPath, this.generateFauxClassText(definition));
     return fauxClassPath;
   }
 
@@ -93,13 +91,13 @@ export class FauxClassGenerator implements SObjectGenerator {
     return generatedClass;
   }
 
-  private resetOutputFolder(pathToClean: string): boolean {
-    if (fs.existsSync(pathToClean)) {
-      fs.rmSync(pathToClean, { recursive: true, force: true });
+  private async resetOutputFolder(pathToClean: string): Promise<boolean> {
+    if (await folderExists(pathToClean)) {
+      await deleteFile(pathToClean, { recursive: true, useTrash: false });
     }
-    if (!fs.existsSync(pathToClean)) {
-      fs.mkdirSync(pathToClean, { recursive: true });
-      return fs.existsSync(pathToClean);
+    if (!(await folderExists(pathToClean))) {
+      await createDirectory(pathToClean);
+      return await folderExists(pathToClean);
     }
     return true;
   }

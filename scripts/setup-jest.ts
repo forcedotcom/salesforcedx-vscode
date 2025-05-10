@@ -124,9 +124,14 @@ const getMockVSCode = () => {
       }),
       workspaceFolders: [],
       fs: {
-        writeFile: jest.fn()
+        writeFile: jest.fn(),
+        stat: jest.fn(),
+        createDirectory: jest.fn(),
+        delete: jest.fn(),
+        readFile: jest.fn()
       },
-      registerTextDocumentContentProvider: jest.fn()
+      registerTextDocumentContentProvider: jest.fn(),
+      registerFileSystemProvider: jest.fn()
     },
     CompletionItem: class {
       public constructor(label: string) {}
