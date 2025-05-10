@@ -38,7 +38,7 @@ jobs:
       matrix:
         os: ${{ fromJson(inputs.os) }}
         nodeVersion:
-          - 22.15.14
+          - 23.11.0
         vscodeVersion:
           - ${{ inputs.vscodeVersion }}
     steps:
