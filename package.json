@@ -6,12 +6,12 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=22.15.0"
+    "node": ">=22.15.14"
   },
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
-    "node": "^22.15.0",
+    "node": "^22.15.14",
     "npm": "^10",
     "semver": "^7.5.4",
     "ts-node": "10.9.2"
