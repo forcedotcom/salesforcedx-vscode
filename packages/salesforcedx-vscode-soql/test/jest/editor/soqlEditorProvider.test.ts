@@ -111,21 +111,16 @@ describe('SOQLEditorProvider', () => {
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
-      const expectedPath = path.join(
-        extensionContext.extensionPath,
-        ...extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath
-      );
+      const expectedPath = path
+        .join(extensionContext.extensionPath, ...extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath)
+        .replace(/\\/g, '/');
 
-      expect(mockWebviewPanel.webview.options).toEqual({
-        enableScripts: true,
-        localResourceRoots: [
-          expect.objectContaining({
-            scheme: 'file',
-            path: expectedPath,
-            fsPath: expectedPath
-          })
-        ]
-      });
+      expect(mockWebviewPanel.webview.options.enableScripts).toBe(true);
+      expect(mockWebviewPanel.webview.options.localResourceRoots).toHaveLength(1);
+      const uri = mockWebviewPanel.webview.options.localResourceRoots![0];
+      expect(uri.scheme).toBe('file');
+      expect(uri.path).toBe(expectedPath);
+      expect(uri.fsPath).toBe(expectedPath);
       expect(mockWebviewPanel.webview.html).toBe(mockTransformedHtml);
     });
 
