@@ -47,7 +47,7 @@ export const getDebugConfiguration = (command: string, args: string[], cwd: stri
  */
 const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
-  const shellExecutionInfo = testRunner.getShellExecutionInfo();
+  const shellExecutionInfo = await testRunner.getShellExecutionInfo();
   if (shellExecutionInfo) {
     const { command, args, workspaceFolder, testResultFsPath } = shellExecutionInfo;
     testRunner.startWatchingTestResults(testResultFsPath);
