@@ -7,7 +7,7 @@
   "main": "lib/src/index.js",
   "dependencies": {
     "@jsforce/jsforce-node": "^3.8.1",
-    "@salesforce/core": "^8.10.1",
+    "@salesforce/core": "^8.10.3",
     "@salesforce/kit": "^3.2.3",
     "@types/istanbul-reports": "^3.0.4",
     "bfj": "8.0.0",
