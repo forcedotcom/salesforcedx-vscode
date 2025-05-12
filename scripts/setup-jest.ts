@@ -78,7 +78,11 @@ const getMockVSCode = () => {
       createDiagnosticCollection: jest.fn(),
       createLanguageStatusItem: mockCreateLanguageStatusItem
     },
-    Uri,
+    Uri: {
+      file: jest.fn(),
+      joinPath: jest.fn(),
+      parse: jest.fn()
+    },
     Position: jest.fn(),
     ProgressLocation: {
       SourceControl: 1,

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -40,7 +39,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       enableScripts: true,
       localResourceRoots: [URI.file(soqlBuilderWebAssetsModule)]
     };
-    webviewPanel.webview.html = this.getWebViewContent(webviewPanel.webview);
+    webviewPanel.webview.html = await this.getWebViewContent(webviewPanel.webview);
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
     this.instances.push(instance);
     instance.onDispose(this.disposeInstance.bind(this));
@@ -53,15 +52,16 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     }
   }
 
-  private getWebViewContent(webview: vscode.Webview): string {
+  private async getWebViewContent(webview: vscode.Webview): Promise<string> {
     const soqlBuilderWebAssetsPathParam: string[] =
       this.extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath;
     const soqlBuilderUIModule = this.extensionContext.asAbsolutePath(
       path.join(...soqlBuilderWebAssetsPathParam, DIST_FOLDER)
     );
     const pathToHtml = path.join(soqlBuilderUIModule, HTML_FILE);
-    const html = fs.readFileSync(pathToHtml).toString();
-    return HtmlUtils.transformHtml(html, soqlBuilderUIModule, webview);
+    const htmlUri = vscode.Uri.file(pathToHtml);
+    const htmlContent = await vscode.workspace.fs.readFile(htmlUri);
+    return HtmlUtils.transformHtml(htmlContent.toString(), soqlBuilderUIModule, webview);
   }
 
   private disposeInstance(instance: SOQLEditorInstance) {

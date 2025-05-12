@@ -68,7 +68,7 @@ export class QueryDataViewService {
       });
   }
 
-  public createOrShowWebView(): vscode.Webview {
+  public async createOrShowWebView(): Promise<vscode.Webview> {
     this.currentPanel = vscode.window.createWebviewPanel(
       this.viewType,
       QUERY_DATA_VIEW_PANEL_TITLE,
@@ -99,7 +99,7 @@ export class QueryDataViewService {
       dark: salesforceCloudUri
     };
 
-    this.currentPanel.webview.html = this.getWebViewContent(this.currentPanel.webview);
+    this.currentPanel.webview.html = await this.getWebViewContent(this.currentPanel.webview);
 
     this.currentPanel.webview.onDidReceiveMessage(this.onDidRecieveMessageHandler, this, this.subscriptions);
 
@@ -133,7 +133,7 @@ export class QueryDataViewService {
     }
   }
 
-  protected getWebViewContent(webview: vscode.Webview): string {
+  protected async getWebViewContent(webview: vscode.Webview): Promise<string> {
     const baseStyleUri = webview.asWebviewUri(
       URI.file(path.join(QueryDataViewService.extensionPath, DATA_VIEW_UI_PATH, QUERY_DATA_VIEW_STYLE_FILENAME))
     );
@@ -158,6 +158,6 @@ export class QueryDataViewService {
       saveIconUri
     };
 
-    return getHtml(staticAssets, QueryDataViewService.extensionPath, webview);
+    return await getHtml(staticAssets, QueryDataViewService.extensionPath, webview);
   }
 }

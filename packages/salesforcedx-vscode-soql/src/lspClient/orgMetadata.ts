@@ -14,8 +14,8 @@ import {
   toMinimalSObject
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
 
@@ -47,11 +47,20 @@ export class FileSystemOrgDataSource implements OrgDataSource {
     const standardsFolder = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR);
 
     const files: string[] = [];
-    if (fs.existsSync(standardsFolder)) {
-      files.push(...(await fs.promises.readdir(standardsFolder)));
+    try {
+      const standardsUri = vscode.Uri.file(standardsFolder);
+      const standardsDir = await vscode.workspace.fs.readDirectory(standardsUri);
+      files.push(...standardsDir.map(entry => entry[0]));
+    } catch {
+      // Standards folder doesn't exist or can't be read
     }
-    if (fs.existsSync(customsFolder)) {
-      files.push(...(await fs.promises.readdir(customsFolder)));
+
+    try {
+      const customsUri = vscode.Uri.file(customsFolder);
+      const customsDir = await vscode.workspace.fs.readDirectory(customsUri);
+      files.push(...customsDir.map(entry => entry[0]));
+    } catch {
+      // Customs folder doesn't exist or can't be read
     }
 
     if (files.length === 0) {
@@ -69,14 +78,21 @@ export class FileSystemOrgDataSource implements OrgDataSource {
     }
 
     let filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, sobjectName + '.json');
-    if (!fs.existsSync(filePath)) {
+    try {
+      const fileUri = vscode.Uri.file(filePath);
+      const fileStat = await vscode.workspace.fs.stat(fileUri);
+      if (!fileStat) {
+        filePath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, sobjectName + '.json');
+      }
+    } catch {
       filePath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, sobjectName + '.json');
     }
 
     try {
-      const file = await fs.promises.readFile(filePath);
+      const fileUri = vscode.Uri.file(filePath);
+      const fileContent = await vscode.workspace.fs.readFile(fileUri);
       // TODO: validate content against a schema
-      return JSON.parse(file.toString());
+      return JSON.parse(fileContent.toString());
     } catch {
       const message = nls.localize(
         'error_sobject_metadata_fs_request',
