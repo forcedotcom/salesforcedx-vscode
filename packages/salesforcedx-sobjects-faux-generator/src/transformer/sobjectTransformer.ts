@@ -7,7 +7,6 @@
 import type { CancellationToken } from '@salesforce/salesforcedx-utils';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'node:events';
-import * as fs from 'node:fs';
 import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
@@ -18,6 +17,7 @@ import {
   SObjectRefreshOutput as SObjectRefreshData,
   SObjectRefreshResult
 } from '../types';
+import { folderExists } from '../utils';
 
 type SObjectRefreshTransformData = SObjectRefreshData & {
   typeNames: SObjectShortDescription[];
@@ -49,7 +49,7 @@ export class SObjectTransformer {
   public async transform(): Promise<SObjectRefreshResult> {
     const pathToStateFolder = projectPaths.stateFolder();
 
-    if (!fs.existsSync(pathToStateFolder)) {
+    if (!(await folderExists(pathToStateFolder))) {
       return this.errorExit(nls.localize('no_generate_if_not_in_project', pathToStateFolder));
     }
 

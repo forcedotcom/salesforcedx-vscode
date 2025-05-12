@@ -13,11 +13,11 @@
  * To run:
  *    npx ts-node ./scripts/regenerateMinsSObjects.ts <token> <instance_url>
  */
-import * as fs from 'fs';
 import * as path from 'path';
 import { SObjectShortDescription } from '../src/describe';
 import { OrgObjectDetailRetriever } from '../src/retriever';
 import { SObject } from '../src/types';
+import { writeFile } from '../src/utils';
 
 import { Connection, Org } from '@salesforce/core-bundle';
 
@@ -71,7 +71,7 @@ async function generateLocalSobjectJSON(connection: Connection) {
 
   const targetFileName = path.join(path.basename(__filename), '../src/data/minSObjects.new.json');
   console.log('Generating: ' + targetFileName);
-  fs.writeFileSync(
+  await writeFile(
     targetFileName,
     JSON.stringify(
       {

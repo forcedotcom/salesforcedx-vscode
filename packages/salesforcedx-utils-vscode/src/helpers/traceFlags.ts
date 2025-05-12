@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core-bundle';
-import { TraceFlagsRemover } from '../helpers';
 import { nls } from '../messages';
 
 type UserRecord = {
@@ -119,7 +118,6 @@ export class TraceFlags {
     const result = await this.connection.tooling.create('TraceFlag', traceFlag);
 
     if (result.success && result.id) {
-      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(result.id);
       return result.id;
     } else {
       return undefined;

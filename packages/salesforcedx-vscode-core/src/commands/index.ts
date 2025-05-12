@@ -84,7 +84,7 @@ export {
   UpdateTraceFlagsExecutor,
   startApexDebugLogging
 } from './startApexDebugLogging';
-export { StopApexDebugLoggingExecutor, stopApexDebugLogging, turnOffLogging } from './stopApexDebugLogging';
+export { turnOffLogging } from './stopApexDebugLogging';
 export { taskStop } from './taskStop';
 export {
   analyticsGenerateTemplate,
