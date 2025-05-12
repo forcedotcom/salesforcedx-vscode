@@ -99,7 +99,7 @@ jobs:
         uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
         with:
           run: |
-            npm run automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
+            npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
           working-directory: salesforcedx-vscode
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
