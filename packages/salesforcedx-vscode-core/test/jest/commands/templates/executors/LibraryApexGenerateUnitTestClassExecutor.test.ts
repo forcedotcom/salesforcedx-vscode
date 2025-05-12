@@ -9,7 +9,7 @@ import {
   CREATE_UNIT_NAME_KEY,
   LibraryApexGenerateUnitTestClassExecutor,
   TELEMETRY_NAME
-} from '../../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor';
+} from '../../../../../src/commands/templates/executors/libraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from '../../../../../src/commands/templates/metadataTypeConstants';
 import { nls } from '../../../../../src/messages';
 

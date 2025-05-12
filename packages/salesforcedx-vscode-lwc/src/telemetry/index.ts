@@ -6,4 +6,5 @@
  */
 
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+
 export const telemetryService = TelemetryService.getInstance();

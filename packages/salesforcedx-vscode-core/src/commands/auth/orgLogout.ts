@@ -6,26 +6,20 @@
  */
 
 import { AuthRemover } from '@salesforce/core-bundle';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
-  Command,
   ConfigUtil,
   ContinueResponse,
+  EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  notificationService,
-  SfCommandBuilder
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import {
-  EmptyParametersGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker,
-  SimpleGatherer
-} from '../util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker, SimpleGatherer } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 
 export class OrgLogoutAll extends SfCommandletExecutor<{}> {

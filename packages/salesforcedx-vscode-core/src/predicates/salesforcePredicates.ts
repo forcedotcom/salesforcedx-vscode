@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Predicate, PredicateResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { Predicate, PredicateResponse, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
-import { workspaceUtils } from '../util';
 
 export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
   public apply(item: typeof workspace): PredicateResponse {

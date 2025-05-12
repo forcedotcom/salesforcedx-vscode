@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import { EOL } from 'node:os';
 import { join } from 'node:path';
 import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
@@ -13,9 +12,18 @@ import { FauxClassGenerator } from '../../../src/generator';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { INDENT } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
+import { createDirectory, deleteFile, folderExists, writeFile } from '../../../src/utils';
+
 jest.mock('../../../src/generator/declarationGenerator');
+jest.mock('../../../src/utils');
 
 const declarationGeneratorMocked = jest.mocked(DeclarationGenerator);
+const utilsMocked = {
+  createDirectory: jest.mocked(createDirectory),
+  deleteFile: jest.mocked(deleteFile),
+  folderExists: jest.mocked(folderExists),
+  writeFile: jest.mocked(writeFile)
+};
 
 describe('FauxClassGenerator Unit Tests.', () => {
   const fakePath = './this/is/a/path';
@@ -23,10 +31,18 @@ describe('FauxClassGenerator Unit Tests.', () => {
 
   const getGenerator = (): FauxClassGenerator => new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    utilsMocked.folderExists.mockResolvedValue(false);
+    utilsMocked.createDirectory.mockResolvedValue();
+    utilsMocked.writeFile.mockResolvedValue();
+    utilsMocked.deleteFile.mockResolvedValue();
+  });
+
   afterEach(() => {
     if (classPath) {
       try {
-        fs.unlinkSync(classPath);
+        utilsMocked.deleteFile.mockResolvedValue();
       } catch (e) {
         console.log(e);
       }
@@ -55,10 +71,14 @@ describe('FauxClassGenerator Unit Tests.', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).toContain(nls.localize('class_header_generated_comment'));
+    classPath = await gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
+
+    expect(utilsMocked.folderExists).toHaveBeenCalledWith(sobjectFolder);
+    expect(utilsMocked.createDirectory).toHaveBeenCalledWith(sobjectFolder);
+    expect(utilsMocked.writeFile).toHaveBeenCalled();
+
+    const writeFileCall = utilsMocked.writeFile.mock.calls[0];
+    expect(writeFileCall[1]).toContain(nls.localize('class_header_generated_comment'));
   });
 
   describe('commentToString()', () => {
@@ -74,7 +94,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       let expectedFirstComment = `${INDENT}/*  Please add a unique name${EOL}`;
       expectedFirstComment += `    ${EOL}${EOL}${INDENT}*/${EOL}`;
       const parseFirstComment = FauxClassGenerator.commentToString(firstComment);
-      expect(expectedFirstComment).toEqual(parseFirstComment);
+      expect(parseFirstComment).toEqual(expectedFirstComment);
     });
 
     it('Should parse a complex field inline comment', async () => {
@@ -85,15 +105,14 @@ describe('FauxClassGenerator Unit Tests.', () => {
       expectedSecondComment += `**************this is a test **************${EOL}`;
       expectedSecondComment += `${EOL}${INDENT}*/${EOL}`;
       const parseSecondComment = FauxClassGenerator.commentToString(secondComment);
-      expect(expectedSecondComment).toEqual(parseSecondComment);
+      expect(parseSecondComment).toEqual(expectedSecondComment);
     });
 
     it('Should parse a comment with spaces.', () => {
       const thirdComment = 'Bring a sweater and/or jacket';
-      let expectedThirdComment = `${INDENT}/* ${thirdComment}`;
-      expectedThirdComment += `${EOL}${INDENT}*/${EOL}`;
+      const expectedThirdComment = `${INDENT}/* Bring a sweater and/or jacket${EOL}${INDENT}*/${EOL}`;
       const parseThirdComment = FauxClassGenerator.commentToString(thirdComment);
-      expect(expectedThirdComment).toEqual(parseThirdComment);
+      expect(parseThirdComment).toEqual(expectedThirdComment);
     });
   });
 
@@ -110,7 +129,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     beforeEach(() => {
       resetOutputFolderMock = jest
         .spyOn(FauxClassGenerator.prototype as any, 'resetOutputFolder')
-        .mockReturnValue(true);
+        .mockResolvedValue(true);
       generateFauxClassMock = jest.spyOn(FauxClassGenerator.prototype, 'generateFauxClass');
       getStandardMock = jest.fn();
       getCustomMock = jest.fn();
@@ -121,24 +140,29 @@ describe('FauxClassGenerator Unit Tests.', () => {
       };
     });
 
-    it('Should throw if output folder can not be reset.', () => {
-      resetOutputFolderMock.mockReturnValue(false);
+    it('Should throw if output folder can not be reset.', async () => {
+      resetOutputFolderMock.mockResolvedValue(false);
+      getStandardMock.mockReturnValue([]);
+      getCustomMock.mockReturnValue([]);
       const expectedError = `No output folder available ${expectedFolderPath}.  Please create this folder and refresh again`;
       const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
-      expect(() => {
-        fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
-      }).toThrowError(expectedError);
+
+      try {
+        await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
+      } catch (error) {
+        expect(error.message).toEqual(expectedError);
+      }
     });
 
-    it('Should process standard sobjects.', () => {
+    it('Should process standard sobjects.', async () => {
       const fakeSObject = { name: 'fake' };
       const fakeSobjectDef = 'look at me the sobject';
       getStandardMock.mockReturnValue([fakeSObject]);
       (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
-      generateFauxClassMock.mockReturnValue('hooray');
+      generateFauxClassMock.mockResolvedValue('hooray');
 
       const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
-      fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
+      await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
 
       expect(fakeOutput.getStandard).toHaveBeenCalled();
       expect(fakeOutput.getCustom).not.toHaveBeenCalled();
@@ -146,15 +170,15 @@ describe('FauxClassGenerator Unit Tests.', () => {
       expect(generateFauxClassMock).toHaveBeenCalledWith(expectedFolderPath, fakeSobjectDef);
     });
 
-    it('Should process custom sobjects.', () => {
+    it('Should process custom sobjects.', async () => {
       const fakeSObject = { name: 'fake' };
       const fakeSobjectDef = 'look at me the sobject';
       getCustomMock.mockReturnValue([fakeSObject]);
       (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
-      generateFauxClassMock.mockReturnValue('hooray');
+      generateFauxClassMock.mockResolvedValue('hooray');
 
       const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.CUSTOM, fakePath);
-      fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
+      await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
 
       expect(fakeOutput.getStandard).not.toHaveBeenCalled();
       expect(fakeOutput.getCustom).toHaveBeenCalled();

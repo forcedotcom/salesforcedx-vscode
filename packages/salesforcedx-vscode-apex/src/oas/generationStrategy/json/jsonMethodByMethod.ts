@@ -29,7 +29,7 @@ import {
   combineYamlByMethod
 } from '../formatUtils';
 import { GenerationStrategy } from '../generationStrategy';
-import { openAPISchema_v3_0_guided } from '../openapi-3.schema';
+import { openAPISchema_v3_0_guided } from '../openapi3.schema';
 
 const gil = GenerationInteractionLogger.getInstance();
 

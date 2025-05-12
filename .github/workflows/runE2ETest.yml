@@ -9,7 +9,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: 'stable'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
