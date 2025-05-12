@@ -49,22 +49,16 @@ export class FileSystemOrgDataSource implements OrgDataSource {
     const files: string[] = [];
     try {
       const standardsUri = vscode.Uri.file(standardsFolder);
-      const standardsStat = await vscode.workspace.fs.stat(standardsUri);
-      if (standardsStat) {
-        const standardsDir = await vscode.workspace.fs.readDirectory(standardsUri);
-        files.push(...standardsDir.map(entry => entry[0]));
-      }
+      const standardsDir = await vscode.workspace.fs.readDirectory(standardsUri);
+      files.push(...standardsDir.map(entry => entry[0]));
     } catch {
       // Standards folder doesn't exist or can't be read
     }
 
     try {
       const customsUri = vscode.Uri.file(customsFolder);
-      const customsStat = await vscode.workspace.fs.stat(customsUri);
-      if (customsStat) {
-        const customsDir = await vscode.workspace.fs.readDirectory(customsUri);
-        files.push(...customsDir.map(entry => entry[0]));
-      }
+      const customsDir = await vscode.workspace.fs.readDirectory(customsUri);
+      files.push(...customsDir.map(entry => entry[0]));
     } catch {
       // Customs folder doesn't exist or can't be read
     }
