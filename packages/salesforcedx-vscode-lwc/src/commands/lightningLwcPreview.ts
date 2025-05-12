@@ -145,12 +145,6 @@ export const lwcPreview = async (sourceUri: URI) => {
 
   try {
     const stat = await vscode.workspace.fs.stat(sourceUri);
-    if (!stat) {
-      const message = nls.localize('lightning_lwc_preview_file_nonexist', resourcePath);
-      showError(new Error(message), logName, commandName);
-      return;
-    }
-
     const isSFDX = true; // TODO support non SFDX Projects
     const isDirectory = stat.type === vscode.FileType.Directory;
     const componentName = isDirectory
@@ -163,7 +157,7 @@ export const lwcPreview = async (sourceUri: URI) => {
     }
 
     await executePreview(startTime, componentName, resourcePath);
-  } catch (error) {
+  } catch {
     const message = nls.localize('lightning_lwc_preview_file_nonexist', resourcePath);
     showError(new Error(message), logName, commandName);
     return;
@@ -553,10 +547,6 @@ export const getProjectRootDirectory = async (startPath: string): Promise<string
   try {
     const startUri = vscode.Uri.file(startPath);
     const stat = await vscode.workspace.fs.stat(startUri);
-    if (!stat) {
-      return undefined;
-    }
-
     const searchingForFile = 'sfdx-project.json';
     let dir: string | undefined = stat.type === vscode.FileType.Directory ? startPath : path.dirname(startPath);
     while (dir) {
