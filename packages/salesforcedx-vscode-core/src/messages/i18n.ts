@@ -631,6 +631,7 @@ export const messages = {
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
+  WorkflowFlowAutomation: 'Workflow Flow Automations',
   XOrgHub: 'X Org Hubs',
 
   conflict_detect_execution_name: 'Conflict Detection',
