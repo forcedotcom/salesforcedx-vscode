@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import {
   Duration,
   log,
@@ -29,8 +33,25 @@ import {
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import fs from 'node:fs';
-import * as path from 'node:path';
+import path from 'node:path';
 import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
+
+// Create utilities namespace with all imported functions
+const utilities = {
+  Duration,
+  log,
+  pause,
+  ProjectShapeOption,
+  createApexClassWithTest,
+  getFolderName,
+  removeFolder,
+  getWorkbench,
+  getStatusBarItemWhichIncludes,
+  getTextEditor,
+  getOutputViewText,
+  executeQuickPick,
+  selectQuickPickItem
+};
 
 // Types
 interface LspStatus {
@@ -46,12 +67,9 @@ interface LspRestartOptions {
 
 // Constants
 const PATHS = {
-  project: path.join(__dirname, '..', '..', '..', '..', '..', 'e2e-temp', 'TempProject-ApexLsp'),
+  project: path.join(__dirname, '..', '..', 'e2e-temp', 'TempProject-ApexLsp'),
   apexClass: path.join(
     __dirname,
-    '..',
-    '..',
-    '..',
     '..',
     '..',
     'e2e-temp',
@@ -61,7 +79,7 @@ const PATHS = {
     'default',
     'classes'
   ),
-  tools: path.join(__dirname, '..', '..', '..', '..', '..', 'e2e-temp', 'TempProject-ApexLsp', '.sfdx', 'tools')
+  tools: path.join(__dirname, '..', '..', 'e2e-temp', 'TempProject-ApexLsp', '.sfdx', 'tools')
 } as const;
 
 const LSP_STATUS: LspStatus = {
@@ -83,7 +101,7 @@ const findReleaseDir = (): string => {
 };
 
 const verifyLspStatus = async (expectedStatus: string): Promise<WebElement> => {
-  const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+  const statusBar = await utilities.getStatusBarItemWhichIncludes('Editor Language Status');
   await statusBar.click();
   const ariaLabel = await statusBar.getAttribute('aria-label');
   expect(ariaLabel).to.include(expectedStatus);
@@ -96,41 +114,41 @@ const verifyLspRestart = async (cleanDb: boolean): Promise<void> => {
   // Wait for LSP to enter restarting state
   await verifyLspStatus(LSP_STATUS.restarting);
   // Allow time for LSP to fully restart and reindex
-  await pause(Duration.seconds(12));
+  await utilities.pause(utilities.Duration.seconds(25 * EnvironmentSettings.getInstance().throttleFactor));
   await verifyLspStatus(LSP_STATUS.indexingComplete);
 
-  const outputViewText = await getOutputViewText('Apex Language Server');
+  const outputViewText = await utilities.getOutputViewText('Apex Language Server');
   expect(outputViewText).to.contain(LSP_STATUS.preludeStarting);
 };
 
 const setupTestEnvironment = async (testSetup: TestSetup): Promise<void> => {
-  log('ApexLsp - Set up the testing environment');
-  log(`ApexLsp - JAVA_HOME: ${EnvironmentSettings.getInstance().javaHome}`);
+  utilities.log('ApexLsp - Set up the testing environment');
+  utilities.log(`ApexLsp - JAVA_HOME: ${EnvironmentSettings.getInstance().javaHome}`);
   // Allow time for VSCode to fully initialize and load extensions
-  await pause(Duration.seconds(10));
-  await createApexClassWithTest('ExampleClass');
+  await utilities.pause(utilities.Duration.seconds(10));
+  await utilities.createApexClassWithTest('ExampleClass');
 };
 
 const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
-  log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
-  const workbench = getWorkbench();
-  await getTextEditor(workbench, 'ExampleClass.cls');
+  utilities.log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
+  const workbench = utilities.getWorkbench();
+  await utilities.getTextEditor(workbench, 'ExampleClass.cls');
 
   await verifyLspStatus(LSP_STATUS.indexingComplete);
-  const outputViewText = await getOutputViewText('Apex Language Server');
-  log(`Output view text: ${outputViewText}`);
+  const outputViewText = await utilities.getOutputViewText('Apex Language Server');
+  utilities.log(`Output view text: ${outputViewText}`);
 };
 
 const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
-  log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
-  const workbench = getWorkbench();
-  const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
+  utilities.log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
+  const workbench = utilities.getWorkbench();
+  const textEditor = await utilities.getTextEditor(workbench, 'ExampleClassTest.cls');
 
   await textEditor.moveCursor(6, 20);
   // Allow time for LSP to process cursor movement and prepare definition lookup
-  await pause(Duration.seconds(2));
+  await utilities.pause(utilities.Duration.seconds(2));
   // Wait for quick pick to appear and be clickable
-  await executeQuickPick('Go to Definition', Duration.seconds(3));
+  await utilities.executeQuickPick('Go to Definition', utilities.Duration.seconds(3));
 
   const editorView = workbench.getEditorView();
   const activeTab = await editorView.getActiveTab();
@@ -139,13 +157,13 @@ const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
 };
 
 const testAutocompletion = async (testSetup: TestSetup): Promise<void> => {
-  log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
-  const workbench = getWorkbench();
-  const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
+  utilities.log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
+  const workbench = utilities.getWorkbench();
+  const textEditor = await utilities.getTextEditor(workbench, 'ExampleClassTest.cls');
 
   await textEditor.typeTextAt(7, 1, '\tExampleClass.say');
   // Allow time for LSP to process text input and prepare autocompletion suggestions
-  await pause(Duration.seconds(2));
+  await utilities.pause(utilities.Duration.seconds(2));
 
   const autocompletionOptions = await workbench.findElements(By.css('div.monaco-list-row.show-file-icons'));
   const ariaLabel = await autocompletionOptions[0].getAttribute('aria-label');
@@ -157,23 +175,23 @@ const testAutocompletion = async (testSetup: TestSetup): Promise<void> => {
   await textEditor.save();
 
   // Allow time for LSP to process the changes and update the editor
-  await pause(Duration.seconds(2));
+  await utilities.pause(utilities.Duration.seconds(2));
   const line7Text = await textEditor.getTextAtLine(7);
   expect(line7Text).to.include("ExampleClass.SayHello('Jack');");
 };
 
 const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<void> => {
   const action = cleanDb ? 'with cleaned db' : 'alone';
-  log(`${testSetup.testSuiteSuffixName} - Cmd Palette: LSP Restart ${action}`);
+  utilities.log(`${testSetup.testSuiteSuffixName} - Cmd Palette: LSP Restart ${action}`);
 
   if (cleanDb) {
     const releaseDir = findReleaseDir();
-    const standardApexLibraryPath = path.join(PATHS.tools, releaseDir, 'StandardApexLibrary');
-    await removeFolder(standardApexLibraryPath);
-    expect(await getFolderName(standardApexLibraryPath)).to.equal(null);
+    const standardApexLibraryPath = path.normalize(path.join(PATHS.tools, releaseDir, 'StandardApexLibrary'));
+    await utilities.removeFolder(standardApexLibraryPath);
+    expect(await utilities.getFolderName(standardApexLibraryPath)).to.equal(null);
   }
 
-  const restartCommand = await executeQuickPick('Restart Apex Language Server');
+  const restartCommand = await utilities.executeQuickPick('Restart Apex Language Server');
   const quickPicks = await restartCommand.getQuickPicks();
   for (const quickPick of quickPicks) {
     const label = await quickPick.getLabel();
@@ -186,42 +204,41 @@ const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<v
 
   if (cleanDb) {
     const releaseDir = findReleaseDir();
-    expect(await getFolderName(path.join(PATHS.tools, releaseDir, 'StandardApexLibrary'))).to.equal(
-      'StandardApexLibrary'
-    );
+    const standardApexLibraryPath = path.normalize(path.join(PATHS.tools, releaseDir, 'StandardApexLibrary'));
+    expect(await utilities.getFolderName(standardApexLibraryPath)).to.equal('StandardApexLibrary');
   }
 };
 
 const testStatusBarRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<void> => {
   const action = cleanDb ? 'with cleaned db' : 'alone';
-  log(`${testSetup.testSuiteSuffixName} - Apex Status Bar: LSP Restart ${action}`);
+  utilities.log(`${testSetup.testSuiteSuffixName} - Apex Status Bar: LSP Restart ${action}`);
 
-  const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+  const statusBar = await utilities.getStatusBarItemWhichIncludes('Editor Language Status');
   await statusBar.click();
 
   // Allow time for status bar menu to appear and be clickable
-  await pause(Duration.seconds(3));
-  const restartButton = getWorkbench().findElement(By.linkText('Restart Apex Language Server'));
+  await utilities.pause(utilities.Duration.seconds(3));
+  const restartButton = utilities.getWorkbench().findElement(By.linkText('Restart Apex Language Server'));
   await restartButton.click();
 
   // Allow time for restart process to begin
   const dropdown = await new InputBox().wait();
-  await selectQuickPickItem(dropdown, cleanDb ? 'Clean Apex DB and Restart' : 'Restart Only');
+  await utilities.selectQuickPickItem(dropdown, cleanDb ? 'Clean Apex DB and Restart' : 'Restart Only');
   await verifyLspRestart(cleanDb);
 
   if (cleanDb) {
     const releaseDir = findReleaseDir();
-    expect(await getFolderName(path.join(PATHS.tools, releaseDir, 'StandardApexLibrary'))).to.equal(
+    expect(await utilities.getFolderName(path.join(PATHS.tools, releaseDir, 'StandardApexLibrary'))).to.equal(
       'StandardApexLibrary'
     );
   }
 };
 
-describe('Apex LSP', async () => {
+describe('Apex LSP', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
-      projectShape: ProjectShapeOption.NEW
+      projectShape: utilities.ProjectShapeOption.NEW
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'ApexLsp'
@@ -261,8 +278,8 @@ describe('Apex LSP', async () => {
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
-    await removeFolder(PATHS.apexClass);
+    utilities.log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
+    await utilities.removeFolder(PATHS.apexClass);
     await testSetup?.tearDown();
   });
 });
