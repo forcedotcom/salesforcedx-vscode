@@ -100,7 +100,7 @@ jobs:
         with:
           max_attempts: 4
           command: |
-            npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
+            npm run gha-automation-tests --prefix salesforcedx-vscode --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
         env:
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SPEC_FILES: ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
