@@ -31,7 +31,6 @@ import {
   getTextEditor
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
 import { fail } from 'node:assert';
 import * as path from 'node:path';
 import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
@@ -63,7 +62,7 @@ describe('Debug LWC Tests', () => {
     await reloadWindow(Duration.seconds(30));
   });
 
-  step('Debug All Tests on a LWC via the Test Sidebar', async () => {
+  it('Debug All Tests on a LWC via the Test Sidebar', async () => {
     log(`${testSetup.testSuiteSuffixName} - Debug All tests on a LWC via the Test Sidebar`);
     const workbench = getWorkbench();
     await executeQuickPick('Testing: Focus on LWC Tests View', Duration.seconds(3));
@@ -108,7 +107,7 @@ describe('Debug LWC Tests', () => {
     await verifyTestIconColor(lwcTestsItems[0], 'testPass');
   });
 
-  step('Debug Single Test via the Test Sidebar', async () => {
+  it('Debug Single Test via the Test Sidebar', async () => {
     log(`${testSetup.testSuiteSuffixName} - Debug Single Test via the Test Sidebar`);
     const workbench = getWorkbench();
     const testingView = await workbench.getActivityBar().getViewControl('Testing');
@@ -148,7 +147,7 @@ describe('Debug LWC Tests', () => {
     await verifyTestIconColor(lwcTestItem, 'testPass');
   });
 
-  step('SFDX: Debug Current Lightning Web Component Test File from Command Palette', async () => {
+  it('SFDX: Debug Current Lightning Web Component Test File from Command Palette', async () => {
     log(
       `${testSetup.testSuiteSuffixName} - SFDX: Debug Current Lightning Web Component Test File from Command Palette`
     );
@@ -175,14 +174,14 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  xstep('Debug All Tests via Code Lens action', async () => {
+  it('Debug All Tests via Code Lens action', async () => {
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
     // Click the "Debug" code lens at the top of the class
     const debugAllTestsOption = await textEditor.getCodeLens('Debug');
     if (!debugAllTestsOption) {
-      fail('Could not find debug test action button');
+      fail('Could not find debug all tests action button');
     }
     await debugAllTestsOption.click();
     await pause(Duration.seconds(15));
@@ -205,7 +204,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  step('Debug Single Test via Code Lens action', async () => {
+  it('Debug Single Test via Code Lens action', async () => {
     log(`${testSetup.testSuiteSuffixName} - Debug Single Test via Code Lens action`);
 
     // Click the "Debug Test" code lens at the top of one of the test methods
@@ -236,7 +235,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  step('SFDX: Debug Current Lightning Web Component Test File from main toolbar', async () => {
+  it('SFDX: Debug Current Lightning Web Component Test File from main toolbar', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Debug Current Lightning Web Component Test File from main toolbar`);
 
     // Debug SFDX: Debug Current Lightning Web Component Test File

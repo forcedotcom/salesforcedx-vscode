@@ -63,6 +63,7 @@ describe('Apex Replay Debugger', () => {
       );
       expect(successPushNotificationWasFound).to.equal(true);
     } catch (error) {
+      log(`ApexReplayDebugger - Set up the testing environment - Error: ${JSON.stringify(error)}, trying again...`);
       await getWorkbench().openNotificationsCenter();
       successPushNotificationWasFound = await notificationIsPresentWithTimeout(
         /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
@@ -106,6 +107,9 @@ describe('Apex Replay Debugger', () => {
       );
       expect(successNotificationWasFound).to.equal(true);
     } catch (error) {
+      log(
+        `ApexReplayDebugger - SFDX: Turn On Apex Debug Log for Replay Debugger - Error: ${JSON.stringify(error)}, trying again...`
+      );
       await getWorkbench().openNotificationsCenter();
       successNotificationWasFound = await notificationIsPresentWithTimeout(
         /SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran/,

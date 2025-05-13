@@ -26,7 +26,6 @@ import {
   getVisibleItemsFromSidebar
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import * as child_process from 'node:child_process';
 import * as path from 'node:path';
 import * as util from 'node:util';
@@ -54,7 +53,7 @@ describe('Templates', () => {
   });
 
   // Apex Class
-  step('Create an Apex Class', async () => {
+  it('Create an Apex Class', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create an Apex Class`);
     // Using the Command palette, run SFDX: Create Apex Class.
     await createCommand('Apex Class', 'ApexClass1', 'classes', 'cls');
@@ -69,7 +68,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('ApexClass1.cls-meta.xml')).to.equal(true);
   });
 
-  step('Verify the contents of the Apex Class', async () => {
+  it('Verify the contents of the Apex Class', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Apex Class`);
     const expectedText = ['public with sharing class ApexClass1 {', '    public ApexClass1() {', '', '    }', '}'].join(
       '\n'
@@ -81,7 +80,7 @@ describe('Templates', () => {
   });
 
   // Apex Unit Test Class
-  step('Create an Apex Unit Test Class', async () => {
+  it('Create an Apex Unit Test Class', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create an Apex Unit Test Class`);
     // Using the Command palette, run SFDX: Create Apex Unit Test Class.
     await createCommand('Apex Unit Test Class', 'ApexUnitTestClass1', 'classes', 'cls');
@@ -100,7 +99,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('ApexUnitTestClass1.cls-meta.xml')).to.equal(true);
   });
 
-  step('Verify the contents of the Apex Unit Test Class', async () => {
+  it('Verify the contents of the Apex Unit Test Class', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Apex Unit Test Class`);
     const expectedText = [
       '@isTest',
@@ -119,7 +118,7 @@ describe('Templates', () => {
   });
 
   // Apex Trigger
-  step('Create an Apex Trigger', async () => {
+  it('Create an Apex Trigger', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create an Apex Trigger`);
     // Using the Command palette, run "SFDX: Create Apex Trigger".
     await createCommand('Apex Trigger', 'ApexTrigger1', 'triggers', 'trigger');
@@ -133,7 +132,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('ApexTrigger1.trigger-meta.xml')).to.equal(true);
   });
 
-  step('Verify the contents of the Apex Trigger', async () => {
+  it('Verify the contents of the Apex Trigger', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Apex Trigger`);
     // Verify the default trigger.
     const expectedText = ['trigger ApexTrigger1 on SOBJECT (before insert) {', '', '}'].join('\n');
@@ -144,7 +143,7 @@ describe('Templates', () => {
   });
 
   // Aura App
-  step('Create an Aura App', async () => {
+  it('Create an Aura App', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create an Aura App`);
     // Clear the output panel, then use the Command palette to run, "SFDX: Create Aura App".
     const outputPanelText = await createCommand('Aura App', 'AuraApp1', path.join('aura', 'AuraApp1'), 'app');
@@ -180,7 +179,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('AuraApp1Renderer.js')).to.equal(true);
   });
 
-  step('Verify the contents of the Aura App', async () => {
+  it('Verify the contents of the Aura App', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Aura App`);
     // Verify the default code for an Aura App.
     const expectedText = ['<aura:application>', '', '</aura:application>'].join('\n');
@@ -191,7 +190,7 @@ describe('Templates', () => {
   });
 
   // Aura Component
-  step('Create an Aura Component', async () => {
+  it('Create an Aura Component', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create an Aura Component`);
     // Using the Command palette, run SFDX: Create Aura Component.
     await createCommand('Aura Component', 'auraComponent1', path.join('aura', 'auraComponent1'), 'cmp');
@@ -214,7 +213,7 @@ describe('Templates', () => {
     // and since this could change w/o our knowing, only check for what we need to here.
   });
 
-  step('Verify the contents of the Aura Component', async () => {
+  it('Verify the contents of the Aura Component', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Aura Component`);
     const expectedText = ['<aura:component>', '', '</aura:component>'].join('\n');
     const workbench = await getWorkbench();
@@ -224,7 +223,7 @@ describe('Templates', () => {
   });
 
   // Aura Event
-  step('Create an Aura Event', async () => {
+  it('Create an Aura Event', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create an Aura Event`);
     // Using the Command palette, run SFDX: Create Aura Component.
     await createCommand('Aura Event', 'auraEvent1', path.join('aura', 'auraEvent1'), 'evt');
@@ -239,7 +238,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('auraEvent1.evt-meta.xml')).to.equal(true);
   });
 
-  step('Verify the contents of the Aura Event', async () => {
+  it('Verify the contents of the Aura Event', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Aura Event`);
     const expectedText = ['<aura:event type="APPLICATION" description="Event template" />'].join('\n');
     const workbench = await getWorkbench();
@@ -249,7 +248,7 @@ describe('Templates', () => {
   });
 
   // Aura Interface
-  step('Create an Aura Interface', async () => {
+  it('Create an Aura Interface', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create an Aura Interface`);
     // Using the Command palette, run "SFDX: Create Aura Interface".
     await createCommand('Aura Interface', 'AuraInterface1', path.join('aura', 'AuraInterface1'), 'intf');
@@ -262,7 +261,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('AuraInterface1.intf-meta.xml')).to.equal(true);
   });
 
-  step('Verify the contents of the Aura Interface', async () => {
+  it('Verify the contents of the Aura Interface', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Aura Interface`);
     // Verify the default code for an Aura Interface.
     const expectedText = [
@@ -277,7 +276,7 @@ describe('Templates', () => {
   });
 
   // Lightning Web Component
-  step('Create Lightning Web Component', async () => {
+  it('Create Lightning Web Component', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create Lightning Web Component`);
     // Using the Command palette, run SFDX: Create Lightning Web Component.
     await createCommand(
@@ -302,7 +301,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('lightningWebComponent1.js-meta.xml')).to.equal(true);
   });
 
-  step('Verify the contents of the Lightning Web Component', async () => {
+  it('Verify the contents of the Lightning Web Component', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Lightning Web Component`);
     const expectedText = [
       "import { LightningElement } from 'lwc';",
@@ -394,7 +393,7 @@ describe('Templates', () => {
   });
 
   // Visualforce Component
-  step('Create a Visualforce Component', async () => {
+  it('Create a Visualforce Component', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create a Visualforce Component`);
     // Using the Command palette, run "SFDX: Create Visualforce Component".
     await createCommand('Visualforce Component', 'VisualforceCmp1', 'components', 'component');
@@ -405,7 +404,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('VisualforceCmp1.component-meta.xml')).to.equal(true);
   });
 
-  step('Verify the contents of the Visualforce Component', async () => {
+  it('Verify the contents of the Visualforce Component', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Visualforce Component`);
     // Verify the default code for a Visualforce Component.
     const expectedText = [
@@ -423,7 +422,7 @@ describe('Templates', () => {
   });
 
   // Visualforce Page
-  step('Create a Visualforce Page', async () => {
+  it('Create a Visualforce Page', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create a Visualforce Page`);
     // Using the Command palette, run "SFDX: Create Visualforce Page".
     await createCommand('Visualforce Page', 'VisualforcePage1', 'pages', 'page');
@@ -439,7 +438,7 @@ describe('Templates', () => {
     expect(filteredTreeViewItems.includes('VisualforcePage1.page-meta.xml')).to.equal(true);
   });
 
-  step('Verify the contents of the Visualforce Page', async () => {
+  it('Verify the contents of the Visualforce Page', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Visualforce Page`);
     // Verify the default code for a Visualforce Page.
     const expectedText = [
@@ -457,7 +456,7 @@ describe('Templates', () => {
   });
 
   // Sample Analytics Template
-  step('Create a Sample Analytics Template', async () => {
+  it('Create a Sample Analytics Template', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create a Sample Analytics Template`);
     // Clear the output panel, then use the Command palette to run, "SFDX: Create Sample Analytics Template".
     const workbench = await getWorkbench();
@@ -499,7 +498,7 @@ describe('Templates', () => {
     expect(treeViewItems.includes('variables.json')).to.equal(true);
   });
 
-  step('Verify the contents of the Sample Analytics Template', async () => {
+  it('Verify the contents of the Sample Analytics Template', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Sample Analytics Template`);
     // Verify the default code for a Sample Analytics Template.
     const workbench = await getWorkbench();

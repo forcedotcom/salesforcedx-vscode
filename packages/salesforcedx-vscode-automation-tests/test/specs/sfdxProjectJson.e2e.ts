@@ -18,7 +18,6 @@ import {
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { getTextEditor, getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
@@ -38,7 +37,7 @@ describe('Customize sfdx-project.json', () => {
     await reloadAndEnableExtensions();
   });
 
-  step('Verify our extensions are loaded after updating sfdx-project.json', async () => {
+  it('Verify our extensions are loaded after updating sfdx-project.json', async () => {
     expect(await verifyExtensionsAreRunning(getExtensionsToVerifyActive())).to.equal(true);
   });
 

@@ -19,7 +19,6 @@ import {
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import { after } from 'vscode-extension-tester';
 
 describe('SOQL', () => {
@@ -36,7 +35,7 @@ describe('SOQL', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
-  step('SFDX: Create Query in SOQL Builder', async () => {
+  it('SFDX: Create Query in SOQL Builder', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Create Query in SOQL Builder`);
     await pause(Duration.seconds(20));
     // Run SFDX: Create Query in SOQL Builder
@@ -50,7 +49,7 @@ describe('SOQL', () => {
     expect(title).to.equal('untitled.soql');
   });
 
-  step('Switch Between SOQL Builder and Text Editor - from SOQL Builder', async () => {
+  it('Switch Between SOQL Builder and Text Editor - from SOQL Builder', async () => {
     log(`${testSetup.testSuiteSuffixName} - Switch Between SOQL Builder and Text Editor - from SOQL Builder`);
 
     // Click Switch Between SOQL Builder and Text Editor
@@ -70,7 +69,7 @@ describe('SOQL', () => {
     expect(openTabs[2]).to.equal('untitled.soql');
   });
 
-  step('Switch Between SOQL Builder and Text Editor - from file', async () => {
+  it('Switch Between SOQL Builder and Text Editor - from file', async () => {
     log(`${testSetup.testSuiteSuffixName} - Switch Between SOQL Builder and Text Editor - from file`);
     await reloadWindow(Duration.seconds(5));
 

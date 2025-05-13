@@ -18,7 +18,6 @@ import {
   clickFilePathOkButton,
   verifyProjectLoaded
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { step } from 'mocha-steps';
 import { after } from 'vscode-extension-tester';
 
 describe('SFDX: Create Project', () => {
@@ -36,7 +35,7 @@ describe('SFDX: Create Project', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
-  step('Execute command SFDX: Create Project', async () => {
+  it('Execute command SFDX: Create Project', async () => {
     log('Starting command SFDX: Create Project...');
     const prompt = await executeQuickPick('SFDX: Create Project');
     await waitForQuickPick(prompt, 'Standard', {
@@ -59,7 +58,7 @@ describe('SFDX: Create Project', () => {
     await pause(Duration.seconds(2));
   });
 
-  step('Verify the project is created and open in the workspace', async () => {
+  it('Verify the project is created and open in the workspace', async () => {
     // Verify the project was created and was loaded.
     await verifyProjectLoaded(testSetup.tempProjectName);
   });

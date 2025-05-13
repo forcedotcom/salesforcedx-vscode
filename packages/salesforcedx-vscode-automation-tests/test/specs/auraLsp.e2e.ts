@@ -16,7 +16,6 @@ import {
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import { By, after } from 'vscode-extension-tester';
 
 describe('Aura LSP', () => {
@@ -58,7 +57,7 @@ describe('Aura LSP', () => {
     log(outputViewText);
   });
 
-  step('Go to Definition', async () => {
+  it('Go to Definition', async () => {
     log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
     // Get open text editor
     const workbench = await getWorkbench();
@@ -76,7 +75,7 @@ describe('Aura LSP', () => {
     expect(definition[1]).to.equal(27);
   });
 
-  step('Autocompletion', async () => {
+  it('Autocompletion', async () => {
     log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
     // Get open text editor
     const workbench = await getWorkbench();

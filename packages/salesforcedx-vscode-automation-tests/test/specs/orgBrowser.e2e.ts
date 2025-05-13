@@ -27,7 +27,6 @@ import {
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
 
 describe('Org Browser', () => {
@@ -44,7 +43,7 @@ describe('Org Browser', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
-  step('Check Org Browser is connected to target org', async () => {
+  it('Check Org Browser is connected to target org', async () => {
     log(`${testSetup.testSuiteSuffixName} - Check Org Browser is connected to target org`);
 
     await openOrgBrowser(Duration.seconds(10));
@@ -53,7 +52,7 @@ describe('Org Browser', () => {
     log(`${testSetup.testSuiteSuffixName} - Org Browser is connected to target org`);
   });
 
-  step('Check some metadata types are available', async () => {
+  it('Check some metadata types are available', async () => {
     log(`${testSetup.testSuiteSuffixName} - Check some metadata types are available`);
     const metadataTypes = [
       'AI Applications',
@@ -74,7 +73,7 @@ describe('Org Browser', () => {
     }
   });
 
-  step('Verify there are no Apex Classes available', async () => {
+  it('Verify there are no Apex Classes available', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify there are no Apex Classes available`);
     // Check there are no classes displayed
     const apexClassesLabelEl = await findTypeInOrgBrowser('Apex Classes');
@@ -85,7 +84,7 @@ describe('Org Browser', () => {
     expect(noCompsAvailableLabelEl).to.not.be.undefined;
   });
 
-  step('Create Apex Class and deploy to org', async () => {
+  it('Create Apex Class and deploy to org', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create Apex Class and deploy to org`);
 
     // Create Apex Class
@@ -103,7 +102,7 @@ describe('Org Browser', () => {
     await closeCurrentEditor();
   });
 
-  step('Refresh Org Browser and check MyClass is there', async () => {
+  it('Refresh Org Browser and check MyClass is there', async () => {
     log(`${testSetup.testSuiteSuffixName} - Refresh Apex Classes`);
     // Check MyClass is present under Apex Classes section
     const apexClassesItem = await findTypeInOrgBrowser('Apex Classes');
@@ -116,7 +115,7 @@ describe('Org Browser', () => {
     expect(myClassLabelEl).to.not.be.undefined;
   });
 
-  step('Retrieve This Source from Org', async () => {
+  it('Retrieve This Source from Org', async () => {
     log(`${testSetup.testSuiteSuffixName} - Retrieve This Source from Org`);
     const myClassLabelEl = await findTypeInOrgBrowser('MyClass');
     expect(myClassLabelEl).to.not.be.undefined;
@@ -134,7 +133,7 @@ describe('Org Browser', () => {
     await validateCommand('Retrieve', 'from', 'ST', 'ApexClass', ['MyClass']);
   });
 
-  step('Retrieve and Open Source', async () => {
+  it('Retrieve and Open Source', async () => {
     log(`${testSetup.testSuiteSuffixName} - Retrieve and Open Source`);
     // Close all notifications
     await dismissAllNotifications();

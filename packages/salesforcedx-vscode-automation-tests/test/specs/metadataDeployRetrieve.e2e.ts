@@ -19,7 +19,6 @@ import {
   closeAllEditors
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
@@ -48,7 +47,7 @@ describe('metadata mdDeployRetrieve', () => {
     );
   });
 
-  step('Open and deploy MD v1', async () => {
+  it('Open and deploy MD v1', async () => {
     log('mdDeployRetrieve - Open and deploy MD v1');
     await openFile(mdPath);
     textV1 = await attemptToFindTextEditorText(mdPath);
@@ -57,7 +56,7 @@ describe('metadata mdDeployRetrieve', () => {
     await closeAllEditors(); // close editor to make sure editor is up to date
   });
 
-  step('Update MD v2 and deploy again', async () => {
+  it('Update MD v2 and deploy again', async () => {
     log('mdDeployRetrieve - Update MD v2 and deploy again');
     await gitCheckout('updated-md', testSetup.projectFolderPath);
     await openFile(mdPath);
@@ -67,7 +66,7 @@ describe('metadata mdDeployRetrieve', () => {
     await clearOutputView();
   });
 
-  step('Retrieve MD v2 and verify the text not changed', async () => {
+  it('Retrieve MD v2 and verify the text not changed', async () => {
     log('mdDeployRetrieve - Retrieve MD v2 and verify the text not changed');
     await openFile(mdPath);
     await runAndValidateCommand('Retrieve', 'from', 'ST', 'CustomField', 'Account.Deploy_Test__c');

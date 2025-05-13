@@ -32,7 +32,6 @@ import {
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import { fail } from 'node:assert';
 import * as path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
@@ -63,7 +62,7 @@ describe('Run LWC Tests', () => {
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
   });
 
-  step('SFDX: Run All Lightning Web Component Tests from Command Palette', async () => {
+  it('SFDX: Run All Lightning Web Component Tests from Command Palette', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Run All Lightning Web Component Tests from Command Palette`);
 
     // Run SFDX: Run All Lightning Web Component Tests.
@@ -86,7 +85,7 @@ describe('Run LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  step('SFDX: Refresh Lightning Web Component Test Explorer', async () => {
+  it('SFDX: Refresh Lightning Web Component Test Explorer', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Refresh Lightning Web Component Test Explorer`);
     await executeQuickPick('Testing: Focus on LWC Tests View', Duration.seconds(1));
     // Run command SFDX: Refresh Lightning Web Component Test Explorer
@@ -119,7 +118,7 @@ describe('Run LWC Tests', () => {
     }
   });
 
-  step('Run All tests via Test Sidebar', async () => {
+  it('Run All tests via Test Sidebar', async () => {
     log(`${testSetup.testSuiteSuffixName} - Run All tests via Test Sidebar`);
     const workbench = getWorkbench();
     const lwcTestsSection = await getTestsSection(workbench, 'LWC Tests');
@@ -159,7 +158,7 @@ describe('Run LWC Tests', () => {
     }
   });
 
-  step('Run All Tests on a LWC via the Test Sidebar', async () => {
+  it('Run All Tests on a LWC via the Test Sidebar', async () => {
     log(`${testSetup.testSuiteSuffixName} - Run All Tests on a LWC via the Test Sidebar`);
     const workbench = getWorkbench();
 
@@ -184,7 +183,7 @@ describe('Run LWC Tests', () => {
     await closeAllEditors();
   });
 
-  step('Run Single Test via the Test Sidebar', async () => {
+  it('Run Single Test via the Test Sidebar', async () => {
     log(`${testSetup.testSuiteSuffixName} - Run Single Test via the Test Sidebar`);
     const workbench = getWorkbench();
 
@@ -207,7 +206,7 @@ describe('Run LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  step('SFDX: Navigate to Lightning Web Component Test', async () => {
+  it('SFDX: Navigate to Lightning Web Component Test', async () => {
     // Verify that having clicked the test case took us to the test file.
     await reloadWindow();
     await pause(Duration.seconds(10));
@@ -218,7 +217,7 @@ describe('Run LWC Tests', () => {
     expect(title).to.equal('lwc1.test.js');
   });
 
-  step('SFDX: Run Current Lightning Web Component Test File from Command Palette', async () => {
+  it('SFDX: Run Current Lightning Web Component Test File from Command Palette', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Run Current Lightning Web Component Test File`);
 
     // Run SFDX: Run Current Lightning Web Component Test File
@@ -268,7 +267,7 @@ describe('Run LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  step('Run Single Test via Code Lens action', async () => {
+  it('Run Single Test via Code Lens action', async () => {
     log(`${testSetup.testSuiteSuffixName} - Run Single Test via Code Lens action`);
 
     // Click the "Run Test" code lens at the top of one of the test methods
@@ -295,7 +294,7 @@ describe('Run LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  step('SFDX: Run Current Lightning Web Component Test File from main toolbar', async () => {
+  it('SFDX: Run Current Lightning Web Component Test File from main toolbar', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Run Current Lightning Web Component Test File from main toolbar`);
 
     // Run SFDX: Run Current Lightning Web Component Test File

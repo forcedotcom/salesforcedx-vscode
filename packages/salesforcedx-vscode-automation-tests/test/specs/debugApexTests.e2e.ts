@@ -27,7 +27,6 @@ import {
   dismissAllNotifications
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import { TreeItem, after } from 'vscode-extension-tester';
 
 describe('Debug Apex Tests', () => {
@@ -79,7 +78,7 @@ describe('Debug Apex Tests', () => {
     }
   });
 
-  step('Verify LSP finished indexing', async () => {
+  it('Verify LSP finished indexing', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
 
     // Get Apex LSP Status Bar
@@ -88,7 +87,7 @@ describe('Debug Apex Tests', () => {
     expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
 
-  step('Debug All Tests via Apex Class', async () => {
+  it('Debug All Tests via Apex Class', async () => {
     log('DebugApexTests - Debug All Tests via Apex Class');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass1Test.cls');
@@ -122,7 +121,7 @@ describe('Debug Apex Tests', () => {
     await continueDebugging(2, 30);
   });
 
-  step('Debug Single Test via Apex Class', async () => {
+  it('Debug Single Test via Apex Class', async () => {
     log('DebugApexTests - Debug Single Test via Apex Class');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass2Test.cls');
@@ -156,7 +155,7 @@ describe('Debug Apex Tests', () => {
     await continueDebugging(2, 30);
   });
 
-  step('Debug all Apex Methods on a Class via the Test Sidebar', async () => {
+  it('Debug all Apex Methods on a Class via the Test Sidebar', async () => {
     log('DebugApexTests - Debug All Apex Methods on a Class via the Test Sidebar');
     const workbench = getWorkbench();
     await executeQuickPick('Testing: Focus on Apex Tests View', Duration.seconds(1));
@@ -197,7 +196,7 @@ describe('Debug Apex Tests', () => {
     await continueDebugging(2, 30);
   });
 
-  step('Debug a Single Apex Test Method via the Test Sidebar', async () => {
+  it('Debug a Single Apex Test Method via the Test Sidebar', async () => {
     log("DebugApexTests - 'Debug Single Apex Test Method via the Test Sidebar");
     const workbench = getWorkbench();
     await executeQuickPick('Testing: Focus on Apex Tests View', Duration.seconds(1));

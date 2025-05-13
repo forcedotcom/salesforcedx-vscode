@@ -20,7 +20,6 @@ import {
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import { By, after } from 'vscode-extension-tester';
 
 describe('LWC LSP', () => {
@@ -44,7 +43,7 @@ describe('LWC LSP', () => {
     await reloadWindow(Duration.seconds(20));
   });
 
-  step('Go to Definition (JavaScript)', async () => {
+  it('Go to Definition (JavaScript)', async () => {
     log(`${testSetup.testSuiteSuffixName} - Go to Definition (Javascript)`);
     // Get open text editor
     const workbench = await getWorkbench();
@@ -63,7 +62,7 @@ describe('LWC LSP', () => {
     expect(title).to.equal('engine.d.ts');
   });
 
-  step('Go to Definition (HTML)', async () => {
+  it('Go to Definition (HTML)', async () => {
     if (process.platform !== 'win32') {
       log(`${testSetup.testSuiteSuffixName} - Go to Definition (HTML)`);
       // Get open text editor
@@ -84,7 +83,7 @@ describe('LWC LSP', () => {
     }
   });
 
-  step('Autocompletion', async () => {
+  it('Autocompletion', async () => {
     log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
     // Get open text editor
     const workbench = await getWorkbench().wait();
