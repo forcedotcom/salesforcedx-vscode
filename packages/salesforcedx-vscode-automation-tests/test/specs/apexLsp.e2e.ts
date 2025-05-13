@@ -27,7 +27,7 @@ import {
   selectQuickPickItem
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/commandPrompt';
 import { expect } from 'chai';
-import fs from 'node:fs';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
 

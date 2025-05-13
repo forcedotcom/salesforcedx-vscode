@@ -29,7 +29,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { step, xstep } from 'mocha-steps';
-import fs from 'node:fs';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
