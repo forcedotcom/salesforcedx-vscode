@@ -119,4 +119,4 @@ jobs:
         if: ${{ inputs.testToRun }} == 'createOASDoc'
         with:
           name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./packages/salesforcedx-vscode-automation-tests/e2e-temp/TempProject-CreateOASDoc/llm-logs
+          path: ./salesforcedx-vscode/e2e-temp/TempProject-CreateOASDoc/llm-logs
