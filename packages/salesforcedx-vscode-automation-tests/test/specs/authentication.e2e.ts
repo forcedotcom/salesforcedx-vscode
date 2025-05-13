@@ -25,10 +25,9 @@ import {
   notificationIsPresentWithTimeout
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import { By, InputBox, after } from 'vscode-extension-tester';
 
-describe('Authentication', async () => {
+describe('Authentication', () => {
   let scratchOrgAliasName: string;
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
@@ -39,11 +38,18 @@ describe('Authentication', async () => {
     testSuiteSuffixName: 'Authentication'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
-  step('Run SFDX: Authorize a Dev Hub', async () => {
+  // Since tests are sequential, we need to skip the rest of the tests if one fails
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
+  it('Run SFDX: Authorize a Dev Hub', async () => {
     // In the initial state, the org picker button should be set to "No Default Org Set".
     const noDefaultOrgSetItem = await getStatusBarItemWhichIncludes('No Default Org Set');
     expect(noDefaultOrgSetItem).to.not.be.undefined;
@@ -52,7 +58,7 @@ describe('Authentication', async () => {
     await authorizeDevHub(testSetup);
   });
 
-  step('Run SFDX: Set a Default Org', async () => {
+  it('Run SFDX: Set a Default Org', async () => {
     // This is "SFDX: Set a Default Org", using the button in the status bar.
     // Could also run the command, "SFDX: Set a Default Org" but this exercises more UI elements.
 
@@ -86,7 +92,7 @@ describe('Authentication', async () => {
 
     if (expectedSfdxCommands.length !== foundSfdxCommands.length) {
       // Something is wrong - the count of matching menus isn't what we expected.
-      expectedSfdxCommands.forEach(async expectedSfdxCommand => {
+      expectedSfdxCommands.forEach(expectedSfdxCommand => {
         expect(foundSfdxCommands).to.contain(expectedSfdxCommand);
       });
     }
@@ -121,7 +127,7 @@ describe('Authentication', async () => {
     expect(vscodeOrgItem).to.not.be.undefined;
   });
 
-  step('Run SFDX: Create a Default Scratch Org', async () => {
+  it('Run SFDX: Create a Default Scratch Org', async () => {
     const prompt = await executeQuickPick('SFDX: Create a Default Scratch Org...', Duration.seconds(1));
 
     // Select a project scratch definition file (config/project-scratch-def.json)
@@ -194,7 +200,7 @@ describe('Authentication', async () => {
     expect(scratchOrgStatusBarItem).to.not.be.undefined;
   });
 
-  step('Run SFDX: Set the Scratch Org As the Default Org', async () => {
+  it('Run SFDX: Set the Scratch Org As the Default Org', async () => {
     const inputBox = await executeQuickPick('SFDX: Set a Default Org', Duration.seconds(10));
 
     const scratchOrgQuickPickItemWasFound = await findQuickPickItem(inputBox, scratchOrgAliasName, false, true);

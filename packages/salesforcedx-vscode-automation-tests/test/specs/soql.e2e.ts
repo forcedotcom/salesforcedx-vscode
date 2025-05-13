@@ -4,8 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration, log, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  Duration,
+  log,
+  pause,
+  TestReqConfig,
+  ProjectShapeOption
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
@@ -14,10 +19,10 @@ import {
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
+import { step } from 'mocha-steps';
 import { after } from 'vscode-extension-tester';
 
-describe('SOQL', async () => {
+describe('SOQL', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -27,7 +32,7 @@ describe('SOQL', async () => {
     testSuiteSuffixName: 'SOQL'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
@@ -76,15 +81,15 @@ describe('SOQL', async () => {
     expect(toggleSOQLButton).to.not.be.undefined;
   });
 
-  xstep('Verify the contents of the SOQL Builder', async () => {
+  it.skip('Verify the contents of the SOQL Builder', async () => {
     //TODO
   });
 
-  xstep('Create query in SOQL Builder', async () => {
+  it.skip('Create query in SOQL Builder', async () => {
     //TODO
   });
 
-  xstep('Verify the contents of the soql file', async () => {
+  it.skip('Verify the contents of the soql file', async () => {
     const expectedText = ['SELECT COUNT()', 'from Account'].join('\n');
     const workbench = await getWorkbench();
     const textEditor = await getTextEditor(workbench, 'countAccounts.soql');

@@ -4,10 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration, log, pause, ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import {
+  Duration,
+  log,
+  pause,
+  ProjectShapeOption,
+  TestReqConfig
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  installJestUTToolsForLwc,
+  createLwc
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import {
   getTestsSection,
   runTestCaseFromSideBar,
@@ -25,12 +32,12 @@ import {
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
+import { step } from 'mocha-steps';
 import { fail } from 'node:assert';
 import * as path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
 
-describe('Run LWC Tests', async () => {
+describe('Run LWC Tests', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -40,7 +47,7 @@ describe('Run LWC Tests', async () => {
     testSuiteSuffixName: 'RunLWCTests'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Close both Welcome and Running Extensions tabs
@@ -233,7 +240,7 @@ describe('Run LWC Tests', async () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  xstep('Run All Tests via Code Lens action', async () => {
+  it.skip('Run All Tests via Code Lens action', async () => {
     // Skipping as this feature is currently not working
     log(`${testSetup.testSuiteSuffixName} - Run All Tests via Code Lens action`);
     const workbench = getWorkbench();

@@ -26,7 +26,7 @@ import {
   getVisibleItemsFromSidebar
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
+import { step } from 'mocha-steps';
 import * as child_process from 'node:child_process';
 import * as path from 'node:path';
 import * as util from 'node:util';
@@ -35,7 +35,7 @@ import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
 
 const exec = util.promisify(child_process.exec);
 
-describe('Templates', async () => {
+describe('Templates', () => {
   let testSetup: TestSetup;
   let projectName: string;
   const testReqConfig: TestReqConfig = {
@@ -47,7 +47,7 @@ describe('Templates', async () => {
   };
 
   // Set up
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('Templates - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectName = testSetup.tempProjectName;
@@ -316,7 +316,7 @@ describe('Templates', async () => {
   });
 
   // Lightning Web Component Test
-  xstep('Create Lightning Web Component Test', async () => {
+  it.skip('Create Lightning Web Component Test', async () => {
     log(`${testSetup.testSuiteSuffixName} - Create Lightning Web Component Test`);
     // Delete previous test file
     const workbench = await getWorkbench();
@@ -329,7 +329,7 @@ describe('Templates', async () => {
       '__tests__',
       'lightningWebComponent1.test.js'
     );
-    exec(process.platform === 'win32' ? `del ${pathToLwcTest}` : `rm ${pathToLwcTest}`, {
+    await exec(process.platform === 'win32' ? `del ${pathToLwcTest}` : `rm ${pathToLwcTest}`, {
       cwd: testSetup.projectFolderPath
     });
 
@@ -364,7 +364,7 @@ describe('Templates', async () => {
     expect(testItem).to.not.be.undefined;
   });
 
-  xstep('Verify the contents of the Lightning Web Component Test', async () => {
+  it.skip('Verify the contents of the Lightning Web Component Test', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify the contents of the Lightning Web Component Test`);
     const expectedText = [
       "import { createElement } from 'lwc';",

@@ -27,7 +27,6 @@ import {
   selectQuickPickItem
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/commandPrompt';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import fs from 'node:fs';
 import * as path from 'node:path';
 import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
@@ -217,7 +216,7 @@ const testStatusBarRestart = async (testSetup: TestSetup, cleanDb: boolean): Pro
   }
 };
 
-describe('Apex LSP', async () => {
+describe('Apex LSP', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -227,36 +226,42 @@ describe('Apex LSP', async () => {
     testSuiteSuffixName: 'ApexLsp'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     await setupTestEnvironment(testSetup);
   });
 
-  step('Verify LSP finished indexing', async () => {
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
+  it('Verify LSP finished indexing', async () => {
     await verifyIndexing(testSetup);
   });
 
-  step('Go to Definition', async () => {
+  it('Go to Definition', async () => {
     await testGoToDefinition(testSetup);
   });
 
-  step('Autocompletion', async () => {
+  it('Autocompletion', async () => {
     await testAutocompletion(testSetup);
   });
 
-  step('Restart LSP alone via Command Palette', async () => {
+  it('Restart LSP alone via Command Palette', async () => {
     await testLspRestart(testSetup, false);
   });
 
-  step('Restart LSP with cleaned db via Command Palette', async () => {
+  it('Restart LSP with cleaned db via Command Palette', async () => {
     await testLspRestart(testSetup, true);
   });
 
-  step('Verify LSP can restart alone via Status Bar', async () => {
+  it('Verify LSP can restart alone via Status Bar', async () => {
     await testStatusBarRestart(testSetup, false);
   });
 
-  step('Verify LSP can restart with cleaned db via Status Bar', async () => {
+  it('Verify LSP can restart with cleaned db via Status Bar', async () => {
     await testStatusBarRestart(testSetup, true);
   });
 

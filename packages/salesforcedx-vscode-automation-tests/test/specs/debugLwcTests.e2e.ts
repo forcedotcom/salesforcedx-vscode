@@ -36,7 +36,7 @@ import { fail } from 'node:assert';
 import * as path from 'node:path';
 import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
 
-describe('Debug LWC Tests', async () => {
+describe('Debug LWC Tests', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -46,7 +46,7 @@ describe('Debug LWC Tests', async () => {
     testSuiteSuffixName: 'DebugLWCTests'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Close both Welcome and Running Extensions tabs

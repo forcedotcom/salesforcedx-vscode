@@ -4,8 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { openFile, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  openFile,
+  pause,
+  TestReqConfig,
+  ProjectShapeOption
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import {
   getExtensionsToVerifyActive,
   reloadAndEnableExtensions,
@@ -18,7 +22,7 @@ import { step } from 'mocha-steps';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
-describe('Customize sfdx-project.json', async () => {
+describe('Customize sfdx-project.json', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -28,7 +32,7 @@ describe('Customize sfdx-project.json', async () => {
     testSuiteSuffixName: 'sfdxProjectJson'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     await createSfdxProjectJsonWithAllFields(testSetup);
     await reloadAndEnableExtensions();

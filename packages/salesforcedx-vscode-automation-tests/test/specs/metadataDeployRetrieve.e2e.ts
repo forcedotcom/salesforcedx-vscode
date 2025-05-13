@@ -4,9 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { log, openFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  log,
+  openFile,
+  TestReqConfig,
+  ProjectShapeOption
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { runAndValidateCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { gitCheckout } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
@@ -21,7 +24,7 @@ import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
 // In future we will merge the test together with deployAndRetrieve
-describe('metadata mdDeployRetrieve', async () => {
+describe('metadata mdDeployRetrieve', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -36,7 +39,7 @@ describe('metadata mdDeployRetrieve', async () => {
   let textV2: string;
   let textV2AfterRetrieve: string;
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('mdDeployRetrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     mdPath = path.join(

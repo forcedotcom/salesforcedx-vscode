@@ -4,21 +4,26 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  Duration,
+  pause,
+  log,
+  ProjectShapeOption,
+  TestReqConfig
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { executeQuickPick } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { getTextEditor } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
-import { reloadWindow } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import {
+  executeQuickPick,
+  getWorkbench,
+  getTextEditor,
+  reloadWindow
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import { By, after } from 'vscode-extension-tester';
 
-describe('LWC LSP', async () => {
+describe('LWC LSP', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -28,7 +33,7 @@ describe('LWC LSP', async () => {
     testSuiteSuffixName: 'LwcLsp'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('LwcLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 

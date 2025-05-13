@@ -30,7 +30,7 @@ import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import { TreeItem, after } from 'vscode-extension-tester';
 
-describe('Debug Apex Tests', async () => {
+describe('Debug Apex Tests', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -40,7 +40,7 @@ describe('Debug Apex Tests', async () => {
     testSuiteSuffixName: 'DebugApexTests'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('DebugApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 

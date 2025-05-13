@@ -4,8 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration, log, pause, TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  Duration,
+  log,
+  TestReqConfig,
+  ProjectShapeOption,
+  pause
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import {
   createApexClassWithBugs,
   createApexClassWithTest
@@ -33,7 +38,7 @@ import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
 
-describe('Run Apex Tests', async () => {
+describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
@@ -44,7 +49,7 @@ describe('Run Apex Tests', async () => {
     testSuiteSuffixName: 'RunApexTests'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('RunApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
@@ -52,6 +57,7 @@ describe('Run Apex Tests', async () => {
     try {
       await createApexClassWithTest('ExampleApexClass1');
     } catch (error) {
+      log(`RunApexTests - Error creating Apex class 1 and test ${JSON.stringify(error)}`);
       await createApexClassWithTest('ExampleApexClass1');
     }
 
@@ -59,6 +65,7 @@ describe('Run Apex Tests', async () => {
     try {
       await createApexClassWithTest('ExampleApexClass2');
     } catch (error) {
+      log(`RunApexTests - Error creating Apex class 2 and test ${JSON.stringify(error)}`);
       await createApexClassWithTest('ExampleApexClass2');
     }
 
@@ -66,6 +73,7 @@ describe('Run Apex Tests', async () => {
     try {
       await createApexClassWithTest('ExampleApexClass3');
     } catch (error) {
+      log(`RunApexTests - Error creating Apex class 3 and test ${JSON.stringify(error)}`);
       await createApexClassWithTest('ExampleApexClass3');
     }
 
@@ -81,6 +89,7 @@ describe('Run Apex Tests', async () => {
       );
       expect(successPushNotificationWasFound).to.equal(true);
     } catch (error) {
+      log(`RunApexTests - Error pushing source to org ${JSON.stringify(error)}`);
       await getWorkbench().openNotificationsCenter();
       successPushNotificationWasFound = await notificationIsPresentWithTimeout(
         /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,

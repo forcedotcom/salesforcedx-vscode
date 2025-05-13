@@ -8,10 +8,10 @@ import {
   Duration,
   findElementByText,
   pause,
-  TestReqConfig
+  TestReqConfig,
+  ProjectShapeOption,
+  log
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import {
   createApexClass,
   findTypeInOrgBrowser,
@@ -30,7 +30,7 @@ import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
 
-describe('Org Browser', async () => {
+describe('Org Browser', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -40,7 +40,7 @@ describe('Org Browser', async () => {
     testSuiteSuffixName: 'OrgBrowser'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 

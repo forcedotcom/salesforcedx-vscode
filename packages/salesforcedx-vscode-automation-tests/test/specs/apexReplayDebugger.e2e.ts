@@ -28,11 +28,10 @@ import {
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 
-describe('Apex Replay Debugger', async () => {
+describe('Apex Replay Debugger', () => {
   let prompt: QuickOpenBox | InputBox;
   let testSetup: TestSetup;
   let projectFolderPath: string;
@@ -45,7 +44,7 @@ describe('Apex Replay Debugger', async () => {
     testSuiteSuffixName: 'ApexReplayDebugger'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('ApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectFolderPath = testSetup.projectFolderPath!;
@@ -73,7 +72,14 @@ describe('Apex Replay Debugger', async () => {
     }
   });
 
-  step('Verify LSP finished indexing', async () => {
+  // Since tests are sequential, we need to skip the rest of the tests if one fails
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
+  it('Verify LSP finished indexing', async () => {
     log('ApexReplayDebugger - Verify LSP finished indexing');
 
     // Get Apex LSP Status Bar
@@ -82,7 +88,7 @@ describe('Apex Replay Debugger', async () => {
     expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
 
-  step('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
+  it('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
     log('ApexReplayDebugger - SFDX: Turn On Apex Debug Log for Replay Debugger');
 
     // Clear output before running the command
@@ -119,7 +125,7 @@ describe('Apex Replay Debugger', async () => {
     expect(outputPanelText).to.contain('ended with exit code 0');
   });
 
-  step('Run the Anonymous Apex Debugger with Currently Selected Text', async () => {
+  it('Run the Anonymous Apex Debugger with Currently Selected Text', async () => {
     log('ApexReplayDebugger - Run the Anonymous Apex Debugger with Currently Selected Text');
 
     // Clear output before running the command
@@ -156,7 +162,7 @@ describe('Apex Replay Debugger', async () => {
     expect(outputPanelText).to.contain('ended Execute Anonymous Apex');
   });
 
-  step('SFDX: Get Apex Debug Logs', async () => {
+  it('SFDX: Get Apex Debug Logs', async () => {
     log('ApexReplayDebugger - SFDX: Get Apex Debug Logs');
 
     // Run SFDX: Get Apex Debug Logs
@@ -199,7 +205,7 @@ describe('Apex Replay Debugger', async () => {
     expect(executionFinished).to.be.greaterThanOrEqual(1);
   });
 
-  step('SFDX: Launch Apex Replay Debugger with Last Log File', async () => {
+  it('SFDX: Launch Apex Replay Debugger with Last Log File', async () => {
     log('ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Last Log File');
 
     // Get open text editor
@@ -224,7 +230,7 @@ describe('Apex Replay Debugger', async () => {
     await continueDebugging(2, 30);
   });
 
-  step('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
+  it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
     log('ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
 
     const workbench = getWorkbench();
@@ -237,7 +243,7 @@ describe('Apex Replay Debugger', async () => {
     await continueDebugging(2, 30);
   });
 
-  step('SFDX: Launch Apex Replay Debugger with Current File - test class', async () => {
+  it('SFDX: Launch Apex Replay Debugger with Current File - test class', async () => {
     log('ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - test class');
 
     // Run SFDX: Launch Apex Replay Debugger with Current File
@@ -255,7 +261,7 @@ describe('Apex Replay Debugger', async () => {
     expect(successNotificationWasFound).to.equal(true);
   });
 
-  step('Run the Anonymous Apex Debugger using the Command Palette', async () => {
+  it('Run the Anonymous Apex Debugger using the Command Palette', async () => {
     log('ApexReplayDebugger - Run the Anonymous Apex Debugger using the Command Palette');
 
     // Clear output before running the command
@@ -283,7 +289,7 @@ describe('Apex Replay Debugger', async () => {
     expect(outputPanelText).to.contain('ended Execute Anonymous Apex');
   });
 
-  step('SFDX: Turn Off Apex Debug Log for Replay Debugger', async () => {
+  it('SFDX: Turn Off Apex Debug Log for Replay Debugger', async () => {
     log('ApexReplayDebugger - SFDX: Turn Off Apex Debug Log for Replay Debugger');
 
     // Run SFDX: Turn Off Apex Debug Log for Replay Debugger

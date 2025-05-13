@@ -23,10 +23,11 @@ import {
   enableBooleanSetting,
   isBooleanSettingEnabled
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
-import { getExtensionsToVerifyActive } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
-import { verifyExtensionsAreRunning } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import {
+  getExtensionsToVerifyActive,
+  verifyExtensionsAreRunning
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import {
   acceptNotification,
   attemptToFindOutputPanelText,
@@ -36,14 +37,15 @@ import {
   getTextEditor,
   notificationIsPresentWithTimeout,
   reloadWindow,
-  verifyOutputPanelText
+  verifyOutputPanelText,
+  getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
 
-describe('Deploy and Retrieve', async () => {
+describe('Deploy and Retrieve', () => {
   const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'MyClass');
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
@@ -53,7 +55,7 @@ describe('Deploy and Retrieve', async () => {
     isOrgRequired: true,
     testSuiteSuffixName: 'DeployAndRetrieve'
   };
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('Deploy and Retrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 

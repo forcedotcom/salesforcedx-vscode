@@ -26,11 +26,11 @@ import {
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
+import { step } from 'mocha-steps';
 import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 
-describe('Visualforce LSP', async () => {
+describe('Visualforce LSP', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -40,7 +40,7 @@ describe('Visualforce LSP', async () => {
     testSuiteSuffixName: 'VisualforceLsp'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('VisualforceLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
@@ -79,7 +79,7 @@ describe('Visualforce LSP', async () => {
     expect(fileContent).to.contain('</apex:page>');
   });
 
-  xstep('Go to Definition', async () => {
+  it.skip('Go to Definition', async () => {
     log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
     // Get open text editor
     const workbench = await getWorkbench();

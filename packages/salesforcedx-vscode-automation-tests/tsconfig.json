@@ -8,6 +8,6 @@
     "types": ["node"],
     "target": "ES2020"
   },
-  "include": ["./test/**/*.ts"],
+  "include": ["./test/**/*.ts", "./test/customSummaryReporter.ts"],
   "exclude": ["node_modules", "lib"]
 }

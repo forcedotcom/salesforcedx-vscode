@@ -4,9 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { Duration, TestReqConfig, ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
 import { createAura } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
@@ -21,7 +19,7 @@ import { expect } from 'chai';
 import { step } from 'mocha-steps';
 import { By, after } from 'vscode-extension-tester';
 
-describe('Aura LSP', async () => {
+describe('Aura LSP', () => {
   let testSetup: TestSetup;
 
   const testReqConfig: TestReqConfig = {
@@ -32,7 +30,7 @@ describe('Aura LSP', async () => {
     testSuiteSuffixName: 'AuraLsp'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('AuraLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
@@ -43,7 +41,14 @@ describe('Aura LSP', async () => {
     await reloadWindow(Duration.seconds(20));
   });
 
-  step('Verify LSP finished indexing', async () => {
+  // Since tests are sequential, we need to skip the rest of the tests if one fails
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
+  it('Verify LSP finished indexing', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
 
     // Get output text from the LSP

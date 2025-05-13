@@ -21,7 +21,7 @@ import {
 import { step } from 'mocha-steps';
 import { after } from 'vscode-extension-tester';
 
-describe('SFDX: Create Project', async () => {
+describe('SFDX: Create Project', () => {
   let testSetup: TestSetup;
 
   const testReqConfig: TestReqConfig = {
@@ -32,7 +32,7 @@ describe('SFDX: Create Project', async () => {
     testSuiteSuffixName: 'sfdxCreateProject'
   };
 
-  step('Set up testing environment', async () => {
+  before('Set up testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 

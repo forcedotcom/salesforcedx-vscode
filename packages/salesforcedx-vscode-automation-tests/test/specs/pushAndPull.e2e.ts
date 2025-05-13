@@ -10,10 +10,10 @@ import {
   Duration,
   log,
   pause,
-  transformedUserName
+  transformedUserName,
+  ProjectShapeOption,
+  TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { TestReqConfig } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { createUser } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
@@ -33,7 +33,7 @@ import fs from 'node:fs';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 
-describe('Push and Pull', async () => {
+describe('Push and Pull', () => {
   let adminName = '';
   let adminEmailAddress = '';
   let testSetup1: TestSetup;
@@ -46,7 +46,7 @@ describe('Push and Pull', async () => {
     testSuiteSuffixName: 'PushAndPull'
   };
 
-  step('Set up the testing environment', async () => {
+  before('Set up the testing environment', async () => {
     log('Push And Pull - Set up the testing environment');
     testSetup1 = await TestSetup.setUp(testReqConfig);
   });

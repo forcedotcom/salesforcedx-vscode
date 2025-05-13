@@ -7,5 +7,6 @@
     "ts"
   ],
   "slow": 75,
-  "exit": true
+  "exit": true,
+  "reporter": "./packages/salesforcedx-vscode-automation-tests/lib/test/customSummaryReporter.js"
 }
