@@ -24,13 +24,13 @@ const readYamlFile = (filename: string): string => {
   return fs.readFileSync(filePath, 'utf8');
 };
 
-export const getIdealCaseManagerOASDoc = (): string => readXmlFile('idealCaseManagerOASDoc.xml');
+export const getIdealCaseManagerOASDoc = (): string => readXmlFile('./files/idealCaseManagerOASDoc.xml');
 
 export const getSfdxProjectJson = (): string => {
   const project = readJsonFile('sfdxProject.json');
   return JSON.stringify(project, null, 2);
 };
 
-export const getIdealSimpleAccountResourceYaml = (): string => readYamlFile('idealSimpleAccountResource.yaml');
+export const getIdealSimpleAccountResourceYaml = (): string => readYamlFile('./files/idealSimpleAccountResource.yaml');
 
-export const getIdealSimpleAccountResourceXml = (): string => readXmlFile('idealSimpleAccountResource.xml');
+export const getIdealSimpleAccountResourceXml = (): string => readXmlFile('./files/idealSimpleAccountResource.xml');
