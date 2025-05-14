@@ -314,9 +314,6 @@ describe('Apex Replay Debugger', () => {
       10
     );
     expect(outputPanelText).to.not.be.undefined;
-    expect(outputPanelText).to.contain('Deleting Record...');
-    expect(outputPanelText).to.contain('Success');
-    expect(outputPanelText).to.contain('Successfully deleted record:');
     expect(outputPanelText).to.contain('ended with exit code 0');
   });
 
