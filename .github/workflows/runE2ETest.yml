@@ -37,17 +37,6 @@ jobs:
         with:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
-      - name: Download extension vsixes
-        run: |
-          mkdir ./extensions
-          pwd
-          gh run download ${{ inputs.runId }} -D ./extensions
-          mv ./extensions/*/* ./extensions/
-        working-directory: salesforcedx-vscode
-        env:
-          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-      - name: Display downloaded vsix files
-        run: ls -R ./salesforcedx-vscode/extensions
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -60,48 +49,55 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
-      - name: Install Test Dependencies
-        run: |
-          npm install
-        working-directory: salesforcedx-vscode
-      - name: Install the Salesforce CLI
-        run: npm install -g @salesforce/cli
-      - name: Verify CLI
-        shell: bash
-        run: |
-          set -e
-          sf version
-          SF_CLI_VERSION=$(sf version)
-          if [[ ((`echo $SF_CLI_VERSION | grep -c "@salesforce/cli/"` > 0))]]
-          then
-            echo "@salesforce/cli installed -" $SF_CLI_VERSION
-          else
-            echo "The @salesforce/cli installation could not be verified"
-            exit 1
-          fi
-      - name: Set THROTTLE_FACTOR for macOS and Linux
-        if: matrix.os != 'windows-latest'
-        run: echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
-      - name: Set THROTTLE_FACTOR for Windows
-        if: matrix.os == 'windows-latest'
-        run: echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
-      - name: Compile packages
-        run: npm run compile
-        working-directory: salesforcedx-vscode
-      - name: List all files in specs folder and save to variable
-        id: list_specs
-        run: |
-          ls packages/salesforcedx-vscode-automation-tests/lib/test/specs/*.e2e.js > specs_files.txt
-          cat specs_files.txt
-          echo "specs_files=$(cat specs_files.txt | jq -R . | jq -sc .)" >> $GITHUB_OUTPUT
-        working-directory: salesforcedx-vscode
-      - name: Run headless test with retries
+      - name: Run all steps with retries
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 4
           command: |
-            npm run gha-automation-tests --prefix salesforcedx-vscode --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
+            cd salesforcedx-vscode
+
+            # Clean extensions directory
+            rm -rf ./extensions
+
+            # Download extension vsixes
+            mkdir ./extensions
+            pwd
+            gh run download ${{ inputs.runId }} -D ./extensions
+            mv ./extensions/*/* ./extensions/
+
+            # Display downloaded vsix files
+            ls -R ./extensions
+
+            # Install dependencies
+            npm install
+            npm install -g @salesforce/cli
+
+            # Verify CLI
+            set -e
+            sf version
+            SF_CLI_VERSION=$(sf version)
+            if [[ ((`echo $SF_CLI_VERSION | grep -c "@salesforce/cli/"` > 0))]]
+            then
+              echo "@salesforce/cli installed -" $SF_CLI_VERSION
+            else
+              echo "The @salesforce/cli installation could not be verified"
+              exit 1
+            fi
+
+            # Set THROTTLE_FACTOR
+            if [ "${{ matrix.os }}" != "windows-latest" ]; then
+              echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
+            else
+              echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
+            fi
+
+            # Compile packages
+            npm run compile
+
+            # Run headless test
+            npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
         env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SPEC_FILES: ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
