@@ -30,6 +30,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
+import { verifyNotificationWithRetry } from '../utils/retryUtils';
 
 describe('Apex Replay Debugger', () => {
   let prompt: QuickOpenBox | InputBox;
@@ -55,22 +56,10 @@ describe('Apex Replay Debugger', () => {
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
-    let successPushNotificationWasFound;
-    try {
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    } catch (error) {
-      log(`ApexReplayDebugger - Set up the testing environment - Error: ${JSON.stringify(error)}, trying again...`);
-      await getWorkbench().openNotificationsCenter();
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
   });
 
   // Since tests are sequential, we need to skip the rest of the tests if one fails
@@ -99,24 +88,10 @@ describe('Apex Replay Debugger', () => {
     await executeQuickPick('SFDX: Turn On Apex Debug Log for Replay Debugger', Duration.seconds(10));
 
     // Look for the success notification that appears which says, "SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      log(
-        `ApexReplayDebugger - SFDX: Turn On Apex Debug Log for Replay Debugger - Error: ${JSON.stringify(error)}, trying again...`
-      );
-      await getWorkbench().openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(
+      /SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran/,
+      Duration.TEN_MINUTES
+    );
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText(

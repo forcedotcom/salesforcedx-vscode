@@ -20,7 +20,6 @@ import {
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
-  notificationIsPresentWithTimeout,
   getWorkbench,
   getStatusBarItemWhichIncludes,
   getTextEditor,
@@ -28,6 +27,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { TreeItem, after } from 'vscode-extension-tester';
+import { verifyNotificationWithRetry, retryOperation } from '../utils/retryUtils';
 
 describe('Debug Apex Tests', () => {
   let testSetup: TestSetup;
@@ -44,38 +44,27 @@ describe('Debug Apex Tests', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Apex class 1 and test
-    try {
-      await createApexClassWithTest('ExampleApexClass1');
-    } catch (error) {
-      await createApexClassWithTest('ExampleApexClass1');
-    }
+    await retryOperation(
+      () => createApexClassWithTest('ExampleApexClass1'),
+      2,
+      'DebugApexTests - Error creating Apex class ExampleApexClass1'
+    );
 
     // Create Apex class 2 and test
-    try {
-      await createApexClassWithTest('ExampleApexClass2');
-    } catch (error) {
-      await createApexClassWithTest('ExampleApexClass2');
-    }
+    await retryOperation(
+      () => createApexClassWithTest('ExampleApexClass2'),
+      2,
+      'DebugApexTests - Error creating Apex class ExampleApexClass2'
+    );
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    let successPushNotificationWasFound;
-    try {
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -101,21 +90,7 @@ describe('Debug Apex Tests', () => {
     await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Debug Test\(s\) successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await workbench.openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Debug Test\(s\) successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -135,21 +110,7 @@ describe('Debug Apex Tests', () => {
     await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Debug Test\(s\) successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await workbench.openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Debug Test\(s\) successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -176,21 +137,7 @@ describe('Debug Apex Tests', () => {
     await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Debug Test\(s\) successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await workbench.openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Debug Test\(s\) successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -214,21 +161,7 @@ describe('Debug Apex Tests', () => {
     await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Debug Test\(s\) successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await workbench.openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Debug Test\(s\) successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
 
     // Continue with the debug session
     await continueDebugging(2, 30);

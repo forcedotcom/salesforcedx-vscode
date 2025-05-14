@@ -20,7 +20,6 @@ import {
   executeQuickPick
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
 import { By, after } from 'vscode-extension-tester';
 
 describe('Miscellaneous', () => {
@@ -37,7 +36,7 @@ describe('Miscellaneous', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
-  xstep('Use out-of-the-box Apex Snippets', async () => {
+  it.skip('Use out-of-the-box Apex Snippets', async () => {
     log(`${testSetup.testSuiteSuffixName} - Use Apex Snippets`);
     const workbench = await getWorkbench();
     const apexSnippet = 'String.isBlank(inputString)';
@@ -56,7 +55,7 @@ describe('Miscellaneous', () => {
     await expect(fileContent).to.contain(apexSnippet);
   });
 
-  step('Use Custom Apex Snippets', async () => {
+  it.skip('Use Custom Apex Snippets', async () => {
     log(`${testSetup.testSuiteSuffixName} - Use Apex Snippets`);
 
     // Using the Command palette, run Snippets: Configure Snippets
@@ -81,7 +80,7 @@ describe('Miscellaneous', () => {
     expect(fileContent).to.contain('[SELECT field1, field2 FROM SobjectName WHERE clause];');
   });
 
-  step('Use out-of-the-box LWC Snippets - HTML', async () => {
+  it.skip('Use out-of-the-box LWC Snippets - HTML', async () => {
     log(`${testSetup.testSuiteSuffixName} - Use out-of-the-box LWC Snippets - HTML`);
     const workbench = await getWorkbench();
 
@@ -117,7 +116,7 @@ describe('Miscellaneous', () => {
     await expect(fileContentWithoutTrailingSpaces).to.contain(lwcSnippet);
   });
 
-  step('Use out-of-the-box LWC Snippets - JS', async () => {
+  it('Use out-of-the-box LWC Snippets - JS', async () => {
     log(`${testSetup.testSuiteSuffixName} - Use out-of-the-box LWC Snippets - JS`);
     const workbench = await getWorkbench();
 

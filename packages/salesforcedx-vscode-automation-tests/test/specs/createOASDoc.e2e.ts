@@ -48,6 +48,7 @@ import {
   ExtensionsViewItem,
   DefaultTreeItem
 } from 'vscode-extension-tester';
+import { verifyNotificationWithRetry, retryOperation } from '../utils/retryUtils';
 
 describe('Create OpenAPI v3 Specifications', () => {
   let prompt: QuickOpenBox | InputBox;
@@ -104,12 +105,11 @@ describe('Create OpenAPI v3 Specifications', () => {
       '}'
     ].join('\n');
 
-    try {
-      await createApexClass('CaseManager', caseManagerText);
-    } catch (error) {
-      log(`CreateOASDoc - Error creating Apex class CaseManager ${JSON.stringify(error)}, trying again...`);
-      await createApexClass('CaseManager', caseManagerText);
-    }
+    await retryOperation(
+      () => createApexClass('CaseManager', caseManagerText),
+      2,
+      'CreateOASDoc - Error creating Apex class CaseManager'
+    );
 
     // Create the Apex class which the composed OAS doc will be generated from
     const simpleAccountResourceText = [
@@ -126,44 +126,27 @@ describe('Create OpenAPI v3 Specifications', () => {
       '}'
     ].join('\n');
 
-    try {
-      await createApexClass('SimpleAccountResource', simpleAccountResourceText);
-    } catch (error) {
-      log(`CreateOASDoc - Error creating Apex class SimpleAccountResource ${JSON.stringify(error)}, trying again...`);
-      await createApexClass('SimpleAccountResource', simpleAccountResourceText);
-    }
+    await retryOperation(
+      () => createApexClass('SimpleAccountResource', simpleAccountResourceText),
+      2,
+      'CreateOASDoc - Error creating Apex class SimpleAccountResource'
+    );
 
     // Create an ineligible Apex class (the default Apex class from the template is a good example)
-    try {
-      await createCommand('Apex Class', 'IneligibleApexClass', 'classes', 'cls');
-    } catch (error) {
-      log(`CreateOASDoc - Error creating Apex class IneligibleApexClass ${JSON.stringify(error)}, trying again...`);
-      await createCommand('Apex Class', 'IneligibleApexClass', 'classes', 'cls');
-    }
+    await retryOperation(
+      () => createCommand('Apex Class', 'IneligibleApexClass', 'classes', 'cls'),
+      2,
+      'CreateOASDoc - Error creating Apex class IneligibleApexClass'
+    );
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    let successPushNotificationWasFound;
-    try {
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    } catch (error) {
-      log(`CreateOASDoc - Error finding the success notification ${JSON.stringify(error)}, trying again...`);
-      await getWorkbench().openNotificationsCenter();
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    }
-  });
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
 
-  it('Verify LSP finished indexing', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
 
     // Get Apex LSP Status Bar
@@ -185,25 +168,16 @@ describe('Create OpenAPI v3 Specifications', () => {
     } else {
       await pause(Duration.seconds(5));
     }
-    try {
-      await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-      const failureNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Failed to create OpenAPI Document: The Apex Class IneligibleApexClass is not valid for OpenAPI document generation\./,
-        Duration.TEN_MINUTES
-      );
-      expect(failureNotificationWasFound).to.equal(true);
-    } catch (error) {
-      log(
-        `${testSetup.testSuiteSuffixName} - Error generating OAS doc from an ineligible Apex class ${JSON.stringify(error)}, trying again...`
-      );
-      await pause(Duration.minutes(1));
-      await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-      const failureNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Failed to create OpenAPI Document: The Apex Class IneligibleApexClass is not valid for OpenAPI document generation\./,
-        Duration.TEN_MINUTES
-      );
-      expect(failureNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(
+      /Failed to create OpenAPI Document: The Apex Class IneligibleApexClass is not valid for OpenAPI document generation\./,
+      Duration.TEN_MINUTES,
+      async () => {
+        const result = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        if (result) {
+          await result.confirm();
+        }
+      }
+    );
   });
 
   describe('Composed mode', () => {

@@ -21,7 +21,6 @@ import {
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
 
@@ -39,7 +38,7 @@ describe('Manifest Builder', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
-  step('Generate Manifest File', async () => {
+  it('Generate Manifest File', async () => {
     // Normally we would want to run the 'SFDX: Generate Manifest File' command here, but it is only
     // accessible via a context menu, and wdio-vscode-service isn't able to interact with
     // context menus, so instead the manifest file is manually created:
@@ -109,7 +108,7 @@ describe('Manifest Builder', () => {
     }
   });
 
-  step('SFDX: Deploy Source in Manifest to Org', async () => {
+  it('SFDX: Deploy Source in Manifest to Org', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Deploy Source in Manifest to Org`);
 
     // Clear output before running the command
@@ -164,7 +163,7 @@ describe('Manifest Builder', () => {
     await validateCommand('Deploy', 'to', 'ST', 'CustomObject', ['Customer__c', 'Product__c'], 'Created  ');
   });
 
-  step('SFDX: Retrieve Source in Manifest from Org', async () => {
+  it('SFDX: Retrieve Source in Manifest from Org', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Retrieve Source in Manifest from Org`);
 
     // Clear output before running the command

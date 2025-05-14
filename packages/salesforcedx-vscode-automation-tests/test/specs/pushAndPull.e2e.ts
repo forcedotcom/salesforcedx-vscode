@@ -28,7 +28,6 @@ import {
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step, xstep } from 'mocha-steps';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
@@ -51,7 +50,7 @@ describe('Push and Pull', () => {
     testSetup1 = await TestSetup.setUp(testReqConfig);
   });
 
-  step('SFDX: View All Changes (Local and in Default Org)', async () => {
+  it('SFDX: View All Changes (Local and in Default Org)', async () => {
     log('Push And Pull - SFDX: View All Changes (Local and in Default Org)');
     await executeQuickPick('SFDX: View All Changes (Local and in Default Org)', Duration.seconds(5));
 
@@ -60,13 +59,13 @@ describe('Push and Pull', () => {
     expect(outputPanelText).to.contain('No local or remote changes found');
   });
 
-  step('Create an Apex class', async () => {
+  it('Create an Apex class', async () => {
     log('Push And Pull - Create an Apex class');
     // Create an Apex Class.
     await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
   });
 
-  step('SFDX: View Local Changes', async () => {
+  it('SFDX: View Local Changes', async () => {
     log('Push And Pull - SFDX: View Local Changes');
     await executeQuickPick('SFDX: View Local Changes', Duration.seconds(5));
 
@@ -80,7 +79,7 @@ describe('Push and Pull', () => {
     );
   });
 
-  step('Push the Apex class', async () => {
+  it('Push the Apex class', async () => {
     log('Push And Pull - Push the Apex class');
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
 
@@ -89,7 +88,7 @@ describe('Push and Pull', () => {
     await verifyPushAndPullOutputText('Push', 'to', 'Created');
   });
 
-  step('Push again (with no changes)', async () => {
+  it('Push again (with no changes)', async () => {
     log('Push And Pull - Push again (with no changes)');
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -102,7 +101,7 @@ describe('Push and Pull', () => {
     await verifyPushAndPullOutputText('Push', 'to');
   });
 
-  step('Modify the file and push the changes', async () => {
+  it('Modify the file and push the changes', async () => {
     log('Push And Pull - Modify the file and push the changes');
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -156,7 +155,7 @@ describe('Push and Pull', () => {
     );
   });
 
-  step('Pull the Apex class', async () => {
+  it('Pull the Apex class', async () => {
     log('Push And Pull - Pull the Apex class');
     // With this test, it's going to pull twice...
     // Clear the Output view first.
@@ -182,7 +181,7 @@ describe('Push and Pull', () => {
     expect(outputPanelText).to.not.contain('Created  Admin');
   });
 
-  step("Modify the file (but don't save), then pull", async () => {
+  it("Modify the file (but don't save), then pull", async () => {
     log("Push And Pull - Modify the file (but don't save), then pull");
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -200,7 +199,7 @@ describe('Push and Pull', () => {
     await verifyPushAndPullOutputText('Pull', 'from');
   });
 
-  step('Save the modified file, then pull', async () => {
+  it('Save the modified file, then pull', async () => {
     log('Push And Pull - Save the modified file, then pull');
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -225,7 +224,7 @@ describe('Push and Pull', () => {
     testSuiteSuffixName: 'ViewChanges'
   };
 
-  step('SFDX: View Changes in Default Org', async () => {
+  it('SFDX: View Changes in Default Org', async () => {
     log('Push And Pull - SFDX: View Changes in Default Org');
     // Create second Project to then view Remote Changes
     // The new project will connect to the scratch org automatically on GHA, but does not work locally
@@ -246,7 +245,7 @@ describe('Push and Pull', () => {
     expect(outputPanelText).to.contain('Remote Add  ExampleApexClass1  ApexClass');
   });
 
-  xstep('Create an additional system admin user', async () => {
+  it.skip('Create an additional system admin user', async () => {
     // Org alias format: AdminUser_yyyy_mm_dd_username_ticks__PushAndPull
     const currentDate = new Date();
     const ticks = currentDate.getTime();
@@ -275,7 +274,7 @@ describe('Push and Pull', () => {
     await createUser(systemAdminUserDefPath, testSetup1.scratchOrgAliasName);
   });
 
-  xstep('Set the 2nd user as the default user', async () => {
+  it.skip('Set the 2nd user as the default user', async () => {
     const inputBox = await executeQuickPick('SFDX: Set a Default Org', Duration.seconds(10));
     const scratchOrgQuickPickItemWasFound = await findQuickPickItem(inputBox, adminEmailAddress, false, true);
     if (!scratchOrgQuickPickItemWasFound) {
@@ -350,18 +349,18 @@ describe('Push and Pull', () => {
   };
 });
 
-async function verifyPushSuccess(wait = Duration.TEN_MINUTES) {
+const verifyPushSuccess = async (wait = Duration.TEN_MINUTES) => {
   const successNotificationWasFound = await notificationIsPresentWithTimeout(
     /SFDX: Push Source to Default Org successfully ran/,
     wait
   );
   expect(successNotificationWasFound).to.equal(true);
-}
+};
 
-async function verifyPullSuccess(wait = Duration.TEN_MINUTES) {
+const verifyPullSuccess = async (wait = Duration.TEN_MINUTES) => {
   const successNotificationWasFound = await notificationIsPresentWithTimeout(
     /SFDX: Pull Source from Default Org successfully ran/,
     wait
   );
   expect(successNotificationWasFound).to.equal(true);
-}
+};

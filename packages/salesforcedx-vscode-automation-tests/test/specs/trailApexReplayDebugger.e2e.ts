@@ -25,8 +25,8 @@ import {
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import { By, InputBox, QuickOpenBox, TextEditor, after } from 'vscode-extension-tester';
+import { verifyNotificationWithRetry } from '../utils/retryUtils';
 /**
  * This test suite walks through the same steps performed in the "Find and Fix Bugs with Apex Replay Debugger" Trailhead Module;
  * which can be found with the following link:
@@ -53,24 +53,13 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
-    let successPushNotificationWasFound;
-    try {
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
   });
 
-  step('Verify LSP finished indexing', async () => {
+  it('Verify LSP finished indexing', async () => {
     log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
 
     // Get Apex LSP Status Bar
@@ -79,7 +68,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
 
-  step('Run Apex Tests', async () => {
+  it('Run Apex Tests', async () => {
     log('TrailApexReplayDebugger - Run Apex Tests');
     // Run SFDX: Run Apex tests.
     await clearOutputView();
@@ -88,21 +77,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     // Select the "AccountServiceTest" file
     await prompt.selectQuickPick('AccountServiceTest');
 
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
@@ -111,7 +86,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
-  step('Set Breakpoints and Checkpoints', async () => {
+  it('Set Breakpoints and Checkpoints', async () => {
     log('TrailApexReplayDebugger - Set Breakpoints and Checkpoints');
     // Get open text editor
     const workbench = getWorkbench();
@@ -141,7 +116,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Ending SFDX: Update Checkpoints in Org');
   });
 
-  step('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
+  it('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
     log('TrailApexReplayDebugger - SFDX: Turn On Apex Debug Log for Replay Debugger');
     // Run SFDX: Turn On Apex Debug Log for Replay Debugger
     await clearOutputView();
@@ -165,7 +140,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('ended with exit code 0');
   });
 
-  step('Run Apex Tests', async () => {
+  it('Run Apex Tests', async () => {
     log('TrailApexReplayDebugger - Run Apex Tests');
     // Run SFDX: Run Apex tests.
     await clearOutputView();
@@ -174,21 +149,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     // Select the "AccountServiceTest" file
     await prompt.selectQuickPick('AccountServiceTest');
 
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
@@ -197,7 +158,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
-  step('SFDX: Get Apex Debug Logs', async () => {
+  it('SFDX: Get Apex Debug Logs', async () => {
     log('TrailApexReplayDebugger - SFDX: Get Apex Debug Logs');
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
@@ -236,7 +197,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(executionFinished).to.be.greaterThan(0);
   });
 
-  step('Replay an Apex Debug Log', async () => {
+  it('Replay an Apex Debug Log', async () => {
     log('TrailApexReplayDebugger - Replay an Apex Debug Log');
     // Run SFDX: Launch Apex Replay Debugger with Current File
     await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(30));
@@ -245,7 +206,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     await continueDebugging(2, 30);
   });
 
-  step('Push Fixed Metadata to Org', async () => {
+  it('Push Fixed Metadata to Org', async () => {
     if (process.platform === 'darwin') {
       log('TrailApexReplayDebugger - Push Fixed Metadata to Org');
       // Get open text editor
@@ -258,25 +219,14 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       // Push source to org
       await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
 
-      let successPushNotificationWasFound;
-      try {
-        successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-          /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-          Duration.TEN_MINUTES
-        );
-        expect(successPushNotificationWasFound).to.equal(true);
-      } catch (error) {
-        await getWorkbench().openNotificationsCenter();
-        successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-          /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-          Duration.ONE_MINUTE
-        );
-        expect(successPushNotificationWasFound).to.equal(true);
-      }
+      await verifyNotificationWithRetry(
+        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+        Duration.TEN_MINUTES
+      );
     }
   });
 
-  step('Run Apex Tests to Verify Fix', async () => {
+  it('Run Apex Tests to Verify Fix', async () => {
     if (process.platform === 'darwin') {
       log('TrailApexReplayDebugger - Run Apex Tests to Verify Fix');
       // Run SFDX: Run Apex tests.
@@ -286,21 +236,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       // Select the "AccountServiceTest" file
       await prompt.selectQuickPick('AccountServiceTest');
 
-      let successNotificationWasFound;
-      try {
-        successNotificationWasFound = await notificationIsPresentWithTimeout(
-          /SFDX: Run Apex Tests successfully ran/,
-          Duration.TEN_MINUTES
-        );
-        expect(successNotificationWasFound).to.equal(true);
-      } catch (error) {
-        await getWorkbench().openNotificationsCenter();
-        successNotificationWasFound = await notificationIsPresentWithTimeout(
-          /SFDX: Run Apex Tests successfully ran/,
-          Duration.ONE_MINUTE
-        );
-        expect(successNotificationWasFound).to.equal(true);
-      }
+      await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
       // Verify test results are listed on vscode's Output section
       const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);

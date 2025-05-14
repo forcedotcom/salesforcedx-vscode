@@ -22,8 +22,7 @@ import {
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
-import { DefaultTreeItem, TreeItem, ViewSection, Workbench, after } from 'vscode-extension-tester';
+import { DefaultTreeItem, TreeItem, Workbench, after } from 'vscode-extension-tester';
 
 describe('SObjects Definitions', () => {
   let testSetup: TestSetup;
@@ -44,7 +43,7 @@ describe('SObjects Definitions', () => {
     await createCustomObjects(testSetup);
   });
 
-  step("Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder", async () => {
+  it("Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder", async () => {
     log(
       `${testSetup.testSuiteSuffixName} - Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder`
     );
@@ -78,7 +77,7 @@ describe('SObjects Definitions', () => {
     expect(productCustomObject).to.not.be.undefined;
   });
 
-  step('Push Source to Org', async () => {
+  it('Push Source to Org', async () => {
     log(`${testSetup.testSuiteSuffixName} - Push Source to Org`);
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
     await pause(Duration.seconds(1));
@@ -98,7 +97,7 @@ describe('SObjects Definitions', () => {
     expect(outputPanelText).to.contain('Pushed Source');
   });
 
-  step('Refresh SObject Definitions for Custom SObjects', async () => {
+  it('Refresh SObject Definitions for Custom SObjects', async () => {
     log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for Custom SObjects`);
     await refreshSObjectDefinitions('Custom SObjects');
 
@@ -114,7 +113,7 @@ describe('SObjects Definitions', () => {
     expect(productCustomObject).to.not.be.undefined;
   });
 
-  step('Refresh SObject Definitions for Standard SObjects', async () => {
+  it('Refresh SObject Definitions for Standard SObjects', async () => {
     log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for Standard SObjects`);
     await refreshSObjectDefinitions('Standard SObjects');
 
@@ -133,7 +132,7 @@ describe('SObjects Definitions', () => {
     expect(acceptedEventRelationSObject).to.not.be.undefined;
   });
 
-  step('Refresh SObject Definitions for All SObjects', async () => {
+  it('Refresh SObject Definitions for All SObjects', async () => {
     log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for All SObjects`);
     await refreshSObjectDefinitions('All SObjects');
 
@@ -146,7 +145,7 @@ describe('SObjects Definitions', () => {
   });
 });
 
-async function verifyOutputPanelTxt(type: string, qty?: number): Promise<void> {
+const verifyOutputPanelTxt = async (type: string, qty?: number) => {
   log(`calling verifyOutputPanelText(${type})`);
   const outputPanelText = (await attemptToFindOutputPanelText('Salesforce CLI', 'sObjects', 10)) as string;
   expect(outputPanelText).to.not.be.undefined;
@@ -158,9 +157,9 @@ async function verifyOutputPanelTxt(type: string, qty?: number): Promise<void> {
     'ended with exit code 0'
   ];
   await verifyOutputPanelText(outputPanelText, expectedTexts);
-}
+};
 
-async function refreshSObjectDefinitions(type: string): Promise<void> {
+const refreshSObjectDefinitions = async (type: string) => {
   log(`calling refreshSObjectDefinitions(${type})`);
   await clearOutputView(Duration.seconds(2));
   const prompt = await executeQuickPick('SFDX: Refresh SObject Definitions', Duration.seconds(2));
@@ -173,9 +172,9 @@ async function refreshSObjectDefinitions(type: string): Promise<void> {
     Duration.TEN_MINUTES
   );
   expect(successNotificationWasFound).to.equal(true);
-}
+};
 
-async function verifySObjectFolders(workbench: Workbench, projectName: string, folder: string): Promise<ViewSection> {
+const verifySObjectFolders = async (workbench: Workbench, projectName: string, folder: string) => {
   log(`calling verifySObjectFolders(workbench, ${projectName}, ${folder})`);
   const sidebar = workbench.getSideBar();
   const content = sidebar.getContent();
@@ -211,4 +210,4 @@ async function verifySObjectFolders(workbench: Workbench, projectName: string, f
   await pause(Duration.seconds(1));
 
   return treeViewSection;
-}
+};

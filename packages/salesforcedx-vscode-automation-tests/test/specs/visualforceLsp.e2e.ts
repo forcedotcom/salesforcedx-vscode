@@ -26,7 +26,6 @@ import {
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { step } from 'mocha-steps';
 import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 
@@ -98,7 +97,7 @@ describe('Visualforce LSP', () => {
     // expect(title).toBe('MyController.cls');
   });
 
-  step('Autocompletion', async () => {
+  it('Autocompletion', async () => {
     log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
     // Get open text editor
     const workbench = await getWorkbench();

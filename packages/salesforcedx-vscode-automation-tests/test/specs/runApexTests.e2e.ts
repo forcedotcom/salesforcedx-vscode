@@ -36,6 +36,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
+import { verifyNotificationWithRetry, retryOperation } from '../utils/retryUtils';
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
@@ -53,49 +54,34 @@ describe('Run Apex Tests', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Apex class 1 and test
-    try {
-      await createApexClassWithTest('ExampleApexClass1');
-    } catch (error) {
-      log(`RunApexTests - Error creating Apex class 1 and test ${JSON.stringify(error)}`);
-      await createApexClassWithTest('ExampleApexClass1');
-    }
+    await retryOperation(
+      () => createApexClassWithTest('ExampleApexClass1'),
+      2,
+      'RunApexTests - Error creating Apex class 1 and test'
+    );
 
     // Create Apex class 2 and test
-    try {
-      await createApexClassWithTest('ExampleApexClass2');
-    } catch (error) {
-      log(`RunApexTests - Error creating Apex class 2 and test ${JSON.stringify(error)}`);
-      await createApexClassWithTest('ExampleApexClass2');
-    }
+    await retryOperation(
+      () => createApexClassWithTest('ExampleApexClass2'),
+      2,
+      'RunApexTests - Error creating Apex class 2 and test'
+    );
 
     // Create Apex class 3 and test
-    try {
-      await createApexClassWithTest('ExampleApexClass3');
-    } catch (error) {
-      log(`RunApexTests - Error creating Apex class 3 and test ${JSON.stringify(error)}`);
-      await createApexClassWithTest('ExampleApexClass3');
-    }
+    await retryOperation(
+      () => createApexClassWithTest('ExampleApexClass3'),
+      2,
+      'RunApexTests - Error creating Apex class 3 and test'
+    );
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    let successPushNotificationWasFound;
-    try {
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    } catch (error) {
-      log(`RunApexTests - Error pushing source to org ${JSON.stringify(error)}`);
-      await getWorkbench().openNotificationsCenter();
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -120,21 +106,7 @@ describe('Run Apex Tests', () => {
     const runAllTestsOption = await textEditor.getCodeLens('Run All Tests');
     await runAllTestsOption!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await workbench.openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
@@ -166,21 +138,7 @@ describe('Run Apex Tests', () => {
     const runTestOption = await textEditor.getCodeLens('Run Test');
     await runTestOption!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await workbench.openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
@@ -211,21 +169,7 @@ describe('Run Apex Tests', () => {
     // Select the "All Tests" option
     await prompt.selectQuickPick('All Tests');
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
@@ -258,21 +202,7 @@ describe('Run Apex Tests', () => {
     // Select the "ExampleApexClass1Test" file
     await prompt.selectQuickPick('ExampleApexClass1Test');
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
@@ -312,21 +242,7 @@ describe('Run Apex Tests', () => {
     const runTestsAction = await apexTestsSection.getAction('Run Tests');
     await runTestsAction!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await workbench.openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
@@ -406,21 +322,10 @@ describe('Run Apex Tests', () => {
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    let successPushNotificationWasFound;
-    try {
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successPushNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successPushNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
 
     // Clear the Output view.
     await dismissAllNotifications();
@@ -433,21 +338,7 @@ describe('Run Apex Tests', () => {
     await prompt.setText('AccountServiceTest');
     await prompt.confirm();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await workbench.openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     // Also verify that the test fails
@@ -467,21 +358,10 @@ describe('Run Apex Tests', () => {
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    let successPushNotification2WasFound;
-    try {
-      successPushNotification2WasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successPushNotification2WasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successPushNotification2WasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successPushNotification2WasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
 
     // Clear the Output view.
     await dismissAllNotifications();
@@ -576,21 +456,7 @@ describe('Run Apex Tests', () => {
     // Select the suite recently created called ApexTestSuite
     await prompt.selectQuickPick('ApexTestSuite');
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    let successNotificationWasFound;
-    try {
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    } catch (error) {
-      await getWorkbench().openNotificationsCenter();
-      successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Run Apex Tests successfully ran/,
-        Duration.ONE_MINUTE
-      );
-      expect(successNotificationWasFound).to.equal(true);
-    }
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
