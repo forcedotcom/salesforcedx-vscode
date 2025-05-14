@@ -48,6 +48,13 @@ import {
   ExtensionsViewItem,
   DefaultTreeItem
 } from 'vscode-extension-tester';
+import {
+  getIdealCaseManagerOASDoc,
+  getSfdxProjectJson,
+  getIdealSimpleAccountResourceYaml,
+  getIdealSimpleAccountResourceXml
+} from '../testData/oasDocs';
+import { caseManagerClassText, simpleAccountResourceClassText } from '../testData/sampleClassData';
 import { verifyNotificationWithRetry, retryOperation } from '../utils/retryUtils';
 
 describe('Create OpenAPI v3 Specifications', () => {
@@ -88,46 +95,15 @@ describe('Create OpenAPI v3 Specifications', () => {
     await executeQuickPick('View: Close Editor');
 
     // Create the Apex class which the decomposed OAS doc will be generated from
-    const caseManagerText = [
-      "@RestResource(urlMapping='/apex-rest-examples/v1/Cases/*')",
-      'global with sharing class CaseManager {',
-      '  @HttpPost',
-      '  global static ID createCase(String subject, String status,',
-      '    String origin, String priority) {',
-      '    Case thisCase = new Case(',
-      '      Subject=subject,',
-      '      Status=status,',
-      '      Origin=origin,',
-      '      Priority=priority);',
-      '    insert thisCase;',
-      '    return thisCase.Id;',
-      '  }',
-      '}'
-    ].join('\n');
-
     await retryOperation(
-      () => createApexClass('CaseManager', caseManagerText),
+      () => createApexClass('CaseManager', caseManagerClassText),
       2,
       'CreateOASDoc - Error creating Apex class CaseManager'
     );
 
     // Create the Apex class which the composed OAS doc will be generated from
-    const simpleAccountResourceText = [
-      "@RestResource(urlMapping='/apex-rest-examples/v1/*')",
-      'global with sharing class SimpleAccountResource {',
-      '  @HttpGet',
-      '  global static Account getAccount() {',
-      '    RestRequest req = RestContext.request;',
-      '    RestResponse res = RestContext.response;',
-      "    String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);",
-      '    Account result = [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-      '    return result;',
-      '  }',
-      '}'
-    ].join('\n');
-
     await retryOperation(
-      () => createApexClass('SimpleAccountResource', simpleAccountResourceText),
+      () => createApexClass('SimpleAccountResource', simpleAccountResourceClassText),
       2,
       'CreateOASDoc - Error creating Apex class SimpleAccountResource'
     );
@@ -217,71 +193,9 @@ describe('Create OpenAPI v3 Specifications', () => {
       // NOTE: The "fix" is actually replacing the OAS doc with the ideal solution
       log(`${testSetup.testSuiteSuffixName} - Fix the OAS doc to get rid of the problems in the Problems Tab`);
 
-      const idealCaseManagerOASDoc = [
-        '<?xml version="1.0" encoding="UTF-8"?>',
-        '<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">',
-        '  <description>This is the ideal OpenAPI v3 specification for CaseManager.cls.</description>',
-        '  <label>CaseManager</label>',
-        '  <schema>openapi: 3.0.0',
-        'info:',
-        '  title: CaseManager',
-        '  version: &apos;1.0.0&apos;',
-        '  description: This is the ideal OpenAPI v3 specification for CaseManager.cls.',
-        'servers:',
-        '  - url: /services/apexrest',
-        '    description: Apex rest',
-        'paths:',
-        '  /apex-rest-examples/v1/Cases:',
-        '    description: The endpoint that contains the POST method.',
-        '    post:',
-        '      summary: Create a new case',
-        '      description: Creates a new case with the provided information.',
-        '      operationId: createCase',
-        '      requestBody:',
-        '        description: The properties of the case to create.',
-        '        content:',
-        '          application/json:',
-        '            schema:',
-        '              type: object',
-        '              properties:',
-        '                subject:',
-        '                  type: string',
-        '                  description: The subject of the case',
-        '                status:',
-        '                  type: string',
-        '                  description: The status of the case',
-        '                origin:',
-        '                  type: string',
-        '                  description: The origin of the case',
-        '                priority:',
-        '                  type: string',
-        '                  description: The priority of the case',
-        '      responses:',
-        '        &apos;200&apos;:',
-        '          description: The ID of the newly created case.',
-        '          content:',
-        '            text/plain:',
-        '              schema:',
-        '                type: string',
-        '</schema>',
-        '  <schemaType>OpenApi3</schemaType>',
-        '  <schemaUploadFileExtension>yaml</schemaUploadFileExtension>',
-        '  <schemaUploadFileName>casemanager_openapi</schemaUploadFileName>',
-        '  <status>Complete</status>',
-        '  <systemVersion>3</systemVersion>',
-        '  <operations>',
-        '    <name>createCase</name>',
-        '    <active>true</active>',
-        '  </operations>',
-        '  <registrationProvider>CaseManager</registrationProvider>',
-        '  <registrationProviderType>ApexRest</registrationProviderType>',
-        '  <namedCredential>null</namedCredential>',
-        '</ExternalServiceRegistration>'
-      ].join('\n');
-
       const workbench = getWorkbench();
       const textEditor = await getTextEditor(workbench, 'CaseManager.externalServiceRegistration-meta.xml');
-      await textEditor.setText(idealCaseManagerOASDoc);
+      await textEditor.setText(getIdealCaseManagerOASDoc());
       await textEditor.save();
       await pause(Duration.seconds(1));
     });
@@ -364,24 +278,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       const workbench = getWorkbench();
       await openFile(path.join(testSetup.projectFolderPath!, 'sfdx-project.json'));
       const textEditor = await getTextEditor(workbench, 'sfdx-project.json');
-      const newSfdxProjectJsonContents = [
-        '{',
-        '  "packageDirectories": [',
-        '    {',
-        '      "path": "force-app",',
-        '      "default": true',
-        '    }',
-        '  ],',
-        '  "name": "TempProject-CreateOASDoc",',
-        '  "namespace": "",',
-        '  "sfdcLoginUrl": "https://login.salesforce.com",',
-        '  "sourceApiVersion": "63.0",',
-        '  "sourceBehaviorOptions": [',
-        '    "decomposeExternalServiceRegistrationBeta"',
-        '  ]',
-        '}'
-      ].join('\n');
-      await textEditor.setText(newSfdxProjectJsonContents);
+      await textEditor.setText(getSfdxProjectJson());
       await textEditor.save();
       await executeQuickPick('View: Close All Editors');
       await reloadWindow();
@@ -428,77 +325,13 @@ describe('Create OpenAPI v3 Specifications', () => {
       // NOTE: The "fix" is actually replacing the OAS doc with the ideal solution from the EMU repo
       log(`${testSetup.testSuiteSuffixName} - Fix the OAS doc to get rid of the problems in the Problems Tab`);
 
-      const idealSimpleAccountResourceYAML = [
-        'openapi: 3.0.0',
-        'servers:',
-        '  - url: /services/apexrest',
-        'info:',
-        '  title: SimpleAccountResource',
-        "  version: '1.0.0'",
-        '  description: This is the ideal OpenAPI v3 specification for SimpleAccountResource.cls.',
-        'paths:',
-        '  /apex-rest-examples/v1/{accountId}:',
-        '    description: The endpoint that contains the GET method.',
-        '    get:',
-        '      summary: Get Account',
-        '      operationId: getAccount',
-        '      description: Returns the Account that matches the ID specified in the URL',
-        '      parameters:',
-        '        - name: accountId',
-        '          in: path',
-        '          required: true',
-        '          description: The ID of the Account to retrieve',
-        '          schema:',
-        '            type: string',
-        '      responses:',
-        "        '200':",
-        '          description: The Account with the provided ID',
-        '          content:',
-        '            application/json:',
-        '              schema:',
-        '                type: object',
-        '                properties:',
-        '                  Id:',
-        '                    type: string',
-        '                    description: The ID of the Account',
-        '                  Name:',
-        '                    type: string',
-        '                    description: The name of the Account',
-        '                  Phone:',
-        '                    type: string',
-        '                    description: The phone number of the Account',
-        '                  Website:',
-        '                    type: string',
-        '                    description: The website of the Account'
-      ].join('\n');
-
       const workbench = getWorkbench();
       let textEditor = await getTextEditor(workbench, 'SimpleAccountResource.yaml');
-      await textEditor.setText(idealSimpleAccountResourceYAML);
+      await textEditor.setText(getIdealSimpleAccountResourceYaml());
       await textEditor.save();
 
-      const idealSimpleAccountResourceXML = [
-        '<?xml version="1.0" encoding="UTF-8"?>',
-        '<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">',
-        '  <description>This is the ideal OpenAPI v3 specification for SimpleAccountResource.cls.</description>',
-        '  <label>SimpleAccountResource</label>',
-        '  <schemaType>OpenApi3</schemaType>',
-        '  <schemaUploadFileExtension>yaml</schemaUploadFileExtension>',
-        '  <schemaUploadFileName>simpleaccountresource_openapi</schemaUploadFileName>',
-        '  <status>Complete</status>',
-        '  <systemVersion>3</systemVersion>',
-        '  <operations>',
-        '    <name>getAccount</name>',
-        '    <active>true</active>',
-        '  </operations>',
-        '  <registrationProvider>SimpleAccountResource</registrationProvider>',
-        '  <registrationProviderType>ApexRest</registrationProviderType>',
-        '  <namedCredential>null</namedCredential>',
-        '</ExternalServiceRegistration>'
-      ].join('\n');
-
       textEditor = await getTextEditor(workbench, 'SimpleAccountResource.externalServiceRegistration-meta.xml');
-      await textEditor.setText(idealSimpleAccountResourceXML);
+      await textEditor.setText(getIdealSimpleAccountResourceXml());
       await textEditor.save();
       await pause(Duration.seconds(1));
     });
