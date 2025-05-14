@@ -105,7 +105,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     expect(vscodeMocked.workspace.fs.stat).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        path: join(sobjectFolder, 'Custom__c.cls'),
+        path: join(sobjectFolder),
         scheme: 'file'
       })
     );
