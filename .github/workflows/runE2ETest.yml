@@ -76,19 +76,27 @@ jobs:
             set -e
             sf version
             SF_CLI_VERSION=$(sf version)
-            if [ "$(echo $SF_CLI_VERSION | grep -c "@salesforce/cli/")" -gt 0 ]
-            then
-              echo "@salesforce/cli installed -" $SF_CLI_VERSION
+            if [ "${{ matrix.os }}" = "windows-latest" ]; then
+              if ($SF_CLI_VERSION -match "@salesforce/cli/") {
+                echo "@salesforce/cli installed -" $SF_CLI_VERSION
+              } else {
+                echo "The @salesforce/cli installation could not be verified"
+                exit 1
+              }
             else
-              echo "The @salesforce/cli installation could not be verified"
-              exit 1
+              if [ "$(echo $SF_CLI_VERSION | grep -c "@salesforce/cli/")" -gt 0 ]; then
+                echo "@salesforce/cli installed -" $SF_CLI_VERSION
+              else
+                echo "The @salesforce/cli installation could not be verified"
+                exit 1
+              fi
             fi
 
             # Set THROTTLE_FACTOR
-            if [ "${{ matrix.os }}" != "windows-latest" ]; then
-              echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
-            else
+            if [ "${{ matrix.os }}" = "windows-latest" ]; then
               echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
+            else
+              echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
             fi
 
             # Compile packages
