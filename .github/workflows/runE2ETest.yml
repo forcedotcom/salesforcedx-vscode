@@ -76,7 +76,7 @@ jobs:
             set -e
             sf version
             SF_CLI_VERSION=$(sf version)
-            if [[ $(echo $SF_CLI_VERSION | grep -c "@salesforce/cli/") -gt 0 ]]
+            if [ "$(echo $SF_CLI_VERSION | grep -c "@salesforce/cli/")" -gt 0 ]
             then
               echo "@salesforce/cli installed -" $SF_CLI_VERSION
             else
