@@ -13,11 +13,11 @@
  * To run:
  *    npx ts-node ./scripts/regenerateMinsSObjects.ts <token> <instance_url>
  */
+import { writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { SObjectShortDescription } from '../src/describe';
 import { OrgObjectDetailRetriever } from '../src/retriever';
 import { SObject } from '../src/types';
-import { writeFile } from '../src/utils';
 
 import { Connection, Org } from '@salesforce/core-bundle';
 

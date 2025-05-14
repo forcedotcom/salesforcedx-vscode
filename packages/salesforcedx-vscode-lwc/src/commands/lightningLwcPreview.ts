@@ -12,7 +12,10 @@ import {
   EmptyParametersGatherer,
   isSFContainerMode,
   SfCommandlet,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  stat as getFileStats,
+  readFile,
+  fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -144,9 +147,9 @@ export const lwcPreview = async (sourceUri: URI) => {
   }
 
   try {
-    const stat = await vscode.workspace.fs.stat(sourceUri);
+    const fileStats = await getFileStats(resourcePath);
     const isSFDX = true; // TODO support non SFDX Projects
-    const isDirectory = stat.type === vscode.FileType.Directory;
+    const isDirectory = fileStats.type === vscode.FileType.Directory;
     const componentName = isDirectory
       ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
       : componentUtil.moduleFromFile(resourcePath, isSFDX);
@@ -416,24 +419,20 @@ const selectTargetApp = async (
   }
 
   try {
-    const fileUri = vscode.Uri.file(configFile);
-    const fileStat = await vscode.workspace.fs.stat(fileUri);
-    if (!fileStat) {
-      return targetApp;
+    if (await fileOrFolderExists(configFile)) {
+      const fileContent = await readFile(configFile);
+      const json = JSON.parse(fileContent);
+      const appDefinitionsForSelectedPlatform =
+        platformSelection.id === PreviewPlatformType.Android ? json.apps.android : json.apps.ios;
+
+      const apps = Array.from<any>(appDefinitionsForSelectedPlatform);
+
+      apps.forEach(app => {
+        const label: string = app.name;
+        const detail: string = app.id;
+        items.push({ label, detail });
+      });
     }
-
-    const fileContent = await vscode.workspace.fs.readFile(fileUri);
-    const json = JSON.parse(fileContent.toString());
-    const appDefinitionsForSelectedPlatform =
-      platformSelection.id === PreviewPlatformType.Android ? json.apps.android : json.apps.ios;
-
-    const apps = Array.from<any>(appDefinitionsForSelectedPlatform);
-
-    apps.forEach(app => {
-      const label: string = app.name;
-      const detail: string = app.id;
-      items.push({ label, detail });
-    });
   } catch {
     // silently fail and default to previewing on browser
     return targetApp;
@@ -545,18 +544,14 @@ const executeMobilePreview = async (
  */
 export const getProjectRootDirectory = async (startPath: string): Promise<string | undefined> => {
   try {
-    const startUri = vscode.Uri.file(startPath);
-    const stat = await vscode.workspace.fs.stat(startUri);
+    const startStats = await getFileStats(startPath);
     const searchingForFile = 'sfdx-project.json';
-    let dir: string | undefined = stat.type === vscode.FileType.Directory ? startPath : path.dirname(startPath);
+    let dir: string | undefined = startStats.type === vscode.FileType.Directory ? startPath : path.dirname(startPath);
     while (dir) {
       const fileName = path.join(dir, searchingForFile);
       try {
-        const fileUri = vscode.Uri.file(fileName);
-        const fileStat = await vscode.workspace.fs.stat(fileUri);
-        if (fileStat) {
-          return dir;
-        }
+        await getFileStats(fileName);
+        return dir;
       } catch {
         // File doesn't exist, continue searching
       }

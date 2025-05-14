@@ -10,7 +10,7 @@ import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '..';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
-import { createDirectory, fileExists } from './utils';
+import { createDirectory, fileOrFolderExists } from './utils';
 
 export const ORGS = 'orgs';
 export const METADATA = 'metadata';
@@ -24,11 +24,11 @@ export const LWC = 'lwc';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
 export const ensureDirectoryExists = async (filePath: string): Promise<void> => {
-  if (await fileExists(filePath)) {
+  if (await fileOrFolderExists(filePath)) {
     return;
   }
-  void ensureDirectoryExists(path.dirname(filePath));
-  void createDirectory(filePath);
+  await ensureDirectoryExists(path.dirname(filePath));
+  await createDirectory(filePath);
 };
 
 export const getTestResultsFolder = (vscodePath: string, testType: string) => {

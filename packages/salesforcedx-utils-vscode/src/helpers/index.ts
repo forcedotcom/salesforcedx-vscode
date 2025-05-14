@@ -23,7 +23,14 @@ export {
   getMessageFromError,
   identifyJsonTypeInString,
   isNullOrUndefined,
-  fileUtils
+  fileUtils,
+  readFile,
+  writeFile,
+  fileOrFolderExists,
+  createDirectory,
+  deleteFile,
+  readDirectory,
+  stat
 } from './utils';
 export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
 export { isSFContainerMode } from './env';

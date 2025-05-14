@@ -13,9 +13,8 @@ import {
   STANDARDOBJECTS_DIR,
   toMinimalSObject
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, readDirectory, readFile, stat } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
 
@@ -48,16 +47,14 @@ export class FileSystemOrgDataSource implements OrgDataSource {
 
     const files: string[] = [];
     try {
-      const standardsUri = vscode.Uri.file(standardsFolder);
-      const standardsDir = await vscode.workspace.fs.readDirectory(standardsUri);
+      const standardsDir = await readDirectory(standardsFolder);
       files.push(...standardsDir.map(entry => entry[0]));
     } catch {
       // Standards folder doesn't exist or can't be read
     }
 
     try {
-      const customsUri = vscode.Uri.file(customsFolder);
-      const customsDir = await vscode.workspace.fs.readDirectory(customsUri);
+      const customsDir = await readDirectory(customsFolder);
       files.push(...customsDir.map(entry => entry[0]));
     } catch {
       // Customs folder doesn't exist or can't be read
@@ -79,20 +76,12 @@ export class FileSystemOrgDataSource implements OrgDataSource {
 
     let filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, sobjectName + '.json');
     try {
-      const fileUri = vscode.Uri.file(filePath);
-      const fileStat = await vscode.workspace.fs.stat(fileUri);
-      if (!fileStat) {
-        filePath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, sobjectName + '.json');
-      }
-    } catch {
+      await stat(filePath);
       filePath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, sobjectName + '.json');
-    }
 
-    try {
-      const fileUri = vscode.Uri.file(filePath);
-      const fileContent = await vscode.workspace.fs.readFile(fileUri);
+      const fileContent = await readFile(filePath);
       // TODO: validate content against a schema
-      return JSON.parse(fileContent.toString());
+      return JSON.parse(fileContent);
     } catch {
       const message = nls.localize(
         'error_sobject_metadata_fs_request',

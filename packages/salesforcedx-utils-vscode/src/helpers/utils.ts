@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename, dirname } from 'node:path';
+import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 
@@ -222,11 +222,15 @@ export const fixupError = (error: string | undefined): string =>
  * @param filePath The path to the file
  * @returns The file contents as a string
  */
-export async function readFile(filePath: string): Promise<string> {
-  const uri = vscode.Uri.file(filePath);
-  const data = await vscode.workspace.fs.readFile(uri);
-  return Buffer.from(data).toString('utf8');
-}
+export const readFile = async (filePath: string): Promise<string> => {
+  try {
+    const uri = vscode.Uri.file(filePath);
+    const data = await vscode.workspace.fs.readFile(uri);
+    return Buffer.from(data).toString('utf8');
+  } catch (error) {
+    throw new Error(`Failed to read file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
 
 /**
  * Writes content to a file
@@ -235,18 +239,15 @@ export async function readFile(filePath: string): Promise<string> {
  */
 export const writeFile = async (filePath: string, content: string): Promise<void> => {
   try {
-    // Ensure the directory exists
-    const dirPath = dirname(filePath);
-    if (!(await fileExists(dirPath))) {
-      await createDirectory(dirPath);
+    if (!(await fileOrFolderExists(filePath))) {
+      await createDirectory(filePath);
     }
 
     const encoder = new TextEncoder();
     const uint8Array = encoder.encode(content);
     await vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), uint8Array);
   } catch (error) {
-    console.error(`Error writing file ${filePath}:`, error);
-    throw error;
+    throw new Error(`Failed to write file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
   }
 };
 
@@ -255,51 +256,72 @@ export const writeFile = async (filePath: string, content: string): Promise<void
  * @param filePath The path to the file
  * @returns True if the file exists, false otherwise
  */
-export async function fileExists(filePath: string): Promise<boolean> {
+export const fileOrFolderExists = async (filePath: string): Promise<boolean> => {
   try {
     const uri = vscode.Uri.file(filePath);
     await vscode.workspace.fs.stat(uri);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
-}
+};
 
 /**
  * Creates a directory recursively
  * @param dirPath The path to the directory
  */
-export async function createDirectory(dirPath: string): Promise<void> {
-  const uri = vscode.Uri.file(dirPath);
-  await vscode.workspace.fs.createDirectory(uri);
-}
+export const createDirectory = async (dirPath: string): Promise<void> => {
+  try {
+    const uri = vscode.Uri.file(dirPath);
+    await vscode.workspace.fs.createDirectory(uri);
+  } catch (error) {
+    throw new Error(`Failed to create directory ${dirPath}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
 
 /**
  * Deletes a file
  * @param filePath The path to the file
  */
-export async function deleteFile(filePath: string): Promise<void> {
-  const uri = vscode.Uri.file(filePath);
-  await vscode.workspace.fs.delete(uri);
-}
+export const deleteFile = async (
+  filePath: string,
+  options: { recursive?: boolean; useTrash?: boolean } = {}
+): Promise<void> => {
+  try {
+    const uri = vscode.Uri.file(filePath);
+    await vscode.workspace.fs.delete(uri, options);
+  } catch (error) {
+    throw new Error(`Failed to delete file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
 
 /**
  * Reads a directory's contents
  * @param dirPath The path to the directory
  * @returns Array of file/directory names
  */
-export async function readdir(dirPath: string): Promise<string[]> {
-  const uri = vscode.Uri.file(dirPath);
-  const entries = await vscode.workspace.fs.readDirectory(uri);
-  return entries.map(([name]) => name);
-}
+export const readDirectory = async (dirPath: string): Promise<string[]> => {
+  try {
+    const uri = vscode.Uri.file(dirPath);
+    const entries = await vscode.workspace.fs.readDirectory(uri);
+    return entries.map(([name]) => name);
+  } catch (error) {
+    throw new Error(`Failed to read directory ${dirPath}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
 
 /**
  * Gets file stats
  * @param filePath The path to the file
  * @returns File stats including size, creation time, and modification time
  */
-export async function stat(filePath: string): Promise<vscode.FileStat> {
-  const uri = vscode.Uri.file(filePath);
-  return vscode.workspace.fs.stat(uri);
-}
+export const stat = async (filePath: string): Promise<vscode.FileStat> => {
+  try {
+    const uri = vscode.Uri.file(filePath);
+    return await vscode.workspace.fs.stat(uri);
+  } catch (error) {
+    throw new Error(
+      `Failed to get file stats for ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+};

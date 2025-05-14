@@ -7,7 +7,7 @@
 
 import * as path from 'node:path';
 import { workspace } from 'vscode';
-import { fileExists } from '../helpers/utils';
+import { fileOrFolderExists } from '../helpers/utils';
 import { nls } from '../messages';
 import { Predicate, PredicateResponse } from '../predicates';
 import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';
@@ -18,7 +18,7 @@ class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
   public async apply(item: typeof workspace): Promise<PredicateResponse> {
     if (!hasRootWorkspace()) {
       return PredicateResponse.of(false, nls.localize('predicates_no_folder_opened_text'));
-    } else if (!(await fileExists(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE)))) {
+    } else if (!(await fileOrFolderExists(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE)))) {
       return PredicateResponse.of(false, nls.localize('predicates_no_salesforce_project_found_text'));
     } else {
       return PredicateResponse.true();
