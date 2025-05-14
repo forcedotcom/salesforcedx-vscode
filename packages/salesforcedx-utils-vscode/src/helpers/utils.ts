@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename } from 'node:path';
+import { basename, dirname } from 'node:path';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 
@@ -239,8 +239,9 @@ export const readFile = async (filePath: string): Promise<string> => {
  */
 export const writeFile = async (filePath: string, content: string): Promise<void> => {
   try {
-    if (!(await fileOrFolderExists(filePath))) {
-      await createDirectory(filePath);
+    const dirPath = dirname(filePath);
+    if (!(await fileOrFolderExists(dirPath))) {
+      await createDirectory(dirPath);
     }
 
     const encoder = new TextEncoder();
