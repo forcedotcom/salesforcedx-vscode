@@ -57,7 +57,10 @@ jobs:
             cd salesforcedx-vscode
 
             # clean project
-            npm run clean && npm install && npm run compile
+            rm -rf ./extensions
+
+            # clean e2e-temp
+            rm -rf ./e2e-temp
 
             # Download extension vsixes
             mkdir ./extensions
@@ -77,12 +80,15 @@ jobs:
             sf version
             SF_CLI_VERSION=$(sf version)
 
-            if [[ ((`echo $SF_CLI_VERSION | grep -c "@salesforce/cli/"` > 0))]]
-            then
-              echo "@salesforce/cli installed -" $SF_CLI_VERSION
+            if [ "${{ matrix.os }}" = "windows-latest" ]; then
+              powershell -Command "if ($SF_CLI_VERSION -match '@salesforce/cli/') { Write-Host '@salesforce/cli installed -' $SF_CLI_VERSION } else { Write-Host 'The @salesforce/cli installation could not be verified'; exit 1 }"
             else
-              echo "The @salesforce/cli installation could not be verified"
-              exit 1
+              if [ "$(echo $SF_CLI_VERSION | grep -c "@salesforce/cli/")" -gt 0 ]; then
+                echo "@salesforce/cli installed -" $SF_CLI_VERSION
+              else
+                echo "The @salesforce/cli installation could not be verified"
+                exit 1
+              fi
             fi
 
             # Set THROTTLE_FACTOR
@@ -91,6 +97,9 @@ jobs:
             else
               echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
             fi
+
+            # Compile packages
+            npm run compile
 
             # Run headless test
             npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "npx eslint ./test **/*.ts",
-    "copy:files": "cp -r test/testData/files lib/test/testData",
+    "copy:files": "node scripts/copy-test-data.js",
     "compile": "tsc --project ./tsconfig.json && npm run copy:files",
     "prepare": "husky",
     "extester": "extest --help",
