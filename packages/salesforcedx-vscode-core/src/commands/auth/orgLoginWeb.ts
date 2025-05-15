@@ -28,7 +28,7 @@ import { DemoModePromptGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspace
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';
 
-export type DeviceCodeResponse = {
+type DeviceCodeResponse = {
   user_code: string;
   device_code: string;
   interval: number;

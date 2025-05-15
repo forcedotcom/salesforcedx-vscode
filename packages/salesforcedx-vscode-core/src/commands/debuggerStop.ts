@@ -35,7 +35,7 @@ type QueryRecord = {
   Id: string;
 };
 
-export type IdSelection = { id: string };
+type IdSelection = { id: string };
 export class IdGatherer implements ParametersGatherer<IdSelection> {
   private readonly sessionIdToUpdate: string;
 
@@ -48,7 +48,7 @@ export class IdGatherer implements ParametersGatherer<IdSelection> {
   }
 }
 
-export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
+class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
   public build(data: IdSelection): Command {
     return new SfCommandBuilder()
       .withArg('data:update:record')
@@ -62,7 +62,7 @@ export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelect
   }
 }
 
-export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
+class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withArg('data:query')

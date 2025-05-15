@@ -23,7 +23,7 @@ import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import { EmptyPreChecker, SfCommandlet } from './util';
 
-export enum projectTemplateEnum {
+enum projectTemplateEnum {
   standard = 'standard',
   empty = 'empty',
   analytics = 'analytics'
@@ -81,7 +81,7 @@ type ProjectURI = {
   projectUri: string;
 };
 
-export type ProjectName = {
+type ProjectName = {
   projectName: string;
 };
 
@@ -89,7 +89,7 @@ type ProjectTemplate = {
   projectTemplate: string;
 };
 
-export class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate> {
+class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ProjectTemplate>> {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),

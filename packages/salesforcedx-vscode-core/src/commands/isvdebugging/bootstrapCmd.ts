@@ -367,7 +367,7 @@ type ForceIdeUri = {
   orgName: string;
 };
 
-export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
+class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   public static readonly uriValidator = (value: string) => {
     try {
       const url = new URL(value);

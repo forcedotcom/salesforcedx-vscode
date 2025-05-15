@@ -63,7 +63,7 @@ export class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameter
   }
 }
 
-export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
+class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
   private isDebugging: boolean;

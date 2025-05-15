@@ -15,7 +15,7 @@ import { workspace } from '../workspace';
  * Run an LWC Jest test from provided test execution info
  * @param testExecutionInfo test execution info
  */
-export const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
+const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.RUN, LWC_TEST_RUN_LOG_NAME);
   try {
     return await testRunner.executeAsSfTask();

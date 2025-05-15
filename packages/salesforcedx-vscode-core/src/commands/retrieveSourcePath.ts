@@ -16,7 +16,7 @@ import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
-export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
+class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
   constructor() {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_sourcepath');
   }

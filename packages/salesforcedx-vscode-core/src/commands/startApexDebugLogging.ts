@@ -126,7 +126,7 @@ export const getUserId = async (projectPath: string): Promise<string> => {
   }
 };
 
-export class QueryUser extends SfCommandletExecutor<{}> {
+class QueryUser extends SfCommandletExecutor<{}> {
   private username: string;
   public constructor(username: string) {
     super();
@@ -186,7 +186,7 @@ export class CreateTraceFlag extends SfCommandletExecutor<{}> {
   }
 }
 
-export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
+class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     const nonNullDebugLevel = developerLogTraceFlag.getDebugLevelId()!;
     return new SfCommandBuilder()
@@ -201,7 +201,7 @@ export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
+class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
     return new SfCommandBuilder()

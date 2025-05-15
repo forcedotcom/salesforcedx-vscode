@@ -18,7 +18,7 @@ import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
 import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
 
-export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
+class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
   public build(data: PackageIdAndInstallationKey): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize('package_install_text'))
@@ -44,7 +44,7 @@ type InstallationKey = {
   installationKey: string;
 };
 
-export class SelectPackageID implements ParametersGatherer<PackageID> {
+class SelectPackageID implements ParametersGatherer<PackageID> {
   public async gather(): Promise<CancelResponse | ContinueResponse<PackageID>> {
     const packageIdInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_package_id'),

@@ -5,7 +5,6 @@
 'use strict';
 
 import {
-  CompletionItem,
   CompletionList,
   Diagnostic,
   DocumentHighlight,
@@ -31,7 +30,6 @@ import { findDocumentSymbols } from './services/htmlSymbolsProvider';
 export {
   TextDocument,
   Position,
-  CompletionItem,
   CompletionList,
   Hover,
   Range,
@@ -64,7 +62,7 @@ export type CompletionConfiguration = {
   hideAutoCompleteProposals?: boolean;
 };
 
-export type Node = {
+type Node = {
   tag: string;
   start: number;
   end: number;
@@ -97,20 +95,6 @@ export enum TokenType {
   Script,
   Styles,
   EOS
-}
-
-export enum ScannerState {
-  WithinContent,
-  AfterOpeningStartTag,
-  AfterOpeningEndTag,
-  WithinDoctype,
-  WithinTag,
-  WithinEndTag,
-  WithinComment,
-  WithinScriptContent,
-  WithinStyleContent,
-  AfterAttributeName,
-  BeforeAttributeValue
 }
 
 export declare type HTMLDocument = {

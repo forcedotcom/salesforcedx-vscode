@@ -33,7 +33,7 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
-export type RefreshSelection = {
+type RefreshSelection = {
   category: SObjectCategory;
   source: SObjectRefreshSource;
 };

@@ -102,7 +102,6 @@
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
-    "eslint-check": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
     "reformat": "node scripts/reformat-with-prettier.js",
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js",
     "link-lsp": "yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
