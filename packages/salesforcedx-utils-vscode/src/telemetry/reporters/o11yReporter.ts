@@ -103,6 +103,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
         properties: props,
         measurements
       });
+
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.o11yService.upload();
     }
@@ -122,10 +123,12 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
       const orgId = WorkspaceContextUtil.getInstance().orgId || '';
       const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
       const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
-      const properties = this.applyTelemetryTag({ orgId, orgShape, devHubId });
+      const baseProps = { orgId, orgShape, devHubId };
+      const props = this.applyTelemetryTag({ ...baseProps, ...this.aggregateLoggingProperties() });
+
       this.o11yService.logEvent({
         exception: error,
-        properties,
+        properties: props,
         measurements
       });
 
