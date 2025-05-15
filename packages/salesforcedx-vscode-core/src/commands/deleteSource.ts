@@ -47,7 +47,7 @@ export class DeleteSourceExecutor extends SfCommandletExecutor<{
   }
 }
 
-export class ManifestChecker implements PreconditionChecker {
+class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
   public constructor(uri: URI) {

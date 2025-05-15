@@ -7,20 +7,14 @@
 export { aliasList } from './aliasList';
 export { AccessTokenParamsGatherer, AuthParams, AuthParamsGatherer, OrgTypeItem } from './auth/authParamsGatherer';
 export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
-export {
-  OrgLoginWebContainerExecutor,
-  OrgLoginWebDemoModeExecutor,
-  OrgLoginWebExecutor,
-  createOrgLoginWebExecutor,
-  orgLoginWeb
-} from './auth/orgLoginWeb';
+export { OrgLoginWebContainerExecutor, OrgLoginWebDemoModeExecutor, orgLoginWeb } from './auth/orgLoginWeb';
 export { orgLoginWebDevHub } from './auth/orgLoginWebDevHub';
 export { OrgLogoutAll, orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
-export { ConfigList, configList } from './configList';
-export { ConfigSetExecutor, configSet } from './configSet';
+export { configList } from './configList';
+export { configSet } from './configSet';
 export { dataQuery } from './dataQuery';
 export { debuggerStop } from './debuggerStop';
-export { ConfirmationAndSourcePathGatherer, DeleteSourceExecutor, ManifestChecker, deleteSource } from './deleteSource';
+export { ConfirmationAndSourcePathGatherer, DeleteSourceExecutor, deleteSource } from './deleteSource';
 export { projectGenerateManifest } from './projectGenerateManifest';
 export { describeMetadata } from './describeMetadata';
 export { packageInstall } from './packageInstall';
@@ -28,7 +22,7 @@ export { RefreshSObjectsExecutor, refreshSObjects, initSObjectDefinitions } from
 export { renameLightningComponent } from './renameLightningComponent';
 export { deployManifest } from './deployManifest';
 export { LibraryDeploySourcePathExecutor, deploySourcePaths } from './deploySourcePath';
-export { sourceDiff, sourceFolderDiff, handleCacheResults } from './sourceDiff';
+export { sourceDiff, sourceFolderDiff } from './sourceDiff';
 export { retrieveManifest } from './retrieveManifest';
 export { retrieveComponent } from './retrieveMetadata';
 export { SourcePathChecker, retrieveSourcePaths } from './retrieveSourcePath';
@@ -37,13 +31,11 @@ export { AliasGatherer, OrgCreateExecutor, orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';
 export { OrgDisplay, orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
-export { OrgOpenContainerExecutor, getExecutor, orgOpen } from './orgOpen';
+export { orgOpen } from './orgOpen';
 export { ProjectDeployStartExecutor, projectDeployStart } from './projectDeployStart';
 export {
-  ProjectNameAndPathAndTemplate,
   ProjectTemplateItem,
   SelectProjectFolder,
-  SelectProjectName,
   projectGenerateWithManifest,
   sfProjectGenerate
 } from './projectGenerate';
@@ -52,7 +44,6 @@ export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/vi
 export {
   CreateDebugLevel,
   CreateTraceFlag,
-  QueryTraceFlag,
   StartApexDebugLoggingExecutor,
   startApexDebugLogging
 } from './startApexDebugLogging';

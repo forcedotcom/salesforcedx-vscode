@@ -10,7 +10,7 @@ import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from '../testRunner';
 import { TestCaseInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
-import { isLwcJestTest } from '../utils';
+import { isLwcJestTest } from '../utils/isLwcJestTest';
 
 import { workspaceService } from '../workspace/workspaceService';
 

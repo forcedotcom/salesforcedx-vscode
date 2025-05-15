@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import { testWatcher } from '../testRunner/testWatcher';
 import { TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 
-import { isLwcJestTest } from '../utils';
+import { isLwcJestTest } from '../utils/isLwcJestTest';
 
 /**
  * Start watching tests using the provided test execution info.

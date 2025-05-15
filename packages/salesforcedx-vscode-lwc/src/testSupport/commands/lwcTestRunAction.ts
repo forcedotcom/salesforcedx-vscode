@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import { TestRunner, TestRunType } from '../testRunner';
 import { TestDirectoryInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
-import { isLwcJestTest } from '../utils';
+import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { workspace } from '../workspace';
 
 /**

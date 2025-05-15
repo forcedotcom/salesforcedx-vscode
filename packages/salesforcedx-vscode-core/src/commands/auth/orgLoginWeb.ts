@@ -126,7 +126,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   }
 }
 
-export class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
+class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
@@ -206,7 +206,7 @@ const promptLogOutForProdOrg = async () => {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
+const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebContainerExecutor();

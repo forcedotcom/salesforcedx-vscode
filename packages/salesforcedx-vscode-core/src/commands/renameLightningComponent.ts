@@ -83,7 +83,7 @@ class GetComponentName implements ParametersGatherer<ComponentName> {
   }
 }
 
-export const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
+const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
   const componentPath = await getComponentPath(sourceFsPath);
   if (isLwcComponent(componentPath)) {
     newName = newName.charAt(0).toLowerCase() + newName.slice(1);
