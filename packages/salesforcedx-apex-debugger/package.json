@@ -5,6 +5,7 @@
   "version": "63.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
+  "main": "out/src",
   "engines": {
     "vscode": "^1.90.0"
   },

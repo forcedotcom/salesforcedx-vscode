@@ -20,19 +20,19 @@ export type DebuggerResponse = {
   stateResponse: StateResponse;
 };
 
-export type ReferencesResponse = {
+type ReferencesResponse = {
   references: References;
 };
 
-export type FrameResponse = {
+type FrameResponse = {
   frame: Frame;
 };
 
-export type StateResponse = {
+type StateResponse = {
   state: State;
 };
 
-export type References = {
+type References = {
   references: Reference[];
 };
 
@@ -56,7 +56,7 @@ export type Value = {
   value?: string;
 };
 
-export type Field = Value & {
+type Field = Value & {
   index: number;
 };
 
@@ -65,7 +65,7 @@ export type Tuple = {
   value: Value;
 };
 
-export type Frame = {
+type Frame = {
   locals: Locals;
   statics: Statics;
   globals: Globals;
@@ -73,7 +73,7 @@ export type Frame = {
   references?: References;
 };
 
-export type Locals = {
+type Locals = {
   frameNumber: number;
   local: LocalValue[];
 };
@@ -82,23 +82,23 @@ export type LocalValue = Value & {
   slot: number;
 };
 
-export type Statics = {
+type Statics = {
   typeRef: string;
   static: Value[];
 };
 
-export type Globals = {
+type Globals = {
   global: Value[];
 };
 
-export type StackFrame = {
+type StackFrame = {
   typeRef: string;
   fullName: string;
   lineNumber: number;
   frameNumber: number;
 };
 
-export type State = {
+type State = {
   locals: Locals;
   statics: Statics;
   globals: Globals;
@@ -106,7 +106,7 @@ export type State = {
   references?: References;
 };
 
-export type Stack = {
+type Stack = {
   stackFrame: StackFrame[];
 };
 
@@ -114,7 +114,7 @@ export type DebuggerRequest = {
   getReferencesRequest: GetReferenceRequest;
 };
 
-export type GetReferenceRequest = {
+type GetReferenceRequest = {
   reference: ReferenceRequest[];
 };
 

@@ -4,15 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
-import { ActionScriptEnum, OrgInfoError } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/commands';
 import {
+  ActionScriptEnum,
+  OrgInfoError,
+  breakpointUtil,
   CHECKPOINT,
   CHECKPOINTS_LOCK_STRING,
   FIELD_INTEGRITY_EXCEPTION,
   MAX_ALLOWED_CHECKPOINTS,
   OVERLAY_ACTION_DELETE_URL
-} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+} from '@salesforce/salesforcedx-apex-replay-debugger';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
