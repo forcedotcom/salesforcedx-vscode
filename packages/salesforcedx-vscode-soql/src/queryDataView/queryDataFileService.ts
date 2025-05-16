@@ -11,7 +11,8 @@ import { homedir } from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 
