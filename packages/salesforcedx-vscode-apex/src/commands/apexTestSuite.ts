@@ -66,7 +66,7 @@ class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   }
 }
 
-export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
+class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
     const quickPickItems = await listApexTestSuiteItems();
 
@@ -91,7 +91,7 @@ export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions
   }
 }
 
-export class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
+class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
     const testSuiteInput = {
       prompt: 'Enter desired Apex test suite name:'

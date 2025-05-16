@@ -144,7 +144,7 @@ type LwcJestTestFileResult = {
 /**
  * Jest Test Assertion Result
  */
-export type LwcJestTestAssertionResult = {
+type LwcJestTestAssertionResult = {
   status: LwcJestTestResultStatus;
   title: string;
   ancestorTitles: string[];

@@ -30,7 +30,7 @@ import {
   RENAME_WARNING
 } from './util/lwcAuraDuplicateDetectionUtils';
 
-export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
+class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {
     super(nls.localize(RENAME_LIGHTNING_COMPONENT_EXECUTOR), RENAME_LIGHTNING_COMPONENT_EXECUTOR, OUTPUT_CHANNEL);

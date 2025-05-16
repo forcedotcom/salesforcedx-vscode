@@ -9,7 +9,7 @@ import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { nls } from '../messages';
 import { PromptConfirmGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class OrgListExecutor extends SfCommandletExecutor<{}> {
+class OrgListExecutor extends SfCommandletExecutor<{}> {
   public build(data: { choice?: string }): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_list_clean_text'))

@@ -84,14 +84,14 @@ class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
   }
 }
 
-export type AuthDevHubParams = {
+type AuthDevHubParams = {
   alias: string;
 };
 
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthDevHubParamsGatherer();
 
-export const createAuthDevHubExecutor = (): SfCommandletExecutor<{}> => {
+const createAuthDevHubExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebDevHubContainerExecutor();

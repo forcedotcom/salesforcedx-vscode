@@ -33,7 +33,7 @@ type ApexExecuteParameters = {
   selection?: vscode.Range;
 };
 
-export class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameters> {
+class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameters> {
   public gather(): Promise<CancelResponse | ContinueResponse<ApexExecuteParameters>> {
     if (hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;

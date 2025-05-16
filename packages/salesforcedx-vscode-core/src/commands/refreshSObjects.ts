@@ -38,7 +38,7 @@ type RefreshSelection = {
   source: SObjectRefreshSource;
 };
 
-export class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
+class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
   private source?: SObjectRefreshSource;
 
   public constructor(source?: SObjectRefreshSource) {

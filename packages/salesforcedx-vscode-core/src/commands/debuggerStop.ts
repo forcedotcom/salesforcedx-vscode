@@ -36,7 +36,7 @@ type QueryRecord = {
 };
 
 type IdSelection = { id: string };
-export class IdGatherer implements ParametersGatherer<IdSelection> {
+class IdGatherer implements ParametersGatherer<IdSelection> {
   private readonly sessionIdToUpdate: string;
 
   public constructor(sessionIdToUpdate: string) {

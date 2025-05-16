@@ -22,7 +22,7 @@ const debugSessionStartTimes = new Map<string, [number, number]>();
  * @param args CLI arguments
  * @param cwd current working directory
  */
-export const getDebugConfiguration = async (
+const getDebugConfiguration = async (
   command: Promise<string>,
   args: string[],
   cwd: string

@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { Range, TextDocument } from 'vscode-languageserver-types';
+import { Range, TextDocument, DocumentLink } from 'vscode-languageserver-types';
 import { URI } from 'vscode-uri';
-import { DocumentContext, DocumentLink } from '../htmlLanguageService';
+import { DocumentContext } from '../htmlLanguageService';
 import { createScanner, TokenType } from '../parser/htmlScanner';
 
 function stripQuotes(url: string): string {

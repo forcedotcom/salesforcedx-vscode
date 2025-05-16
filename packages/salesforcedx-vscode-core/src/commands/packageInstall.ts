@@ -58,7 +58,7 @@ class SelectPackageID implements ParametersGatherer<PackageID> {
   }
 }
 
-export class SelectInstallationKey implements ParametersGatherer<InstallationKey> {
+class SelectInstallationKey implements ParametersGatherer<InstallationKey> {
   private readonly prefillValueProvider?: () => string;
 
   constructor(prefillValueProvider?: () => string) {

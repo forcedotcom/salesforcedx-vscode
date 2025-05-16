@@ -33,7 +33,7 @@ type projectGenerateOptions = {
   isProjectWithManifest: boolean;
 };
 
-export class ProjectTemplateItem implements vscode.QuickPickItem {
+class ProjectTemplateItem implements vscode.QuickPickItem {
   public label: string;
   public description: string;
   constructor(name: string, description: string) {

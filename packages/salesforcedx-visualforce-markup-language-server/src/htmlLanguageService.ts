@@ -6,12 +6,9 @@
 
 import {
   CompletionList,
-  Diagnostic,
   DocumentHighlight,
   DocumentLink,
-  FormattingOptions,
   Hover,
-  MarkedString,
   Position,
   Range,
   SymbolInformation,
@@ -26,21 +23,6 @@ import { findDocumentHighlights } from './services/htmlHighlighting';
 import { doHover } from './services/htmlHover';
 import { findDocumentLinks } from './services/htmlLinks';
 import { findDocumentSymbols } from './services/htmlSymbolsProvider';
-
-export {
-  TextDocument,
-  Position,
-  CompletionList,
-  Hover,
-  Range,
-  SymbolInformation,
-  Diagnostic,
-  TextEdit,
-  DocumentHighlight,
-  FormattingOptions,
-  MarkedString,
-  DocumentLink
-};
 
 export type HTMLFormatConfiguration = {
   tabSize?: number;

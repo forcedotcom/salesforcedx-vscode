@@ -61,7 +61,7 @@ const inputAccessToken = async (): Promise<string | undefined> => {
   return accessToken;
 };
 
-export class OrgTypeItem implements vscode.QuickPickItem {
+class OrgTypeItem implements vscode.QuickPickItem {
   public label: string;
   public detail: string;
   constructor(localizeLabel: string, localizeDetail: string) {

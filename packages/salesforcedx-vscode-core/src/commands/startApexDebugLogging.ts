@@ -23,7 +23,7 @@ import { OrgAuthInfo } from '../util';
 import { developerLogTraceFlag } from '.';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
+class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();
   private cancellationToken = this.cancellationTokenSource.token;
 
@@ -142,7 +142,7 @@ class QueryUser extends SfCommandletExecutor<{}> {
   }
 }
 
-export class CreateDebugLevel extends SfCommandletExecutor<{}> {
+class CreateDebugLevel extends SfCommandletExecutor<{}> {
   public readonly developerName = `ReplayDebuggerLevels${Date.now()}`;
   public build(): Command {
     return new SfCommandBuilder()
@@ -159,7 +159,7 @@ export class CreateDebugLevel extends SfCommandletExecutor<{}> {
   }
 }
 
-export class CreateTraceFlag extends SfCommandletExecutor<{}> {
+class CreateTraceFlag extends SfCommandletExecutor<{}> {
   private userId: string;
 
   public constructor(userId: string) {
@@ -219,7 +219,7 @@ class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export class QueryTraceFlag extends SfCommandletExecutor<{}> {
+class QueryTraceFlag extends SfCommandletExecutor<{}> {
   public build(userId: string): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('start_apex_debug_logging'))

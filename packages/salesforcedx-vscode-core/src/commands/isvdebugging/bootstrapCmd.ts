@@ -359,7 +359,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
+type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
 
 type ForceIdeUri = {
   loginUrl: string;

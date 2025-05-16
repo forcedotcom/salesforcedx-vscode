@@ -48,9 +48,6 @@ export const terminateProcess = (pid: number): void => {
   LanguageClientManager.getInstance().terminateProcess(pid);
 };
 
-export const canRunCheck = async (isWindows: boolean): Promise<boolean> =>
-  LanguageClientManager.getInstance().canRunCheck(isWindows);
-
 export { configureApexLanguage } from './apexLanguageConfiguration';
 
 export { extensionUtils } from './extensionUtils';

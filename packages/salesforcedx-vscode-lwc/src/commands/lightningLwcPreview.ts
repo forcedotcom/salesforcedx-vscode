@@ -543,7 +543,7 @@ const executeMobilePreview = async (
  * @param startPath starting path to search for the config file.
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
-export const getProjectRootDirectory = async (startPath: string): Promise<string | undefined> => {
+const getProjectRootDirectory = async (startPath: string): Promise<string | undefined> => {
   try {
     const startUri = vscode.Uri.file(startPath);
     const stat = await vscode.workspace.fs.stat(startUri);

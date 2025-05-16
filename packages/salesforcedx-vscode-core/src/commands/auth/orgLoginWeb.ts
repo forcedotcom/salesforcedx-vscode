@@ -180,7 +180,7 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
   }
 }
 
-export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
+class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
   public build(data: AuthParams): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_org_text'))

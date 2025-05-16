@@ -20,7 +20,7 @@ import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
 import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
-export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
+class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor(showChannelOutput: boolean = true) {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_sourcepath');
     this.showChannelOutput = showChannelOutput;
