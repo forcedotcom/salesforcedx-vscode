@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as which from 'which';
@@ -17,13 +16,17 @@ import { workspaceService } from './workspaceService';
  * @param cwd path to the workspace folder
  * @returns path to LWC Test runner
  */
-export const getLwcTestRunnerExecutable = (cwd: string) => {
+export const getLwcTestRunnerExecutable = async (cwd: string) => {
   const workspaceType = workspaceService.getCurrentWorkspaceType();
   if (workspaceService.isSFDXWorkspace(workspaceType)) {
     const lwcTestRunnerExecutable = path.join(cwd, 'node_modules', '.bin', 'lwc-jest');
-    if (fs.existsSync(lwcTestRunnerExecutable)) {
-      return lwcTestRunnerExecutable;
-    } else {
+    try {
+      const uri = vscode.Uri.file(lwcTestRunnerExecutable);
+      const stat = await vscode.workspace.fs.stat(uri);
+      if (stat) {
+        return lwcTestRunnerExecutable;
+      }
+    } catch {
       const errorMessage = nls.localize('no_lwc_jest_found_text');
       console.error(errorMessage);
       vscode.window.showErrorMessage(errorMessage);
@@ -33,8 +36,19 @@ export const getLwcTestRunnerExecutable = (cwd: string) => {
     const lwcTestRunnerExecutable = which.sync('lwc-test', {
       nothrow: true
     });
-    if (lwcTestRunnerExecutable && fs.existsSync(lwcTestRunnerExecutable)) {
-      return lwcTestRunnerExecutable;
+    if (lwcTestRunnerExecutable) {
+      try {
+        const uri = vscode.Uri.file(lwcTestRunnerExecutable);
+        const stat = await vscode.workspace.fs.stat(uri);
+        if (stat) {
+          return lwcTestRunnerExecutable;
+        }
+      } catch {
+        const errorMessage = nls.localize('no_lwc_testrunner_found_text');
+        console.error(errorMessage);
+        vscode.window.showErrorMessage(errorMessage);
+        telemetryService.sendException('lwc_test_no_lwc_testrunner_found', errorMessage);
+      }
     } else {
       const errorMessage = nls.localize('no_lwc_testrunner_found_text');
       console.error(errorMessage);

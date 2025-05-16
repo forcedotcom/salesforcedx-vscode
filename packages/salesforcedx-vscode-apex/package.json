@@ -24,13 +24,13 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "8.1.20",
+    "@salesforce/apex-node-bundle": "^8.1.26",
     "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core-bundle": "8.9.1",
+    "@salesforce/core-bundle": "^8.10.3",
     "@salesforce/salesforcedx-utils": "63.13.0",
     "@salesforce/salesforcedx-utils-vscode": "63.13.0",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.19.2",
-    "@salesforce/vscode-service-provider": "1.4.0",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.6",
+    "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.19.5",
     "@stoplight/spectral-functions": "1.9.3",
     "@stoplight/spectral-rulesets": "1.21.3",
