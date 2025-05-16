@@ -281,7 +281,7 @@
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && resourceLangId != 'als' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -475,7 +475,7 @@
         },
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && resourceLangId != 'als' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
