@@ -7,19 +7,20 @@
 import {
   Duration,
   log,
-  TestReqConfig,
+  pause,
   ProjectShapeOption,
-  pause
+  TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
 import {
   createApexClassWithBugs,
   createApexClassWithTest
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import {
   getTestsSection,
-  verifyTestItemsInSideBar,
+  runTestCaseFromSideBar,
   verifyTestIconColor,
-  runTestCaseFromSideBar
+  verifyTestItemsInSideBar
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
@@ -35,8 +36,9 @@ import {
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
-import { verifyNotificationWithRetry, retryOperation } from '../utils/retryUtils';
+import { retryOperation, verifyNotificationWithRetry } from '../utils/retryUtils';
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
@@ -409,7 +411,13 @@ describe('Run Apex Tests', () => {
 
     // Choose tests that will belong to the new Apex Test Suite
     await prompt.setText('ExampleApexClass1Test');
-    const checkbox = await prompt.findElement(By.css('input.quick-input-list-checkbox'));
+    // Use different selector depending on VSCode version
+    const selector =
+      EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
+      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
+        ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
+        : 'input.quick-input-list-checkbox';
+    const checkbox = await prompt.findElement(By.css(selector));
     await checkbox.click();
     await clickFilePathOkButton();
 
@@ -432,7 +440,13 @@ describe('Run Apex Tests', () => {
 
     // Choose tests that will belong to the already created Apex Test Suite
     await prompt.setText('ExampleApexClass2Test');
-    const checkbox = await prompt.findElement(By.css('input.quick-input-list-checkbox'));
+    // Use different selector depending on VSCode version
+    const selector =
+      EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
+      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
+        ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
+        : 'input.quick-input-list-checkbox';
+    const checkbox = await prompt.findElement(By.css(selector));
     await checkbox.click();
     await clickFilePathOkButton();
 
