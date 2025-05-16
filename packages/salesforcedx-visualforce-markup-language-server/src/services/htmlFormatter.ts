@@ -6,8 +6,22 @@
 
 import { Position, Range, TextDocument, TextEdit } from 'vscode-languageserver-types';
 import { html_beautify, IBeautifyHTMLOptions } from '../beautify/beautify-html';
-import { HTMLFormatConfiguration } from '..';
 import { repeat } from '../utils/strings';
+
+export type HTMLFormatConfiguration = {
+  tabSize?: number;
+  insertSpaces?: boolean;
+  wrapLineLength?: number;
+  unformatted?: string;
+  contentUnformatted?: string;
+  indentInnerHtml?: boolean;
+  wrapAttributes?: 'auto' | 'force' | 'force-aligned' | 'force-expand-multiline';
+  preserveNewLines?: boolean;
+  maxPreserveNewLines?: number;
+  indentHandlebars?: boolean;
+  endWithNewline?: boolean;
+  extraLiners?: string;
+};
 
 export function format(document: TextDocument, range: Range, options: HTMLFormatConfiguration): TextEdit[] {
   let value = document.getText();

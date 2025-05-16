@@ -18,26 +18,13 @@ import {
 import { parse } from './parser/htmlParser';
 import { createScanner, Scanner } from './parser/htmlScanner';
 import { CompletionConfiguration, doComplete, doTagComplete } from './services/htmlCompletion';
-import { format } from './services/htmlFormatter';
+import { format, HTMLFormatConfiguration } from './services/htmlFormatter';
 import { findDocumentHighlights } from './services/htmlHighlighting';
 import { doHover } from './services/htmlHover';
 import { findDocumentLinks } from './services/htmlLinks';
 import { findDocumentSymbols } from './services/htmlSymbolsProvider';
 
-export type HTMLFormatConfiguration = {
-  tabSize?: number;
-  insertSpaces?: boolean;
-  wrapLineLength?: number;
-  unformatted?: string;
-  contentUnformatted?: string;
-  indentInnerHtml?: boolean;
-  wrapAttributes?: 'auto' | 'force' | 'force-aligned' | 'force-expand-multiline';
-  preserveNewLines?: boolean;
-  maxPreserveNewLines?: number;
-  indentHandlebars?: boolean;
-  endWithNewline?: boolean;
-  extraLiners?: string;
-};
+export { HTMLFormatConfiguration };
 
 type Node = {
   tag: string;

@@ -9,7 +9,7 @@ import {
   HTMLDocument,
   HTMLFormatConfiguration,
   LanguageService as HTMLLanguageService
-} from '@salesforce/salesforcedx-visualforce-markup-language-server/out/src';
+} from '@salesforce/salesforcedx-visualforce-markup-language-server';
 import { Position, Range, TextDocument, FormattingOptions } from 'vscode-languageserver-types';
 import { getLanguageModelCache } from '../languageModelCache';
 import { LanguageMode, Settings } from './languageModes';

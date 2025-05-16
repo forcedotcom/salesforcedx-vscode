@@ -8,7 +8,7 @@
 import {
   DocumentContext,
   getLanguageService as getHTMLLanguageService
-} from '@salesforce/salesforcedx-visualforce-markup-language-server/out/src';
+} from '@salesforce/salesforcedx-visualforce-markup-language-server';
 import { ColorInformation, ColorPresentation } from 'vscode-languageserver-protocol';
 import {
   CompletionItem,
