@@ -495,7 +495,7 @@
         },
         {
           "command": "sf.org.delete.default",
-          "when": "sf:project_opened && sf:has_target_org "
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.org.delete.username",
