@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Papa from 'papaparse';

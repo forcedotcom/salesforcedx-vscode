@@ -17,7 +17,6 @@ export {
 } from './auth/authParamsGatherer';
 export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export {
-  DeviceCodeResponse,
   OrgLoginWebContainerExecutor,
   OrgLoginWebDemoModeExecutor,
   OrgLoginWebExecutor,
@@ -71,7 +70,6 @@ export {
   SelectProjectName,
   SelectProjectTemplate,
   projectGenerateWithManifest,
-  projectTemplateEnum,
   sfProjectGenerate
 } from './projectGenerate';
 export { ProjectRetrieveStartExecutor, projectRetrieveStart } from './projectRetrieveStart';

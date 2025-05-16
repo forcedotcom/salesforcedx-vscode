@@ -20,7 +20,7 @@ import {
   TextEdit
 } from 'vscode-languageserver-types';
 import { parse } from './parser/htmlParser';
-import { createScanner, Scanner } from './parser/htmlScanner';
+import { createScanner, Scanner, TokenType } from './parser/htmlScanner';
 import { doComplete, doTagComplete } from './services/htmlCompletion';
 import { format } from './services/htmlFormatter';
 import { findDocumentHighlights } from './services/htmlHighlighting';
@@ -41,7 +41,8 @@ export {
   DocumentHighlight,
   FormattingOptions,
   MarkedString,
-  DocumentLink
+  DocumentLink,
+  TokenType
 };
 
 export type HTMLFormatConfiguration = {
@@ -73,45 +74,6 @@ export type Node = {
   parent: Node;
   attributes?: { [name: string]: string };
 };
-
-export enum TokenType {
-  StartCommentTag,
-  Comment,
-  EndCommentTag,
-  StartTagOpen,
-  StartTagClose,
-  StartTagSelfClose,
-  StartTag,
-  EndTagOpen,
-  EndTagClose,
-  EndTag,
-  DelimiterAssign,
-  AttributeName,
-  AttributeValue,
-  StartDoctypeTag,
-  Doctype,
-  EndDoctypeTag,
-  Content,
-  Whitespace,
-  Unknown,
-  Script,
-  Styles,
-  EOS
-}
-
-export enum ScannerState {
-  WithinContent,
-  AfterOpeningStartTag,
-  AfterOpeningEndTag,
-  WithinDoctype,
-  WithinTag,
-  WithinEndTag,
-  WithinComment,
-  WithinScriptContent,
-  WithinStyleContent,
-  AfterAttributeName,
-  BeforeAttributeValue
-}
 
 export declare type HTMLDocument = {
   roots: Node[];

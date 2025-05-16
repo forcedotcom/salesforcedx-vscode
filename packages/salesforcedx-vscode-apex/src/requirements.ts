@@ -8,17 +8,15 @@
 // From https://github.com/redhat-developer/vscode-java
 // Original version licensed under the Eclipse Public License (EPL)
 
+import * as findJavaHome from 'find-java-home';
 import * as cp from 'node:child_process';
 import * as fs from 'node:fs';
+import { homedir } from 'node:os';
 import * as path from 'node:path';
+import { join } from 'node:path';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
-
-/* eslint-disable @typescript-eslint/no-var-requires */
-const expandHomeDir = require('expand-home-dir');
-const findJavaHome = require('find-java-home');
-/* eslint-enable @typescript-eslint/no-var-requires */
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
@@ -41,45 +39,45 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
   });
 };
 
-const checkJavaRuntime = async (): Promise<string> =>
-  new Promise((resolve, reject) => {
-    let source: string;
-    let javaHome: string | undefined = readJavaConfig();
+const checkJavaRuntime = async (): Promise<string> => {
+  let source: string;
+  let javaHome: string | undefined = readJavaConfig();
+
+  if (javaHome) {
+    source = nls.localize('source_java_home_setting_text');
+  } else {
+    javaHome = process.env['JDK_HOME'];
 
     if (javaHome) {
-      source = nls.localize('source_java_home_setting_text');
+      source = nls.localize('source_jdk_home_env_var_text');
     } else {
-      javaHome = process.env['JDK_HOME'];
-
-      if (javaHome) {
-        source = nls.localize('source_jdk_home_env_var_text');
-      } else {
-        javaHome = process.env['JAVA_HOME'];
-        source = nls.localize('source_java_home_env_var_text');
-      }
+      javaHome = process.env['JAVA_HOME'];
+      source = nls.localize('source_java_home_env_var_text');
     }
+  }
 
-    if (javaHome) {
-      javaHome = expandHomeDir(javaHome) as string;
-      if (isLocal(javaHome)) {
-        // prevent injecting malicious code from unknown repositories
-        return reject(nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK));
-      }
-      if (!fs.existsSync(javaHome)) {
-        return reject(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
-      }
-      return resolve(javaHome);
+  if (javaHome) {
+    javaHome = expandHomeDir(javaHome);
+    if (isLocal(javaHome)) {
+      // prevent injecting malicious code from unknown repositories
+      throw new Error(nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK));
     }
+    if (!fs.existsSync(javaHome)) {
+      throw new Error(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
+    }
+    return javaHome;
+  }
 
-    // Last resort, try to automatically detect
-    findJavaHome((err: Error, home: string) => {
-      if (err) {
-        return reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
-      } else {
-        return resolve(home);
-      }
-    });
+  // Last resort, try to automatically detect
+  await findJavaHome((err: Error, home: string) => {
+    if (err) {
+      throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
+    } else {
+      return home;
+    }
   });
+  throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
+};
 
 const readJavaConfig = (): string => {
   const config = workspace.getConfiguration();
@@ -111,4 +109,11 @@ export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
       reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
     });
   });
+};
+
+const expandHomeDir = (p: string): string => {
+  if (!p) return p;
+  if (p === '~') return homedir();
+  if (!p.startsWith('~/')) return p;
+  return join(homedir(), p.slice(2));
 };

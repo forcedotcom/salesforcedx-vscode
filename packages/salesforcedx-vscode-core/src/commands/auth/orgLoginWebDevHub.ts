@@ -66,10 +66,10 @@ export class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> 
 
 export class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
   public async gather(): Promise<CancelResponse | ContinueResponse<AuthDevHubParams>> {
-    const aliasInputOptions = {
+    const aliasInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: DEFAULT_ALIAS
-    } as vscode.InputBoxOptions;
+    };
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will default the alias to 'vscodeOrg'
     if (alias === undefined) {

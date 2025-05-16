@@ -112,7 +112,7 @@ const resolveTargetOrg = async (): Promise<{
     try {
       isScratch = await OrgAuthInfo.isAScratchOrg(username);
     } catch (err) {
-      return { error: err as Error, isScratch: false };
+      return { error: err, isScratch: false };
     }
     return { username, isScratch, alias };
   }

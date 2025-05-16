@@ -10,7 +10,7 @@ import type { RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
 import type { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking-bundle';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
-import { Row, Table } from '../output';
+import { Table } from '../output';
 import { SourceTrackingProvider } from '../providers';
 import { getRootWorkspacePath } from '../workspaces';
 
@@ -151,7 +151,7 @@ class StatusResultsTable {
   public value(): string {
     this.statusResults.forEach(statusResult => this.convertToTableRow(statusResult));
 
-    const table: string = new Table().createTable(this.statusResults as unknown as Row[], this.columns);
+    const table: string = new Table().createTable(this.statusResults, this.columns);
 
     return table;
   }
