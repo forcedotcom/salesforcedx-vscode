@@ -10,7 +10,7 @@ import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '..';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
-import { createDirectory, fileOrFolderExists } from './utils';
+import { createDirectory } from './fs';
 
 export const ORGS = 'orgs';
 export const METADATA = 'metadata';
@@ -23,18 +23,9 @@ export const APEX_DB = 'apex.db';
 export const LWC = 'lwc';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
-export const ensureDirectoryExists = async (filePath: string): Promise<void> => {
-  if (await fileOrFolderExists(filePath)) {
-    return;
-  }
-  await ensureDirectoryExists(path.dirname(filePath));
-  await createDirectory(filePath);
-};
-
-export const getTestResultsFolder = (vscodePath: string, testType: string) => {
+export const getTestResultsFolder = async (vscodePath: string, testType: string) => {
   const pathToTestResultsFolder = path.join(vscodePath, Global.STATE_FOLDER, TOOLS, TEST_RESULTS, testType);
-
-  void ensureDirectoryExists(pathToTestResultsFolder);
+  await createDirectory(pathToTestResultsFolder);
   return pathToTestResultsFolder;
 };
 

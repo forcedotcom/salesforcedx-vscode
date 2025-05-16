@@ -12,7 +12,7 @@ export const ensureCurrentWorkingDirIsProjectPath = async (rootWorkspacePath: st
       const uri = vscode.Uri.file(rootWorkspacePath);
       await vscode.workspace.fs.stat(uri);
       process.chdir(rootWorkspacePath);
-    } catch (error) {
+    } catch {
       // Path doesn't exist, do nothing
     }
   }

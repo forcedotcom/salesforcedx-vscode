@@ -19,36 +19,29 @@ import { workspaceService } from './workspaceService';
  */
 export const getLwcTestRunnerExecutable = async (cwd: string) => {
   const workspaceType = workspaceService.getCurrentWorkspaceType();
-  if (workspaceService.isSFDXWorkspace(workspaceType)) {
-    const lwcTestRunnerExecutable = path.join(cwd, 'node_modules', '.bin', 'lwc-jest');
-    try {
-      await stat(lwcTestRunnerExecutable);
-      return lwcTestRunnerExecutable;
-    } catch {
-      const errorMessage = nls.localize('no_lwc_jest_found_text');
-      console.error(errorMessage);
-      vscode.window.showErrorMessage(errorMessage);
-      telemetryService.sendException('lwc_test_no_lwc_jest_found', errorMessage);
-    }
-  } else if (workspaceService.isCoreWorkspace(workspaceType)) {
-    const lwcTestRunnerExecutable = which.sync('lwc-test', {
-      nothrow: true
-    });
-    if (lwcTestRunnerExecutable) {
-      try {
-        await stat(lwcTestRunnerExecutable);
-        return lwcTestRunnerExecutable;
-      } catch {
-        // Fall through to error handling
-      }
-    }
 
-    const errorMessage = nls.localize('no_lwc_testrunner_found_text');
+  if (!workspaceService.isSFDXWorkspace(workspaceType) && !workspaceService.isCoreWorkspace(workspaceType)) {
+    telemetryService.sendException('lwc_test_no_lwc_testrunner_found', 'Unsupported workspace');
+    return;
+  }
+
+  const getExecutablePath = () => {
+    if (workspaceService.isSFDXWorkspace(workspaceType)) {
+      return path.join(cwd, 'node_modules', '.bin', 'lwc-jest');
+    }
+    return which.sync('lwc-test');
+  };
+
+  try {
+    const executablePath = getExecutablePath();
+    await stat(executablePath);
+    return executablePath;
+  } catch {
+    const isSFDX = workspaceService.isSFDXWorkspace(workspaceType);
+    const errorKey = isSFDX ? 'lwc_test_no_lwc_jest_found' : 'lwc_test_no_lwc_testrunner_found';
+    const errorMessage = nls.localize(isSFDX ? 'no_lwc_jest_found_text' : 'no_lwc_testrunner_found_text');
     console.error(errorMessage);
     vscode.window.showErrorMessage(errorMessage);
-    telemetryService.sendException('lwc_test_no_lwc_testrunner_found', errorMessage);
-  } else {
-    // This is not expected since test support should not be activated for other workspace types
-    telemetryService.sendException('lwc_test_no_lwc_testrunner_found', 'Unsupported workspace');
+    telemetryService.sendException(errorKey, errorMessage);
   }
 };

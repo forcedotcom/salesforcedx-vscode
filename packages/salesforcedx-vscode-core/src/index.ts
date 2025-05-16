@@ -387,7 +387,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // commands are run with the project path returned from process.cwd(),
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
-  ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  void ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   setNodeExtraCaCerts();
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);

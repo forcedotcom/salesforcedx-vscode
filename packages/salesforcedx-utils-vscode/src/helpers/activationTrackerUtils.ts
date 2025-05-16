@@ -9,7 +9,7 @@ import { ExtensionInfo, ExtensionsInfo } from '@salesforce/vscode-service-provid
 import { EOL } from 'node:os';
 import { join, sep } from 'node:path';
 import { ExtensionContext, extensions, Uri } from 'vscode';
-import { readFile } from './utils';
+import { readFile } from './fs';
 
 type ParsedLog = {
   dateTime: Date;

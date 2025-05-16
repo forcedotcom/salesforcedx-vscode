@@ -94,18 +94,10 @@ describe('FauxClassGenerator Unit Tests.', () => {
     const gen = getGenerator();
     await gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
 
-    expect(vscodeMocked.workspace.fs.stat).toHaveBeenCalledTimes(2);
     expect(vscodeMocked.workspace.fs.stat).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         path: sobjectFolder,
-        scheme: 'file'
-      })
-    );
-    expect(vscodeMocked.workspace.fs.stat).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        path: join(sobjectFolder),
         scheme: 'file'
       })
     );

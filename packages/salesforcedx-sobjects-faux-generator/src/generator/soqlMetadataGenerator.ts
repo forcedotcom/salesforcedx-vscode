@@ -4,13 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  TOOLS,
-  createDirectory,
-  deleteFile,
-  fileOrFolderExists,
-  writeFile
-} from '@salesforce/salesforcedx-utils-vscode';
+import { TOOLS, createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectShortDescription } from '../describe';
@@ -40,21 +34,14 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
   }
 
   private async generateTypesNames(folderPath: string, typeNames: SObjectShortDescription[]): Promise<void> {
-    if (!(await fileOrFolderExists(folderPath))) {
-      await createDirectory(folderPath);
-    }
+    await createDirectory(folderPath);
     const typeNameFile = path.join(folderPath, 'typeNames.json');
-    if (await fileOrFolderExists(typeNameFile)) {
-      await deleteFile(typeNameFile);
-    }
+    await safeDelete(typeNameFile);
     await writeFile(typeNameFile, JSON.stringify(typeNames, null, 2));
   }
 
   private async generateMetadataForSObject(folderPath: string, sobject: SObject): Promise<void> {
-    const exists = await fileOrFolderExists(folderPath);
-    if (!exists) {
-      await createDirectory(folderPath);
-    }
+    await createDirectory(folderPath);
     const targetPath = path.join(
       folderPath,
       sobject.custom ? CUSTOMOBJECTS_DIR : STANDARDOBJECTS_DIR,
@@ -67,14 +54,11 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     const customsFolder = path.join(outputFolder, CUSTOMOBJECTS_DIR);
     const standardsFolder = path.join(outputFolder, STANDARDOBJECTS_DIR);
 
-    if (
-      [SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category) &&
-      (await fileOrFolderExists(standardsFolder))
-    ) {
-      await deleteFile(standardsFolder, { recursive: true, useTrash: false });
+    if ([SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category)) {
+      await safeDelete(standardsFolder, { recursive: true, useTrash: false });
     }
-    if ([SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category) && (await fileOrFolderExists(customsFolder))) {
-      await deleteFile(customsFolder, { recursive: true, useTrash: false });
+    if ([SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category)) {
+      await safeDelete(customsFolder, { recursive: true, useTrash: false });
     }
 
     await Promise.all([customsFolder, standardsFolder].map(folder => createDirectory(folder)));

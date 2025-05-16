@@ -7,7 +7,7 @@
 
 import * as path from 'node:path';
 import { workspace } from 'vscode';
-import { fileOrFolderExists } from '../helpers/utils';
+import { fileOrFolderExists } from '../helpers/fs';
 import { nls } from '../messages';
 import { Predicate, PredicateResponse } from '../predicates';
 import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';

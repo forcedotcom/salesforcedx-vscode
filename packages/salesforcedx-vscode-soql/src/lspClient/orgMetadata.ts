@@ -13,7 +13,7 @@ import {
   STANDARDOBJECTS_DIR,
   toMinimalSObject
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { projectPaths, readDirectory, readFile, stat } from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, readDirectory, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { nls } from '../messages';
 import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
@@ -74,11 +74,8 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       return undefined;
     }
 
-    let filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, sobjectName + '.json');
+    const filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, sobjectName + '.json');
     try {
-      await stat(filePath);
-      filePath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, sobjectName + '.json');
-
       const fileContent = await readFile(filePath);
       // TODO: validate content against a schema
       return JSON.parse(fileContent);

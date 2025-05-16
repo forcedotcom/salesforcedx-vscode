@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { createDirectory, deleteFile, fileOrFolderExists, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import * as path from 'node:path';
 import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
@@ -26,9 +26,7 @@ export class TypingGenerator implements SObjectGenerator {
   }
 
   public async generateTypes(sobjects: SObject[], targetFolder: string): Promise<void> {
-    if (!(await fileOrFolderExists(targetFolder))) {
-      await createDirectory(targetFolder);
-    }
+    await createDirectory(targetFolder);
 
     for (const sobj of sobjects) {
       if (sobj.name) {
@@ -40,10 +38,7 @@ export class TypingGenerator implements SObjectGenerator {
 
   public async generateType(folderPath: string, definition: SObjectDefinition): Promise<string> {
     const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
-    if (await fileOrFolderExists(typingPath)) {
-      await deleteFile(typingPath);
-    }
-
+    await safeDelete(typingPath);
     await writeFile(typingPath, this.convertDeclarations(definition));
 
     return typingPath;

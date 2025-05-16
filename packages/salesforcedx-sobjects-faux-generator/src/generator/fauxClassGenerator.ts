@@ -4,13 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  TOOLS,
-  createDirectory,
-  deleteFile,
-  fileOrFolderExists,
-  writeFile
-} from '@salesforce/salesforcedx-utils-vscode';
+import { TOOLS, createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import * as path from 'node:path';
 import { SOBJECTS_DIR } from '../constants';
@@ -65,9 +59,7 @@ export class FauxClassGenerator implements SObjectGenerator {
 
   // VisibleForTesting
   public async generateFauxClass(folderPath: string, definition: SObjectDefinition): Promise<string> {
-    if (!(await fileOrFolderExists(folderPath))) {
-      await createDirectory(folderPath);
-    }
+    await createDirectory(folderPath);
     const fauxClassPath = path.join(folderPath, `${definition.name}${APEX_CLASS_EXTENSION}`);
     await writeFile(fauxClassPath, this.generateFauxClassText(definition));
     return fauxClassPath;
@@ -98,13 +90,8 @@ export class FauxClassGenerator implements SObjectGenerator {
 
   private async resetOutputFolder(pathToClean: string): Promise<boolean> {
     try {
-      if (await fileOrFolderExists(pathToClean)) {
-        await deleteFile(pathToClean, { recursive: true, useTrash: false });
-      }
-      if (!(await fileOrFolderExists(pathToClean))) {
-        await createDirectory(pathToClean);
-        return await fileOrFolderExists(pathToClean);
-      }
+      await safeDelete(pathToClean, { recursive: true, useTrash: false });
+      await createDirectory(pathToClean);
       return true;
     } catch (error) {
       throw new Error(`Failed to reset output folder: ${error instanceof Error ? error.message : String(error)}`);
