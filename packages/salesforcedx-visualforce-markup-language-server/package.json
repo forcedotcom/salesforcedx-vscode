@@ -10,12 +10,10 @@
   "activationEvents": [
     "onView:never"
   ],
-  "main": "./out/src/htmlLanguageService.js",
-  "typings": "./out/src/htmlLanguageService.d.ts",
+  "main": "out/src",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "eslint-plugin-jest": "28.9.0",
-    "prettier": "3.3.3",
     "shx": "0.3.4",
     "typescript": "^5.6.2"
   },
