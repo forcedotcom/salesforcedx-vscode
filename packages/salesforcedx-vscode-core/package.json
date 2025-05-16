@@ -225,7 +225,7 @@
         },
         {
           "command": "sf.folder.diff",
-          "when": "explorerResourceIsFolder && sf:project_opened && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "explorerResourceIsFolder && sf:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.analytics.generate.template",
@@ -277,11 +277,11 @@
         },
         {
           "command": "sf.diff",
-          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -289,7 +289,7 @@
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -297,11 +297,11 @@
         },
         {
           "command": "sf.delete.source",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.project.generate.manifest",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders)"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.rename.lightning.component",
@@ -495,7 +495,7 @@
         },
         {
           "command": "sf.org.delete.default",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sf:project_opened && sf:has_target_org "
         },
         {
           "command": "sf.org.delete.username",
