@@ -90,10 +90,7 @@ import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import {
-  checkPackageDirectoriesEditorView,
-  checkPackageDirectoriesExplorerView
-} from './context/packageDirectoriesContext';
+import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
@@ -441,22 +438,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Set initial context
   await checkPackageDirectoriesEditorView();
-  await checkPackageDirectoriesExplorerView();
 
   // Register editor change listener
   const editorChangeDisposable = vscode.window.onDidChangeActiveTextEditor(async () => {
     await checkPackageDirectoriesEditorView();
   });
 
-  // Register explorer change listener
-  const watcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, true);
-  const explorerChangeDisposable = watcher.onDidCreate(async uri => {
-    await checkPackageDirectoriesExplorerView();
-  });
-
   // Add to subscriptions
   extensionContext.subscriptions.push(editorChangeDisposable);
-  extensionContext.subscriptions.push(explorerChangeDisposable);
 
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);

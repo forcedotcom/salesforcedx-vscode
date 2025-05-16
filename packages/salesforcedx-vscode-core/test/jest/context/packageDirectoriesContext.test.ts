@@ -10,10 +10,7 @@ import { workspaceUtils, TelemetryService } from '@salesforce/salesforcedx-utils
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import {
-  checkPackageDirectoriesEditorView,
-  checkPackageDirectoriesExplorerView
-} from '../../../src/context/packageDirectoriesContext';
+import { checkPackageDirectoriesEditorView } from '../../../src/context/packageDirectoriesContext';
 
 // Mock all external dependencies
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
@@ -72,53 +69,12 @@ describe('packageDirectoriesContext', () => {
 
   // Define the specific paths we want to verify
   const packageRoot = path.join(mockProjectPath, 'force-app');
-  const packageMain = path.join(mockProjectPath, 'force-app', 'main');
   const packageDefault = path.join(mockProjectPath, 'force-app', 'main', 'default');
   const packageClasses = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes');
-  const packageClass1 = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes', 'Class1.cls');
-  const packageClass1Metadata = path.join(
-    mockProjectPath,
-    'force-app',
-    'main',
-    'default',
-    'classes',
-    'Class1.cls-meta.xml'
-  );
-  const packageClass2 = path.join(mockProjectPath, 'force-app', 'main', 'default', 'classes', 'Class2.cls');
-  const packageClass2Metadata = path.join(
-    mockProjectPath,
-    'force-app',
-    'main',
-    'default',
-    'classes',
-    'Class2.cls-meta.xml'
-  );
   const packageLwc = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc');
   const packageLwc1 = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1');
   const packageLwc1TestsFolder = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1', '__tests__');
-  const packageLwc1Test = path.join(
-    mockProjectPath,
-    'force-app',
-    'main',
-    'default',
-    'lwc',
-    'lwc1',
-    '__tests__',
-    'lwc1.test.js'
-  );
-  const packageLwc1Html = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1', 'lwc1.html');
-  const packageLwc1Js = path.join(mockProjectPath, 'force-app', 'main', 'default', 'lwc', 'lwc1', 'lwc1.js');
-  const packageLwc1Metadata = path.join(
-    mockProjectPath,
-    'force-app',
-    'main',
-    'default',
-    'lwc',
-    'lwc1',
-    'lwc1.js-meta.xml'
-  );
   const packageRoot2 = path.join(mockProjectPath, 'path2');
-  const packageRoot2File = path.join(mockProjectPath, 'path2', 'file.txt');
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -218,61 +174,6 @@ describe('packageDirectoriesContext', () => {
       const result = await checkPackageDirectoriesEditorView();
       expect(result).toBe(false);
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:in_package_directories', false);
-    });
-  });
-
-  describe('checkPackageDirectoriesExplorerView', () => {
-    it('should set packageDirectoriesFolders context with all directories', async () => {
-      await checkPackageDirectoriesExplorerView();
-
-      // Check if the setContext command was called
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-        'setContext',
-        'packageDirectoriesFolders',
-        expect.any(Array)
-      );
-
-      // Get the actual paths that were set in the context
-      const setContextCalls = (vscode.commands.executeCommand as jest.Mock).mock.calls.filter(
-        call => call[0] === 'setContext' && call[1] === 'packageDirectoriesFolders'
-      );
-
-      // Check if we found any matching calls
-      expect(setContextCalls.length).toBeGreaterThan(0);
-
-      const actualPaths = setContextCalls[0][2];
-
-      // Verify that the package directory path is included
-      expect(actualPaths).toContain(packageRoot);
-
-      // Verify that the array contains all the expected paths
-      expect(actualPaths).toEqual([
-        packageRoot,
-        packageMain,
-        packageDefault,
-        packageClasses,
-        packageClass1,
-        packageClass1Metadata,
-        packageClass2,
-        packageClass2Metadata,
-        packageLwc,
-        packageLwc1,
-        packageLwc1TestsFolder,
-        packageLwc1Test,
-        packageLwc1Html,
-        packageLwc1Js,
-        packageLwc1Metadata,
-        packageRoot2,
-        packageRoot2File
-      ]);
-    });
-
-    it('should handle errors gracefully', async () => {
-      (SfProject.resolve as jest.Mock).mockRejectedValue(new Error('Test error'));
-
-      await checkPackageDirectoriesExplorerView();
-
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'packageDirectoriesFolders', []);
     });
   });
 });
