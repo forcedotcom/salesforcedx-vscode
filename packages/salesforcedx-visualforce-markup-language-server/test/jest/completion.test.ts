@@ -7,6 +7,7 @@
 
 import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src';
+import { CompletionConfiguration } from '../../src/services/htmlCompletion';
 import { applyEdits } from './textEditSupport';
 
 type ItemDescription = {
@@ -49,7 +50,7 @@ describe('HTML Completion', () => {
   const testCompletionFor = async (
     value: string,
     expected: { count?: number; items?: ItemDescription[] },
-    settings?: htmlLanguageService.CompletionConfiguration
+    settings?: CompletionConfiguration
   ): Promise<void> => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);

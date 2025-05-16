@@ -17,7 +17,7 @@ import {
 } from 'vscode-languageserver-types';
 import { parse } from './parser/htmlParser';
 import { createScanner, Scanner } from './parser/htmlScanner';
-import { doComplete, doTagComplete } from './services/htmlCompletion';
+import { CompletionConfiguration, doComplete, doTagComplete } from './services/htmlCompletion';
 import { format } from './services/htmlFormatter';
 import { findDocumentHighlights } from './services/htmlHighlighting';
 import { doHover } from './services/htmlHover';
@@ -37,11 +37,6 @@ export type HTMLFormatConfiguration = {
   indentHandlebars?: boolean;
   endWithNewline?: boolean;
   extraLiners?: string;
-};
-
-export type CompletionConfiguration = {
-  [provider: string]: boolean;
-  hideAutoCompleteProposals?: boolean;
 };
 
 type Node = {
