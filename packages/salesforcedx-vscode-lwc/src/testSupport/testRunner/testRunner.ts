@@ -70,11 +70,11 @@ export class TestRunner {
    * Determine jest command line arguments and output file path.
    * @param workspaceFolder workspace folder of the test
    */
-  public getJestExecutionInfo(workspaceFolder: vscode.WorkspaceFolder): JestExecutionInfo | undefined {
+  public async getJestExecutionInfo(workspaceFolder: vscode.WorkspaceFolder): Promise<JestExecutionInfo | undefined> {
     const { testRunId, testRunType, testExecutionInfo } = this;
     const { kind, testUri } = testExecutionInfo;
     const { fsPath: testFsPath } = testUri;
-    const tempFolder = testResultsWatcher.getTempFolder(workspaceFolder, testExecutionInfo);
+    const tempFolder = await testResultsWatcher.getTempFolder(workspaceFolder, testExecutionInfo);
 
     const testResultFileName = `test-result-${testRunId}.json`;
     const outputFilePath = path.join(tempFolder, testResultFileName);
@@ -118,7 +118,7 @@ export class TestRunner {
   public async getShellExecutionInfo() {
     const workspaceFolder = workspace.getTestWorkspaceFolder(this.testExecutionInfo.testUri);
     if (workspaceFolder) {
-      const jestExecutionInfo = this.getJestExecutionInfo(workspaceFolder);
+      const jestExecutionInfo = await this.getJestExecutionInfo(workspaceFolder);
       if (jestExecutionInfo) {
         const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;

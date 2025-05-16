@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -59,9 +60,8 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       path.join(...soqlBuilderWebAssetsPathParam, DIST_FOLDER)
     );
     const pathToHtml = path.join(soqlBuilderUIModule, HTML_FILE);
-    const htmlUri = vscode.Uri.file(pathToHtml);
-    const htmlContent = await vscode.workspace.fs.readFile(htmlUri);
-    return HtmlUtils.transformHtml(htmlContent.toString(), soqlBuilderUIModule, webview);
+    const htmlContent = await readFile(pathToHtml);
+    return HtmlUtils.transformHtml(htmlContent, soqlBuilderUIModule, webview);
   }
 
   private disposeInstance(instance: SOQLEditorInstance) {

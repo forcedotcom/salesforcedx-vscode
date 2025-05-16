@@ -68,7 +68,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
-    const apexDirPath = getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+    const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
 
     const testResultOutput = path.join(apexDirPath, '*.json');
     const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(testResultOutput);

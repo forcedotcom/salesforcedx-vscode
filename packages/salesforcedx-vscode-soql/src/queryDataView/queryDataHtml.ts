@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { DATA_VIEW_UI_PATH, HTML_FILE } from '../constants';
@@ -19,9 +20,7 @@ export const getHtml = async (
 
   const pathToDataViewDist = path.join(extensionPath, DATA_VIEW_UI_PATH);
   const pathToHtml = path.join(pathToDataViewDist, HTML_FILE);
-  const htmlUri = vscode.Uri.file(pathToHtml);
-  const htmlContent = await vscode.workspace.fs.readFile(htmlUri);
-  let html = htmlContent.toString();
+  let html = await readFile(pathToHtml);
   /*
   We need to replace the hrefs with webviewUris,
   this will need to change once we need a standalone data view.

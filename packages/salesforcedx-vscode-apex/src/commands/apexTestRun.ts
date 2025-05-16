@@ -100,9 +100,9 @@ export class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> 
   }
 }
 
-const getTempFolder = (): string => {
+const getTempFolder = async (): Promise<string> => {
   if (hasRootWorkspace()) {
-    const apexDir = getTestResultsFolder(getRootWorkspacePath(), 'apex');
+    const apexDir = await getTestResultsFolder(getRootWorkspacePath(), 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
@@ -172,7 +172,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
       result,
       {
         resultFormats: [ResultFormat.json],
-        dirPath: getTempFolder()
+        dirPath: await getTempFolder()
       },
       codeCoverage
     );

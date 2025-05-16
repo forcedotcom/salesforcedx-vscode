@@ -6,11 +6,11 @@
  */
 
 import { Global } from '@salesforce/core-bundle';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '..';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
+import { createDirectory } from './fs';
 
 export const ORGS = 'orgs';
 export const METADATA = 'metadata';
@@ -23,18 +23,9 @@ export const APEX_DB = 'apex.db';
 export const LWC = 'lwc';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
-export const ensureDirectoryExists = (filePath: string): void => {
-  if (fs.existsSync(filePath)) {
-    return;
-  }
-  ensureDirectoryExists(path.dirname(filePath));
-  fs.mkdirSync(filePath);
-};
-
-export const getTestResultsFolder = (vscodePath: string, testType: string) => {
+export const getTestResultsFolder = async (vscodePath: string, testType: string) => {
   const pathToTestResultsFolder = path.join(vscodePath, Global.STATE_FOLDER, TOOLS, TEST_RESULTS, testType);
-
-  ensureDirectoryExists(pathToTestResultsFolder);
+  await createDirectory(pathToTestResultsFolder);
   return pathToTestResultsFolder;
 };
 

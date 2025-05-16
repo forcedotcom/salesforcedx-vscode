@@ -82,9 +82,9 @@ export class ApexTestRunner {
     }
   }
 
-  public getTempFolder(): string {
+  public async getTempFolder(): Promise<string> {
     if (vscode.workspace && vscode.workspace.workspaceFolders) {
-      const apexDir = getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+      const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
       return apexDir;
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));
@@ -105,7 +105,7 @@ export class ApexTestRunner {
       }
     }
 
-    const tmpFolder = this.getTempFolder();
+    const tmpFolder = await this.getTempFolder();
     const getCodeCoverage = settings.retrieveTestCodeCoverage();
     if (testRunType === TestRunType.Class) {
       await apexTestRunCacheService.setCachedClassTestParam(tests[0]);
