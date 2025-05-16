@@ -14,7 +14,7 @@ import {
   TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
-import { CompletionConfiguration } from '../htmlLanguageService';
+import { CompletionConfiguration } from '..';
 import { HTMLDocument } from '../parser/htmlParser';
 import { createScanner, ScannerState, TokenType } from '../parser/htmlScanner';
 import { isEmptyElement } from '../parser/htmlTags';

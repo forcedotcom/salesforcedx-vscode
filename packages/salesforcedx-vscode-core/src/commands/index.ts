@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export { aliasList } from './aliasList';
-export { AccessTokenParamsGatherer, AuthParamsGatherer } from './auth/authParamsGatherer';
 export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export { orgLoginWeb } from './auth/orgLoginWeb';
 export { orgLoginWebDevHub } from './auth/orgLoginWebDevHub';

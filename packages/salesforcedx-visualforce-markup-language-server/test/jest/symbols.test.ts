@@ -5,7 +5,7 @@
 'use strict';
 
 import { Location, Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../../src/htmlLanguageService';
+import * as htmlLanguageService from '../../src';
 
 describe('HTML Symbols', () => {
   const TEST_URI = 'test://test/test.html';

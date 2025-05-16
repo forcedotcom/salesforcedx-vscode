@@ -7,11 +7,11 @@
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
-import { LanguageClientManager, ClientStatus, LanguageClientStatus, ProcessDetail } from './languageClientManager';
+import { LanguageClientManager, ClientStatus, ProcessDetail } from './languageClientManager';
 
 export const languageClientManager = LanguageClientManager.getInstance();
 
-export { ClientStatus, LanguageClientStatus, ProcessDetail };
+export { ClientStatus, ProcessDetail };
 
 export const getLineBreakpointInfo = async (): Promise<{}> =>
   LanguageClientManager.getInstance().getLineBreakpointInfo();

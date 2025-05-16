@@ -4,21 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import {
-  Position,
-  Range,
-  TextDocument,
-  TextEdit
-} from 'vscode-languageserver-types';
+import { Position, Range, TextDocument, TextEdit } from 'vscode-languageserver-types';
 import { html_beautify, IBeautifyHTMLOptions } from '../beautify/beautify-html';
-import { HTMLFormatConfiguration } from '../htmlLanguageService';
+import { HTMLFormatConfiguration } from '..';
 import { repeat } from '../utils/strings';
 
-export function format(
-  document: TextDocument,
-  range: Range,
-  options: HTMLFormatConfiguration
-): TextEdit[] {
+export function format(document: TextDocument, range: Range, options: HTMLFormatConfiguration): TextEdit[] {
   let value = document.getText();
   let includesEnd = true;
   let initialIndentLevel = 0;
@@ -48,50 +39,29 @@ export function format(
     if (extendedEnd === value.length || isEOL(value, extendedEnd)) {
       endOffset = extendedEnd;
     }
-    range = Range.create(
-      document.positionAt(startOffset),
-      document.positionAt(endOffset)
-    );
+    range = Range.create(document.positionAt(startOffset), document.positionAt(endOffset));
 
     includesEnd = endOffset === value.length;
     value = value.substring(startOffset, endOffset);
 
     if (startOffset !== 0) {
-      const startOfLineOffset = document.offsetAt(
-        Position.create(range.start.line, 0)
-      );
-      initialIndentLevel = computeIndentLevel(
-        document.getText(),
-        startOfLineOffset,
-        options
-      );
+      const startOfLineOffset = document.offsetAt(Position.create(range.start.line, 0));
+      initialIndentLevel = computeIndentLevel(document.getText(), startOfLineOffset, options);
     }
   } else {
-    range = Range.create(
-      Position.create(0, 0),
-      document.positionAt(value.length)
-    );
+    range = Range.create(Position.create(0, 0), document.positionAt(value.length));
   }
   const htmlOptions: IBeautifyHTMLOptions = {
     indent_size: options.insertSpaces ? options.tabSize : 1,
     indent_char: options.insertSpaces ? ' ' : '\t',
     wrap_line_length: getFormatOption(options, 'wrapLineLength', 120),
     unformatted: getTagsFormatOption(options, 'unformatted', void 0),
-    content_unformatted: getTagsFormatOption(
-      options,
-      'contentUnformatted',
-      void 0
-    ),
+    content_unformatted: getTagsFormatOption(options, 'contentUnformatted', void 0),
     indent_inner_html: getFormatOption(options, 'indentInnerHtml', false),
     preserve_newlines: getFormatOption(options, 'preserveNewLines', true),
-    max_preserve_newlines: getFormatOption(
-      options,
-      'maxPreserveNewLines',
-      32786
-    ),
+    max_preserve_newlines: getFormatOption(options, 'maxPreserveNewLines', 32786),
     indent_handlebars: getFormatOption(options, 'indentHandlebars', false),
-    end_with_newline:
-      includesEnd && getFormatOption(options, 'endWithNewline', false),
+    end_with_newline: includesEnd && getFormatOption(options, 'endWithNewline', false),
     extra_liners: getTagsFormatOption(options, 'extraLiners', void 0),
     wrap_attributes: getFormatOption(options, 'wrapAttributes', 'auto'),
     eol: '\n'
@@ -115,11 +85,7 @@ export function format(
   ];
 }
 
-function getFormatOption(
-  options: HTMLFormatConfiguration,
-  key: string,
-  dflt: any
-): any {
+function getFormatOption(options: HTMLFormatConfiguration, key: string, dflt: any): any {
   if (options && options.hasOwnProperty(key)) {
     const value = options[key];
     if (value !== null) {
@@ -129,11 +95,7 @@ function getFormatOption(
   return dflt;
 }
 
-function getTagsFormatOption(
-  options: HTMLFormatConfiguration,
-  key: string,
-  dflt: string[]
-): string[] {
+function getTagsFormatOption(options: HTMLFormatConfiguration, key: string, dflt: string[]): string[] {
   const list = getFormatOption(options, key, null) as string;
   if (typeof list === 'string') {
     if (list.length > 0) {
@@ -144,11 +106,7 @@ function getTagsFormatOption(
   return dflt;
 }
 
-function computeIndentLevel(
-  content: string,
-  offset: number,
-  options: HTMLFormatConfiguration
-): number {
+function computeIndentLevel(content: string, offset: number, options: HTMLFormatConfiguration): number {
   let i = offset;
   let nChars = 0;
   const tabSize = options.tabSize || 4;

@@ -6,7 +6,7 @@
  */
 
 import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../../src/htmlLanguageService';
+import * as htmlLanguageService from '../../src';
 import { applyEdits } from './textEditSupport';
 
 type ItemDescription = {

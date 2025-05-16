@@ -6,7 +6,7 @@
 
 import { Range, TextDocument, DocumentLink } from 'vscode-languageserver-types';
 import { URI } from 'vscode-uri';
-import { DocumentContext } from '../htmlLanguageService';
+import { DocumentContext } from '..';
 import { createScanner, TokenType } from '../parser/htmlScanner';
 
 function stripQuotes(url: string): string {

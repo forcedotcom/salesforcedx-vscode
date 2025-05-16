@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { getLanguageService } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import { getLanguageService } from '@salesforce/salesforcedx-visualforce-markup-language-server/out/src';
 import * as assert from 'node:assert';
 import { TextDocument } from 'vscode-languageserver-types';
 import { getLanguageModelCache } from '../../src/languageModelCache';
