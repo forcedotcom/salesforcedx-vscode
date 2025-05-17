@@ -6,8 +6,6 @@
  */
 
 export {
-  SFDX_CONFIG_FILE,
-  SFDX_FOLDER,
   SFDX_PROJECT_FILE,
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL,
@@ -15,7 +13,8 @@ export {
   SF_CONFIG_ISV_DEBUGGER_URL,
   TARGET_ORG_KEY,
   DEFAULT_CONNECTION_TIMEOUT_MS,
-  CLIENT_ID
+  CLIENT_ID,
+  SFDX_FOLDER
 } from './constants';
 import { Event } from 'vscode';
 

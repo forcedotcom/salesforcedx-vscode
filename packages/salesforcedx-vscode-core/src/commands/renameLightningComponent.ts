@@ -30,7 +30,7 @@ import {
   RENAME_WARNING
 } from './util/lwcAuraDuplicateDetectionUtils';
 
-export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
+class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {
     super(nls.localize(RENAME_LIGHTNING_COMPONENT_EXECUTOR), RENAME_LIGHTNING_COMPONENT_EXECUTOR, OUTPUT_CHANNEL);
@@ -83,7 +83,7 @@ class GetComponentName implements ParametersGatherer<ComponentName> {
   }
 }
 
-export const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
+const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
   const componentPath = await getComponentPath(sourceFsPath);
   if (isLwcComponent(componentPath)) {
     newName = newName.charAt(0).toLowerCase() + newName.slice(1);

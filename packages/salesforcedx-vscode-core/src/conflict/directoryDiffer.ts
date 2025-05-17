@@ -32,7 +32,7 @@ export type DirectoryDiffResults = {
   scannedRemote?: number;
 };
 
-export type DirectoryDiffer = {
+type DirectoryDiffer = {
   diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults;
 };
 
@@ -42,7 +42,7 @@ type FileStats = {
   relPath: string;
 };
 
-export class CommonDirDirectoryDiffer implements DirectoryDiffer {
+class CommonDirDirectoryDiffer implements DirectoryDiffer {
   constructor() {}
 
   public diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults {

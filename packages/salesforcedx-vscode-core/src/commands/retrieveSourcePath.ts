@@ -16,7 +16,7 @@ import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
-export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
+class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
   constructor() {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_sourcepath');
   }
@@ -97,7 +97,7 @@ export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[
   await commandlet.run();
 };
 
-export const getUriFromActiveEditor = (): URI | undefined => {
+const getUriFromActiveEditor = (): URI | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.document.languageId !== 'forcesourcemanifest') {
     return editor.document.uri;

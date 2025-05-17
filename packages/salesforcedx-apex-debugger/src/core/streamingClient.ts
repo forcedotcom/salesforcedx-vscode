@@ -34,7 +34,7 @@ export type StreamingEvent = {
   type: string;
 };
 
-export type ApexDebuggerEvent = {
+type ApexDebuggerEvent = {
   SessionId: string;
   RequestId?: string;
   BreakpointId?: string;

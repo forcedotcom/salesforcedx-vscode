@@ -6,7 +6,7 @@
 
 import * as url from 'node:url';
 import { TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../../src/htmlLanguageService';
+import * as htmlLanguageService from '../../src';
 
 type DocumentLink = {
   offset: number;

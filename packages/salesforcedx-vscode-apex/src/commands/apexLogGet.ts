@@ -33,7 +33,7 @@ type ApexDebugLogIdStartTime = {
   startTime: string;
 };
 
-export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
+class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await this.getLogRecords();
@@ -85,17 +85,6 @@ export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTi
   }
 }
 
-export type ApexDebugLogObject = {
-  Id: string;
-  StartTime: string;
-  LogLength: number;
-  Operation: string;
-  Request: string;
-  Status: string;
-  LogUser: {
-    Name: string;
-  };
-};
 class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   id: string;
 }> {

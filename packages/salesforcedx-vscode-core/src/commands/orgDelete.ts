@@ -17,7 +17,7 @@ import {
   SfWorkspaceChecker
 } from './util';
 
-export class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
+class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {

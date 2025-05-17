@@ -5,7 +5,7 @@
 'use strict';
 
 import { TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../../src/htmlLanguageService';
+import * as htmlLanguageService from '../../src';
 
 describe('HTML Highlighting', () => {
   const assertHighlights = (value: string, expectedMatches: number[], elementName: string | null): void => {

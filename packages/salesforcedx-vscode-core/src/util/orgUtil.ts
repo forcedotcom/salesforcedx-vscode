@@ -6,12 +6,11 @@
  */
 
 import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
-import { ConfigUtil, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
-import { OrgAuthInfo } from '../util';
 
 export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
   // Run once to start off with.
@@ -100,16 +99,10 @@ export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<voi
   }
 };
 
-export const getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
+const getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
   const authInfo: AuthInfo = await AuthInfo.create({
     username
   });
 
   return authInfo.getFields();
-};
-
-export const getTargetDevHubOrAlias = async (): Promise<string | undefined> => {
-  if (workspaceUtils.hasRootWorkspace()) {
-    return OrgAuthInfo.getTargetDevHubOrAlias(false);
-  }
 };

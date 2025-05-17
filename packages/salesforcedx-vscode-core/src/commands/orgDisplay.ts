@@ -10,7 +10,7 @@ import { EmptyParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { FlagParameter, SelectUsername, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class OrgDisplay extends SfCommandletExecutor<{}> {
+class OrgDisplay extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {

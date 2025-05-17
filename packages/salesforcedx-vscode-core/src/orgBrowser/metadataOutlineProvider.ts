@@ -129,7 +129,7 @@ export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserN
   }
 }
 
-export const parseErrors = (error: any): Error => {
+const parseErrors = (error: any): Error => {
   try {
     const errMsg = typeof error === 'string' ? error : JSON.stringify(error);
     const e = extractJson(errMsg);

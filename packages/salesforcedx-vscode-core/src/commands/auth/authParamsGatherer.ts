@@ -12,9 +12,9 @@ import { nls } from '../../messages';
 import { SalesforceProjectConfig } from '../../salesforceProject';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
-export const PRODUCTION_URL = 'https://login.salesforce.com';
-export const SANDBOX_URL = 'https://test.salesforce.com';
-export const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
+const PRODUCTION_URL = 'https://login.salesforce.com';
+const SANDBOX_URL = 'https://test.salesforce.com';
+const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 
 export type AuthParams = {
   alias: string;
@@ -61,7 +61,7 @@ const inputAccessToken = async (): Promise<string | undefined> => {
   return accessToken;
 };
 
-export class OrgTypeItem implements vscode.QuickPickItem {
+class OrgTypeItem implements vscode.QuickPickItem {
   public label: string;
   public detail: string;
   constructor(localizeLabel: string, localizeDetail: string) {

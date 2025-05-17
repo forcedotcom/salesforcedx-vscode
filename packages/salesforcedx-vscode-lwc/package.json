@@ -48,7 +48,6 @@
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
     "nyc": "^15",
-    "prettier": "3.3.3",
     "typescript": "^5.6.2"
   },
   "extensionDependencies": [

@@ -5,7 +5,7 @@
 'use strict';
 
 import { Range, TextDocument } from 'vscode-languageserver-types';
-import { getLanguageService } from '../../src/htmlLanguageService';
+import { getLanguageService } from '../../src';
 import { applyEdits } from './textEditSupport';
 
 describe('JSON Formatter', () => {

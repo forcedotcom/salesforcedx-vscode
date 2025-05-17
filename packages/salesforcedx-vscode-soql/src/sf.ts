@@ -24,6 +24,7 @@ const showChannelAndErrorMessage = (e: string) => {
   void vscode.window.showErrorMessage(message);
 };
 
+/** exported for test spy */
 export const debouncedShowChannelAndErrorMessage = debounce(showChannelAndErrorMessage, 1000);
 
 export const withSFConnection = async (f: (conn: Connection) => void, showErrorMessage = true): Promise<void> => {

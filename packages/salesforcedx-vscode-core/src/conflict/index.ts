@@ -11,21 +11,8 @@ import { nls } from '../messages';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
 
-export {
-  CommonDirDirectoryDiffer,
-  diffFolder,
-  diffOneFile,
-  DirectoryDiffer,
-  DirectoryDiffResults
-} from './directoryDiffer';
-export {
-  MetadataCacheCallback,
-  MetadataCacheExecutor,
-  MetadataCacheResult,
-  MetadataCacheService,
-  MetadataContext,
-  PathType
-} from './metadataCacheService';
+export { DirectoryDiffResults } from './directoryDiffer';
+export { MetadataCacheExecutor, MetadataCacheResult, MetadataCacheService, PathType } from './metadataCacheService';
 export { PersistentStorageService } from './persistentStorageService';
 export const conflictView = ConflictView.getInstance();
 

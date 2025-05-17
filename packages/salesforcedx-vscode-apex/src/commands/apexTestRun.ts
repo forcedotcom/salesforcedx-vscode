@@ -46,7 +46,7 @@ export type ApexTestQuickPickItem = QuickPickItem & {
   type: TestType;
 };
 
-export class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
+class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const { testSuites, apexClasses } = (
       await workspace.findFiles(`{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`, SFDX_FOLDER)

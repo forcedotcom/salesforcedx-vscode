@@ -18,7 +18,7 @@ import { StatusBarToggle } from './statusBarToggle';
 
 const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
-export const getLineRange = (document: TextDocument, lineNumber: number): Range => {
+const getLineRange = (document: TextDocument, lineNumber: number): Range => {
   let adjustedLineNumber: number;
   let firstLine: TextLine;
   try {

@@ -7,11 +7,11 @@
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
-import { LanguageClientManager, ClientStatus, LanguageClientStatus, ProcessDetail } from './languageClientManager';
+import { LanguageClientManager, ClientStatus, ProcessDetail } from './languageClientManager';
 
 export const languageClientManager = LanguageClientManager.getInstance();
 
-export { ClientStatus, LanguageClientStatus, ProcessDetail };
+export { ClientStatus, ProcessDetail };
 
 export const getLineBreakpointInfo = async (): Promise<{}> =>
   LanguageClientManager.getInstance().getLineBreakpointInfo();
@@ -47,9 +47,6 @@ export const findAndCheckOrphanedProcesses = async (): Promise<ProcessDetail[]> 
 export const terminateProcess = (pid: number): void => {
   LanguageClientManager.getInstance().terminateProcess(pid);
 };
-
-export const canRunCheck = async (isWindows: boolean): Promise<boolean> =>
-  LanguageClientManager.getInstance().canRunCheck(isWindows);
 
 export { configureApexLanguage } from './apexLanguageConfiguration';
 
