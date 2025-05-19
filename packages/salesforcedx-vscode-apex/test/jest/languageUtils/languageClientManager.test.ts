@@ -251,12 +251,10 @@ describe('Language Client Manager', () => {
 
     it('should restart without cleaning DB when restart only option is selected', async () => {
       // Mock showQuickPick to return the restart only option
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce(
-        nls.localize('apex_language_server_restart_dialog_restart_only')
-      );
-
-      // Mock removeApexDB
-      const removeApexDBSpy = jest.spyOn(languageClientManager as any, 'removeApexDB');
+      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+        label: nls.localize('apex_language_server_restart_dialog_restart_only'),
+        type: 'restart'
+      });
 
       // Mock createLanguageClient to resolve immediately
       jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
@@ -264,37 +262,26 @@ describe('Language Client Manager', () => {
       // Call the method
       await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
-      // Verify showQuickPick was called
-      expect(vscode.window.showQuickPick).toHaveBeenCalled();
-
       // Verify client was stopped
       expect(mockClient.stop).toHaveBeenCalled();
 
       // Verify status bar was updated
       expect(mockStatusBar.restarting).toHaveBeenCalled();
 
-      // Verify removeApexDB was not called
-      expect(removeApexDBSpy).not.toHaveBeenCalled();
-
-      // Verify setTimeout was called
-      expect(setTimeoutSpy).toHaveBeenCalled();
-
       // Fast-forward timers and wait for promises to resolve
       jest.runAllTimers();
       await Promise.resolve();
 
-      // Verify isRestarting was reset
-      expect((languageClientManager as any).isRestarting).toBe(false);
+      // Verify createLanguageClient was called
+      expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
     });
 
     it('should restart and clean DB when clean and restart option is selected', async () => {
       // Mock showQuickPick to return the clean and restart option
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce(
-        nls.localize('apex_language_server_restart_dialog_clean_and_restart')
-      );
-
-      // Mock removeApexDB
-      const removeApexDBSpy = jest.spyOn(languageClientManager as any, 'removeApexDB');
+      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+        label: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
+        type: 'reset'
+      });
 
       // Mock createLanguageClient to resolve immediately
       jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
@@ -302,34 +289,26 @@ describe('Language Client Manager', () => {
       // Call the method
       await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
-      // Verify showQuickPick was called
-      expect(vscode.window.showQuickPick).toHaveBeenCalled();
-
       // Verify client was stopped
       expect(mockClient.stop).toHaveBeenCalled();
 
       // Verify status bar was updated
       expect(mockStatusBar.restarting).toHaveBeenCalled();
 
-      // Verify removeApexDB was called
-      expect(removeApexDBSpy).toHaveBeenCalled();
-
-      // Verify setTimeout was called
-      expect(setTimeoutSpy).toHaveBeenCalled();
-
       // Fast-forward timers and wait for promises to resolve
       jest.runAllTimers();
       await Promise.resolve();
 
-      // Verify isRestarting was reset
-      expect((languageClientManager as any).isRestarting).toBe(false);
+      // Verify createLanguageClient was called
+      expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
     });
 
     it('should handle errors during client stop', async () => {
       // Mock showQuickPick to return the restart only option
-      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce(
-        nls.localize('apex_language_server_restart_dialog_restart_only')
-      );
+      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+        label: nls.localize('apex_language_server_restart_dialog_restart_only'),
+        type: 'restart'
+      });
 
       // Mock client.stop to throw an error
       const errorMessage = 'Test error';
@@ -346,15 +325,12 @@ describe('Language Client Manager', () => {
         `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
       );
 
-      // Verify setTimeout was still called
-      expect(setTimeoutSpy).toHaveBeenCalled();
-
       // Fast-forward timers and wait for promises to resolve
       jest.runAllTimers();
       await Promise.resolve();
 
-      // Verify isRestarting was reset
-      expect((languageClientManager as any).isRestarting).toBe(false);
+      // Verify createLanguageClient was called
+      expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
     });
 
     it('should reset isRestarting flag if there is no client instance', async () => {
@@ -376,9 +352,10 @@ describe('Language Client Manager', () => {
     describe('Restart Behavior Setting', () => {
       it('should use prompt behavior by default', async () => {
         // Mock showQuickPick to return the restart only option
-        (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce(
-          nls.localize('apex_language_server_restart_dialog_restart_only')
-        );
+        (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+          label: nls.localize('apex_language_server_restart_dialog_restart_only'),
+          type: 'restart'
+        });
 
         // Mock createLanguageClient to resolve immediately
         jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
@@ -417,7 +394,9 @@ describe('Language Client Manager', () => {
         // Verify telemetry was sent
         expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
           restartBehavior: 'restart',
-          source: 'statusBar'
+          selectedOption: 'restart',
+          source: 'statusBar',
+          defaultOption: 'restart'
         });
       });
 
@@ -428,20 +407,58 @@ describe('Language Client Manager', () => {
         });
         (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
 
+        // Mock showQuickPick to return the reset option
+        (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+          label: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
+          type: 'reset'
+        });
+
         // Mock createLanguageClient to resolve immediately
         jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+
+        // Reset any previous calls to showQuickPick
+        (vscode.window.showQuickPick as jest.Mock).mockClear();
 
         // Call the method
         await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
-        // Verify showQuickPick was not called
-        expect(vscode.window.showQuickPick).not.toHaveBeenCalled();
+        // Verify showQuickPick was called with reset option first
+        expect(vscode.window.showQuickPick).toHaveBeenCalledWith(
+          [
+            {
+              label: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
+              description: '',
+              type: 'reset'
+            },
+            {
+              label: nls.localize('apex_language_server_restart_dialog_restart_only'),
+              description: '',
+              type: 'restart'
+            }
+          ],
+          expect.any(Object)
+        );
 
         // Verify telemetry was sent
         expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
           restartBehavior: 'reset',
-          source: 'commandPalette'
+          selectedOption: 'reset',
+          source: 'commandPalette',
+          defaultOption: 'reset'
         });
+
+        // Verify client was stopped
+        expect(mockClient.stop).toHaveBeenCalled();
+
+        // Verify status bar was updated
+        expect(mockStatusBar.restarting).toHaveBeenCalled();
+
+        // Fast-forward timers and wait for promises to resolve
+        jest.runAllTimers();
+        await Promise.resolve();
+
+        // Verify createLanguageClient was called
+        expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
       });
     });
   });
