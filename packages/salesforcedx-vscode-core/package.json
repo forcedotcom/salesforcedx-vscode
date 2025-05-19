@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.13.0",
+  "version": "63.14.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,9 +25,9 @@
   ],
   "dependencies": {
     "@salesforce/core-bundle": "^8.10.3",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "63.13.0",
-    "@salesforce/salesforcedx-utils": "63.13.0",
-    "@salesforce/salesforcedx-utils-vscode": "63.13.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "63.14.0",
+    "@salesforce/salesforcedx-utils": "63.14.0",
+    "@salesforce/salesforcedx-utils-vscode": "63.14.0",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "^12.19.6",
     "@salesforce/templates": "^63.0.4",
@@ -225,7 +225,7 @@
         },
         {
           "command": "sf.folder.diff",
-          "when": "explorerResourceIsFolder && sf:project_opened && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "explorerResourceIsFolder && sf:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.analytics.generate.template",
@@ -277,11 +277,11 @@
         },
         {
           "command": "sf.diff",
-          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -289,7 +289,7 @@
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -297,11 +297,11 @@
         },
         {
           "command": "sf.delete.source",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders) && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.project.generate.manifest",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && (resourcePath in packageDirectoriesFolders)"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.rename.lightning.component",
