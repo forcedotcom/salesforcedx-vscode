@@ -4,7 +4,9 @@
 
 #### salesforcedx-vscode-core
 
-- [@W-18538360@] revert explorer chgs ([PR #6289](https://github.com/forcedotcom/salesforcedx-vscode/pull/6289))
+- Due to performance issues on large projects, we reverted the check we added in v63.11.0 to limit the visibility of org-related SFDX commands to only valid files. ([PR #6289](https://github.com/forcedotcom/salesforcedx-vscode/pull/6289))
+- We bumped the versions of the Salesforce shared libraries to support deploying and retrieving the **WorkflowFlowAutomation** metadata type. ([PR #6280](https://github.com/forcedotcom/salesforcedx-vscode/pull/6280))
+- We updated the `SFDX: Turn Off Apex Debug Log for Replay Debugger` command to not call the CLI command. This is a significant improvement in the runtime of the command. ([#6259](https://github.com/forcedotcom/salesforcedx-vscode/pull/6259))
 
 # 63.12.0 - May 7, 2025
 
