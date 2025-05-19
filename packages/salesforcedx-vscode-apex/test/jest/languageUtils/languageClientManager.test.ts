@@ -171,6 +171,7 @@ describe('Language Client Manager', () => {
     let mockClient: ApexLanguageClient;
     let mockStatusBar: ApexLSPStatusBarItem;
     let setTimeoutSpy: jest.SpyInstance;
+    let mockTelemetryService: MockTelemetryService;
 
     beforeEach(() => {
       // Reset mocks
@@ -193,6 +194,17 @@ describe('Language Client Manager', () => {
         error: jest.fn(),
         restarting: jest.fn()
       } as unknown as ApexLSPStatusBarItem;
+
+      // Setup telemetry service mock
+      mockTelemetryService = new MockTelemetryService();
+      (getTelemetryService as jest.Mock).mockResolvedValue(mockTelemetryService);
+      mockTelemetryService.sendEventData = jest.fn();
+
+      // Mock VSCode workspace configuration
+      const mockGetConfiguration = jest.fn().mockReturnValue({
+        get: jest.fn().mockReturnValue('prompt')
+      });
+      (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
 
       // Reset the isRestarting flag
       (languageClientManager as any).isRestarting = false;
@@ -359,6 +371,74 @@ describe('Language Client Manager', () => {
 
       // Verify isRestarting was reset
       expect((languageClientManager as any).isRestarting).toBe(false);
+    });
+
+    describe('Restart Behavior Setting', () => {
+      it('should use prompt behavior by default', async () => {
+        // Mock showQuickPick to return the restart only option
+        (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce(
+          nls.localize('apex_language_server_restart_dialog_restart_only')
+        );
+
+        // Mock createLanguageClient to resolve immediately
+        jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+
+        // Call the method
+        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+
+        // Verify showQuickPick was called
+        expect(vscode.window.showQuickPick).toHaveBeenCalled();
+
+        // Verify telemetry was sent
+        expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
+          restartBehavior: 'prompt',
+          selectedOption: 'restart'
+        });
+      });
+
+      it('should use restart behavior when configured', async () => {
+        // Mock getConfiguration to return 'restart' behavior
+        const mockGetConfiguration = jest.fn().mockReturnValue({
+          get: jest.fn().mockReturnValue('restart')
+        });
+        (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
+
+        // Mock createLanguageClient to resolve immediately
+        jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+
+        // Call the method
+        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+
+        // Verify showQuickPick was not called
+        expect(vscode.window.showQuickPick).not.toHaveBeenCalled();
+
+        // Verify telemetry was sent
+        expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
+          restartBehavior: 'restart'
+        });
+      });
+
+      it('should use reset behavior when configured', async () => {
+        // Mock getConfiguration to return 'reset' behavior
+        const mockGetConfiguration = jest.fn().mockReturnValue({
+          get: jest.fn().mockReturnValue('reset')
+        });
+        (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
+
+        // Mock createLanguageClient to resolve immediately
+        jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+
+        // Call the method
+        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+
+        // Verify showQuickPick was not called
+        expect(vscode.window.showQuickPick).not.toHaveBeenCalled();
+
+        // Verify telemetry was sent
+        expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
+          restartBehavior: 'reset'
+        });
+      });
     });
   });
 });

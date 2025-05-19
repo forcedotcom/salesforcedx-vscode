@@ -132,6 +132,41 @@ export class LanguageClientManager {
     return Promise.resolve(response);
   }
 
+  private async getRestartOption(): Promise<string | undefined> {
+    const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
+    const restartBehavior = config.get<string>('languageServer.restartBehavior', 'prompt');
+    const telemetryService = await getTelemetryService();
+
+    switch (restartBehavior) {
+      case 'restart':
+        telemetryService.sendEventData('apexLSPRestart', {
+          restartBehavior: 'restart'
+        });
+        return nls.localize('apex_language_server_restart_dialog_restart_only');
+      case 'reset':
+        telemetryService.sendEventData('apexLSPRestart', {
+          restartBehavior: 'reset'
+        });
+        return nls.localize('apex_language_server_restart_dialog_clean_and_restart');
+      case 'prompt':
+      default:
+        const cleanAndRestartOption = nls.localize('apex_language_server_restart_dialog_clean_and_restart');
+        const restartOnlyOption = nls.localize('apex_language_server_restart_dialog_restart_only');
+        const selectedOption = await vscode.window.showQuickPick([cleanAndRestartOption, restartOnlyOption], {
+          placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
+        });
+
+        if (selectedOption) {
+          telemetryService.sendEventData('apexLSPRestart', {
+            restartBehavior: 'prompt',
+            selectedOption: selectedOption === cleanAndRestartOption ? 'reset' : 'restart'
+          });
+        }
+
+        return selectedOption;
+    }
+  }
+
   public async restartLanguageServerAndClient(extensionContext: vscode.ExtensionContext): Promise<void> {
     // If already restarting, show a message and return
     if (this.isRestarting) {
@@ -139,15 +174,9 @@ export class LanguageClientManager {
       return;
     }
 
-    const cleanAndRestartOption = nls.localize('apex_language_server_restart_dialog_clean_and_restart');
-    const restartOnlyOption = nls.localize('apex_language_server_restart_dialog_restart_only');
+    const selectedOption = await this.getRestartOption();
 
-    const options = [cleanAndRestartOption, restartOnlyOption];
-    const selectedOption = await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
-    });
-
-    // If no option is selected, cancel the operation
+    // If no option is selected (in prompt mode), cancel the operation
     if (!selectedOption) {
       return;
     }
@@ -169,7 +198,7 @@ export class LanguageClientManager {
           `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
         );
       }
-      if (selectedOption === cleanAndRestartOption) {
+      if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
         await this.removeApexDB();
       }
 
