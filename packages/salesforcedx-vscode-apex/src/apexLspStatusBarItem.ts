@@ -52,7 +52,8 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
     this.restartStatusItem.text = commandTitle;
     this.restartStatusItem.command = {
       title: commandTitle,
-      command: 'sf.apex.languageServer.restart'
+      command: 'sf.apex.languageServer.restart',
+      arguments: ['statusBar']
     };
   }
 

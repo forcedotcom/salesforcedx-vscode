@@ -132,49 +132,112 @@ export class LanguageClientManager {
     return Promise.resolve(response);
   }
 
-  private async getRestartOption(): Promise<string | undefined> {
+  private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
     const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
     const restartBehavior = config.get<string>('languageServer.restartBehavior', 'prompt');
     const telemetryService = await getTelemetryService();
 
-    switch (restartBehavior) {
-      case 'restart':
-        telemetryService.sendEventData('apexLSPRestart', {
-          restartBehavior: 'restart'
-        });
-        return nls.localize('apex_language_server_restart_dialog_restart_only');
-      case 'reset':
-        telemetryService.sendEventData('apexLSPRestart', {
-          restartBehavior: 'reset'
-        });
-        return nls.localize('apex_language_server_restart_dialog_clean_and_restart');
-      case 'prompt':
-      default:
-        const cleanAndRestartOption = nls.localize('apex_language_server_restart_dialog_clean_and_restart');
-        const restartOnlyOption = nls.localize('apex_language_server_restart_dialog_restart_only');
-        const selectedOption = await vscode.window.showQuickPick([cleanAndRestartOption, restartOnlyOption], {
-          placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
-        });
+    const cleanAndRestartOption = nls.localize('apex_language_server_restart_dialog_clean_and_restart');
+    const restartOnlyOption = nls.localize('apex_language_server_restart_dialog_restart_only');
 
-        if (selectedOption) {
-          telemetryService.sendEventData('apexLSPRestart', {
-            restartBehavior: 'prompt',
-            selectedOption: selectedOption === cleanAndRestartOption ? 'reset' : 'restart'
-          });
-        }
+    // If launched from command palette, always show prompt with default option first
+    if (source === 'commandPalette') {
+      // Order items based on the setting
+      const items =
+        restartBehavior === 'reset'
+          ? [
+              { label: cleanAndRestartOption, description: '' },
+              { label: restartOnlyOption, description: '' }
+            ]
+          : [
+              { label: restartOnlyOption, description: '' },
+              { label: cleanAndRestartOption, description: '' }
+            ];
 
-        return selectedOption;
+      const selectedOption = await vscode.window.showQuickPick(items, {
+        placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
+      });
+
+      if (selectedOption) {
+        telemetryService.sendEventData('apexLSPRestart', {
+          restartBehavior: 'prompt',
+          selectedOption: selectedOption.label === cleanAndRestartOption ? 'reset' : 'restart',
+          source: 'commandPalette',
+          defaultOption: restartBehavior
+        });
+        return selectedOption.label;
+      }
+      return undefined;
     }
+
+    // For status bar, use the setting value directly if not 'prompt'
+    if (source === 'statusBar') {
+      switch (restartBehavior) {
+        case 'restart':
+          telemetryService.sendEventData('apexLSPRestart', {
+            restartBehavior: 'restart',
+            source: 'statusBar'
+          });
+          return restartOnlyOption;
+        case 'reset':
+          telemetryService.sendEventData('apexLSPRestart', {
+            restartBehavior: 'reset',
+            source: 'statusBar'
+          });
+          return cleanAndRestartOption;
+        case 'prompt':
+        default:
+          const promptItems = [
+            { label: restartOnlyOption, description: '' },
+            { label: cleanAndRestartOption, description: '' }
+          ];
+          const promptSelectedOption = await vscode.window.showQuickPick(promptItems, {
+            placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
+          });
+
+          if (promptSelectedOption) {
+            telemetryService.sendEventData('apexLSPRestart', {
+              restartBehavior: 'prompt',
+              selectedOption: promptSelectedOption.label === cleanAndRestartOption ? 'reset' : 'restart',
+              source: 'statusBar'
+            });
+            return promptSelectedOption.label;
+          }
+          return undefined;
+      }
+    }
+
+    // Default case (no source specified) - treat as command palette
+    const defaultItems = [
+      { label: restartOnlyOption, description: '' },
+      { label: cleanAndRestartOption, description: '' }
+    ];
+    const defaultSelectedOption = await vscode.window.showQuickPick(defaultItems, {
+      placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
+    });
+
+    if (defaultSelectedOption) {
+      telemetryService.sendEventData('apexLSPRestart', {
+        restartBehavior: 'prompt',
+        selectedOption: defaultSelectedOption.label === cleanAndRestartOption ? 'reset' : 'restart',
+        source: 'commandPalette'
+      });
+      return defaultSelectedOption.label;
+    }
+    return undefined;
   }
 
-  public async restartLanguageServerAndClient(extensionContext: vscode.ExtensionContext): Promise<void> {
+  public async restartLanguageServerAndClient(
+    extensionContext: vscode.ExtensionContext,
+    source?: 'commandPalette' | 'statusBar'
+  ): Promise<void> {
     // If already restarting, show a message and return
     if (this.isRestarting) {
       vscode.window.showInformationMessage(nls.localize('apex_language_server_already_restarting'));
       return;
     }
 
-    const selectedOption = await this.getRestartOption();
+    const selectedOption = await this.getRestartOption(source ?? 'commandPalette');
 
     // If no option is selected (in prompt mode), cancel the operation
     if (!selectedOption) {
