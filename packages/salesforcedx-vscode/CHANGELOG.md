@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We reverted the check we added in v63.11.0. The check limited the visibility of org-related SFDX commands to only valid files. We removed it due to performance issues on large projects. ([PR #6289](https://github.com/forcedotcom/salesforcedx-vscode/pull/6289))
+- We reverted the check we added in v63.11.0. The check limited the visibility of org-related `SFDX` commands to only valid files. We removed it due to performance issues on large projects. ([PR #6289](https://github.com/forcedotcom/salesforcedx-vscode/pull/6289))
 - We bumped the versions of the Salesforce shared libraries to support deploying and retrieving the `WorkflowFlowAutomation` metadata type. ([PR #6280](https://github.com/forcedotcom/salesforcedx-vscode/pull/6280))
 - We updated the `SFDX: Turn Off Apex Debug Log for Replay Debugger` command. Now it doesn't call the `sf data:delete:record` CLI command under the hood. This change significantly improves how fast the command runs. ([#6259](https://github.com/forcedotcom/salesforcedx-vscode/pull/6259))
 
