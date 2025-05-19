@@ -1,3 +1,11 @@
+# 63.14.1 - May 21, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- [@W-18538360@] revert explorer chgs ([PR #6289](https://github.com/forcedotcom/salesforcedx-vscode/pull/6289))
+
 # 63.12.0 - May 7, 2025
 
 ## Added
