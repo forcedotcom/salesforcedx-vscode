@@ -23,7 +23,7 @@ export const getExceptionBreakpointInfo = async (): Promise<{}> =>
 
 export const restartLanguageServerAndClient = async (
   extensionContext: vscode.ExtensionContext,
-  source?: 'commandPalette' | 'statusBar'
+  source: 'commandPalette' | 'statusBar'
 ): Promise<void> => {
   await languageClientManager.restartLanguageServerAndClient(extensionContext, source);
 };

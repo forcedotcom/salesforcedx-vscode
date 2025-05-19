@@ -223,7 +223,7 @@ describe('Language Client Manager', () => {
       (languageClientManager as any).isRestarting = true;
 
       // Call the method
-      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
       // Verify showInformationMessage was called with the correct message
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
@@ -239,7 +239,7 @@ describe('Language Client Manager', () => {
       (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce(undefined);
 
       // Call the method
-      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
       // Verify showQuickPick was called
       expect(vscode.window.showQuickPick).toHaveBeenCalled();
@@ -262,7 +262,7 @@ describe('Language Client Manager', () => {
       jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
       // Call the method
-      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
       // Verify showQuickPick was called
       expect(vscode.window.showQuickPick).toHaveBeenCalled();
@@ -300,7 +300,7 @@ describe('Language Client Manager', () => {
       jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
       // Call the method
-      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
       // Verify showQuickPick was called
       expect(vscode.window.showQuickPick).toHaveBeenCalled();
@@ -339,7 +339,7 @@ describe('Language Client Manager', () => {
       jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
       // Call the method
-      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
       // Verify showWarningMessage was called with the correct message
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
@@ -367,7 +367,7 @@ describe('Language Client Manager', () => {
       );
 
       // Call the method
-      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+      await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
       // Verify isRestarting was reset
       expect((languageClientManager as any).isRestarting).toBe(false);
@@ -384,7 +384,7 @@ describe('Language Client Manager', () => {
         jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
         // Call the method
-        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
         // Verify showQuickPick was called
         expect(vscode.window.showQuickPick).toHaveBeenCalled();
@@ -392,7 +392,9 @@ describe('Language Client Manager', () => {
         // Verify telemetry was sent
         expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
           restartBehavior: 'prompt',
-          selectedOption: 'restart'
+          selectedOption: 'restart',
+          source: 'commandPalette',
+          defaultOption: 'prompt'
         });
       });
 
@@ -407,14 +409,15 @@ describe('Language Client Manager', () => {
         jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
         // Call the method
-        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'statusBar');
 
         // Verify showQuickPick was not called
         expect(vscode.window.showQuickPick).not.toHaveBeenCalled();
 
         // Verify telemetry was sent
         expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
-          restartBehavior: 'restart'
+          restartBehavior: 'restart',
+          source: 'statusBar'
         });
       });
 
@@ -429,14 +432,15 @@ describe('Language Client Manager', () => {
         jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
         // Call the method
-        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext);
+        await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
         // Verify showQuickPick was not called
         expect(vscode.window.showQuickPick).not.toHaveBeenCalled();
 
         // Verify telemetry was sent
         expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
-          restartBehavior: 'reset'
+          restartBehavior: 'reset',
+          source: 'commandPalette'
         });
       });
     });

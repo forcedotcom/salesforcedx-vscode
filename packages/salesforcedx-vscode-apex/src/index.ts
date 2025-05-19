@@ -196,7 +196,7 @@ const registerCommands = (): vscode.Disposable => {
   const restartApexLanguageServerCmd = vscode.commands.registerCommand(
     'sf.apex.languageServer.restart',
     async (source?: 'commandPalette' | 'statusBar') => {
-      await restartLanguageServerAndClient(extensionContext, source);
+      await restartLanguageServerAndClient(extensionContext, source ?? 'commandPalette');
     }
   );
 
