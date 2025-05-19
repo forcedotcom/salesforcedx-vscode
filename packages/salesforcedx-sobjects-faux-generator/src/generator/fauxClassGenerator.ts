@@ -44,7 +44,7 @@ export class FauxClassGenerator implements SObjectGenerator {
 
   public async generate(output: SObjectRefreshOutput): Promise<void> {
     const outputFolderPath = path.join(output.sfdxPath, ...REL_BASE_FOLDER, this.relativePath);
-    if (!this.resetOutputFolder(outputFolderPath)) {
+    if (!(await this.resetOutputFolder(outputFolderPath))) {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
