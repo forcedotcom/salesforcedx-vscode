@@ -10,9 +10,8 @@ import {
   ProjectRetrieveStartSuccessResponse
 } from '@salesforce/salesforcedx-utils-vscode/src/cli/parsers/projectRetrieveStartResultParser';
 import { channelService } from '../../../../src/channels';
-import { ProjectDeployStartExecutor } from '../../../../src/commands/projectDeployStart';
+import { DeployType, ProjectDeployStartExecutor } from '../../../../src/commands/projectDeployStart';
 import { ProjectRetrieveStartExecutor } from '../../../../src/commands/projectRetrieveStart';
-import { DeployType } from '../../../../src/commands/projectDeployStart';
 import { CommandParams } from '../../../../src/commands/util';
 import { PersistentStorageService } from '../../../../src/conflict';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../../../../src/constants';

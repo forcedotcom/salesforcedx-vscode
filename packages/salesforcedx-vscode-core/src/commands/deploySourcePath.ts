@@ -14,8 +14,8 @@ import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './retrieveSourcePath';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
-import { TimestampConflictChecker } from './util/timestampConflictChecker';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
+import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
 class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor(showChannelOutput: boolean = true) {

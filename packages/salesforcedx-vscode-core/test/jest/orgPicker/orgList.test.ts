@@ -11,6 +11,7 @@ import { nls } from '../../../src/messages';
 import { OrgList } from '../../../src/orgPicker';
 import { OrgAuthInfo } from '../../../src/util';
 import * as orgUtil from '../../../src/util/orgUtil';
+
 describe('OrgList tests', () => {
   let orgList: OrgList;
   let getDevHubUsernameMock: jest.SpyInstance;
@@ -241,7 +242,7 @@ describe('OrgList tests', () => {
     it('should display an error icon when the org is not valid', async () => {
       const error = new Error('No authorization information found for invalid-org');
       error.name = 'NamedOrgNotFoundError';
-      consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
+      consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => { });
       // Mock isOrgExpired to resolve to true (expired)
       isOrgExpiredMock.mockRejectedValue(error);
 
@@ -274,7 +275,7 @@ describe('OrgList tests', () => {
     it('should handle errors during org expiration check', async () => {
       // Mock isOrgExpired to throw an error
       const error = new Error('Org expiration check failed');
-      consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
+      consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => { });
       isOrgExpiredMock.mockRejectedValue(error);
 
       // Call the method with a valid targetOrgOrAlias
