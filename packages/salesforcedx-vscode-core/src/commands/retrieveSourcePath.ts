@@ -66,7 +66,10 @@ export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[
   if (!sourceUri) {
     // When the source is retrieved via the command palette, both sourceUri and uris are
     // each undefined, and sourceUri needs to be obtained from the active text editor.
-    sourceUri = getUriFromActiveEditor();
+    sourceUri = getUriFromActiveEditor({
+      message: 'retrieve_select_file_or_directory',
+      exceptionKey: 'retrieve_with_sourcepath'
+    });
     if (!sourceUri) {
       return;
     }

@@ -39,7 +39,10 @@ export const deploySourcePaths = async (
   if (!sourceUri) {
     // When the source is deployed via the command palette, both sourceUri and uris are
     // each undefined, and sourceUri needs to be obtained from the active text editor.
-    sourceUri = getUriFromActiveEditor();
+    sourceUri = getUriFromActiveEditor({
+      message: 'deploy_select_file_or_directory',
+      exceptionKey: 'deploy_with_sourcepath'
+    });
     if (!sourceUri) {
       return;
     }
