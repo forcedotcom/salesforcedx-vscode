@@ -150,7 +150,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       try {
         await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
       } catch (error) {
-        expect(error.message).toEqual(expectedError);
+        expect(error).toEqual(expectedError);
       }
     });
 
