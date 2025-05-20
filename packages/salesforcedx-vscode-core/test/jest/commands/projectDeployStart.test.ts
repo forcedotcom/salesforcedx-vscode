@@ -7,7 +7,7 @@
 
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '@salesforce/salesforcedx-utils-vscode/src/messages';
-import { ProjectDeployStartExecutor } from '../../../src/commands';
+import { ProjectDeployStartExecutor } from '../../../src/commands/projectDeployStart';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { DeployType } from '../../../src/commands/projectDeployStart';
 import { CommandParams, SfCommandletExecutor } from '../../../src/commands/util';

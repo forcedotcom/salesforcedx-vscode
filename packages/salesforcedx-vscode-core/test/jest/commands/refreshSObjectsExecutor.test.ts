@@ -14,7 +14,7 @@ import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'node:events';
 import * as fs from 'node:fs';
 import { channelService } from '../../../src/channels';
-import { RefreshSObjectsExecutor } from '../../../src/commands';
+import { RefreshSObjectsExecutor } from '../../../src/commands/refreshSObjects';
 
 describe('RefreshSObjectsExecutor', () => {
   let channelServiceSpy: jest.SpyInstance;

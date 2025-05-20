@@ -99,7 +99,7 @@ export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<voi
   }
 };
 
-const getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
+export const getAuthFieldsFor = async (username: string): Promise<AuthFields> => {
   const authInfo: AuthInfo = await AuthInfo.create({
     username
   });

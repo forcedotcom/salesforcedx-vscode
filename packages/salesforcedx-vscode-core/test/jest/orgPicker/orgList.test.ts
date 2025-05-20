@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { OrgList } from '../../../src/orgPicker';
 import { OrgAuthInfo } from '../../../src/util';
-
+import * as orgUtil from '../../../src/util/orgUtil';
 describe('OrgList tests', () => {
   let orgList: OrgList;
   let getDevHubUsernameMock: jest.SpyInstance;
@@ -68,7 +68,7 @@ describe('OrgList tests', () => {
     (vscode.workspace.createFileSystemWatcher as jest.Mock).mockReturnValue(mockWatcher);
     (vscode.window.createStatusBarItem as jest.Mock).mockReturnValue(mockStatusBarItem);
     orgList = new OrgList();
-    getAuthFieldsForMock = jest.spyOn(OrgList.prototype, 'getAuthFieldsFor');
+    getAuthFieldsForMock = jest.spyOn(orgUtil, 'getAuthFieldsFor');
     getUsernameForMock = jest.spyOn(ConfigUtil, 'getUsernameFor');
     getDevHubUsernameMock = jest.spyOn(OrgAuthInfo, 'getDevHubUsername');
     getAllMock = jest.fn();

@@ -25,7 +25,7 @@ export enum ClientStatus {
   Ready
 }
 
-export class LanguageClientStatus {
+class LanguageClientStatus {
   private status: ClientStatus;
   private message: string;
 
@@ -102,34 +102,19 @@ export class LanguageClientManager {
   }
 
   public async getLineBreakpointInfo(): Promise<{}> {
-    let response = {};
-    const languageClient = this.getClientInstance();
-    if (languageClient) {
-      response = await languageClient.sendRequest(DEBUGGER_LINE_BREAKPOINTS);
-    }
-    return Promise.resolve(response);
+    return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_LINE_BREAKPOINTS) : {};
   }
 
   public async getApexTests(): Promise<ApexTestMethod[]> {
-    let response = new Array<LSPApexTestMethod>();
-    const ret = new Array<ApexTestMethod>();
-    const languageClient = this.getClientInstance();
-    if (languageClient) {
-      response = await languageClient.sendRequest('test/getTestMethods');
-    }
-    for (const requestInfo of response) {
-      ret.push(ApexLSPConverter.toApexTestMethod(requestInfo));
-    }
-    return Promise.resolve(ret);
+    return this.clientInstance
+      ? (await this.clientInstance.sendRequest<LSPApexTestMethod[]>('test/getTestMethods')).map(requestInfo =>
+          ApexLSPConverter.toApexTestMethod(requestInfo)
+        )
+      : [];
   }
 
   public async getExceptionBreakpointInfo(): Promise<{}> {
-    let response = {};
-    const languageClient = this.getClientInstance();
-    if (languageClient) {
-      response = await languageClient.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS);
-    }
-    return Promise.resolve(response);
+    return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS) : {};
   }
 
   public async restartLanguageServerAndClient(extensionContext: vscode.ExtensionContext): Promise<void> {
@@ -302,8 +287,7 @@ export class LanguageClientManager {
 
   public async findAndCheckOrphanedProcesses(): Promise<ProcessDetail[]> {
     const telemetryService = await getTelemetryService();
-    const platform = process.platform.toLowerCase();
-    const isWindows = platform === 'win32';
+    const isWindows = process.platform === 'win32';
 
     if (!this.canRunCheck(isWindows)) {
       return [];
@@ -314,8 +298,9 @@ export class LanguageClientManager {
       : 'ps -e -o pid,ppid,command';
 
     const stdout = execSync(cmd).toString();
-    const lines = stdout.trim().split(/\r?\n/g);
-    const processes: ProcessDetail[] = lines
+    return stdout
+      .trim()
+      .split(/\r?\n/g)
       .map((line: string) => {
         const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
         const pid = parseInt(pidStr, 10);
@@ -326,13 +311,7 @@ export class LanguageClientManager {
       .filter(
         (processInfo: ProcessDetail) => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c))
       )
-      .filter((processInfo: ProcessDetail) => processInfo.command.includes('apex-jorje-lsp.jar'));
-
-    if (processes.length === 0) {
-      return [];
-    }
-
-    const orphanedProcesses: ProcessDetail[] = processes
+      .filter((processInfo: ProcessDetail) => processInfo.command.includes('apex-jorje-lsp.jar'))
       .map(processInfo => {
         const checkOrphanedCmd = isWindows
           ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${processInfo.ppid}'"`
@@ -353,7 +332,6 @@ export class LanguageClientManager {
         return processInfo;
       })
       .filter(processInfo => processInfo.orphaned);
-    return orphanedProcesses;
   }
 
   public terminateProcess(pid: number): void {
@@ -375,3 +353,6 @@ export class LanguageClientManager {
     return true;
   }
 }
+
+/** instantiate and export the singleton instance */
+export const languageClientManager = LanguageClientManager.getInstance();

@@ -6,7 +6,6 @@
  */
 import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -15,6 +14,7 @@ import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
   constructor() {
@@ -95,19 +95,4 @@ export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[
   );
 
   await commandlet.run();
-};
-
-const getUriFromActiveEditor = (): URI | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-    return editor.document.uri;
-  }
-
-  const errorMessage = nls.localize('retrieve_select_file_or_directory');
-  telemetryService.sendException('retrieve_with_sourcepath', errorMessage);
-  notificationService.showErrorMessage(errorMessage);
-  channelService.appendLine(errorMessage);
-  channelService.showChannelOutput();
-
-  return undefined;
 };

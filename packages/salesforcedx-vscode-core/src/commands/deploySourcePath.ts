@@ -6,19 +6,16 @@
  */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
-import { channelService } from '../channels';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { salesforceCoreSettings } from '../settings';
-import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './retrieveSourcePath';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
 import { TimestampConflictChecker } from './util/timestampConflictChecker';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor(showChannelOutput: boolean = true) {
@@ -82,19 +79,4 @@ export const deploySourcePaths = async (
 
     await commandlet.run();
   }
-};
-
-const getUriFromActiveEditor = (): URI | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-    return editor.document.uri;
-  }
-
-  const errorMessage = nls.localize('deploy_select_file_or_directory');
-  telemetryService.sendException('deploy_with_sourcepath', errorMessage);
-  notificationService.showErrorMessage(errorMessage);
-  channelService.appendLine(errorMessage);
-  channelService.showChannelOutput();
-
-  return undefined;
 };
