@@ -22,7 +22,7 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    void this.generateTypesNames(outputFolderPath, output.getTypeNames());
+    await this.generateTypesNames(outputFolderPath, output.getTypeNames());
 
     const sobjects = [...output.getStandard(), ...output.getCustom()];
 
