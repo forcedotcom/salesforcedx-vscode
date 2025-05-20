@@ -14,7 +14,6 @@ import {
 } from '@salesforce/vscode-service-provider';
 import * as util from 'node:util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { z } from 'zod';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -103,13 +102,23 @@ export class TelemetryService implements TelemetryServiceInterface {
    * @param extensionContext extension context
    */
   public async initializeService(extensionContext: ExtensionContext): Promise<void> {
-    const { name, version, aiKey, o11yUploadEndpoint, enableO11y } = extensionPackageJsonSchema.parse(
-      extensionContext.extension.packageJSON
-    );
+    const { name, version, aiKey, o11yUploadEndpoint, enableO11y } = extensionContext.extension.packageJSON as {
+      name: string;
+      version: string;
+      aiKey: string;
+      o11yUploadEndpoint?: string;
+      enableO11y?: string;
+    };
+    if (!name) {
+      console.log('Extension name is not defined in package.json');
+    }
+    if (!version) {
+      console.log('Extension version is not defined in package.json');
+    }
     this.extensionContext = extensionContext;
     this.extensionName = name;
-    this.version = version;
-    this.aiKey ??= aiKey ?? DEFAULT_AIKEY;
+    this.version = version ?? '';
+    this.aiKey = aiKey || this.aiKey;
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
@@ -267,12 +276,12 @@ export class TelemetryService implements TelemetryServiceInterface {
         } catch {
           console.log(
             'There was an error sending an exception report to: ' +
-              typeof reporter +
-              ' ' +
-              'name: ' +
-              name +
-              ' message: ' +
-              message
+            typeof reporter +
+            ' ' +
+            'name: ' +
+            name +
+            ' message: ' +
+            message
           );
         }
       });
@@ -320,11 +329,3 @@ export class TelemetryService implements TelemetryServiceInterface {
     }
   }
 }
-
-const extensionPackageJsonSchema = z.object({
-  name: z.string({ message: 'Extension name is not defined in package.json' }),
-  version: z.string({ message: 'Extension version is not defined in package.json' }),
-  aiKey: z.string().optional(),
-  o11yUploadEndpoint: z.string().optional(),
-  enableO11y: z.string().optional()
-});

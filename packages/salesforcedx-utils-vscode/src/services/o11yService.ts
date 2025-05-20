@@ -25,7 +25,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import { z } from 'zod';
 import { loadO11yModules } from '../telemetry/utils/o11yLoader';
 
 export class O11yService {
@@ -39,7 +38,7 @@ export class O11yService {
   private o11yModules: Awaited<ReturnType<typeof loadO11yModules>> | null = null;
   private static instance: O11yService | null = null;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): O11yService {
     if (!O11yService.instance) {
@@ -114,9 +113,15 @@ export class O11yService {
 
     const { simpleCollectorModule, collectorsModule } = o11yModules;
 
-    this.protoEncoderFunc = encodeCoreEnvelopeContentsRawSchem.parse(
-      collectorsModule.default || collectorsModule
-    ).encodeCoreEnvelopeContentsRaw;
+    this.protoEncoderFunc =
+      (
+        (collectorsModule.default || collectorsModule) as {
+          encodeCoreEnvelopeContentsRaw?: ProtoEncoderFuncType;
+        }
+      )?.encodeCoreEnvelopeContentsRaw ??
+      (() => {
+        throw new Error('encodeCoreEnvelopeContentsRaw is undefined');
+      });
 
     const simpleCollector = new (simpleCollectorModule.default || simpleCollectorModule).SimpleCollector({
       environment
@@ -155,11 +160,11 @@ export class O11yService {
       return Promise.reject(new Error('o11yUploadEndpoint is not defined'));
     }
 
-    return this.postRequest(this.o11yUploadEndpoint, { base64Env: b64 });
+    return this.postRequest(this.o11yUploadEndpoint, { base64Env: b64 }) as Promise<Response>;
   }
 
-  postRequest = (endpoint: string, body: any): Promise<Response> =>
-    fetch(endpoint, {
+  postRequest(endpoint: string, body: any): Promise<any> {
+    return fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -167,8 +172,5 @@ export class O11yService {
       console.error('Post Request failed:', error);
       throw error;
     });
+  }
 }
-
-const encodeCoreEnvelopeContentsRawSchem = z.object({
-  encodeCoreEnvelopeContentsRaw: z.function().returns(z.instanceof(Uint8Array))
-});
