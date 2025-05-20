@@ -13,9 +13,12 @@ import {
   deleteFile,
   readDirectory,
   stat,
-  safeDelete
+  safeDelete,
+  ensureCurrentWorkingDirIsProjectPath
 } from '../../../src/helpers/fs';
 
+jest.mock('vscode');
+const vscodeMocked = jest.mocked(vscode);
 describe('file system utilities', () => {
   const mockUri = { fsPath: '/test/path' };
   const mockError = new Error('Test error');
@@ -189,5 +192,45 @@ describe('file system utilities', () => {
 
       await expect(stat('/test/path')).rejects.toThrow('Failed to get file stats for /test/path: Test error');
     });
+  });
+});
+
+describe('ensureCurrentWorkingDirIsProjectPath', () => {
+  let fsExistsSpy: jest.SpyInstance;
+  let processCwdSpy: jest.SpyInstance;
+  let processChDirSpy: jest.SpyInstance;
+  const dummyProjectPath = 'a/project/path';
+  const dummyDefaultPath = '/';
+
+  beforeEach(() => {
+    fsExistsSpy = jest.spyOn(vscodeMocked.workspace.fs, 'stat');
+    processCwdSpy = jest.spyOn(process, 'cwd');
+    processChDirSpy = jest.spyOn(process, 'chdir').mockImplementation(jest.fn());
+  });
+
+  it('should change the processes current working directory to the project directory', async () => {
+    processCwdSpy.mockReturnValue(dummyDefaultPath);
+    fsExistsSpy.mockResolvedValue({ type: 2 });
+
+    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
+
+    expect(processChDirSpy).toHaveBeenCalledWith(dummyProjectPath);
+  });
+
+  it('should not change the processes current working directory when already in the project directory', async () => {
+    processCwdSpy.mockReturnValue(dummyProjectPath);
+
+    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
+
+    expect(processChDirSpy).not.toHaveBeenCalled();
+  });
+
+  it('should not change the processes current working directory when the project path does not exist', async () => {
+    processCwdSpy.mockReturnValue(dummyDefaultPath);
+    fsExistsSpy.mockRejectedValue(new Error('File not found'));
+
+    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
+
+    expect(processChDirSpy).not.toHaveBeenCalled();
   });
 });

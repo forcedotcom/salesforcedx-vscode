@@ -124,3 +124,19 @@ export const safeDelete = async (
     // File doesn't exist or can't be accessed, do nothing
   }
 };
+
+/**
+ * Ensures the current working directory is set to the project path
+ * @param rootWorkspacePath The path to the root workspace
+ */
+export const ensureCurrentWorkingDirIsProjectPath = async (rootWorkspacePath: string): Promise<void> => {
+  if (rootWorkspacePath && process.cwd() !== rootWorkspacePath) {
+    try {
+      const uri = vscode.Uri.file(rootWorkspacePath);
+      await vscode.workspace.fs.stat(uri);
+      process.chdir(rootWorkspacePath);
+    } catch {
+      // Path doesn't exist, do nothing
+    }
+  }
+};

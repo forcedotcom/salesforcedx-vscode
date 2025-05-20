@@ -5,29 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { TOOLS, fileExtensionsMatch, getTestResultsFolder, getRelativeProjectPath, projectPaths } from './paths';
+export { ActivationTracker } from './activationTracker';
+export { isSFContainerMode } from './env';
 export * from './extensionUris';
+export {
+  createDirectory,
+  deleteFile,
+  ensureCurrentWorkingDirIsProjectPath,
+  fileOrFolderExists,
+  readDirectory,
+  readFile,
+  safeDelete,
+  stat,
+  writeFile
+} from './fs';
+export { fileExtensionsMatch, getRelativeProjectPath, getTestResultsFolder, projectPaths, TOOLS } from './paths';
 export { TraceFlags } from './traceFlags';
 export {
   difference,
   extractJson,
+  fileUtils,
+  fixupError,
   getJsonCandidate,
   getMessageFromError,
   identifyJsonTypeInString,
-  isNullOrUndefined,
-  fileUtils
+  isNullOrUndefined
 } from './utils';
-export {
-  readFile,
-  writeFile,
-  fileOrFolderExists,
-  createDirectory,
-  deleteFile,
-  readDirectory,
-  safeDelete,
-  stat
-} from './fs';
 export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
-export { isSFContainerMode } from './env';
-export { ActivationTracker } from './activationTracker';
-export { fixupError } from './utils';
