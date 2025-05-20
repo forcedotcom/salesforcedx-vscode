@@ -11,6 +11,7 @@ import { nls } from '../../../src/messages';
 import { OrgList } from '../../../src/orgPicker';
 import { OrgAuthInfo } from '../../../src/util';
 import * as orgUtil from '../../../src/util/orgUtil';
+
 describe('OrgList tests', () => {
   let orgList: OrgList;
   let getDevHubUsernameMock: jest.SpyInstance;
