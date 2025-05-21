@@ -193,9 +193,12 @@ const registerCommands = (): vscode.Disposable => {
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
   );
-  const restartApexLanguageServerCmd = vscode.commands.registerCommand('sf.apex.languageServer.restart', async () => {
-    await restartLanguageServerAndClient(extensionContext);
-  });
+  const restartApexLanguageServerCmd = vscode.commands.registerCommand(
+    'sf.apex.languageServer.restart',
+    async (source?: 'commandPalette' | 'statusBar') => {
+      await restartLanguageServerAndClient(extensionContext, source ?? 'commandPalette');
+    }
+  );
 
   return vscode.Disposable.from(
     anonApexDebugDelegateCmd,
