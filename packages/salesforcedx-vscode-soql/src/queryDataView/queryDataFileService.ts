@@ -6,13 +6,13 @@
  */
 
 import type { QueryResult } from '../types';
-import { writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { getRootWorkspacePath, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import type { JsonMap } from '@salesforce/ts-types';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
+import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 

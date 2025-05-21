@@ -6,12 +6,11 @@
 
 import {
   DocumentContext,
-  FormattingOptions,
   HTMLDocument,
   HTMLFormatConfiguration,
   LanguageService as HTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import { Position, Range, TextDocument } from 'vscode-languageserver-types';
+import { Position, Range, TextDocument, FormattingOptions } from 'vscode-languageserver-types';
 import { getLanguageModelCache } from '../languageModelCache';
 import { LanguageMode, Settings } from './languageModes';
 

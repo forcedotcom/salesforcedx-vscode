@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-'use strict';
-
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';

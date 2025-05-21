@@ -39,7 +39,7 @@ import {
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
 
-export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
+class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       workspaceUtils.getRootWorkspacePath(), // this is safe because of workspaceChecker
@@ -106,7 +106,7 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
   }
 }
 
-export class AliasGatherer implements ParametersGatherer<Alias> {
+class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
     const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;

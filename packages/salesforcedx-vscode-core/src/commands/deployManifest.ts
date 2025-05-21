@@ -19,7 +19,7 @@ import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
-export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
+class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   constructor() {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_manifest');
   }

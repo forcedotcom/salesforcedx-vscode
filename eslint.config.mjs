@@ -14,7 +14,7 @@ import eslintPluginImport, { __esModule } from 'eslint-plugin-import';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
@@ -35,10 +35,12 @@ export default [
       'packages/salesforcedx-vscode-soql/test/vscode-integration',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-lwc/test/vscode-integration',
-      'packages/salesforcedx-vscode-core/test/vscode-integration/**'
+      'packages/salesforcedx-vscode-core/test/vscode-integration/**',
+      'scripts/installVSIXFromBranch.ts',
+      'scripts/vsce-bundled-extension.ts',
+      'scripts/reportInstalls.ts'
     ]
   },
-  eslintPluginPrettierRecommended,
   {
     files: ['**/*.ts'],
     languageOptions: {
@@ -350,5 +352,6 @@ export default [
     rules: {
       'header/header': 'off'
     }
-  }
+  },
+  eslintConfigPrettier
 ];

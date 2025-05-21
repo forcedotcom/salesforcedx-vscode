@@ -31,10 +31,6 @@ export const showTraceFlagExpiration = (expirationDate: Date): void => {
   statusBarItem.show();
 };
 
-export const hideTraceFlagExpiration = (): void => {
-  statusBarItem.hide();
-};
-
 export const disposeTraceFlagExpiration = (): void => {
   statusBarItem.dispose();
 };
