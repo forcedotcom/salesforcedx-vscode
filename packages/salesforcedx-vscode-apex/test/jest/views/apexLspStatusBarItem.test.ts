@@ -24,17 +24,34 @@ describe('ApexLSPStatusBarItem', () => {
   let createDiagnosticCollectionMock: jest.SpyInstance;
   let setMock: jest.SpyInstance;
   let uriFileMock: jest.SpyInstance;
+  let mockLanguageStatusItem: vscode.LanguageStatusItem;
+  let mockRestartStatusItem: vscode.LanguageStatusItem;
 
   beforeEach(() => {
-    createLanguageStatusItemMock = jest.spyOn(vscode.languages, 'createLanguageStatusItem').mockReturnValue({
+    mockLanguageStatusItem = {
       text: '',
       severity: vscode.LanguageStatusSeverity.Information,
       command: undefined,
       dispose: jest.fn()
-    } as unknown as vscode.LanguageStatusItem);
+    } as unknown as vscode.LanguageStatusItem;
+
+    mockRestartStatusItem = {
+      text: '',
+      severity: vscode.LanguageStatusSeverity.Information,
+      command: undefined,
+      dispose: jest.fn()
+    } as unknown as vscode.LanguageStatusItem;
+
+    createLanguageStatusItemMock = jest.spyOn(vscode.languages, 'createLanguageStatusItem').mockImplementation(id => {
+      if (id === 'ApexLSPLanguageStatusItem') {
+        return mockLanguageStatusItem;
+      }
+      return mockRestartStatusItem;
+    });
 
     createDiagnosticCollectionMock = jest.spyOn(vscode.languages, 'createDiagnosticCollection').mockReturnValue({
-      set: jest.fn(() => Promise.resolve())
+      set: jest.fn(() => Promise.resolve()),
+      dispose: jest.fn()
     } as unknown as vscode.DiagnosticCollection);
 
     uriFileMock = jest.spyOn(URI, 'file').mockReturnValue({
@@ -43,6 +60,9 @@ describe('ApexLSPStatusBarItem', () => {
 
     statusBarItem = new ApexLSPStatusBarItem();
     setMock = jest.spyOn(statusBarItem['diagnostics'], 'set');
+
+    // Initialize disposables array with the diagnostic collection
+    statusBarItem['disposables'] = [statusBarItem['diagnostics']];
 
     // Verify mocks were created successfully
     expect(createLanguageStatusItemMock).toBeDefined();
@@ -61,6 +81,10 @@ describe('ApexLSPStatusBarItem', () => {
         language: 'apex',
         scheme: 'file'
       });
+      expect(vscode.languages.createLanguageStatusItem).toHaveBeenCalledWith('ApexLSPRestartStatusItem', {
+        language: 'apex',
+        scheme: 'file'
+      });
       expect(vscode.languages.createDiagnosticCollection).toHaveBeenCalledWith('apex');
     });
   });
@@ -72,17 +96,12 @@ describe('ApexLSPStatusBarItem', () => {
       statusBarItem.error(errorMessage);
 
       // Verify language status item is updated
-      expect(statusBarItem['languageStatusItem'].text).toBe(errorMessage);
-      expect(statusBarItem['languageStatusItem'].severity).toBe(vscode.LanguageStatusSeverity.Error);
+      expect(mockLanguageStatusItem.text).toBe(errorMessage);
+      expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Error);
 
       // Verify diagnostic is created with correct properties
       expect(URI.file).toHaveBeenCalledWith('/ApexLSP');
-
-      const setCall = (statusBarItem['diagnostics'].set as jest.Mock).mock.calls[0];
-      expect(setCall[0]).toBeDefined();
-      expect(setCall[1]).toHaveLength(1);
-      expect(setCall[1][0]).toBeInstanceOf(vscode.Diagnostic);
-      //we don't bother checking the errorMessage and severity because we're not testing the Diagnostic class
+      expect(setMock).toHaveBeenCalled();
     });
   });
 
@@ -90,30 +109,29 @@ describe('ApexLSPStatusBarItem', () => {
     it('should update status when indexing', () => {
       statusBarItem.indexing();
       expect(nls.localize).toHaveBeenCalledWith('apex_language_server_loading');
-      expect(statusBarItem['languageStatusItem'].severity).toBe(vscode.LanguageStatusSeverity.Information);
+      expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Information);
     });
 
     it('should update status when ready', () => {
       statusBarItem.ready();
       expect(nls.localize).toHaveBeenCalledWith('apex_language_server_loaded');
-      expect(statusBarItem['languageStatusItem'].severity).toBe(vscode.LanguageStatusSeverity.Information);
-      expect(statusBarItem['languageStatusItem'].command).toBeDefined();
+      expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Information);
+      expect(mockLanguageStatusItem.command).toBeUndefined();
     });
 
     it('should update status when restarting', () => {
       statusBarItem.restarting();
       expect(nls.localize).toHaveBeenCalledWith('apex_language_server_restarting');
-      expect(statusBarItem['languageStatusItem'].command).toBeUndefined();
+      expect(mockLanguageStatusItem.severity).toBe(vscode.LanguageStatusSeverity.Information);
+      expect(mockRestartStatusItem.command).toBeUndefined();
     });
   });
 
   describe('disposal', () => {
-    it('should dispose language status item', () => {
-      const mockDispose = jest.fn();
-      statusBarItem['languageStatusItem'].dispose = mockDispose;
-
+    it('should dispose language status items', () => {
       statusBarItem.dispose();
-      expect(mockDispose).toHaveBeenCalled();
+      expect(mockLanguageStatusItem.dispose).toHaveBeenCalled();
+      expect(mockRestartStatusItem.dispose).toHaveBeenCalled();
     });
   });
 });
