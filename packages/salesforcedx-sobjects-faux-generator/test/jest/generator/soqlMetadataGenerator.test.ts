@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
-import { folderExists, readFile } from '../../../src';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../../src/constants';
 import { SObjectShortDescription } from '../../../src/describe';
 import { SOQLMetadataGenerator } from '../../../src/generator/soqlMetadataGenerator';
@@ -63,16 +63,16 @@ describe('SOQL metadata files generator', () => {
     const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
     const output = new TestSObjectRefreshOutput(sfdxPath);
     await gen.generate(output);
-    expect(await folderExists(customFolder)).toBe(true);
-    expect(await folderExists(standardFolder)).toBe(true);
+    expect(await fileOrFolderExists(customFolder)).toBe(true);
+    expect(await fileOrFolderExists(standardFolder)).toBe(true);
   });
 
   it('Should temporarily remove customObjects folder when category is CUSTOM', async () => {
     const gen = new SOQLMetadataGenerator(SObjectCategory.CUSTOM);
     const output = new TestSObjectRefreshOutput(sfdxPath);
     await gen.generate(output);
-    expect(await folderExists(customFolder)).toBe(true);
-    expect(await folderExists(standardFolder)).toBe(true);
+    expect(await fileOrFolderExists(customFolder)).toBe(true);
+    expect(await fileOrFolderExists(standardFolder)).toBe(true);
   });
 });
 

@@ -7,46 +7,67 @@
 import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import { join } from 'node:path';
+import * as vscode from 'vscode';
 import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
 import { FauxClassGenerator } from '../../../src/generator';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { INDENT } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
-import { createDirectory, deleteFile, folderExists, writeFile } from '../../../src/utils';
 
 jest.mock('../../../src/generator/declarationGenerator');
-jest.mock('../../../src/utils');
+jest.mock('../../../src/messages');
+
+const vscodeMocked = jest.mocked(vscode);
+const nlsMocked = jest.mocked(nls);
 
 const declarationGeneratorMocked = jest.mocked(DeclarationGenerator);
-const utilsMocked = {
-  createDirectory: jest.mocked(createDirectory),
-  deleteFile: jest.mocked(deleteFile),
-  folderExists: jest.mocked(folderExists),
-  writeFile: jest.mocked(writeFile)
-};
 
 describe('FauxClassGenerator Unit Tests.', () => {
   const fakePath = './this/is/a/path';
-  let classPath = '';
+  let typePath = '';
 
   const getGenerator = (): FauxClassGenerator => new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
 
   beforeEach(() => {
     jest.clearAllMocks();
-    utilsMocked.folderExists.mockResolvedValue(false);
-    utilsMocked.createDirectory.mockResolvedValue();
-    utilsMocked.writeFile.mockResolvedValue();
-    utilsMocked.deleteFile.mockResolvedValue();
+    vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
+    vscodeMocked.workspace.fs.stat.mockResolvedValue({ type: 1, ctime: 0, mtime: 0, size: 0, permissions: 1 });
+    vscodeMocked.workspace.fs.createDirectory.mockResolvedValue(undefined);
+    vscodeMocked.workspace.fs.delete.mockResolvedValue(undefined);
+
+    // Mock nls.localize to return the expected error message
+    nlsMocked.localize.mockImplementation((key: string, ...args: string[]) => {
+      if (key === 'no_sobject_output_folder_text') {
+        return `No output folder available ${args[0]}.  Please create this folder and refresh again`;
+      }
+      if (key === 'unsupported_sobject_category') {
+        return `SObject category cannot be used to generate metadata ${args[0]}`;
+      }
+      return key;
+    });
+
+    // Mock Uri.file to return a proper URI object
+    vscodeMocked.Uri.file.mockImplementation((path: string) => ({
+      fsPath: path,
+      scheme: 'file',
+      path,
+      authority: '',
+      query: '',
+      fragment: '',
+      with: jest.fn(),
+      toString: () => `file://${path}`,
+      toJSON: () => ({ scheme: 'file', path })
+    }));
   });
 
   afterEach(() => {
-    if (classPath) {
+    if (typePath) {
       try {
-        utilsMocked.deleteFile.mockResolvedValue();
+        vscodeMocked.workspace.fs.delete(vscode.Uri.file(typePath));
       } catch (e) {
         console.log(e);
       }
-      classPath = '';
+      typePath = '';
     }
   });
 
@@ -71,14 +92,20 @@ describe('FauxClassGenerator Unit Tests.', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = await gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
+    await gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
 
-    expect(utilsMocked.folderExists).toHaveBeenCalledWith(sobjectFolder);
-    expect(utilsMocked.createDirectory).toHaveBeenCalledWith(sobjectFolder);
-    expect(utilsMocked.writeFile).toHaveBeenCalled();
+    expect(vscodeMocked.workspace.fs.stat).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        path: sobjectFolder,
+        scheme: 'file'
+      })
+    );
+    expect(vscodeMocked.workspace.fs.writeFile).toHaveBeenCalled();
 
-    const writeFileCall = utilsMocked.writeFile.mock.calls[0];
-    expect(writeFileCall[1]).toContain(nls.localize('class_header_generated_comment'));
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const fileContent = Buffer.from(writeFileCall[1]).toString('utf8');
+    expect(fileContent).toContain(nls.localize('class_header_generated_comment'));
   });
 
   describe('commentToString()', () => {
@@ -144,7 +171,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       resetOutputFolderMock.mockResolvedValue(false);
       getStandardMock.mockReturnValue([]);
       getCustomMock.mockReturnValue([]);
-      const expectedError = `No output folder available ${expectedFolderPath}.  Please create this folder and refresh again`;
+      const expectedError = nls.localize('no_sobject_output_folder_text', expectedFolderPath);
       const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
 
       try {

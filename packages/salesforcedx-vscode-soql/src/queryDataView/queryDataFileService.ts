@@ -6,7 +6,7 @@
  */
 
 import type { QueryResult } from '../types';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import { getRootWorkspacePath, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import type { JsonMap } from '@salesforce/ts-types';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
@@ -49,7 +49,6 @@ export class QueryDataFileService {
   public async save(): Promise<string> {
     let selectedFileSavePath = '';
     const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
-    const fileContent = new TextEncoder().encode(fileContentString);
     const defaultFileName = this.dataProvider.getFileName();
     /*
         queryDataDefaultFilePath will be used as the default options in the save dialog
@@ -67,11 +66,11 @@ export class QueryDataFileService {
       defaultUri: URI.file(queryDataDefaultFilePath)
     });
 
-    if (fileInfo && fileInfo.fsPath) {
+    if (fileInfo?.fsPath) {
       // use .fsPath, not .path to account for OS.
       selectedFileSavePath = fileInfo.fsPath;
       // Save query results to disk
-      await vscode.workspace.fs.writeFile(fileInfo, fileContent);
+      await writeFile(selectedFileSavePath, fileContentString);
       this.showFileInExplorer(selectedFileSavePath);
       this.showSaveSuccessMessage(path.basename(selectedFileSavePath));
     }

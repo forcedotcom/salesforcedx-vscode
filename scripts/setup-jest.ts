@@ -132,7 +132,8 @@ const getMockVSCode = () => {
         stat: jest.fn(),
         createDirectory: jest.fn(),
         delete: jest.fn(),
-        readFile: jest.fn()
+        readFile: jest.fn(),
+        readDirectory: jest.fn()
       },
       registerTextDocumentContentProvider: jest.fn(),
       registerFileSystemProvider: jest.fn()
@@ -151,6 +152,10 @@ const getMockVSCode = () => {
     },
     Diagnostic: class {
       public constructor(range: Range, message: string, severity?: any) {}
+    },
+    FileType: {
+      File: 1,
+      Directory: 2
     },
     CallHierarchyItem: class {
       public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}

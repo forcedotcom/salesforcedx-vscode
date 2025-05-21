@@ -4,13 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
+import { TOOLS, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { SOBJECTS_DIR, CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR, SObjectCategory } from '../../../src';
 import { FauxClassGenerator } from '../../../src/generator';
 import { SObjectRefreshOutput } from '../../../src/types';
-import { folderExists } from '../../../src/utils';
 
 jest.mock('vscode');
 const vscodeMocked = jest.mocked(vscode);
@@ -48,9 +47,9 @@ describe('Clean SObject Folders', () => {
     await gen.generate(output);
 
     // The standard folder should be recreated empty by generate()
-    expect(await folderExists(standardOutputPath)).toBeTruthy();
+    expect(await fileOrFolderExists(standardOutputPath)).toBeTruthy();
     // The custom folder should be untouched
-    expect(await folderExists(customOutputPath)).toBeTruthy();
+    expect(await fileOrFolderExists(customOutputPath)).toBeTruthy();
   });
 
   it('Should remove customObjects folder when category is CUSTOM', async () => {
@@ -75,8 +74,8 @@ describe('Clean SObject Folders', () => {
     await gen.generate(output);
 
     // The custom folder should be recreated empty by generate()
-    expect(await folderExists(customOutputPath)).toBeTruthy();
+    expect(await fileOrFolderExists(customOutputPath)).toBeTruthy();
     // The standard folder should be untouched
-    expect(await folderExists(standardOutputPath)).toBeTruthy();
+    expect(await fileOrFolderExists(standardOutputPath)).toBeTruthy();
   });
 });

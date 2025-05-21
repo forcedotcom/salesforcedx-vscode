@@ -64,7 +64,7 @@ class QuickLaunch {
       const logFileRetrieve = await this.retrieveLogFile(connection, testResult.logFileId);
 
       if (logFileRetrieve.success && logFileRetrieve.filePath) {
-        launchFromLogFile(logFileRetrieve.filePath, false);
+        await launchFromLogFile(logFileRetrieve.filePath, false);
         return true;
       }
     } else if (testResult.message) {

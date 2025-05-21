@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ActivationTracker,
   ChannelService,
+  ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
-  getRootWorkspacePath,
-  ProgressNotification
+  ensureCurrentWorkingDirIsProjectPath,
+  getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -384,7 +384,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // commands are run with the project path returned from process.cwd(),
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
-  ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  await ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   setNodeExtraCaCerts();
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);

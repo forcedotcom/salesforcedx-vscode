@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { folderExists } from '../../../src';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { TypingGenerator } from '../../../src/generator/typingGenerator';
 
@@ -46,7 +46,7 @@ describe('SObject Javascript type declaration generator', () => {
     const gen = new TypingGenerator();
     typePath = await gen.generateType(sobjectFolder, objDef);
 
-    expect(await folderExists(typePath)).toBe(true);
+    expect(await fileOrFolderExists(typePath)).toBeTruthy();
   });
 
   it('Should generate a declaration file with all types of fields that can be in custom SObjects', async () => {

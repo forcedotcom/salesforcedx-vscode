@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'node:fs';
+
+import * as vscode from 'vscode';
 import { AppInsights } from '../../../../src';
 import * as Settings from '../../../../src/settings';
 import { determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
@@ -13,10 +14,8 @@ import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamCo
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
 import { TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
 
-jest.mock('node:fs', () => ({
-  ...jest.requireActual('node:fs'),
-  createWriteStream: jest.fn()
-}));
+jest.mock('vscode');
+const vscodeMocked = jest.mocked(vscode);
 
 describe('determineReporters', () => {
   let config: TelemetryReporterConfig;
@@ -33,6 +32,18 @@ describe('determineReporters', () => {
       reporterName: 'salesforcedx-vscode',
       isDevMode: false
     };
+    // Mock Uri.file for LogStream
+    vscodeMocked.Uri.file.mockImplementation(filePath => ({
+      fsPath: filePath,
+      scheme: 'file',
+      authority: '',
+      path: filePath,
+      query: '',
+      fragment: '',
+      with: jest.fn(),
+      toString: jest.fn().mockReturnValue(`file://${filePath}`),
+      toJSON: jest.fn().mockReturnValue({ scheme: 'file', path: filePath })
+    }));
   });
 
   afterEach(() => {
@@ -74,12 +85,7 @@ describe('determineReporters', () => {
     });
 
     it('should return AppInsights and LogStream reporters when not in dev mode and log stream is enabled', () => {
-      const fsMocked = jest.mocked(fs);
-      fsMocked.createWriteStream.mockReturnValue({
-        write: jest.fn(),
-        end: jest.fn()
-      } as any);
-
+      vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
       LogStreamConfig.isEnabledFor = jest.fn().mockReturnValue(true);
       const reporters = determineReporters(config);
       expect(reporters).toHaveLength(2);
