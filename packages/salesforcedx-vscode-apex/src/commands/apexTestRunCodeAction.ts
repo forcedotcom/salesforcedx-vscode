@@ -196,7 +196,7 @@ export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
 
 // evaluate test class param: if not provided, apply cached value
 // exported for testability
-export const resolveTestClassParam = async (testClass: string): Promise<string> => {
+const resolveTestClassParam = async (testClass: string): Promise<string> => {
   if (isEmpty(testClass)) {
     // value not provided for re-run invocations
     // apply cached value, if available
@@ -234,8 +234,7 @@ export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
 };
 
 // evaluate test method param: if not provided, apply cached value
-// exported for testability
-export const resolveTestMethodParam = async (testMethod: string): Promise<string> => {
+const resolveTestMethodParam = async (testMethod: string): Promise<string> => {
   if (isEmpty(testMethod)) {
     // value not provided for re-run invocations
     // apply cached value, if available

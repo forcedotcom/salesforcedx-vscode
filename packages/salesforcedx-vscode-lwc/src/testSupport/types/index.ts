@@ -133,7 +133,7 @@ type LwcJestTestResultStatus = 'passed' | 'failed' | 'pending' | 'skipped' | 'to
 /**
  * Jest Test File Result
  */
-export type LwcJestTestFileResult = {
+type LwcJestTestFileResult = {
   status: 'passed' | 'failed';
   startTime: number;
   endTime: number;
@@ -144,7 +144,7 @@ export type LwcJestTestFileResult = {
 /**
  * Jest Test Assertion Result
  */
-export type LwcJestTestAssertionResult = {
+type LwcJestTestAssertionResult = {
   status: LwcJestTestResultStatus;
   title: string;
   ancestorTitles: string[];

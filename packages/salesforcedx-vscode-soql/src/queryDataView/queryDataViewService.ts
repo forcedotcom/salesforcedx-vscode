@@ -30,7 +30,7 @@ import { FileFormat, QueryDataFileService as FileService } from './queryDataFile
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
-export type DataViewEvent = {
+type DataViewEvent = {
   type: string;
   format?: FileFormat;
 };
