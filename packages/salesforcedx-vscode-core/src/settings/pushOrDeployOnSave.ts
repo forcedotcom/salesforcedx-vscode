@@ -154,7 +154,7 @@ const displayError = (message: string) => {
 const ignorePath = async (documentPath: string): Promise<boolean> =>
   fileShouldNotBeDeployed(documentPath) || !(await pathIsInPackageDirectory(documentPath));
 
-export const pathIsInPackageDirectory = async (documentPath: string): Promise<boolean> => {
+const pathIsInPackageDirectory = async (documentPath: string): Promise<boolean> => {
   try {
     return await SalesforcePackageDirectories.isInPackageDirectory(documentPath);
   } catch (error) {
@@ -171,8 +171,7 @@ export const pathIsInPackageDirectory = async (documentPath: string): Promise<bo
   }
 };
 
-export const fileShouldNotBeDeployed = (fsPath: string): boolean =>
-  isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
+const fileShouldNotBeDeployed = (fsPath: string): boolean => isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
 
 const isDotFile = (fsPath: string): boolean => path.basename(fsPath).startsWith('.');
 

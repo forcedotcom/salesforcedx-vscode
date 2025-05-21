@@ -15,13 +15,3 @@ export const ICONS = {
   DARK_GREEN_BUTTON: ['resources', 'dark', 'testPass.svg'],
   DARK_ORANGE_BUTTON: ['resources', 'dark', 'testSkip.svg']
 };
-
-export type IconName =
-  | 'LIGHT_BLUE_BUTTON'
-  | 'LIGHT_RED_BUTTON'
-  | 'LIGHT_ORANGE_BUTTON'
-  | 'LIGHT_GREEN_BUTTON'
-  | 'DARK_BLUE_BUTTON'
-  | 'DARK_RED_BUTTON'
-  | 'DARK_GREEN_BUTTON'
-  | 'DARK_ORANGE_BUTTON';

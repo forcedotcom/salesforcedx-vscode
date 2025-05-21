@@ -1146,7 +1146,7 @@ export function getHTML5TagProvider(): IHTMLTagProvider {
   };
 }
 
-export function collectTagsDefault(collector: (tag: string, label: string) => void, tagSet: ITagSet): void {
+function collectTagsDefault(collector: (tag: string, label: string) => void, tagSet: ITagSet): void {
   for (const tag in tagSet) {
     if (tagSet.hasOwnProperty(tag)) {
       collector(tag, tagSet[tag].documentation);

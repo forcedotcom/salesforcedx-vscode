@@ -28,7 +28,7 @@ import { DemoModePromptGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspace
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';
 
-export type DeviceCodeResponse = {
+type DeviceCodeResponse = {
   user_code: string;
   device_code: string;
   interval: number;
@@ -126,7 +126,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   }
 }
 
-export class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
+class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
@@ -180,7 +180,7 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
   }
 }
 
-export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
+class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
   public build(data: AuthParams): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_org_text'))
@@ -206,7 +206,7 @@ const promptLogOutForProdOrg = async () => {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
+const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebContainerExecutor();

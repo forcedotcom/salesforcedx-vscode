@@ -3,8 +3,6 @@
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
 
-'use strict';
-
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as appInsights from 'applicationinsights';
 import * as os from 'node:os';

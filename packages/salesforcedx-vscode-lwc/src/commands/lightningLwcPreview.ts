@@ -64,11 +64,11 @@ type PreviewQuickPickItem = vscode.QuickPickItem & {
   platformName: keyof typeof PlatformName;
 };
 
-export type DeviceQuickPickItem = vscode.QuickPickItem & {
+type DeviceQuickPickItem = vscode.QuickPickItem & {
   name: string;
 };
 
-export const platformOptions: PreviewQuickPickItem[] = [
+const platformOptions: PreviewQuickPickItem[] = [
   {
     label: nls.localize('lightning_lwc_preview_desktop_label'),
     detail: nls.localize('lightning_lwc_preview_desktop_description'),
@@ -123,7 +123,7 @@ const lwcPreviewContainerMode = () => {
   return;
 };
 
-export const lwcPreview = async (sourceUri: URI) => {
+const lwcPreview = async (sourceUri: URI) => {
   const startTime = process.hrtime();
 
   if (!sourceUri) {
@@ -543,7 +543,7 @@ const executeMobilePreview = async (
  * @param startPath starting path to search for the config file.
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
-export const getProjectRootDirectory = async (startPath: string): Promise<string | undefined> => {
+const getProjectRootDirectory = async (startPath: string): Promise<string | undefined> => {
   try {
     const startUri = vscode.Uri.file(startPath);
     const stat = await vscode.workspace.fs.stat(startUri);
@@ -576,7 +576,7 @@ export const getProjectRootDirectory = async (startPath: string): Promise<string
  * @param directory path to a directory
  * @returns path to a directory that is one level up, or undefined if cannot go one level up.
  */
-export const directoryLevelUp = (directory: string): string | undefined => {
+const directoryLevelUp = (directory: string): string | undefined => {
   const levelUp = path.dirname(directory);
 
   if (levelUp === directory) {

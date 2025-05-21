@@ -24,7 +24,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 
-export type ApexTestSuiteOptions = { suitename: string; tests: string[] };
+type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
@@ -56,7 +56,7 @@ const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
   return quickPickItems;
 };
 
-export class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
+class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const quickPickItems = await listApexTestSuiteItems();
 
@@ -66,7 +66,7 @@ export class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickIt
   }
 }
 
-export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
+class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
     const quickPickItems = await listApexTestSuiteItems();
 
@@ -91,7 +91,7 @@ export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions
   }
 }
 
-export class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
+class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
     const testSuiteInput = {
       prompt: 'Enter desired Apex test suite name:'

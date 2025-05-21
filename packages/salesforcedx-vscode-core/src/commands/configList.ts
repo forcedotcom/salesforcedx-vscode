@@ -9,7 +9,7 @@ import { EmptyParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class ConfigList extends SfCommandletExecutor<{}> {
+class ConfigList extends SfCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('config_list_text'))

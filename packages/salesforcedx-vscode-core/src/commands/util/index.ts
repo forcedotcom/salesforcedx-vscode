@@ -12,7 +12,6 @@ export { CompositePreconditionChecker } from './compositePreconditionChecker';
 export { ConflictDetectionMessages } from './conflictDetectionMessages';
 export { createComponentCount } from './createComponentCount';
 export { DevUsernameChecker } from './devUsernameChecker';
-export { EmptyPostChecker } from './emptyPostChecker';
 export { EmptyPreChecker } from './emptyPreChecker';
 export { FlagParameter } from './flagParameter';
 export { formatException } from './formatException';

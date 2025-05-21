@@ -130,8 +130,7 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
   return client;
 };
 
-// exported only for testing
-export const buildClientOptions = (): LanguageClientOptions => {
+const buildClientOptions = (): LanguageClientOptions => {
   const soqlExtensionInstalled = isSOQLExtensionInstalled();
 
   return {

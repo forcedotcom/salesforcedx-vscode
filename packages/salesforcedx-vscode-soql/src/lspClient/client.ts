@@ -12,10 +12,6 @@ import * as queryValidation from './queryValidation';
 
 let client: LanguageClient;
 
-export const clearDiagnostics = (): void => {
-  client?.diagnostics?.clear();
-};
-
 export const startLanguageClient = async (extensionContext: ExtensionContext): Promise<void> => {
   // path to language server module
   const serverPath = extensionContext.extension.packageJSON.serverPath;

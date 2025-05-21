@@ -14,12 +14,15 @@ import {
   TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
-import { CompletionConfiguration } from '../htmlLanguageService';
 import { HTMLDocument } from '../parser/htmlParser';
 import { createScanner, ScannerState, TokenType } from '../parser/htmlScanner';
 import { isEmptyElement } from '../parser/htmlTags';
 import { allTagProviders } from './tagProviders';
 
+export type CompletionConfiguration = {
+  [provider: string]: boolean;
+  hideAutoCompleteProposals?: boolean;
+};
 export function doComplete(
   document: TextDocument,
   position: Position,

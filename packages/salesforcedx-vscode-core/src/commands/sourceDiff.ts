@@ -82,7 +82,7 @@ export const sourceFolderDiff = async (explorerPath?: URI) => {
   await commandlet.run();
 };
 
-export const handleCacheResults = async (username: string, cache?: MetadataCacheResult): Promise<void> => {
+const handleCacheResults = async (username: string, cache?: MetadataCacheResult): Promise<void> => {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
       await differ.diffOneFile(cache.selectedPath, cache.cache.components[0], username);

@@ -29,7 +29,6 @@ export const API = {
 };
 export const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 export const APEX_LSP_ORPHAN = 'apexLSPOrphan';
-export const POWERSHELL_NOT_FOUND = 'Powershell not found';
 export const IS_TEST_REG_EXP = /@isTest/i;
 export const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
 export const APEX_CLASS_EXT = '.cls';

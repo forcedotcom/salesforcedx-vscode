@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import { DeleteSourceExecutor } from '../../../../src/commands';
+import { DeleteSourceExecutor } from '../../../../src/commands/deleteSource';
 
 describe('Project Delete Source', () => {
   let isSourceTracked: boolean;

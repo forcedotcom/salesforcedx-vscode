@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { OrgAuthInfo } from '../util';
+import { getAuthFieldsFor } from '../util/orgUtil';
 
 export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
@@ -55,20 +56,13 @@ export class OrgList implements vscode.Disposable {
 
   public async isOrgExpired(targetOrgOrAlias: string): Promise<boolean> {
     const username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
-    const authFields = await this.getAuthFieldsFor(username);
+    const authFields = await getAuthFieldsFor(username);
     const today = new Date();
     let expirationDate;
     if (authFields.expirationDate) {
       expirationDate = new Date(authFields.expirationDate);
     }
     return expirationDate ? expirationDate < today : false;
-  }
-
-  public async getAuthFieldsFor(username: string): Promise<AuthFields> {
-    const authInfo: AuthInfo = await AuthInfo.create({
-      username
-    });
-    return authInfo.getFields();
   }
 
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]): Promise<string[]> {
@@ -85,7 +79,7 @@ export class OrgList implements vscode.Disposable {
         console.warn(`Org Auth for username: ${orgAuth.username} has an error: ${orgAuth.error}`);
         continue;
       }
-      const authFields: AuthFields = await this.getAuthFieldsFor(orgAuth.username);
+      const authFields: AuthFields = await getAuthFieldsFor(orgAuth.username);
       if (authFields && 'scratchAdminUsername' in authFields) {
         // non-Admin scratch org users
         continue;

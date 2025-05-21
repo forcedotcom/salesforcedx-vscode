@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
@@ -21,10 +20,6 @@ import GenerationInteractionLogger from './generationInteractionLogger';
 import { ApexOASInfo, ExternalServiceOperation } from './schemas';
 
 export type FullPath = [originalPath: string, newPath: string];
-
-export type QueryResult<T> = Awaited<ReturnType<Connection['query']>> & {
-  records: T[];
-};
 
 /*
  * Handles the creation and management of External Service Registration (ESR) metadata.

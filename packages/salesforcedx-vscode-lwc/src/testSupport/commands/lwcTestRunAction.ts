@@ -8,14 +8,14 @@ import * as vscode from 'vscode';
 import { TestRunner, TestRunType } from '../testRunner';
 import { TestDirectoryInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
-import { isLwcJestTest } from '../utils';
+import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { workspace } from '../workspace';
 
 /**
  * Run an LWC Jest test from provided test execution info
  * @param testExecutionInfo test execution info
  */
-export const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
+const lwcTestRun = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.RUN, LWC_TEST_RUN_LOG_NAME);
   try {
     return await testRunner.executeAsSfTask();

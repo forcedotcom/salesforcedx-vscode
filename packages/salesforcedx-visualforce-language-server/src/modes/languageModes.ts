@@ -34,7 +34,7 @@ import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
 import { getJavascriptMode } from './javascriptMode';
 
-export { ColorInformation, ColorPresentation };
+export { ColorInformation };
 
 export type Settings = {
   css?: any;

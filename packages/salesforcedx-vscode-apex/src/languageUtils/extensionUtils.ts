@@ -7,7 +7,7 @@
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { getTestOutlineProvider } from '../views/testOutlineProvider';
-import { ClientStatus, languageClientManager } from './index';
+import { ClientStatus, languageClientManager } from './languageClientManager';
 
 const setClientReady = async (
   languageClient: ApexLanguageClient,

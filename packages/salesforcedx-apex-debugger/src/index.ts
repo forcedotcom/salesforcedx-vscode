@@ -5,9 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export * from './constants';
+export {
+  DEBUGGER_LAUNCH_TYPE,
+  DEBUGGER_TYPE,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
+  SHOW_MESSAGE_EVENT,
+  SEND_METRIC_EVENT,
+  LIVESHARE_DEBUGGER_TYPE,
+  HOTSWAP_REQUEST,
+  LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  LIVESHARE_DEBUG_TYPE_REQUEST,
+  EXCEPTION_BREAKPOINT_REQUEST
+} from './constants';
 export { SetExceptionBreakpointsArguments } from './adapter/apexDebug';
-
+export { IsvContextUtil } from './context';
 export enum VscodeDebuggerMessageType {
   Info,
   Warning,
@@ -29,7 +41,7 @@ export type WorkspaceSettings = {
 
 // Define Metric object to be used for sending attributes to AppInsights telemetry
 // NOTE: Refer to attribute names 'message' and 'eventName' defined in sendTelemetryEvent() in telemetryReporter.d.ts, which match the names in AppInsights telemetry
-export type Metric = {
+type Metric = {
   message: string; // match 'subject' attribute in Event from messages.d.ts
   eventName: string; // match 'type' attribute in Event from messages.d.ts
 };

@@ -30,7 +30,7 @@ const commandName = nls.localize('lightning_lwc_start_text');
  * Hints for providing a user-friendly error message / action.
  * Hints come from the stderr output of lwc-dev-server. (We should move this to lwc-dev-server later)
  */
-export const enum errorHints {
+const enum errorHints {
   SERVER_STARTUP_FAILED = 'Server start up failed',
   ADDRESS_IN_USE = 'EADDRINUSE',
   INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
