@@ -105,7 +105,8 @@
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js",
     "link-lsp": "yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
     "unlink-lsp": "yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
-    "report:installs": "ts-node scripts/reportInstalls.ts"
+    "report:installs": "ts-node scripts/reportInstalls.ts",
+    "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code"
   },
   "husky": {
     "hooks": {
