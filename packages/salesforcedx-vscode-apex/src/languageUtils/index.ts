@@ -17,8 +17,12 @@ export const getApexTests = async () => languageClientManager.getApexTests();
 
 export const getExceptionBreakpointInfo = async (): Promise<{}> => languageClientManager.getExceptionBreakpointInfo();
 
-export const restartLanguageServerAndClient = async (extensionContext: vscode.ExtensionContext): Promise<void> =>
-  languageClientManager.restartLanguageServerAndClient(extensionContext);
+export const restartLanguageServerAndClient = async (
+  extensionContext: vscode.ExtensionContext,
+  source: 'commandPalette' | 'statusBar'
+): Promise<void> => {
+  await languageClientManager.restartLanguageServerAndClient(extensionContext, source);
+};
 
 export const createLanguageClient = async (
   extensionContext: vscode.ExtensionContext,
