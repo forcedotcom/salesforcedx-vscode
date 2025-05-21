@@ -29,7 +29,7 @@
     "@salesforce/core-bundle": "^8.10.3",
     "@salesforce/salesforcedx-utils": "63.14.1",
     "@salesforce/salesforcedx-utils-vscode": "63.14.1",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.19.6",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.19.5",
     "@stoplight/spectral-functions": "1.9.3",
