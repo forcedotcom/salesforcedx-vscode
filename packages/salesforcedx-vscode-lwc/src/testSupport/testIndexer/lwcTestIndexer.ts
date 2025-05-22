@@ -143,8 +143,12 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     try {
       const { testUri } = testFileInfo;
       const { fsPath: testFsPath } = testUri;
+      // here, and 3 lines later, type assertions seem to be helping the library get correct types.
+      // or, maybe we're doing it wrong and the types were trying to tell us.
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const parseResults = parse(testFsPath) as IExtendedParseResults;
       populateAncestorTitles(parseResults);
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const itBlocks = (parseResults.itBlocksWithAncestorTitles ||
         parseResults.itBlocks) as ItBlockWithAncestorTitles[];
       const testCasesInfo: TestCaseInfo[] = itBlocks.map(itBlock => {
