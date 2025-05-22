@@ -29,7 +29,7 @@
     "@salesforce/core-bundle": "^8.10.3",
     "@salesforce/salesforcedx-utils": "63.14.1",
     "@salesforce/salesforcedx-utils-vscode": "63.14.1",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.19.6",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.19.5",
     "@stoplight/spectral-functions": "1.9.3",
@@ -54,7 +54,6 @@
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "prettier": "3.3.3",
     "sinon": "^13.0.1",
     "typescript": "^5.6.2"
   },
@@ -517,6 +516,21 @@
           "type": "number",
           "default": 750,
           "description": "%apex_generation_output_token_limit%"
+        },
+        "salesforcedx-vscode-apex.languageServer.restartBehavior": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "restart",
+            "reset"
+          ],
+          "default": "prompt",
+          "description": "%apex_language_server_restart_behavior_description%",
+          "enumDescriptions": [
+            "%apex_language_server_restart_behavior_prompt_description%",
+            "%apex_language_server_restart_behavior_restart_description%",
+            "%apex_language_server_restart_behavior_reset_description%"
+          ]
         }
       }
     },

@@ -21,7 +21,7 @@ import { WorkspaceContext } from '../context/workspaceContext';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 
-export type MetadataContext = {
+type MetadataContext = {
   baseDirectory: string;
   commonRoot: string;
   components: SourceComponent[];
@@ -364,7 +364,7 @@ export class MetadataCacheService {
   }
 }
 
-export type MetadataCacheCallback = (username: string, cache: MetadataCacheResult | undefined) => Promise<void>;
+type MetadataCacheCallback = (username: string, cache: MetadataCacheResult | undefined) => Promise<void>;
 
 export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   private cacheService: MetadataCacheService;

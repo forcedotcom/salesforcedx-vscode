@@ -10,7 +10,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { SfCommandletExecutor } from './util';
 
-export class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
+class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
   public constructor() {
     super();
   }

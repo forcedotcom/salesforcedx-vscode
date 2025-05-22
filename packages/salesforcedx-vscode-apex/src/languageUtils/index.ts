@@ -7,50 +7,40 @@
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
-import { LanguageClientManager, ClientStatus, LanguageClientStatus, ProcessDetail } from './languageClientManager';
+import { ProcessDetail, languageClientManager } from './languageClientManager';
 
-export const languageClientManager = LanguageClientManager.getInstance();
+export { languageClientManager };
 
-export { ClientStatus, LanguageClientStatus, ProcessDetail };
+export const getLineBreakpointInfo = async (): Promise<{}> => languageClientManager.getLineBreakpointInfo();
 
-export const getLineBreakpointInfo = async (): Promise<{}> =>
-  LanguageClientManager.getInstance().getLineBreakpointInfo();
+export const getApexTests = async () => languageClientManager.getApexTests();
 
-export const getApexTests = async (): Promise<any[]> => LanguageClientManager.getInstance().getApexTests();
+export const getExceptionBreakpointInfo = async (): Promise<{}> => languageClientManager.getExceptionBreakpointInfo();
 
-export const getExceptionBreakpointInfo = async (): Promise<{}> =>
-  LanguageClientManager.getInstance().getExceptionBreakpointInfo();
-
-export const restartLanguageServerAndClient = async (extensionContext: vscode.ExtensionContext): Promise<void> =>
-  LanguageClientManager.getInstance().restartLanguageServerAndClient(extensionContext);
+export const restartLanguageServerAndClient = async (
+  extensionContext: vscode.ExtensionContext,
+  source: 'commandPalette' | 'statusBar'
+): Promise<void> => {
+  await languageClientManager.restartLanguageServerAndClient(extensionContext, source);
+};
 
 export const createLanguageClient = async (
   extensionContext: vscode.ExtensionContext,
   languageServerStatusBarItem: ApexLSPStatusBarItem
-): Promise<void> =>
-  LanguageClientManager.getInstance().createLanguageClient(extensionContext, languageServerStatusBarItem);
+): Promise<void> => languageClientManager.createLanguageClient(extensionContext, languageServerStatusBarItem);
 
 export const indexerDoneHandler = async (
   enableSyncInitJobs: boolean,
   languageClient: ApexLanguageClient,
   languageServerStatusBarItem: ApexLSPStatusBarItem
 ): Promise<void> =>
-  LanguageClientManager.getInstance().indexerDoneHandler(
-    enableSyncInitJobs,
-    languageClient,
-    languageServerStatusBarItem
-  );
+  languageClientManager.indexerDoneHandler(enableSyncInitJobs, languageClient, languageServerStatusBarItem);
 
 export const findAndCheckOrphanedProcesses = async (): Promise<ProcessDetail[]> =>
-  LanguageClientManager.getInstance().findAndCheckOrphanedProcesses();
+  languageClientManager.findAndCheckOrphanedProcesses();
 
 export const terminateProcess = (pid: number): void => {
-  LanguageClientManager.getInstance().terminateProcess(pid);
+  languageClientManager.terminateProcess(pid);
 };
 
-export const canRunCheck = async (isWindows: boolean): Promise<boolean> =>
-  LanguageClientManager.getInstance().canRunCheck(isWindows);
-
 export { configureApexLanguage } from './apexLanguageConfiguration';
-
-export { extensionUtils } from './extensionUtils';

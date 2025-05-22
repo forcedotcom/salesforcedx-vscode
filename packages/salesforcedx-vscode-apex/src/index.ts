@@ -68,7 +68,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
-    const apexDirPath = getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+    const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
 
     const testResultOutput = path.join(apexDirPath, '*.json');
     const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(testResultOutput);
@@ -193,9 +193,12 @@ const registerCommands = (): vscode.Disposable => {
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
   );
-  const restartApexLanguageServerCmd = vscode.commands.registerCommand('sf.apex.languageServer.restart', async () => {
-    await restartLanguageServerAndClient(extensionContext);
-  });
+  const restartApexLanguageServerCmd = vscode.commands.registerCommand(
+    'sf.apex.languageServer.restart',
+    async (source?: 'commandPalette' | 'statusBar') => {
+      await restartLanguageServerAndClient(extensionContext, source ?? 'commandPalette');
+    }
+  );
 
   return vscode.Disposable.from(
     anonApexDebugDelegateCmd,

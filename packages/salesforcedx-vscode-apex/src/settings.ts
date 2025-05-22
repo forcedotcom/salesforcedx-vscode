@@ -106,3 +106,9 @@ export const retrieveGeneralPropAccessModifiers = (): string[] =>
   vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.general.prop.access-modifiers', DEFAULT_PROP_ACCESS_MODIFIERS);
+
+export function getApexLanguageServerRestartBehavior(): string {
+  return vscode.workspace
+    .getConfiguration('salesforcedx-vscode-apex')
+    .get<string>('languageServer.restartBehavior', 'prompt');
+}
