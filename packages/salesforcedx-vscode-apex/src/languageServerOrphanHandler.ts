@@ -8,7 +8,8 @@ import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { APEX_LSP_ORPHAN } from './constants';
-import { findAndCheckOrphanedProcesses, terminateProcess, ProcessDetail } from './languageUtils';
+import { findAndCheckOrphanedProcesses, terminateProcess } from './languageUtils';
+import { ProcessDetail } from './languageUtils/languageClientManager';
 import { nls } from './messages';
 import { getTelemetryService } from './telemetry/telemetry';
 

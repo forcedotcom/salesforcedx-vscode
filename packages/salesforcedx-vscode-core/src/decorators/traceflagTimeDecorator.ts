@@ -7,8 +7,8 @@
 
 import { optionHHmm, optionMMddYYYY } from '@salesforce/salesforcedx-utils-vscode';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
-import { APEX_CODE_DEBUG_LEVEL } from './../constants';
-import { nls } from './../messages';
+import { APEX_CODE_DEBUG_LEVEL } from '../constants';
+import { nls } from '../messages';
 
 let statusBarItem: StatusBarItem;
 
@@ -29,10 +29,6 @@ export const showTraceFlagExpiration = (expirationDate: Date): void => {
     expirationDate.toLocaleDateString(undefined, optionMMddYYYY)
   );
   statusBarItem.show();
-};
-
-export const hideTraceFlagExpiration = (): void => {
-  statusBarItem.hide();
 };
 
 export const disposeTraceFlagExpiration = (): void => {

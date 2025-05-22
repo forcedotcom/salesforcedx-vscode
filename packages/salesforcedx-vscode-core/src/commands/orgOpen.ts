@@ -18,6 +18,7 @@ import {
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -25,7 +26,7 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
+class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
@@ -72,7 +73,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
 
           channelService.appendLine(this.buildUserMessageWith(cliOrgData));
           // open the default browser
-          vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
+          vscode.env.openExternal(URI.parse(authenticatedOrgUrl));
         } else {
           const errorResponse = orgOpenParser.getResult() as OrgOpenErrorResult;
           channelService.appendLine(errorResponse.message);
@@ -92,8 +93,7 @@ export class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
-
-export class OrgOpenExecutor extends SfCommandletExecutor<{}> {
+class OrgOpenExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
   public build(data: {}): Command {
@@ -105,7 +105,7 @@ export class OrgOpenExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export const getExecutor = (): SfCommandletExecutor<{}> =>
+const getExecutor = (): SfCommandletExecutor<{}> =>
   isSFContainerMode() ? new OrgOpenContainerExecutor() : new OrgOpenExecutor();
 
 const workspaceChecker = new SfWorkspaceChecker();

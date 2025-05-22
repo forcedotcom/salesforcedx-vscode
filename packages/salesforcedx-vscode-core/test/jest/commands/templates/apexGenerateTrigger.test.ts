@@ -7,7 +7,7 @@
 
 import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { apexGenerateTrigger } from '../../../../src/commands/templates';
-import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateTriggerExecutor';
+import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateTriggerExecutor';
 import {
   APEX_TRIGGER_DIRECTORY,
   APEX_TRIGGER_NAME_MAX_LENGTH,
@@ -22,7 +22,7 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
-jest.mock('../../../../src/commands/templates/executors/LibraryApexGenerateTriggerExecutor');
+jest.mock('../../../../src/commands/templates/executors/libraryApexGenerateTriggerExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');

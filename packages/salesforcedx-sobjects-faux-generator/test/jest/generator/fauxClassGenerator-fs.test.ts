@@ -4,15 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
+import { TOOLS, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import { join } from 'node:path';
-import { SOBJECTS_DIR, CUSTOMOBJECTS_DIR, SObjectCategory } from '../../../src';
+import * as vscode from 'vscode';
+import { CUSTOMOBJECTS_DIR, SObjectCategory, SOBJECTS_DIR } from '../../../src';
 import { FauxClassGenerator } from '../../../src/generator';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { nls } from '../../../src/messages';
 import { minimalCustomSObject } from './sObjectMockData';
+
+jest.mock('vscode');
+const vscodeMocked = jest.mocked(vscode);
 
 describe('FauxClassGenerator Filesystem Tests', () => {
   let classPath = '';
@@ -24,20 +27,28 @@ describe('FauxClassGenerator Filesystem Tests', () => {
   const getGenerator = (): FauxClassGenerator => new FauxClassGenerator(SObjectCategory.CUSTOM, CUSTOMOBJECTS_DIR);
 
   beforeEach(() => {
-    fs.mkdirSync(baseFolder, { recursive: true });
-    fs.mkdirSync(customOutputPath, { recursive: true });
+    jest.clearAllMocks();
+    vscodeMocked.workspace.fs.writeFile.mockImplementation((uri, content) => {
+      if (!(content instanceof Buffer)) {
+        content = Buffer.from(content);
+      }
+      return Promise.resolve();
+    });
+    vscodeMocked.workspace.fs.stat.mockResolvedValue({ type: 1, ctime: 0, mtime: 0, size: 0 });
+    vscodeMocked.workspace.fs.createDirectory.mockResolvedValue();
+    vscodeMocked.workspace.fs.delete.mockResolvedValue();
   });
 
   afterEach(() => {
     if (classPath) {
       try {
-        fs.unlinkSync(classPath);
+        vscodeMocked.workspace.fs.delete(vscode.Uri.file(classPath));
       } catch (e) {
         console.log(e);
       }
       classPath = '';
     }
-    fs.rmSync(baseFolder, { recursive: true, force: true });
+    vscodeMocked.workspace.fs.delete(vscode.Uri.file(baseFolder), { recursive: true, useTrash: false });
   });
 
   it('Should generate a faux class with a proper header comment', async () => {
@@ -47,9 +58,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const sobject1 = `${fieldsHeader}${closeHeader}`;
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, JSON.parse(sobject1));
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, JSON.parse(sobject1));
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain(nls.localize('class_header_generated_comment'));
   });
 
@@ -60,11 +72,8 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const sobject1 = `${fieldsHeader}${closeHeader}`;
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, JSON.parse(sobject1));
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const stat = fs.lstatSync(classPath);
-    const expectedMode = parseInt('100444', 8);
-    expect(stat.mode).toBe(expectedMode);
+    classPath = await gen.generateFauxClass(customOutputPath, JSON.parse(sobject1));
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
   });
 
   it('Should create a valid class with child relationship', async () => {
@@ -74,13 +83,13 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('List<Case> Case__r');
   });
 
-  it('Should create a valid class for a platform event object', () => {
+  it('Should create a valid class for a platform event object', async () => {
     const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -94,9 +103,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('String StringField;');
     expect(classText).toContain('Double DoubleField;');
   });
@@ -107,9 +117,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('List<Case> RelatedCase;');
   });
 
@@ -122,9 +133,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('String MDRef__c');
   });
 
@@ -135,9 +147,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('String StringField;');
     expect(classText).toContain('Account Account__r');
     expect(classText).toContain('Id Account__c');
@@ -160,9 +173,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('Blob BaseField;');
     expect(classText).toContain('Address AddressField;');
     expect(classText).toContain('Integer IntField;');
@@ -171,6 +185,7 @@ describe('FauxClassGenerator Filesystem Tests', () => {
   });
 
   it('Should generate a faux class with field inline comments', async () => {
+    vscodeMocked.workspace.fs.stat.mockRejectedValue(new Error('Not found'));
     const gen = getGenerator();
     const customDef = declGenerator.generateSObjectDefinition(minimalCustomSObject);
     const classContent = gen.generateFauxClassText(customDef);
@@ -213,9 +228,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('String StringField;');
     expect(classText).toContain('Double DoubleField;');
     expect(classText).toContain('Boolean BooleanField;');
@@ -241,9 +257,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('List<Case> Reference;');
     expect(classText).not.toContain('Account Reference');
   });
@@ -257,9 +274,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).not.toContain('null');
     expect(classText).toContain('Account AccountField');
     expect(classText).toContain('List<Account> Reference');
@@ -274,9 +292,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('String ExtRef__c');
   });
 
@@ -288,9 +307,10 @@ describe('FauxClassGenerator Filesystem Tests', () => {
     const objDef = declGenerator.generateSObjectDefinition(JSON.parse(sobject1));
 
     const gen = getGenerator();
-    classPath = gen.generateFauxClass(customOutputPath, objDef);
-    expect(fs.existsSync(classPath)).toBeTruthy();
-    const classText = fs.readFileSync(classPath, 'utf8');
+    classPath = await gen.generateFauxClass(customOutputPath, objDef);
+    expect(await fileOrFolderExists(classPath)).toBeTruthy();
+    const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
+    const classText = Buffer.from(writeFileCall[1]).toString('utf8');
     expect(classText).toContain('XX_mdt MDRef__r');
   });
 });

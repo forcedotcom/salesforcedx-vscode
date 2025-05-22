@@ -78,7 +78,11 @@ const getMockVSCode = () => {
       createDiagnosticCollection: jest.fn(),
       createLanguageStatusItem: mockCreateLanguageStatusItem
     },
-    Uri,
+    Uri: {
+      file: jest.fn(),
+      joinPath: jest.fn(),
+      parse: jest.fn()
+    },
     Position: jest.fn(),
     ProgressLocation: {
       SourceControl: 1,
@@ -124,9 +128,15 @@ const getMockVSCode = () => {
       }),
       workspaceFolders: [],
       fs: {
-        writeFile: jest.fn()
+        writeFile: jest.fn(),
+        stat: jest.fn(),
+        createDirectory: jest.fn(),
+        delete: jest.fn(),
+        readFile: jest.fn(),
+        readDirectory: jest.fn()
       },
-      registerTextDocumentContentProvider: jest.fn()
+      registerTextDocumentContentProvider: jest.fn(),
+      registerFileSystemProvider: jest.fn()
     },
     CompletionItem: class {
       public constructor(label: string) {}
@@ -142,6 +152,10 @@ const getMockVSCode = () => {
     },
     Diagnostic: class {
       public constructor(range: Range, message: string, severity?: any) {}
+    },
+    FileType: {
+      File: 1,
+      Directory: 2
     },
     CallHierarchyItem: class {
       public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}

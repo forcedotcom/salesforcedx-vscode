@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ActivationTracker,
   ChannelService,
+  ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
-  getRootWorkspacePath,
-  ProgressNotification
+  ensureCurrentWorkingDirIsProjectPath,
+  getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -66,7 +66,6 @@ import {
   sourceDiff,
   sourceFolderDiff,
   startApexDebugLogging,
-  stopApexDebugLogging,
   taskStop,
   turnOffLogging,
   viewAllChanges,
@@ -91,12 +90,9 @@ import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import {
-  checkPackageDirectoriesEditorView,
-  checkPackageDirectoriesExplorerView
-} from './context/packageDirectoriesContext';
+import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
-import { isDemoMode } from './modes/demo-mode';
+import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
@@ -106,7 +102,7 @@ import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './serv
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { MetricsReporter } from './telemetry/MetricsReporter';
+import { MetricsReporter } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
@@ -226,7 +222,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     startApexDebugLogging
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', stopApexDebugLogging);
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
@@ -388,7 +384,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // commands are run with the project path returned from process.cwd(),
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
-  ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  await ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   setNodeExtraCaCerts();
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
@@ -442,22 +438,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Set initial context
   await checkPackageDirectoriesEditorView();
-  await checkPackageDirectoriesExplorerView();
 
   // Register editor change listener
   const editorChangeDisposable = vscode.window.onDidChangeActiveTextEditor(async () => {
     await checkPackageDirectoriesEditorView();
   });
 
-  // Register explorer change listener
-  const watcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, true);
-  const explorerChangeDisposable = watcher.onDidCreate(async uri => {
-    await checkPackageDirectoriesExplorerView();
-  });
-
   // Add to subscriptions
   extensionContext.subscriptions.push(editorChangeDisposable);
-  extensionContext.subscriptions.push(explorerChangeDisposable);
 
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);

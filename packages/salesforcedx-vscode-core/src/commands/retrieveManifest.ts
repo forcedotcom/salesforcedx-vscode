@@ -8,6 +8,7 @@ import { ContinueResponse, workspaceUtils } from '@salesforce/salesforcedx-utils
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -16,7 +17,7 @@ import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
-export class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
+class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   constructor() {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_manifest');
   }
@@ -36,7 +37,7 @@ export class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   }
 }
 
-export const retrieveManifest = async (explorerPath: vscode.Uri): Promise<void> => {
+export const retrieveManifest = async (explorerPath: URI): Promise<void> => {
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {

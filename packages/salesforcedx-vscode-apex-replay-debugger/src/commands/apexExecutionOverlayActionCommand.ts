@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SOBJECTS_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { SOBJECTS_URL } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { BaseCommand } from '@salesforce/salesforcedx-utils';
 
 export type ApexExecutionOverlayFailureResult = {

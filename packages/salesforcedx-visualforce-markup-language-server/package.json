@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "63.12.0",
+  "version": "63.14.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -10,19 +10,16 @@
   "activationEvents": [
     "onView:never"
   ],
-  "main": "./out/src/htmlLanguageService.js",
-  "typings": "./out/src/htmlLanguageService.d.ts",
+  "main": "out/src",
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "eslint-plugin-jest": "28.9.0",
-    "prettier": "3.3.3",
     "shx": "0.3.4",
     "typescript": "^5.6.2"
   },
   "dependencies": {
     "vscode-languageserver-types": "^3.4.0",
     "vscode-nls": "^2.0.2",
-    "vscode-uri": "^1.0.1"
+    "vscode-uri": "^3.1.0"
   },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",

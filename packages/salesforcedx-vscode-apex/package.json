@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.12.0",
+  "version": "63.14.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,13 +24,13 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "8.1.24",
+    "@salesforce/apex-node-bundle": "^8.1.26",
     "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core-bundle": "8.9.1",
-    "@salesforce/salesforcedx-utils-vscode": "63.12.0",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.19.2",
-    "@salesforce/salesforcedx-utils": "63.12.0",
-    "@salesforce/vscode-service-provider": "1.4.0",
+    "@salesforce/core-bundle": "^8.10.3",
+    "@salesforce/salesforcedx-utils": "63.14.1",
+    "@salesforce/salesforcedx-utils-vscode": "63.14.1",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
+    "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.19.5",
     "@stoplight/spectral-functions": "1.9.3",
     "@stoplight/spectral-rulesets": "1.21.3",
@@ -42,6 +42,7 @@
     "jsonpath-plus": "10.3.0",
     "openapi-types": "12.1.3",
     "vscode-languageclient": "^9.0.1",
+    "vscode-uri": "^3.1.0",
     "yaml": "2.6.0"
   },
   "devDependencies": {
@@ -53,7 +54,6 @@
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "prettier": "3.3.3",
     "sinon": "^13.0.1",
     "typescript": "^5.6.2"
   },
@@ -516,6 +516,21 @@
           "type": "number",
           "default": 750,
           "description": "%apex_generation_output_token_limit%"
+        },
+        "salesforcedx-vscode-apex.languageServer.restartBehavior": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "restart",
+            "reset"
+          ],
+          "default": "prompt",
+          "description": "%apex_language_server_restart_behavior_description%",
+          "enumDescriptions": [
+            "%apex_language_server_restart_behavior_prompt_description%",
+            "%apex_language_server_restart_behavior_restart_description%",
+            "%apex_language_server_restart_behavior_reset_description%"
+          ]
         }
       }
     },

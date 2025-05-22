@@ -16,10 +16,11 @@ import { EOL } from 'node:os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../../channels/index';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
-import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
+import { isDemoMode, isProdOrg } from '../../modes/demoMode';
 import { notificationService } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
@@ -27,7 +28,7 @@ import { DemoModePromptGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspace
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { OrgLogoutAll } from './orgLogout';
 
-export type DeviceCodeResponse = {
+type DeviceCodeResponse = {
   user_code: string;
   device_code: string;
   interval: number;
@@ -89,7 +90,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
       if (authUrl) {
         this.deviceCodeReceived = true;
         // open the default browser
-        vscode.env.openExternal(vscode.Uri.parse(authUrl, true));
+        vscode.env.openExternal(URI.parse(authUrl, true));
       }
     }
   }
@@ -125,7 +126,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   }
 }
 
-export class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
+class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
@@ -179,7 +180,7 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
   }
 }
 
-export class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
+class OrgLoginWebDemoModeExecutor extends AuthDemoModeExecutor<AuthParams> {
   public build(data: AuthParams): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_org_text'))
@@ -205,7 +206,7 @@ const promptLogOutForProdOrg = async () => {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
+const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebContainerExecutor();

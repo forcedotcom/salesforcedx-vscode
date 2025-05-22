@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -13,16 +12,7 @@ export const LWC = 'lwc';
 export const AURA = 'aura';
 export const TEST_FOLDER = '__tests__';
 
-export const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
-  const componentPath = await getComponentPath(sourceFsPath);
-  if (isLwcComponent(componentPath)) {
-    newName = newName.charAt(0).toLowerCase() + newName.slice(1);
-  }
-  CreateUtil.checkInputs(newName);
-  return newName;
-};
-
-export const getLightningComponentDirectory = (sourceFsPath: string): string => {
+const getLightningComponentDirectory = (sourceFsPath: string): string => {
   const directories = sourceFsPath.split(path.sep);
   const rootDir = directories.includes(LWC) ? LWC : AURA;
   const lwcDirectoryIndex = directories.lastIndexOf(rootDir);
@@ -45,7 +35,6 @@ export const isLwcComponent = (componentPath: string): boolean => path.basename(
 
 // for testing
 export const componentUtils = {
-  inputGuard,
   getComponentPath,
   getLightningComponentDirectory,
   getComponentName,

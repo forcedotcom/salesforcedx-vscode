@@ -38,7 +38,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic, DocumentLink, SymbolInformation } from 'vscode-languageserver-types';
 import * as nls from 'vscode-nls';
-import uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { format } from './modes/formatting';
 import { getLanguageModes, LanguageModes, Settings } from './modes/languageModes';
 
@@ -339,7 +339,7 @@ connection.onDocumentLinks(documentLinkParam => {
         ref = url.resolve(base, ref);
       }
       if (workspacePath && ref[0] === '/') {
-        return uri.file(path.join(workspacePath, ref)).toString();
+        return URI.file(path.join(workspacePath, ref)).toString();
       }
       return url.resolve(document.uri, ref);
     }

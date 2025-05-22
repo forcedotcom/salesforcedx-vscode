@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync } from 'node:fs';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
-export const getDialogStartingPath = (extContext: vscode.ExtensionContext): vscode.Uri | undefined => {
+export const getDialogStartingPath = (extContext: vscode.ExtensionContext): URI | undefined => {
   if (workspaceUtils.hasRootWorkspace()) {
     // If the user has already selected a document through getLogFileName then
     // use that path if it still exists.
@@ -41,4 +42,4 @@ const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | u
 
 const folderExists = (path: string): boolean => existsSync(path);
 
-const getUriFor = (path: string): vscode.Uri => vscode.Uri.file(path);
+const getUriFor = (path: string): URI => URI.file(path);

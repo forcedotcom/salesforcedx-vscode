@@ -9,6 +9,7 @@ import { XMLParser } from 'fast-xml-parser';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocumentFromYaml } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
@@ -33,7 +34,7 @@ class OasDocumentChecker {
    * Validates an OpenAPI Document.
    * @param isClass - Indicates if the action is for a class or a method.
    */
-  public validateOasDocument = async (sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
+  public validateOasDocument = async (sourceUri: URI | URI[]): Promise<void> => {
     try {
       await vscode.window.withProgress(
         {
@@ -133,7 +134,7 @@ class OasDocumentChecker {
   };
 }
 
-export const validateOpenApiDocument = async (sourceUri: vscode.Uri | vscode.Uri[]): Promise<void> => {
+export const validateOpenApiDocument = async (sourceUri: URI | URI[]): Promise<void> => {
   const oasDocumentChecker = OasDocumentChecker.Instance;
   await oasDocumentChecker.validateOasDocument(sourceUri);
 };

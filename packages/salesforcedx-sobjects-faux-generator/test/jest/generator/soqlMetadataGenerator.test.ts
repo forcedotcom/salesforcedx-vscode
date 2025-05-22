@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
+import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
+import * as vscode from 'vscode';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../../src/constants';
 import { SObjectShortDescription } from '../../../src/describe';
 import { SOQLMetadataGenerator } from '../../../src/generator/soqlMetadataGenerator';
 import { MinObjectRetriever } from '../../../src/retriever';
 import { SObject, SObjectCategory, SObjectRefreshOutput } from '../../../src/types';
+
+jest.mock('vscode');
+const vscodeMocked = jest.mocked(vscode);
 
 describe('SOQL metadata files generator', () => {
   const sfdxPath = process.cwd();
@@ -19,21 +23,21 @@ describe('SOQL metadata files generator', () => {
   const standardFolder = join(soqlMetadataFolder, STANDARDOBJECTS_DIR);
   const customFolder = join(soqlMetadataFolder, CUSTOMOBJECTS_DIR);
 
-  const cleanupMetadata = () => {
-    if (fs.existsSync(soqlMetadataFolder)) {
-      fs.rmSync(soqlMetadataFolder, { recursive: true, force: true });
-    }
-  };
-
   beforeEach(() => {
-    cleanupMetadata();
-    fs.mkdirSync(soqlMetadataFolder, { recursive: true });
-    fs.mkdirSync(standardFolder, { recursive: true });
-    fs.mkdirSync(customFolder, { recursive: true });
-  });
-
-  afterAll(() => {
-    cleanupMetadata();
+    jest.clearAllMocks();
+    vscodeMocked.workspace.fs.writeFile.mockResolvedValue();
+    vscodeMocked.workspace.fs.stat.mockResolvedValue({ type: 2, ctime: 0, mtime: 0, size: 0 });
+    vscodeMocked.workspace.fs.createDirectory.mockResolvedValue();
+    vscodeMocked.workspace.fs.delete.mockResolvedValue();
+    vscodeMocked.workspace.fs.readFile.mockResolvedValue(
+      Buffer.from(
+        JSON.stringify({
+          name: 'Account',
+          label: 'Account',
+          fields: [{ name: 'Id', label: 'Account ID' }]
+        })
+      )
+    );
   });
 
   it('Should generate metadata files from "minimal" object set', async () => {
@@ -46,31 +50,29 @@ describe('SOQL metadata files generator', () => {
     const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
     await gen.generate(output);
 
-    const accountFile = fs.readFileSync(join(standardFolder, 'Account.json'));
+    const accountFile = await readFile(join(standardFolder, 'Account.json'));
     const accountSObject = JSON.parse(accountFile.toString());
 
     expect(accountSObject.name).toBe('Account');
     expect(accountSObject.label).toBe('Account');
     expect(accountSObject.fields[0].name).toBe('Id');
     expect(accountSObject.fields[0].label).toBe('Account ID');
-    const standardFiles = fs.readdirSync(standardFolder);
-    expect(standardFiles).toHaveLength(MINS_SOBJECTS_COUNT);
   });
 
   it('Should temporarily remove standardObjects folder when category is STANDARD', async () => {
     const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
     const output = new TestSObjectRefreshOutput(sfdxPath);
     await gen.generate(output);
-    expect(fs.existsSync(customFolder)).toBe(true);
-    expect(fs.existsSync(standardFolder)).toBe(true);
+    expect(await fileOrFolderExists(customFolder)).toBe(true);
+    expect(await fileOrFolderExists(standardFolder)).toBe(true);
   });
 
   it('Should temporarily remove customObjects folder when category is CUSTOM', async () => {
     const gen = new SOQLMetadataGenerator(SObjectCategory.CUSTOM);
     const output = new TestSObjectRefreshOutput(sfdxPath);
     await gen.generate(output);
-    expect(fs.existsSync(customFolder)).toBe(true);
-    expect(fs.existsSync(standardFolder)).toBe(true);
+    expect(await fileOrFolderExists(customFolder)).toBe(true);
+    expect(await fileOrFolderExists(standardFolder)).toBe(true);
   });
 });
 

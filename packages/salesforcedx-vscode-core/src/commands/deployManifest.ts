@@ -8,6 +8,7 @@ import { ContinueResponse, workspaceUtils } from '@salesforce/salesforcedx-utils
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
 import { getConflictMessagesFor } from '../conflict/messages';
@@ -18,7 +19,7 @@ import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
-export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
+class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   constructor() {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_manifest');
   }
@@ -37,7 +38,7 @@ export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   }
 }
 
-export const deployManifest = async (manifestUri: vscode.Uri) => {
+export const deployManifest = async (manifestUri: URI) => {
   if (!manifestUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {
