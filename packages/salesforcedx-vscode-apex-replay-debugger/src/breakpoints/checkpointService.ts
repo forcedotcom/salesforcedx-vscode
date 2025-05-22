@@ -6,7 +6,6 @@
  */
 import {
   ActionScriptEnum,
-  OrgInfoError,
   breakpointUtil,
   CHECKPOINT,
   CHECKPOINTS_LOCK_STRING,
@@ -20,19 +19,15 @@ import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
 import {
-  ApexExecutionOverlayActionCommand,
-  ApexExecutionOverlayFailureResult,
-  ApexExecutionOverlaySuccessResult
+  ApexExecutionOverlayActionCommand
 } from '../commands/apexExecutionOverlayActionCommand';
 import {
   BatchDeleteExistingOverlayActionCommand,
-  BatchDeleteResponse,
   BatchRequest,
   BatchRequests
 } from '../commands/batchDeleteExistingOverlayActionsCommand';
 import {
-  QueryExistingOverlayActionIdsCommand,
-  QueryOverlayActionIdsSuccessResult
+  QueryExistingOverlayActionIdsCommand
 } from '../commands/queryExistingOverlayActionIdsCommand';
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
@@ -81,7 +76,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       try {
         this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
       } catch (error) {
-        const result = JSON.parse(error) as OrgInfoError;
+        const result = JSON.parse(error);
         const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
         writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
         return false;
@@ -112,9 +107,10 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       return this.checkpoints;
     }
 
-    // all the consumers were already asserting CheckpointNode[]
-
-    return element.getChildren() as CheckpointNode[];
+    // Filter and return only CheckpointNode children
+    return element.getChildren().filter(
+      (child): child is CheckpointNode => child instanceof CheckpointNode
+    );
   }
 
   public hasFiveOrLessActiveCheckpoints(displayError: boolean): boolean {
@@ -202,7 +198,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // The resturn string will be the overlay Id and will end up being
     // used if the node is deleted
     if (returnString) {
-      const result = JSON.parse(returnString) as ApexExecutionOverlaySuccessResult;
+      const result = JSON.parse(returnString);
       theNode.setActionCommandResultId(result.id);
       return true;
     }
@@ -211,7 +207,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // be treated as a string and reported to the user.
     if (errorString) {
       try {
-        const result = JSON.parse(errorString) as ApexExecutionOverlayFailureResult[];
+        const result = JSON.parse(errorString);
         if (result[0].errorCode === FIELD_INTEGRITY_EXCEPTION) {
           const errorMessage = nls.localize('local_source_is_out_of_sync_with_the_server');
           writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
@@ -246,7 +242,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           }
         );
         if (returnString) {
-          const successResult = JSON.parse(returnString) as QueryOverlayActionIdsSuccessResult;
+          const successResult = JSON.parse(returnString);
           if (successResult) {
             // If there are things to delete then create the batchRequest
             if (successResult.records.length > 0) {
@@ -275,7 +271,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               );
               // Parse the result
               if (deleteResult) {
-                const result = JSON.parse(deleteResult) as BatchDeleteResponse;
+                const result = JSON.parse(deleteResult);
                 if (result.hasErrors) {
                   const errorMessage = nls.localize('cannot_delete_existing_checkpoint');
                   writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
