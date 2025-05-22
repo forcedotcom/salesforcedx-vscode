@@ -4,8 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+// TODO: clean up the types for all of this
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import {
   ActionScriptEnum,
+  OrgInfoError,
   breakpointUtil,
   CHECKPOINT,
   CHECKPOINTS_LOCK_STRING,
@@ -19,15 +23,19 @@ import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
 import {
-  ApexExecutionOverlayActionCommand
+  ApexExecutionOverlayActionCommand,
+  ApexExecutionOverlayFailureResult,
+  ApexExecutionOverlaySuccessResult
 } from '../commands/apexExecutionOverlayActionCommand';
 import {
   BatchDeleteExistingOverlayActionCommand,
+  BatchDeleteResponse,
   BatchRequest,
   BatchRequests
 } from '../commands/batchDeleteExistingOverlayActionsCommand';
 import {
-  QueryExistingOverlayActionIdsCommand
+  QueryExistingOverlayActionIdsCommand,
+  QueryOverlayActionIdsSuccessResult
 } from '../commands/queryExistingOverlayActionIdsCommand';
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
@@ -76,7 +84,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       try {
         this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
       } catch (error) {
-        const result = JSON.parse(error);
+        const result = JSON.parse(error) as OrgInfoError;
         const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
         writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
         return false;
@@ -102,20 +110,17 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     return element;
   }
 
-  public getChildren(element?: BaseNode): CheckpointNode[] {
+  public getChildren(element?: BaseNode): BaseNode[] {
     if (!element) {
       return this.checkpoints;
     }
 
-    // Filter and return only CheckpointNode children
-    return element.getChildren().filter(
-      (child): child is CheckpointNode => child instanceof CheckpointNode
-    );
+    return element.getChildren();
   }
 
   public hasFiveOrLessActiveCheckpoints(displayError: boolean): boolean {
     let numEnabledCheckpoints = 0;
-    for (const cpNode of this.getChildren()) {
+    for (const cpNode of this.getChildren() as CheckpointNode[]) {
       if (cpNode.isCheckpointEnabled()) {
         numEnabledCheckpoints++;
       }
@@ -130,7 +135,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   public hasOneOrMoreActiveCheckpoints(displayError: boolean): boolean {
     let numEnabledCheckpoints = 0;
-    for (const cpNode of this.getChildren()) {
+    for (const cpNode of this.getChildren() as CheckpointNode[]) {
       if (cpNode.isCheckpointEnabled()) {
         numEnabledCheckpoints++;
       }
@@ -198,7 +203,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // The resturn string will be the overlay Id and will end up being
     // used if the node is deleted
     if (returnString) {
-      const result = JSON.parse(returnString);
+      const result = JSON.parse(returnString) as ApexExecutionOverlaySuccessResult;
       theNode.setActionCommandResultId(result.id);
       return true;
     }
@@ -207,7 +212,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // be treated as a string and reported to the user.
     if (errorString) {
       try {
-        const result = JSON.parse(errorString);
+        const result = JSON.parse(errorString) as ApexExecutionOverlayFailureResult[];
         if (result[0].errorCode === FIELD_INTEGRITY_EXCEPTION) {
           const errorMessage = nls.localize('local_source_is_out_of_sync_with_the_server');
           writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
@@ -242,7 +247,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           }
         );
         if (returnString) {
-          const successResult = JSON.parse(returnString);
+          const successResult = JSON.parse(returnString) as QueryOverlayActionIdsSuccessResult;
           if (successResult) {
             // If there are things to delete then create the batchRequest
             if (successResult.records.length > 0) {
@@ -271,7 +276,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               );
               // Parse the result
               if (deleteResult) {
-                const result = JSON.parse(deleteResult);
+                const result = JSON.parse(deleteResult) as BatchDeleteResponse;
                 if (result.hasErrors) {
                   const errorMessage = nls.localize('cannot_delete_existing_checkpoint');
                   writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
@@ -418,7 +423,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               message: localizedProgressMessage
             });
             // This should probably be batched but it makes dealing with errors kind of a pain
-            for (const cpNode of checkpointService.getChildren()) {
+            for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
               if (cpNode.isCheckpointEnabled()) {
                 if (!(await checkpointService.executeCreateApexExecutionOverlayActionCommand(cpNode))) {
                   updateError = true;
@@ -723,7 +728,7 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
 
   // If the log message is defined and isn't empty then set the action script
   // based upon whether or not the string starts with SELECT
-  const logMessage = breakpoint.logMessage;
+  const logMessage = (breakpoint as any).logMessage as string;
   if (logMessage && logMessage.length > 0) {
     if (logMessage.toLocaleLowerCase().startsWith('select')) {
       checkpointOverlayAction.ActionScriptType = ActionScriptEnum.SOQL;
@@ -737,7 +742,7 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
 
 const setTypeRefsForEnabledCheckpoints = (): boolean => {
   let everythingSet = true;
-  for (const cpNode of checkpointService.getChildren()) {
+  for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
     if (cpNode.isCheckpointEnabled()) {
       const checkpointUri = cpNode.getCheckpointUri();
       const checkpointLine = cpNode.getCheckpointLineNumber();
