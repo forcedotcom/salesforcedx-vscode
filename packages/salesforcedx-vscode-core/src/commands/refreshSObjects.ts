@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import {
   SObjectCategory,
   SObjectRefreshSource,
@@ -11,9 +12,9 @@ import {
   SObjectTransformerFactory,
   STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
-  Command,
   ContinueResponse,
   isSFContainerMode,
   LocalCommandExecution,
@@ -21,9 +22,7 @@ import {
   ParametersGatherer,
   ProgressNotification,
   projectPaths,
-  SfCommandBuilder,
   SfCommandlet,
-  SfCommandletExecutor,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
@@ -32,13 +31,14 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
-export type RefreshSelection = {
+type RefreshSelection = {
   category: SObjectCategory;
   source: SObjectRefreshSource;
 };
 
-export class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
+class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
   private source?: SObjectRefreshSource;
 
   public constructor(source?: SObjectRefreshSource) {

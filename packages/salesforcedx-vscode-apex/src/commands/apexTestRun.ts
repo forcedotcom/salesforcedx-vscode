@@ -21,10 +21,12 @@ import {
   LibraryCommandletExecutor,
   SFDX_FOLDER,
   SfCommandlet,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  getTestResultsFolder,
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import { languages, workspace, window, CancellationToken, QuickPickItem, Uri } from 'vscode';
@@ -44,7 +46,7 @@ export type ApexTestQuickPickItem = QuickPickItem & {
   type: TestType;
 };
 
-export class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
+class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const { testSuites, apexClasses } = (
       await workspace.findFiles(`{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`, SFDX_FOLDER)
@@ -98,9 +100,9 @@ export class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> 
   }
 }
 
-const getTempFolder = (): string => {
+const getTempFolder = async (): Promise<string> => {
   if (hasRootWorkspace()) {
-    const apexDir = getTestResultsFolder(getRootWorkspacePath(), 'apex');
+    const apexDir = await getTestResultsFolder(getRootWorkspacePath(), 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
@@ -170,7 +172,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
       result,
       {
         resultFormats: [ResultFormat.json],
-        dirPath: getTempFolder()
+        dirPath: await getTempFolder()
       },
       codeCoverage
     );

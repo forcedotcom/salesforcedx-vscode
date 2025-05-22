@@ -575,7 +575,7 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 // Verify that the number passed in is a hex address
 const isHex = (inputString: string): boolean => /^(0x)?[a-f0-9]+$/i.test(inputString);
 
-export const createExpectedXHROptions = (
+const createExpectedXHROptions = (
   requestBody: string | undefined,
   requestUrl: string,
   restHttpMethodEnum: RestHttpMethodEnum

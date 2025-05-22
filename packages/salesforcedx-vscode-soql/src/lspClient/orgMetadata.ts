@@ -13,8 +13,7 @@ import {
   STANDARDOBJECTS_DIR,
   toMinimalSObject
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
+import { projectPaths, readDirectory, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { nls } from '../messages';
 import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
@@ -47,11 +46,18 @@ export class FileSystemOrgDataSource implements OrgDataSource {
     const standardsFolder = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR);
 
     const files: string[] = [];
-    if (fs.existsSync(standardsFolder)) {
-      files.push(...(await fs.promises.readdir(standardsFolder)));
+    try {
+      const standardsDir = await readDirectory(standardsFolder);
+      files.push(...standardsDir.map(entry => entry[0]));
+    } catch {
+      // Standards folder doesn't exist or can't be read
     }
-    if (fs.existsSync(customsFolder)) {
-      files.push(...(await fs.promises.readdir(customsFolder)));
+
+    try {
+      const customsDir = await readDirectory(customsFolder);
+      files.push(...customsDir.map(entry => entry[0]));
+    } catch {
+      // Customs folder doesn't exist or can't be read
     }
 
     if (files.length === 0) {
@@ -68,15 +74,11 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       return undefined;
     }
 
-    let filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, sobjectName + '.json');
-    if (!fs.existsSync(filePath)) {
-      filePath = path.join(soqlMetadataPath, CUSTOMOBJECTS_DIR, sobjectName + '.json');
-    }
-
+    const filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, sobjectName + '.json');
     try {
-      const file = await fs.promises.readFile(filePath);
+      const fileContent = await readFile(filePath);
       // TODO: validate content against a schema
-      return JSON.parse(file.toString());
+      return JSON.parse(fileContent);
     } catch {
       const message = nls.localize(
         'error_sobject_metadata_fs_request',

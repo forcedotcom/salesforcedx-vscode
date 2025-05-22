@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "63.10.0",
+  "version": "63.14.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -32,39 +32,31 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core-bundle": "8.9.1",
+    "@salesforce/core-bundle": "^8.10.3",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "63.14.1",
+    "@salesforce/salesforcedx-utils-vscode": "63.14.1",
     "@salesforce/soql-builder-ui": "1.0.0",
+    "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
-    "@salesforce/soql-model": "1.0.0"
+    "@salesforce/soql-model": "1.0.0",
+    "debounce": "^1.2.0",
+    "papaparse": "^5.3.0",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "63.10.0",
-    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
-    "@salesforce/salesforcedx-utils-vscode": "63.10.0",
-    "@salesforce/soql-common": "0.2.1",
-    "@salesforce/ts-sinon": "1.4.30",
+    "@salesforce/salesforcedx-utils": "63.14.1",
     "@salesforce/ts-types": "2.0.12",
-    "@types/chai": "4.3.3",
     "@types/debounce": "^1.2.0",
-    "@types/mocha": "^10",
     "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
-    "@types/sinon": "7.5.2",
     "@types/vscode": "^1.90.0",
     "applicationinsights": "1.0.7",
-    "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "debounce": "^1.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "eslint-plugin-prettier": "^3.1.4",
-    "mocha": "^10",
-    "papaparse": "^5.3.0",
-    "prettier": "3.3.3",
-    "sinon": "13.0.1",
-    "typescript": "^5.6.2",
-    "vscode-languageclient": "^9.0.1"
+    "typescript": "^5.6.2"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"

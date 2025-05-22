@@ -7,6 +7,7 @@
 
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
   PostconditionChecker
@@ -15,13 +16,14 @@ import { ProjectOptions, TemplateType } from '@salesforce/templates';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet } from './util';
+import { EmptyPreChecker, SfCommandlet } from './util';
 
-export enum projectTemplateEnum {
+enum projectTemplateEnum {
   standard = 'standard',
   empty = 'empty',
   analytics = 'analytics'
@@ -31,7 +33,7 @@ type projectGenerateOptions = {
   isProjectWithManifest: boolean;
 };
 
-export class ProjectTemplateItem implements vscode.QuickPickItem {
+class ProjectTemplateItem implements vscode.QuickPickItem {
   public label: string;
   public description: string;
   constructor(name: string, description: string) {
@@ -55,7 +57,7 @@ class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectN
     return data.projectName;
   }
   protected async openCreatedTemplateInVSCode(outputdir: string, fileName: string) {
-    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(path.join(outputdir, fileName)));
+    await vscode.commands.executeCommand('vscode.openFolder', URI.file(path.join(outputdir, fileName)));
   }
 
   public constructTemplateOptions(data: ProjectNameAndPathAndTemplate) {
@@ -79,7 +81,7 @@ type ProjectURI = {
   projectUri: string;
 };
 
-export type ProjectName = {
+type ProjectName = {
   projectName: string;
 };
 
@@ -87,7 +89,7 @@ type ProjectTemplate = {
   projectTemplate: string;
 };
 
-export class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate> {
+class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ProjectTemplate>> {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),

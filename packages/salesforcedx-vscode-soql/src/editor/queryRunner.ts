@@ -7,7 +7,7 @@
 
 import { Connection } from '@salesforce/core-bundle';
 import { soqlComments } from '@salesforce/soql-common';
-import { JsonMap } from '@salesforce/ts-types';
+import type { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 

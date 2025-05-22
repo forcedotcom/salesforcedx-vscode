@@ -4,30 +4,29 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   CliCommandExecutor,
-  Command,
+  CompositeParametersGatherer,
   ContinueResponse,
   isAlphaNumSpaceString,
   isIntegerInRange,
   OrgCreateErrorResult,
   OrgCreateResultParser,
   ParametersGatherer,
-  SfCommandBuilder
+  workspaceUtils,
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
+import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import {
-  CompositeParametersGatherer,
   CompositePreconditionChecker,
   DevUsernameChecker,
   FileSelection,
@@ -40,7 +39,7 @@ import {
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
 
-export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
+class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       workspaceUtils.getRootWorkspacePath(), // this is safe because of workspaceChecker
@@ -107,7 +106,7 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
   }
 }
 
-export class AliasGatherer implements ParametersGatherer<Alias> {
+class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
     const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;

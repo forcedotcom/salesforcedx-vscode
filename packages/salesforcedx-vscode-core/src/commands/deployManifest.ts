@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
 import { getConflictMessagesFor } from '../conflict/messages';
@@ -15,11 +16,10 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils } from '../util';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
-export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
+class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   constructor() {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_manifest');
   }
@@ -38,7 +38,7 @@ export class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   }
 }
 
-export const deployManifest = async (manifestUri: vscode.Uri) => {
+export const deployManifest = async (manifestUri: URI) => {
   if (!manifestUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId === 'forcesourcemanifest') {

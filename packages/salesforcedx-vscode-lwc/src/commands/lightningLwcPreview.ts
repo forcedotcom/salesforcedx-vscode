@@ -4,19 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import { componentUtil } from '@salesforce/lightning-lsp-common';
-import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
+  notificationService,
+  CliCommandExecutor,
   EmptyParametersGatherer,
   isSFContainerMode,
   SfCommandlet,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  stat as getFileStats,
+  readFile,
+  fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channel';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
@@ -64,11 +67,11 @@ type PreviewQuickPickItem = vscode.QuickPickItem & {
   platformName: keyof typeof PlatformName;
 };
 
-export type DeviceQuickPickItem = vscode.QuickPickItem & {
+type DeviceQuickPickItem = vscode.QuickPickItem & {
   name: string;
 };
 
-export const platformOptions: PreviewQuickPickItem[] = [
+const platformOptions: PreviewQuickPickItem[] = [
   {
     label: nls.localize('lightning_lwc_preview_desktop_label'),
     detail: nls.localize('lightning_lwc_preview_desktop_description'),
@@ -104,7 +107,7 @@ const sfDeviceListCommand = 'force:lightning:local:device:list';
 const sfMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 
-export const lightningLwcPreview = async (sourceUri: vscode.Uri) => {
+export const lightningLwcPreview = async (sourceUri: URI) => {
   const preview = getPreview();
   preview(sourceUri);
 };
@@ -123,12 +126,12 @@ const lwcPreviewContainerMode = () => {
   return;
 };
 
-export const lwcPreview = async (sourceUri: vscode.Uri) => {
+const lwcPreview = async (sourceUri: URI) => {
   const startTime = process.hrtime();
 
   if (!sourceUri) {
     if (vscode.window.activeTextEditor) {
-      sourceUri = vscode.window.activeTextEditor.document.uri;
+      sourceUri = URI.from(vscode.window.activeTextEditor.document.uri);
     } else {
       const message = nls.localize('lightning_lwc_preview_file_undefined', sourceUri);
       showError(new Error(message), logName, commandName);
@@ -143,24 +146,25 @@ export const lwcPreview = async (sourceUri: vscode.Uri) => {
     return;
   }
 
-  if (!fs.existsSync(resourcePath)) {
+  try {
+    const fileStats = await getFileStats(resourcePath);
+    const isSFDX = true; // TODO support non SFDX Projects
+    const isDirectory = fileStats.type === vscode.FileType.Directory;
+    const componentName = isDirectory
+      ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
+      : componentUtil.moduleFromFile(resourcePath, isSFDX);
+    if (!componentName) {
+      const message = nls.localize('lightning_lwc_preview_unsupported', resourcePath);
+      showError(new Error(message), logName, commandName);
+      return;
+    }
+
+    await executePreview(startTime, componentName, resourcePath);
+  } catch {
     const message = nls.localize('lightning_lwc_preview_file_nonexist', resourcePath);
     showError(new Error(message), logName, commandName);
     return;
   }
-
-  const isSFDX = true; // TODO support non SFDX Projects
-  const isDirectory = fs.lstatSync(resourcePath).isDirectory();
-  const componentName = isDirectory
-    ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
-    : componentUtil.moduleFromFile(resourcePath, isSFDX);
-  if (!componentName) {
-    const message = nls.localize('lightning_lwc_preview_unsupported', resourcePath);
-    showError(new Error(message), logName, commandName);
-    return;
-  }
-
-  await executePreview(startTime, componentName, resourcePath);
 };
 
 /**
@@ -204,7 +208,7 @@ const executePreview = async (startTime: [number, number], componentName: string
   }
 
   // 3. Determine project root directory and path to the config file
-  const projectRootDir = getProjectRootDirectory(resourcePath);
+  const projectRootDir = await getProjectRootDirectory(resourcePath);
   const configFilePath = projectRootDir && path.join(projectRootDir, 'mobile-apps.json');
 
   // 4. Prompt user to select a target app (if any)
@@ -410,25 +414,28 @@ const selectTargetApp = async (
     detail: nls.localize('lightning_lwc_browserapp_description')
   };
 
-  if (configFile === undefined || fs.existsSync(configFile) === false) {
+  if (configFile === undefined) {
     return targetApp;
   }
 
   try {
-    const fileContent = fs.readFileSync(configFile, 'utf8');
-    const json = JSON.parse(fileContent);
-    const appDefinitionsForSelectedPlatform =
-      platformSelection.id === PreviewPlatformType.Android ? json.apps.android : json.apps.ios;
+    if (await fileOrFolderExists(configFile)) {
+      const fileContent = await readFile(configFile);
+      const json = JSON.parse(fileContent);
+      const appDefinitionsForSelectedPlatform =
+        platformSelection.id === PreviewPlatformType.Android ? json.apps.android : json.apps.ios;
 
-    const apps = Array.from<any>(appDefinitionsForSelectedPlatform);
+      const apps = Array.from<any>(appDefinitionsForSelectedPlatform);
 
-    apps.forEach(app => {
-      const label: string = app.name;
-      const detail: string = app.id;
-      items.push({ label, detail });
-    });
+      apps.forEach(app => {
+        const label: string = app.name;
+        const detail: string = app.id;
+        items.push({ label, detail });
+      });
+    }
   } catch {
-    // silengtly fail and default to previewing on browser
+    // silently fail and default to previewing on browser
+    return targetApp;
   }
 
   // if there are any devices available, show a pick list.
@@ -535,24 +542,27 @@ const executeMobilePreview = async (
  * @param startPath starting path to search for the config file.
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
-export const getProjectRootDirectory = (startPath: string): string | undefined => {
-  if (!fs.existsSync(startPath)) {
-    return undefined;
-  }
-
-  const searchingForFile = 'sfdx-project.json';
-  let dir: string | undefined = fs.lstatSync(startPath).isDirectory() ? startPath : path.dirname(startPath);
-  while (dir) {
-    const fileName = path.join(dir, searchingForFile);
-    if (fs.existsSync(fileName)) {
-      return dir;
-    } else {
+const getProjectRootDirectory = async (startPath: string): Promise<string | undefined> => {
+  try {
+    const startStats = await getFileStats(startPath);
+    const searchingForFile = 'sfdx-project.json';
+    let dir: string | undefined = startStats.type === vscode.FileType.Directory ? startPath : path.dirname(startPath);
+    while (dir) {
+      const fileName = path.join(dir, searchingForFile);
+      try {
+        await getFileStats(fileName);
+        return dir;
+      } catch {
+        // File doesn't exist, continue searching
+      }
       dir = directoryLevelUp(dir);
     }
-  }
 
-  // couldn't determine the root dir
-  return undefined;
+    // couldn't determine the root dir
+    return undefined;
+  } catch {
+    return undefined;
+  }
 };
 
 /**
@@ -561,7 +571,7 @@ export const getProjectRootDirectory = (startPath: string): string | undefined =
  * @param directory path to a directory
  * @returns path to a directory that is one level up, or undefined if cannot go one level up.
  */
-export const directoryLevelUp = (directory: string): string | undefined => {
+const directoryLevelUp = (directory: string): string | undefined => {
   const levelUp = path.dirname(directory);
 
   if (levelUp === directory) {

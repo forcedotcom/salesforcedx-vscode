@@ -9,7 +9,7 @@
 // Expand as necessary.
 
 export type Predicate<T> = {
-  apply(item: T): PredicateResponse;
+  apply(item: T): PredicateResponse | Promise<PredicateResponse>;
 };
 
 export class PredicateResponse {

@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import type { CancellationToken } from '@salesforce/salesforcedx-utils';
+import { fileOrFolderExists, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'node:events';
-import * as fs from 'node:fs';
 import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
@@ -17,10 +17,6 @@ import {
   SObjectRefreshOutput as SObjectRefreshData,
   SObjectRefreshResult
 } from '../types';
-
-export type CancellationToken = {
-  isCancellationRequested: boolean;
-};
 
 type SObjectRefreshTransformData = SObjectRefreshData & {
   typeNames: SObjectShortDescription[];
@@ -52,8 +48,8 @@ export class SObjectTransformer {
   public async transform(): Promise<SObjectRefreshResult> {
     const pathToStateFolder = projectPaths.stateFolder();
 
-    if (!fs.existsSync(pathToStateFolder)) {
-      return this.errorExit(nls.localize('no_generate_if_not_in_project', pathToStateFolder));
+    if (!(await fileOrFolderExists(pathToStateFolder))) {
+      return await this.errorExit(nls.localize('no_generate_if_not_in_project', pathToStateFolder));
     }
 
     const output: SObjectRefreshData = this.initializeData(pathToStateFolder);

@@ -11,7 +11,6 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
-import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
   // Run once to start off with.
@@ -106,10 +105,4 @@ export const getAuthFieldsFor = async (username: string): Promise<AuthFields> =>
   });
 
   return authInfo.getFields();
-};
-
-export const getTargetDevHubOrAlias = async (): Promise<string | undefined> => {
-  if (workspaceUtils.hasRootWorkspace()) {
-    return OrgAuthInfo.getTargetDevHubOrAlias(false);
-  }
 };

@@ -19,7 +19,7 @@ import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
 import * as os from 'node:os';
 import * as sinon from 'sinon';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import {
   ApexDebugStackFrameInfo,
   ApexVariable,
@@ -647,14 +647,12 @@ describe('Interactive debugger adapter - unit', () => {
     let sessionStopSpy: sinon.SinonStub;
     let sessionConnectedSpy: sinon.SinonStub;
     let streamingDisconnectSpy: sinon.SinonStub;
-    let breakpointClearSpy: sinon.SinonSpy;
     let clearIdleTimersSpy: sinon.SinonSpy;
     let response: DebugProtocol.DisconnectResponse;
     let args: DebugProtocol.DisconnectArguments;
 
     beforeEach(() => {
       streamingDisconnectSpy = sinon.stub(StreamingService.prototype, 'disconnect');
-      breakpointClearSpy = sinon.spy(BreakpointService.prototype, 'clearSavedBreakpoints');
       clearIdleTimersSpy = sinon.spy(ApexDebugForTest.prototype, 'clearIdleTimers');
       response = {
         command: '',
@@ -672,7 +670,6 @@ describe('Interactive debugger adapter - unit', () => {
       }
       sessionConnectedSpy.restore();
       streamingDisconnectSpy.restore();
-      breakpointClearSpy.restore();
       clearIdleTimersSpy.restore();
     });
 
@@ -683,7 +680,6 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(adapter.getResponse(0)).to.deep.equal(response);
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
-      expect(breakpointClearSpy.called).to.equal(false);
       expect(clearIdleTimersSpy.calledOnce).to.equal(true);
     });
 
@@ -702,7 +698,6 @@ describe('Interactive debugger adapter - unit', () => {
         nls.localize('session_terminated_text', sessionId)
       );
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
-      expect(breakpointClearSpy.called).to.equal(false);
       expect(clearIdleTimersSpy.calledOnce).to.equal(true);
     });
 
@@ -722,7 +717,6 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect((adapter.getEvents()[0] as OutputEvent).body.output).to.have.string('Try again');
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
-      expect(breakpointClearSpy.called).to.equal(false);
       expect(clearIdleTimersSpy.calledOnce).to.equal(true);
     });
   });
@@ -1067,10 +1061,10 @@ describe('Interactive debugger adapter - unit', () => {
       const stackFrames = response.body.stackFrames;
       expect(stackFrames.length).to.equal(2);
       expect(stackFrames[0]).to.deep.equal(
-        new StackFrame(1000, 'FooDebug.test()', new Source('foo.cls', Uri.parse(fileUri).fsPath), 1, 0)
+        new StackFrame(1000, 'FooDebug.test()', new Source('foo.cls', URI.parse(fileUri).fsPath), 1, 0)
       );
       expect(stackFrames[1]).to.deep.equal(
-        new StackFrame(1001, 'BarDebug.test()', new Source('foo.cls', Uri.parse(fileUri).fsPath), 2, 0)
+        new StackFrame(1001, 'BarDebug.test()', new Source('foo.cls', URI.parse(fileUri).fsPath), 2, 0)
       );
     });
 
@@ -1340,7 +1334,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(outputEvent.body.output).to.have.string(
         `${msg.event.createdDate} | ${msg.sobject.Type} | Request: ${msg.sobject.RequestId} | Breakpoint: ${msg.sobject.BreakpointId} | Line: ${msg.sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject.Stacktrace}`
       );
-      expect(outputEvent.body.source!.path).to.equal(Uri.parse(fooUri).fsPath);
+      expect(outputEvent.body.source!.path).to.equal(URI.parse(fooUri).fsPath);
       expect(outputEvent.body.line).to.equal(4);
     });
   });

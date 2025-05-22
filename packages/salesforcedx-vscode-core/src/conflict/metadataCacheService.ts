@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -20,9 +20,8 @@ import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { workspaceUtils } from '../util';
 
-export type MetadataContext = {
+type MetadataContext = {
   baseDirectory: string;
   commonRoot: string;
   components: SourceComponent[];
@@ -365,7 +364,7 @@ export class MetadataCacheService {
   }
 }
 
-export type MetadataCacheCallback = (username: string, cache: MetadataCacheResult | undefined) => Promise<void>;
+type MetadataCacheCallback = (username: string, cache: MetadataCacheResult | undefined) => Promise<void>;
 
 export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   private cacheService: MetadataCacheService;

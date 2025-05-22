@@ -7,6 +7,7 @@
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
 import { execSync } from 'node:child_process';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
@@ -24,7 +25,7 @@ export enum ClientStatus {
   Ready
 }
 
-export class LanguageClientStatus {
+class LanguageClientStatus {
   private status: ClientStatus;
   private message: string;
 
@@ -57,6 +58,10 @@ export interface ProcessDetail {
   orphaned: boolean;
 }
 
+interface RestartQuickPickItem extends vscode.QuickPickItem {
+  type: 'restart' | 'reset';
+}
+
 export class LanguageClientManager {
   private static instance: LanguageClientManager;
   private clientInstance: ApexLanguageClient | undefined;
@@ -64,6 +69,11 @@ export class LanguageClientManager {
   private statusBarItem: ApexLSPStatusBarItem | undefined;
   private isRestarting: boolean = false;
   private restartTimeout: NodeJS.Timeout | undefined;
+
+  private readonly RESTART_OPTIONS = {
+    cleanAndRestart: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
+    restartOnly: nls.localize('apex_language_server_restart_dialog_restart_only')
+  };
 
   private constructor() {
     this.status = new LanguageClientStatus(ClientStatus.Unavailable, '');
@@ -101,52 +111,116 @@ export class LanguageClientManager {
   }
 
   public async getLineBreakpointInfo(): Promise<{}> {
-    let response = {};
-    const languageClient = this.getClientInstance();
-    if (languageClient) {
-      response = await languageClient.sendRequest(DEBUGGER_LINE_BREAKPOINTS);
-    }
-    return Promise.resolve(response);
+    return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_LINE_BREAKPOINTS) : {};
   }
 
   public async getApexTests(): Promise<ApexTestMethod[]> {
-    let response = new Array<LSPApexTestMethod>();
-    const ret = new Array<ApexTestMethod>();
-    const languageClient = this.getClientInstance();
-    if (languageClient) {
-      response = await languageClient.sendRequest('test/getTestMethods');
-    }
-    for (const requestInfo of response) {
-      ret.push(ApexLSPConverter.toApexTestMethod(requestInfo));
-    }
-    return Promise.resolve(ret);
+    return this.clientInstance
+      ? (await this.clientInstance.sendRequest<LSPApexTestMethod[]>('test/getTestMethods')).map(requestInfo =>
+          ApexLSPConverter.toApexTestMethod(requestInfo)
+        )
+      : [];
   }
 
   public async getExceptionBreakpointInfo(): Promise<{}> {
-    let response = {};
-    const languageClient = this.getClientInstance();
-    if (languageClient) {
-      response = await languageClient.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS);
-    }
-    return Promise.resolve(response);
+    return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS) : {};
   }
 
-  public async restartLanguageServerAndClient(extensionContext: vscode.ExtensionContext): Promise<void> {
+  private async showRestartQuickPick(
+    items: RestartQuickPickItem[],
+    source: 'commandPalette' | 'statusBar',
+    restartBehavior: string
+  ): Promise<string | undefined> {
+    const selectedOption = await vscode.window.showQuickPick(items, {
+      placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
+    });
+
+    if (selectedOption) {
+      await this.sendRestartTelemetry(selectedOption, source, restartBehavior);
+      return selectedOption.label;
+    }
+    return undefined;
+  }
+
+  private async sendRestartTelemetry(
+    selectedOption: RestartQuickPickItem,
+    source: 'commandPalette' | 'statusBar',
+    restartBehavior: string
+  ): Promise<void> {
+    const telemetryService = await getTelemetryService();
+    telemetryService.sendEventData('apexLSPRestart', {
+      restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
+      selectedOption: selectedOption.type,
+      source,
+      defaultOption: restartBehavior
+    });
+  }
+
+  private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
+    const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
+    const restartBehavior = config.get<string>('languageServer.restartBehavior', 'prompt');
+
+    // If launched from command palette, always show prompt with default option first
+    if (source === 'commandPalette') {
+      // Order items based on the setting
+      const items: RestartQuickPickItem[] =
+        restartBehavior === 'reset'
+          ? [
+              { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' },
+              { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' }
+            ]
+          : [
+              { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
+              { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' }
+            ];
+
+      return this.showRestartQuickPick(items, source, restartBehavior);
+    }
+
+    // For status bar, use the setting value directly if not 'prompt'
+    if (source === 'statusBar') {
+      switch (restartBehavior) {
+        case 'restart':
+          await this.sendRestartTelemetry(
+            { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
+            source,
+            restartBehavior
+          );
+          return this.RESTART_OPTIONS.restartOnly;
+        case 'reset':
+          await this.sendRestartTelemetry(
+            { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' },
+            source,
+            restartBehavior
+          );
+          return this.RESTART_OPTIONS.cleanAndRestart;
+        case 'prompt':
+        default:
+          const promptItems: RestartQuickPickItem[] = [
+            { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
+            { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' }
+          ];
+          return this.showRestartQuickPick(promptItems, source, restartBehavior);
+      }
+    }
+
+    // This case should never be reached as source is now required
+    throw new Error('Invalid source parameter');
+  }
+
+  public async restartLanguageServerAndClient(
+    extensionContext: vscode.ExtensionContext,
+    source: 'commandPalette' | 'statusBar'
+  ): Promise<void> {
     // If already restarting, show a message and return
     if (this.isRestarting) {
       vscode.window.showInformationMessage(nls.localize('apex_language_server_already_restarting'));
       return;
     }
 
-    const cleanAndRestartOption = nls.localize('apex_language_server_restart_dialog_clean_and_restart');
-    const restartOnlyOption = nls.localize('apex_language_server_restart_dialog_restart_only');
+    const selectedOption = await this.getRestartOption(source);
 
-    const options = [cleanAndRestartOption, restartOnlyOption];
-    const selectedOption = await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
-    });
-
-    // If no option is selected, cancel the operation
+    // If no option is selected (in prompt mode), cancel the operation
     if (!selectedOption) {
       return;
     }
@@ -168,7 +242,7 @@ export class LanguageClientManager {
           `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
         );
       }
-      if (selectedOption === cleanAndRestartOption) {
+      if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
         await this.removeApexDB();
       }
 
@@ -205,14 +279,14 @@ export class LanguageClientManager {
   private async removeApexDB(): Promise<void> {
     if (hasRootWorkspace() && vscode.workspace.workspaceFolders) {
       const wsrf = vscode.workspace.workspaceFolders[0].uri;
-      const toolsUri = vscode.Uri.joinPath(wsrf, '.sfdx', 'tools');
+      const toolsUri = URI.parse(wsrf.toString()).with({ path: wsrf.path + '/.sfdx/tools' });
       try {
         const entries = await vscode.workspace.fs.readDirectory(toolsUri);
         const releaseFolders = entries
           .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
           .map(([name]) => name);
         for (const folder of releaseFolders) {
-          const folderUri = vscode.Uri.joinPath(toolsUri, folder);
+          const folderUri = URI.parse(toolsUri.toString()).with({ path: toolsUri.path + '/' + folder });
           await vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true });
         }
       } catch (error) {
@@ -301,8 +375,7 @@ export class LanguageClientManager {
 
   public async findAndCheckOrphanedProcesses(): Promise<ProcessDetail[]> {
     const telemetryService = await getTelemetryService();
-    const platform = process.platform.toLowerCase();
-    const isWindows = platform === 'win32';
+    const isWindows = process.platform === 'win32';
 
     if (!this.canRunCheck(isWindows)) {
       return [];
@@ -313,8 +386,9 @@ export class LanguageClientManager {
       : 'ps -e -o pid,ppid,command';
 
     const stdout = execSync(cmd).toString();
-    const lines = stdout.trim().split(/\r?\n/g);
-    const processes: ProcessDetail[] = lines
+    return stdout
+      .trim()
+      .split(/\r?\n/g)
       .map((line: string) => {
         const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
         const pid = parseInt(pidStr, 10);
@@ -325,13 +399,7 @@ export class LanguageClientManager {
       .filter(
         (processInfo: ProcessDetail) => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c))
       )
-      .filter((processInfo: ProcessDetail) => processInfo.command.includes('apex-jorje-lsp.jar'));
-
-    if (processes.length === 0) {
-      return [];
-    }
-
-    const orphanedProcesses: ProcessDetail[] = processes
+      .filter((processInfo: ProcessDetail) => processInfo.command.includes('apex-jorje-lsp.jar'))
       .map(processInfo => {
         const checkOrphanedCmd = isWindows
           ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${processInfo.ppid}'"`
@@ -352,7 +420,6 @@ export class LanguageClientManager {
         return processInfo;
       })
       .filter(processInfo => processInfo.orphaned);
-    return orphanedProcesses;
   }
 
   public terminateProcess(pid: number): void {
@@ -374,3 +441,6 @@ export class LanguageClientManager {
     return true;
   }
 }
+
+/** instantiate and export the singleton instance */
+export const languageClientManager = LanguageClientManager.getInstance();

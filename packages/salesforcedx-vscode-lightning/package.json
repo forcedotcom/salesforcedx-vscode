@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.10.0",
+  "version": "63.14.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,31 +25,20 @@
   ],
   "dependencies": {
     "@salesforce/aura-language-server": "4.12.3",
-    "@salesforce/core-bundle": "8.9.1",
+    "@salesforce/core-bundle": "^8.10.3",
     "@salesforce/lightning-lsp-common": "4.12.3",
-    "@salesforce/salesforcedx-utils-vscode": "63.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "63.14.1",
     "applicationinsights": "1.0.7",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.10.0",
-    "@types/chai": "4.3.3",
-    "@types/mocha": "^10",
     "@types/node": "^20.0.0",
-    "@types/sinon": "^7.5.2",
     "@types/vscode": "^1.90.0",
     "@types/which": "^1.3.1",
-    "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "mocha": "^10",
-    "mocha-junit-reporter": "^1.23.3",
-    "mocha-multi-reporters": "^1.1.7",
-    "prettier": "3.3.3",
-    "sinon": "^13.0.1",
-    "typescript": "^5.6.2",
-    "vscode-uri": "^1.0.1"
+    "typescript": "^5.6.2"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -60,11 +49,8 @@
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "test": "npm run test:unit && npm run test:vscode-integration",
-    "test:jest": "jest --coverage",
-    "test:unit": "mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
-    "test:vscode-integration": "node ../../scripts/run-tests-with-recipes",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
+    "test": "npm run test:jest && npm run test:vscode-integration",
+    "test:unit": "jest --coverage",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",

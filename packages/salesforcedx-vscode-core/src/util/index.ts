@@ -13,14 +13,8 @@ export {
   setNodeExtraCaCerts,
   setSfLogLevel
 } from './cliConfiguration';
-export { workspaceUtils } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
-export {
-  checkForSoonToBeExpiredOrgs,
-  getAuthFieldsFor,
-  getTargetDevHubOrAlias,
-  setUpOrgExpirationWatcher
-} from './orgUtil';
+export { checkForSoonToBeExpiredOrgs, setUpOrgExpirationWatcher } from './orgUtil';
 
 export { ComponentName, ContinueOrCancel, OneOrMany, isContinue } from './types';
 

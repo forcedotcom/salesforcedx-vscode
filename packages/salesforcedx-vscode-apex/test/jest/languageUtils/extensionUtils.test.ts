@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
-import { ClientStatus, languageClientManager } from '../../../src/languageUtils';
-import { extensionUtils } from '../../../src/languageUtils';
+import { extensionUtils } from '../../../src/languageUtils/extensionUtils';
+import { ClientStatus, languageClientManager } from '../../../src/languageUtils/languageClientManager';
 import * as testOutlineProvider from '../../../src/views/testOutlineProvider';
 
 jest.mock('../../../src/apexLspStatusBarItem');

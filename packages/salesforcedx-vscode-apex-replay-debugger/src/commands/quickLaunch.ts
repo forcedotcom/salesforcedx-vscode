@@ -64,7 +64,7 @@ class QuickLaunch {
       const logFileRetrieve = await this.retrieveLogFile(connection, testResult.logFileId);
 
       if (logFileRetrieve.success && logFileRetrieve.filePath) {
-        launchFromLogFile(logFileRetrieve.filePath, false);
+        await launchFromLogFile(logFileRetrieve.filePath, false);
         return true;
       }
     } else if (testResult.message) {
@@ -120,7 +120,7 @@ class QuickLaunch {
   }
 }
 
-export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
+class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   constructor() {
     super(nls.localize('debug_test_exec_name'), 'debug_test_replay_debugger', OUTPUT_CHANNEL);
   }

@@ -9,20 +9,20 @@ import {
   ContinueResponse,
   LocalComponent,
   ParametersGatherer,
-  SFDX_LWC_EXTENSION_NAME
+  SFDX_LWC_EXTENSION_NAME,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
-import { workspaceUtils } from '../../util';
 import { RetrieveDescriber } from '../retrieveMetadata';
 
 export const CONTINUE = 'CONTINUE';
 export const CANCEL = 'CANCEL';
-export const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
+const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
 export type FileNameParameter = {
   fileName: string;
@@ -40,39 +40,9 @@ type ApexTestTemplateParameter = {
   template: string;
 };
 
-export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: ParametersGatherer<any>[];
-  public constructor(...gatherers: ParametersGatherer<any>[]) {
-    this.gatherers = gatherers;
-  }
-  public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
-    const aggregatedData: any = {};
-    for (const gatherer of this.gatherers) {
-      const input = await gatherer.gather();
-      if (input.type === CONTINUE) {
-        Object.keys(input.data).map(key => (aggregatedData[key] = input.data[key]));
-      } else {
-        return {
-          type: CANCEL
-        };
-      }
-    }
-    return {
-      type: CONTINUE,
-      data: aggregatedData
-    };
-  }
-}
-
-export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return Promise.resolve({ type: CONTINUE, data: {} });
-  }
-}
-
 export class FilePathGatherer implements ParametersGatherer<string> {
   private filePath: string;
-  public constructor(uri: vscode.Uri) {
+  public constructor(uri: URI) {
     this.filePath = uri.fsPath;
   }
 
@@ -165,56 +135,6 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
     );
 
     return response && response === this.LOGOUT_RESPONSE ? { type: CONTINUE, data: {} } : { type: CANCEL };
-  }
-}
-
-export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: string; outputdir: string }> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>> {
-    let packageDirs: string[] = [];
-    try {
-      packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
-    } catch (e) {
-      if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
-        throw e;
-      }
-    }
-    const packageDir = await this.showMenu(packageDirs, 'parameter_gatherer_enter_dir_name');
-    let outputdir;
-    const namePathMap = new Map();
-    let fileName;
-    if (packageDir) {
-      const pathToPkg = path.join(workspaceUtils.getRootWorkspacePath(), packageDir);
-      const components = ComponentSet.fromSource(pathToPkg);
-
-      const lwcNames = [];
-      for (const component of components.getSourceComponents() || []) {
-        const { fullName, type } = component;
-        if (type.name === registry.types.lightningcomponentbundle.name) {
-          namePathMap.set(fullName, component.xml);
-          lwcNames.push(fullName);
-        }
-      }
-      const chosenLwcName = await this.showMenu(lwcNames, 'parameter_gatherer_enter_lwc_name');
-      if (chosenLwcName) {
-        const filePathToXml = namePathMap.get(chosenLwcName);
-        fileName = path.basename(filePathToXml, '.js-meta.xml');
-        // Path strategy expects a relative path to the output folder
-        outputdir = path.dirname(filePathToXml).replace(pathToPkg, packageDir);
-      }
-    }
-
-    return outputdir && fileName
-      ? {
-          type: CONTINUE,
-          data: { fileName, outputdir }
-        }
-      : { type: CANCEL };
-  }
-
-  public async showMenu(options: string[], message: string): Promise<string | undefined> {
-    return await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize(message)
-    } as vscode.QuickPickOptions);
   }
 }
 

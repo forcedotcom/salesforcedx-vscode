@@ -1,3 +1,48 @@
+# 63.14.1 - May 21, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We reverted the check we added in v63.11.0. The check limited the visibility of org-related `SFDX` commands to only valid files. We removed it due to performance issues on large projects. ([PR #6289](https://github.com/forcedotcom/salesforcedx-vscode/pull/6289))
+- We bumped the versions of the Salesforce shared libraries to support deploying and retrieving the `WorkflowFlowAutomation` metadata type. ([PR #6280](https://github.com/forcedotcom/salesforcedx-vscode/pull/6280))
+- We updated the `SFDX: Turn Off Apex Debug Log for Replay Debugger` command. Now it doesn't call the `sf data:delete:record` CLI command under the hood. This change significantly improves how fast the command runs. ([#6259](https://github.com/forcedotcom/salesforcedx-vscode/pull/6259))
+
+# 63.12.0 - May 7, 2025
+
+## Added
+
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
+
+We removed the ESLint and Apex PMD extensions from the Salesforce Expanded Pack. Instead, we recommend that you use the ESLint and PMD engines included in the Salesforce Code Analyzer extension, which we also added to the Salesforce Standard Pack. To learn more about the Code Analyzer extension, go to https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/analyze-vscode.html.
+
+If you’re already familiar with Code Analyzer v4 (which is soon reaching its end of life), use this document to migrate to Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/migrate.html.
+
+If you use ESLint and have custom ESLint configurations, see this document to learn how to use and configure the ESLint engine of Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/engine-eslint.html. Code Analyzer v5 currently supports only ESLint v8.x, and not v9.x.
+
+Similarly, if you use PMD and have custom PMD configurations, see this document to learn how to use and configure the PMD engine of Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/engine-pmd.html.
+
+# 63.11.0 - April 30, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- The following commands are now only visible and executable for files and folders within the paths specified in the `packageDirectories` array of `sfdx-project.json`:
+
+- `SDFX:Deploy to Org`
+
+-  `SFDX:Retrieve from Org`
+
+ - `SFDX:Diff Against Org`
+
+ - `SFDX:Delete from Org`
+
+ - `SFDX:Create Manifest`
+
+These commands no longer appear in the Explorer View context menu, Editor View context menu, or Command Palette for resources outside the defined `packageDirectories`, including anything outside the `force-app` directory. Previously, attempting to run these commands on files or folders outside the configured package directories resulted in errors during deployment or retrieval. ([PR #6224](https://github.com/forcedotcom/salesforcedx-vscode/pull/6224))
+
 # 63.10.0 - April 23, 2025
 
 ## Added

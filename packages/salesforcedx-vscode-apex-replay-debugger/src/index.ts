@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { MetricError, MetricGeneral, MetricLaunch } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
+  MetricError,
+  MetricGeneral,
+  MetricLaunch,
   DEBUGGER_TYPE,
   LAST_OPENED_LOG_FOLDER_KEY,
   LAST_OPENED_LOG_KEY,
@@ -15,10 +16,12 @@ import {
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT
-} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+  SEND_METRIC_LAUNCH_EVENT,
+  breakpointUtil
+} from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
@@ -47,7 +50,7 @@ const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.sales
 const registerCommands = (): vscode.Disposable => {
   const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
-    const fileUris: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
+    const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
       canSelectFiles: true,
       canSelectFolders: false,
       canSelectMany: false,
@@ -60,7 +63,7 @@ const registerCommands = (): vscode.Disposable => {
   });
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile',
-    (editorUri: vscode.Uri) => {
+    (editorUri: URI) => {
       let logFile: string | undefined;
       if (!editorUri) {
         const editor = vscode.window.activeTextEditor;

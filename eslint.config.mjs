@@ -14,7 +14,7 @@ import eslintPluginImport, { __esModule } from 'eslint-plugin-import';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
@@ -36,10 +36,11 @@ export default [
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-lwc/test/vscode-integration',
       'packages/salesforcedx-vscode-core/test/vscode-integration/**',
-      'packages/salesforcedx-test-utils-vscode/src/testrunner.ts'
+      'scripts/installVSIXFromBranch.ts',
+      'scripts/vsce-bundled-extension.ts',
+      'scripts/reportInstalls.ts'
     ]
   },
-  eslintPluginPrettierRecommended,
   {
     files: ['**/*.ts'],
     languageOptions: {
@@ -65,6 +66,12 @@ export default [
     },
     rules: {
       'unicorn/prefer-node-protocol': 'error',
+      'unicorn/filename-case': [
+        'error',
+        {
+          case: 'camelCase'
+        }
+      ],
       'header/header': [
         'error',
         'block',
@@ -198,6 +205,10 @@ export default [
       'guard-for-in': 'error',
       'id-denylist': 'error',
       'id-match': 'error',
+      'import/no-empty-named-blocks': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-cycle': 'error',
+      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
       'import/order': [
         'error',
         {
@@ -249,6 +260,7 @@ export default [
           ]
         }
       ],
+      'import/no-self-import': 'error',
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-indentation': 'error',
       'jsdoc/newline-after-description': 'off',
@@ -260,6 +272,7 @@ export default [
       'no-cond-assign': 'error',
       'no-console': 'off',
       'no-debugger': 'error',
+      'no-duplicate-imports': 'error',
       'no-empty': 'off',
       'no-empty-function': 'off',
       'no-eval': 'error',
@@ -309,6 +322,7 @@ export default [
       jest: eslintPluginJest
     },
     rules: {
+      'unicorn/filename-case': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
@@ -338,5 +352,6 @@ export default [
     rules: {
       'header/header': 'off'
     }
-  }
+  },
+  eslintConfigPrettier
 ];

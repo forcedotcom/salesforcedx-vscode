@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { URI } from 'vscode-uri';
 import { apexGenerateUnitTestClass } from '../../../../src/commands/templates';
 import { clearGathererCache } from '../../../../src/commands/templates/apexGenerateClass';
-import { LibraryApexGenerateUnitTestClassExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor';
+import { LibraryApexGenerateUnitTestClassExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateUnitTestClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,
@@ -16,7 +17,6 @@ import {
 } from '../../../../src/commands/templates/metadataTypeConstants';
 import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
-  CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
@@ -25,11 +25,18 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
-jest.mock('../../../../src/commands/templates/executors/LibraryApexGenerateUnitTestClassExecutor');
+jest.mock('../../../../src/commands/templates/executors/libraryApexGenerateUnitTestClassExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
 jest.mock('../../../../src/commands/util/timestampConflictChecker');
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
+  const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
+  return {
+    ...actual,
+    CompositeParametersGatherer: jest.fn()
+  };
+});
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
@@ -69,9 +76,8 @@ describe('apexGenerateUnitTestClass Unit Tests.', () => {
 
   it('Should not prompt if called with a file URI', async () => {
     // This happens when the command is executed from the context menu in the explorer on the classes folder.
-    const selectedPathUri = {
-      fsPath: '/path1/path2/project/force-app/main/default/classes'
-    } as unknown as vscode.Uri;
+    const selectedPathUri = URI.file('/path1/path2/project/force-app/main/default/classes');
+
     const selectedPathUris = [selectedPathUri];
     await apexGenerateUnitTestClass(selectedPathUri, selectedPathUris);
     expect(simpleGathererMocked).toHaveBeenCalledTimes(1);

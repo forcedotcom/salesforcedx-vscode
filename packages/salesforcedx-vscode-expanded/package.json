@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.10.0",
+  "version": "63.14.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -41,10 +41,7 @@
     "salesforce.salesforce-vscode-slds",
     "salesforce.sfdx-code-analyzer-vscode",
     "redhat.vscode-xml",
-    "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "chuckjonas.apex-pmd",
-    "pmd.apex-pmd",
     "financialforce.lana"
   ]
 }
