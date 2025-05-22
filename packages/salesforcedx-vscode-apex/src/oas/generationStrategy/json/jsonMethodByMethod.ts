@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { DocumentSymbol } from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
@@ -29,11 +29,10 @@ import {
   combineYamlByMethod
 } from '../formatUtils';
 import { GenerationStrategy } from '../generationStrategy';
-import { openAPISchema_v3_0_guided } from '../openapi-3.schema';
+import { openAPISchema_v3_0_guided } from '../openapi3.schema';
 
 const gil = GenerationInteractionLogger.getInstance();
 
-export const METHOD_BY_METHOD_STRATEGY_NAME = 'JsonMethodByMethod';
 export class JsonMethodByMethodStrategy extends GenerationStrategy {
   llmRequests: Map<string, Promise<string>>;
   llmResponses: Map<string, string>;
@@ -97,10 +96,10 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
         continue;
       }
       try {
-        const cleandResponse = cleanupGeneratedDoc(response);
-        gil.addCleanedResponse(cleandResponse);
+        const cleanedResponse = cleanupGeneratedDoc(response);
+        gil.addCleanedResponse(cleanedResponse);
         try {
-          const parsed = parseOASDocFromJson(cleandResponse);
+          const parsed = parseOASDocFromJson(cleanedResponse);
           // remove unrelated methods
           excludeUnrelatedMethods(parsed, methodName, this.methodsContextMap);
           // remove non-2xx responses

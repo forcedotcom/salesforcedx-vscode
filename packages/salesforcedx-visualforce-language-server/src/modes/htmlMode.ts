@@ -6,12 +6,11 @@
 
 import {
   DocumentContext,
-  FormattingOptions,
   HTMLDocument,
   HTMLFormatConfiguration,
   LanguageService as HTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import { Position, Range, TextDocument } from 'vscode-languageserver-types';
+import { Position, Range, TextDocument, FormattingOptions } from 'vscode-languageserver-types';
 import { getLanguageModelCache } from '../languageModelCache';
 import { LanguageMode, Settings } from './languageModes';
 
@@ -21,9 +20,7 @@ export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageM
     htmlLanguageService.parseHTMLDocument(document)
   );
   return {
-    getId: () => {
-      return 'html';
-    },
+    getId: () => 'html',
     configure: (options: any) => {
       globalSettings = options;
     },
@@ -35,18 +32,14 @@ export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageM
       }
       return htmlLanguageService.doComplete(document, position, htmlDocuments.get(document), options);
     },
-    doHover: (document: TextDocument, position: Position) => {
-      return htmlLanguageService.doHover(document, position, htmlDocuments.get(document));
-    },
-    findDocumentHighlight: (document: TextDocument, position: Position) => {
-      return htmlLanguageService.findDocumentHighlights(document, position, htmlDocuments.get(document));
-    },
-    findDocumentLinks: (document: TextDocument, documentContext: DocumentContext) => {
-      return htmlLanguageService.findDocumentLinks(document, documentContext);
-    },
-    findDocumentSymbols: (document: TextDocument) => {
-      return htmlLanguageService.findDocumentSymbols(document, htmlDocuments.get(document));
-    },
+    doHover: (document: TextDocument, position: Position) =>
+      htmlLanguageService.doHover(document, position, htmlDocuments.get(document)),
+    findDocumentHighlight: (document: TextDocument, position: Position) =>
+      htmlLanguageService.findDocumentHighlights(document, position, htmlDocuments.get(document)),
+    findDocumentLinks: (document: TextDocument, documentContext: DocumentContext) =>
+      htmlLanguageService.findDocumentLinks(document, documentContext),
+    findDocumentSymbols: (document: TextDocument) =>
+      htmlLanguageService.findDocumentSymbols(document, htmlDocuments.get(document)),
     format: (
       document: TextDocument,
       range: Range,

@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.4.0",
+  "version": "63.14.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,57 +24,39 @@
     "Other"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "3.4.1",
-    "@salesforce/core-bundle": "8.8.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "63.4.0",
-    "@salesforce/salesforcedx-utils-vscode": "63.4.0",
+    "@salesforce/core-bundle": "^8.10.3",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "63.14.1",
+    "@salesforce/salesforcedx-utils": "63.14.1",
+    "@salesforce/salesforcedx-utils-vscode": "63.14.1",
     "@salesforce/schemas": "1.9.0",
-    "@salesforce/source-deploy-retrieve-bundle": "12.15.0",
-    "@salesforce/templates": "63.0.1",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
+    "@salesforce/templates": "^63.0.4",
     "@salesforce/ts-types": "2.0.12",
-    "@salesforce/vscode-service-provider": "1.4.0",
-    "adm-zip": "0.5.10",
+    "@salesforce/vscode-service-provider": "^1.4.0",
     "applicationinsights": "1.0.7",
-    "glob": "^7.1.2",
+    "glob": "^11.0.1",
+    "o11y": "250.12.0",
+    "o11y_schema": "254.77.0",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.5"
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.4.0",
-    "@salesforce/ts-sinon": "^1.4.30",
-    "@types/adm-zip": "^0.5.0",
-    "@types/chai": "4.3.3",
-    "@types/glob": "^7.2.0",
     "@types/jest": "^29.5.5",
-    "@types/mocha": "^5",
     "@types/node": "^20.0.0",
-    "@types/proxyquire": "1.3.28",
-    "@types/shelljs": "^0.7.8",
-    "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",
-    "@types/yeoman-assert": "^3.1.1",
-    "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.4",
     "esbuild-plugin-pino": "^2.2.2",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
-    "mocha": "^10",
-    "mocha-junit-reporter": "^1.23.3",
-    "mocha-multi-reporters": "^1.1.7",
-    "mock-spawn": "0.2.6",
     "nyc": "^15",
-    "prettier": "3.3.3",
-    "proxyquire": "2.1.3",
-    "sinon": "^13.0.1",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.6.2",
-    "yeoman-assert": "^3.1.1"
+    "typescript": "^5.6.2"
   },
   "packaging": {
     "assets": [
-      "License.txt",
+      "LICENSE.txt",
       "package.nls.ja.json",
       "package.nls.json",
       "README.md",
@@ -89,7 +71,8 @@
       "main": "dist/src/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "shelljs": "0.8.5",
+        "o11y": "250.12.0",
+        "o11y_schema": "254.77.0",
         "@salesforce/schemas": "1.9.0"
       },
       "devDependencies": {}
@@ -127,7 +110,7 @@
         {
           "id": "metadata",
           "title": "Org Browser",
-          "icon": "resources/dep.svg"
+          "icon": "resources/orgBrowserIcon.svg"
         },
         {
           "id": "conflicts",
@@ -195,7 +178,7 @@
       "editor/context": [
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -203,7 +186,7 @@
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -211,11 +194,11 @@
         },
         {
           "command": "sf.delete.source.current.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org"
         },
         {
           "command": "sf.diff",
-          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org"
         },
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
@@ -297,7 +280,7 @@
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -305,7 +288,7 @@
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -491,7 +474,7 @@
         },
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.retrieve.in.manifest",
@@ -499,7 +482,7 @@
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && resourceLangId != 'yaml' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.deploy.in.manifest",
@@ -523,7 +506,7 @@
         },
         {
           "command": "sf.delete.source.current.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org"
         },
         {
           "command": "sf.set.default.org",
@@ -531,10 +514,6 @@
         },
         {
           "command": "sf.lightning.generate.lwc",
-          "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.force.lightning.lwc.test.create",
           "when": "sf:project_opened"
         },
         {
@@ -831,10 +810,6 @@
       {
         "command": "sf.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
-      },
-      {
-        "command": "sf.force.lightning.lwc.test.create",
-        "title": "%force_lightning_lwc_test_create_text%"
       },
       {
         "command": "sf.internal.lightning.generate.lwc",

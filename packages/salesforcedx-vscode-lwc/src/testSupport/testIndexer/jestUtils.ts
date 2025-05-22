@@ -84,7 +84,7 @@ export const extractPositionFromFailureMessage = (testFsPath: string, failureMes
       return new vscode.Position(line - 1, column - 1);
     }
     return undefined;
-  } catch (error) {
+  } catch {
     return undefined;
   }
 };
@@ -93,6 +93,4 @@ export const extractPositionFromFailureMessage = (testFsPath: string, failureMes
  * Strip the ANSI color codes from failure message
  * @param failureMessage failure message from Jest output
  */
-export const sanitizeFailureMessage = (failureMessage: string) => {
-  return stripAnsi(failureMessage);
-};
+export const sanitizeFailureMessage = (failureMessage: string) => stripAnsi(failureMessage);

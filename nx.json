@@ -1,0 +1,31 @@
+{
+  "targetDefaults": {
+    "compile": {
+      "cache": true,
+      "dependsOn": [
+        "^compile"
+      ],
+      "outputs": [
+        "{projectRoot}/out"
+      ]
+    },
+    "lint": {
+      "cache": true,
+      "dependsOn": [
+        "^lint"
+      ],
+      "inputs": [
+        "{workspaceRoot}/eslint.config.mjs"
+      ]
+    },
+    "test:unit": {
+      "cache": true,
+      "dependsOn": [
+        "^test:unit"
+      ],
+      "outputs": [
+        "{projectRoot}/coverage"
+      ]
+    }
+  }
+}

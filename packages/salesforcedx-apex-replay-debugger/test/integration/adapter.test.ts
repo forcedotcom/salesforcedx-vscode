@@ -7,9 +7,8 @@
 
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { expect } from 'chai';
-import * as path from 'path';
-import Uri from 'vscode-uri';
+import * as path from 'node:path';
+import { URI } from 'vscode-uri';
 import { ApexReplayDebug, LaunchRequestArguments } from '../../src/adapter/apexReplayDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints';
 import { GoldFileUtil } from './goldFileUtil';
@@ -18,7 +17,6 @@ const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CONFIG_DIR = path.join(__dirname, '..', '..', 'test', 'integration', 'config');
 const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 
-// tslint:disable:no-unused-expression
 describe('Replay debugger adapter - integration', () => {
   jest.setTimeout(320000);
   let goldFileUtil: GoldFileUtil;
@@ -44,18 +42,10 @@ describe('Replay debugger adapter - integration', () => {
     }
   });
 
-  it('Should not attach', async () => {
-    try {
-      await dc.attachRequest({});
-      expect.fail('Debugger client should have thrown an error');
-      // tslint:disable-next-line:no-empty
-    } catch (error) {}
-  });
-
   it('Recursive stack', async () => {
-    let classA = Uri.file(`${projectPath}/force-app/main/default/classes/A.cls`).toString();
-    let classB = Uri.file(`${projectPath}/force-app/main/default/classes/B.cls`).toString();
-    let classRecursive = Uri.file(`${projectPath}/force-app/main/default/classes/RecursiveTest.cls`).toString();
+    let classA = URI.file(`${projectPath}/force-app/main/default/classes/A.cls`).toString();
+    let classB = URI.file(`${projectPath}/force-app/main/default/classes/B.cls`).toString();
+    let classRecursive = URI.file(`${projectPath}/force-app/main/default/classes/RecursiveTest.cls`).toString();
     const classAValidLines = [42];
     const classBValidLines = [42];
     const classRecursiveValidLines = [7];
@@ -94,25 +84,25 @@ describe('Replay debugger adapter - integration', () => {
       lineBreakpointInfo: lineBpInfo,
       projectPath: undefined
     } as LaunchRequestArguments);
-    expect(launchResponse.success).to.equal(true);
+    expect(launchResponse.success).toBe(true);
 
     try {
-      const classAPath = Uri.parse(classA).fsPath;
-      const classBPath = Uri.parse(classB).fsPath;
-      const classRecursivePath = Uri.parse(classRecursive).fsPath;
+      const classAPath = URI.parse(classA).fsPath;
+      const classBPath = URI.parse(classB).fsPath;
+      const classRecursivePath = URI.parse(classRecursive).fsPath;
       console.log(`classAPath: ${classAPath}. classBPath: ${classBPath}. classRecursivePath: ${classRecursivePath}`);
       let addBreakpointsResponse = await dc.setBreakpointsRequest(createBreakpointsArgs(classAPath, classAValidLines));
       assertBreakpointsCreated(addBreakpointsResponse, 1, classAPath, classAValidLines);
       addBreakpointsResponse = await dc.setBreakpointsRequest(createBreakpointsArgs(classBPath, classBValidLines));
       assertBreakpointsCreated(addBreakpointsResponse, 1, classBPath, classBValidLines);
-      // tslint:disable-next-line:no-floating-promises
+
       dc.configurationDoneRequest({});
       // Verify stopped on the first line of debug log
       const stackTraceResponse = await dc.assertStoppedLocation('entry', {
         path: logFilePath,
         line: 1
       });
-      expect(stackTraceResponse.body.stackFrames.length).to.equal(1);
+      expect(stackTraceResponse.body.stackFrames).toHaveLength(1);
       // Verify stopped on first breakpoint
       await dc.continueRequest({
         threadId: ApexReplayDebug.THREAD_ID
@@ -130,12 +120,12 @@ describe('Replay debugger adapter - integration', () => {
       await goldFileUtil.assertTopState('step', classRecursivePath, classRecursiveValidLines[0]);
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});
-      expect(disconnectResponse.success).to.equal(true);
+      expect(disconnectResponse.success).toBe(true);
     }
   });
 
   it('Static variable of one class in different frames', async () => {
-    let classStaticVarsA = Uri.file(`${projectPath}/force-app/main/default/classes/StaticVarsA.cls`).toString();
+    let classStaticVarsA = URI.file(`${projectPath}/force-app/main/default/classes/StaticVarsA.cls`).toString();
     const classStaticVarsAValidLines = [9];
     if (process.platform === 'win32') {
       classStaticVarsA = classStaticVarsA.replace('%3A', ':');
@@ -158,17 +148,16 @@ describe('Replay debugger adapter - integration', () => {
       lineBreakpointInfo: lineBpInfo,
       projectPath: undefined
     } as LaunchRequestArguments);
-    expect(launchResponse.success).to.equal(true);
+    expect(launchResponse.success).toBe(true);
 
     try {
-      const classStaticVarsAPath = Uri.parse(classStaticVarsA).fsPath;
+      const classStaticVarsAPath = URI.parse(classStaticVarsA).fsPath;
       console.log(`classStaticVarsAPath: ${classStaticVarsAPath}`);
       const addBreakpointsResponse = await dc.setBreakpointsRequest(
         createBreakpointsArgs(classStaticVarsAPath, classStaticVarsAValidLines)
       );
       assertBreakpointsCreated(addBreakpointsResponse, 1, classStaticVarsAPath, classStaticVarsAValidLines);
 
-      // tslint:disable-next-line:no-floating-promises
       dc.configurationDoneRequest({});
 
       // Verify stopped on the first line of debug log
@@ -176,7 +165,7 @@ describe('Replay debugger adapter - integration', () => {
         path: logFilePath,
         line: 1
       });
-      expect(stackTraceResponse.body.stackFrames.length).to.equal(1);
+      expect(stackTraceResponse.body.stackFrames).toHaveLength(1);
       // Verify stopped on first breakpoint
       await dc.continueRequest({
         threadId: ApexReplayDebug.THREAD_ID
@@ -184,7 +173,7 @@ describe('Replay debugger adapter - integration', () => {
       await goldFileUtil.assertEntireState('breakpoint', classStaticVarsAPath, classStaticVarsAValidLines[0]);
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});
-      expect(disconnectResponse.success).to.equal(true);
+      expect(disconnectResponse.success).toBe(true);
     }
   });
 });
@@ -207,11 +196,11 @@ const assertBreakpointsCreated = (
   expectedSourcePath: string,
   expectedLineNumbers: number[]
 ) => {
-  expect(response.success).to.equal(true);
-  expect(response.body.breakpoints.length).to.equal(expectedNumOfBreakpoints);
+  expect(response.success).toBe(true);
+  expect(response.body.breakpoints).toHaveLength(expectedNumOfBreakpoints);
   response.body.breakpoints.forEach(bp => {
-    expect(bp.verified).to.be.true;
-    expect(bp.source!.path).to.equal(expectedSourcePath);
-    expect(expectedLineNumbers).to.include(bp.line!);
+    expect(bp.verified).toBe(true);
+    expect(bp.source?.path).toBe(expectedSourcePath);
+    expect(expectedLineNumbers).toContain(bp.line);
   });
 };

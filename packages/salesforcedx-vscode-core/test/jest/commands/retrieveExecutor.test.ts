@@ -6,7 +6,7 @@
  */
 import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
@@ -144,7 +144,6 @@ describe('Retrieve Executor', () => {
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
     expect(getSourceTrackingSpy).not.toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
-    const retrieveCallOrder = retrieveSpy.mock.invocationCallOrder[0];
     expect(pollStatusMock).toHaveBeenCalled();
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });

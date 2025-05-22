@@ -7,7 +7,7 @@
 
 import { RequestService } from '@salesforce/salesforcedx-utils';
 import { Client } from 'faye';
-import * as os from 'os';
+import * as os from 'node:os';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 
@@ -34,7 +34,7 @@ export type StreamingEvent = {
   type: string;
 };
 
-export type ApexDebuggerEvent = {
+type ApexDebuggerEvent = {
   SessionId: string;
   RequestId?: string;
   BreakpointId?: string;

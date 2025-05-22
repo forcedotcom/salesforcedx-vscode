@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import { testWatcher } from '../testRunner/testWatcher';
 import { TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 
-import { isLwcJestTest } from '../utils';
+import { isLwcJestTest } from '../utils/isLwcJestTest';
 
 /**
  * Start watching tests using the provided test execution info.
@@ -17,7 +17,7 @@ import { isLwcJestTest } from '../utils';
  * it will re-run the tests.
  * @param data provided by test watch commands (or test explorer potentially in the future)
  */
-export const lwcTestStartWatching = async (data: { testExecutionInfo: TestExecutionInfo }) => {
+const lwcTestStartWatching = async (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   await testWatcher.watchTest(testExecutionInfo);
 };
@@ -27,7 +27,7 @@ export const lwcTestStartWatching = async (data: { testExecutionInfo: TestExecut
  * It will terminate the test watch task matched by the test URI.
  * @param data provided by test watch commands
  */
-export const lwcTestStopWatching = async (data: { testExecutionInfo: TestExecutionInfo }) => {
+const lwcTestStopWatching = async (data: { testExecutionInfo: TestExecutionInfo }) => {
   const { testExecutionInfo } = data;
   testWatcher.stopWatchingTest(testExecutionInfo);
 };
@@ -44,32 +44,28 @@ export const lwcTestStopWatchingAllTests = () => {
  * Start watching the test of currently focused editor
  */
 export const lwcTestStartWatchingCurrentFile = () => {
-  const { activeTextEditor } = vscode.window;
-  if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
-    const testExecutionInfo: TestFileInfo = {
-      kind: TestInfoKind.TEST_FILE,
-      testType: TestType.LWC,
-      testUri: activeTextEditor.document.uri
-    };
-    return lwcTestStartWatching({
-      testExecutionInfo
-    });
-  }
+  const testExecutionInfo = getCurrentFileTestInfo();
+  return testExecutionInfo ? lwcTestStartWatching({ testExecutionInfo }) : undefined;
 };
 
 /**
  * Stop watching the test of currently focused editor
  */
 export const lwcTestStopWatchingCurrentFile = () => {
+  const testExecutionInfo = getCurrentFileTestInfo();
+  return testExecutionInfo ? lwcTestStopWatching({ testExecutionInfo }) : undefined;
+};
+
+/**
+ * Gets test execution info for the currently focused editor if it's a valid LWC test
+ */
+const getCurrentFileTestInfo = (): TestFileInfo | undefined => {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
-    const testExecutionInfo: TestFileInfo = {
+    return {
       kind: TestInfoKind.TEST_FILE,
       testType: TestType.LWC,
       testUri: activeTextEditor.document.uri
     };
-    return lwcTestStopWatching({
-      testExecutionInfo
-    });
   }
 };

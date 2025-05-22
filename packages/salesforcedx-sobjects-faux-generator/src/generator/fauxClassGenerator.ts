@@ -4,18 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import { EOL } from 'os';
-import * as path from 'path';
-import { mkdir, rm } from 'shelljs';
+import { TOOLS, createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { EOL } from 'node:os';
+import * as path from 'node:path';
 import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
-export const APEX_CLASS_EXTENSION = '.cls';
+const APEX_CLASS_EXTENSION = '.cls';
 const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
 
 export class FauxClassGenerator implements SObjectGenerator {
@@ -43,9 +41,9 @@ export class FauxClassGenerator implements SObjectGenerator {
     return comment ? `${INDENT}/* ${comment.replace(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
   }
 
-  public generate(output: SObjectRefreshOutput): void {
+  public async generate(output: SObjectRefreshOutput): Promise<void> {
     const outputFolderPath = path.join(output.sfdxPath, ...REL_BASE_FOLDER, this.relativePath);
-    if (!this.resetOutputFolder(outputFolderPath)) {
+    if (!(await this.resetOutputFolder(outputFolderPath))) {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
@@ -54,20 +52,16 @@ export class FauxClassGenerator implements SObjectGenerator {
     for (const sobj of sobjects) {
       if (sobj.name) {
         const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
-        this.generateFauxClass(outputFolderPath, sobjDefinition);
+        await this.generateFauxClass(outputFolderPath, sobjDefinition);
       }
     }
   }
 
   // VisibleForTesting
-  public generateFauxClass(folderPath: string, definition: SObjectDefinition): string {
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
-    }
+  public async generateFauxClass(folderPath: string, definition: SObjectDefinition): Promise<string> {
+    await createDirectory(folderPath);
     const fauxClassPath = path.join(folderPath, `${definition.name}${APEX_CLASS_EXTENSION}`);
-    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(definition), {
-      mode: 0o444
-    });
+    await writeFile(fauxClassPath, this.generateFauxClassText(definition));
     return fauxClassPath;
   }
 
@@ -77,13 +71,11 @@ export class FauxClassGenerator implements SObjectGenerator {
     const className = definition.name;
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort((first, second): number => {
-      return first.name || first.type > second.name || second.type ? 1 : -1;
-    });
+    declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
 
-    declarations = declarations.filter((value, index, array): boolean => {
-      return !index || value.name !== array[index - 1].name;
-    });
+    declarations = declarations.filter(
+      (value, index, array): boolean => !index || value.name !== array[index - 1].name
+    );
 
     const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
     const declarationLines = declarations.map(FauxClassGenerator.fieldDeclToString).join(`${EOL}`);
@@ -96,14 +88,13 @@ export class FauxClassGenerator implements SObjectGenerator {
     return generatedClass;
   }
 
-  private resetOutputFolder(pathToClean: string): boolean {
-    if (fs.existsSync(pathToClean)) {
-      rm('-rf', pathToClean);
+  private async resetOutputFolder(pathToClean: string): Promise<boolean> {
+    try {
+      await safeDelete(pathToClean, { recursive: true, useTrash: false });
+      await createDirectory(pathToClean);
+      return true;
+    } catch (error) {
+      throw new Error(`Failed to reset output folder: ${error instanceof Error ? error.message : String(error)}`);
     }
-    if (!fs.existsSync(pathToClean)) {
-      mkdir('-p', pathToClean);
-      return fs.existsSync(pathToClean);
-    }
-    return true;
   }
 }

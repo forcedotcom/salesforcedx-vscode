@@ -6,11 +6,11 @@
  */
 
 import { Global } from '@salesforce/core-bundle';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as vscode from 'vscode';
+import * as path from 'node:path';
+import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '..';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
+import { createDirectory } from './fs';
 
 export const ORGS = 'orgs';
 export const METADATA = 'metadata';
@@ -23,18 +23,9 @@ export const APEX_DB = 'apex.db';
 export const LWC = 'lwc';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
-export const ensureDirectoryExists = (filePath: string): void => {
-  if (fs.existsSync(filePath)) {
-    return;
-  }
-  ensureDirectoryExists(path.dirname(filePath));
-  fs.mkdirSync(filePath);
-};
-
-export const getTestResultsFolder = (vscodePath: string, testType: string) => {
+export const getTestResultsFolder = async (vscodePath: string, testType: string) => {
   const pathToTestResultsFolder = path.join(vscodePath, Global.STATE_FOLDER, TOOLS, TEST_RESULTS, testType);
-
-  ensureDirectoryExists(pathToTestResultsFolder);
+  await createDirectory(pathToTestResultsFolder);
   return pathToTestResultsFolder;
 };
 
@@ -63,16 +54,13 @@ export const getRelativeProjectPath = (fsPath: string = '', packageDirs: string[
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
 };
 
-export const fileExtensionsMatch = (sourceUri: vscode.Uri, targetExtension: string): boolean => {
+export const fileExtensionsMatch = (sourceUri: URI, targetExtension: string): boolean => {
   const extension = sourceUri.path.split('.').pop()?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 };
 
-const stateFolder = (): string => {
-  return workspaceUtils.hasRootWorkspace()
-    ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
-    : '';
-};
+const stateFolder = (): string =>
+  workspaceUtils.hasRootWorkspace() ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER) : '';
 
 const metadataFolder = (): string => {
   const username = WorkspaceContextUtil.getInstance().username;
@@ -115,9 +103,7 @@ const toolsFolder = (): string => {
   return pathToToolsFolder;
 };
 
-const relativeStateFolder = (): string => {
-  return Global.STATE_FOLDER;
-};
+const relativeStateFolder = (): string => Global.STATE_FOLDER;
 
 const relativeToolsFolder = (): string => {
   const relativePathToToolsFolder = path.join(projectPaths.relativeStateFolder(), TOOLS);

@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger/src';
+import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as vscode from 'vscode';
+import * as fs from 'node:fs';
+import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from '../../../src/activation/getDialogStartingPath';
 
 describe('getDialogStartingPath', () => {
@@ -28,7 +28,7 @@ describe('getDialogStartingPath', () => {
       workspaceState: { get: mockGet }
     };
     pathExistsMock = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    vsCodeUriMock = jest.spyOn(vscode.Uri, 'file');
+    vsCodeUriMock = jest.spyOn(URI, 'file');
     debugLogsFolderMock = jest.spyOn(projectPaths, 'debugLogsFolder');
     stateFolderMock = jest.spyOn(projectPaths, 'stateFolder');
   });
@@ -36,7 +36,7 @@ describe('getDialogStartingPath', () => {
   it('Should return last opened log folder if present', () => {
     hasRootWorkspaceStub.mockReturnValue(true);
     mockGet.mockReturnValue(testPath);
-    vsCodeUriMock.mockReturnValue({ path: testPath } as vscode.Uri);
+    vsCodeUriMock.mockReturnValue({ path: testPath } as URI);
 
     // Act
     const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
@@ -45,7 +45,7 @@ describe('getDialogStartingPath', () => {
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(pathExistsMock).toHaveBeenCalledWith(testPath);
     expect(vsCodeUriMock).toHaveBeenCalledWith(testPath);
-    expect((dialogStartingPathUri as vscode.Uri).path).toEqual(testPath);
+    expect((dialogStartingPathUri as URI).path).toEqual(testPath);
   });
 
   it('Should return project log folder when last opened log folder not present', async () => {
@@ -55,7 +55,7 @@ describe('getDialogStartingPath', () => {
     debugLogsFolderMock.mockReturnValue(fakePathToDebugLogsFolder);
     vsCodeUriMock.mockReturnValue({
       path: fakePathToDebugLogsFolder
-    } as vscode.Uri);
+    } as URI);
 
     // Act
     const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
@@ -64,7 +64,7 @@ describe('getDialogStartingPath', () => {
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(pathExistsMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
     expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
-    expect((dialogStartingPathUri as vscode.Uri).path).toEqual(fakePathToDebugLogsFolder);
+    expect((dialogStartingPathUri as URI).path).toEqual(fakePathToDebugLogsFolder);
   });
 
   it('Should return state folder as fallback when project log folder not present', async () => {
@@ -77,7 +77,7 @@ describe('getDialogStartingPath', () => {
     stateFolderMock.mockReturnValue(fakePathToStateFolder);
     vsCodeUriMock.mockReturnValue({
       path: fakePathToStateFolder
-    } as vscode.Uri);
+    } as URI);
 
     // Act
     const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
@@ -86,7 +86,7 @@ describe('getDialogStartingPath', () => {
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(pathExistsMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
     expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToStateFolder);
-    expect((dialogStartingPathUri as vscode.Uri).path).toEqual(fakePathToStateFolder);
+    expect((dialogStartingPathUri as URI).path).toEqual(fakePathToStateFolder);
   });
 
   it('Should return undefined when not in a project workspace', async () => {
@@ -96,6 +96,6 @@ describe('getDialogStartingPath', () => {
     // Act
     const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
 
-    expect(dialogStartingPathUri as vscode.Uri).toEqual(undefined);
+    expect(dialogStartingPathUri as URI).toEqual(undefined);
   });
 });

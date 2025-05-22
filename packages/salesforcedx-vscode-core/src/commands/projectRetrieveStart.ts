@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecution,
   CliCommandExecutor,
-  Command,
   ContinueResponse,
+  EmptyParametersGatherer,
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult,
   Row,
-  SfCommandBuilder,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -21,16 +21,9 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
 import { nls } from '../messages';
-import {
-  CommandParams,
-  EmptyParametersGatherer,
-  FlagParameter,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export const pullCommand: CommandParams = {
+const pullCommand: CommandParams = {
   command: 'project:retrieve:start',
   description: {
     default: 'project_retrieve_start_default_org_text',

@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalComponent, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { LocalComponent, PostconditionChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
-import { ContinueOrCancel, isContinue, MetadataDictionary, OneOrMany, workspaceUtils } from '../../util';
+import { ContinueOrCancel, isContinue, MetadataDictionary, OneOrMany } from '../../util';
 
 import { PathStrategyFactory } from './sourcePathStrategies';
 

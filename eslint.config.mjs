@@ -14,8 +14,9 @@ import eslintPluginImport, { __esModule } from 'eslint-plugin-import';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
 export default [
   {
@@ -28,19 +29,18 @@ export default [
       '**/jest.integration.config.js',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-apex-replay-debugger/src/**',
-      'packages/system-tests/assets/**',
-      'packages/system-tests/scenarios/**',
-      'packages/system-tests/src/**',
+      'test-assets/**',
       'packages/salesforcedx-sobjects-faux-generator/scripts/**',
       'packages/salesforcedx-sobjects-faux-generator/coverage/**',
       'packages/salesforcedx-vscode-soql/test/vscode-integration',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-lwc/test/vscode-integration',
       'packages/salesforcedx-vscode-core/test/vscode-integration/**',
-      'packages/salesforcedx-test-utils-vscode/src/testrunner.ts'
+      'scripts/installVSIXFromBranch.ts',
+      'scripts/vsce-bundled-extension.ts',
+      'scripts/reportInstalls.ts'
     ]
   },
-  eslintPluginPrettierRecommended,
   {
     files: ['**/*.ts'],
     languageOptions: {
@@ -61,9 +61,17 @@ export default [
       jsdoc: eslintPluginJsdoc,
       'jest-formatting': eslintPluginJestFormatting,
       'prefer-arrow': eslintPluginPreferArrow,
-      '@stylistic/eslint-plugin-ts': stylistic
+      '@stylistic/eslint-plugin-ts': stylistic,
+      unicorn: eslintPluginUnicorn
     },
     rules: {
+      'unicorn/prefer-node-protocol': 'error',
+      'unicorn/filename-case': [
+        'error',
+        {
+          case: 'camelCase'
+        }
+      ],
       'header/header': [
         'error',
         'block',
@@ -78,6 +86,13 @@ export default [
           ' * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause',
           ' '
         ]
+      ],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          args: 'none',
+          ignoreRestSiblings: true
+        }
       ],
       '@typescript-eslint/adjacent-overload-signatures': 'error',
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
@@ -147,7 +162,6 @@ export default [
           hoist: 'all'
         }
       ],
-      '@typescript-eslint/no-unused-expressions': 'warn',
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-var-requires': 'error',
       '@typescript-eslint/prefer-function-type': 'error',
@@ -180,6 +194,7 @@ export default [
           allowNullish: true
         }
       ],
+      'arrow-body-style': ['error', 'as-needed'],
       'arrow-parens': ['error', 'as-needed'],
       'comma-dangle': 'error',
       complexity: 'off',
@@ -190,6 +205,10 @@ export default [
       'guard-for-in': 'error',
       'id-denylist': 'error',
       'id-match': 'error',
+      'import/no-empty-named-blocks': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-cycle': 'error',
+      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/test/**', '**/scripts/**'] }],
       'import/order': [
         'error',
         {
@@ -241,6 +260,7 @@ export default [
           ]
         }
       ],
+      'import/no-self-import': 'error',
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-indentation': 'error',
       'jsdoc/newline-after-description': 'off',
@@ -252,6 +272,7 @@ export default [
       'no-cond-assign': 'error',
       'no-console': 'off',
       'no-debugger': 'error',
+      'no-duplicate-imports': 'error',
       'no-empty': 'off',
       'no-empty-function': 'off',
       'no-eval': 'error',
@@ -301,16 +322,25 @@ export default [
       jest: eslintPluginJest
     },
     rules: {
+      'unicorn/filename-case': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unused-expressions': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
-      'jest/unbound-method': 'error'
+      'jest/unbound-method': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '.*Mock$|.*Stub$|.*Spy$',
+          args: 'none',
+          argsIgnorePattern: '.*',
+          ignoreRestSiblings: true
+        }
+      ]
     }
   },
   {
@@ -322,5 +352,6 @@ export default [
     rules: {
       'header/header': 'off'
     }
-  }
+  },
+  eslintConfigPrettier
 ];

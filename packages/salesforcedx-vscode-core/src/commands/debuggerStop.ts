@@ -4,16 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { CliCommandExecutor, Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { CommandOutput, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import {
+  CliCommandExecutor,
+  workspaceUtils,
+  ContinueResponse,
+  EmptyParametersGatherer,
+  ParametersGatherer,
+  ProgressNotification
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
+import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
-import { workspaceUtils } from '../util';
-import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 type QueryResponse = {
   status: number;
@@ -30,8 +35,8 @@ type QueryRecord = {
   Id: string;
 };
 
-export type IdSelection = { id: string };
-export class IdGatherer implements ParametersGatherer<IdSelection> {
+type IdSelection = { id: string };
+class IdGatherer implements ParametersGatherer<IdSelection> {
   private readonly sessionIdToUpdate: string;
 
   public constructor(sessionIdToUpdate: string) {
@@ -43,7 +48,7 @@ export class IdGatherer implements ParametersGatherer<IdSelection> {
   }
 }
 
-export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
+class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
   public build(data: IdSelection): Command {
     return new SfCommandBuilder()
       .withArg('data:update:record')
@@ -57,7 +62,7 @@ export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelect
   }
 }
 
-export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
+class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withArg('data:query')
@@ -103,8 +108,7 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
       } else {
         void notificationService.showInformationMessage(nls.localize('debugger_stop_none_found_text'));
       }
-      // tslint:disable-next-line:no-empty
-    } catch (e) {}
+    } catch {}
 
     return Promise.resolve();
   }

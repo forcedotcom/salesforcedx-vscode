@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
-import { setTimeout } from 'timers';
+import * as path from 'node:path';
+import { setTimeout } from 'node:timers';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
@@ -22,7 +23,7 @@ export class DeployQueue {
 
   private static instance: DeployQueue;
 
-  private readonly queue = new Set<vscode.Uri>();
+  private readonly queue = new Set<URI>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private locked = false;
   private deployWaitStart?: [number, number];
@@ -45,7 +46,7 @@ export class DeployQueue {
     }
   }
 
-  public async enqueue(document: vscode.Uri) {
+  public async enqueue(document: URI) {
     this.queue.add(document);
     await this.wait();
     await this.doDeploy();
@@ -66,7 +67,7 @@ export class DeployQueue {
     });
   }
 
-  private async executeDeployCommand(toDeploy: vscode.Uri[]) {
+  private async executeDeployCommand(toDeploy: URI[]) {
     await vscode.commands.executeCommand('sf.deploy.multiple.source.paths', toDeploy, null, true);
   }
 
@@ -153,7 +154,7 @@ const displayError = (message: string) => {
 const ignorePath = async (documentPath: string): Promise<boolean> =>
   fileShouldNotBeDeployed(documentPath) || !(await pathIsInPackageDirectory(documentPath));
 
-export const pathIsInPackageDirectory = async (documentPath: string): Promise<boolean> => {
+const pathIsInPackageDirectory = async (documentPath: string): Promise<boolean> => {
   try {
     return await SalesforcePackageDirectories.isInPackageDirectory(documentPath);
   } catch (error) {
@@ -170,8 +171,7 @@ export const pathIsInPackageDirectory = async (documentPath: string): Promise<bo
   }
 };
 
-export const fileShouldNotBeDeployed = (fsPath: string): boolean =>
-  isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
+const fileShouldNotBeDeployed = (fsPath: string): boolean => isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
 
 const isDotFile = (fsPath: string): boolean => path.basename(fsPath).startsWith('.');
 

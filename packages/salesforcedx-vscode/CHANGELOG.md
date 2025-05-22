@@ -1,3 +1,155 @@
+# 63.14.1 - May 21, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We reverted the check we added in v63.11.0. The check limited the visibility of org-related `SFDX` commands to only valid files. We removed it due to performance issues on large projects. ([PR #6289](https://github.com/forcedotcom/salesforcedx-vscode/pull/6289))
+- We bumped the versions of the Salesforce shared libraries to support deploying and retrieving the `WorkflowFlowAutomation` metadata type. ([PR #6280](https://github.com/forcedotcom/salesforcedx-vscode/pull/6280))
+- We updated the `SFDX: Turn Off Apex Debug Log for Replay Debugger` command. Now it doesn't call the `sf data:delete:record` CLI command under the hood. This change significantly improves how fast the command runs. ([#6259](https://github.com/forcedotcom/salesforcedx-vscode/pull/6259))
+
+# 63.12.0 - May 7, 2025
+
+## Added
+
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
+
+We removed the ESLint and Apex PMD extensions from the Salesforce Expanded Pack. Instead, we recommend that you use the ESLint and PMD engines included in the Salesforce Code Analyzer extension, which we also added to the Salesforce Standard Pack. To learn more about the Code Analyzer extension, go to https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/analyze-vscode.html.
+
+If you’re already familiar with Code Analyzer v4 (which is soon reaching its end of life), use this document to migrate to Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/migrate.html.
+
+If you use ESLint and have custom ESLint configurations, see this document to learn how to use and configure the ESLint engine of Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/engine-eslint.html. Code Analyzer v5 currently supports only ESLint v8.x, and not v9.x.
+
+Similarly, if you use PMD and have custom PMD configurations, see this document to learn how to use and configure the PMD engine of Code Analyzer v5: https://developer.salesforce.com/docs/platform/salesforce-code-analyzer/guide/engine-pmd.html.
+
+# 63.11.0 - April 30, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- The following commands are now only visible and executable for files and folders within the paths specified in the `packageDirectories` array of `sfdx-project.json`:
+
+- `SDFX:Deploy to Org`
+
+-  `SFDX:Retrieve from Org`
+
+ - `SFDX:Diff Against Org`
+
+ - `SFDX:Delete from Org`
+
+ - `SFDX:Create Manifest`
+
+These commands no longer appear in the Explorer View context menu, Editor View context menu, or Command Palette for resources outside the defined `packageDirectories`, including anything outside the `force-app` directory. Previously, attempting to run these commands on files or folders outside the configured package directories resulted in errors during deployment or retrieval. ([PR #6224](https://github.com/forcedotcom/salesforcedx-vscode/pull/6224))
+
+# 63.10.0 - April 23, 2025
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We've now [deprecated](https://github.com/forcedotcom/salesforcedx-vscode/issues/6199) the `SFDX: Create a Lightning Web Component Test` command. It's no longer available from the command palette. ([PR #6225](https://github.com/forcedotcom/salesforcedx-vscode/pull/6225))
+
+- We bumped SDR and some libraries to catch up with the latest. This update fixed an issue with deploying and retrieving `DigitalExperienceBundle` metadata. ([PR #6223](https://github.com/forcedotcom/salesforcedx-vscode/pull/6223))
+
+- We enhanced telemetry for Agentforce for Developers by making changes under the hood. ([PR #6171](https://github.com/forcedotcom/salesforcedx-vscode/pull/6171))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We updated the text for the Java home setting to reflect currently supported versions. ([PR #6228](https://github.com/forcedotcom/salesforcedx-vscode/pull/6228), [PR #6229](https://github.com/forcedotcom/salesforcedx-vscode/pull/6229))
+
+# 63.9.2 - April 17, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed the import in the Lightning web components (LWC) test template so that newly created LWC tests won't contain any errors in the Problems Tab. ([PR #661](https://github.com/forcedotcom/salesforcedx-templates/pull/661), [PR #662](https://github.com/forcedotcom/salesforcedx-templates/pull/662), [PR #6207](https://github.com/forcedotcom/salesforcedx-vscode/pull/6207), [PR #6209](https://github.com/forcedotcom/salesforcedx-vscode/pull/6209))
+
+#### salesforcedx-vscode-apex
+
+- We fixed an issue where an Apex variable with a number in the middle of its name was previously treated as two separate variables. ([PR #6184](https://github.com/forcedotcom/salesforcedx-vscode/pull/6184))
+- We fixed an issue where the `SFDX: Restart Apex Language Server` command wasn't always visible. Now it's always visible. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187))
+- We improved the UX for restarting the Apex Language Server by making the notification in the Apex menu seamlessly guide users to the new `SFDX: Restart Apex Language Server` command in the Command Palette. This ensures a smoother, and more intuitive workflow. ([PR #6194](https://github.com/forcedotcom/salesforcedx-vscode/pull/6194))
+- We now support any Java version that is 11 or higher. ([PR #6201](https://github.com/forcedotcom/salesforcedx-vscode/pull/6201))
+- We made some changes under the hood. ([PR #6187](https://github.com/forcedotcom/salesforcedx-vscode/pull/6187), [PR #6195](https://github.com/forcedotcom/salesforcedx-vscode/pull/6195), [PR #6189](https://github.com/forcedotcom/salesforcedx-vscode/pull/6189))
+
+#### salesforcedx-apex-replay-debugger
+
+- We made some changes under the hood. ([PR #6206](https://github.com/forcedotcom/salesforcedx-vscode/pull/6206))
+
+
+# 63.7.0 - April 2, 2025
+
+## Added
+
+#### salesforcedx-vscode-core
+#### salesforcedx-vscode-apex
+
+- We updated the Org Browser to include more lightning component types. ([PR #6174](https://github.com/forcedotcom/salesforcedx-vscode/pull/6174))
+- Use the new `SFDX: Restart Apex Language Server` command to restart the Apex Language Server. ([PR #6177](https://github.com/forcedotcom/salesforcedx-vscode/pull/6177))
+- Code coverage colors now match your VS Code theme, so you can create a personalized coding experience. In the past, these colors were static. ([PR #6155](https://github.com/forcedotcom/salesforcedx-vscode/pull/6155))
+
+
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #6163](https://github.com/forcedotcom/salesforcedx-vscode/pull/6163))
+
+# 63.6.0 - March 26, 2025
+
+## Added
+
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
+
+ 🚀  **Agentforce for Developers Elevated to Salesforce Extension Pack**
+
+With its elevated presence in the Salesforce Extension Pack, Agentforce for Developers is now a core part of the Salesforce developer experience. This change improves discoverability, making it easier for developers to find and install Agentforce for Developers as part of their workflow. ([PR #6097](https://github.com/forcedotcom/salesforcedx-vscode/pull/6097))
+
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We updated the org browser icon. ([PR #6152](https://github.com/forcedotcom/salesforcedx-vscode/pull/6152))
+
+# 63.5.0 - March 19, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We made some changes under the hood. ([PR #6146](https://github.com/forcedotcom/salesforcedx-vscode/pull/6146), [PR #6148](https://github.com/forcedotcom/salesforcedx-vscode/pull/6148), [PR #6150](https://github.com/forcedotcom/salesforcedx-vscode/pull/6150))
+
+# 63.4.1 - March 14, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed an issue that caused missing descriptions to be handled incorrectly when creating an OpenAPI document. ([PR #6125](https://github.com/forcedotcom/salesforcedx-vscode/pull/6125))
+
+- We improved the OpenAPI document generation so that the generated fields appear in a specific order. ([PR #6129](https://github.com/forcedotcom/salesforcedx-vscode/pull/6129))
+
+- We made some changes under the hood. ([PR #6140](https://github.com/forcedotcom/salesforcedx-vscode/pull/6140))
+
+#### salesforcedx-vscode-core
+
+- We added some labels in the Org Browser. ([PR #6139](https://github.com/forcedotcom/salesforcedx-vscode/pull/6139))
+
+- We made some changes under the hood. ([PR #6124](https://github.com/forcedotcom/salesforcedx-vscode/pull/6124), [PR #6128](https://github.com/forcedotcom/salesforcedx-vscode/pull/6128))
+
+#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lwc
+
+- We made some changes under the hood. ([PR #6141](https://github.com/forcedotcom/salesforcedx-vscode/pull/6141))
+
 # 63.2.3 - February 28, 2025
 
 ## Added

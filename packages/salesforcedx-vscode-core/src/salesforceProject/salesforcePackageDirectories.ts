@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { JsonArray, JsonMap } from '@salesforce/ts-types';
-import * as path from 'path';
+import * as path from 'node:path';
 import { SalesforceProjectConfig } from '../salesforceProject';
-import { workspaceUtils } from '../util';
 
 export default class SalesforcePackageDirectories {
   public static async getPackageDirectoryPaths(): Promise<string[]> {

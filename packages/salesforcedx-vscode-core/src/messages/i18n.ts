@@ -258,15 +258,6 @@ export const messages = {
   table_header_value: 'Value',
   table_header_success: 'Success',
   error_parsing_sfdx_project_file: "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
-  sfdx_cli_not_found: 'Salesforce CLI is not installed. Install it from [%s](%s)',
-  sfdx_cli_not_supported:
-    'Your installed Salesforce CLI version is no longer supported. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
-  sf_v1_not_supported:
-    'Your installed Salesforce CLI version is incompatible with all versions of our extensions. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
-  both_sfdx_and_sf:
-    'You have both SFDX(v7) and SF(v2) of Salesforce CLI installed. Uninstall SFDX(v7) by running `npm uninstall sfdx-cli --global` in your terminal.',
-  sfdx_v7_deprecation:
-    "If you're currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you've been running continue to work as before.",
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
@@ -298,7 +289,6 @@ export const messages = {
   aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
   lightning_generate_lwc_text: 'SFDX: Create Lightning Web Component',
-  force_lightning_lwc_test_create_text: 'SFDX: Create Lightning Web Component Test',
   empty_components: 'No components available',
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
@@ -509,6 +499,7 @@ export const messages = {
   LightningExperienceTheme: 'Lightning Experience Themes',
   LightningMessageChannel: 'Lightning Message Channels',
   LightningOnboardingConfig: 'Lightning Onboarding Configs',
+  LightningTypeBundle: 'Lightning Type Bundles',
   ListView: 'List Views',
   LiveChatAgentConfig: 'Live Chat Agent Configs',
   LiveChatButton: 'Live Chat Buttons',
@@ -640,6 +631,7 @@ export const messages = {
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
+  WorkflowFlowAutomation: 'Workflow Flow Automations',
   XOrgHub: 'X Org Hubs',
 
   conflict_detect_execution_name: 'Conflict Detection',

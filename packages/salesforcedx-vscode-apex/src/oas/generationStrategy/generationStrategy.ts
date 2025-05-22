@@ -17,6 +17,7 @@ import {
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const AsyncLock = require('async-lock');
+
 export abstract class GenerationStrategy {
   abstract metadata: ApexClassOASEligibleResponse;
   abstract context: ApexClassOASGatherContextResponse;
@@ -47,9 +48,8 @@ export abstract class GenerationStrategy {
     return Math.floor(prompt.length / 4);
   }
 
-  getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
-    return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
-  };
+  getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
+    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 
   async incrementCallCount(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access

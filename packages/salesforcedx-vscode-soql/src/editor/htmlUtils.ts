@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 /**
  * The index.html file in the dist folder of the @salesforce/soql-builder-ui
@@ -54,9 +55,9 @@ export class HtmlUtils {
    */
   public static transformScriptTags(html: string, pathToLwcDist: string, webview: vscode.Webview): string {
     let matches: string[] | null;
-    let newScriptSrc: vscode.Uri;
+    let newScriptSrc: URI;
     while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
-      newScriptSrc = webview.asWebviewUri(vscode.Uri.file(path.join(pathToLwcDist, matches[1])));
+      newScriptSrc = webview.asWebviewUri(URI.file(path.join(pathToLwcDist, matches[1])));
       html = html.replace(`./${matches[1]}`, newScriptSrc.toString());
     }
     return html;

@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "63.4.0",
+  "version": "63.14.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -10,25 +10,16 @@
   "activationEvents": [
     "onView:never"
   ],
-  "main": "./out/src/htmlLanguageService.js",
-  "typings": "./out/src/htmlLanguageService",
+  "main": "out/src",
   "devDependencies": {
-    "@types/chai": "4.3.3",
-    "@types/mocha": "^2.2.38",
     "@types/node": "^20.0.0",
-    "chai": "^4.0.2",
-    "eslint-plugin-jest": "28.9.0",
-    "mocha": "^10",
-    "mocha-junit-reporter": "^1.23.3",
-    "mocha-multi-reporters": "^1.1.7",
-    "prettier": "3.3.3",
-    "shx": "0.3.4",
+    "shx": "0.4.0",
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "vscode-languageserver-types": "3.4.0",
+    "vscode-languageserver-types": "^3.4.0",
     "vscode-nls": "^2.0.2",
-    "vscode-uri": "^1.0.1"
+    "vscode-uri": "^3.1.0"
   },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
@@ -37,8 +28,7 @@
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "test": "npm run test:unit",
-    "test:jest": "jest --coverage",
-    "test:unit": "mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "test:unit": "jest --coverage",
     "watch": "tsc -watch -p ."
   }
 }

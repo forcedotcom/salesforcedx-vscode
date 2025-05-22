@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'fs';
-import { EOL } from 'os';
-import * as path from 'path';
+import { createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { EOL } from 'node:os';
+import * as path from 'node:path';
 import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { DeclarationGenerator } from './declarationGenerator';
 
-export const TYPESCRIPT_TYPE_EXT = '.d.ts';
+const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 
 export class TypingGenerator implements SObjectGenerator {
@@ -20,33 +20,26 @@ export class TypingGenerator implements SObjectGenerator {
     this.declGenerator = new DeclarationGenerator();
   }
 
-  public generate(output: SObjectRefreshOutput): void {
+  public async generate(output: SObjectRefreshOutput): Promise<void> {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
-    this.generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
+    await this.generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
   }
 
-  public generateTypes(sobjects: SObject[], targetFolder: string): void {
-    if (!fs.existsSync(targetFolder)) {
-      fs.mkdirSync(targetFolder, { recursive: true });
-    }
+  public async generateTypes(sobjects: SObject[], targetFolder: string): Promise<void> {
+    await createDirectory(targetFolder);
 
     for (const sobj of sobjects) {
       if (sobj.name) {
         const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
-        this.generateType(targetFolder, sobjDefinition);
+        await this.generateType(targetFolder, sobjDefinition);
       }
     }
   }
 
-  public generateType(folderPath: string, definition: SObjectDefinition): string {
+  public async generateType(folderPath: string, definition: SObjectDefinition): Promise<string> {
     const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
-    if (fs.existsSync(typingPath)) {
-      fs.unlinkSync(typingPath);
-    }
-
-    fs.writeFileSync(typingPath, this.convertDeclarations(definition), {
-      mode: 0o444
-    });
+    await safeDelete(typingPath);
+    await writeFile(typingPath, this.convertDeclarations(definition));
 
     return typingPath;
   }
@@ -57,13 +50,11 @@ export class TypingGenerator implements SObjectGenerator {
 
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort((first, second): number => {
-      return first.name || first.type > second.name || second.type ? 1 : -1;
-    });
+    declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
 
-    declarations = declarations.filter((value, index, array): boolean => {
-      return !index || value.name !== array[index - 1].name;
-    });
+    declarations = declarations.filter(
+      (value, index, array): boolean => !index || value.name !== array[index - 1].name
+    );
 
     const declarationLines = declarations
       .filter(decl => !this.isCollectionType(decl.type))

@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { QueryResult } from '@jsforce/jsforce-node';
-import { JsonMap } from '@salesforce/ts-types';
-import { homedir } from 'os';
-import * as path from 'path';
+import type { QueryResult } from '../types';
+import { getRootWorkspacePath, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import type { JsonMap } from '@salesforce/ts-types';
+import { homedir } from 'node:os';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
+import { URI } from 'vscode-uri';
+import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 
@@ -47,7 +49,6 @@ export class QueryDataFileService {
   public async save(): Promise<string> {
     let selectedFileSavePath = '';
     const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
-    const fileContent = new TextEncoder().encode(fileContentString);
     const defaultFileName = this.dataProvider.getFileName();
     /*
         queryDataDefaultFilePath will be used as the default options in the save dialog
@@ -61,15 +62,15 @@ export class QueryDataFileService {
     }
     const queryDataDefaultFilePath = path.join(saveDir, defaultFileName);
 
-    const fileInfo: vscode.Uri | undefined = await vscode.window.showSaveDialog({
-      defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
+    const fileInfo: URI | undefined = await vscode.window.showSaveDialog({
+      defaultUri: URI.file(queryDataDefaultFilePath)
     });
 
-    if (fileInfo && fileInfo.fsPath) {
+    if (fileInfo?.fsPath) {
       // use .fsPath, not .path to account for OS.
       selectedFileSavePath = fileInfo.fsPath;
       // Save query results to disk
-      await vscode.workspace.fs.writeFile(fileInfo, fileContent);
+      await writeFile(selectedFileSavePath, fileContentString);
       this.showFileInExplorer(selectedFileSavePath);
       this.showSaveSuccessMessage(path.basename(selectedFileSavePath));
     }
@@ -79,7 +80,7 @@ export class QueryDataFileService {
   private showFileInExplorer(targetPath: string) {
     // Only reveal saved file if its inside current workspace
     if (targetPath.startsWith(getRootWorkspacePath())) {
-      vscode.commands.executeCommand('revealInExplorer', vscode.Uri.file(targetPath));
+      vscode.commands.executeCommand('revealInExplorer', URI.file(targetPath));
     }
   }
 

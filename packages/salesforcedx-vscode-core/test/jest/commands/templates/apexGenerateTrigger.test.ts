@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { apexGenerateTrigger } from '../../../../src/commands/templates';
-import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateTriggerExecutor';
+import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateTriggerExecutor';
 import {
   APEX_TRIGGER_DIRECTORY,
   APEX_TRIGGER_NAME_MAX_LENGTH,
@@ -14,7 +15,6 @@ import {
 } from '../../../../src/commands/templates/metadataTypeConstants';
 import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
-  CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir
@@ -22,10 +22,17 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
-jest.mock('../../../../src/commands/templates/executors/LibraryApexGenerateTriggerExecutor');
+jest.mock('../../../../src/commands/templates/executors/libraryApexGenerateTriggerExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
+  const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
+  return {
+    ...actual,
+    CompositeParametersGatherer: jest.fn()
+  };
+});
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
@@ -43,11 +50,9 @@ describe('apexGenerateTrigger Unit Tests.', () => {
     runMock = jest.fn();
     // Note that the entire sfCommandlet module can not be mocked like the other modules b/c
     // there are multiple exports there that cause issues if not available.
-    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => {
-      return {
-        run: runMock
-      };
-    });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+      run: runMock
+    }));
   });
 
   it('Should be able to execute apexGenerateTrigger.', async () => {

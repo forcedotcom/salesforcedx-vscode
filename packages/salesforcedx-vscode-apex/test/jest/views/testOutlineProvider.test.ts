@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { iconHelpers } from '../../../src/views/icons/iconHelpers';
 
 import { getTestOutlineProvider } from '../../../src/views/testOutlineProvider';
@@ -17,7 +18,7 @@ describe('testOutlineProvider Unit Tests.', () => {
   beforeEach(() => {
     // testOutlineProvider has a hidden dependency on iconHelpers.getIconPath that needs to be mocked
     // for our purposes, the return value has no bearing on what we're testing
-    jest.spyOn(iconHelpers, 'getIconPath').mockReturnValue(vscode.Uri.parse('https://salesforce.com'));
+    jest.spyOn(iconHelpers, 'getIconPath').mockReturnValue(URI.parse('https://salesforce.com'));
     commandMock = jest.spyOn(vscodeMocked.commands, 'executeCommand');
   });
 

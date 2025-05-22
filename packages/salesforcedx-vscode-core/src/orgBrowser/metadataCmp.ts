@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ListMetadataQuery } from '@jsforce/jsforce-node/lib/api/metadata';
 import { Connection } from '@salesforce/core-bundle';
 import { isNullOrUndefined, projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve-bundle/lib/src/registry';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
@@ -97,11 +96,10 @@ export class ComponentUtils {
     componentsPath: string,
     folderName?: string
   ): Promise<string> {
-    const metadataQuery: ListMetadataQuery = { type: metadataType };
-    if (folderName) {
-      metadataQuery.folder = folderName;
-    }
-    const metadataFileProperties = await connection.metadata.list(metadataQuery);
+    const metadataFileProperties = await connection.metadata.list({
+      type: metadataType,
+      ...(folderName ? { folder: folderName } : {})
+    });
     const result = { status: 0, result: metadataFileProperties };
     const jsonResult = JSON.stringify(result, null, 2);
     fs.writeFileSync(componentsPath, jsonResult);

@@ -7,5 +7,5 @@ const cwd = process.cwd();
 runIntegrationTests({
   extensionDevelopmentPath: path.join(__dirname, '..', 'packages'),
   extensionTestsPath: path.join(cwd, 'out', 'test', 'vscode-integration'),
-  testWorkspace: path.join(__dirname, '..', 'packages', 'system-tests', 'assets', 'sfdx-simple')
+  testWorkspace: path.join(__dirname, '..', 'test-assets', 'sfdx-simple')
 });

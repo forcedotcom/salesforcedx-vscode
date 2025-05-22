@@ -23,6 +23,13 @@ export const messages = {
   apex_execute_unexpected_error: 'Unexpected error',
   apex_language_server_loading: 'Indexing Apex files. Hold tight, almost ready… $(sync~spin)',
   apex_language_server_loaded: 'Indexing complete $(check)',
+  apex_language_server_restart: 'Restart Apex Language Server',
+  apex_language_server_restarting: 'Apex Language Server is restarting… $(sync~spin)',
+  apex_language_server_restart_dialog_prompt: 'Clean Apex DB and Restart? Or Restart Only?',
+  apex_language_server_restart_dialog_clean_and_restart: 'Clean Apex DB and Restart',
+  apex_language_server_restart_dialog_restart_only: 'Restart Only',
+  apex_language_server_already_restarting: 'Apex Language Server is already restarting. Please wait.',
+  apex_language_server_restart_failed: 'Failed to restart Apex Language Server: ',
   apex_language_server_failed_activate: 'Unable to activate the Apex Language Server',
   apex_language_server_quit_and_restarting: 'Apex Language Server has stopped. Restarting… %d of 5',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
@@ -85,7 +92,7 @@ export const messages = {
   source_missing_text:
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   wrong_java_version_text:
-    'An unsupported Java version was detected. Download and install [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html), [Java 17](https://www.oracle.com/java/technologies/downloads/#java17) or [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](%s).',
+    'We detected an unsupported Java version. Java versions 11 or higher are supported. We recommend [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](%s).',
   wrong_java_version_short: 'Unsupported Java version',
   java_version_check_command_failed: 'Running java command %s failed with error: %s',
   apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',

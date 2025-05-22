@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { languageClientUtils } from '../languageUtils';
+import { URI } from 'vscode-uri';
+import { languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import {
@@ -19,27 +20,6 @@ import {
   ApexOASResource
 } from '../oas/schemas';
 import { getTelemetryService } from '../telemetry/telemetry';
-/**
- * Interface representing the metadata of a method.
- */
-export interface MethodMetadata {
-  name: string;
-  parameters: Parameter[];
-  returnType: string;
-  isAuraEnabled: boolean;
-  className?: string;
-}
-
-/**
- * Interface representing a parameter of a method.
- */
-export interface Parameter {
-  name: string;
-  in: string;
-  required: boolean;
-  description: string;
-  schema: { type: string };
-}
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -52,7 +32,7 @@ export class MetadataOrchestrator {
    * @returns The metadata of the method, or undefined if no method is found.
    */
   public validateMetadata = async (
-    sourceUri: vscode.Uri | vscode.Uri[],
+    sourceUri: URI | URI[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponse | undefined> => {
     const isEligibleResponses = await this.validateEligibility(sourceUri, isMethodSelected);
@@ -84,35 +64,31 @@ export class MetadataOrchestrator {
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
     gil.addApexClassOASEligibleRequest(requests.payload);
     const telemetryService = await getTelemetryService();
-    let response;
-    const languageClient = languageClientUtils.getClientInstance();
+    const languageClient = languageClientManager.getClientInstance();
     if (languageClient) {
       const classNumbers = requests.payload.length.toString();
-      const requestTarget = this.requestTarget(requests);
+      const requestTarget = buildRequestTarget(requests);
       try {
-        response = (await languageClient?.isOpenAPIEligible(requests)) as ApexClassOASEligibleResponses;
+        const response = (await languageClient?.isOpenAPIEligible(requests)) as ApexClassOASEligibleResponses;
         telemetryService.sendEventData('isEligibleResponseSucceeded', {
           classNumbers,
           requestTarget
         });
+        return response;
       } catch (error) {
         telemetryService.sendException(
           'isEligibleResponseFailed',
           `${error} failed to send request to language server with ${classNumbers} classes and target of request for ${requestTarget}`
         );
-        // fallback TBD after we understand it better
         throw new Error(nls.localize('cannot_get_apexoaseligibility_response'));
       }
     }
-    return response;
   };
 
-  public gatherContext = async (
-    sourceUri: vscode.Uri | vscode.Uri[]
-  ): Promise<ApexClassOASGatherContextResponse | undefined> => {
+  public gatherContext = async (sourceUri: URI | URI[]): Promise<ApexClassOASGatherContextResponse | undefined> => {
     const telemetryService = await getTelemetryService();
     let response: ApexClassOASGatherContextResponse | undefined;
-    const languageClient = languageClientUtils.getClientInstance();
+    const languageClient = languageClientManager.getClientInstance();
     if (languageClient) {
       try {
         response = await languageClient?.gatherOpenAPIContext(
@@ -124,7 +100,6 @@ export class MetadataOrchestrator {
           'gatherContextFailed',
           `${error} failed to send request to language server for ${path.basename(sourceUri.toString())}`
         );
-        // fallback TBD after we understand it better
         throw new Error(nls.localize('cannot_gather_context'));
       }
     }
@@ -133,23 +108,22 @@ export class MetadataOrchestrator {
   };
 
   public validateEligibility = async (
-    sourceUri: vscode.Uri | vscode.Uri[],
+    sourceUri: URI | URI[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
     const telemetryService = await getTelemetryService();
     const requests = [];
     if (Array.isArray(sourceUri)) {
       await gil.addSourceUnderStudy(sourceUri);
-      // if sourceUri is an array, then multiple classes/folders are selected
       for (const uri of sourceUri) {
-        const request = {
+        const request: ApexClassOASEligibleRequest = {
           resourceUri: uri,
           includeAllMethods: true,
           includeAllProperties: true,
           methodNames: [],
           position: null,
           propertyNames: []
-        } as ApexClassOASEligibleRequest;
+        };
         requests.push(request);
       }
     } else {
@@ -163,7 +137,6 @@ export class MetadataOrchestrator {
           throw new Error(nls.localize('invalid_active_text_editor'));
         }
       }
-      // generate the payload
       await gil.addSourceUnderStudy(sourceUri ? sourceUri : vscode.window.activeTextEditor?.document.uri);
       const resourceUri = sourceUri ?? vscode.window.activeTextEditor?.document.uri;
       if (!resourceUri) {
@@ -186,18 +159,18 @@ export class MetadataOrchestrator {
     return responses;
   };
 
-  public requestTarget(requestPayload: ApexOASEligiblePayload): ApexOASResource {
-    const payload = requestPayload.payload;
-    if (payload.length > 1) return ApexOASResource.multiClass;
-    else {
-      const request = payload[0];
-      if (!request.includeAllMethods && !request.includeAllProperties) return ApexOASResource.singleMethodOrProp;
-      if (!request.resourceUri?.fsPath.endsWith('.cls')) {
-        return ApexOASResource.folder;
-      } else return ApexOASResource.class;
-    }
-  }
-  getLLMServiceInterface = async (): Promise<LLMServiceInterface> => {
-    return ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
-  };
+  getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
+    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 }
+
+export const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): ApexOASResource => {
+  const payload = requestPayload.payload;
+  if (payload.length > 1) return ApexOASResource.multiClass;
+  else {
+    const request = payload[0];
+    if (!request.includeAllMethods && !request.includeAllProperties) return ApexOASResource.singleMethodOrProp;
+    if (!request.resourceUri?.fsPath.endsWith('.cls')) {
+      return ApexOASResource.folder;
+    } else return ApexOASResource.class;
+  }
+};

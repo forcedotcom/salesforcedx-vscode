@@ -10,7 +10,7 @@ import { JSONPath } from 'jsonpath-plus';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { ApexClassOASEligibleResponse, OpenAPIDoc } from '../schemas';
+import { ApexClassOASEligibleResponse } from '../schemas';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class MethodValidationStep implements ProcessorStep {

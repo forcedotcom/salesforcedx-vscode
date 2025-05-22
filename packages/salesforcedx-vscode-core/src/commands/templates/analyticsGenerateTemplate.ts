@@ -7,6 +7,7 @@
 
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   DirFileNameSelection,
   ParametersGatherer
@@ -14,18 +15,11 @@ import {
 import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import {
-  CompositeParametersGatherer,
-  PathStrategyFactory,
-  SelectOutputDir,
-  SfCommandlet,
-  SfWorkspaceChecker,
-  SourcePathStrategy
-} from '../util';
+import { PathStrategyFactory, SelectOutputDir, SfCommandlet, SfWorkspaceChecker, SourcePathStrategy } from '../util';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { ANALYTICS_TEMPLATE_DIRECTORY, ANALYTICS_TEMPLATE_TYPE } from './metadataTypeConstants';
 
-export class LibraryAnalyticsGenerateTemplateExecutor extends LibraryBaseTemplateCommand<TemplateAndDir> {
+class LibraryAnalyticsGenerateTemplateExecutor extends LibraryBaseTemplateCommand<TemplateAndDir> {
   public executionName = nls.localize('analytics_generate_template_text');
   public telemetryName = 'analytics_generate_template';
   public metadataTypeName = ANALYTICS_TEMPLATE_TYPE;
@@ -51,14 +45,14 @@ export class LibraryAnalyticsGenerateTemplateExecutor extends LibraryBaseTemplat
   }
 }
 
-export type TemplateAndDir = DirFileNameSelection & Template;
+type TemplateAndDir = DirFileNameSelection & Template;
 
-export type Template = {
+type Template = {
   // fileName is the templateName
   fileName: string;
 };
 
-export class SelectProjectTemplate implements ParametersGatherer<Template> {
+class SelectProjectTemplate implements ParametersGatherer<Template> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Template>> {
     const projectTemplateInputOptions = {
       prompt: nls.localize('analytics_template_name_text')

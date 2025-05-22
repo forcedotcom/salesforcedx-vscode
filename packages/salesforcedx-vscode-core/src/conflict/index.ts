@@ -5,26 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 import { commands, Disposable, ExtensionContext, Uri, window } from 'vscode';
 import { nls } from '../messages';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
-export {
-  CommonDirDirectoryDiffer,
-  diffFolder,
-  diffOneFile,
-  DirectoryDiffer,
-  DirectoryDiffResults
-} from './directoryDiffer';
-export {
-  MetadataCacheCallback,
-  MetadataCacheExecutor,
-  MetadataCacheResult,
-  MetadataCacheService,
-  MetadataContext,
-  PathType
-} from './metadataCacheService';
+
+export { DirectoryDiffResults } from './directoryDiffer';
+export { MetadataCacheExecutor, MetadataCacheResult, MetadataCacheService, PathType } from './metadataCacheService';
 export { PersistentStorageService } from './persistentStorageService';
 export const conflictView = ConflictView.getInstance();
 

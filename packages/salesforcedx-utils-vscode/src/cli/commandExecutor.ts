@@ -4,29 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { ChildProcess, SpawnOptions } from 'child_process';
-import * as os from 'os';
+import { Command, GlobalCliEnvironment, CancellationToken } from '@salesforce/salesforcedx-utils';
+import { ChildProcess, SpawnOptions } from 'node:child_process';
+import * as os from 'node:os';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 
-// Below two dependancies are not structured correcly for import unless require is used.
+// Below two dependencies are not structured correctly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Command } from './';
 const cross_spawn = require('cross-spawn');
 const kill = require('tree-kill');
 /* eslint-enable @typescript-eslint/no-var-requires */
-
-export type CancellationToken = {
-  isCancellationRequested: boolean;
-};
-
-export class GlobalCliEnvironment {
-  public static readonly environmentVariables = new Map<string, string>();
-}
 
 export class CliCommandExecutor {
   protected static patchEnv(options: SpawnOptions, baseEnvironment: Map<string, string>): SpawnOptions {
@@ -226,8 +217,8 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-const killPromise = (processId: number, signal: string): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
+const killPromise = (processId: number, signal: string): Promise<void> =>
+  new Promise<void>((resolve, reject) => {
     kill(processId, signal, (err: {}) => {
       if (err) {
         reject(err);
@@ -235,4 +226,3 @@ const killPromise = (processId: number, signal: string): Promise<void> => {
       resolve();
     });
   });
-};

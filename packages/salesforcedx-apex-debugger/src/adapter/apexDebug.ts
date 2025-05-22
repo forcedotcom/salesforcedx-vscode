@@ -32,8 +32,8 @@ import {
   logger
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import * as os from 'os';
-import { basename } from 'path';
+import * as os from 'node:os';
+import { basename } from 'node:path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import { LineBreakpointInfo, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {
@@ -91,7 +91,7 @@ const TRACE_CATEGORY_STREAMINGAPI = 'streaming';
 
 const CONNECT_TYPE_ISV_DEBUGGER = 'ISV_DEBUGGER';
 
-export type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol' | 'breakpoints' | 'streaming';
+type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol' | 'breakpoints' | 'streaming';
 
 export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   // comma separated list of trace selectors (see TraceCategory)
@@ -217,7 +217,7 @@ export class ApexVariable extends Variable {
   }
 }
 
-export type FilterType = 'named' | 'indexed' | 'all';
+type FilterType = 'named' | 'indexed' | 'all';
 
 export type VariableContainer = {
   expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]>;
@@ -225,7 +225,7 @@ export type VariableContainer = {
   getNumberOfChildren(): number | undefined;
 };
 
-export type ScopeType = 'local' | 'static' | 'global';
+type ScopeType = 'local' | 'static' | 'global';
 
 export class ScopeContainer implements VariableContainer {
   private type: ScopeType;
@@ -772,8 +772,7 @@ export class ApexDebug extends LoggingDebugSession {
           );
           return Promise.resolve(knownBps);
         });
-        // tslint:disable-next-line:no-empty
-      } catch (error) {}
+      } catch {}
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
         const lineNumber = this.convertDebuggerLineToClient(verifiedBreakpoint);
         response.body.breakpoints.push({
@@ -980,13 +979,13 @@ export class ApexDebug extends LoggingDebugSession {
         const requestArgs: SetExceptionBreakpointsArguments = args;
         if (requestArgs && requestArgs.exceptionInfo) {
           try {
-            await this.lock.acquire('exception-breakpoint', async () => {
-              return this.myBreakpointService.reconcileExceptionBreakpoints(
+            await this.lock.acquire('exception-breakpoint', async () =>
+              this.myBreakpointService.reconcileExceptionBreakpoints(
                 this.salesforceProject,
                 this.mySessionService.getSessionId(),
                 requestArgs.exceptionInfo
-              );
-            });
+              )
+            );
             if (requestArgs.exceptionInfo.breakMode === EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS) {
               this.printToDebugConsole(
                 nls.localize('created_exception_breakpoint_text', requestArgs.exceptionInfo.label)

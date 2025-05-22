@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { MetadataCacheExecutor, MetadataCacheResult, PathType } from '../conflict';
 import * as differ from '../conflict/directoryDiffer';
@@ -17,7 +18,7 @@ import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
 const workspaceChecker = new SfWorkspaceChecker();
 
-export const sourceDiff = async (sourceUri?: vscode.Uri) => {
+export const sourceDiff = async (sourceUri?: URI) => {
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -47,7 +48,7 @@ export const sourceDiff = async (sourceUri?: vscode.Uri) => {
   await commandlet.run();
 };
 
-export const sourceFolderDiff = async (explorerPath: vscode.Uri) => {
+export const sourceFolderDiff = async (explorerPath?: URI) => {
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -81,7 +82,7 @@ export const sourceFolderDiff = async (explorerPath: vscode.Uri) => {
   await commandlet.run();
 };
 
-export const handleCacheResults = async (username: string, cache?: MetadataCacheResult): Promise<void> => {
+const handleCacheResults = async (username: string, cache?: MetadataCacheResult): Promise<void> => {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
       await differ.diffOneFile(cache.selectedPath, cache.cache.components[0], username);

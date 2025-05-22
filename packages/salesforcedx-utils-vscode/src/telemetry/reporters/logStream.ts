@@ -4,13 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable prettier/prettier */
-'use strict';
 
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import * as fs from 'fs';
-import * as path from 'path';
-import { Disposable, workspace } from 'vscode';
+import * as path from 'node:path';
+import { Disposable, Uri, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 
 /**
@@ -18,28 +15,28 @@ import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
  */
 export class LogStream extends Disposable implements TelemetryReporter {
   private toDispose: Disposable[] = [];
-
-  private stream: fs.WriteStream | undefined;
+  private logUri: Uri;
+  private buffer: string = '';
 
   constructor(
     private extensionId: string,
-    private logFilePath: string
+    logFilePath: string
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));
-    logFilePath = path.join(logFilePath, `${this.extensionId}.txt`);
-    this.stream = fs.createWriteStream(logFilePath, {
-      flags: 'a',
-      encoding: 'utf8',
-      autoClose: true
-    });
-    this.toDispose.push(workspace.onDidChangeConfiguration(() => () => { }));
+    this.logUri = Uri.file(path.join(logFilePath, `${this.extensionId}.txt`));
+    this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
     console.log(
-      'VS Code telemetry event logging enabled for: ' +
-      this.extensionId +
-      '. Telemetry events will be written via write stream to a file at: ' +
-      this.logFilePath +
-      '.'
+      `VS Code telemetry event logging enabled for: ${this.extensionId}. Telemetry events will be written via write stream to a file at: ${this.logUri.fsPath}.`
     );
+  }
+
+  private async appendToFile(content: string): Promise<void> {
+    try {
+      this.buffer += content;
+      await workspace.fs.writeFile(this.logUri, Buffer.from(this.buffer));
+    } catch (error) {
+      console.error('Failed to write telemetry log:', error);
+    }
   }
 
   public sendTelemetryEvent(
@@ -54,14 +51,12 @@ export class LogStream extends Disposable implements TelemetryReporter {
       properties = { orgId };
     }
 
-    if (this.stream) {
-      this.stream.write(
-        `telemetry/${eventName} ${JSON.stringify({
-          properties,
-          measurements
-        })}\n`
-      );
-    }
+    void this.appendToFile(
+      `telemetry/${eventName} ${JSON.stringify({
+        properties,
+        measurements
+      })}\n`
+    );
   }
 
   public sendExceptionEvent(
@@ -73,25 +68,17 @@ export class LogStream extends Disposable implements TelemetryReporter {
     const properties = { orgId };
     console.log('LogStream.sendExceptionEvent - exceptionMessage: ' + exceptionMessage);
 
-    if (this.stream) {
-      this.stream.write(
-        `telemetry/${exceptionName} ${JSON.stringify({
-          properties,
-          measurements
-        })}\n`
-      );
-    }
+    void this.appendToFile(
+      `telemetry/${exceptionName} ${JSON.stringify({
+        properties,
+        measurements
+      })}\n`
+    );
   }
 
-  public dispose(): Promise<any> {
-    const flushEventsToLogger = new Promise<any>(resolve => {
-      if (!this.stream) {
-        return resolve(void 0);
-      }
-      this.stream.on('finish', () => resolve(void 0));
-      this.stream.end();
-    });
-
-    return flushEventsToLogger;
+  public async dispose(): Promise<void> {
+    if (this.buffer) {
+      void this.appendToFile('');
+    }
   }
 }

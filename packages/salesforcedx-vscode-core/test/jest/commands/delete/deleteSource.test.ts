@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
-import { DeleteSourceExecutor } from '../../../../src/commands';
+import * as path from 'node:path';
+import { DeleteSourceExecutor } from '../../../../src/commands/deleteSource';
 
 describe('Project Delete Source', () => {
   let isSourceTracked: boolean;

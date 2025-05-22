@@ -5,23 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import { Uri, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export const code2ProtocolConverter = (value: Uri) => {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
-  }
-};
-
-const protocol2CodeConverter = (value: string) => {
-  return Uri.parse(value);
-};
+const protocol2CodeConverter = (value: string) => Uri.parse(value);
 
 export const createLanguageClient = (serverPath: string): LanguageClient => {
   // Setup the language server

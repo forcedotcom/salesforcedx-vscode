@@ -6,22 +6,27 @@
  */
 
 import { SfProject } from '@salesforce/core-bundle';
-import { getJsonCandidate, identifyJsonTypeInString, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
+import {
+  extensionUris,
+  getJsonCandidate,
+  identifyJsonTypeInString,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
-import { join } from 'path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import * as yaml from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { nls } from './messages';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
-import { ApexClassOASGatherContextResponse, ApexClassOASEligibleResponse } from './oas/schemas';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
 
 const DOT_SFDX = '.sfdx';
-const TEMPLATES_DIR = join(DOT_SFDX, 'resources', 'templates');
+const TEMPLATES_DIR = path.join(DOT_SFDX, 'resources', 'templates');
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -38,9 +43,8 @@ export const processOasDocumentFromYaml = async (
   context?: ApexClassOASGatherContextResponse,
   eligibleResult?: ApexClassOASEligibleResponse,
   isRevalidation?: boolean
-): Promise<ProcessorInputOutput> => {
-  return processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), context, eligibleResult, isRevalidation);
-};
+): Promise<ProcessorInputOutput> =>
+  processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), context, eligibleResult, isRevalidation);
 
 /**
  * Processes an OAS document.
@@ -80,7 +84,7 @@ export const createProblemTabEntriesForOasDocument = (
   processedOasResult: ProcessorInputOutput,
   isESRDecomposed: boolean
 ): void => {
-  const uri = vscode.Uri.file(fullPath);
+  const uri = URI.file(fullPath);
   OasProcessor.diagnosticCollection.clear();
 
   const adjustErrors = processedOasResult.errors.map(result => {
@@ -140,21 +144,17 @@ export const cleanupGeneratedDoc = (doc: string): string => {
  * @param {string} doc - The JSON string representing the OAS document.
  * @returns {OpenAPIV3.Document} - The parsed OAS document.
  */
-export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => {
-  return JSON.parse(doc) as OpenAPIV3.Document;
-};
+export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => JSON.parse(doc) as OpenAPIV3.Document;
 
 /**
  * Parses an OAS document from a YAML string.
  * @param {string} doc - The YAML string representing the OAS document.
  * @returns {OpenAPIV3.Document} - The parsed OAS document.
  */
-export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => {
-  return yaml.parse(doc) as OpenAPIV3.Document;
-};
+export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => yaml.parse(doc) as OpenAPIV3.Document;
 
 const PROMPT_TEMPLATES = {
-  METHOD_BY_METHOD: join('resources', 'templates', 'methodByMethod.ejs')
+  METHOD_BY_METHOD: path.join('resources', 'templates', 'methodByMethod.ejs')
 };
 
 export type ejsTemplateKey = keyof typeof PROMPT_TEMPLATES;
@@ -180,8 +180,8 @@ const copyDirectorySync = (src: string, dest: string) => {
   const entries = fs.readdirSync(src, { withFileTypes: true });
 
   for (const entry of entries) {
-    const srcPath = join(src, entry.name);
-    const destPath = join(dest, entry.name);
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
 
     if (entry.isDirectory()) {
       copyDirectorySync(srcPath, destPath);
@@ -193,18 +193,18 @@ const copyDirectorySync = (src: string, dest: string) => {
 
 /**
  * Resolves the template directory URI.
- * @returns {vscode.Uri} - The URI of the template directory.
+ * @returns {URI} - The URI of the template directory.
  */
-const resolveTemplateDir = (): vscode.Uri => {
+const resolveTemplateDir = (): URI => {
   const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
   const extensionDir = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
   if (logLevel !== 'fatal') {
     if (!fs.existsSync(TEMPLATES_DIR)) {
       fs.mkdirSync(TEMPLATES_DIR, { recursive: true });
       // copy contents of extensionDir to TEMPLATES_DIR
-      copyDirectorySync(join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
+      copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
     }
-    return vscode.Uri.file(join(process.cwd(), DOT_SFDX));
+    return URI.file(path.join(process.cwd(), DOT_SFDX));
   }
   return extensionDir;
 };
@@ -216,11 +216,11 @@ export const ejsTemplateHelpers = {
   /**
    * Gets the template path for a given key.
    * @param {ejsTemplateKey} key - The key for the template.
-   * @returns {vscode.Uri} - The URI of the template path.
+   * @returns {URI} - The URI of the template path.
    */
-  getTemplatePath: (key: ejsTemplateKey): vscode.Uri => {
+  getTemplatePath: (key: ejsTemplateKey): URI => {
     const baseExtensionPath = resolveTemplateDir();
-    return vscode.Uri.file(join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
+    return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
   }
 };
 
@@ -229,8 +229,8 @@ export const ejsTemplateHelpers = {
  * @param {vscode.Diagnostic[]} diagnostics - The diagnostics to summarize.
  * @returns {number[]} - An array with counts of diagnostics by severity.
  */
-export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[] => {
-  return diagnostics.reduce(
+export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[] =>
+  diagnostics.reduce(
     (acc, cur) => {
       acc[cur.severity] += 1;
       acc[acc.length - 1] += 1; // [error, warning, info, hint, total]
@@ -238,4 +238,15 @@ export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[]
     },
     [0, 0, 0, 0, 0]
   );
+
+export const getCurrentTimestamp = (): string => {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const year = now.getFullYear();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
+  return formattedDate;
 };

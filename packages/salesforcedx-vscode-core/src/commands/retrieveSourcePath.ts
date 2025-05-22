@@ -6,7 +6,7 @@
  */
 import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -14,8 +14,9 @@ import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
-export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
+class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
   constructor() {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_sourcepath');
   }
@@ -61,11 +62,14 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
   }
 }
 
-export const retrieveSourcePaths = async (sourceUri: vscode.Uri | undefined, uris: vscode.Uri[] | undefined) => {
+export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[] | undefined) => {
   if (!sourceUri) {
     // When the source is retrieved via the command palette, both sourceUri and uris are
     // each undefined, and sourceUri needs to be obtained from the active text editor.
-    sourceUri = getUriFromActiveEditor();
+    sourceUri = getUriFromActiveEditor({
+      message: 'retrieve_select_file_or_directory',
+      exceptionKey: 'retrieve_with_sourcepath'
+    });
     if (!sourceUri) {
       return;
     }
@@ -94,19 +98,4 @@ export const retrieveSourcePaths = async (sourceUri: vscode.Uri | undefined, uri
   );
 
   await commandlet.run();
-};
-
-export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-    return editor.document.uri;
-  }
-
-  const errorMessage = nls.localize('retrieve_select_file_or_directory');
-  telemetryService.sendException('retrieve_with_sourcepath', errorMessage);
-  notificationService.showErrorMessage(errorMessage);
-  channelService.appendLine(errorMessage);
-  channelService.showChannelOutput();
-
-  return undefined;
 };

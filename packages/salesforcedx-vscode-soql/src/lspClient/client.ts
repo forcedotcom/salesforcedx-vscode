@@ -4,17 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
+import * as path from 'node:path';
 import { ExtensionContext, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import * as codeCompletion from './codeCompletion';
 import * as queryValidation from './queryValidation';
 
 let client: LanguageClient;
-
-export const clearDiagnostics = (): void => {
-  client?.diagnostics?.clear();
-};
 
 export const startLanguageClient = async (extensionContext: ExtensionContext): Promise<void> => {
   // path to language server module
@@ -47,8 +43,7 @@ export const startLanguageClient = async (extensionContext: ExtensionContext): P
   client = queryValidation.init(client);
 
   // Start the client. This will also launch the server
-  client.start();
-  await client.onReady();
+  await client.start();
   client = queryValidation.afterStart(client);
 };
 

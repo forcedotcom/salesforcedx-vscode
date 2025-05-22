@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { COMPOSITE_BATCH_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { COMPOSITE_BATCH_URL } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { BaseCommand, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 
 export type BatchRequests = {
@@ -22,12 +22,12 @@ export type BatchDeleteResponse = {
   results: BatchDeleteResult[];
 };
 
-export type BatchDeleteResult = {
+type BatchDeleteResult = {
   statusCode: number;
   result: SingleResult[] | null;
 };
 
-export type SingleResult = {
+type SingleResult = {
   errorCode: string;
   message: string;
 };

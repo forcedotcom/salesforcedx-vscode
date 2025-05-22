@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as path from 'path';
+import { getTestResultsFolder, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { lwcTestIndexer } from '../testIndexer';
 import { TestExecutionInfo } from '../types';
 
@@ -63,13 +63,10 @@ class TestResultsWatcher implements vscode.Disposable {
     }
   }
 
-  private updateTestResultsFromTestResultsJson(testResultsUri: vscode.Uri) {
+  private async updateTestResultsFromTestResultsJson(testResultsUri: URI) {
     try {
-      const { fsPath: testResultsFsPath } = testResultsUri;
-      const testResultsJSON = fs.readFileSync(testResultsFsPath, {
-        encoding: 'utf8'
-      });
-      const testResults = JSON.parse(testResultsJSON);
+      const testResultsContent = await readFile(testResultsUri.fsPath);
+      const testResults = JSON.parse(testResultsContent);
       lwcTestIndexer.updateTestResults(testResults);
     } catch (error) {
       console.error(error);

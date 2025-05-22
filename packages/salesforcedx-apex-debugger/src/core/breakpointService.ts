@@ -165,8 +165,7 @@ export class BreakpointService {
             if (breakpointId) {
               knownBreakpoints.splice(knownBpIdx, 1);
             }
-            // tslint:disable-next-line:no-empty
-          } catch (error) {}
+          } catch {}
         }
       }
     }
@@ -179,8 +178,7 @@ export class BreakpointService {
             if (breakpointId) {
               this.cacheLineBreakpoint(uri, clientLine, breakpointId);
             }
-            // tslint:disable-next-line:no-empty
-          } catch (error) {}
+          } catch {}
         }
       }
     }
@@ -232,10 +230,5 @@ export class BreakpointService {
         this.exceptionBreakpointCache.set(info.typeref, createdBreakpointId);
       }
     }
-  }
-
-  public clearSavedBreakpoints(): void {
-    this.lineBreakpointCache.clear();
-    this.exceptionBreakpointCache.clear();
   }
 }

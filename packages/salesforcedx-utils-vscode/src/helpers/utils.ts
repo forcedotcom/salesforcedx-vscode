@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename } from 'path';
+import { basename } from 'node:path';
 import { telemetryService } from '../telemetry';
 
 export const getJsonCandidate = (str: string): string | null => {
@@ -93,9 +93,7 @@ export const extractJson = <T = any>(str: string): T => {
   return JSON.parse(jsonCandidate) as T; // Cast to generic type
 };
 
-export const isNullOrUndefined = (object: any): object is null | undefined => {
-  return object === null || object === undefined;
-};
+export const isNullOrUndefined = (object: any): object is null | undefined => object === null || object === undefined;
 
 // There's a bug in VS Code where, after a file has been renamed,
 // the URI that VS Code passes to the command is stale and is the
@@ -104,7 +102,7 @@ export const isNullOrUndefined = (object: any): object is null | undefined => {
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
 
-export const flushFilePath = (filePath: string): string => {
+const flushFilePath = (filePath: string): string => {
   if (filePath === '') {
     return filePath;
   }
@@ -135,18 +133,12 @@ export const flushFilePath = (filePath: string): string => {
   return nativePath;
 };
 
-export const flushFilePaths = (filePaths: string[]): string[] => {
+const flushFilePaths = (filePaths: string[]): string[] => {
   for (let i = 0; i < filePaths.length; i++) {
     filePaths[i] = flushFilePath(filePaths[i]);
   }
 
   return filePaths;
-};
-
-export const asyncFilter = async <T>(arr: T[], callback: (value: T, index: number, array: T[]) => unknown) => {
-  const results = await Promise.all(arr.map(callback));
-
-  return arr.filter((_v, index) => results[index]);
 };
 
 export const fileUtils = {
@@ -155,13 +147,9 @@ export const fileUtils = {
   extractJson
 };
 
-export const stripAnsiInJson = (str: string, hasJson: boolean): string => {
-  return str && hasJson ? stripAnsi(str) : str;
-};
+export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
 
-export const stripAnsi = (str: string): string => {
-  return str ? str.replaceAll(ansiRegex(), '') : str;
-};
+export const stripAnsi = (str: string): string => (str ? str.replaceAll(ansiRegex(), '') : str);
 
 export const getMessageFromError = (err: any): string => {
   if (err instanceof Error) {
@@ -196,7 +184,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
+const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
   const pattern = [
     '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
     '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))'
@@ -211,6 +199,13 @@ export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
  * @param setB
  * @returns
  */
-export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => {
-  return new Set([...setA].filter(x => !setB.has(x)));
-};
+export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => new Set([...setA].filter(x => !setB.has(x)));
+
+/**
+ * Used to remove column/line from org Apex compilations errors.
+ * @param error
+ * @returns
+ */
+export const fixupError = (error: string | undefined): string =>
+  // Normalize error messages by trimming whitespace and removing redundant prefixes
+  error !== undefined ? error.replace(/\(\d+:\d+\)/, '').trim() : 'Unknown error occurred.';

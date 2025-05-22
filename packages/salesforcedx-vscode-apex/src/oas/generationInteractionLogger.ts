@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import { join } from 'path';
+import * as fs from 'node:fs';
+import { join } from 'node:path';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { SF_LOG_LEVEL_SETTING } from '../constants';
 
 export default class GenerationInteractionLogger {
@@ -100,7 +101,7 @@ export default class GenerationInteractionLogger {
     }
   }
 
-  public async addSourceUnderStudy(uri: vscode.Uri | vscode.Uri[] | undefined): Promise<void> {
+  public async addSourceUnderStudy(uri: URI | URI[] | undefined): Promise<void> {
     if (this.okToLog() && uri) {
       try {
         if (Array.isArray(uri)) {

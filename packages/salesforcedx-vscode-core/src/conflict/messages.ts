@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { ConflictDetectionMessages } from '../commands/util';
 
 export const getConflictMessagesFor = (logName: string): ConflictDetectionMessages | undefined => {
@@ -31,13 +31,12 @@ export const getConflictMessagesFor = (logName: string): ConflictDetectionMessag
       'deploy_with_manifest',
       {
         warningMessageKey,
-        commandHint: input => {
-          return new SfCommandBuilder()
+        commandHint: input =>
+          new SfCommandBuilder()
             .withArg('project:deploy:start')
             .withFlag('--manifest', input as string)
             .build()
-            .toString();
-        }
+            .toString()
       }
     ]
   ]);

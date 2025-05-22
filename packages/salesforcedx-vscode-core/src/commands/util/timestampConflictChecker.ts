@@ -5,8 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
-import { basename, normalize } from 'path';
+import {
+  CancelResponse,
+  ContinueResponse,
+  PostconditionChecker,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
+import { basename, normalize } from 'node:path';
 import { channelService } from '../../channels';
 import { conflictView, DirectoryDiffResults, MetadataCacheService } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
@@ -15,7 +20,6 @@ import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, salesforceCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils } from '../../util';
 import { ConflictDetectionMessages } from './conflictDetectionMessages';
 
 export class TimestampConflictChecker implements PostconditionChecker<string> {

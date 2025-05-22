@@ -4,16 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { CommandOutput, CommandBuilder, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
-  Command,
-  CommandBuilder,
   CommandExecution,
-  CommandOutput,
   CompositeCliCommandExecutor,
   ContinueResponse,
-  SfCommandBuilder
+  EmptyParametersGatherer,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -21,11 +19,11 @@ import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, workspaceUtils } from '../util';
+import { OrgAuthInfo } from '../util';
 import { developerLogTraceFlag } from '.';
-import { EmptyParametersGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
+class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();
   private cancellationToken = this.cancellationTokenSource.token;
 
@@ -128,7 +126,7 @@ export const getUserId = async (projectPath: string): Promise<string> => {
   }
 };
 
-export class QueryUser extends SfCommandletExecutor<{}> {
+class QueryUser extends SfCommandletExecutor<{}> {
   private username: string;
   public constructor(username: string) {
     super();
@@ -144,7 +142,7 @@ export class QueryUser extends SfCommandletExecutor<{}> {
   }
 }
 
-export class CreateDebugLevel extends SfCommandletExecutor<{}> {
+class CreateDebugLevel extends SfCommandletExecutor<{}> {
   public readonly developerName = `ReplayDebuggerLevels${Date.now()}`;
   public build(): Command {
     return new SfCommandBuilder()
@@ -161,7 +159,7 @@ export class CreateDebugLevel extends SfCommandletExecutor<{}> {
   }
 }
 
-export class CreateTraceFlag extends SfCommandletExecutor<{}> {
+class CreateTraceFlag extends SfCommandletExecutor<{}> {
   private userId: string;
 
   public constructor(userId: string) {
@@ -188,7 +186,7 @@ export class CreateTraceFlag extends SfCommandletExecutor<{}> {
   }
 }
 
-export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
+class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     const nonNullDebugLevel = developerLogTraceFlag.getDebugLevelId()!;
     return new SfCommandBuilder()
@@ -203,7 +201,7 @@ export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
+class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
     return new SfCommandBuilder()
@@ -221,7 +219,7 @@ export class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export class QueryTraceFlag extends SfCommandletExecutor<{}> {
+class QueryTraceFlag extends SfCommandletExecutor<{}> {
   public build(userId: string): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('start_apex_debug_logging'))

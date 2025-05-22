@@ -8,12 +8,11 @@
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { ApexReplayDebug, ApexVariable, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableBeginState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('Variable begin scope event', () => {
   let getUriFromSignatureStub: sinon.SinonStub;
   let getStaticMapStub: sinon.SinonStub;
@@ -68,7 +67,7 @@ describe('Variable begin scope event', () => {
       name: 'signature',
       source: {
         name: 'foo.cls',
-        path: Uri.parse(uriFromSignature).fsPath,
+        path: URI.parse(uriFromSignature).fsPath,
         sourceReference: 0
       }
     } as StackFrame);

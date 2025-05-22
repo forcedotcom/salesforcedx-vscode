@@ -22,7 +22,7 @@ import {
   TraceFlags,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import { checkpointService, CheckpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
@@ -41,7 +41,7 @@ type LogFileRetrieveResult = {
   success: boolean;
 };
 
-export class QuickLaunch {
+class QuickLaunch {
   public async debugTest(testClass: string, testName?: string): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
 
@@ -64,7 +64,7 @@ export class QuickLaunch {
       const logFileRetrieve = await this.retrieveLogFile(connection, testResult.logFileId);
 
       if (logFileRetrieve.success && logFileRetrieve.filePath) {
-        launchFromLogFile(logFileRetrieve.filePath, false);
+        await launchFromLogFile(logFileRetrieve.filePath, false);
         return true;
       }
     } else if (testResult.message) {
@@ -120,7 +120,7 @@ export class QuickLaunch {
   }
 }
 
-export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
+class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   constructor() {
     super(nls.localize('debug_test_exec_name'), 'debug_test_replay_debugger', OUTPUT_CHANNEL);
   }

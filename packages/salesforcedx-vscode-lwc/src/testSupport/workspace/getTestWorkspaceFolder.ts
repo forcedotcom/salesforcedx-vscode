@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 
@@ -13,7 +14,7 @@ import { telemetryService } from '../../telemetry';
  * Otherwise, return the first workspace folder if it exists.
  * @param testUri optional testUri
  */
-export const getTestWorkspaceFolder = (testUri?: vscode.Uri) => {
+export const getTestWorkspaceFolder = (testUri?: URI) => {
   let workspaceFolder;
   if (testUri) {
     workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);

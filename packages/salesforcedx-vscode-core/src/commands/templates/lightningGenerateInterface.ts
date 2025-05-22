@@ -5,25 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CompositeParametersGatherer,
+  DirFileNameSelection,
+  LocalComponent
+} from '@salesforce/salesforcedx-utils-vscode';
 import { LightningInterfaceOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
-import {
-  CompositeParametersGatherer,
-  MetadataTypeGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SfCommandlet,
-  SfWorkspaceChecker
-} from '../util';
+import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet, SfWorkspaceChecker } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { AURA_DIRECTORY, AURA_INTERFACE_EXTENSION, AURA_TYPE } from './metadataTypeConstants';
 
-export class LibraryLightningGenerateInterfaceExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryLightningGenerateInterfaceExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_interface_text');
   public telemetryName = 'lightning_generate_interface';
   public metadataTypeName = AURA_TYPE;

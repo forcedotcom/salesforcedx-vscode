@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+import * as vscode from 'vscode';
 import { AppInsights } from '../../../../src';
 import * as Settings from '../../../../src/settings';
 import { determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
@@ -11,6 +13,9 @@ import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
 import { TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
+
+jest.mock('vscode');
+const vscodeMocked = jest.mocked(vscode);
 
 describe('determineReporters', () => {
   let config: TelemetryReporterConfig;
@@ -27,6 +32,18 @@ describe('determineReporters', () => {
       reporterName: 'salesforcedx-vscode',
       isDevMode: false
     };
+    // Mock Uri.file for LogStream
+    vscodeMocked.Uri.file.mockImplementation(filePath => ({
+      fsPath: filePath,
+      scheme: 'file',
+      authority: '',
+      path: filePath,
+      query: '',
+      fragment: '',
+      with: jest.fn(),
+      toString: jest.fn().mockReturnValue(`file://${filePath}`),
+      toJSON: jest.fn().mockReturnValue({ scheme: 'file', path: filePath })
+    }));
   });
 
   afterEach(() => {
@@ -68,6 +85,7 @@ describe('determineReporters', () => {
     });
 
     it('should return AppInsights and LogStream reporters when not in dev mode and log stream is enabled', () => {
+      vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
       LogStreamConfig.isEnabledFor = jest.fn().mockReturnValue(true);
       const reporters = determineReporters(config);
       expect(reporters).toHaveLength(2);

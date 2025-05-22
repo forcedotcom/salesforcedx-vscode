@@ -15,8 +15,8 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { readFileSync } from 'fs';
-import { basename } from 'path';
+import { readFileSync } from 'node:fs';
+import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';
@@ -24,7 +24,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 
-export type ApexTestSuiteOptions = { suitename: string; tests: string[] };
+type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
@@ -33,13 +33,11 @@ const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
       const fileContent = readFileSync(apexClass.fsPath).toString();
       return IS_TEST_REG_EXP.test(fileContent);
     })
-    .map(apexClass => {
-      return {
-        label: basename(apexClass.toString(), APEX_CLASS_EXT),
-        description: apexClass.fsPath,
-        type: TestType.Class
-      };
-    })
+    .map(apexClass => ({
+      label: basename(apexClass.toString(), APEX_CLASS_EXT),
+      description: apexClass.fsPath,
+      type: TestType.Class
+    }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
   return apexClassItems;
@@ -50,17 +48,15 @@ const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const testService = new TestService(connection);
   const testSuites = await testService.retrieveAllSuites();
 
-  const quickPickItems = testSuites.map(testSuite => {
-    return {
-      label: testSuite.TestSuiteName,
-      description: testSuite.id,
-      type: TestType.Suite
-    };
-  });
+  const quickPickItems = testSuites.map(testSuite => ({
+    label: testSuite.TestSuiteName,
+    description: testSuite.id,
+    type: TestType.Suite
+  }));
   return quickPickItems;
 };
 
-export class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
+class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const quickPickItems = await listApexTestSuiteItems();
 
@@ -70,7 +66,7 @@ export class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickIt
   }
 }
 
-export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
+class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
     const quickPickItems = await listApexTestSuiteItems();
 
@@ -95,7 +91,7 @@ export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions
   }
 }
 
-export class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
+class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
     const testSuiteInput = {
       prompt: 'Enter desired Apex test suite name:'
@@ -121,7 +117,7 @@ export class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions
   }
 }
 
-export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuiteOptions> {
+class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuiteOptions> {
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
   constructor() {

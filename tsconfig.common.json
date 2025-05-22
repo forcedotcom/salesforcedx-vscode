@@ -23,8 +23,7 @@
     "noImplicitAny": true,
     // TODO: cleanup unknown usage in catch blocks and remove below setting
     "useUnknownInCatchVariables": false,
-    // TODO: cleanup unused vars (about 170 errors of unused vars) (W-11052270)
-    // "noUnusedLocals": true,
+    "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true
   }
 }

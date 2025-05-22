@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import vscode, { DocumentSymbol, Uri } from 'vscode';
+
 export type ApexClassOASEligibleRequest = {
   resourceUri: Uri;
   includeAllMethods: boolean;
@@ -14,7 +15,7 @@ export type ApexClassOASEligibleRequest = {
   propertyNames: string[] | null;
 };
 
-export interface SymbolEligibility {
+interface SymbolEligibility {
   isEligible: boolean;
   isApexOasEligible: boolean;
   docSymbol: DocumentSymbol;
@@ -57,7 +58,7 @@ export type ApexOASClassDetail = {
   comment: string;
 };
 
-export type ApexOASPropertyDetail = {
+type ApexOASPropertyDetail = {
   name: string;
   type: string;
   documentSymbol: DocumentSymbol;
@@ -75,7 +76,7 @@ export type ApexOASMethodDetail = {
   comment: string;
 };
 
-export type ApexOASInterface = {
+type ApexOASInterface = {
   name: string;
   uri: string;
   methods: DocumentSymbol[];
@@ -90,7 +91,6 @@ export enum ApexOASResource {
 
 export type ApexOASInfo = {
   description: string;
-  version: string;
 };
 
 export type ExternalServiceOperation = {

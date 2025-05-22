@@ -6,20 +6,18 @@
  */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import type { URI } from 'vscode-uri';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { salesforceCoreSettings } from '../settings';
-import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './retrieveSourcePath';
 import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
-export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
+class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor(showChannelOutput: boolean = true) {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_sourcepath');
     this.showChannelOutput = showChannelOutput;
@@ -34,14 +32,17 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
 }
 
 export const deploySourcePaths = async (
-  sourceUri: vscode.Uri | vscode.Uri[] | undefined,
-  uris: vscode.Uri[] | undefined,
+  sourceUri: URI | URI[] | undefined,
+  uris: URI[] | undefined,
   isDeployOnSave?: boolean | undefined
 ) => {
   if (!sourceUri) {
     // When the source is deployed via the command palette, both sourceUri and uris are
     // each undefined, and sourceUri needs to be obtained from the active text editor.
-    sourceUri = getUriFromActiveEditor();
+    sourceUri = getUriFromActiveEditor({
+      message: 'deploy_select_file_or_directory',
+      exceptionKey: 'deploy_with_sourcepath'
+    });
     if (!sourceUri) {
       return;
     }
@@ -81,19 +82,4 @@ export const deploySourcePaths = async (
 
     await commandlet.run();
   }
-};
-
-export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-    return editor.document.uri;
-  }
-
-  const errorMessage = nls.localize('deploy_select_file_or_directory');
-  telemetryService.sendException('deploy_with_sourcepath', errorMessage);
-  notificationService.showErrorMessage(errorMessage);
-  channelService.appendLine(errorMessage);
-  channelService.showChannelOutput();
-
-  return undefined;
 };

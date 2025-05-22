@@ -1,8 +1,5 @@
 {
-  "packages": [
-    "packages/*"
-  ],
-  "version": "63.4.0",
+  "version": "63.14.1",
   "command": {
     "version": {
       "allowBranch": [
@@ -11,6 +8,5 @@
       ]
     }
   },
-  "useNx": true,
-  "useWorkspaces": true
+  "useNx": true
 }

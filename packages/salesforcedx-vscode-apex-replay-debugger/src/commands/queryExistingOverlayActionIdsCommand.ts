@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { QUERY_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { QUERY_URL } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { BaseCommand } from '@salesforce/salesforcedx-utils';
 
 export type QueryOverlayActionIdsSuccessResult = {
@@ -16,12 +16,13 @@ export type QueryOverlayActionIdsSuccessResult = {
   entityTypeName: string;
   records: ApexExecutionOverlayActionRecord[];
 };
-export type ApexExecutionOverlayActionRecord = {
+
+type ApexExecutionOverlayActionRecord = {
   attributes: ApexExecutionOverlayActionRecordAttribute;
   Id: string;
 };
 
-export type ApexExecutionOverlayActionRecordAttribute = {
+type ApexExecutionOverlayActionRecordAttribute = {
   type: string;
   url: string;
 };

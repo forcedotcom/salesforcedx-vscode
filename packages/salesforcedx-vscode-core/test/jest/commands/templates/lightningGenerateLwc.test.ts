@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { lightningGenerateLwc } from '../../../../src/commands/templates';
 import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
-  CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
@@ -21,6 +21,13 @@ jest.mock('../../../../src/commands/util/sfCommandlet');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
+  const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
+  return {
+    ...actual,
+    CompositeParametersGatherer: jest.fn()
+  };
+});
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
@@ -36,11 +43,9 @@ describe('lightningGenerateLwc Unit Tests.', () => {
 
   beforeEach(() => {
     runMock = jest.fn();
-    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => {
-      return {
-        run: runMock
-      };
-    });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+      run: runMock
+    }));
   });
 
   it('Should generate lwc scaffolding.', async () => {

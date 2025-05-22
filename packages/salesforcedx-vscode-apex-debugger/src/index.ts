@@ -20,7 +20,7 @@ import {
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
-} from '@salesforce/salesforcedx-apex-debugger/out/src';
+} from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
@@ -179,9 +179,7 @@ export const updateExceptionBreakpointCache = (selectedException: ExceptionBreak
   }
 };
 
-export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointItem> => {
-  return cachedExceptionBreakpoints;
-};
+export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointItem> => cachedExceptionBreakpoints;
 
 const registerFileWatchers = (): vscode.Disposable => {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');

@@ -4,11 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-// tslint:disable:no-bitwise
-export function startsWithCaseInsentively(
-  haystack: string,
-  needle: string
-): boolean {
+export function startsWithCaseInsentively(haystack: string, needle: string): boolean {
   if (haystack.length < needle.length) {
     return false;
   }

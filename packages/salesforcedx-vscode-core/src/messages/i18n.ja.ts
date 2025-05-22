@@ -216,15 +216,6 @@ export const messages = {
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
   config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file: 'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
-  sfdx_cli_not_found: 'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
-  sfdx_cli_not_supported:
-    'Your installed Salesforce CLI version is no longer supported. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
-  sf_v1_not_supported:
-    'Your installed Salesforce CLI version is incompatible with all versions of our extensions. Uninstall Salesforce CLI and install the latest version from [%s](%s).',
-  both_sfdx_and_sf:
-    'You have both SFDX(v7) and SF(v2) of Salesforce CLI installed. Uninstall SFDX(v7) by running `npm uninstall sfdx-cli --global` in your terminal.',
-  sfdx_v7_deprecation:
-    "If you're currently using SFDX(v7), we highly recommend that you move to SF(v2). The move is easy: you first uninstall SFDX(v7) and then install SF(v2) from [%s](%s). After you move, the commands that you've been running continue to work as before.",
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
@@ -456,6 +447,7 @@ export const messages = {
   LightningExperienceTheme: 'Lightning Experience Themes',
   LightningMessageChannel: 'Lightning Message Channels',
   LightningOnboardingConfig: 'Lightning Onboarding Configs',
+  LightningTypeBundle: 'Lightning Type Bundles',
   ListView: 'List Views',
   LiveChatAgentConfig: 'Live Chat Agent Configs',
   LiveChatButton: 'Live Chat Buttons',
@@ -587,6 +579,7 @@ export const messages = {
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
+  WorkflowFlowAutomation: 'Workflow Flow Automations',
   XOrgHub: 'X Org Hubs',
 
   conflict_detect_error: '競合を検出中にエラーが発生しました。%s',
