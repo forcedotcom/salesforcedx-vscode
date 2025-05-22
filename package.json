@@ -32,7 +32,7 @@
     "@typescript-eslint/eslint-plugin": "8.30.1",
     "@typescript-eslint/parser": "8.30.1",
     "@vscode/test-electron": "2.3.0",
-    "@vscode/vsce": "2.21.1",
+    "@vscode/vsce": "2.32.0",
     "acorn": "8.8.2",
     "check-peer-dependencies": "4.3.0",
     "commitizen": "^4.2.5",
