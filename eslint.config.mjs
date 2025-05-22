@@ -95,6 +95,7 @@ export default [
         }
       ],
       '@typescript-eslint/adjacent-overload-signatures': 'error',
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-restricted-types': [
         'warn',
@@ -116,13 +117,13 @@ export default [
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/prefer-for-of': 'warn',
       '@typescript-eslint/unbound-method': 'warn',
       'prefer-arrow/prefer-arrow-functions': ['error', {}],
-      '@typescript-eslint/consistent-type-assertions': 'error',
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/dot-notation': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
@@ -316,13 +317,14 @@ export default [
     }
   },
   {
-    files: ['packages/salesforcedx**/test/jest/**/*'],
+    files: ['packages/salesforcedx**/test/jest/**/*', 'packages/salesforcedx**/test/unit/**/*'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
       jest: eslintPluginJest
     },
     rules: {
       'unicorn/filename-case': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
