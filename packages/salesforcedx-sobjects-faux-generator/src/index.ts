@@ -8,4 +8,3 @@ export { CLIENT_ID, SOBJECTS_DIR, STANDARDOBJECTS_DIR, CUSTOMOBJECTS_DIR, SOQLME
 export { SObjectTransformer, SObjectTransformerFactory } from './transformer';
 export * from './types';
 export * from './describe';
-export * from './utils';

@@ -21,7 +21,7 @@ const DEFAULT_MANIFEST = 'package.xml';
 const MANIFEST_SAVE_PLACEHOLDER = 'manifest_input_save_placeholder';
 const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 
-export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
+class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
   private responseText: string | undefined;
   constructor(sourcePaths: string[], responseText: string | undefined) {

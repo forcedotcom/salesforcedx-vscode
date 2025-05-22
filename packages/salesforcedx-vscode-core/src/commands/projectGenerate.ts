@@ -27,7 +27,7 @@ type projectGenerateOptions = {
   isProjectWithManifest: boolean;
 };
 
-export class ProjectTemplateItem implements vscode.QuickPickItem {
+class ProjectTemplateItem implements vscode.QuickPickItem {
   public label: string;
   public description: string;
   constructor(name: string, description: string) {
@@ -75,13 +75,13 @@ type ProjectURI = {
   projectUri: string;
 };
 
-export type ProjectName = {
+type ProjectName = {
   projectName: string;
 };
 
 export type ProjectTemplate = 'standard' | 'empty' | 'analytics';
 
-export class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
+class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{ projectTemplate: ProjectTemplate }>> {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),

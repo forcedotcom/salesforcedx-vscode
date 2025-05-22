@@ -55,7 +55,7 @@ type SoqlEditorEvent =
     };
 
 // TODO: This should be shared with soql-builder-ui
-export type MessageType =
+type MessageType =
   | 'ui_activated'
   | 'ui_soql_changed'
   | 'ui_telemetry'

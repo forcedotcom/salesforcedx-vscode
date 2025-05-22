@@ -24,7 +24,7 @@ import {
 import { nls } from '../messages';
 import { SfCommandlet, SfWorkspaceChecker } from './util';
 
-export class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
+class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
   protected showChannelOutput = false;
   private outputTableRow: Row = {};

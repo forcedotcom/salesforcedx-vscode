@@ -19,7 +19,7 @@ import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
-export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
+const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
 type RequirementsData = {
   java_home: string;
   java_memory: number | null;

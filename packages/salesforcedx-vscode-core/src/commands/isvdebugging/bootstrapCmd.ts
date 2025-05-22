@@ -360,7 +360,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
+type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
 
 type ForceIdeUri = {
   loginUrl: string;
@@ -368,7 +368,7 @@ type ForceIdeUri = {
   orgName: string;
 };
 
-export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
+class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   public static readonly uriValidator = (value: string) => {
     try {
       const url = new URL(value);

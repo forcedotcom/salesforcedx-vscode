@@ -6,11 +6,11 @@
  */
 
 import { ExtensionInfo, ExtensionsInfo } from '@salesforce/vscode-service-provider';
-import { readFile } from 'node:fs/promises';
 import { EOL } from 'node:os';
 import { join, sep } from 'node:path';
-import { extensions, ExtensionContext, Uri } from 'vscode';
+import { ExtensionContext, extensions, Uri } from 'vscode';
 import { z } from 'zod';
+import { readFile } from './fs';
 
 type ParsedLog = {
   dateTime: Date;
@@ -52,7 +52,7 @@ const isProcessAlive = (pid: string): boolean => {
 export const readExtensionHostLog = async (logUri: Uri): Promise<string[]> => {
   const logFilePath = join(logUri.fsPath, 'exthost.log');
   try {
-    const logContents = await readFile(logFilePath, 'utf8');
+    const logContents = await readFile(logFilePath);
     return logContents.split(EOL).filter(line => line);
   } catch {
     return [];
@@ -110,8 +110,8 @@ export const getExtensionHostLogActivationRecords = async (
 
   const pid =
     sessionStartMatches.groups &&
-    'pid' in sessionStartMatches.groups &&
-    typeof sessionStartMatches.groups.pid === 'string'
+      'pid' in sessionStartMatches.groups &&
+      typeof sessionStartMatches.groups.pid === 'string'
       ? sessionStartMatches.groups.pid
       : undefined;
 

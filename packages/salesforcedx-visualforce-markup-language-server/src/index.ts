@@ -5,14 +5,10 @@
 'use strict';
 
 import {
-  CompletionItem,
   CompletionList,
-  Diagnostic,
   DocumentHighlight,
   DocumentLink,
-  FormattingOptions,
   Hover,
-  MarkedString,
   Position,
   Range,
   SymbolInformation,
@@ -21,51 +17,16 @@ import {
 } from 'vscode-languageserver-types';
 import { parse } from './parser/htmlParser';
 import { createScanner, Scanner, TokenType } from './parser/htmlScanner';
-import { doComplete, doTagComplete } from './services/htmlCompletion';
-import { format } from './services/htmlFormatter';
+import { CompletionConfiguration, doComplete, doTagComplete } from './services/htmlCompletion';
+import { format, HTMLFormatConfiguration } from './services/htmlFormatter';
 import { findDocumentHighlights } from './services/htmlHighlighting';
 import { doHover } from './services/htmlHover';
 import { findDocumentLinks } from './services/htmlLinks';
 import { findDocumentSymbols } from './services/htmlSymbolsProvider';
 
-export {
-  TextDocument,
-  Position,
-  CompletionItem,
-  CompletionList,
-  Hover,
-  Range,
-  SymbolInformation,
-  Diagnostic,
-  TextEdit,
-  DocumentHighlight,
-  FormattingOptions,
-  MarkedString,
-  DocumentLink,
-  TokenType
-};
+export { HTMLFormatConfiguration, TokenType };
 
-export type HTMLFormatConfiguration = {
-  tabSize?: number;
-  insertSpaces?: boolean;
-  wrapLineLength?: number;
-  unformatted?: string;
-  contentUnformatted?: string;
-  indentInnerHtml?: boolean;
-  wrapAttributes?: 'auto' | 'force' | 'force-aligned' | 'force-expand-multiline';
-  preserveNewLines?: boolean;
-  maxPreserveNewLines?: number;
-  indentHandlebars?: boolean;
-  endWithNewline?: boolean;
-  extraLiners?: string;
-};
-
-export type CompletionConfiguration = {
-  [provider: string]: boolean;
-  hideAutoCompleteProposals?: boolean;
-};
-
-export type Node = {
+type Node = {
   tag: string;
   start: number;
   end: number;

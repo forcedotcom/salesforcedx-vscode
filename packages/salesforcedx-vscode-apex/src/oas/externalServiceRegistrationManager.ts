@@ -6,7 +6,6 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { Connection } from '@salesforce/core-bundle';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
@@ -24,10 +23,6 @@ import { ApexOASInfo, ExternalServiceOperation } from './schemas';
 
 export type FullPath = [originalPath: string, newPath: string];
 
-export type QueryResult<T> = Awaited<ReturnType<Connection['query']>> & {
-  records: T[];
-};
-
 /*
  * Handles the creation and management of External Service Registration (ESR) metadata.
  * This includes saving OpenAPI specifications as ESR metadata, managing named credentials,
@@ -41,7 +36,7 @@ export class ExternalServiceRegistrationManager {
   private originalPath: string = '';
   private newPath: string = '';
 
-  constructor() {}
+  constructor() { }
 
   private async initialize(
     isESRDecomposed: boolean,
@@ -127,7 +122,7 @@ export class ExternalServiceRegistrationManager {
     const baseName = path.basename(this.newPath).split('.')[0];
     const className = this.newPath.includes('esr_files_for_merge')
       ? // The class name is the part before the second to last underscore
-        baseName.split('_').slice(0, -2).join('_')
+      baseName.split('_').slice(0, -2).join('_')
       : baseName;
 
     const { description } = this.extractInfoProperties();
