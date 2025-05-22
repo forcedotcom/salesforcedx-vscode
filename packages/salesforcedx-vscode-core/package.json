@@ -46,7 +46,7 @@
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.90.0",
     "cross-env": "5.2.0",
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.4",
     "esbuild-plugin-pino": "^2.2.2",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
