@@ -29,7 +29,7 @@
     "@salesforce/core-bundle": "^8.10.3",
     "@salesforce/salesforcedx-utils": "63.14.1",
     "@salesforce/salesforcedx-utils-vscode": "63.14.1",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.19.6",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.19.5",
     "@stoplight/spectral-functions": "1.9.3",
@@ -52,7 +52,7 @@
     "@types/sinon": "^2.3.7",
     "@types/vscode": "^1.90.0",
     "cross-env": "5.2.0",
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.4",
     "esbuild-plugin-pino": "^2.2.2",
     "sinon": "^13.0.1",
     "typescript": "^5.6.2"
