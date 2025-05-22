@@ -95,7 +95,7 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
         }))
     );
 
-    const selection = (await window.showQuickPick(fileItems)) as ApexTestQuickPickItem;
+    const selection = await window.showQuickPick<ApexTestQuickPickItem>(fileItems);
     return selection ? { type: 'CONTINUE', data: selection } : { type: 'CANCEL' };
   }
 }
@@ -156,6 +156,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
         }
       }
     };
+    // TODO: fix in apex-node W-18453221
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const result = (await testService.runTestAsynchronous(
       payload,
       codeCoverage,

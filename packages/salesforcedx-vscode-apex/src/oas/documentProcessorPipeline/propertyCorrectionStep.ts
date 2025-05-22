@@ -71,7 +71,7 @@ export class PropertyCorrectionStep implements ProcessorStep {
     jsonPath: string,
     defaultDescription: string
   ): OpenAPIV3.Document<{}> {
-    const items = JSONPath({ path: jsonPath, json: oasDoc }) as { description?: string }[];
+    const items = JSONPath<{ description?: string }[]>({ path: jsonPath, json: oasDoc });
 
     items.forEach(item => {
       if (item && typeof item === 'object' && (!Reflect.has(item, 'description') || !item.description)) {
@@ -83,7 +83,7 @@ export class PropertyCorrectionStep implements ProcessorStep {
   }
 
   private ensureResponseContentsArePresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    const responses = JSONPath({ path: '$.paths[*][*].responses[*]', json: oasDoc }) as OpenAPIV3.ResponseObject[];
+    const responses = JSONPath<OpenAPIV3.ResponseObject[]>({ path: '$.paths[*][*].responses[*]', json: oasDoc });
 
     responses.forEach(response => {
       if (response && !response.content) {
