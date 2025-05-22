@@ -10,7 +10,7 @@ const COLUMN_FILLER = ' ';
 const HEADER_FILLER = '─';
 
 export type Row = {
-  [column: string]: string;
+  [column: string]: string | number | boolean;
 };
 
 export type Column = {
@@ -20,12 +20,6 @@ export type Column = {
 
 export class Table {
   public createTable(rows: Row[], cols: Column[], title?: string): string {
-    if (!rows) {
-      throw Error('rows cannot be undefined');
-    }
-    if (!cols) {
-      throw Error('columns cannot be undefined');
-    }
     const maxColWidths = this.calculateMaxColumnWidths(rows, cols);
     let table = title ? `=== ${title}` : '';
 
@@ -47,7 +41,7 @@ export class Table {
     rows.forEach(row => {
       let outputRow = '';
       cols.forEach((col, colIndex, colArr) => {
-        const cell = row[col.key];
+        const cell = String(row[col.key]);
         const isLastCol = colIndex === colArr.length - 1;
         const rowWidth = outputRow.length;
         cell.split('\n').forEach((line, lineIndex) => {
@@ -76,7 +70,7 @@ export class Table {
     const maxColWidths = new Map<string, number>();
     cols.forEach(col => {
       rows.forEach(row => {
-        const cell = row[col.key];
+        const cell = String(row[col.key]);
         if (cell === undefined) {
           throw Error(`Row is missing the key ${col.key}`);
         }
