@@ -18,7 +18,6 @@ import {
   getTextEditor,
   getFilteredVisibleTreeViewItemLabels,
   zoom,
-  expandProjectInSideBar,
   attemptToFindOutputPanelText,
   notificationIsPresentWithTimeout,
   executeQuickPick,
@@ -26,13 +25,9 @@ import {
   getVisibleItemsFromSidebar
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import * as child_process from 'node:child_process';
 import * as path from 'node:path';
-import * as util from 'node:util';
 import { after } from 'vscode-extension-tester';
 import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
-
-const exec = util.promisify(child_process.exec);
 
 describe('Templates', () => {
   let testSetup: TestSetup;
