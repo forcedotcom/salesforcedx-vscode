@@ -126,7 +126,7 @@ async function run() {
 
       // Checking VSCode version
       const vscodeVersionRegex =
-        /(?:\*{2}VS Code version\*{2}:\s*(?:Version:\s*)?v?(1\.\d{2}\.\d))|(?:VS Code version:\s*(?:Version:\s*)?v?(1\.\d{2}\.\d))/g;
+        /(?:\*{2}VS Code version\*{2}:\s*(?:Version:\s*)?v?(1\.\d{2,3}\.\d))|(?:VS Code version:\s*(?:Version:\s*)?v?(1\.\d{2,3}\.\d))/g;
 
       // Search all bodies and get an array of all versions found (first or second capture group)
       const vscodeVersions = bodies
