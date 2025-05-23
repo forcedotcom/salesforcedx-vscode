@@ -933,6 +933,11 @@
           "default": false,
           "description": "%conflict_detection_enabled_description%"
         },
+        "salesforcedx-vscode-core.allExceptionCatcherEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%all_exception_catcher_enabled_description%"
+        },
         "salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve": {
           "type": "boolean",
           "default": true,

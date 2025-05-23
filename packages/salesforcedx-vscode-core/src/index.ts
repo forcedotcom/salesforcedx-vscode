@@ -501,8 +501,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   MetricsReporter.extensionPackStatus();
   console.log('SF CLI Extension Activated');
 
-  handleTheUnhandled();
-
+  const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
+  if (exceptionCatcher) {
+    console.log('Debug mode is enabled');
+    handleTheUnhandled();
+  }
   return api;
 };
 
