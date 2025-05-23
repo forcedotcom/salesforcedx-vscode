@@ -27,7 +27,10 @@ const readYamlFile = (filename: string): string => {
 export const getIdealCaseManagerOASDoc = (): string => readXmlFile('./files/idealCaseManagerOASDoc.xml');
 
 export const getSfdxProjectJson = (): string => {
-  const project = readJsonFile('sfdxProject.json');
+  const project = readJsonFile('./files/sfdxProject.json');
+  if (!project) {
+    throw new Error('sfdxProject.json not found');
+  }
   return JSON.stringify(project, null, 2);
 };
 
