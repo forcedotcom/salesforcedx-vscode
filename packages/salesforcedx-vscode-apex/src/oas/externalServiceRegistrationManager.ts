@@ -36,7 +36,7 @@ export class ExternalServiceRegistrationManager {
   private originalPath: string = '';
   private newPath: string = '';
 
-  constructor() { }
+  constructor() {}
 
   private async initialize(
     isESRDecomposed: boolean,
