@@ -113,13 +113,14 @@ export class BreakpointService {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const breakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(breakpointId)) {
         return Promise.resolve(breakpointId);
       } else {
         return Promise.reject(result);
       }
-    } catch (e) {
+    } catch {
       return Promise.reject(result);
     }
   }
@@ -138,13 +139,14 @@ export class BreakpointService {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const deletedBreakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(deletedBreakpointId)) {
         return Promise.resolve(deletedBreakpointId);
       } else {
         return Promise.reject(result);
       }
-    } catch (e) {
+    } catch {
       return Promise.reject(result);
     }
   }
@@ -204,13 +206,14 @@ export class BreakpointService {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const breakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(breakpointId)) {
         return Promise.resolve(breakpointId);
       } else {
         return Promise.reject(result);
       }
-    } catch (e) {
+    } catch {
       return Promise.reject(result);
     }
   }

@@ -68,6 +68,8 @@ class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
         const orgOpenParser = new OrgOpenContainerResultParser(stdOut);
 
         if (orgOpenParser.openIsSuccessful()) {
+          // remove when we drop CLI invocations
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const cliOrgData = orgOpenParser.getResult() as OrgOpenSuccessResult;
           const authenticatedOrgUrl: string = cliOrgData.result.url;
 
@@ -75,6 +77,8 @@ class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
           // open the default browser
           vscode.env.openExternal(URI.parse(authenticatedOrgUrl));
         } else {
+          // remove when we drop CLI invocations
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const errorResponse = orgOpenParser.getResult() as OrgOpenErrorResult;
           channelService.appendLine(errorResponse.message);
         }

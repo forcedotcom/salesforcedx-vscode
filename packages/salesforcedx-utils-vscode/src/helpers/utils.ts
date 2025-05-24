@@ -90,6 +90,7 @@ export const extractJson = <T = any>(str: string): T => {
     throw new Error(`The string "${str}" does not contain an array or object.`);
   }
   // Try parsing the detected JSON structure
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   return JSON.parse(jsonCandidate) as T; // Cast to generic type
 };
 

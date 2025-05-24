@@ -26,21 +26,21 @@ export class StreamingService {
 
   public getClient(type: ApexDebuggerEventType): StreamingClient | undefined {
     switch (type) {
-      case ApexDebuggerEventType.ApexException:
-      case ApexDebuggerEventType.Debug:
-      case ApexDebuggerEventType.LogLine: {
+      case 'ApexException':
+      case 'Debug':
+      case 'LogLine': {
         return this.userEventClient;
       }
-      case ApexDebuggerEventType.OrgChange:
-      case ApexDebuggerEventType.Ready:
-      case ApexDebuggerEventType.RequestFinished:
-      case ApexDebuggerEventType.RequestStarted:
-      case ApexDebuggerEventType.Resumed:
-      case ApexDebuggerEventType.SessionTerminated:
-      case ApexDebuggerEventType.Stopped:
-      case ApexDebuggerEventType.SystemGack:
-      case ApexDebuggerEventType.SystemInfo:
-      case ApexDebuggerEventType.SystemWarning: {
+      case 'OrgChange':
+      case 'Ready':
+      case 'RequestFinished':
+      case 'RequestStarted':
+      case 'Resumed':
+      case 'SessionTerminated':
+      case 'Stopped':
+      case 'SystemGack':
+      case 'SystemInfo':
+      case 'SystemWarning': {
         return this.systemEventClient;
       }
     }

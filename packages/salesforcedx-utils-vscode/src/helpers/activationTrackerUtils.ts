@@ -9,6 +9,7 @@ import { ExtensionInfo, ExtensionsInfo } from '@salesforce/vscode-service-provid
 import { EOL } from 'node:os';
 import { join, sep } from 'node:path';
 import { ExtensionContext, extensions, Uri } from 'vscode';
+import { z } from 'zod';
 import { readFile } from './fs';
 
 type ParsedLog = {
@@ -18,13 +19,13 @@ type ParsedLog = {
   properties: Record<string, string>;
 };
 
-type RegexGroups = {
-  dateTimeStr: string;
-  level: string;
-  eventName: string;
-  extensionId: string;
-  properties: string;
-};
+const regexGroupsSchema = z.object({
+  dateTimeStr: z.string(),
+  level: z.string(),
+  eventName: z.string(),
+  extensionId: z.string(),
+  properties: z.string()
+});
 
 // capturing group regex for parsing activation records
 // 2024-01-26 15:15:38.303 [info] ExtensionService#_doActivateExtension salesforce.salesforcedx-vscode-lightning, startup: true, activationEvent: 'workspaceContains:sfdx-project.json'"
@@ -107,45 +108,45 @@ export const getExtensionHostLogActivationRecords = async (
 
   const sessionStartMatches = sessionStartRecordRegExp.exec(extHostLogLines[lastExtensionLoadStart])!;
 
-  const { pid } = sessionStartMatches.groups as {
-    pid: string;
-  };
+  const pid =
+    sessionStartMatches.groups &&
+      'pid' in sessionStartMatches.groups &&
+      typeof sessionStartMatches.groups.pid === 'string'
+      ? sessionStartMatches.groups.pid
+      : undefined;
 
-  if (!pid) {
+  if (!pid || !isProcessAlive(pid)) {
     return undefined;
   }
 
-  if (!isProcessAlive(pid)) {
-    return undefined;
-  }
-
-  const filtered = extHostLogLines
+  return extHostLogLines
     .slice(lastExtensionLoadStart)
-    .filter(log => log.includes('ExtensionService#_doActivateExtension'));
-  const reduced = filtered.reduce((result: Record<string, ParsedLog>, log: string) => {
-    const matches = activationRecordRegExp.exec(log.trim());
-    if (!matches) {
-      return result;
-    }
-    const { dateTimeStr, level, eventName, extensionId, properties: propertiesString } = matches.groups as RegexGroups;
-    const dateTime = new Date(dateTimeStr);
+    .filter(log => log.includes('ExtensionService#_doActivateExtension'))
+    .map(log => log.trim())
+    .map(log => regexGroupsSchema.parse(activationRecordRegExp.exec(log)?.groups))
+    .filter(Boolean)
+    .reduce((result: Record<string, ParsedLog>, matches) => {
+      const { dateTimeStr, level, eventName, extensionId, properties: propertiesString } = matches;
 
-    const propertiesParts = propertiesString.split(', ');
-    const properties = propertiesParts.reduce(
-      (props: Record<string, string>, propertyPart: string) => {
-        const [key, value] = propertyPart.split(': ');
-        return { ...props, [key]: value };
-      },
-      {} as Record<string, string>
-    );
-    return {
-      ...result,
-      [extensionId]: { dateTime, level, eventName, properties }
-    };
-  }, {});
-  return reduced;
+      return {
+        ...result,
+        [extensionId]: {
+          dateTime: new Date(dateTimeStr),
+          level,
+          eventName,
+          properties: buildPropertiesString(propertiesString)
+        }
+      };
+    }, {});
 };
 
+const buildPropertiesString = (propertiesString: string) =>
+  Object.fromEntries(
+    propertiesString
+      .split(', ')
+      .map(p => p.split(': '))
+      .map(([k, v]) => [k, v])
+  );
 /**
  * Return a map of loaded extensions keyed by extension Id
  *

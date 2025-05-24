@@ -17,7 +17,9 @@ import {
   NavigationBarItem,
   ScriptKind,
   ScriptTarget,
-  sys
+  sys,
+  HighlightSpanKind,
+  ScriptElementKind
 } from 'typescript';
 import {
   CompletionItem,
@@ -234,7 +236,8 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
         // Only one file to search above so there should only be one result
         return highlights[0].highlightSpans.map(entry => ({
           range: convertRange(currentTextDocument, entry.textSpan),
-          kind: entry.kind === 'writtenReference' ? DocumentHighlightKind.Write : DocumentHighlightKind.Text
+          kind:
+            entry.kind === HighlightSpanKind.writtenReference ? DocumentHighlightKind.Write : DocumentHighlightKind.Text
         }));
       }
       return null;
@@ -247,7 +250,7 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
         const existing = {};
         const collectSymbols = (item: NavigationBarItem, containerLabel?: string) => {
           const sig = item.text + item.kind + item.spans[0].start;
-          if (item.kind !== 'script' && !existing[sig]) {
+          if (item.kind !== ScriptElementKind.scriptElement && !existing[sig]) {
             const symbol: SymbolInformation = {
               name: item.text,
               kind: convertSymbolKind(item.kind),

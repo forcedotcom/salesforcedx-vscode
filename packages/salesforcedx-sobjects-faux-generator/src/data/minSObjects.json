@@ -1,24 +1,81 @@
 {
   "typeNames": [
-    { "name": "Account", "custom": false },
-    { "name": "AccountHistory", "custom": false },
-    { "name": "Asset", "custom": false },
-    { "name": "Attachment", "custom": false },
-    { "name": "Case", "custom": false },
-    { "name": "Contact", "custom": false },
-    { "name": "Contract", "custom": false },
-    { "name": "Domain", "custom": false },
-    { "name": "Lead", "custom": false },
-    { "name": "Note", "custom": false },
-    { "name": "Opportunity", "custom": false },
-    { "name": "Order", "custom": false },
-    { "name": "Pricebook2", "custom": false },
-    { "name": "PricebookEntry", "custom": false },
-    { "name": "Product2", "custom": false },
-    { "name": "RecordType", "custom": false },
-    { "name": "Report", "custom": false },
-    { "name": "Task", "custom": false },
-    { "name": "User", "custom": false }
+    {
+      "name": "Account",
+      "custom": false
+    },
+    {
+      "name": "AccountHistory",
+      "custom": false
+    },
+    {
+      "name": "Asset",
+      "custom": false
+    },
+    {
+      "name": "Attachment",
+      "custom": false
+    },
+    {
+      "name": "Case",
+      "custom": false
+    },
+    {
+      "name": "Contact",
+      "custom": false
+    },
+    {
+      "name": "Contract",
+      "custom": false
+    },
+    {
+      "name": "Domain",
+      "custom": false
+    },
+    {
+      "name": "Lead",
+      "custom": false
+    },
+    {
+      "name": "Note",
+      "custom": false
+    },
+    {
+      "name": "Opportunity",
+      "custom": false
+    },
+    {
+      "name": "Order",
+      "custom": false
+    },
+    {
+      "name": "Pricebook2",
+      "custom": false
+    },
+    {
+      "name": "PricebookEntry",
+      "custom": false
+    },
+    {
+      "name": "Product2",
+      "custom": false
+    },
+    {
+      "name": "RecordType",
+      "custom": false
+    },
+    {
+      "name": "Report",
+      "custom": false
+    },
+    {
+      "name": "Task",
+      "custom": false
+    },
+    {
+      "name": "User",
+      "custom": false
+    }
   ],
   "standard": [
     {
@@ -43,7 +100,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -69,7 +126,9 @@
           "name": "MasterRecordId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "MasterRecord",
           "sortable": true,
           "type": "reference"
@@ -170,7 +229,9 @@
           "name": "ParentId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Parent",
           "sortable": true,
           "type": "reference"
@@ -1163,7 +1224,9 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -1197,7 +1260,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -1231,7 +1296,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -1579,7 +1646,9 @@
           "name": "DandbCompanyId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["DandBCompany"],
+          "referenceTo": [
+            "DandBCompany"
+          ],
           "relationshipName": "DandbCompany",
           "sortable": true,
           "type": "reference"
@@ -1596,7 +1665,9 @@
           "name": "OperatingHoursId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["OperatingHours"],
+          "referenceTo": [
+            "OperatingHours"
+          ],
           "relationshipName": "OperatingHours",
           "sortable": true,
           "type": "reference"
@@ -2981,7 +3052,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -3007,7 +3078,9 @@
           "name": "AccountId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -3024,7 +3097,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -3861,7 +3936,9 @@
           "name": "ContactId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "Contact",
           "sortable": true,
           "type": "reference"
@@ -3878,7 +3955,9 @@
           "name": "AccountId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -3895,7 +3974,9 @@
           "name": "ParentId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Asset"],
+          "referenceTo": [
+            "Asset"
+          ],
           "relationshipName": "Parent",
           "sortable": true,
           "type": "reference"
@@ -3912,7 +3993,9 @@
           "name": "RootAssetId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Asset"],
+          "referenceTo": [
+            "Asset"
+          ],
           "relationshipName": "RootAsset",
           "sortable": true,
           "type": "reference"
@@ -3929,7 +4012,9 @@
           "name": "Product2Id",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Product2"],
+          "referenceTo": [
+            "Product2"
+          ],
           "relationshipName": "Product2",
           "sortable": true,
           "type": "reference"
@@ -3954,7 +4039,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -3997,7 +4082,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -4031,7 +4118,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -4056,7 +4145,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -4305,7 +4394,9 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -4322,7 +4413,9 @@
           "name": "LocationId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Location"],
+          "referenceTo": [
+            "Location"
+          ],
           "relationshipName": "Location",
           "sortable": true,
           "type": "reference"
@@ -4339,7 +4432,9 @@
           "name": "AssetProvidedById",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "AssetProvidedBy",
           "sortable": true,
           "type": "reference"
@@ -4356,7 +4451,9 @@
           "name": "AssetServicedById",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "AssetServicedBy",
           "sortable": true,
           "type": "reference"
@@ -4364,7 +4461,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -4415,7 +4512,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -5529,7 +5626,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -5650,7 +5747,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -5727,7 +5824,10 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Calendar", "User"],
+          "referenceTo": [
+            "Calendar",
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -5761,7 +5861,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -5795,7 +5897,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -5884,7 +5988,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -5910,7 +6014,9 @@
           "name": "MasterRecordId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Case"],
+          "referenceTo": [
+            "Case"
+          ],
           "relationshipName": "MasterRecord",
           "sortable": true,
           "type": "reference"
@@ -5944,7 +6050,9 @@
           "name": "ContactId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "Contact",
           "sortable": true,
           "type": "reference"
@@ -5961,7 +6069,9 @@
           "name": "AccountId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -5978,7 +6088,9 @@
           "name": "AssetId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Asset"],
+          "referenceTo": [
+            "Asset"
+          ],
           "relationshipName": "Asset",
           "sortable": true,
           "type": "reference"
@@ -5995,7 +6107,9 @@
           "name": "ParentId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Case"],
+          "referenceTo": [
+            "Case"
+          ],
           "relationshipName": "Parent",
           "sortable": true,
           "type": "reference"
@@ -6349,7 +6463,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -6383,7 +6497,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -6409,7 +6523,10 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Group", "User"],
+          "referenceTo": [
+            "Group",
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -6443,7 +6560,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -6477,7 +6596,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -7238,7 +7359,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -7264,7 +7385,9 @@
           "name": "MasterRecordId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "MasterRecord",
           "sortable": true,
           "type": "reference"
@@ -7281,7 +7404,9 @@
           "name": "AccountId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -7973,7 +8098,9 @@
           "name": "ReportsToId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "ReportsTo",
           "sortable": true,
           "type": "reference"
@@ -8145,7 +8272,9 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -8179,7 +8308,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -8213,7 +8344,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -8357,7 +8490,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -8508,7 +8641,9 @@
           "name": "IndividualId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Individual"],
+          "referenceTo": [
+            "Individual"
+          ],
           "relationshipName": "Individual",
           "sortable": true,
           "type": "reference"
@@ -9542,7 +9677,9 @@
           "name": "AccountId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -9559,7 +9696,9 @@
           "name": "Pricebook2Id",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Pricebook2"],
+          "referenceTo": [
+            "Pricebook2"
+          ],
           "relationshipName": "Pricebook2",
           "sortable": true,
           "type": "reference"
@@ -9918,7 +10057,9 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -9974,7 +10115,9 @@
           "name": "CompanySignedId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CompanySigned",
           "sortable": true,
           "type": "reference"
@@ -10008,7 +10151,9 @@
           "name": "CustomerSignedId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "CustomerSigned",
           "sortable": true,
           "type": "reference"
@@ -10076,7 +10221,9 @@
           "name": "ActivatedById",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "ActivatedBy",
           "sortable": true,
           "type": "reference"
@@ -10227,7 +10374,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -10304,7 +10451,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -10338,7 +10487,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -11004,7 +11155,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -11038,7 +11191,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -11110,7 +11265,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -11136,7 +11291,9 @@
           "name": "MasterRecordId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Lead"],
+          "referenceTo": [
+            "Lead"
+          ],
           "relationshipName": "MasterRecord",
           "sortable": true,
           "type": "reference"
@@ -12062,7 +12219,10 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Group", "User"],
+          "referenceTo": [
+            "Group",
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -12070,7 +12230,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -12113,7 +12273,9 @@
           "name": "ConvertedAccountId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "ConvertedAccount",
           "sortable": true,
           "type": "reference"
@@ -12130,7 +12292,9 @@
           "name": "ConvertedContactId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "ConvertedContact",
           "sortable": true,
           "type": "reference"
@@ -12147,7 +12311,9 @@
           "name": "ConvertedOpportunityId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Opportunity"],
+          "referenceTo": [
+            "Opportunity"
+          ],
           "relationshipName": "ConvertedOpportunity",
           "sortable": true,
           "type": "reference"
@@ -12155,7 +12321,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -12198,7 +12364,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -12232,7 +12400,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -12442,7 +12612,9 @@
           "name": "DandbCompanyId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["DandBCompany"],
+          "referenceTo": [
+            "DandBCompany"
+          ],
           "relationshipName": "DandbCompany",
           "sortable": true,
           "type": "reference"
@@ -12493,7 +12665,9 @@
           "name": "IndividualId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Individual"],
+          "referenceTo": [
+            "Individual"
+          ],
           "relationshipName": "Individual",
           "sortable": true,
           "type": "reference"
@@ -13068,7 +13242,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -13182,7 +13356,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -13225,7 +13399,9 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -13259,7 +13435,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -13293,7 +13471,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -13365,7 +13545,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -13391,7 +13571,9 @@
           "name": "AccountId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -13399,7 +13581,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -13739,7 +13921,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -13756,7 +13938,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -13895,7 +14077,9 @@
           "name": "CampaignId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Campaign"],
+          "referenceTo": [
+            "Campaign"
+          ],
           "relationshipName": "Campaign",
           "sortable": true,
           "type": "reference"
@@ -13903,7 +14087,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -13929,7 +14113,9 @@
           "name": "Pricebook2Id",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Pricebook2"],
+          "referenceTo": [
+            "Pricebook2"
+          ],
           "relationshipName": "Pricebook2",
           "sortable": true,
           "type": "reference"
@@ -13946,7 +14132,9 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -13980,7 +14168,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -14014,7 +14204,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -14150,7 +14342,9 @@
           "name": "ContactId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": null,
           "sortable": true,
           "type": "reference"
@@ -14192,7 +14386,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": false,
           "groupable": true,
@@ -14209,7 +14403,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": false,
           "groupable": true,
@@ -14235,7 +14429,9 @@
           "name": "LastAmountChangedHistoryId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["OpportunityHistory"],
+          "referenceTo": [
+            "OpportunityHistory"
+          ],
           "relationshipName": "LastAmountChangedHistory",
           "sortable": true,
           "type": "reference"
@@ -14252,7 +14448,9 @@
           "name": "LastCloseDateChangedHistoryId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["OpportunityHistory"],
+          "referenceTo": [
+            "OpportunityHistory"
+          ],
           "relationshipName": "LastCloseDateChangedHistory",
           "sortable": true,
           "type": "reference"
@@ -14826,7 +15024,10 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Group", "User"],
+          "referenceTo": [
+            "Group",
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -14843,7 +15044,9 @@
           "name": "ContractId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contract"],
+          "referenceTo": [
+            "Contract"
+          ],
           "relationshipName": "Contract",
           "sortable": true,
           "type": "reference"
@@ -14860,7 +15063,9 @@
           "name": "AccountId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -14877,7 +15082,9 @@
           "name": "Pricebook2Id",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Pricebook2"],
+          "referenceTo": [
+            "Pricebook2"
+          ],
           "relationshipName": "Pricebook2",
           "sortable": true,
           "type": "reference"
@@ -14894,7 +15101,9 @@
           "name": "OriginalOrderId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Order"],
+          "referenceTo": [
+            "Order"
+          ],
           "relationshipName": "OriginalOrder",
           "sortable": true,
           "type": "reference"
@@ -14936,7 +15145,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -15011,7 +15220,9 @@
           "name": "CustomerAuthorizedById",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "CustomerAuthorizedBy",
           "sortable": true,
           "type": "reference"
@@ -15045,7 +15256,9 @@
           "name": "CompanyAuthorizedById",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CompanyAuthorizedBy",
           "sortable": true,
           "type": "reference"
@@ -15626,7 +15839,9 @@
           "name": "BillToContactId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "BillToContact",
           "sortable": true,
           "type": "reference"
@@ -15643,7 +15858,9 @@
           "name": "ShipToContactId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "ShipToContact",
           "sortable": true,
           "type": "reference"
@@ -15677,7 +15894,9 @@
           "name": "ActivatedById",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "ActivatedBy",
           "sortable": true,
           "type": "reference"
@@ -15791,7 +16010,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -15825,7 +16046,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -15833,7 +16056,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -16438,7 +16661,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -16498,7 +16721,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -16532,7 +16757,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -16591,7 +16818,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -16608,7 +16835,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -16642,7 +16869,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -16942,7 +17169,9 @@
           "name": "Pricebook2Id",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Pricebook2"],
+          "referenceTo": [
+            "Pricebook2"
+          ],
           "relationshipName": "Pricebook2",
           "sortable": true,
           "type": "reference"
@@ -16959,7 +17188,9 @@
           "name": "Product2Id",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Product2"],
+          "referenceTo": [
+            "Product2"
+          ],
           "relationshipName": "Product2",
           "sortable": true,
           "type": "reference"
@@ -16984,7 +17215,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -17001,7 +17232,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -17044,7 +17275,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -17078,7 +17311,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -17120,7 +17355,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -17137,7 +17372,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -17392,7 +17627,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -17435,7 +17670,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -17469,7 +17706,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -17519,7 +17758,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -17545,7 +17784,9 @@
           "name": "ExternalDataSourceId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["ExternalDataSource"],
+          "referenceTo": [
+            "ExternalDataSource"
+          ],
           "relationshipName": null,
           "sortable": true,
           "type": "reference"
@@ -17612,7 +17853,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -17629,7 +17870,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -18451,7 +18692,9 @@
           "name": "BusinessProcessId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["BusinessProcess"],
+          "referenceTo": [
+            "BusinessProcess"
+          ],
           "relationshipName": null,
           "sortable": true,
           "type": "reference"
@@ -20745,7 +20988,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -20771,7 +21014,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -20805,7 +21050,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -20953,7 +21200,11 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Folder", "Organization", "User"],
+          "referenceTo": [
+            "Folder",
+            "Organization",
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -21004,7 +21255,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -21038,7 +21291,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -21046,7 +21301,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -21431,7 +21686,10 @@
           "name": "WhoId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact", "Lead"],
+          "referenceTo": [
+            "Contact",
+            "Lead"
+          ],
           "relationshipName": "Who",
           "sortable": true,
           "type": "reference"
@@ -21693,7 +21951,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -21719,7 +21977,10 @@
           "name": "OwnerId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Group", "User"],
+          "referenceTo": [
+            "Group",
+            "User"
+          ],
           "relationshipName": "Owner",
           "sortable": true,
           "type": "reference"
@@ -21744,7 +22005,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -21770,7 +22031,9 @@
           "name": "AccountId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -21778,7 +22041,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -21821,7 +22084,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -21855,7 +22120,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -21880,7 +22147,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -22004,7 +22271,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -22030,7 +22297,9 @@
           "name": "RecurrenceActivityId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Task"],
+          "referenceTo": [
+            "Task"
+          ],
           "relationshipName": null,
           "sortable": true,
           "type": "reference"
@@ -22038,7 +22307,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -26343,7 +26612,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -29348,7 +29617,9 @@
           "name": "UserRoleId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["UserRole"],
+          "referenceTo": [
+            "UserRole"
+          ],
           "relationshipName": "UserRole",
           "sortable": true,
           "type": "reference"
@@ -31005,7 +31276,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -31022,7 +31293,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -31136,7 +31407,9 @@
           "name": "ProfileId",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["Profile"],
+          "referenceTo": [
+            "Profile"
+          ],
           "relationshipName": "Profile",
           "sortable": true,
           "type": "reference"
@@ -31388,7 +31661,10 @@
           "name": "DelegatedApproverId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Group", "User"],
+          "referenceTo": [
+            "Group",
+            "User"
+          ],
           "relationshipName": null,
           "sortable": true,
           "type": "reference"
@@ -31405,7 +31681,9 @@
           "name": "ManagerId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "Manager",
           "sortable": true,
           "type": "reference"
@@ -31473,7 +31751,9 @@
           "name": "CreatedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "CreatedBy",
           "sortable": true,
           "type": "reference"
@@ -31507,7 +31787,9 @@
           "name": "LastModifiedById",
           "nillable": false,
           "picklistValues": [],
-          "referenceTo": ["User"],
+          "referenceTo": [
+            "User"
+          ],
           "relationshipName": "LastModifiedBy",
           "sortable": true,
           "type": "reference"
@@ -31770,7 +32052,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -33292,7 +33574,9 @@
           "name": "ContactId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Contact"],
+          "referenceTo": [
+            "Contact"
+          ],
           "relationshipName": "Contact",
           "sortable": true,
           "type": "reference"
@@ -33309,7 +33593,9 @@
           "name": "AccountId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Account"],
+          "referenceTo": [
+            "Account"
+          ],
           "relationshipName": "Account",
           "sortable": true,
           "type": "reference"
@@ -33326,7 +33612,9 @@
           "name": "CallCenterId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["CallCenter"],
+          "referenceTo": [
+            "CallCenter"
+          ],
           "relationshipName": null,
           "sortable": true,
           "type": "reference"
@@ -33419,7 +33707,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -33657,7 +33945,7 @@
         {
           "aggregatable": false,
           "custom": false,
-          "defaultValue": false,
+          "defaultValue": null,
           "extraTypeInfo": null,
           "filterable": true,
           "groupable": true,
@@ -33683,7 +33971,9 @@
           "name": "IndividualId",
           "nillable": true,
           "picklistValues": [],
-          "referenceTo": ["Individual"],
+          "referenceTo": [
+            "Individual"
+          ],
           "relationshipName": "Individual",
           "sortable": true,
           "type": "reference"

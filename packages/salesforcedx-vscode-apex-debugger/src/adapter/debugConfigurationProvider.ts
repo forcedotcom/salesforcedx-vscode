@@ -12,7 +12,7 @@ import { nls } from '../messages';
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   private salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
 
-  public static getConfig(folder: vscode.WorkspaceFolder | undefined) {
+  public static getConfig(folder: vscode.WorkspaceFolder | undefined): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
@@ -21,7 +21,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       requestTypeFilter: [],
       entryPointFilter: '',
       salesforceProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
-    } as vscode.DebugConfiguration;
+    };
   }
 
   public provideDebugConfigurations(
@@ -64,11 +64,11 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();
       config.workspaceSettings = {
-        proxyUrl: workspaceConfig.get('http.proxy', '') as string,
-        proxyStrictSSL: workspaceConfig.get('http.proxyStrictSSL', false) as boolean,
-        proxyAuth: workspaceConfig.get('http.proxyAuthorization', '') as string,
-        connectionTimeoutMs: workspaceConfig.get('salesforcedx-vscode-apex-debugger.connectionTimeoutMs')
-      } as WorkspaceSettings;
+        proxyUrl: workspaceConfig.get('http.proxy', ''),
+        proxyStrictSSL: workspaceConfig.get('http.proxyStrictSSL', false),
+        proxyAuth: workspaceConfig.get('http.proxyAuthorization', ''),
+        connectionTimeoutMs: workspaceConfig.get('salesforcedx-vscode-apex-debugger.connectionTimeoutMs', 20000) // should match pjson default
+      } satisfies WorkspaceSettings;
     }
 
     if (this.salesforceApexExtension && this.salesforceApexExtension.exports) {

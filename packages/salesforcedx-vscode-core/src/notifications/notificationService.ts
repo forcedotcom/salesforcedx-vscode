@@ -49,11 +49,15 @@ export class NotificationService {
     // https://stackoverflow.com/questions/38168581/observablet-is-not-a-class-derived-from-observablet
     this.reportExecutionStatus(
       execution.command.toString(),
+      // remove when we remove rxjs
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       execution.processExitSubject as any as Observable<number | undefined>,
       cancellationToken
     );
     this.reportExecutionError(
       execution.command.toString(),
+      // remove when we remove rxjs
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       execution.processErrorSubject as any as Observable<Error | undefined>
     );
   }

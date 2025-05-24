@@ -73,6 +73,8 @@ export class SessionService {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
+      // won't fix since this pkg is going away
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const sessionId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerSessionId(sessionId)) {
         this.sessionId = sessionId;
@@ -103,6 +105,8 @@ export class SessionService {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
+      // won't fix since this pkg is going away
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const sessionId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerSessionId(sessionId)) {
         this.sessionId = '';

@@ -4,6 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+// leaving as is because this extension is being replaced
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import { componentUtil } from '@salesforce/lightning-lsp-common';
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {

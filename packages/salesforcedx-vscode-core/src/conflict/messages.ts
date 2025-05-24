@@ -14,17 +14,12 @@ export const getConflictMessagesFor = (logName: string): ConflictDetectionMessag
       'deploy_with_sourcepath',
       {
         warningMessageKey,
-        commandHint: inputs => {
-          const commands: string[] = [];
-          (inputs as string[]).forEach(input => {
-            commands.push(
+        commandHint: inputs =>
+          (Array.isArray(inputs) ? inputs : [inputs])
+            .map(input =>
               new SfCommandBuilder().withArg('project:deploy:start').withFlag('--sourcepath', input).build().toString()
-            );
-          });
-          const hints = commands.join('\n  ');
-
-          return hints;
-        }
+            )
+            .join('\n  ')
       }
     ],
     [
@@ -34,7 +29,7 @@ export const getConflictMessagesFor = (logName: string): ConflictDetectionMessag
         commandHint: input =>
           new SfCommandBuilder()
             .withArg('project:deploy:start')
-            .withFlag('--manifest', input as string)
+            .withFlag('--manifest', Array.isArray(input) ? input[0] : input)
             .build()
             .toString()
       }

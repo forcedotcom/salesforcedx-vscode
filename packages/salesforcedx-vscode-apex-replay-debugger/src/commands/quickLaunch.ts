@@ -81,6 +81,8 @@ class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
+      // W-18453221
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const result: TestResult = (await testService.runTestSynchronous(payload, true)) as TestResult;
       if (workspaceUtils.hasRootWorkspace()) {
         const apexTestResultsPath = projectPaths.apexTestResultsFolder();
@@ -141,9 +143,9 @@ class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
 
 export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const executor = new TestDebuggerExecutor();
-  const response = {
+  const response: ContinueResponse<string[]> = {
     type: 'CONTINUE',
-    data: [className, methodName]
-  } as ContinueResponse<string[]>;
+    data: [className, methodName].filter((f): f is string => f !== undefined)
+  };
   await executor.execute(response);
 };

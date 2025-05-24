@@ -64,11 +64,9 @@ export const getMethodTypeFromAnnotation = (
 ): HttpRequestMethod => {
   const methodContext = methodsContextMap.get(methodName);
   if (methodContext) {
-    const httpMethodAnnotation = methodContext.annotations.find(annotation =>
-      ['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete'].includes(annotation.name)
-    );
+    const httpMethodAnnotation = methodContext.annotations.find(a => Object.keys(httpMethodMap).includes(a.name));
     if (httpMethodAnnotation) {
-      return httpMethodMap.get(httpMethodAnnotation.name) as HttpRequestMethod;
+      return httpMethodMap[httpMethodAnnotation.name];
     }
   }
   throw new Error(nls.localize('method_not_found_in_doc_symbols', methodName));
@@ -118,10 +116,10 @@ export const combineYamlByMethod = (docs: string[], className: string) => {
         }
       }
       // Merge components
-      if (parsed.components?.schemas) {
+      if (parsed.components?.schemas && combined.components?.schemas) {
         for (const [schema, definition] of Object.entries(parsed.components.schemas)) {
-          if (!combined.components!.schemas![schema]) {
-            combined.components!.schemas![schema] = definition as Record<string, any>;
+          if (!combined.components.schemas[schema]) {
+            combined.components.schemas[schema] = definition;
           }
         }
       }

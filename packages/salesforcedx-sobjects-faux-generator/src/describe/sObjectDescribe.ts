@@ -66,7 +66,7 @@ export class SObjectDescribe {
   }
 
   public async runRequest(batchRequest: BatchRequest): Promise<BatchResponse> {
-    return this.connection.request({
+    return this.connection.request<BatchResponse>({
       method: 'POST',
       url: this.buildBatchRequestURL(),
       body: JSON.stringify(batchRequest),
@@ -74,7 +74,7 @@ export class SObjectDescribe {
         'User-Agent': 'salesforcedx-extension',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       }
-    }) as unknown as BatchResponse;
+    });
   }
 
   public async describeSObjectBatchRequest(types: string[]): Promise<SObject[]> {
@@ -110,10 +110,7 @@ export class SObjectDescribe {
       const batchTypes = types.slice(i, i + batchSize);
       requests.push(this.describeSObjectBatchRequest(batchTypes));
     }
-
-    const results = await Promise.all(requests);
-    const fetchedSObjects = ([] as SObject[]).concat(...results);
-    return fetchedSObjects;
+    return (await Promise.all(requests)).flat();
   }
 }
 

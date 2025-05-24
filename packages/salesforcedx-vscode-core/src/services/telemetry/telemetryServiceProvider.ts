@@ -18,5 +18,6 @@ export const registerGetTelemetryServiceCommand = () =>
   vscode.commands.registerCommand(
     'sf.vscode.core.get.telemetry',
     async (key: string | undefined): Promise<TelemetryService> =>
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       (await getTelemetryServiceForKey(key)) as TelemetryService
   );

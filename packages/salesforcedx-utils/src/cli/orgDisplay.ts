@@ -19,6 +19,8 @@ export class OrgDisplay {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
+      // will be removed as part of removing CLI calls
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const orgInfo = JSON.parse(result).result as OrgInfo;
       return Promise.resolve(orgInfo);
     } catch {

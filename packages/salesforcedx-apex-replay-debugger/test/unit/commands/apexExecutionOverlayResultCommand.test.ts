@@ -30,7 +30,7 @@ describe('ApexExecutionOverlayResult basic class tests', () => {
   const urlElements = [SOBJECTS_URL, apexExecutionOverlayResult, heapdumpKey];
   const expectedGetUrl = urlElements.join('/');
 
-  it('Should have an undefined requestString', async () => {
+  it('Should have an undefined requestString', () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
     expect(overlayResultCommand.getCommandUrl()).to.equal(expectedGetUrl);
     expect(overlayResultCommand.getRequest()).to.equal(requestString);

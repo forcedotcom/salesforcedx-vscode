@@ -41,8 +41,10 @@ const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERRO
 // eslint-disable-next-line no-var
 declare var v8debug: any;
 
+type ApexLanguageClientOptions = LanguageClientOptions & { errorHandler?: ApexErrorHandler };
+
 const startedInDebugMode = (): boolean => {
-  const args = (process as any).execArgv;
+  const args = process.execArgv;
   if (args) {
     return args.some(
       (arg: any) =>
@@ -130,7 +132,7 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
   return client;
 };
 
-const buildClientOptions = (): LanguageClientOptions => {
+const buildClientOptions = (): ApexLanguageClientOptions => {
   const soqlExtensionInstalled = isSOQLExtensionInstalled();
 
   return {

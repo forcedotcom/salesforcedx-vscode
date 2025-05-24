@@ -249,7 +249,7 @@ connection.onCompletion(async (textDocumentPosition: CompletionParams): Promise<
       });
     }
     const settings = await getDocumentSettings(document, () => mode.doComplete.length > 2);
-    return mode.doComplete(document, textDocumentPosition.position, settings) as CompletionList | CompletionItem[];
+    return mode.doComplete(document, textDocumentPosition.position, settings);
   }
   return { isIncomplete: true, items: [] };
 });
@@ -260,7 +260,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
     const mode = languageModes.getMode(data.languageId);
     const document = documents.get(data.uri);
     if (mode?.doResolve && document) {
-      return mode.doResolve(document, item) as CompletionItem;
+      return mode.doResolve(document, item);
     }
   }
   return item;
@@ -303,17 +303,15 @@ connection.onReferences(referenceParams => {
 });
 
 connection.onSignatureHelp((signatureHelpParms: TextDocumentPositionParams): SignatureHelp => {
-  const result: SignatureHelp = {
-    activeSignature: 0,
-    activeParameter: 0,
-    signatures: []
-  };
   const document = documents.get(signatureHelpParms.textDocument.uri);
   const mode = languageModes.getModeAtPosition(document, signatureHelpParms.position);
-  if (mode && mode.doSignatureHelp) {
-    return mode.doSignatureHelp(document, signatureHelpParms.position) as SignatureHelp;
-  }
-  return result;
+  return (
+    mode?.doSignatureHelp?.(document, signatureHelpParms.position) ?? {
+      activeSignature: 0,
+      activeParameter: 0,
+      signatures: []
+    }
+  );
 });
 
 connection.onDocumentRangeFormatting(async formatParams => {

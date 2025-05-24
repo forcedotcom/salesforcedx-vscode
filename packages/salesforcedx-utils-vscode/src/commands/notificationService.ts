@@ -54,11 +54,13 @@ export class NotificationService {
     this.reportExecutionStatus(
       execution.command.toString(),
       channelService,
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       execution.processExitSubject as any as Observable<number | undefined>,
       cancellationToken
     );
     this.reportExecutionError(
       execution.command.toString(),
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       execution.processErrorSubject as any as Observable<Error | undefined>
     );
   }

@@ -6,20 +6,20 @@
  */
 
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { JsonArray, JsonMap } from '@salesforce/ts-types';
 import * as path from 'node:path';
 import { SalesforceProjectConfig } from '../salesforceProject';
 
 export default class SalesforcePackageDirectories {
   public static async getPackageDirectoryPaths(): Promise<string[]> {
-    const packageDirectories = await SalesforceProjectConfig.getValue<JsonArray>('packageDirectories');
+    const packageDirectories =
+      await SalesforceProjectConfig.getValue<{ path: string; default: boolean }[]>('packageDirectories');
     if (packageDirectories) {
       let packageDirectoryPaths: string[] = [];
       packageDirectories.forEach(packageDir => {
         if (packageDir) {
-          const packageDirectory = packageDir as JsonMap;
+          const packageDirectory = packageDir;
           if (packageDirectory.path) {
-            let dirPath = packageDirectory.path as string;
+            let dirPath = packageDirectory.path;
             dirPath = dirPath.trim();
             if (dirPath.startsWith(path.sep)) {
               dirPath = dirPath.substring(1);

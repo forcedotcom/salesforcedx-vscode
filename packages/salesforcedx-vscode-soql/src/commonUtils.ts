@@ -18,7 +18,7 @@ export const getDocumentName = (document: vscode.TextDocument): string => {
 export const trackErrorWithTelemetry = (problemId: string, error: string): Promise<void> => {
   try {
     telemetryService.sendException(`soql_error_${problemId.toLocaleLowerCase()}`, error);
-  } catch (err) {
+  } catch {
     channelService.appendLine(`soql_error_telemetry:  ${error.toString()}`);
   }
   return Promise.resolve();

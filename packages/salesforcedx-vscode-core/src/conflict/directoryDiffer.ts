@@ -71,7 +71,7 @@ class CommonDirDirectoryDiffer implements DirectoryDiffer {
       different,
       scannedLocal: localSet.size,
       scannedRemote
-    } as DirectoryDiffResults;
+    };
   }
 
   private filesDiffer(one: string, two: string): boolean {
