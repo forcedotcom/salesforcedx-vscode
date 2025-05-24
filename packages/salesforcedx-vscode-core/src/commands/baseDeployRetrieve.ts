@@ -156,7 +156,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
     let output: string;
 
-    if (result.response.status !== RequestStatus.Succeeded) {
+    if (result.response.status === RequestStatus.Succeeded) {
       output = table.createTable(
         rowsWithRelativePaths,
         [
