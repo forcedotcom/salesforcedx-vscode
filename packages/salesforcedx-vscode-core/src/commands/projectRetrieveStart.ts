@@ -13,7 +13,6 @@ import {
   EmptyParametersGatherer,
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult,
-  Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -162,7 +161,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(
-      rows as unknown as Row[],
+      rows ?? [],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -174,9 +173,9 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     return outputTable;
   }
 
-  protected getErrorTable(table: Table, result: unknown, titleType: string) {
+  protected getErrorTable(table: Table, result: ProjectRetrieveStartResult[], titleType: string) {
     const outputTable = table.createTable(
-      result as Row[],
+      result,
       [
         {
           key: 'filePath',

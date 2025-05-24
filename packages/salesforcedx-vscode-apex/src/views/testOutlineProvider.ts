@@ -15,6 +15,12 @@ import { nls } from '../messages';
 import { iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
+/**
+ * the way this file is written, I'm not sure how to tell between the descendants of TestNode
+ * leaving the assertions as is
+ */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 const safeLocalize = (val: string) => nls.localize(val);
 
 // Message

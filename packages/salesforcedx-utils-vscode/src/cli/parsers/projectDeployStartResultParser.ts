@@ -40,7 +40,7 @@ export class ProjectDeployStartResultParser {
   constructor(stdout: string) {
     try {
       this.response = extractJson(stdout);
-    } catch (e) {
+    } catch {
       const err = new Error('Error parsing project deploy start result');
       err.name = 'ProjectDeployStartParserFail';
       throw err;
@@ -50,6 +50,7 @@ export class ProjectDeployStartResultParser {
   public getErrors(): ProjectDeployStartErrorResponse | undefined {
     if (this.response.status === 1) {
       const files = this.response.data ?? this.response.result?.files;
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return {
         message: this.response.message ?? 'Push failed. ',
         name: this.response.name ?? 'DeployFailed',
@@ -68,6 +69,7 @@ export class ProjectDeployStartResultParser {
       if (pushedSource) {
         return { status, result: { files: pushedSource } };
       }
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return this.response as ProjectDeployStartSuccessResponse;
     }
     if (partialSuccess) {

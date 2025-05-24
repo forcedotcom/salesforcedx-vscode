@@ -7,6 +7,12 @@
 import * as vscode from 'vscode';
 import { ConflictFile, ConflictGroupNode, ConflictNode } from './conflictNode';
 
+/**
+ * ConflictNode overrides tool from TreeItem in a non-compatible way.  I'm leaving the assertions as is
+ * TODO: fix the types
+ */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 export class ConflictOutlineProvider implements vscode.TreeDataProvider<ConflictNode> {
   private root: ConflictGroupNode | null;
   private emptyLabel?: string;

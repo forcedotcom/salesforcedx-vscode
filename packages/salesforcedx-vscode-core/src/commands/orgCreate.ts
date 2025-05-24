@@ -83,6 +83,8 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
           // once it's GA this will have to be updated
           workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
         } else {
+          // remove when we drop CLI invocations
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
           if (errorResponse) {
             channelService.appendLine(errorResponse.message);
@@ -116,23 +118,23 @@ class AliasGatherer implements ParametersGatherer<Alias> {
         .name.replace(/\W/g /* Replace all non-alphanumeric characters */, '');
       defaultAlias = isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
     }
-    const aliasInputOptions = {
+    const aliasInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias,
       validateInput: value =>
         isAlphaNumSpaceString(value) || value === '' ? null : nls.localize('error_invalid_org_alias')
-    } as vscode.InputBoxOptions;
+    };
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will use the value of `defaultAlias`
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
-    const expirationDaysInputOptions = {
+    const expirationDaysInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
       placeHolder: defaultExpirationdate,
       validateInput: value =>
         isIntegerInRange(value, [1, 30]) || value === '' ? null : nls.localize('error_invalid_expiration_days')
-    } as vscode.InputBoxOptions;
+    };
     const scratchOrgExpirationInDays = await vscode.window.showInputBox(expirationDaysInputOptions);
     if (scratchOrgExpirationInDays === undefined) {
       return { type: 'CANCEL' };

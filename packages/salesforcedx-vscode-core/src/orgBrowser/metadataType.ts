@@ -40,34 +40,6 @@ export class TypeUtils {
     return metadataTypesPath;
   }
 
-  public buildTypesList(metadataFile?: any, metadataTypesPath?: string): MetadataObject[] {
-    try {
-      if (isNullOrUndefined(metadataFile)) {
-        metadataFile = fs.readFileSync(metadataTypesPath!, 'utf8');
-      }
-      const jsonObject = JSON.parse(metadataFile);
-      let metadataTypeObjects = jsonObject.result.metadataObjects as MetadataObject[];
-      metadataTypeObjects = metadataTypeObjects.filter(
-        type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName)
-      );
-
-      telemetryService.sendEventData('Metadata Types Quantity', undefined, {
-        metadataTypes: metadataTypeObjects.length
-      });
-
-      for (const mdTypeObject of metadataTypeObjects) {
-        mdTypeObject.label = nls.localize(mdTypeObject.xmlName).startsWith(MISSING_LABEL_MSG)
-          ? mdTypeObject.xmlName
-          : nls.localize(mdTypeObject.xmlName);
-      }
-
-      return metadataTypeObjects.sort((a, b) => (a.label > b.label ? 1 : -1));
-    } catch (e) {
-      telemetryService.sendException('metadata_type_build_types_list', e.message);
-      throw new Error(e);
-    }
-  }
-
   public async loadTypes(forceRefresh?: boolean): Promise<MetadataObject[]> {
     const typesFolder = await this.getTypesFolder();
     const typesPath = path.join(typesFolder, 'metadataTypes.json');
@@ -75,9 +47,9 @@ export class TypeUtils {
     let typesList: MetadataObject[];
     if (forceRefresh || !fs.existsSync(typesPath)) {
       const result = await describeMetadata(typesFolder);
-      typesList = this.buildTypesList(result, undefined);
+      typesList = buildTypesList({ metadataJSONContents: result });
     } else {
-      typesList = this.buildTypesList(undefined, typesPath);
+      typesList = buildTypesList({ metadataTypesPath: typesPath });
     }
     return typesList;
   }
@@ -93,3 +65,29 @@ export class TypeUtils {
     }
   }
 }
+
+const buildTypesList = (input: { metadataTypesPath: string } | { metadataJSONContents: string }): MetadataObject[] => {
+  try {
+    const jsonObject = JSON.parse(
+      'metadataJSONContents' in input ? input.metadataJSONContents : fs.readFileSync(input.metadataTypesPath, 'utf8')
+    );
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const metadataTypeObjects = (jsonObject.result.metadataObjects as MetadataObject[])
+      .filter(type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName))
+      .map(mdTypeObject => ({
+        ...mdTypeObject,
+        label: nls.localize(mdTypeObject.xmlName).startsWith(MISSING_LABEL_MSG)
+          ? mdTypeObject.xmlName
+          : nls.localize(mdTypeObject.xmlName)
+      }))
+      .sort((a, b) => (a.label > b.label ? 1 : -1));
+    telemetryService.sendEventData('Metadata Types Quantity', undefined, {
+      metadataTypes: metadataTypeObjects.length
+    });
+
+    return metadataTypeObjects;
+  } catch (e) {
+    telemetryService.sendException('metadata_type_build_types_list', e.message);
+    throw new Error(e);
+  }
+};

@@ -35,6 +35,8 @@ export class UserService {
 
     globalStateUserId = await this.executeCliTelemetry()
       .then((getCliTelemetryData): string => {
+        // will be removed as part of removing CLI calls
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         const cmdResult = JSON.parse(getCliTelemetryData) as {
           result?: { cliId: string };
         };
