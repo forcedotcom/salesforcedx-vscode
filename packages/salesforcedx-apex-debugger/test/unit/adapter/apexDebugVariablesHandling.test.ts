@@ -609,7 +609,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(frameInfo.globals).to.be.ok;
     });
 
-    it('Should populates as part of fetchFrameVariables', async () => {
+    it('Should populate as part of fetchFrameVariables', async () => {
       // given
       const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 1000);
       const frameRespObj: any = {
