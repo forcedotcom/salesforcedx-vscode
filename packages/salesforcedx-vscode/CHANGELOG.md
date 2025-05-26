@@ -1,3 +1,11 @@
+# 63.15.0 - May 28, 2025
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- [@W-18497015@,@W-18499135@] add restart setting to apex language restart command ([PR #6292](https://github.com/forcedotcom/salesforcedx-vscode/pull/6292))
+
 # 63.14.1 - May 21, 2025
 
 ## Fixed
