@@ -567,15 +567,15 @@ const handleTheUnhandled = (): void => {
       .find(w => w.startsWith('salesforcedx-vscode'));
 
     const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
-
-    // Send detailed telemetry data for only dx extensions by default
-    if (dxExtension) {
+    // Send detailed telemetry data for only dx extensions by default.
+    // If the exception catcher is enabled, send telemetry data for all extensions.
+    if (dxExtension || exceptionCatcher) {
       collectedData.fromExtension = dxExtension;
       telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
-    } else if (exceptionCatcher) {
-      console.log('Debug mode is enabled');
-      console.log('error data: %s', JSON.stringify(collectedData));
-      telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+      if (exceptionCatcher) {
+        console.log('Debug mode is enabled');
+        console.log('error data: %s', JSON.stringify(collectedData));
+      }
     }
   });
 };

@@ -10,7 +10,6 @@
   "conflict_detect_open_file": "Open File",
   "conflict_detect_resolve_view": "Org Differences",
   "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for all deploy commands executed from VS Code",
-  "all_exception_catcher_enabled_description": "Specifies whether to enable the exception catcher for all VSCode extensions. The all exception catcher is a catch-all block that catches all exceptions, including unhandled exceptions. Mainly for customer support and debugging purposes.",
   "core_settings_title": "Salesforce Core Configuration",
   "data_query_input_text": "SFDX: Execute SOQL Query...",
   "data_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text",
