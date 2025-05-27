@@ -46,8 +46,10 @@ export class OrgCreateResultParser {
 
   public getResult(): OrgCreateSuccessResult | OrgCreateErrorResult {
     if (this.createIsSuccessful()) {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return this.response as OrgCreateSuccessResult;
     }
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return this.response as OrgCreateErrorResult;
   }
 }

@@ -39,11 +39,11 @@ const inputInstanceUrl = async (): Promise<string | undefined> => {
 };
 
 const inputAlias = async (): Promise<string | undefined> => {
-  const aliasInputOptions = {
+  const aliasInputOptions: vscode.InputBoxOptions = {
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
     ignoreFocusOut: true
-  } as vscode.InputBoxOptions;
+  };
   const alias = await vscode.window.showInputBox(aliasInputOptions);
   return alias;
 };
@@ -126,10 +126,10 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
       loginUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
     }
 
-    const aliasInputOptions = {
+    const aliasInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: DEFAULT_ALIAS
-    } as vscode.InputBoxOptions;
+    };
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will default the alias to 'vscodeOrg'
     if (alias === undefined) {

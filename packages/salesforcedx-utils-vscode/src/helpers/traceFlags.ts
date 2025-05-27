@@ -25,12 +25,6 @@ type TraceFlagRecord = {
   DebugLevel: DebugLevelRecord;
 };
 
-type DataRecordResult = {
-  id?: string;
-  errors?: any[];
-  success: boolean;
-};
-
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
   private readonly MILLISECONDS_PER_MINUTE = 60000;
@@ -82,7 +76,7 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.update('DebugLevel', debugLevel)) as DataRecordResult;
+    const result = await this.connection.tooling.update('DebugLevel', debugLevel);
     return result.success;
   }
 
@@ -94,7 +88,7 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.create('DebugLevel', debugLevel)) as DataRecordResult;
+    const result = await this.connection.tooling.create('DebugLevel', debugLevel);
     return result.success && result.id ? result.id : undefined;
   }
 
@@ -104,7 +98,7 @@ export class TraceFlags {
       StartDate: Date.now(),
       ExpirationDate: expirationDate.toUTCString()
     };
-    const result = (await this.connection.tooling.update('TraceFlag', traceFlag)) as DataRecordResult;
+    const result = await this.connection.tooling.update('TraceFlag', traceFlag);
     return result.success;
   }
 
@@ -121,7 +115,7 @@ export class TraceFlags {
       ExpirationDate: expirationDate.toUTCString()
     };
 
-    const result = (await this.connection.tooling.create('TraceFlag', traceFlag)) as DataRecordResult;
+    const result = await this.connection.tooling.create('TraceFlag', traceFlag);
 
     if (result.success && result.id) {
       return result.id;

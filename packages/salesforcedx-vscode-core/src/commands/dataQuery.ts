@@ -31,16 +31,16 @@ class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
     let query;
 
     if (!editor) {
-      const userInputOptions = {
+      const userInputOptions: vscode.InputBoxOptions = {
         prompt: nls.localize('parameter_gatherer_enter_soql_query')
-      } as vscode.InputBoxOptions;
+      };
       query = await vscode.window.showInputBox(userInputOptions);
     } else {
       const document = editor.document;
       if (editor.selection.isEmpty) {
-        const userInputOptions = {
+        const userInputOptions: vscode.InputBoxOptions = {
           prompt: nls.localize('parameter_gatherer_enter_soql_query')
-        } as vscode.InputBoxOptions;
+        };
         query = await vscode.window.showInputBox(userInputOptions);
       } else {
         query = document.getText(editor.selection);

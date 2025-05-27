@@ -80,7 +80,7 @@ class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
       developerLogTraceFlag.turnOnLogging();
       executionWrapper.successfulExit();
     } catch (e) {
-      executionWrapper.failureExit(e as Error);
+      executionWrapper.failureExit(e);
     }
   }
 
@@ -121,7 +121,7 @@ export const getUserId = async (projectPath: string): Promise<string> => {
   try {
     const orgInfo = JSON.parse(result).result.records[0].Id;
     return Promise.resolve(orgInfo);
-  } catch (e) {
+  } catch {
     return Promise.reject(result);
   }
 };

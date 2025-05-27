@@ -4,19 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import {
-  Location,
-  Range,
-  SymbolInformation,
-  SymbolKind,
-  TextDocument
-} from 'vscode-languageserver-types';
+import { Location, Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode-languageserver-types';
 import { HTMLDocument, Node } from '../parser/htmlParser';
 
-export function findDocumentSymbols(
-  document: TextDocument,
-  htmlDocument: HTMLDocument
-): SymbolInformation[] {
+export function findDocumentSymbols(document: TextDocument, htmlDocument: HTMLDocument): SymbolInformation[] {
   const symbols = [] as SymbolInformation[];
 
   htmlDocument.roots.forEach(node => {
@@ -37,12 +28,12 @@ function provideFileSymbolsInternal(
     document.uri,
     Range.create(document.positionAt(node.start), document.positionAt(node.end))
   );
-  const symbol = {
+  const symbol: SymbolInformation = {
     name,
     location,
     containerName: container,
     kind: SymbolKind.Field as SymbolKind
-  } as SymbolInformation;
+  };
 
   symbols.push(symbol);
 

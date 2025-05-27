@@ -139,6 +139,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     const packagesData = JSON.parse(packagesJson);
     return packagesData.result.map(
       (entry: any) =>
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         ({
           id: entry.SubscriberPackageId,
           name: entry.SubscriberPackageName,
