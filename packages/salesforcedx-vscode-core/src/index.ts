@@ -500,12 +500,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
   console.log('SF CLI Extension Activated');
-
-  const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
-  if (exceptionCatcher) {
-    console.log('Debug mode is enabled');
-    handleTheUnhandled();
-  }
+  handleTheUnhandled();
   return api;
 };
 
@@ -565,15 +560,22 @@ const handleTheUnhandled = (): void => {
     collectedData.stackTrace ??= reason ? reason.stack : 'No stack trace available';
 
     // make an attempt to isolate the first reference to one of our extensions from the stack
-    const fromExtension = collectedData.stackTrace
+    const dxExtension = collectedData.stackTrace
       ?.split(os.EOL)
       .filter(l => l.includes('at '))
       .flatMap(l => l.split(path.sep))
       .find(w => w.startsWith('salesforcedx-vscode'));
 
-    collectedData.fromExtension = fromExtension;
+    const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
 
-    // Send detailed telemetry data
-    telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+    // Send detailed telemetry data for only dx extensions by default
+    if (dxExtension) {
+      collectedData.fromExtension = dxExtension;
+      telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+    } else if (exceptionCatcher) {
+      console.log('Debug mode is enabled');
+      console.log('error data: %s', JSON.stringify(collectedData));
+      telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+    }
   });
 };
