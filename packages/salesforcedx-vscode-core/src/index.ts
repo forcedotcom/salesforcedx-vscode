@@ -77,6 +77,7 @@ import {
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { getUserId } from './commands/startApexDebugLogging';
+import { turnOnLogging } from './commands/startApexDebugLogging';
 import {
   FlagParameter,
   SelectFileName,
@@ -217,10 +218,12 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger);
 
-  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sf.start.apex.debug.logging',
-    startApexDebugLogging
-  );
+  // const startApexDebugLoggingCmd = vscode.commands.registerCommand(
+  //   'sf.start.apex.debug.logging',
+  //   startApexDebugLogging
+  // );
+
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand('sf.start.apex.debug.logging', turnOnLogging);
 
   const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
 
