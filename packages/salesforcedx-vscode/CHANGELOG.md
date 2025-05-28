@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We modified the Apex language server restart behavior:
+- We modified the Apex language server restart behavior and added new options:
 
   **From the status bar**: Respects the configured `Restart Behavior` setting.
      
