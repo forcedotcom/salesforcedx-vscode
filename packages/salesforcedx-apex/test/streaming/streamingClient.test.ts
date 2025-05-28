@@ -154,11 +154,7 @@ describe('Streaming API Client', () => {
   it.skip('should capture test run ID in subscribe', async () => {
     const stubSubscribe = sandboxStub
       .stub(ApexFayeClient.prototype, 'subscribe')
-      .returns(
-        new Subscription(() => {
-          return;
-        })
-      );
+      .returns(new Subscription(() => undefined));
     const stubDisconnect = sandboxStub.stub(
       ApexFayeClient.prototype,
       'disconnect'

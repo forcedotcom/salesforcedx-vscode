@@ -7,11 +7,8 @@
 import { expect } from 'chai';
 import { ApexTestResultOutcome } from '../../src';
 import { TestResultStringifyStream } from '../../src/streaming';
-import {
-  CodeCoverageResult,
-  PerClassCoverage,
-  TestResult
-} from '../../src/tests';
+import { CodeCoverageResult, TestResult } from '../../src/tests';
+import { PerClassCoverage } from '../../src/tests/types';
 
 const tests = [
   {

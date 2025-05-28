@@ -17,6 +17,7 @@
     "@typescript-eslint/ban-types": "warn",
     "camelcase": "off",
     "@typescript-eslint/camelcase": "off",
+    "arrow-body-style": "error",
     "constructor-super": "warn",
     "curly": "error",
     "eqeqeq": "error",

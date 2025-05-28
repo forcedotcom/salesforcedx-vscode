@@ -148,9 +148,10 @@ export class CoverageReporter {
           ...record.Coverage.uncoveredLines.map((line) => [line, 0])
         ]
           .map(([line, covered]) => [Number(line).toString(10), covered])
-          .reduce((acc, [line, value]) => {
-            return Object.assign(acc, { [line]: value });
-          }, {});
+          .reduce(
+            (acc, [line, value]) => Object.assign(acc, { [line]: value }),
+            {}
+          );
         let sourceLines: string[] = [];
         try {
           sourceLines = fs
@@ -178,9 +179,11 @@ export class CoverageReporter {
 
             return [Number(line).toString(10), statement];
           })
-          .reduce((acc, [line, value]) => {
-            return Object.assign(acc, { [Number(line).toString()]: value });
-          }, {});
+          .reduce(
+            (acc, [line, value]) =>
+              Object.assign(acc, { [Number(line).toString()]: value }),
+            {}
+          );
         coverageMap.addFileCoverage(fileCoverageData);
       }
     );

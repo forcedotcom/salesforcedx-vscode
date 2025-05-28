@@ -13,8 +13,9 @@ import {
   TestResult
 } from '../tests';
 import { nls } from '../i18n';
-import { LoggerLevel } from '@salesforce/core';
 import * as os from 'node:os';
+
+const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 
 export class HumanReporter {
   @elapsedTime()
@@ -25,24 +26,19 @@ export class HumanReporter {
   ): string {
     HeapMonitor.getInstance().checkHeapSize('HumanReporter.format');
     try {
-      let tbResult: string = '';
-      if (!testResult.codecoverage || !detailedCoverage) {
-        tbResult += this.formatTestResults(testResult.tests, concise);
-      }
-
-      if (testResult.codecoverage) {
-        if (detailedCoverage) {
-          tbResult += this.formatDetailedCov(testResult, concise);
-        }
-        if (!concise) {
-          tbResult += this.formatCodeCov(testResult.codecoverage);
-        }
-      }
-      if (testResult.setup && !concise) {
-        tbResult += this.formatSetup(testResult);
-      }
-      tbResult += this.formatSummary(testResult);
-      return tbResult;
+      return [
+        ...(!testResult.codecoverage || !detailedCoverage
+          ? [this.formatTestResults(testResult.tests, concise)]
+          : []),
+        ...(testResult.codecoverage && detailedCoverage
+          ? [this.formatDetailedCov(testResult, concise)]
+          : []),
+        ...(testResult.codecoverage && !concise
+          ? [this.formatCodeCov(testResult.codecoverage)]
+          : []),
+        ...(testResult.setup && !concise ? [this.formatSetup(testResult)] : []),
+        this.formatSummary(testResult)
+      ].join(os.EOL.repeat(2));
     } finally {
       HeapMonitor.getInstance().checkHeapSize('HumanReporter.format');
     }
@@ -50,8 +46,6 @@ export class HumanReporter {
 
   @elapsedTime()
   private formatSummary(testResult: TestResult): string {
-    const tb = new Table();
-
     // Summary Table
     const summaryRowArray: Row[] = [
       {
@@ -108,8 +102,7 @@ export class HumanReporter {
         : [])
     ];
 
-    let summaryTable = os.EOL.repeat(2);
-    return (summaryTable += tb.createTable(
+    return new Table().createTable(
       summaryRowArray,
       [
         {
@@ -119,7 +112,7 @@ export class HumanReporter {
         { key: 'value', label: nls.localize('valueColHeader') }
       ],
       nls.localize('testSummaryHeader')
-    ));
+    );
   }
 
   @elapsedTime()
@@ -127,42 +120,23 @@ export class HumanReporter {
     tests: ApexTestResultData[],
     concise: boolean
   ): string {
-    const tb = new Table();
-    const testRowArray: Row[] = [];
-    tests.forEach(
-      (elem: {
-        fullName: string;
-        outcome: ApexTestResultOutcome;
-        message: string | null;
-        runTime: number;
-        stackTrace: string | null;
-      }) => {
-        if (
+    const testRowArray: Row[] = tests
+      .filter(
+        (elem) =>
           !concise ||
           elem.outcome === ApexTestResultOutcome.Fail ||
           elem.outcome === ApexTestResultOutcome.CompileFail
-        ) {
-          const msg = elem.stackTrace
-            ? `${elem.message}\n${elem.stackTrace}`
-            : elem.message;
+      )
+      .map((elem) => ({
+        name: elem.fullName,
+        outcome: elem.outcome,
+        msg: buildMsg(elem),
+        runtime:
+          elem.outcome !== ApexTestResultOutcome.Fail ? `${elem.runTime}` : ''
+      }));
 
-          testRowArray.push({
-            name: elem.fullName,
-            outcome: elem.outcome,
-            msg: elem.message ? msg : '',
-            runtime:
-              elem.outcome !== ApexTestResultOutcome.Fail
-                ? `${elem.runTime}`
-                : ''
-          });
-        }
-      }
-    );
-
-    let testResultTable: string = '';
     if (testRowArray.length > 0) {
-      testResultTable = os.EOL.repeat(2);
-      testResultTable += tb.createTable(
+      return new Table().createTable(
         testRowArray,
         [
           {
@@ -176,24 +150,18 @@ export class HumanReporter {
         nls.localize('testResultsHeader')
       );
     }
-    return testResultTable;
+    return '';
   }
 
   @elapsedTime()
   private formatSetup(testResult: TestResult): string {
-    const tb = new Table();
-    const testRowArray: Row[] = [];
-    testResult.setup.forEach((elem) => {
-      testRowArray.push({
-        name: elem.fullName,
-        time: `${elem.testSetupTime}`,
-        runId: testResult.summary.testRunId
-      });
-    });
-    let testResultTable: string = '';
+    const testRowArray: Row[] = testResult.setup.map((elem) => ({
+      name: elem.fullName,
+      time: `${elem.testSetupTime}`,
+      runId: testResult.summary.testRunId
+    }));
     if (testRowArray.length > 0) {
-      testResultTable = os.EOL.repeat(2);
-      testResultTable += tb.createTable(
+      return new Table().createTable(
         testRowArray,
         [
           {
@@ -207,51 +175,43 @@ export class HumanReporter {
           .replace('runId', testRowArray[0].runId)
       );
     }
-    return testResultTable;
+    return '';
   }
 
   @elapsedTime()
   private formatDetailedCov(testResult: TestResult, concise: boolean): string {
-    const tb = new Table();
-    const testRowArray: Row[] = [];
-    testResult.tests.forEach((elem: ApexTestResultData) => {
-      if (
-        !concise ||
-        elem.outcome === ApexTestResultOutcome.Fail ||
-        elem.outcome === ApexTestResultOutcome.CompileFail
-      ) {
-        const msg = elem.stackTrace
-          ? `${elem.message}\n${elem.stackTrace}`
-          : elem.message;
-
+    const testRowArray: Row[] = testResult.tests
+      .filter(
+        (elem: ApexTestResultData) =>
+          !concise ||
+          elem.outcome === ApexTestResultOutcome.Fail ||
+          elem.outcome === ApexTestResultOutcome.CompileFail
+      )
+      .flatMap((elem) => {
+        const base = {
+          name: elem.fullName,
+          outcome: elem.outcome,
+          msg: buildMsg(elem),
+          runtime: `${elem.runTime}`
+        };
         if (elem.perClassCoverage) {
-          elem.perClassCoverage.forEach((perClassCov) => {
-            testRowArray.push({
-              name: elem.fullName,
-              coveredClassName: perClassCov.apexClassOrTriggerName,
-              outcome: elem.outcome,
-              coveredClassPercentage: perClassCov.percentage,
-              msg: elem.message ? msg : '',
-              runtime: `${elem.runTime}`
-            });
-          });
-        } else {
-          testRowArray.push({
-            name: elem.fullName,
-            coveredClassName: '',
-            outcome: elem.outcome,
-            coveredClassPercentage: '',
-            msg: elem.message ? msg : '',
-            runtime: `${elem.runTime}`
-          });
+          return elem.perClassCoverage.map((perClassCov) => ({
+            ...base,
+            coveredClassName: perClassCov.apexClassOrTriggerName,
+            coveredClassPercentage: perClassCov.percentage
+          }));
         }
-      }
-    });
+        return [
+          {
+            ...base,
+            coveredClassName: '',
+            coveredClassPercentage: ''
+          }
+        ];
+      });
 
-    let detailedCovTable: string = '';
     if (testRowArray.length > 0) {
-      detailedCovTable = os.EOL.repeat(2);
-      detailedCovTable += tb.createTable(
+      return new Table().createTable(
         testRowArray,
         [
           {
@@ -276,29 +236,18 @@ export class HumanReporter {
         nls.localize('detailedCodeCovHeader', [testResult.summary.testRunId])
       );
     }
-    return detailedCovTable;
+    return '';
   }
 
   @elapsedTime()
   private formatCodeCov(codeCoverages: CodeCoverageResult[]): string {
-    const tb = new Table();
-    const codeCovRowArray: Row[] = [];
-    codeCoverages.forEach(
-      (elem: {
-        name: string;
-        percentage: string;
-        uncoveredLines: number[];
-      }) => {
-        codeCovRowArray.push({
-          name: elem.name,
-          percent: elem.percentage,
-          uncoveredLines: this.formatUncoveredLines(elem.uncoveredLines)
-        });
-      }
-    );
+    const codeCovRowArray: Row[] = codeCoverages.map((elem) => ({
+      name: elem.name,
+      percent: elem.percentage,
+      uncoveredLines: formatUncoveredLines(elem.uncoveredLines)
+    }));
 
-    let codeCovTable = os.EOL.repeat(2);
-    codeCovTable += tb.createTable(
+    return new Table().createTable(
       codeCovRowArray,
       [
         {
@@ -316,22 +265,21 @@ export class HumanReporter {
       ],
       nls.localize('codeCovHeader')
     );
-    return codeCovTable;
-  }
-
-  @elapsedTime('elapsedTime', LoggerLevel.TRACE)
-  private formatUncoveredLines(uncoveredLines: number[]): string {
-    const arrayLimit = 5;
-    if (uncoveredLines.length === 0) {
-      return '';
-    }
-
-    const limit =
-      uncoveredLines.length > arrayLimit ? arrayLimit : uncoveredLines.length;
-    let processedLines = uncoveredLines.slice(0, limit).join(',');
-    if (uncoveredLines.length > arrayLimit) {
-      processedLines += '...';
-    }
-    return processedLines;
   }
 }
+
+const buildMsg = (elem: ApexTestResultData): string =>
+  elem.stackTrace
+    ? `${elem.message}\n${elem.stackTrace}`
+    : (elem.message ?? '');
+
+const formatUncoveredLines = (uncoveredLines: number[]): string =>
+  uncoveredLines.length === 0
+    ? ''
+    : uncoveredLines
+        .slice(0, Math.min(uncoveredLines.length, UNCOVERED_LINES_ARRAY_LIMIT))
+        .map((line) => line.toString())
+        .concat(
+          uncoveredLines.length > UNCOVERED_LINES_ARRAY_LIMIT ? ['...'] : []
+        )
+        .join(',');

@@ -37,13 +37,13 @@ export type ApexDiagnostic = {
 };
 
 export type QueryResult<T = QueryRecord> = { records: T[] };
-export type QueryRecord = { Id: string };
+type QueryRecord = { Id: string };
 export type QueryRecords = {
   totalSize: number;
   records: IdRecord[];
 };
 
-export type DebugLevelRecord = {
+type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;
 };
@@ -75,11 +75,3 @@ export interface Column {
   key: string;
   label: string;
 }
-
-export interface Title {
-  title: string;
-}
-
-export type TableConfig = Title & {
-  columns: Column[];
-};

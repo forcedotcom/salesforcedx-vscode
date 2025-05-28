@@ -12,7 +12,7 @@ import {
   StreamingClient
 } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
-import { AnyJson } from '@salesforce/ts-types';
+import type { AnyJson } from '@salesforce/ts-types';
 import {
   LISTENER_ABORTED_ERROR_NAME,
   LOG_TIMER_LENGTH_MINUTES,
@@ -61,38 +61,30 @@ export class LogService {
   // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
   @elapsedTime()
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
-    const logIdList = await this.getLogIds(options);
-    const logPaths: string[] = [];
-    const connectionRequests = logIdList.map(async (id) => {
-      const url = `${this.connection.tooling._baseUrl()}/sobjects/ApexLog/${id}/Body`;
-      const logRecord = await this.toolingRequest(url);
+    const logs = (
+      await Promise.all(
+        (await this.getLogIds(options)).map(async (id) => ({
+          ...(await this.getLogById(id)),
+          logId: id
+        }))
+      )
+    ).map(({ log, logId }) => {
       if (options.outputDir) {
-        const logPath = path.join(options.outputDir, `${id}.log`);
-        logPaths.push(logPath);
-        createFile(logPath, logRecord);
+        const logPath = path.join(options.outputDir, `${logId}.log`);
+        createFile(logPath, log);
+        return { log, logPath };
       }
-      return String(logRecord);
-    });
-
-    const logs = await Promise.all(connectionRequests);
-    if (logPaths.length > 0) {
-      const logMap: LogResult[] = [];
-      for (let i = 0; i < logs.length; i++) {
-        logMap.push({ log: logs[i], logPath: logPaths[i] });
-      }
-      return logMap;
-    }
-
-    return logs.map((log) => {
       return { log };
     });
+
+    return logs;
   }
 
   @elapsedTime()
   public async getLogById(logId: string): Promise<LogResult> {
     const baseUrl = this.connection.tooling._baseUrl();
     const url = `${baseUrl}/sobjects/ApexLog/${logId}/Body`;
-    const response = await this.connection.tooling.request<AnyJson>(url);
+    const response = await this.toolingRequest(url);
     return { log: response.toString() || '' };
   }
 

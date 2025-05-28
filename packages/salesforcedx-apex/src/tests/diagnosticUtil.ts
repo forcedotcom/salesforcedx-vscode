@@ -24,48 +24,25 @@ export function formatTestErrors(error: Error): Error {
   return error;
 }
 
-export function getSyncDiagnostic(syncRecord: SyncTestFailure): ApexDiagnostic {
-  const diagnostic: ApexDiagnostic = {
-    exceptionMessage: syncRecord.message,
-    exceptionStackTrace: syncRecord.stackTrace,
-    className: syncRecord.stackTrace
-      ? syncRecord.stackTrace.split('.')[1]
-      : undefined,
-    compileProblem: ''
-  };
-
-  const matches = syncRecord.stackTrace?.match(/(line (\d+), column (\d+))/);
-  if (matches) {
-    if (matches[2]) {
-      diagnostic.lineNumber = Number(matches[2]);
-    }
-    if (matches[3]) {
-      diagnostic.columnNumber = Number(matches[3]);
-    }
-  }
-  return diagnostic;
-}
-
-export function getAsyncDiagnostic(
-  asyncRecord: ApexTestResultRecord
+export function getDiagnostic(
+  record: SyncTestFailure | ApexTestResultRecord
 ): ApexDiagnostic {
-  const diagnostic: ApexDiagnostic = {
-    exceptionMessage: asyncRecord.Message,
-    exceptionStackTrace: asyncRecord.StackTrace,
-    className: asyncRecord.StackTrace
-      ? asyncRecord.StackTrace.split('.')[1]
-      : undefined,
-    compileProblem: ''
-  };
+  const { message, stackTrace } =
+    'message' in record
+      ? record
+      : {
+          message: record.Message,
+          stackTrace: record.StackTrace
+        };
 
-  const matches = asyncRecord.StackTrace?.match(/(line (\d+), column (\d+))/);
-  if (matches) {
-    if (matches[2]) {
-      diagnostic.lineNumber = Number(matches[2]);
-    }
-    if (matches[3]) {
-      diagnostic.columnNumber = Number(matches[3]);
-    }
-  }
-  return diagnostic;
+  const matches = stackTrace?.match(/(line (\d+), column (\d+))/);
+
+  return {
+    exceptionMessage: message,
+    exceptionStackTrace: stackTrace,
+    className: stackTrace ? stackTrace.split('.')[1] : undefined,
+    compileProblem: '',
+    ...(matches && matches[2] && { lineNumber: Number(matches[2]) }),
+    ...(matches && matches[3] && { columnNumber: Number(matches[3]) })
+  };
 }

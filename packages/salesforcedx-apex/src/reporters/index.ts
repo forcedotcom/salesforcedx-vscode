@@ -8,7 +8,6 @@ export { TapReporter } from './tapReporter';
 export { JUnitReporter } from './junitReporter';
 export { JUnitFormatTransformer } from './junitFormatTransformer';
 export { HumanReporter } from './humanReporter';
-export { HumanFormatTransform } from './humanFormatTransform';
 export {
   CoverageReporter,
   CoverageReporterOptions,

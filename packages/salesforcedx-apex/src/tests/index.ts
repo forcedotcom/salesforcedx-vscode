@@ -11,7 +11,6 @@ export {
   ApexCodeCoverageAggregateRecord,
   ApexTestProgressValue,
   ApexTestResultData,
-  ApexTestResultDataRaw,
   ApexTestResultOutcome,
   ApexTestRunResultStatus,
   ApexTestSetupData,
@@ -19,12 +18,10 @@ export {
   AsyncTestConfiguration,
   CodeCoverageResult,
   OutputDirConfig,
-  PerClassCoverage,
   ResultFormat,
   SyncTestConfiguration,
   TestItem,
   TestLevel,
   TestResult,
-  TestResultRaw,
   TestRunIdResult
 } from './types';

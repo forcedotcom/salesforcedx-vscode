@@ -6,9 +6,3 @@
  */
 export { AsyncTestRun, StreamingClient } from './streamingClient';
 export { TestResultStringifyStream } from './testResultStringifyStream';
-export {
-  determineType,
-  getArrayEntries,
-  getPrimitiveEntries,
-  getObjectEntries
-} from './utils';

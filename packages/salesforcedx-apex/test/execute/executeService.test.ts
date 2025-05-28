@@ -11,7 +11,7 @@ import { assert, expect } from 'chai';
 import fs from 'node:fs';
 import readline from 'readline';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { ExecuteService } from '../../src/execute';
+import { ExecuteService } from '../../src/execute/executeService';
 import { nls } from '../../src/i18n';
 import {
   ExecuteAnonymousResponse,

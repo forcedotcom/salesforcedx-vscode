@@ -8,7 +8,7 @@
 import * as util from 'util';
 const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 // tslint:disable: no-any
-export interface LocalizationProvider {
+interface LocalizationProvider {
   localize(label: string, args?: string | string[]): string;
 }
 
@@ -24,7 +24,7 @@ export class Localization implements LocalizationProvider {
   }
 }
 
-export type MessageBundle = {
+type MessageBundle = {
   readonly [index: string]: string;
 };
 

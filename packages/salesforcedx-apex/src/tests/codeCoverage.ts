@@ -187,25 +187,23 @@ export class CodeCoverage {
   private async queryAggregateCodeCov(
     apexClassIdSet: Set<string>
   ): Promise<ApexCodeCoverageAggregate[]> {
-    let codeCoverageQuery;
-
     // If the "Store Only Aggregate Code Coverage" setting is checked, then apexClassIdSet is empty and we should query all the Apex classes and triggers in the ApexCodeCoverageAggregate table.
     if (apexClassIdSet.size === 0) {
-      codeCoverageQuery =
+      const query =
         'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate';
 
       const result = await queryAll<ApexCodeCoverageAggregateRecord>(
         this.connection,
-        codeCoverageQuery,
+        query,
         true
       );
       return [result];
     }
     // If the "Store Only Aggregate Code Coverage" setting is unchecked, we continue to query only the Apex classes and triggers in apexClassIdSet from the ApexCodeCoverageAggregate table, as those are the Apex classes and triggers touched by the Apex tests in the current run.
     else {
-      codeCoverageQuery =
+      const query =
         'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate WHERE ApexClassorTriggerId IN (%s)';
-      return this.fetchResults(apexClassIdSet, codeCoverageQuery);
+      return this.fetchResults(apexClassIdSet, query);
     }
   }
 
@@ -215,13 +213,13 @@ export class CodeCoverage {
   >(idSet: Set<string>, selectQuery: string): Promise<T[]> {
     const queries = this.createQueries(selectQuery, idSet);
 
-    const queryPromises = queries.map((query) => {
+    const queryPromises = queries.map((query) =>
       // The query method returns a type QueryResult from jsforce
       // that has takes a type that extends the jsforce Record.
       // ApexCodeCoverageRecord and ApexCodeCoverageAggregateRecord
       // are the Records compatible types defined in this project.
-      return queryAll(this.connection, query, true);
-    });
+      queryAll(this.connection, query, true)
+    );
 
     // Note here the result of the .all call is of type QueryResult<ApexCodeCoverageAggregateRecord | ApexCodeCoverageRecord>[]
     // Since QueryResult is compatible with ApexCodeCoverage and ApexCodeCoverageAggregate we can cast to T[]
@@ -231,10 +229,9 @@ export class CodeCoverage {
   }
 
   private createQueries(selectQuery: string, idSet: Set<string>): string[] {
-    const idArray = [...idSet];
     const queries: string[] = [];
-    for (let i = 0; i < idArray.length; i += QUERY_RECORD_LIMIT) {
-      const recordSet: string[] = idArray
+    for (let i = 0; i < idSet.size; i += QUERY_RECORD_LIMIT) {
+      const recordSet = Array.from(idSet)
         .slice(i, i + QUERY_RECORD_LIMIT)
         .map((id) => `'${id}'`);
 

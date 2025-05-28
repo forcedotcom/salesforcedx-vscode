@@ -33,9 +33,9 @@ describe('Build async payload', async () => {
         username: testData.username
       })
     });
-    sandboxStub.stub(mockConnection, 'instanceUrl').get(() => {
-      return 'https://na139.salesforce.com';
-    });
+    sandboxStub
+      .stub(mockConnection, 'instanceUrl')
+      .get(() => 'https://na139.salesforce.com');
     testService = new TestService(mockConnection);
   });
 
@@ -277,9 +277,9 @@ describe('Build sync payload', async () => {
         username: testData.username
       })
     });
-    sandboxStub.stub(mockConnection, 'instanceUrl').get(() => {
-      return 'https://na139.salesforce.com';
-    });
+    sandboxStub
+      .stub(mockConnection, 'instanceUrl')
+      .get(() => 'https://na139.salesforce.com');
     testSrv = new TestService(mockConnection);
   });
 

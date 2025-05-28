@@ -10,9 +10,9 @@ import {
   TestResult
 } from '../tests';
 import { elapsedTime, HeapMonitor } from '../utils';
-import * as os from 'node:os';
+import { buildTapDiagnostics } from './buildTapDiagnostics';
 
-export interface TapResult {
+interface TapResult {
   description: string;
   diagnostics: string[];
   outcome: string;
@@ -25,23 +25,16 @@ export class TapReporter {
     HeapMonitor.getInstance().checkHeapSize('TapReporter.format');
     try {
       const results: TapResult[] = this.buildTapResults(testResult);
-      const testPointCount = results.length;
 
-      let out = '';
-      out = out.concat(`1..${testPointCount}\n`);
-      results.forEach((testPoint) => {
-        out = out.concat(
-          `${testPoint.outcome} ${testPoint.testNumber} ${testPoint.description}\n`
-        );
-        testPoint.diagnostics.forEach((s) => {
-          out = out.concat(`# ${s}\n`);
-        });
-      });
-
-      epilog?.forEach((c) => {
-        out = out.concat(`# ${c}\n`);
-      });
-      return out;
+      const lines = [
+        `1..${results.length}`,
+        ...results.flatMap((testPoint) => [
+          `${testPoint.outcome} ${testPoint.testNumber} ${testPoint.description}`,
+          ...testPoint.diagnostics.map((s) => `# ${s}`)
+        ]),
+        ...(epilog ? epilog.map((c) => `# ${c}`) : [])
+      ];
+      return lines.join('\n') + '\n';
     } finally {
       HeapMonitor.getInstance().checkHeapSize('TapReporter.format');
     }
@@ -49,46 +42,11 @@ export class TapReporter {
 
   @elapsedTime()
   public buildTapResults(testResult: TestResult): TapResult[] {
-    const tapResults: TapResult[] = [];
-    testResult.tests.forEach((test: ApexTestResultData, index: number) => {
-      const testNumber = index + 1;
-      const outcome =
-        test.outcome === ApexTestResultOutcome.Pass ? 'ok' : 'not ok';
-      tapResults.push({
-        testNumber,
-        description: test.fullName,
-        diagnostics: this.buildTapDiagnostics(test),
-        outcome
-      });
-    });
-    return tapResults;
-  }
-
-  @elapsedTime()
-  private buildTapDiagnostics(testResult: ApexTestResultData): string[] {
-    const message = [];
-    if (testResult.outcome !== 'Pass') {
-      if (testResult.message) {
-        const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/gim);
-        if (startsWithNewlineRegex.test(testResult.message)) {
-          testResult.message.split(/\r\n|\r|\n/g).forEach((msg) => {
-            if (msg?.length > 0) {
-              message.push(msg.trim());
-            }
-          });
-        } else {
-          message.push(testResult.message);
-        }
-      } else {
-        message.push('Unknown error');
-      }
-
-      if (testResult.stackTrace) {
-        testResult.stackTrace.split(os.EOL).forEach((line) => {
-          message.push(line);
-        });
-      }
-    }
-    return message;
+    return testResult.tests.map((test: ApexTestResultData, index: number) => ({
+      testNumber: index + 1,
+      description: test.fullName,
+      diagnostics: buildTapDiagnostics(test),
+      outcome: test.outcome === ApexTestResultOutcome.Pass ? 'ok' : 'not ok'
+    }));
   }
 }

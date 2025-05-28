@@ -13,7 +13,11 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { LogService } from '../../src/logs/logService';
 import path from 'path';
 import stream from 'stream';
-import { LogQueryResult, LogRecord, LogResult } from '../../src/logs/types';
+import { LogRecord, LogResult } from '../../src/logs/types';
+
+type LogQueryResult = {
+  records: LogRecord[];
+};
 
 const logRecords: LogRecord[] = [
   {
@@ -175,10 +179,12 @@ describe('Apex Log Service Tests', () => {
       { Id: 'SFSDF' },
       { Id: 'DSASD' }
     ];
-    const queryRecords = { records: ids };
+    const queryRecords = { records: ids, done: true, totalSize: ids.length };
     const toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
-    //@ts-ignore
     toolingQueryStub.onFirstCall().resolves(queryRecords);
+
+    const getLogByIdStub = sandboxStub.stub(LogService.prototype, 'getLogById');
+    getLogByIdStub.resolves({ log: 'log' });
     const response = await apexLogGet.getLogs({
       numberOfLogs: 27
     });

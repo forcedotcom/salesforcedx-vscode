@@ -12,16 +12,9 @@ import {
   TestResult
 } from '../tests';
 import { elapsedTime, HeapMonitor } from '../utils';
-import * as os from 'node:os';
+import { buildTapDiagnostics } from './buildTapDiagnostics';
 
-export interface TapResult {
-  description: string;
-  diagnostics: string[];
-  outcome: string;
-  testNumber: number;
-}
-
-export type TapFormatTransformerOptions = ReadableOptions & {
+type TapFormatTransformerOptions = ReadableOptions & {
   bufferSize?: number;
 };
 
@@ -84,37 +77,9 @@ export class TapFormatTransformer extends Readable {
       const outcome =
         test.outcome === ApexTestResultOutcome.Pass ? 'ok' : 'not ok';
       this.pushToBuffer(`${outcome} ${testNumber} ${test.fullName}\n`);
-      this.buildTapDiagnostics(test).forEach((s) => {
+      buildTapDiagnostics(test).forEach((s) => {
         this.pushToBuffer(`# ${s}\n`);
       });
     });
-  }
-
-  @elapsedTime()
-  private buildTapDiagnostics(testResult: ApexTestResultData): string[] {
-    const message = [];
-    if (testResult.outcome !== 'Pass') {
-      if (testResult.message) {
-        const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n]\w*/gim);
-        if (startsWithNewlineRegex.test(testResult.message)) {
-          testResult.message.split(/\r\n|\r|\n/g).forEach((msg) => {
-            if (msg?.length > 0) {
-              message.push(msg.trim());
-            }
-          });
-        } else {
-          message.push(testResult.message);
-        }
-      } else {
-        message.push('Unknown error');
-      }
-
-      if (testResult.stackTrace) {
-        testResult.stackTrace.split(os.EOL).forEach((line) => {
-          message.push(line);
-        });
-      }
-    }
-    return message;
   }
 }

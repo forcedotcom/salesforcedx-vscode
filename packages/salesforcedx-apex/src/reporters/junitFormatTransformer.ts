@@ -27,7 +27,7 @@ const timeProperties = [
 // properties not in cli junit spec
 const skippedProperties = ['skipRate', 'totalLines', 'linesCovered'];
 
-export type JUnitFormatTransformerOptions = ReadableOptions & {
+type JUnitFormatTransformerOptions = ReadableOptions & {
   bufferSize?: number;
 };
 

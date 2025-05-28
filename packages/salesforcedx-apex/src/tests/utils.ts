@@ -40,10 +40,6 @@ export function calculatePercentage(dividend: number, divisor: number): string {
   return percentage;
 }
 
-export function stringify(jsonObj: object): string {
-  return JSON.stringify(jsonObj, null, 2);
-}
-
 export async function queryNamespaces(
   connection: Connection
 ): Promise<NamespaceInfo[]> {
@@ -53,12 +49,14 @@ export async function queryNamespaces(
   const orgNsPromise = connection.query(orgNsQuery);
 
   const allNamespaces = await Promise.all([installedNsPromise, orgNsPromise]);
-  const installedNamespaces = allNamespaces[0].records.map((record) => {
-    return { installedNs: true, namespace: record.NamespacePrefix };
-  });
-  const orgNamespaces = allNamespaces[1].records.map((record) => {
-    return { installedNs: false, namespace: record.NamespacePrefix };
-  });
+  const installedNamespaces = allNamespaces[0].records.map((record) => ({
+    installedNs: true,
+    namespace: record.NamespacePrefix
+  }));
+  const orgNamespaces = allNamespaces[1].records.map((record) => ({
+    installedNs: false,
+    namespace: record.NamespacePrefix
+  }));
 
   return [...orgNamespaces, ...installedNamespaces];
 }
@@ -219,9 +217,9 @@ export const calculateCodeCoverage = async (
 
 const transformToApexTestSetupData = (
   testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>
-): ApexTestSetupData => {
+): ApexTestSetupData =>
   // Assuming all necessary properties are present and optional properties are handled
-  return {
+  ({
     id: testData.id,
     stackTrace: testData.stackTrace ?? null,
     message: testData.message ?? null,
@@ -233,5 +231,4 @@ const transformToApexTestSetupData = (
     testTimestamp: testData.testTimestamp,
     fullName: testData.fullName,
     diagnostic: testData.diagnostic
-  };
-};
+  });

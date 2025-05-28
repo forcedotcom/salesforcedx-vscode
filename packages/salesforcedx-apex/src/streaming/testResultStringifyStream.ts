@@ -9,7 +9,7 @@ import { Readable, ReadableOptions } from 'node:stream';
 import { TestResult } from '../tests';
 import { elapsedTime } from '../utils';
 
-export type TestResultStringifyStreamOptions = ReadableOptions & {
+type TestResultStringifyStreamOptions = ReadableOptions & {
   bufferSize?: number;
 };
 

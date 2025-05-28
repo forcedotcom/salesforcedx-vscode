@@ -145,7 +145,7 @@ export type SyncTestConfiguration = {
   skipCodeCoverage?: boolean;
 };
 
-export type SyncTestSuccess = {
+type SyncTestSuccess = {
   id: string;
   methodName: string;
   name: string;
@@ -175,17 +175,6 @@ export type SyncTestResult = {
   totalTime: number;
 };
 
-export type SyncTestErrorResult = {
-  message: string;
-  errorCode: string; // might change it to an enum
-};
-
-export type ApiSyncTestResult = {
-  done: boolean;
-  totalSize: number;
-  records: SyncTestResult[];
-};
-
 export const enum ApexTestResultOutcome {
   Pass = 'Pass',
   Fail = 'Fail',
@@ -193,7 +182,7 @@ export const enum ApexTestResultOutcome {
   Skip = 'Skip'
 }
 
-export type FlowTestResultRecord = {
+type FlowTestResultRecord = {
   Id: string;
   ApexTestQueueItemId: string;
   Result: ApexTestResultOutcome;
@@ -564,14 +553,6 @@ export type ApexOrgWideCoverage = {
   done: boolean;
   totalSize: number;
   records: { PercentCovered: string }[];
-};
-
-export type NamespaceRecord = {
-  NamespacePrefix: string;
-};
-
-export type NamespaceQueryResult = {
-  records: NamespaceRecord[];
 };
 
 export type NamespaceInfo = {

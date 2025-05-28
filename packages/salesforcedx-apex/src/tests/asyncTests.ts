@@ -15,7 +15,7 @@ import {
   getCurrentTime,
   HeapMonitor
 } from '../utils';
-import { formatTestErrors, getAsyncDiagnostic } from './diagnosticUtil';
+import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {
   ApexTestProgressValue,
   ApexTestQueueItem,
@@ -236,9 +236,19 @@ export class AsyncTests {
     }
     const hasTestSetupTimeField = await this.supportsTestSetupFeature();
 
-    const testRunSummaryQuery = hasTestSetupTimeField
-      ? `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
-      : `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
+    const fields = [
+      'AsyncApexJobId',
+      'Status',
+      'ClassesCompleted',
+      'ClassesEnqueued',
+      'MethodsEnqueued',
+      'StartTime',
+      'EndTime',
+      'TestTime',
+      ...(hasTestSetupTimeField ? ['TestSetupTime'] : []),
+      'UserId'
+    ];
+    const testRunSummaryQuery = `SELECT ${fields.join(', ')} FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
 
     progress?.report({
       type: 'FormatTestResultProgress',
@@ -361,9 +371,9 @@ export class AsyncTests {
         queries.push(query);
       }
       const connection = await this.defineApiVersion();
-      const queryPromises = queries.map(async (query) => {
-        return queryAll(connection, query, true);
-      });
+      const queryPromises = queries.map(async (query) =>
+        queryAll(connection, query, true)
+      );
       const testResults = await Promise.all(queryPromises);
       if (isFlowRunTest) {
         return this.convertFlowTestResult(testResults as FlowTestResult[]);
@@ -460,7 +470,7 @@ export class AsyncTests {
             : item.ApexClass.Name;
 
           const diagnostic =
-            item.Message || item.StackTrace ? getAsyncDiagnostic(item) : null;
+            item.Message || item.StackTrace ? getDiagnostic(item) : null;
 
           testResults.push({
             id: item.Id,
@@ -573,21 +583,14 @@ export class AsyncTests {
    * @returns A boolean indicating if this is running FlowTest.
    */
   public async isJobIdForFlowTestRun(testRunId: string): Promise<boolean> {
-    const apexIdQuery = `SELECT ApexClassId FROM ApexTestQueueItem WHERE Id = '${testRunId}'`;
     try {
       const testRunApexIdResults =
         await this.connection.tooling.query<ApexTestQueueItemRecord>(
-          apexIdQuery
+          `SELECT ApexClassId FROM ApexTestQueueItem WHERE Id = '${testRunId}'`
         );
-      if (testRunApexIdResults.records.length > 0) {
-        for (const record of testRunApexIdResults.records) {
-          if (record.ApexClassId === null) {
-            return true;
-          }
-        }
-        return false;
-      }
-      return false;
+      return testRunApexIdResults.records.some(
+        (record) => record.ApexClassId === null
+      );
     } catch (e) {
       return false;
     }

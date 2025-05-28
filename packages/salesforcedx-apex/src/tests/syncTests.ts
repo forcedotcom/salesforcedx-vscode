@@ -14,7 +14,7 @@ import {
   HeapMonitor
 } from '../utils';
 import { CodeCoverage } from './codeCoverage';
-import { formatTestErrors, getSyncDiagnostic } from './diagnosticUtil';
+import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {
   ApexTestResultDataRaw,
   ApexTestResultOutcome,
@@ -222,7 +222,7 @@ export class SyncTests {
     if (outcome === ApexTestResultOutcome.Fail) {
       const diagnostic =
         item.message || item.stackTrace
-          ? getSyncDiagnostic(item as SyncTestFailure)
+          ? getDiagnostic(item as SyncTestFailure)
           : null;
       if (diagnostic) {
         testResult.diagnostic = diagnostic;

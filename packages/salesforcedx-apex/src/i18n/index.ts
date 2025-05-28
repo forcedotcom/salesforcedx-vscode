@@ -18,4 +18,3 @@ function loadMessageBundle(): Message {
 }
 
 export const nls = new Localization(loadMessageBundle());
-export { Localization, Message } from './localization';

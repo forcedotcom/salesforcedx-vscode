@@ -6,7 +6,6 @@
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/src/index.js",
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.8.2",
     "@salesforce/core": "^8.11.2",
     "@salesforce/kit": "^3.2.3",
     "@types/istanbul-reports": "^3.0.4",
@@ -19,10 +18,9 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^18.6.3",
-    "@salesforce/ts-sinon": "^1.4.30",
+    "@jsforce/jsforce-node": "^3.8.1",
     "@salesforce/ts-types": "^2.0.10",
     "@types/chai": "^4.3.17",
-    "@types/glob": "^8.1.0",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/mocha": "^10.0.10",
@@ -32,7 +30,6 @@
     "@typescript-eslint/parser": "^6.21.0",
     "chai": "^4.5.0",
     "commitlint": "^18.6.1",
-    "cz-conventional-changelog": "^3.3.0",
     "esbuild": "^0.25.4",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.0.0",
@@ -70,7 +67,6 @@
     "build": "shx rm -rf lib && tsc -b",
     "compile": "shx rm -rf lib && tsc -b",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
-    "commit": "git-cz",
     "format": "prettier --config ./.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
     "test": "yarn build && nyc mocha ./lib/test/**/*.test.js",
@@ -87,11 +83,6 @@
   "license": "BSD-3-Clause",
   "engines": {
     "node": ">=18.18.2"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
   },
   "publishConfig": {
     "access": "public"

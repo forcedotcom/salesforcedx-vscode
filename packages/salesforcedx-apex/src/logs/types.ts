@@ -55,10 +55,6 @@ export interface LogRecord {
   Status: string;
 }
 
-export type LogQueryResult = {
-  records: LogRecord[];
-};
-
 export type LogResult = {
   logPath?: string;
   log: string;

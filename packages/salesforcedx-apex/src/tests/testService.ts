@@ -499,9 +499,9 @@ export class TestService {
     classNames: string
   ): Promise<AsyncTestArrayConfiguration> {
     const classNameArray = classNames.split(',') as string[];
-    const classItems = classNameArray.map((item) => {
-      return { className: item } as TestItem;
-    });
+    const classItems = classNameArray.map(
+      (item) => ({ className: item }) as TestItem
+    );
     return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
   }
 

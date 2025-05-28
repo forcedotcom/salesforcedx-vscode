@@ -26,7 +26,7 @@ import {
 import { Duration } from '@salesforce/kit';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
-export const DEFAULT_STREAMING_TIMEOUT_SEC = 14400;
+const DEFAULT_STREAMING_TIMEOUT_SEC = 14400;
 
 export interface AsyncTestRun {
   runId: string;

@@ -45,8 +45,7 @@ export class ExecuteService {
       } catch (e) {
         if (
           e.name === 'ERROR_HTTP_500' &&
-          e.message &&
-          e.message.includes('INVALID_SESSION_ID')
+          e.message?.includes('INVALID_SESSION_ID')
         ) {
           await refreshAuth(this.connection);
           count += 1;
@@ -118,15 +117,15 @@ export class ExecuteService {
     const postEndpoint = `${this.connection.instanceUrl}/services/Soap/s/${
       this.connection.version
     }/${this.connection.accessToken.split('!')[0]}`;
-    const requestHeaders = {
-      'content-type': 'text/xml',
-      soapaction: action
-    };
+
     return {
       method: 'POST',
       url: postEndpoint,
       body,
-      headers: requestHeaders
+      headers: {
+        'content-type': 'text/xml',
+        soapaction: action
+      }
     };
   }
 
