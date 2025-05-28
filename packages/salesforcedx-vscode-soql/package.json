@@ -51,7 +51,7 @@
     "@types/debounce": "^1.2.0",
     "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "^1.100.0",
     "applicationinsights": "1.0.7",
     "cross-env": "5.2.0",
     "esbuild": "0.25.4",
