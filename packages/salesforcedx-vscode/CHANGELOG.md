@@ -1,3 +1,21 @@
+# 63.15.1 - May 30, 2025
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- [@W-18497015@,@W-18499135@] add restart setting to apex language restart command ([PR #6292](https://github.com/forcedotcom/salesforcedx-vscode/pull/6292))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- [W-15663214][W-18609524]  syntax highlighting when @isTest annotation is on the same line as the test method ([PR #6304](https://github.com/forcedotcom/salesforcedx-vscode/pull/6304))
+
+#### salesforcedx-vscode-soql
+
+- [W-15663214][W-18609524]  syntax highlighting when @isTest annotation is on the same line as the test method ([PR #6304](https://github.com/forcedotcom/salesforcedx-vscode/pull/6304))
+
 # 63.14.1 - May 21, 2025
 
 ## Fixed
