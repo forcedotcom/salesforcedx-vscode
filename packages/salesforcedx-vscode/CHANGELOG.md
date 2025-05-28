@@ -8,6 +8,10 @@
 
 ## Fixed
 
+#### salesforcedx-vscode-core
+
+- W-18611090: Putting the all exception catcher behind preference toggle in settings ([PR #6302](https://github.com/forcedotcom/salesforcedx-vscode/pull/6302))
+
 #### salesforcedx-vscode-apex
 
 #### salesforcedx-vscode-soql
