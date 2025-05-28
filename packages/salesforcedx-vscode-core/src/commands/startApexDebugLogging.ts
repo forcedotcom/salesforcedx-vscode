@@ -6,6 +6,7 @@
  */
 
 import { CliCommandExecutor, CommandOutput } from '@salesforce/salesforcedx-utils';
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
@@ -14,17 +15,8 @@ import { OrgAuthInfo } from '../util';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 import { developerLogTraceFlag } from '.';
 import { QueryUser } from './startApexDebugLoggingOld';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 
 const command = 'start_apex_debug_logging';
-
-// const generateTraceFlagId = (): string => {
-//   const timestamp = Date.now().toString();
-//   const random = Math.floor(Math.random() * 1000)
-//     .toString()
-//     .padStart(3, '0');
-//   return `7tf${timestamp}${random}`;
-// };
 
 export const turnOnLogging = async (): Promise<void> => {
   handleStartCommand(command);
@@ -44,20 +36,12 @@ export const turnOnLogging = async (): Promise<void> => {
       throw new Error('Failed to create debug level');
     }
 
-    // const traceFlag = {
-    //   // TracedEntityId: generateTraceFlagId(),
-    //   TracedEntityId: await getUserId(workspaceUtils.getRootWorkspacePath()),
-    //   LogType: 'DEVELOPER_LOG',
-    //   StartDate: developerLogTraceFlag.getStartDate().toISOString(),
-    //   ExpirationDate: developerLogTraceFlag.getExpirationDate().toISOString(),
-    //   DebugLevelId: debugLevelResult.id
-    // };
     const expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const traceFlag = {
       TracedEntityId: await getUserId(workspaceUtils.getRootWorkspacePath()),
       LogType: 'DEVELOPER_LOG',
-      StartDate: '', // Empty string, as in CLI
-      ExpirationDate: expirationDate.toUTCString(), // RFC1123 format
+      StartDate: '',
+      ExpirationDate: expirationDate.toUTCString(),
       DebugLevelId: debugLevelResult.id
     };
     console.log('TraceFlag object:', JSON.stringify(traceFlag, null, 2));

@@ -80,7 +80,7 @@ export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
       developerLogTraceFlag.turnOnLogging();
       executionWrapper.successfulExit();
     } catch (e) {
-      executionWrapper.failureExit(e as Error);
+      executionWrapper.failureExit(e);
     }
   }
 
