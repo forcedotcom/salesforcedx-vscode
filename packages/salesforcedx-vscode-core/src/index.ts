@@ -75,7 +75,7 @@ import {
 } from './commands';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
-import { getUserId, turnOnLogging } from './commands/startApexDebugLogging';
+import { turnOnLogging } from './commands/startApexDebugLogging';
 import {
   FlagParameter,
   SelectFileName,
@@ -456,7 +456,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const api: any = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
-    getUserId,
     isCLIInstalled,
     notificationService,
     OrgAuthInfo,

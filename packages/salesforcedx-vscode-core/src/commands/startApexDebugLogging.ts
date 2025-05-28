@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor, CommandOutput } from '@salesforce/salesforcedx-utils';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { Connection } from '@salesforce/core-bundle';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
@@ -14,7 +13,6 @@ import { telemetryService } from '../telemetry';
 import { OrgAuthInfo } from '../util';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 import { developerLogTraceFlag } from '.';
-import { QueryUser } from './startApexDebugLoggingOld';
 
 const command = 'start_apex_debug_logging';
 
@@ -36,9 +34,9 @@ export const turnOnLogging = async (): Promise<void> => {
       throw new Error('Failed to create debug level');
     }
 
-    const expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const expirationDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
     const traceFlag = {
-      TracedEntityId: await getUserId(workspaceUtils.getRootWorkspacePath()),
+      TracedEntityId: await getUserId(connection),
       LogType: 'DEVELOPER_LOG',
       StartDate: '',
       ExpirationDate: expirationDate.toUTCString(),
@@ -63,7 +61,7 @@ export const turnOnLogging = async (): Promise<void> => {
   }
 };
 
-export const getUserId = async (projectPath: string): Promise<string> => {
+const getUserId = async (connection: Connection): Promise<string> => {
   const targetOrgOrAlias = await workspaceContextUtils.getTargetOrgOrAlias();
   if (!targetOrgOrAlias) {
     const err = nls.localize('error_no_target_org');
@@ -78,16 +76,10 @@ export const getUserId = async (projectPath: string): Promise<string> => {
     throw new Error(err);
   }
 
-  const execution = new CliCommandExecutor(new QueryUser(username).build(), {
-    cwd: projectPath
-  }).execute();
-  telemetryService.sendCommandEvent(execution.command.logName);
-  const cmdOutput = new CommandOutput();
-  const result = await cmdOutput.getCmdResult(execution);
-  try {
-    const orgInfo = JSON.parse(result).result.records[0].Id;
-    return Promise.resolve(orgInfo);
-  } catch {
-    return Promise.reject(result);
+  const result = await connection.query(`SELECT Id FROM User WHERE Username = '${username}' LIMIT 1`);
+  const userId = result?.records?.[0]?.Id;
+  if (!userId) {
+    throw new Error('User ID not found');
   }
+  return userId;
 };
