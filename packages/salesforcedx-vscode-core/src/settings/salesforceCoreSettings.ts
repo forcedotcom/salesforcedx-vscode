@@ -19,7 +19,8 @@ import {
   DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL,
   RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
-  TELEMETRY_ENABLED
+  TELEMETRY_ENABLED,
+  ALL_EXCEPTION_CATCHER_ENABLED
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -59,6 +60,10 @@ export class SalesforceCoreSettings {
 
   public getPushOrDeployOnSaveEnabled(): boolean {
     return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_ENABLED, false);
+  }
+
+  public getEnableAllExceptionCatcher(): boolean {
+    return this.getConfigValue<boolean>(ALL_EXCEPTION_CATCHER_ENABLED, false);
   }
 
   public getPushOrDeployOnSaveIgnoreConflicts(): boolean {
