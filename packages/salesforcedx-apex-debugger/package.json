@@ -18,7 +18,7 @@
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
     "faye": "1.1.2",
-    "request-light": "^0.7.0"
+    "request-light": "^0.8.0"
   },
   "devDependencies": {
     "@types/async-lock": "1.4.2",
