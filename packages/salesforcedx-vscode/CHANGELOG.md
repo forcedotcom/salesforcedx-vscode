@@ -4,19 +4,29 @@
 
 #### salesforcedx-vscode-apex
 
-- [@W-18497015@,@W-18499135@] add restart setting to apex language restart command ([PR #6292](https://github.com/forcedotcom/salesforcedx-vscode/pull/6292))
+- We modified the Apex language server restart behavior:
+
+  **From the status bar**: Respects the configured `Restart Behavior` setting.
+     
+     - **prompt**: Prompts with `Restart Only` selected by default.
+     
+     - **restart**: Restarts immediately.
+     
+     -  **reset**: Cleans Apex DB and restarts.
+     
+  **From the command palette**: Always prompts the user, with the selection prehighlighted based on the configured setting. ([PR #6292](https://github.com/forcedotcom/salesforcedx-vscode/pull/6292))
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- W-18611090: Putting the all exception catcher behind preference toggle in settings ([PR #6302](https://github.com/forcedotcom/salesforcedx-vscode/pull/6302))
+- We made some changes under the hood. ([PR #6302](https://github.com/forcedotcom/salesforcedx-vscode/pull/6302))
 
 #### salesforcedx-vscode-apex
 
 #### salesforcedx-vscode-soql
 
-- [W-15663214][W-18609524]  syntax highlighting when @isTest annotation is on the same line as the test method ([PR #6304](https://github.com/forcedotcom/salesforcedx-vscode/pull/6304))
+- Syntax highlighting now works correctly when the `@isTest` annotation is on the same line as the test method. ([PR #6304](https://github.com/forcedotcom/salesforcedx-vscode/pull/6304))
 
 # 63.14.1 - May 21, 2025
 
