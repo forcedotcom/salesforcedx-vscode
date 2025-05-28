@@ -10,8 +10,6 @@
 
 #### salesforcedx-vscode-apex
 
-- [W-15663214][W-18609524]  syntax highlighting when @isTest annotation is on the same line as the test method ([PR #6304](https://github.com/forcedotcom/salesforcedx-vscode/pull/6304))
-
 #### salesforcedx-vscode-soql
 
 - [W-15663214][W-18609524]  syntax highlighting when @isTest annotation is on the same line as the test method ([PR #6304](https://github.com/forcedotcom/salesforcedx-vscode/pull/6304))
