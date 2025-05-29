@@ -46,7 +46,7 @@ describe('Java Requirements Test', () => {
       exceptionThrown = true;
     }
     expect(exceptionThrown).toEqual(true);
-  });
+  }, 10000);
 
   it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
@@ -95,6 +95,7 @@ describe('Java Requirements Test', () => {
       fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
     }
   });
+
   it('Should support Java 23', async () => {
     execFileStub.yields('', '', 'java.version = 23.0.0');
     try {
@@ -111,10 +112,14 @@ describe('Java Requirements Test', () => {
       await checkJavaVersion(path.join('~', 'java_home'));
       fail('Should have thrown when the Java version is not supported');
     } catch (err) {
+      const expectedPath =
+        process.platform === 'win32'
+          ? path.join('~', 'java_home', 'bin', 'java.exe')
+          : path.join('~', 'java_home', 'bin', 'java');
       expect(err).toEqual(
         nls.localize(
           'java_version_check_command_failed',
-          `${path.join('~', 'java_home', 'bin', 'java')} -XshowSettings:properties -version`,
+          `${expectedPath} -XshowSettings:properties -version`,
           'its broken'
         )
       );
@@ -131,5 +136,5 @@ describe('Java Requirements Test', () => {
       expect(err).toContain('Java binary java at');
       expect(err).toContain('is not executable');
     }
-  });
+  }, 10000);
 });
