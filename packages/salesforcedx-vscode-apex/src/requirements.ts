@@ -8,7 +8,6 @@
 // From https://github.com/redhat-developer/vscode-java
 // Original version licensed under the Eclipse Public License (EPL)
 
-import * as findJavaHome from 'find-java-home';
 import * as cp from 'node:child_process';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
@@ -17,6 +16,10 @@ import { join } from 'node:path';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
+
+/* eslint-disable @typescript-eslint/no-var-requires */
+const findJavaHome = require('find-java-home');
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
