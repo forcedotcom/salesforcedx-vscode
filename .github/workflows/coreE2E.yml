@@ -33,11 +33,6 @@ on:
         required: false
         default: true
         type: boolean
-      templates:
-        description: 'Create Commands'
-        required: false
-        default: true
-        type: boolean
       sfdxProjectJson:
         description: 'sfdx-project.json'
         required: false
@@ -85,11 +80,7 @@ on:
         required: false
         default: true
         type: boolean
-      templates:
-        description: 'Create Commands'
-        required: false
-        default: true
-        type: boolean
+
       sfdxProjectJson:
         description: 'sfdx-project.json'
         required: false
@@ -161,17 +152,6 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  templates:
-    if: ${{ inputs.templates }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'templates.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
   sfdxProjectJson:
     if: ${{ inputs.sfdxProjectJson }}
     uses: ./.github/workflows/runE2ETest.yml
@@ -185,45 +165,42 @@ jobs:
 
   slack_success_notification:
     if: ${{ success() }}
-    needs:
-      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
+    needs: [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_failure_notification:
     if: ${{ failure() }}
-    needs:
-      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
+    needs: [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
 
   slack_cancelled_notification:
     if: ${{ cancelled() }}
-    needs:
-      [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, templates, sfdxProjectJson]
+    needs: [anInitialSuite, authentication, createProject, miscellaneous, sObjectsDefinitions, sfdxProjectJson]
     uses: ./.github/workflows/slackNotification.yml
     secrets: inherit
     with:
       title: 'Core E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- Templates: ${{ needs.templates.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
+      summary: '\n- An Initial Suite: ${{ needs.anInitialSuite.result }}\n- Authentication: ${{ needs.authentication.result }}\n- Create Project: ${{ needs.createProject.result }}\n- Miscellaneous: ${{ needs.miscellaneous.result }}\n- SObjects Definitions: ${{ needs.sObjectsDefinitions.result }}\n- SFDX Project Json: ${{ needs.sfdxProjectJson.result}}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'
       type: 'e2e'
