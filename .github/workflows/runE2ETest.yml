@@ -129,12 +129,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests'
         with:
-          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
+          name: screenshots-${{ contains(inputs.testToRun, '/') && 'templates-' || '' }}${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: ./${{ inputs.automationRepo }}/screenshots
       - uses: actions/upload-artifact@v4
         if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests-redhat'
         with:
-          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
+          name: screenshots-${{ contains(inputs.testToRun, '/') && 'templates-' || '' }}${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: ./salesforcedx-vscode/extensions/screenshots
       - uses: actions/upload-artifact@v4
         if: ${{ inputs.testToRun }} == 'createOASDoc'
