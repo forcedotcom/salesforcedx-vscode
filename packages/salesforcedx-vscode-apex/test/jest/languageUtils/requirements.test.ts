@@ -51,6 +51,7 @@ describe('Java Requirements Test', () => {
   it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
     execFileStub.yields('', '', 'java.version = 11.0.0');
+    sandbox.stub(fs.promises, 'access').resolves();
     const requirements = await resolveRequirements();
     expect(requirements.java_home).toContain(jdk);
   });
@@ -117,6 +118,18 @@ describe('Java Requirements Test', () => {
           'its broken'
         )
       );
+    }
+  });
+
+  it('Should reject when Java binary is not executable', async () => {
+    settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
+    sandbox.stub(fs.promises, 'access').rejects(new Error('Permission denied'));
+    try {
+      await resolveRequirements();
+      fail('Should have thrown when Java binary is not executable');
+    } catch (err) {
+      expect(err).toContain('Java binary java at');
+      expect(err).toContain('is not executable');
     }
   });
 });

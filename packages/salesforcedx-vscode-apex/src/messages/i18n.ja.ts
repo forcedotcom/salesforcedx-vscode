@@ -80,6 +80,8 @@ export const messages = {
     'Java ランタイムが見つかりませんでした。VS Code の設定の salesforcedx-vscode-apex.java.home にパスを指定してください。詳細については、[Java 設定](%s) を参照してください。',
   java_runtime_local_text:
     'ローカルの Java ランタイム (%s) はサポートされていません。VS Code の設定の salesforcedx-vscode-apex.java.home に現在のプロジェクト以外のランタイムのパスを設定してください。詳細については、[Java 設定](%s) を参照してください。',
+  java_binary_not_executable_text:
+    '%s の Java バイナリ %s が実行可能ではありません。ファイルの権限を確認してください。',
   source_jdk_home_env_var_text: '環境変数 JDK_HOME',
   source_java_home_env_var_text: '環境変数 JAVA_HOME',
   source_java_home_setting_text: 'VS Code の設定で定義される salesforcedx-vscode-apex.java.home の設定',

@@ -86,6 +86,7 @@ export const messages = {
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',
   java_runtime_local_text:
     'Local Java runtime (%s) is unsupported. Set the salesforcedx-vscode-apex.java.home VS Code setting to a runtime outside of the current project. For more information, go to [Set Your Java Version](%s).',
+  java_binary_not_executable_text: 'Java binary %s at %s is not executable. Please check the file permissions.',
   source_java_home_env_var_text: 'The JAVA_HOME environment variable',
   source_jdk_home_env_var_text: 'The JDK_HOME environment variable',
   source_java_home_setting_text: 'The salesforcedx-vscode-apex.java.home setting defined in VS Code settings',
