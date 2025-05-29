@@ -8,6 +8,7 @@
 import { Connection } from '@salesforce/core-bundle';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
+import { showTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo } from '../util';
@@ -49,8 +50,8 @@ export const turnOnLogging = async (): Promise<void> => {
       throw new Error('Failed to create trace flag');
     }
 
-    developerLogTraceFlag.setTraceFlagId(traceFlagResult.id);
-    developerLogTraceFlag.setDebugLevelId(debugLevelResult.id);
+    developerLogTraceFlag.setTraceFlagDebugLevelInfo(traceFlagResult.id, traceFlag.StartDate, traceFlag.ExpirationDate, debugLevelResult.id);
+    showTraceFlagExpiration(expirationDate);
     developerLogTraceFlag.turnOnLogging();
 
     await handleFinishCommand(command, true);
