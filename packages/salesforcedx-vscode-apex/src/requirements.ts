@@ -42,7 +42,8 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
   });
 };
 
-const checkJavaRuntime = async (): Promise<string> => {
+const checkJavaRuntime = async (): Promise<string> =>
+  new Promise((resolve, reject) => {
   let source: string;
   let javaHome: string | undefined = readJavaConfig();
 
@@ -63,24 +64,24 @@ const checkJavaRuntime = async (): Promise<string> => {
     javaHome = expandHomeDir(javaHome);
     if (isLocal(javaHome)) {
       // prevent injecting malicious code from unknown repositories
-      throw new Error(nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK));
+      reject(nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK));
     }
     if (!fs.existsSync(javaHome)) {
-      throw new Error(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
+      reject(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
     }
-    return javaHome;
+    resolve(javaHome);
   }
 
   // Last resort, try to automatically detect
-  await findJavaHome((err: Error, home: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  findJavaHome((err: Error, home: string) => {
     if (err) {
-      throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
+      reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
     } else {
-      return home;
+      resolve(home);
     }
   });
-  throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
-};
+});
 
 const readJavaConfig = (): string => {
   const config = workspace.getConfiguration();

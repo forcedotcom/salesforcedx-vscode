@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fail, strict as assert } from 'node:assert';
+import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -37,13 +37,12 @@ describe('Java Requirements Test', () => {
 
   it('Should prevent local java runtime path', async () => {
     const localRuntime = './java_home/donthackmebro';
-    settingStub.withArgs(JAVA_HOME_KEY).returns(localRuntime);
+    settingStub.withArgs(JAVA_HOME_KEY).returns('./java_home/donthackmebro');
     let exceptionThrown = false;
     try {
       await resolveRequirements();
     } catch (err) {
-      assert(err instanceof Error);
-      expect(err.message).toContain(localRuntime);
+      expect(err).toContain(localRuntime);
       exceptionThrown = true;
     }
     expect(exceptionThrown).toEqual(true);
