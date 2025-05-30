@@ -34,5 +34,5 @@ export const showTraceFlagExpiration = (expirationDate: Date): void => {
 export const disposeTraceFlagExpiration = (): void => {
   statusBarItem.dispose();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/consistent-type-assertions
-  statusBarItem = undefined as any; // or: statusBarItem = undefined;
+  statusBarItem = undefined as any; // Resetting to undefined to allow re-creation
 };
