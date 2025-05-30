@@ -24,13 +24,12 @@ export const turnOnLogging = async (): Promise<void> => {
     const connection = await WorkspaceContext.getInstance().getConnection();
 
     // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
-    const replayDebuggerLevels = await connection.tooling.query(
-      "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
+    const replayDebuggerLevels = await connection.singleRecordQuery(
+      "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels'"
     );
-    const replayDebuggerLevelsExists = replayDebuggerLevels.records.length > 0;
-    let debugLevelResultId = replayDebuggerLevels.records[0]?.Id;
+    let debugLevelResultId = replayDebuggerLevels.Id;
 
-    if (!replayDebuggerLevelsExists) {
+    if (replayDebuggerLevels.length === 0) {
       // Create a new DebugLevel
       const debugLevel = {
         DeveloperName: 'ReplayDebuggerLevels',
