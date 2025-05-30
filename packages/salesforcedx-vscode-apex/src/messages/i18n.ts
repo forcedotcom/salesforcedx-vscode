@@ -93,6 +93,9 @@ export const messages = {
   invalid_file_for_processing_oas_doc: 'Invalid file for processing OAS doc',
   invalid_named_credential: 'The named credential is either not provided or invalid.',
   java_binary_not_executable_text: 'Java binary %s at %s is not executable. Please check the file permissions.',
+  java_binary_missing_text: 'Java binary %s not found at %s. Please check your Java installation.',
+  java_bin_missing_text: 'Java bin directory not found at %s. Please check your Java installation.',
+  java_home_expansion_failed_text: 'Failed to expand Java home path. Please check your Java installation.',
   java_home_invalid_text:
     'The Java home path %s is invalid. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   java_home_undefined_text:

@@ -95,6 +95,9 @@ export const messages = {
   invalid_named_credential: '名前付き認証情報が提供されていないか、無効です。',
   java_binary_not_executable_text:
     '%s の Java バイナリ %s が実行可能ではありません。ファイルの権限を確認してください。',
+  java_binary_missing_text: '%s の Java バイナリ %s が見つかりません。Java のインストールを確認してください。',
+  java_bin_missing_text: '%s に Java bin ディレクトリが見つかりません。Java のインストールを確認してください。',
+  java_home_expansion_failed_text: 'Java ホームパスの展開に失敗しました。Java のインストールを確認してください。',
   java_home_invalid_text:
     'Java ホームパス %s が無効です。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
   java_home_undefined_text:
