@@ -86,8 +86,8 @@ const getUserId = async (connection: Connection): Promise<string> => {
     throw new Error(err);
   }
 
-  const result = await connection.query(`SELECT Id FROM User WHERE Username = '${username}' LIMIT 1`);
-  const userId = result?.records?.[0]?.Id;
+  const result = await connection.singleRecordQuery(`SELECT Id FROM User WHERE Username = '${username}'`);
+  const userId = result?.Id;
   if (!userId) {
     throw new Error('User ID not found');
   }
