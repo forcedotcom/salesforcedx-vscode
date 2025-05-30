@@ -23,16 +23,26 @@ export const turnOnLogging = async (): Promise<void> => {
   try {
     const connection = await WorkspaceContext.getInstance().getConnection();
 
-    // Create a new DebugLevel first
-    const debugLevel = {
-      DeveloperName: `ReplayDebuggerLevels${Date.now()}`,
-      MasterLabel: `ReplayDebuggerLevels${Date.now()}`,
-      ApexCode: APEX_CODE_DEBUG_LEVEL,
-      Visualforce: VISUALFORCE_DEBUG_LEVEL
-    };
-    const debugLevelResult = await connection.tooling.create('DebugLevel', debugLevel);
-    if (!debugLevelResult.success) {
-      throw new Error('Failed to create debug level');
+    // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
+    const replayDebuggerLevels = await connection.tooling.query(
+      "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
+    );
+    const replayDebuggerLevelsExists = replayDebuggerLevels.records.length > 0;
+    let debugLevelResultId = replayDebuggerLevels.records[0]?.Id;
+
+    if (!replayDebuggerLevelsExists) {
+      // Create a new DebugLevel
+      const debugLevel = {
+        DeveloperName: 'ReplayDebuggerLevels',
+        MasterLabel: 'ReplayDebuggerLevels',
+        ApexCode: APEX_CODE_DEBUG_LEVEL,
+        Visualforce: VISUALFORCE_DEBUG_LEVEL
+      };
+      const debugLevelResult = await connection.tooling.create('DebugLevel', debugLevel);
+      if (!debugLevelResult.success) {
+        throw new Error('Failed to create debug level');
+      }
+      debugLevelResultId = debugLevelResult.id;
     }
 
     const expirationDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
@@ -41,7 +51,7 @@ export const turnOnLogging = async (): Promise<void> => {
       LogType: 'DEVELOPER_LOG',
       StartDate: '',
       ExpirationDate: expirationDate.toUTCString(),
-      DebugLevelId: debugLevelResult.id
+      DebugLevelId: debugLevelResultId
     };
 
     const traceFlagResult = await connection.tooling.create('TraceFlag', traceFlag);
@@ -49,7 +59,7 @@ export const turnOnLogging = async (): Promise<void> => {
       throw new Error('Failed to create trace flag');
     }
 
-    developerLogTraceFlag.setTraceFlagDebugLevelInfo(traceFlagResult.id, traceFlag.StartDate, traceFlag.ExpirationDate, debugLevelResult.id);
+    developerLogTraceFlag.setTraceFlagDebugLevelInfo(traceFlagResult.id, traceFlag.StartDate, traceFlag.ExpirationDate, debugLevelResultId ?? null);
     showTraceFlagExpiration(expirationDate);
     developerLogTraceFlag.turnOnLogging();
 
