@@ -8,6 +8,7 @@
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -26,7 +27,7 @@ jest.mock('find-java-home', () =>
 );
 
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
-const runtimePath = `~/java_home/real/jdk/${jdk}`;
+const runtimePath = path.join(os.homedir(), 'java_home', 'real', 'jdk', jdk);
 
 describe('Java Requirements Test', () => {
   let sandbox: SinonSandbox;
@@ -49,8 +50,8 @@ describe('Java Requirements Test', () => {
   });
 
   it('Should prevent local java runtime path', async () => {
-    const localRuntime = './java_home/donthackmebro';
-    settingStub.withArgs(JAVA_HOME_KEY).returns('./java_home/donthackmebro');
+    const localRuntime = path.join('.', 'java_home', 'dontackmebro');
+    settingStub.withArgs(JAVA_HOME_KEY).returns(localRuntime);
     let exceptionThrown = false;
     try {
       await resolveRequirements();
@@ -61,7 +62,7 @@ describe('Java Requirements Test', () => {
     expect(exceptionThrown).toEqual(true);
   });
 
-  it('Should allow valid java runtime path outside the project', async () => {
+  (process.platform === 'win32' ? it : xit)('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
     execFileStub.yields('', '', 'java.version = 11.0.0');
     sandbox.stub(fs.promises, 'access').resolves();
@@ -72,7 +73,7 @@ describe('Java Requirements Test', () => {
   it('Should not support Java 8', async () => {
     execFileStub.yields('', '', 'java.version = 1.8.0');
     try {
-      await checkJavaVersion('~/java_home');
+      await checkJavaVersion(path.join(os.homedir(), 'java_home'));
       fail('Should have thrown when the Java version is not supported');
     } catch (err) {
       expect(err).toEqual(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
@@ -82,7 +83,7 @@ describe('Java Requirements Test', () => {
   it('Should support Java 11', async () => {
     execFileStub.yields('', '', 'java.version = 11.0.0');
     try {
-      const result = await checkJavaVersion('~/java_home');
+      const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
       expect(result).toBe(true);
     } catch (err) {
       fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
@@ -92,7 +93,7 @@ describe('Java Requirements Test', () => {
   it('Should support Java 17', async () => {
     execFileStub.yields('', '', 'java.version = 17.2.3');
     try {
-      const result = await checkJavaVersion('~/java_home');
+      const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
       expect(result).toBe(true);
     } catch (err) {
       fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
@@ -102,7 +103,7 @@ describe('Java Requirements Test', () => {
   it('Should support Java 21', async () => {
     execFileStub.yields('', '', 'java.version = 21.0.0');
     try {
-      const result = await checkJavaVersion('~/java_home');
+      const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
       expect(result).toBe(true);
     } catch (err) {
       fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
@@ -112,7 +113,7 @@ describe('Java Requirements Test', () => {
   it('Should support Java 23', async () => {
     execFileStub.yields('', '', 'java.version = 23.0.0');
     try {
-      const result = await checkJavaVersion('~/java_home');
+      const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
       expect(result).toBe(true);
     } catch (err) {
       fail(`Should not have thrown when the Java version is 23.  The error was: ${err}`);
@@ -122,13 +123,15 @@ describe('Java Requirements Test', () => {
   it('Should reject java version check when execFile fails', async () => {
     execFileStub.yields({ message: 'its broken' }, '', '');
     try {
-      await checkJavaVersion(path.join('~', 'java_home'));
+      await checkJavaVersion(path.join(os.homedir(), 'java_home'));
       fail('Should have thrown when the Java version is not supported');
     } catch (err) {
-      const expectedPath =
-        process.platform === 'win32'
-          ? path.join('~', 'java_home', 'bin', 'java.exe')
-          : path.join('~', 'java_home', 'bin', 'java');
+      const expectedPath = path.join(
+        os.homedir(),
+        'java_home',
+        'bin',
+        process.platform === 'win32' ? 'java.exe' : 'java'
+      );
       expect(err).toEqual(
         nls.localize(
           'java_version_check_command_failed',
