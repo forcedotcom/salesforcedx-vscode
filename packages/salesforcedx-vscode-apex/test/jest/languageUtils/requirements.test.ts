@@ -62,7 +62,7 @@ describe('Java Requirements Test', () => {
     expect(exceptionThrown).toEqual(true);
   });
 
-  (process.platform === 'win32' ? it : xit)('Should allow valid java runtime path outside the project', async () => {
+  it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
     execFileStub.yields('', '', 'java.version = 11.0.0');
     sandbox.stub(fs.promises, 'access').resolves();
@@ -142,7 +142,7 @@ describe('Java Requirements Test', () => {
     }
   });
 
-  it('Should reject when Java binary is not executable', async () => {
+  (process.platform === 'win32' ? it : xit)('Should reject when Java binary is not executable', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
     sandbox.stub(fs.promises, 'access').rejects(new Error('Permission denied'));
     try {
