@@ -43,7 +43,6 @@ export const turnOnLogging = async (): Promise<void> => {
       ExpirationDate: expirationDate.toUTCString(),
       DebugLevelId: debugLevelResult.id
     };
-    console.log('TraceFlag object:', JSON.stringify(traceFlag, null, 2));
 
     const traceFlagResult = await connection.tooling.create('TraceFlag', traceFlag);
     if (!traceFlagResult.success) {
