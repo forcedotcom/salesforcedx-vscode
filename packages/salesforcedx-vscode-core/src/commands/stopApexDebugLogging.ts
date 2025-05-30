@@ -6,6 +6,7 @@
  */
 
 import { WorkspaceContext } from '../context';
+import { disposeTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 import { developerLogTraceFlag } from '.';
 
@@ -19,6 +20,8 @@ export const turnOffLogging = async (): Promise<void> => {
       const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
       const connection = await WorkspaceContext.getInstance().getConnection();
       await connection.tooling.delete('TraceFlag', nonNullTraceFlag);
+      developerLogTraceFlag.turnOffLogging();
+      disposeTraceFlagExpiration();
       await handleFinishCommand(command, true);
     } catch (error) {
       console.error('Error in turnOffLogging(): ', error);
