@@ -95,6 +95,8 @@ export const messages = {
   java_binary_not_executable_text: 'Java binary %s at %s is not executable. Please check the file permissions.',
   java_home_invalid_text:
     'The Java home path %s is invalid. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
+  java_home_undefined_text:
+    'Java home path is not set. Please set the Java home path in your settings or environment variables.',
   java_runtime_local_text:
     'Local Java runtime (%s) is unsupported. Set the salesforcedx-vscode-apex.java.home VS Code setting to a runtime outside of the current project. For more information, go to [Set Your Java Version](%s).',
   java_runtime_missing_text:

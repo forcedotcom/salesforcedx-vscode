@@ -15,6 +15,16 @@ import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../../src/requirements';
 
+// Mock find-java-home module
+jest.mock('find-java-home', () =>
+  jest.fn(callback => {
+    // Simulate async behavior
+    setTimeout(() => {
+      callback(null, '/path/to/java/home');
+    }, 0);
+  })
+);
+
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = `~/java_home/real/jdk/${jdk}`;
 
@@ -33,7 +43,10 @@ describe('Java Requirements Test', () => {
     execFileStub = sandbox.stub(cp, 'execFile');
   });
 
-  afterEach(() => sandbox.restore());
+  afterEach(() => {
+    sandbox.restore();
+    jest.clearAllMocks();
+  });
 
   it('Should prevent local java runtime path', async () => {
     const localRuntime = './java_home/donthackmebro';
@@ -46,7 +59,7 @@ describe('Java Requirements Test', () => {
       exceptionThrown = true;
     }
     expect(exceptionThrown).toEqual(true);
-  }, 10000);
+  });
 
   it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
@@ -136,5 +149,5 @@ describe('Java Requirements Test', () => {
       expect(err).toContain('Java binary java at');
       expect(err).toContain('is not executable');
     }
-  }, 10000);
+  });
 });

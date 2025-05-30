@@ -46,7 +46,7 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
 const getPlatformSpecificBinary = (binary: string): string => (process.platform === 'win32' ? `${binary}.exe` : binary);
 
 const validateJavaInstallation = async (javaHome: string): Promise<boolean> => {
-  if (!javaHome || typeof javaHome !== 'string') {
+  if (!javaHome) {
     throw new Error(nls.localize('java_home_invalid_text'));
   }
 

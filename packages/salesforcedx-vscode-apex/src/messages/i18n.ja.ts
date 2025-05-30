@@ -97,6 +97,8 @@ export const messages = {
     '%s の Java バイナリ %s が実行可能ではありません。ファイルの権限を確認してください。',
   java_home_invalid_text:
     'Java ホームパス %s が無効です。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
+  java_home_undefined_text:
+    'Java ホームパスが設定されていません。設定または環境変数で Java ホームパスを設定してください。',
   java_runtime_local_text:
     'ローカルの Java ランタイム (%s) はサポートされていません。VS Code の設定の salesforcedx-vscode-apex.java.home に現在のプロジェクト以外のランタイムのパスを設定してください。詳細については、[Java 設定](%s) を参照してください。',
   java_runtime_missing_text:
