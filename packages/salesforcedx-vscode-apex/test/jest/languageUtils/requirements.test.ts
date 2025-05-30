@@ -49,108 +49,114 @@ describe('Java Requirements Test', () => {
     jest.clearAllMocks();
   });
 
-  it('Should prevent local java runtime path', async () => {
-    const localRuntime = path.join('.', 'java_home', 'dontackmebro');
-    settingStub.withArgs(JAVA_HOME_KEY).returns(localRuntime);
-    let exceptionThrown = false;
-    try {
-      await resolveRequirements();
-    } catch (err) {
-      expect(err).toContain(localRuntime);
-      exceptionThrown = true;
-    }
-    expect(exceptionThrown).toEqual(true);
+  // Unix-specific tests
+  (process.platform !== 'win32' ? describe : describe.skip)('Unix-specific tests', () => {
+    it('Should prevent local java runtime path', async () => {
+      const localRuntime = path.join('.', 'java_home', 'dontackmebro');
+      settingStub.withArgs(JAVA_HOME_KEY).returns(localRuntime);
+      let exceptionThrown = false;
+      try {
+        await resolveRequirements();
+      } catch (err) {
+        expect(err).toContain(localRuntime);
+        exceptionThrown = true;
+      }
+      expect(exceptionThrown).toEqual(true);
+    });
+
+    it('Should reject when Java binary is not executable', async () => {
+      settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
+      sandbox.stub(fs.promises, 'access').rejects(new Error('Permission denied'));
+      try {
+        await resolveRequirements();
+        fail('Should have thrown when Java binary is not executable');
+      } catch (err) {
+        expect(err).toContain('Java binary java at');
+        expect(err).toContain('is not executable');
+      }
+    });
   });
 
-  it('Should allow valid java runtime path outside the project', async () => {
-    settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-    execFileStub.yields('', '', 'java.version = 11.0.0');
-    sandbox.stub(fs.promises, 'access').resolves();
-    const requirements = await resolveRequirements();
-    expect(requirements.java_home).toContain(jdk);
-  });
+  // Cross-platform tests
+  describe('Cross-platform tests', () => {
+    it('Should allow valid java runtime path outside the project', async () => {
+      settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
+      execFileStub.yields('', '', 'java.version = 11.0.0');
+      sandbox.stub(fs.promises, 'access').resolves();
+      const requirements = await resolveRequirements();
+      expect(requirements.java_home).toContain(jdk);
+    });
 
-  it('Should not support Java 8', async () => {
-    execFileStub.yields('', '', 'java.version = 1.8.0');
-    try {
-      await checkJavaVersion(path.join(os.homedir(), 'java_home'));
-      fail('Should have thrown when the Java version is not supported');
-    } catch (err) {
-      expect(err).toEqual(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
-    }
-  });
+    it('Should not support Java 8', async () => {
+      execFileStub.yields('', '', 'java.version = 1.8.0');
+      try {
+        await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        fail('Should have thrown when the Java version is not supported');
+      } catch (err) {
+        expect(err).toEqual(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
+      }
+    });
 
-  it('Should support Java 11', async () => {
-    execFileStub.yields('', '', 'java.version = 11.0.0');
-    try {
-      const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
-      expect(result).toBe(true);
-    } catch (err) {
-      fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
-    }
-  });
+    it('Should support Java 11', async () => {
+      execFileStub.yields('', '', 'java.version = 11.0.0');
+      try {
+        const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        expect(result).toBe(true);
+      } catch (err) {
+        fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
+      }
+    });
 
-  it('Should support Java 17', async () => {
-    execFileStub.yields('', '', 'java.version = 17.2.3');
-    try {
-      const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
-      expect(result).toBe(true);
-    } catch (err) {
-      fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
-    }
-  });
+    it('Should support Java 17', async () => {
+      execFileStub.yields('', '', 'java.version = 17.2.3');
+      try {
+        const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        expect(result).toBe(true);
+      } catch (err) {
+        fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
+      }
+    });
 
-  it('Should support Java 21', async () => {
-    execFileStub.yields('', '', 'java.version = 21.0.0');
-    try {
-      const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
-      expect(result).toBe(true);
-    } catch (err) {
-      fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
-    }
-  });
+    it('Should support Java 21', async () => {
+      execFileStub.yields('', '', 'java.version = 21.0.0');
+      try {
+        const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        expect(result).toBe(true);
+      } catch (err) {
+        fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
+      }
+    });
 
-  it('Should support Java 23', async () => {
-    execFileStub.yields('', '', 'java.version = 23.0.0');
-    try {
-      const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
-      expect(result).toBe(true);
-    } catch (err) {
-      fail(`Should not have thrown when the Java version is 23.  The error was: ${err}`);
-    }
-  });
+    it('Should support Java 23', async () => {
+      execFileStub.yields('', '', 'java.version = 23.0.0');
+      try {
+        const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        expect(result).toBe(true);
+      } catch (err) {
+        fail(`Should not have thrown when the Java version is 23.  The error was: ${err}`);
+      }
+    });
 
-  it('Should reject java version check when execFile fails', async () => {
-    execFileStub.yields({ message: 'its broken' }, '', '');
-    try {
-      await checkJavaVersion(path.join(os.homedir(), 'java_home'));
-      fail('Should have thrown when the Java version is not supported');
-    } catch (err) {
-      const expectedPath = path.join(
-        os.homedir(),
-        'java_home',
-        'bin',
-        process.platform === 'win32' ? 'java.exe' : 'java'
-      );
-      expect(err).toEqual(
-        nls.localize(
-          'java_version_check_command_failed',
-          `${expectedPath} -XshowSettings:properties -version`,
-          'its broken'
-        )
-      );
-    }
-  });
-
-  (process.platform === 'win32' ? it : xit)('Should reject when Java binary is not executable', async () => {
-    settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-    sandbox.stub(fs.promises, 'access').rejects(new Error('Permission denied'));
-    try {
-      await resolveRequirements();
-      fail('Should have thrown when Java binary is not executable');
-    } catch (err) {
-      expect(err).toContain('Java binary java at');
-      expect(err).toContain('is not executable');
-    }
+    it('Should reject java version check when execFile fails', async () => {
+      execFileStub.yields({ message: 'its broken' }, '', '');
+      try {
+        await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        fail('Should have thrown when the Java version is not supported');
+      } catch (err) {
+        const expectedPath = path.join(
+          os.homedir(),
+          'java_home',
+          'bin',
+          process.platform === 'win32' ? 'java.exe' : 'java'
+        );
+        expect(err).toEqual(
+          nls.localize(
+            'java_version_check_command_failed',
+            `${expectedPath} -XshowSettings:properties -version`,
+            'its broken'
+          )
+        );
+      }
+    });
   });
 });
