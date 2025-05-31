@@ -40,10 +40,10 @@ jobs:
 
       - name: Run Playwright e2e tests (Windows/macOS)
         if: matrix.os != 'ubuntu-latest'
-        run: npx playwright test --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts
+        run: npx playwright test --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts --workers=1
 
       - name: Upload Playwright test results
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ matrix.os }}
-          path: playwright-report
+          path: packages/salesforcedx-vscode-core/playwright-report
