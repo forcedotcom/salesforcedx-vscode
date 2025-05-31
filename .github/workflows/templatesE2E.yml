@@ -25,7 +25,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          corepack enable
           npm install
 
       - name: Install Playwright browsers
