@@ -40,8 +40,6 @@ test('create class', async ({ workbox, evaluateInVSCode, baseDir }) => {
       hasText: 'Create Apex Class successfully ran'
     });
 
-    await workbox.screenshot({ path: path.join(baseDir, 'class_created.png') });
-
     // assert that the notification appears
     await expect(toast.locator('.notification-list-item-icon')).toHaveClass(/codicon-info/);
   });

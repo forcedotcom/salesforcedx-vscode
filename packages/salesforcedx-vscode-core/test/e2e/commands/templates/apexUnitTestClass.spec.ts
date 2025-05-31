@@ -44,7 +44,6 @@ test('create Apex Unit Test Class', async ({ workbox, evaluateInVSCode, baseDir 
     const toast = workbox.locator('.notification-toast', {
       hasText: 'Create Apex Unit Test Class successfully ran'
     });
-    await workbox.screenshot({ path: path.join(baseDir, 'unit_test_class_created.png') });
     await expect(toast.locator('.notification-list-item-icon')).toHaveClass(/codicon-info/);
   });
 

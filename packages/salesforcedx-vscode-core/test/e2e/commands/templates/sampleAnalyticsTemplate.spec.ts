@@ -57,7 +57,6 @@ test('create Sample Analytics Template', async ({ workbox, evaluateInVSCode, bas
     const toast = workbox.locator('.notification-toast', {
       hasText: 'Create Sample Analytics Template successfully ran'
     });
-    await workbox.screenshot({ path: path.join(baseDir, 'analytics_template_created.png') });
     await expect(toast.locator('.notification-list-item-icon')).toHaveClass(/codicon-info/);
   });
 

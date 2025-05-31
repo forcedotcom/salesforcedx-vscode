@@ -40,8 +40,6 @@ test('create trigger', async ({ workbox, evaluateInVSCode, baseDir }) => {
       hasText: 'Create Apex Trigger successfully ran'
     });
 
-    await workbox.screenshot({ path: path.join(baseDir, 'trigger_created.png') });
-
     // assert that the notification appears
     await expect(toast.locator('.notification-list-item-icon')).toHaveClass(/codicon-info/);
   });

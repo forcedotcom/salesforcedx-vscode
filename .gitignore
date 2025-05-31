@@ -126,3 +126,4 @@ extensions/
 # e2e output
 e2e-output
 **/test-results
+**/playwright-report

@@ -42,7 +42,6 @@ test('create Visualforce Component', async ({ workbox, evaluateInVSCode, baseDir
     const toast = workbox.locator('.notification-toast', {
       hasText: 'Create Visualforce Component successfully ran'
     });
-    await workbox.screenshot({ path: path.join(baseDir, 'vf_component_created.png') });
     await expect(toast.locator('.notification-list-item-icon')).toHaveClass(/codicon-info/);
   });
 

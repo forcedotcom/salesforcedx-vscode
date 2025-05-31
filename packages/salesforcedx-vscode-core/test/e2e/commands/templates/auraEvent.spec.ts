@@ -43,7 +43,6 @@ test('create Aura Event', async ({ workbox, evaluateInVSCode, baseDir }) => {
     const toast = workbox.locator('.notification-toast', {
       hasText: 'Create Aura Event successfully ran'
     });
-    await workbox.screenshot({ path: path.join(baseDir, 'aura_event_created.png') });
     await expect(toast.locator('.notification-list-item-icon')).toHaveClass(/codicon-info/);
   });
 

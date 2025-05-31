@@ -51,7 +51,6 @@ test('create Lightning Web Component', async ({ workbox, evaluateInVSCode, baseD
     const toast = workbox.locator('.notification-toast', {
       hasText: 'Create Lightning Web Component successfully ran'
     });
-    await workbox.screenshot({ path: path.join(baseDir, 'lwc_component_created.png') });
     await expect(toast.locator('.notification-list-item-icon')).toHaveClass(/codicon-info/);
   });
 
