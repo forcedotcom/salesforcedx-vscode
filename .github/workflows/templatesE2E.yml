@@ -30,12 +30,6 @@ jobs:
       - name: Build packages
         run: npm run compile
 
-      - name: Print Playwright version
-        run: npx playwright --version
-
-      - name: Print Playwright config
-        run: npx playwright show-config --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts
-
       - name: Run Playwright e2e tests (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: xvfb-run npx playwright test --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts
