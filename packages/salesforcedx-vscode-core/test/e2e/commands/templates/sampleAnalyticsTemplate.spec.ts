@@ -61,10 +61,9 @@ test('create Sample Analytics Template', async ({ workbox, evaluateInVSCode, bas
   });
 
   for (const file of expectedFiles) {
-    await test.step(`verify ${file} exists`, async () => {
+    await test.step(`verify ${file} exists`, () => {
       const filePath = path.resolve(path.join(baseDir, TEMPLATE_FOLDER_PATH, file));
-      const exists = fs.existsSync(filePath);
-      assert.strictEqual(exists, true, `${file} should exist`);
+      assert.strictEqual(fs.existsSync(filePath), true, `${file} should exist`);
     });
   }
 

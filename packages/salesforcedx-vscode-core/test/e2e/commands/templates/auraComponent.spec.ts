@@ -60,10 +60,9 @@ test('create Aura Component', async ({ workbox, evaluateInVSCode, baseDir }) => 
   });
 
   for (const file of expectedFiles) {
-    await test.step(`verify ${file} exists`, async () => {
+    await test.step(`verify ${file} exists`, () => {
       const filePath = path.resolve(path.join(baseDir, AURA_COMPONENT_FOLDER_PATH, file));
-      const exists = fs.existsSync(filePath);
-      assert.strictEqual(exists, true, `${file} should exist`);
+      assert.strictEqual(fs.existsSync(filePath), true, `${file} should exist`);
     });
   }
 
