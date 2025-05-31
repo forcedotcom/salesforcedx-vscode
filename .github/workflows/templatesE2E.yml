@@ -1,228 +1,50 @@
-name: Templates End to End Tests
+name: E2E Playwright Tests
 
 on:
-  workflow_dispatch:
-    inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
-      vscodeVersion:
-        description: 'VSCode Version'
-        required: false
-        default: 'latest'
-        type: string
-      runId:
-        description: 'Run ID of the workflow run that created the vsixes'
-        required: true
-        type: string
-
-  workflow_call:
-    inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
-      vscodeVersion:
-        description: 'VSCode Version'
-        required: false
-        default: 'latest'
-        type: string
-      runId:
-        description: 'Run ID of the workflow run that created the vsixes'
-        required: false
-        type: string
+  push:
+    branches-ignore: [main, develop]
+  pull_request:
+    branches-ignore: [main, develop]
 
 jobs:
-  template-apexClass:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-apexClass.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+  e2e-templates:
+    name: Run e2e tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  template-apexTrigger:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-apexTrigger.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-  template-apexUnitTestClass:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-apexUnitTestClass.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - name: Install dependencies
+        run: |
+          corepack enable
+          npm install
 
-  template-auraApp:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-auraApp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
-  template-auraComponent:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-auraComponent.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - name: Build packages
+        run: npm run compile
 
-  template-auraEvent:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-auraEvent.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - name: Run Playwright e2e tests (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: xvfb-run npx playwright test --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts
 
-  template-auraInterface:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-auraInterface.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+      - name: Run Playwright e2e tests (Windows/macOS)
+        if: matrix.os != 'ubuntu-latest'
+        run: npx playwright test --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts
 
-  template-lightningWebComponent:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-lightningWebComponent.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  template-sampleAnalyticsTemplate:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-sampleAnalyticsTemplate.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  template-visualforceComponent:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-visualforceComponent.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  template-visualforcePage:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
-      testToRun: 'template-visualforcePage.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  slack_success_notification:
-    if: ${{ success() }}
-    needs:
-      [
-        template-apexClass,
-        template-apexTrigger,
-        template-apexUnitTestClass,
-        template-auraApp,
-        template-auraComponent,
-        template-auraEvent,
-        template-auraInterface,
-        template-lightningWebComponent,
-        template-sampleAnalyticsTemplate,
-        template-visualforceComponent,
-        template-visualforcePage
-      ]
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      title: 'Templates E2E Tests'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex Class Template: ${{ needs.template-apexClass.result }}\n- Apex Trigger Template: ${{ needs.template-apexTrigger.result }}\n- Apex Unit Test Class Template: ${{ needs.template-apexUnitTestClass.result }}\n- Aura App Template: ${{ needs.template-auraApp.result }}\n- Aura Component Template: ${{ needs.template-auraComponent.result }}\n- Aura Event Template: ${{ needs.template-auraEvent.result }}\n- Aura Interface Template: ${{ needs.template-auraInterface.result }}\n- Lightning Web Component Template: ${{ needs.template-lightningWebComponent.result }}\n- Sample Analytics Template: ${{ needs.template-sampleAnalyticsTemplate.result }}\n- Visualforce Component Template: ${{ needs.template-visualforceComponent.result }}\n- Visualforce Page Template: ${{ needs.template-visualforcePage.result }}'
-      result: 'All the tests passed.'
-      workflow: 'actions/runs/${{ github.run_id }}'
-      type: 'e2e'
-
-  slack_failure_notification:
-    if: ${{ failure() }}
-    needs:
-      [
-        template-apexClass,
-        template-apexTrigger,
-        template-apexUnitTestClass,
-        template-auraApp,
-        template-auraComponent,
-        template-auraEvent,
-        template-auraInterface,
-        template-lightningWebComponent,
-        template-sampleAnalyticsTemplate,
-        template-visualforceComponent,
-        template-visualforcePage
-      ]
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      title: 'Templates E2E Tests'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex Class Template: ${{ needs.template-apexClass.result }}\n- Apex Trigger Template: ${{ needs.template-apexTrigger.result }}\n- Apex Unit Test Class Template: ${{ needs.template-apexUnitTestClass.result }}\n- Aura App Template: ${{ needs.template-auraApp.result }}\n- Aura Component Template: ${{ needs.template-auraComponent.result }}\n- Aura Event Template: ${{ needs.template-auraEvent.result }}\n- Aura Interface Template: ${{ needs.template-auraInterface.result }}\n- Lightning Web Component Template: ${{ needs.template-lightningWebComponent.result }}\n- Sample Analytics Template: ${{ needs.template-sampleAnalyticsTemplate.result }}\n- Visualforce Component Template: ${{ needs.template-visualforceComponent.result }}\n- Visualforce Page Template: ${{ needs.template-visualforcePage.result }}'
-      result: 'Not all the tests passed.'
-      workflow: 'actions/runs/${{ github.run_id }}'
-      type: 'e2e'
-
-  slack_cancelled_notification:
-    if: ${{ cancelled() }}
-    needs:
-      [
-        template-apexClass,
-        template-apexTrigger,
-        template-apexUnitTestClass,
-        template-auraApp,
-        template-auraComponent,
-        template-auraEvent,
-        template-auraInterface,
-        template-lightningWebComponent,
-        template-sampleAnalyticsTemplate,
-        template-visualforceComponent,
-        template-visualforcePage
-      ]
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      title: 'Templates E2E Tests'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
-      summary: '\n- Apex Class Template: ${{ needs.template-apexClass.result }}\n- Apex Trigger Template: ${{ needs.template-apexTrigger.result }}\n- Apex Unit Test Class Template: ${{ needs.template-apexUnitTestClass.result }}\n- Aura App Template: ${{ needs.template-auraApp.result }}\n- Aura Component Template: ${{ needs.template-auraComponent.result }}\n- Aura Event Template: ${{ needs.template-auraEvent.result }}\n- Aura Interface Template: ${{ needs.template-auraInterface.result }}\n- Lightning Web Component Template: ${{ needs.template-lightningWebComponent.result }}\n- Sample Analytics Template: ${{ needs.template-sampleAnalyticsTemplate.result }}\n- Visualforce Component Template: ${{ needs.template-visualforceComponent.result }}\n- Visualforce Page Template: ${{ needs.template-visualforcePage.result }}'
-      result: 'The workflow was cancelled.'
-      workflow: 'actions/runs/${{ github.run_id }}'
-      type: 'e2e'
+      - name: Upload Playwright test results (if failed)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.os }}
+          path: playwright-report
