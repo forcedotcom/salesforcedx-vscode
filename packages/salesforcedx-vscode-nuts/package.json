@@ -1,0 +1,13 @@
+{
+  "name": "@salesforce/salesforcedx-vscode-nuts",
+  "version": "1.0.0",
+  "description": "Salesforce DX Nuts",
+  "main": "out/src",
+  "scripts": {
+    "compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

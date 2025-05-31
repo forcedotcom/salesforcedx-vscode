@@ -38,6 +38,9 @@
       "path": "packages/salesforcedx-vscode-core"
     },
     {
+      "path": "packages/salesforcedx-vscode-nuts"
+    },
+    {
       "path": "packages/salesforcedx-vscode-lightning"
     },
     {

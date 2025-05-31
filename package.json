@@ -22,6 +22,7 @@
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.10.4",
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
+    "@playwright/test": "1.52.0",
     "@salesforce/dev-config": "^3.1.0",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.1.2",
@@ -38,6 +39,7 @@
     "commitizen": "^4.2.5",
     "cz-conventional-changelog": "3.3.0",
     "depcheck": "1.4.3",
+    "electron-playwright-helpers": "1.7.1",
     "esbuild": "0.25.4",
     "eslint": "^9.25.0",
     "eslint-config-prettier": "10.1.5",
@@ -62,6 +64,7 @@
     "ts-loader": "^9.3.0",
     "ts-node": "10.9.2",
     "typescript": "^5.6.2",
+    "vscode-test-playwright": "0.0.1-beta",
     "yaml": "2.6.0"
   },
   "scripts": {
