@@ -587,10 +587,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pkgr/core@^0.2.1":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.2.tgz#224e466468489466a3ca77832be80cdd0bb8e523"
-  integrity sha512-25L86MyPvnlQoX2MTIV2OiUcb6vJ6aRbFa9pbwByn95INKD5mFH2smgjDhq+fwJoqAgvgbdJLj6Tz7V9X5CFAQ==
+"@pkgr/core@^0.2.4":
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.5.tgz#8a8edc680b845e57bdf2a5d93b06fce85af4fe4b"
+  integrity sha512-YRx7tFgLkrpFkDAzVSV5sUJydmf2ZDrW+O3IbQ1JyeMW7B0FiWroFJTnR4/fD9CsusnAn4qRUcbb5jFnZSd6uw==
 
 "@salesforce/core@^8.11.4":
   version "8.11.4"
@@ -1751,13 +1751,13 @@ eslint-plugin-jsdoc@^46.10.1:
     semver "^7.5.4"
     spdx-expression-parse "^4.0.0"
 
-eslint-plugin-prettier@^5.4.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-5.4.0.tgz#54d4748904e58eaf1ffe26c4bffa4986ca7f952b"
-  integrity sha512-BvQOvUhkVQM1i63iMETK9Hjud9QhqBnbtT1Zc642p9ynzBuCe5pybkOnvqZIBypXmMlsGcnU4HZ8sCTPfpAexA==
+eslint-plugin-prettier@^5.4.1:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-5.4.1.tgz#99b55d7dd70047886b2222fdd853665f180b36af"
+  integrity sha512-9dF+KuU/Ilkq27A8idRP7N2DH8iUR6qXcjF3FR2wETY21PZdBrIjwCau8oboyGj9b7etWmTGEeM8e7oOed6ZWg==
   dependencies:
     prettier-linter-helpers "^1.0.0"
-    synckit "^0.11.0"
+    synckit "^0.11.7"
 
 eslint-scope@^7.2.2:
   version "7.2.2"
@@ -4229,13 +4229,12 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-synckit@^0.11.0:
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/synckit/-/synckit-0.11.3.tgz#8b83e145d7cedc56c01e3510cf516d91a0e568c2"
-  integrity sha512-szhWDqNNI9etJUvbZ1/cx1StnZx8yMmFxme48SwR4dty4ioSY50KEZlpv0qAfgc1fpRzuh9hBXEzoCpJ779dLg==
+synckit@^0.11.7:
+  version "0.11.8"
+  resolved "https://registry.yarnpkg.com/synckit/-/synckit-0.11.8.tgz#b2aaae998a4ef47ded60773ad06e7cb821f55457"
+  integrity sha512-+XZ+r1XGIJGeQk3VvXhT6xx/VpbHsRzsTkGgF6E5RX9TTXD0118l87puaEBZ566FhqblC6U0d4XnubznJDm30A==
   dependencies:
-    "@pkgr/core" "^0.2.1"
-    tslib "^2.8.1"
+    "@pkgr/core" "^0.2.4"
 
 test-exclude@^6.0.0:
   version "6.0.0"
@@ -4360,7 +4359,7 @@ ts-retry-promise@^0.8.1:
   resolved "https://registry.yarnpkg.com/ts-retry-promise/-/ts-retry-promise-0.8.1.tgz#ba90eb07cb03677fcbf78fe38e94c9183927e154"
   integrity sha512-+AHPUmAhr5bSRRK5CurE9kNH8gZlEHnCgusZ0zy2bjfatUBDX0h6vGQjiT0YrGwSDwRZmU+bapeX6mj55FOPvg==
 
-tslib@^2.0.3, tslib@^2.8.1:
+tslib@^2.0.3:
   version "2.8.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.8.1.tgz#612efe4ed235d567e8aba5f2a5fab70280ade83f"
   integrity sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==
