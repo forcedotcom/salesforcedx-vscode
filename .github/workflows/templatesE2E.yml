@@ -41,6 +41,8 @@ jobs:
       - name: Upload Playwright test results
         if: always()
         uses: actions/upload-artifact@v4
+        env:
+          DEBUG: pw:api
         with:
           name: playwright-results-${{ matrix.os }}
           path: |
