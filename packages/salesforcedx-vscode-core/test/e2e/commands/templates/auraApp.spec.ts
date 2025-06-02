@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { expect, test } from '@mshanemc/vscode-test-playwright';
 import { createProject } from '@salesforce/salesforcedx-vscode-nuts';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test } from 'vscode-test-playwright';
 
 const AURA_FOLDER_PATH = path.join('force-app', 'main', 'default', 'aura', 'AuraApp1');
 
