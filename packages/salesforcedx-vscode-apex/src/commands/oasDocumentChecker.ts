@@ -67,7 +67,11 @@ class OasDocumentChecker {
             openApiDocument = fs.readFileSync(fullPath, 'utf8');
           }
           // Step 3: Process the OAS document
-          const processedOasResult = await processOasDocumentFromYaml(openApiDocument, undefined, undefined, true);
+          const processedOasResult = await processOasDocumentFromYaml(openApiDocument, {
+            context: undefined,
+            eligibleResult: undefined,
+            isRevalidation: true
+          });
 
           // Step 4: Report/Refresh problems found
           createProblemTabEntriesForOasDocument(fullPath, processedOasResult, this.isESRDecomposed);

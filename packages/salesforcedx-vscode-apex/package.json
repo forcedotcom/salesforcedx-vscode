@@ -501,10 +501,9 @@
           "type": "string",
           "enum": [
             "LEAST_CALLS",
-            "MOST_CALLS",
-            "JSON_METHOD_BY_METHOD"
+            "MOST_CALLS"
           ],
-          "default": "JSON_METHOD_BY_METHOD",
+          "default": "LEAST_CALLS",
           "description": "%apex_oas_generation_strategy%"
         },
         "salesforcedx-vscode-apex.oas_generation_include_schema": {

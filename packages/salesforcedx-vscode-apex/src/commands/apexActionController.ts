@@ -12,7 +12,11 @@ import type { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { ExternalServiceRegistrationManager, FullPath } from '../oas/externalServiceRegistrationManager';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
-import { BidRule, PromptGenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
+import {
+  BidRule,
+  PromptGenerationOrchestrator as GenerationOrchestrator,
+  BID_RULES
+} from '../oas/promptGenerationOrchestrator';
 import { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
 import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
@@ -90,36 +94,48 @@ export class ApexActionController {
             throw new Error(nls.localize('cannot_gather_context'));
           }
 
-          // Step 3: Determine filename
+          // Step 3: Initialize the strategy orchestrator
+          progress.report({ message: nls.localize('generating_oas_doc') });
+          const generationOrchestrator = new GenerationOrchestrator(eligibilityResult, context);
+
+          // Step 4: Get the strategy
+          const strategy = await generationOrchestrator.selectStrategyByBidRule(this.getBidRule());
+
+          // Step 5: Determine filename
           name = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
           const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
 
-          // Step 4: Check if the file already exists
+          // Step 6: Check if the file already exists
           progress.report({ message: nls.localize('get_document_path') });
           fullPath = await this.esrHandler.pathExists(openApiFileName);
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
 
-          // Step 5: Initialize the strategy orchestrator
-          progress.report({ message: nls.localize('generating_oas_doc') });
-          const promptGenerationOrchestrator = new PromptGenerationOrchestrator(eligibilityResult, context);
-
-          // Step 6: use the strategy to generate the OAS
+          // Step 7: Use the strategy to generate the OAS
           generationHrStart = process.hrtime();
-          const openApiDocument = await promptGenerationOrchestrator.generateOASWithStrategySelectedByBidRule(
-            this.getConfigBidRule()
-          );
+          const openApiDocument = await strategy.generateOAS();
           generationHrDuration = process.hrtime(generationHrStart);
+          this.gil.addPostGenDoc(openApiDocument);
+          this.gil.addGenerationStrategy(this.getBidRule() ?? 'MANUAL');
+          this.gil.addOutputTokenLimit(strategy!.outputTokenLimit);
+          if (strategy!.includeOASSchema && strategy!.openAPISchema) {
+            this.gil.addGuidedJson(strategy!.openAPISchema);
+          }
 
-          // Step 7: Process the OAS document
+          // Step 8: Process the OAS document
           progress.report({ message: nls.localize('processing_generated_oas') });
-          const processedOasResult = await processOasDocument(openApiDocument, context, eligibilityResult);
+          const processedOasResult = await processOasDocument(openApiDocument, {
+            context,
+            eligibleResult: eligibilityResult,
+            isRevalidation: false,
+            betaInfo: strategy?.betaInfo
+          });
 
-          // Step 8: Write OpenAPI Document to File
+          // Step 9: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
           overwrite = fullPath[0] === fullPath[1];
           await this.esrHandler.generateEsrMD(this.isESRDecomposed, processedOasResult, fullPath);
 
-          // Step 9: Gather metrics
+          // Step 10: Gather metrics
           props = {
             isClass: `${isClass}`,
             overwrite: `${overwrite}`
@@ -129,9 +145,9 @@ export class ApexActionController {
 
           measures = {
             generationDuration: (await getTelemetryService()).hrTimeToMilliseconds(generationHrDuration),
-            biddedCallCount: promptGenerationOrchestrator.strategy?.biddedCallCount,
-            llmCallCount: promptGenerationOrchestrator.strategy?.llmCallCount,
-            generationSize: promptGenerationOrchestrator.strategy?.maxBudget,
+            biddedCallCount: generationOrchestrator.strategy?.biddedCallCount,
+            llmCallCount: generationOrchestrator.strategy?.resolutionAttempts,
+            generationSize: generationOrchestrator.strategy?.maxBudget,
             documentTtlProblems: total,
             documentErrors: errors,
             documentWarnings: warnings,
@@ -141,7 +157,7 @@ export class ApexActionController {
         }
       );
 
-      // Step 10: Notify Success
+      // Step 11: Notify Success
       if (overwrite) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
@@ -175,9 +191,15 @@ export class ApexActionController {
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
-  private getConfigBidRule(): BidRule {
-    return vscode.workspace
+  private isBidRule(value: unknown): value is BidRule {
+    return typeof value === 'string' && value in BID_RULES;
+  }
+
+  private getBidRule(): BidRule {
+    const currentBidRule = vscode.workspace
       .getConfiguration()
-      .get('salesforcedx-vscode-apex.oas_generation_strategy', 'JSON_METHOD_BY_METHOD');
+      .get('salesforcedx-vscode-apex.oas_generation_strategy', BID_RULES.LEAST_CALLS);
+
+    return this.isBidRule(currentBidRule) ? currentBidRule : BID_RULES.LEAST_CALLS;
   }
 }

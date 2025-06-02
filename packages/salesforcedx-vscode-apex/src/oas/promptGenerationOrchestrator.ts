@@ -7,10 +7,11 @@
 import { nls } from '../messages';
 import { cleanupGeneratedDoc } from '../oasUtils';
 import GenerationInteractionLogger from './generationInteractionLogger';
+import { GenerationStrategy } from './generationStrategy/generationStrategy';
 import {
-  GenerationStrategy,
-  GenerationStrategyFactory,
-  Strategy
+  GenerationStrategyType,
+  initializeAndBid,
+  StrategyTypes
 } from './generationStrategy/generationStrategyFactory';
 import {
   ApexClassOASEligibleResponse,
@@ -18,7 +19,12 @@ import {
   PromptGenerationStrategyBid
 } from './schemas';
 
-export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS' | 'JSON_METHOD_BY_METHOD';
+export const BID_RULES = {
+  LEAST_CALLS: 'LEAST_CALLS',
+  MOST_CALLS: 'MOST_CALLS'
+} as const;
+
+export type BidRule = keyof typeof BID_RULES;
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -26,65 +32,105 @@ const gil = GenerationInteractionLogger.getInstance();
 export class PromptGenerationOrchestrator {
   metadata: ApexClassOASEligibleResponse;
   context: ApexClassOASGatherContextResponse;
-  strategies: Map<GenerationStrategy, Strategy>;
-  strategy: Strategy | undefined = undefined;
+  strategies: Map<GenerationStrategyType, StrategyTypes>;
+  strategy: GenerationStrategy | undefined = undefined;
   // The orchestrator is initialized with metadata and context.
   constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     this.metadata = metadata;
     this.context = context;
-    this.strategies = new Map<GenerationStrategy, Strategy>();
-    this.initializeStrategyBidder();
+    this.strategies = new Map<GenerationStrategyType, StrategyTypes>();
   }
 
-  // Initialize all available strategies with the provided metadata and context.
-  initializeStrategyBidder() {
-    this.strategies = GenerationStrategyFactory.initializeAllStrategies(this.metadata, this.context);
-  }
-
-  // Make each strategy bid on the given class information and return a list of bids.
-  public bid(): Map<GenerationStrategy, PromptGenerationStrategyBid> {
-    const bids = new Map<GenerationStrategy, PromptGenerationStrategyBid>();
-    for (const strategyName of this.strategies.keys()) {
-      const strategy = this.strategies.get(strategyName);
-      if (strategy) {
-        bids.set(strategyName, strategy.bid());
-      }
-    }
+  // Initialize strategies and get their bids in one step
+  private async initializeAndBid(): Promise<Map<GenerationStrategyType, PromptGenerationStrategyBid>> {
+    const { strategies, bids } = await initializeAndBid(this.metadata, this.context);
+    this.strategies = strategies;
     return bids;
   }
 
-  // after best strategy is determined, call the LLM with the selected strategy and return the result.
-  public async generateOASWithStrategySelectedByBidRule(rule: BidRule): Promise<string> {
-    const bids = this.bid();
-    const bestStrategy = this.applyRule(rule, bids);
-    this.strategy = this.strategies.get(bestStrategy);
+  // Selects and sets the strategy based on the bid rule
+  public async selectStrategyByBidRule(rule: BidRule): Promise<GenerationStrategy> {
+    const bids = await this.initializeAndBid();
+    const selectedStrategyType = this.applyRule(rule, bids);
+    if (!selectedStrategyType) {
+      throw new Error(nls.localize('strategy_not_qualified'));
+    }
+    this.strategy = this.strategies.get(selectedStrategyType);
     if (!this.strategy) {
       throw new Error(nls.localize('strategy_not_qualified'));
     }
-    const oas = await this.strategy.generateOAS().then(o => cleanupGeneratedDoc(o));
+    return this.strategy;
+  }
+
+  // Generates the OAS using the previously selected strategy
+  public async generateOASWithSelectedStrategy(rule?: BidRule): Promise<string> {
+    if (!this.strategy) {
+      if (rule) {
+        await this.selectStrategyByBidRule(rule);
+      } else {
+        throw new Error(nls.localize('strategy_not_qualified'));
+      }
+    }
+    const oas = await this.strategy!.generateOAS().then(o => cleanupGeneratedDoc(o));
     gil.addPostGenDoc(oas);
-    gil.addGenerationStrategy(rule);
-    gil.addOutputTokenLimit(this.strategy.outputTokenLimit);
-    if (this.strategy.includeOASSchema && this.strategy.openAPISchema) {
-      gil.addGuidedJson(this.strategy.openAPISchema);
+    gil.addGenerationStrategy(rule ?? 'MANUAL');
+    gil.addOutputTokenLimit(this.strategy!.outputTokenLimit);
+    if (this.strategy!.includeOASSchema && this.strategy!.openAPISchema) {
+      gil.addGuidedJson(this.strategy!.openAPISchema);
     }
     return oas;
   }
 
   // Apply a specific rule to select the name of the best strategy from the list of bids.
-  applyRule(rule: BidRule, bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
-    // preserve the options for other strategies.  See code history for what this used to point to
+  applyRule(
+    rule: BidRule,
+    bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
+  ): GenerationStrategyType | undefined {
     switch (rule) {
-      case 'LEAST_CALLS':
-        return this.getJsonMethodByMethod(bids);
-      case 'MOST_CALLS':
-        return this.getJsonMethodByMethod(bids);
-      case 'JSON_METHOD_BY_METHOD':
-        return this.getJsonMethodByMethod(bids);
+      case BID_RULES.LEAST_CALLS:
+        return this.getLeastCallsStrategy(bids);
+      case BID_RULES.MOST_CALLS:
+        return this.getMostCallsStrategy(bids);
+      default:
+        throw new Error(nls.localize('unknown_bid_rule', rule));
     }
   }
 
-  getJsonMethodByMethod(bids: Map<GenerationStrategy, PromptGenerationStrategyBid>): GenerationStrategy {
-    return GenerationStrategy.JSON_METHOD_BY_METHOD;
+  private getLeastCallsStrategy(
+    bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
+  ): GenerationStrategyType | undefined {
+    const result = this.getStrategyByCallCount(bids, () => true);
+    return result ? result[0] : undefined;
+  }
+
+  private getMostCallsStrategy(
+    bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
+  ): GenerationStrategyType | undefined {
+    const result = this.getStrategyByCallCount(bids, bid => bid.result.callCounts > 0);
+    return result ? result[0] : undefined;
+  }
+
+  private getStrategyByCallCount(
+    bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>,
+    predicate: (bid: PromptGenerationStrategyBid) => boolean
+  ): [GenerationStrategyType, PromptGenerationStrategyBid] | undefined {
+    // First, collect all bids that satisfy the predicate and have call count > 0
+    const validBids = Array.from(bids.entries())
+      .filter(([_, bid]) => predicate(bid) && bid.result.callCounts > 0)
+      .map(([strategy, bid]) => ({
+        strategy,
+        bid,
+        callCount: bid.result.callCounts
+      }));
+
+    // If no valid bids, return undefined
+    if (validBids.length === 0) {
+      return undefined;
+    }
+
+    // Find the bid with the minimum call count
+    const bestBid = validBids.reduce((best, current) => (current.callCount < best.callCount ? current : best));
+
+    return [bestBid.strategy, bestBid.bid];
   }
 }
