@@ -39,6 +39,7 @@ jobs:
         run: npx playwright test --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts -x
 
       - name: Upload Playwright test results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ matrix.os }}
