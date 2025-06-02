@@ -25,6 +25,7 @@ export const runCommandPaletteCommand = async (page: Page, command: string) => {
         await textbox.press('Enter');
         break;
       }
+      await textbox.press('Escape');
       await page.waitForTimeout(pollInterval);
     }
   });
