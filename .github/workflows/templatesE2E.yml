@@ -43,3 +43,7 @@ jobs:
         with:
           name: playwright-report-${{ matrix.os }}
           path: packages/salesforcedx-vscode-core/playwright-report
+
+    defaults:
+      run:
+        shell: bash
