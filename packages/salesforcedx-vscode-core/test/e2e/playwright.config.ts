@@ -26,8 +26,7 @@ export default defineConfig<VSCodeTestOptions, VSCodeWorkerOptions>({
     },
     baseDir: 'e2e-output'
   },
-  // retries: process.env.CI ? 2 : 0,
-  retries: 0,
+  retries: process.env.CI ? 2 : 0,
   workers: 1,
   expect: {
     timeout: 30_000
