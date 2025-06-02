@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect, test } from '@mshanemc/vscode-test-playwright';
-import { createProject } from '@salesforce/salesforcedx-vscode-nuts';
+import { createProject, openCommandPalette, runCommandPaletteCommand } from '@salesforce/salesforcedx-vscode-nuts';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
+import { expect, test } from 'vscode-test-playwright';
 
 const AURA_FOLDER_PATH = path.join('force-app', 'main', 'default', 'aura', 'AuraApp1');
 
@@ -27,16 +27,11 @@ test.beforeAll(async ({ baseDir }) => {
   await createProject(baseDir);
 });
 
-test('create Aura App', async ({ workbox, evaluateInVSCode, baseDir }) => {
-  await workbox.waitForTimeout(500);
-  await evaluateInVSCode(async vscode => {
-    await vscode.commands.executeCommand('workbench.action.showCommands');
-  });
+test('create Aura App', async ({ workbox, baseDir }) => {
+  await workbox.waitForTimeout(2000); // need time for ext to load so the command is available
+  await openCommandPalette(workbox);
 
-  await test.step('choose command', async () => {
-    await workbox.getByRole('textbox', { name: 'Type the name of a command to' }).fill('>SFDX: Create Aura App');
-    await workbox.getByRole('textbox', { name: 'Type the name of a command to' }).press('Enter');
-  });
+  await runCommandPaletteCommand(workbox, 'SFDX: Create Aura App');
 
   await test.step('enter app name', async () => {
     await workbox.getByRole('textbox', { name: 'input' }).fill('AuraApp1');
@@ -65,11 +60,8 @@ test('create Aura App', async ({ workbox, evaluateInVSCode, baseDir }) => {
   }
 
   await test.step('verify .app file content', async () => {
-    const [openFileText] = await evaluateInVSCode(vscode =>
-      vscode.window.visibleTextEditors
-        .filter(editor => editor.document.uri.fsPath?.endsWith('AuraApp1.app'))
-        .map(editor => editor.document.getText())
-    );
+    const filePath = path.resolve(path.join(baseDir, AURA_FOLDER_PATH, 'AuraApp1.app'));
+    const openFileText = fs.readFileSync(filePath, 'utf8');
     const expectedText = ['<aura:application>', '', '</aura:application>'].join('\n');
     assert.strictEqual(openFileText.trimEnd().replace(/\r\n/g, '\n'), expectedText);
   });

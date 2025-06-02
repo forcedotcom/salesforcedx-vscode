@@ -1,3 +1,5 @@
 import { createProject } from './shared/createProject';
 
-export { createProject };
+import { openCommandPalette, runCommandPaletteCommand } from './shared/commandPalette/action';
+
+export { createProject, openCommandPalette, runCommandPaletteCommand };

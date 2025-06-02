@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect, test } from '@mshanemc/vscode-test-playwright';
-import { createProject } from '@salesforce/salesforcedx-vscode-nuts';
+import { createProject, openCommandPalette, runCommandPaletteCommand } from '@salesforce/salesforcedx-vscode-nuts';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
+import { expect, test } from 'vscode-test-playwright';
 
 const COMPONENT_FOLDER_PATH = path.join('force-app', 'main', 'default', 'components');
 
@@ -16,18 +16,10 @@ test.beforeAll(async ({ baseDir }) => {
   await createProject(baseDir);
 });
 
-test('create Visualforce Component', async ({ workbox, evaluateInVSCode, baseDir }) => {
-  await workbox.waitForTimeout(500);
-  await evaluateInVSCode(async vscode => {
-    await vscode.commands.executeCommand('workbench.action.showCommands');
-  });
-
-  await test.step('choose command', async () => {
-    await workbox
-      .getByRole('textbox', { name: 'Type the name of a command to' })
-      .fill('>SFDX: Create Visualforce Component');
-    await workbox.getByRole('textbox', { name: 'Type the name of a command to' }).press('Enter');
-  });
+test('create Visualforce Component', async ({ workbox, baseDir }) => {
+  await workbox.waitForTimeout(2000);
+  await openCommandPalette(workbox);
+  await runCommandPaletteCommand(workbox, 'SFDX: Create Visualforce Component');
 
   await test.step('enter component name', async () => {
     await workbox.getByRole('textbox', { name: 'input' }).fill('VisualforceCmp1');
@@ -46,23 +38,13 @@ test('create Visualforce Component', async ({ workbox, evaluateInVSCode, baseDir
   });
 
   await test.step('verify .component file is open', async () => {
-    const [openFile] = await evaluateInVSCode(vscode =>
-      vscode.window.visibleTextEditors.filter(editor =>
-        editor.document.uri.fsPath?.endsWith('VisualforceCmp1.component')
-      )
-    );
-    assert.deepEqual(
-      openFile.document.uri.fsPath,
-      path.resolve(path.join(baseDir, COMPONENT_FOLDER_PATH, 'VisualforceCmp1.component'))
-    );
+    const tab = workbox.getByRole('tab', { name: 'VisualforceCmp1.component' });
+    await expect(tab).toHaveAttribute('aria-selected', 'true');
   });
 
   await test.step('verify .component file content', async () => {
-    const [openFileText] = await evaluateInVSCode(vscode =>
-      vscode.window.visibleTextEditors
-        .filter(editor => editor.document.uri.fsPath?.endsWith('VisualforceCmp1.component'))
-        .map(editor => editor.document.getText())
-    );
+    const filePath = path.resolve(path.join(baseDir, COMPONENT_FOLDER_PATH, 'VisualforceCmp1.component'));
+    const openFileText = await fs.promises.readFile(filePath, 'utf8');
     const expectedText = [
       '<apex:component >',
       '<!-- Begin Default Content REMOVE THIS -->',

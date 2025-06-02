@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { VSCodeTestOptions, VSCodeWorkerOptions } from '@mshanemc/vscode-test-playwright';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { defineConfig } from '@playwright/test';
 import path from 'node:path';
+import type { VSCodeTestOptions, VSCodeWorkerOptions } from 'vscode-test-playwright';
 
 export default defineConfig<VSCodeTestOptions, VSCodeWorkerOptions>({
   testDir: path.join(__dirname),

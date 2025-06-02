@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect, test } from '@mshanemc/vscode-test-playwright';
-import { createProject } from '@salesforce/salesforcedx-vscode-nuts';
+import { createProject, openCommandPalette, runCommandPaletteCommand } from '@salesforce/salesforcedx-vscode-nuts';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
+import { expect, test } from 'vscode-test-playwright';
 
 const AURA_COMPONENT_FOLDER_PATH = path.join('force-app', 'main', 'default', 'aura', 'auraComponent1');
 
@@ -24,16 +24,10 @@ test.beforeAll(async ({ baseDir }) => {
   await createProject(baseDir);
 });
 
-test('create Aura Component', async ({ workbox, evaluateInVSCode, baseDir }) => {
-  await workbox.waitForTimeout(500);
-  await evaluateInVSCode(async vscode => {
-    await vscode.commands.executeCommand('workbench.action.showCommands');
-  });
-
-  await test.step('choose command', async () => {
-    await workbox.getByRole('textbox', { name: 'Type the name of a command to' }).fill('>SFDX: Create Aura Component');
-    await workbox.getByRole('textbox', { name: 'Type the name of a command to' }).press('Enter');
-  });
+test('create Aura Component', async ({ workbox, baseDir }) => {
+  await workbox.waitForTimeout(2000);
+  await openCommandPalette(workbox);
+  await runCommandPaletteCommand(workbox, 'SFDX: Create Aura Component');
 
   await test.step('enter component name', async () => {
     await workbox.getByRole('textbox', { name: 'input' }).fill('auraComponent1');
@@ -67,11 +61,8 @@ test('create Aura Component', async ({ workbox, evaluateInVSCode, baseDir }) => 
   }
 
   await test.step('verify .cmp file content', async () => {
-    const [openFileText] = await evaluateInVSCode(vscode =>
-      vscode.window.visibleTextEditors
-        .filter(editor => editor.document.uri.fsPath?.endsWith('auraComponent1.cmp'))
-        .map(editor => editor.document.getText())
-    );
+    const filePath = path.resolve(path.join(baseDir, AURA_COMPONENT_FOLDER_PATH, 'auraComponent1.cmp'));
+    const openFileText = fs.readFileSync(filePath, 'utf8');
     const expectedText = ['<aura:component>', '', '</aura:component>'].join('\n');
     assert.strictEqual(openFileText.trimEnd().replace(/\r\n/g, '\n'), expectedText);
   });

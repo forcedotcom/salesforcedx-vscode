@@ -1,4 +1,4 @@
-import type { VSCodeTestOptions, VSCodeWorkerOptions } from '@mshanemc/vscode-test-playwright';
+import type { VSCodeTestOptions, VSCodeWorkerOptions } from 'vscode-test-playwright';
 import { defineConfig } from '@playwright/test';
 import path from 'path';
 

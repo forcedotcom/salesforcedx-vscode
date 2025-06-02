@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect, test } from '@mshanemc/vscode-test-playwright';
-import { createProject } from '@salesforce/salesforcedx-vscode-nuts';
+import { createProject, openCommandPalette, runCommandPaletteCommand } from '@salesforce/salesforcedx-vscode-nuts';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
+import { expect, test } from 'vscode-test-playwright';
 import * as analyticsTemplate from './testData/sampleAnalyticsTemplateData';
 
 const TEMPLATE_FOLDER_PATH = path.join('force-app', 'main', 'default', 'waveTemplates', 'sat1');
@@ -28,18 +28,10 @@ test.beforeAll(async ({ baseDir }) => {
   await createProject(baseDir);
 });
 
-test('create Sample Analytics Template', async ({ workbox, evaluateInVSCode, baseDir }) => {
-  await workbox.waitForTimeout(500);
-  await evaluateInVSCode(async vscode => {
-    await vscode.commands.executeCommand('workbench.action.showCommands');
-  });
-
-  await test.step('choose command', async () => {
-    await workbox
-      .getByRole('textbox', { name: 'Type the name of a command to' })
-      .fill('>SFDX: Create Sample Analytics Template');
-    await workbox.getByRole('textbox', { name: 'Type the name of a command to' }).press('Enter');
-  });
+test('create Sample Analytics Template', async ({ workbox, baseDir }) => {
+  await workbox.waitForTimeout(2000);
+  await openCommandPalette(workbox);
+  await runCommandPaletteCommand(workbox, 'SFDX: Create Sample Analytics Template');
 
   await test.step('enter template name', async () => {
     await workbox.getByRole('textbox', { name: 'input' }).fill('sat1');
@@ -79,10 +71,8 @@ test('create Sample Analytics Template', async ({ workbox, evaluateInVSCode, bas
 
   for (const [file, expectedContent] of fileContentChecks) {
     await test.step(`verify ${file} content`, async () => {
-      const [openFileText] = await evaluateInVSCode(
-        (vscode, filePathArg) => vscode.workspace.openTextDocument(filePathArg).then(doc => [doc.getText()]),
-        path.resolve(path.join(baseDir, TEMPLATE_FOLDER_PATH, file))
-      );
+      const filePath = path.resolve(path.join(baseDir, TEMPLATE_FOLDER_PATH, file));
+      const openFileText = fs.readFileSync(filePath, 'utf8');
       assert.strictEqual(openFileText.trimEnd().replace(/\r\n/g, '\n'), expectedContent);
     });
   }
