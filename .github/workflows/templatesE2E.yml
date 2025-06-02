@@ -42,8 +42,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.os }}
-          path: packages/salesforcedx-vscode-core/playwright-report
+          name: playwright-results-${{ matrix.os }}
+          path: |
+            packages/salesforcedx-vscode-core/playwright-report
+            packages/salesforcedx-vscode-core/test-results
 
     defaults:
       run:
