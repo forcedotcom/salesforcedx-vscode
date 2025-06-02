@@ -29,7 +29,7 @@
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^29.5.5",
     "@types/semver": "7.5.8",
-    "@typescript-eslint/eslint-plugin": "8.30.1",
+    "@typescript-eslint/eslint-plugin": "8.33.0",
     "@typescript-eslint/parser": "8.30.1",
     "@vscode/test-electron": "2.3.0",
     "@vscode/vsce": "2.32.0",
