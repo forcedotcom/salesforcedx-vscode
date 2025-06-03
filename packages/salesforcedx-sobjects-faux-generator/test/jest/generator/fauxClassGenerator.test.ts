@@ -8,10 +8,9 @@ import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
-import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
-import { FauxClassGenerator } from '../../../src/generator';
+import { SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
-import { INDENT } from '../../../src/generator/fauxClassGenerator';
+import { FauxClassGenerator, INDENT } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 
 jest.mock('../../../src/generator/declarationGenerator');
@@ -26,7 +25,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
   const fakePath = './this/is/a/path';
   let typePath = '';
 
-  const getGenerator = (): FauxClassGenerator => new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
+  const getGenerator = (): FauxClassGenerator => new FauxClassGenerator('CUSTOM', 'custom0');
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -72,7 +71,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
   });
 
   it('Should be able to create an instance.', () => {
-    const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
+    const fauxClassGeneratorInst = new FauxClassGenerator('STANDARD', fakePath);
     expect(fauxClassGeneratorInst).toBeDefined();
     expect(fauxClassGeneratorInst).toBeInstanceOf(FauxClassGenerator);
     expect(declarationGeneratorMocked).toHaveBeenCalled();
@@ -80,8 +79,8 @@ describe('FauxClassGenerator Unit Tests.', () => {
 
   it('Should not be able to create an instance for all types.', () => {
     expect(() => {
-      new FauxClassGenerator(SObjectCategory.ALL, fakePath);
-    }).toThrowError(`SObject category cannot be used to generate metadata ${SObjectCategory.ALL}`);
+      new FauxClassGenerator('ALL', fakePath);
+    }).toThrowError('SObject category cannot be used to generate metadata ALL');
   });
 
   it('Should generate a faux class with a proper header comment', async () => {
@@ -172,7 +171,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       getStandardMock.mockReturnValue([]);
       getCustomMock.mockReturnValue([]);
       const expectedError = nls.localize('no_sobject_output_folder_text', expectedFolderPath);
-      const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
+      const fauxClassGeneratorInst = new FauxClassGenerator('STANDARD', fakePath);
 
       try {
         await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
@@ -188,7 +187,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
       generateFauxClassMock.mockResolvedValue('hooray');
 
-      const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.STANDARD, fakePath);
+      const fauxClassGeneratorInst = new FauxClassGenerator('STANDARD', fakePath);
       await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
 
       expect(fakeOutput.getStandard).toHaveBeenCalled();
@@ -204,7 +203,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
       generateFauxClassMock.mockResolvedValue('hooray');
 
-      const fauxClassGeneratorInst = new FauxClassGenerator(SObjectCategory.CUSTOM, fakePath);
+      const fauxClassGeneratorInst = new FauxClassGenerator('CUSTOM', fakePath);
       await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
 
       expect(fakeOutput.getStandard).not.toHaveBeenCalled();

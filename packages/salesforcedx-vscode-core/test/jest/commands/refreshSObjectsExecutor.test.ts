@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  SObjectCategory,
-  SObjectRefreshSource,
+  type SObjectCategory,
+  type SObjectRefreshSource,
   SObjectTransformer,
   SObjectTransformerFactory
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
@@ -31,20 +31,20 @@ describe('RefreshSObjectsExecutor', () => {
   });
 
   it('should open the Output Channel', async () => {
-    await doExecute(SObjectRefreshSource.Startup, SObjectCategory.STANDARD);
+    await doExecute('startup', 'STANDARD');
     expect(channelServiceSpy).toHaveBeenCalled();
   });
 
   it('should not open the Output Channel if in a container environment', async () => {
     process.env.SF_CONTAINER_MODE = 'true';
-    await doExecute(SObjectRefreshSource.Startup, SObjectCategory.STANDARD);
+    await doExecute('startup', 'STANDARD');
     expect(channelServiceSpy).not.toHaveBeenCalled();
   });
 
   it('should fire the command completion event once the command is finished successfully', async () => {
     const fireSpy = jest.spyOn(RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter, 'fire');
 
-    await doExecute(SObjectRefreshSource.Startup, SObjectCategory.STANDARD);
+    await doExecute('startup', 'STANDARD');
 
     expect(fireSpy).toHaveBeenCalledWith({
       exitCode: LocalCommandExecution.SUCCESS_CODE
@@ -55,7 +55,7 @@ describe('RefreshSObjectsExecutor', () => {
     const executor = new RefreshSObjectsExecutor();
     await executor.execute({
       type: 'CONTINUE',
-      data: { category: category || SObjectCategory.ALL, source }
+      data: { category: category ?? 'ALL', source }
     });
   };
 });

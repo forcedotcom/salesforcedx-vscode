@@ -8,9 +8,9 @@ import { TOOLS, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode
 import { EOL } from 'node:os';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
-import { CUSTOMOBJECTS_DIR, SObjectCategory, SOBJECTS_DIR } from '../../../src';
-import { FauxClassGenerator } from '../../../src/generator';
+import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR } from '../../../src';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
+import { FauxClassGenerator } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 import { minimalCustomSObject } from './sObjectMockData';
 
@@ -24,7 +24,7 @@ describe('FauxClassGenerator Filesystem Tests', () => {
   const baseFolder = join(sfdxPath, TOOLS, SOBJECTS_DIR);
   const customOutputPath = join(baseFolder, CUSTOMOBJECTS_DIR);
 
-  const getGenerator = (): FauxClassGenerator => new FauxClassGenerator(SObjectCategory.CUSTOM, CUSTOMOBJECTS_DIR);
+  const getGenerator = (): FauxClassGenerator => new FauxClassGenerator('CUSTOM', CUSTOMOBJECTS_DIR);
 
   beforeEach(() => {
     jest.clearAllMocks();

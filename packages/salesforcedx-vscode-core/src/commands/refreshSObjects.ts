@@ -6,8 +6,8 @@
  */
 
 import {
-  SObjectCategory,
-  SObjectRefreshSource,
+  type SObjectCategory,
+  type SObjectRefreshSource,
   SOBJECTS_DIR,
   SObjectTransformerFactory,
   STANDARDOBJECTS_DIR

@@ -7,8 +7,8 @@
 import { TOOLS, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
-import { SOBJECTS_DIR, CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR, SObjectCategory } from '../../../src';
-import { FauxClassGenerator } from '../../../src/generator';
+import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../../src';
+import { FauxClassGenerator } from '../../../src/generator/fauxClassGenerator';
 import { SObjectRefreshOutput } from '../../../src/types';
 
 jest.mock('vscode');
@@ -26,7 +26,7 @@ describe('Clean SObject Folders', () => {
   });
 
   it('Should remove standardObjects folder when category is STANDARD', async () => {
-    const gen = new FauxClassGenerator(SObjectCategory.STANDARD, STANDARDOBJECTS_DIR);
+    const gen = new FauxClassGenerator('STANDARD', STANDARDOBJECTS_DIR);
     const output: SObjectRefreshOutput = {
       sfdxPath,
       addTypeNames: () => {},
@@ -53,7 +53,7 @@ describe('Clean SObject Folders', () => {
   });
 
   it('Should remove customObjects folder when category is CUSTOM', async () => {
-    const gen = new FauxClassGenerator(SObjectCategory.CUSTOM, CUSTOMOBJECTS_DIR);
+    const gen = new FauxClassGenerator('CUSTOM', CUSTOMOBJECTS_DIR);
     const output: SObjectRefreshOutput = {
       sfdxPath,
       addTypeNames: () => {},

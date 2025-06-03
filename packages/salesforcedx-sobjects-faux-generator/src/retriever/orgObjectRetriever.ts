@@ -9,7 +9,7 @@ import type { Connection } from '@salesforce/core';
 import { SObjectDescribe, SObjectSelector, SObjectShortDescription } from '../describe';
 
 import { nls } from '../messages';
-import { SObject, SObjectDefinitionRetriever, SObjectRefreshOutput } from '../types';
+import { SObjectDefinitionRetriever, SObjectRefreshOutput } from '../types';
 
 export class OrgObjectRetriever implements SObjectDefinitionRetriever {
   private describer: SObjectDescribe;
@@ -40,29 +40,16 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
   }
 
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
-    let fetchedSObjects: SObject[] = [];
     const retrieveTypes: string[] = this.selectedTypes(output.getTypeNames());
 
     try {
-      fetchedSObjects = await this.describer.fetchObjects(retrieveTypes);
+      const fetchedSObjects = await this.describer.fetchObjects(retrieveTypes);
+      output.addStandard(fetchedSObjects.filter(o => !o.custom));
+      output.addCustom(fetchedSObjects.filter(o => o.custom));
     } catch (errorMessage) {
       output.setError(nls.localize('failure_in_sobject_describe_text', errorMessage));
       return;
     }
-
-    const standardSObjects: SObject[] = [];
-    const customSObjects: SObject[] = [];
-
-    for (let i = 0; i < fetchedSObjects.length; i++) {
-      if (fetchedSObjects[i].custom) {
-        customSObjects.push(fetchedSObjects[i]);
-      } else {
-        standardSObjects.push(fetchedSObjects[i]);
-      }
-    }
-
-    output.addStandard(standardSObjects);
-    output.addCustom(customSObjects);
   }
 
   private selectedTypes(types: SObjectShortDescription[]): string[] {

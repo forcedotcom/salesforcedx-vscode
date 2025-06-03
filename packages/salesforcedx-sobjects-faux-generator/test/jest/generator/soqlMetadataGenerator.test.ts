@@ -12,7 +12,7 @@ import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../
 import { SObjectShortDescription } from '../../../src/describe';
 import { SOQLMetadataGenerator } from '../../../src/generator/soqlMetadataGenerator';
 import { MinObjectRetriever } from '../../../src/retriever';
-import { SObject, SObjectCategory, SObjectRefreshOutput } from '../../../src/types';
+import { SObject, SObjectRefreshOutput } from '../../../src/types';
 
 jest.mock('vscode');
 const vscodeMocked = jest.mocked(vscode);
@@ -47,7 +47,7 @@ describe('SOQL metadata files generator', () => {
     await retrieve.retrieve(output);
     expect(output.getTypeNames()).toHaveLength(MINS_SOBJECTS_COUNT);
 
-    const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
+    const gen = new SOQLMetadataGenerator('STANDARD');
     await gen.generate(output);
 
     const accountFile = await readFile(join(standardFolder, 'Account.json'));
@@ -60,7 +60,7 @@ describe('SOQL metadata files generator', () => {
   });
 
   it('Should temporarily remove standardObjects folder when category is STANDARD', async () => {
-    const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
+    const gen = new SOQLMetadataGenerator('STANDARD');
     const output = new TestSObjectRefreshOutput(sfdxPath);
     await gen.generate(output);
     expect(await fileOrFolderExists(customFolder)).toBe(true);
@@ -68,7 +68,7 @@ describe('SOQL metadata files generator', () => {
   });
 
   it('Should temporarily remove customObjects folder when category is CUSTOM', async () => {
-    const gen = new SOQLMetadataGenerator(SObjectCategory.CUSTOM);
+    const gen = new SOQLMetadataGenerator('CUSTOM');
     const output = new TestSObjectRefreshOutput(sfdxPath);
     await gen.generate(output);
     expect(await fileOrFolderExists(customFolder)).toBe(true);
