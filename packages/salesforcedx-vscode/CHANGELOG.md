@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- [@W-18656877@] require find-java-home instead of import ([PR #6316](https://github.com/forcedotcom/salesforcedx-vscode/pull/6316))
+- We resolved an issue that caused a run-time error when activating the Apex Language Server. ([Issue #6317](https://github.com/forcedotcom/salesforcedx-vscode/issues/6317)) ([PR #6316](https://github.com/forcedotcom/salesforcedx-vscode/pull/6316))
 
 # 63.15.1 - May 30, 2025
 
