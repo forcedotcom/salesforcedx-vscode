@@ -54,8 +54,9 @@ const convertType = (fieldType: string): string => {
     case 'Long':
     case 'Number':
       return 'number';
+    default:
+      return 'any';
   }
-  return 'any';
 };
 
 const convertDeclarations = (definition: SObjectDefinition): string =>

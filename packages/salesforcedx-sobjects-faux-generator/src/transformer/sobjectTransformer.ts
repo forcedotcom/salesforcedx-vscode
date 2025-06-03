@@ -8,7 +8,7 @@ import type { CancellationToken } from '@salesforce/salesforcedx-utils';
 import { fileOrFolderExists, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'node:events';
 import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
-import { SObjectShortDescription } from '../describe';
+import { SObjectShortDescription } from '../describe/types';
 import { nls } from '../messages';
 import {
   SObject,

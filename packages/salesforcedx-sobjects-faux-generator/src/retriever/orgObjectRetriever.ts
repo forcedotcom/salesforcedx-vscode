@@ -6,8 +6,8 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { SObjectShortDescription } from '../describe';
 import { SObjectDescribe } from '../describe/sObjectDescribe';
+import { SObjectShortDescription } from '../describe/types';
 import { nls } from '../messages';
 import { SObjectCategory, SObjectDefinitionRetriever, SObjectRefreshOutput, SObjectRefreshSource } from '../types';
 

@@ -9,7 +9,7 @@ import type { Connection } from '@salesforce/core';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { DescribeSObjectResult, Field, SObjectField } from '../types/describe';
-import { SObjectShortDescription } from '.';
+import { SObjectShortDescription } from './types';
 
 const MAX_BATCH_REQUEST_SIZE = 25;
 

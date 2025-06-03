@@ -7,7 +7,7 @@
 import { TOOLS, createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../constants';
-import { SObjectShortDescription } from '../describe';
+import { SObjectShortDescription } from '../describe/types';
 import { nls } from '../messages';
 import { SObject, SObjectCategory, SObjectGenerator, SObjectRefreshOutput } from '../types';
 

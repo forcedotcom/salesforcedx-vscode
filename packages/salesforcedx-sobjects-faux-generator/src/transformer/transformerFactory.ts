@@ -12,7 +12,8 @@ import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { FauxClassGenerator } from '../generator/fauxClassGenerator';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
 import { TypingGenerator } from '../generator/typingGenerator';
-import { MinObjectRetriever, OrgObjectDetailRetriever, OrgObjectRetriever } from '../retriever';
+import { MinObjectRetriever } from '../retriever/minObjectRetriever';
+import { OrgObjectDetailRetriever, OrgObjectRetriever } from '../retriever/orgObjectRetriever';
 import { SObjectCategory, SObjectRefreshSource } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
 

@@ -6,7 +6,7 @@
  */
 export { CLIENT_ID, SOBJECTS_DIR, STANDARDOBJECTS_DIR, CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR } from './constants';
 export * from './types';
-export * from './describe';
+export * from './describe/types';
 export { toMinimalSObject } from './describe/sObjectDescribe';
 export { SObjectTransformer } from './transformer/sobjectTransformer';
 export { SObjectTransformerFactory } from './transformer/transformerFactory';

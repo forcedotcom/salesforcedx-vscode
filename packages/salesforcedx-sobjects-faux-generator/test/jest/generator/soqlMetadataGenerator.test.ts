@@ -9,9 +9,9 @@ import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vsc
 import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../../src/constants';
-import { SObjectShortDescription } from '../../../src/describe';
+import { SObjectShortDescription } from '../../../src/describe/types';
 import { SOQLMetadataGenerator } from '../../../src/generator/soqlMetadataGenerator';
-import { MinObjectRetriever } from '../../../src/retriever';
+import { MinObjectRetriever } from '../../../src/retriever/minObjectRetriever';
 import { SObject, SObjectRefreshOutput } from '../../../src/types';
 
 jest.mock('vscode');
