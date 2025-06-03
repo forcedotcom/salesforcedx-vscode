@@ -26,7 +26,7 @@ export class FauxClassGenerator implements SObjectGenerator {
     this.relativePath = relativePath;
     this.declGenerator = new DeclarationGenerator();
 
-    if (selector !== SObjectCategory.STANDARD && selector !== SObjectCategory.CUSTOM) {
+    if (selector !== 'STANDARD' && selector !== 'CUSTOM') {
       throw nls.localize('unsupported_sobject_category', String(selector));
     }
   }
@@ -47,7 +47,7 @@ export class FauxClassGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    const sobjects = this.sobjectSelector === SObjectCategory.STANDARD ? output.getStandard() : output.getCustom();
+    const sobjects = this.sobjectSelector === 'STANDARD' ? output.getStandard() : output.getCustom();
 
     for (const sobj of sobjects) {
       if (sobj.name) {

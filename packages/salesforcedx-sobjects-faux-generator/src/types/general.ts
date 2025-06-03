@@ -7,17 +7,9 @@
 import { SObjectShortDescription } from '../describe';
 import { SObject } from './describe';
 
-export enum SObjectCategory {
-  ALL = 'ALL',
-  STANDARD = 'STANDARD',
-  CUSTOM = 'CUSTOM'
-}
+export type SObjectCategory = 'ALL' | 'STANDARD' | 'CUSTOM';
 
-export enum SObjectRefreshSource {
-  Manual = 'manual',
-  Startup = 'startup',
-  StartupMin = 'startupmin'
-}
+export type SObjectRefreshSource = 'manual' | 'startup' | 'startupmin';
 
 export type FieldDeclaration = {
   modifier: string;

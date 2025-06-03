@@ -10,11 +10,11 @@
   },
   "main": "out/src",
   "dependencies": {
-    "@salesforce/core-bundle": "^8.10.3",
     "@salesforce/salesforcedx-utils": "63.16.0",
     "@salesforce/salesforcedx-utils-vscode": "63.16.0"
   },
   "devDependencies": {
+    "@salesforce/core": "^8.11.4",
     "@types/jest": "^29.5.5",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.90.0",

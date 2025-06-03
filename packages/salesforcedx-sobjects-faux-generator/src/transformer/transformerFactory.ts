@@ -4,46 +4,54 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, SfProject } from '@salesforce/core-bundle';
+import type { Connection, SfProjectJson } from '@salesforce/core';
 import { CancellationToken } from '@salesforce/salesforcedx-utils';
 import { ConfigUtil, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'node:events';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
-import { FauxClassGenerator, TypingGenerator } from '../generator';
+import { FauxClassGenerator } from '../generator/fauxClassGenerator';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
+import { TypingGenerator } from '../generator/typingGenerator';
 import { MinObjectRetriever, OrgObjectDetailRetriever, OrgObjectRetriever } from '../retriever';
 import { SObjectCategory, SObjectDefinitionRetriever, SObjectGenerator, SObjectRefreshSource } from '../types';
 import { SObjectTransformer } from './sobjectTransformer';
 
 export class SObjectTransformerFactory {
-  public static async create(
-    emitter: EventEmitter,
-    cancellationToken: CancellationToken,
-    category: SObjectCategory,
-    source: SObjectRefreshSource
-  ): Promise<SObjectTransformer> {
+  public static async create({
+    emitter,
+    cancellationToken,
+    category,
+    source,
+    sfProject
+  }: {
+    emitter: EventEmitter;
+    cancellationToken: CancellationToken;
+    category: SObjectCategory;
+    source: SObjectRefreshSource;
+    sfProject?: SfProjectJson;
+  }): Promise<SObjectTransformer> {
     const retrievers: SObjectDefinitionRetriever[] = [];
     const generators: SObjectGenerator[] = [];
-    const standardGenerator = new FauxClassGenerator(SObjectCategory.STANDARD, STANDARDOBJECTS_DIR);
-    const customGenerator = new FauxClassGenerator(SObjectCategory.CUSTOM, CUSTOMOBJECTS_DIR);
+    const standardGenerator = new FauxClassGenerator('STANDARD', STANDARDOBJECTS_DIR);
+    const customGenerator = new FauxClassGenerator('CUSTOM', CUSTOMOBJECTS_DIR);
 
-    if (source === SObjectRefreshSource.StartupMin) {
+    if (source === 'startupmin') {
       retrievers.push(new MinObjectRetriever());
       generators.push(standardGenerator);
     } else {
-      const connection = await SObjectTransformerFactory.createConnection();
+      const connection = await createConnection(sfProject);
 
       retrievers.push(
         new OrgObjectRetriever(connection),
         new OrgObjectDetailRetriever(connection, new GeneralSObjectSelector(category, source))
       );
 
-      if (category === SObjectCategory.STANDARD || category === SObjectCategory.ALL) {
+      if (category === 'STANDARD' || category === 'ALL') {
         generators.push(standardGenerator);
       }
 
-      if (category === SObjectCategory.CUSTOM || category === SObjectCategory.ALL) {
+      if (category === 'CUSTOM' || category === 'ALL') {
         generators.push(customGenerator);
       }
     }
@@ -52,32 +60,6 @@ export class SObjectTransformerFactory {
     generators.push(new SOQLMetadataGenerator(category));
 
     return new SObjectTransformer(emitter, retrievers, generators, cancellationToken);
-  }
-
-  public static async createConnection(): Promise<Connection> {
-    const userApiVersionOverride = await ConfigUtil.getUserConfiguredApiVersion();
-    const workspaceContextUtil = WorkspaceContextUtil.getInstance();
-    const connection = await workspaceContextUtil.getConnection();
-    const connectionForSourceApiVersion = await Connection.create({
-      authInfo: await AuthInfo.create({ username: connection.getUsername() })
-    });
-    const sourceApiVersion = await SObjectTransformerFactory.getSourceApiVersion();
-    // precedence user override > project config > connection default
-    connectionForSourceApiVersion.setApiVersion(
-      userApiVersionOverride || sourceApiVersion || connection.getApiVersion()
-    );
-
-    return connectionForSourceApiVersion;
-  }
-
-  private static async getSourceApiVersion(): Promise<string | undefined> {
-    try {
-      const sfProject = await SfProject.resolve();
-      return sfProject.getSfProjectJson().getContents().sourceApiVersion;
-    } catch {
-      // If we can't resolve a project, then undefined
-      return undefined;
-    }
   }
 }
 
@@ -91,29 +73,38 @@ export class GeneralSObjectSelector implements SObjectSelector {
   }
 
   public select(sobject: SObjectShortDescription): boolean {
-    const isCustomObject = sobject.custom === true && this.category === SObjectCategory.CUSTOM;
-    const isStandardObject = sobject.custom === false && this.category === SObjectCategory.STANDARD;
+    const isCustomObject = sobject.custom === true && this.category === 'CUSTOM';
+    const isStandardObject = sobject.custom === false && this.category === 'STANDARD';
 
-    if (this.category === SObjectCategory.ALL && this.source === SObjectRefreshSource.Manual) {
+    if (this.category === 'ALL' && this.source === 'manual') {
       return true;
     } else if (
-      this.category === SObjectCategory.ALL &&
-      (this.source === SObjectRefreshSource.StartupMin || this.source === SObjectRefreshSource.Startup) &&
-      this.isRequiredSObject(sobject.name)
+      this.category === 'ALL' &&
+      (this.source === 'startupmin' || this.source === 'startup') &&
+      isRequiredSObject(sobject.name)
     ) {
       return true;
-    } else if (
-      (isCustomObject || isStandardObject) &&
-      this.source === SObjectRefreshSource.Manual &&
-      this.isRequiredSObject(sobject.name)
-    ) {
+    } else if ((isCustomObject || isStandardObject) && this.source === 'manual' && isRequiredSObject(sobject.name)) {
       return true;
     }
     return false;
   }
-
-  private isRequiredSObject(sobject: string): boolean {
-    // Ignore all sobjects that end with Share or History or Feed or Event
-    return !/Share$|History$|Feed$|.+Event$/.test(sobject);
-  }
 }
+
+/* Ignore all sobjects that end with Share or History or Feed or Event */
+
+const isRequiredSObject = (sobject: string): boolean => !/Share$|History$|Feed$|.+Event$/.test(sobject);
+
+// precedence user override > project config > connection default
+const createConnection = async (sfProject?: SfProjectJson): Promise<Connection> => {
+  const apiVersion =
+    (await ConfigUtil.getUserConfiguredApiVersion()) ??
+    (await sfProject?.getContents().sourceApiVersion) ??
+    (await WorkspaceContextUtil.getInstance().getConnection()).getApiVersion();
+
+  const updatedConn = await WorkspaceContextUtil.getInstance().getConnection();
+  updatedConn.setApiVersion(apiVersion);
+
+  // @ts-expect-error - TODO: remove when core-bundle is no longer used
+  return updatedConn;
+};

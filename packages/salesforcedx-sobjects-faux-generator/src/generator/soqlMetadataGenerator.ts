@@ -54,10 +54,10 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     const customsFolder = path.join(outputFolder, CUSTOMOBJECTS_DIR);
     const standardsFolder = path.join(outputFolder, STANDARDOBJECTS_DIR);
 
-    if ([SObjectCategory.ALL, SObjectCategory.STANDARD].includes(category)) {
+    if (['ALL', 'STANDARD'].includes(category)) {
       await safeDelete(standardsFolder, { recursive: true, useTrash: false });
     }
-    if ([SObjectCategory.ALL, SObjectCategory.CUSTOM].includes(category)) {
+    if (['ALL', 'CUSTOM'].includes(category)) {
       await safeDelete(customsFolder, { recursive: true, useTrash: false });
     }
 
