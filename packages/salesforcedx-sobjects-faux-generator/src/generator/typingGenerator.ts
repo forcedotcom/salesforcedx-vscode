@@ -24,55 +24,33 @@ export class TypingGenerator implements SObjectGenerator {
   public async generateTypes(sobjects: SObject[], targetFolder: string): Promise<void> {
     await createDirectory(targetFolder);
 
-    for (const sobj of sobjects) {
-      if (sobj.name) {
-        const sobjDefinition = generateSObjectDefinition(sobj);
-        await this.generateType(targetFolder, sobjDefinition);
-      }
-    }
+    await Promise.all(
+      sobjects
+        .filter(o => o.name)
+        .map(o => generateSObjectDefinition(o))
+        .map(o => this.generateType(targetFolder, o))
+    );
   }
 
   public async generateType(folderPath: string, definition: SObjectDefinition): Promise<string> {
     const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
     await safeDelete(typingPath);
-    await writeFile(typingPath, this.convertDeclarations(definition));
+    await writeFile(typingPath, convertDeclarations(definition));
 
     return typingPath;
   }
+}
 
-  private convertDeclarations(definition: SObjectDefinition): string {
-    const className = definition.name;
-    let declarations = Array.from(definition.fields);
+const isCollectionType = (fieldType: string): boolean =>
+  fieldType.startsWith('List<') || fieldType.startsWith('Set<') || fieldType.startsWith('Map<');
 
-    // sort, but filter out duplicates
-    // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
-
-    declarations = declarations.filter(
-      (value, index, array): boolean => !index || value.name !== array[index - 1].name
-    );
-
-    const declarationLines = declarations
-      .filter(decl => !this.isCollectionType(decl.type))
-      .map(decl => this.convertDeclaration(className, decl))
-      .join(`${EOL}`);
-
-    return declarationLines + `${EOL}`;
-  }
-
-  private isCollectionType(fieldType: string): boolean {
-    return fieldType.startsWith('List<') || fieldType.startsWith('Set<') || fieldType.startsWith('Map<');
-  }
-
-  private convertDeclaration(objName: string, decl: FieldDeclaration): string {
-    const typingType = convertType(decl.type);
-    const content = `declare module "@salesforce/schema/${objName}.${decl.name}" {
+const convertDeclaration = (objName: string, decl: FieldDeclaration): string => {
+  const typingType = convertType(decl.type);
+  return `declare module "@salesforce/schema/${objName}.${decl.name}" {
   const ${decl.name}:${typingType};
   export default ${decl.name};
 }`;
-    return content;
-  }
-}
+};
 
 const convertType = (fieldType: string): string => {
   switch (fieldType) {
@@ -89,3 +67,14 @@ const convertType = (fieldType: string): string => {
   }
   return 'any';
 };
+
+const convertDeclarations = (definition: SObjectDefinition): string =>
+  Array.from(definition.fields)
+    .filter(decl => !isCollectionType(decl.type))
+    // sort, but filter out duplicates
+    // which can happen due to childRelationships w/o a relationshipName
+    .sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
+    .filter((value, index, array): boolean => !index || value.name !== array[index - 1].name)
+    .map(decl => convertDeclaration(definition.name, decl))
+    .join(`${EOL}`)
+    .concat(`${EOL}`);

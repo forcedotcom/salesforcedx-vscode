@@ -22,32 +22,13 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    await this.generateTypesNames(outputFolderPath, output.getTypeNames());
+    await generateTypesNames(outputFolderPath, output.getTypeNames());
 
-    const sobjects = [...output.getStandard(), ...output.getCustom()];
-
-    for (const sobj of sobjects) {
-      if (sobj.name) {
-        await this.generateMetadataForSObject(outputFolderPath, sobj);
-      }
-    }
-  }
-
-  private async generateTypesNames(folderPath: string, typeNames: SObjectShortDescription[]): Promise<void> {
-    await createDirectory(folderPath);
-    const typeNameFile = path.join(folderPath, 'typeNames.json');
-    await safeDelete(typeNameFile);
-    await writeFile(typeNameFile, JSON.stringify(typeNames, null, 2));
-  }
-
-  private async generateMetadataForSObject(folderPath: string, sobject: SObject): Promise<void> {
-    await createDirectory(folderPath);
-    const targetPath = path.join(
-      folderPath,
-      sobject.custom ? CUSTOMOBJECTS_DIR : STANDARDOBJECTS_DIR,
-      `${sobject.name}.json`
+    await Promise.all(
+      [...output.getStandard(), ...output.getCustom()]
+        .filter(o => o.name)
+        .map(o => generateMetadataForSObject(outputFolderPath, o))
     );
-    await writeFile(targetPath, JSON.stringify(sobject, null, 2));
   }
 
   private async resetOutputFolder(outputFolder: string, category: SObjectCategory): Promise<boolean> {
@@ -66,3 +47,21 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
     return true;
   }
 }
+
+// Non-exported helpers
+const generateTypesNames = async (folderPath: string, typeNames: SObjectShortDescription[]): Promise<void> => {
+  await createDirectory(folderPath);
+  const typeNameFile = path.join(folderPath, 'typeNames.json');
+  await safeDelete(typeNameFile);
+  await writeFile(typeNameFile, JSON.stringify(typeNames, null, 2));
+};
+
+const generateMetadataForSObject = async (folderPath: string, sobject: SObject): Promise<void> => {
+  await createDirectory(folderPath);
+  const targetPath = path.join(
+    folderPath,
+    sobject.custom ? CUSTOMOBJECTS_DIR : STANDARDOBJECTS_DIR,
+    `${sobject.name}.json`
+  );
+  await writeFile(targetPath, JSON.stringify(sobject, null, 2));
+};
