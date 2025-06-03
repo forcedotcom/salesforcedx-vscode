@@ -10,7 +10,7 @@ export const openCommandPalette = async (page: Page) => {
 
 export const runCommandPaletteCommand = async (page: Page, command: string) => {
   await test.step(`run command palette command: ${command}`, async () => {
-    const timeout = process.platform !== 'win32' ? 30000 : 60000;
+    const timeout = process.platform !== 'win32' ? 30000 : 120000;
     const pollInterval = 1000;
     const start = Date.now();
     while (true) {

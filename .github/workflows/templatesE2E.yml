@@ -36,7 +36,7 @@ jobs:
 
       - name: Run Playwright e2e tests (Windows/macOS)
         if: matrix.os != 'ubuntu-latest'
-        run: npx playwright test --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts -x
+        run: npx playwright test --config packages/salesforcedx-vscode-core/test/e2e/playwright.config.ts
 
       - name: Upload Playwright test results
         if: always()
