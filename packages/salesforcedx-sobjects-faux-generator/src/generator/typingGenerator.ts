@@ -14,8 +14,6 @@ const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 
 export class TypingGenerator implements SObjectGenerator {
-  public constructor() {}
-
   public async generate(output: SObjectRefreshOutput): Promise<void> {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
     await this.generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
@@ -28,16 +26,8 @@ export class TypingGenerator implements SObjectGenerator {
       sobjects
         .filter(o => o.name)
         .map(o => generateSObjectDefinition(o))
-        .map(o => this.generateType(targetFolder, o))
+        .map(o => generateType(targetFolder, o))
     );
-  }
-
-  public async generateType(folderPath: string, definition: SObjectDefinition): Promise<string> {
-    const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
-    await safeDelete(typingPath);
-    await writeFile(typingPath, convertDeclarations(definition));
-
-    return typingPath;
   }
 }
 
@@ -78,3 +68,11 @@ const convertDeclarations = (definition: SObjectDefinition): string =>
     .map(decl => convertDeclaration(definition.name, decl))
     .join(`${EOL}`)
     .concat(`${EOL}`);
+
+// Non-exported helper
+export const generateType = async (folderPath: string, definition: SObjectDefinition): Promise<string> => {
+  const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
+  await safeDelete(typingPath);
+  await writeFile(typingPath, convertDeclarations(definition));
+  return typingPath;
+};

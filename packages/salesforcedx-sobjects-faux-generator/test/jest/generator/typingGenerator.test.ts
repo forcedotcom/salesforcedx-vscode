@@ -7,7 +7,7 @@
 import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
-import { TypingGenerator } from '../../../src/generator/typingGenerator';
+import { generateType } from '../../../src/generator/typingGenerator';
 
 jest.mock('vscode');
 const vscodeMocked = jest.mocked(vscode);
@@ -42,8 +42,7 @@ describe('SObject Javascript type declaration generator', () => {
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
-    const gen = new TypingGenerator();
-    typePath = await gen.generateType(sobjectFolder, objDef);
+    typePath = await generateType(sobjectFolder, objDef);
 
     expect(await fileOrFolderExists(typePath)).toBeTruthy();
   });
@@ -75,8 +74,7 @@ describe('SObject Javascript type declaration generator', () => {
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
-    const gen = new TypingGenerator();
-    typePath = await gen.generateType(sobjectFolder, objDef);
+    typePath = await generateType(sobjectFolder, objDef);
 
     const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
     const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
@@ -159,8 +157,7 @@ describe('SObject Javascript type declaration generator', () => {
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
-    const gen = new TypingGenerator();
-    typePath = await gen.generateType(sobjectFolder, objDef);
+    typePath = await generateType(sobjectFolder, objDef);
 
     const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
     const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
@@ -180,8 +177,7 @@ describe('SObject Javascript type declaration generator', () => {
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
-    const gen = new TypingGenerator();
-    typePath = await gen.generateType(sobjectFolder, objDef);
+    typePath = await generateType(sobjectFolder, objDef);
 
     const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
     const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
@@ -208,8 +204,7 @@ describe('SObject Javascript type declaration generator', () => {
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
-    const gen = new TypingGenerator();
-    typePath = await gen.generateType(sobjectFolder, objDef);
+    typePath = await generateType(sobjectFolder, objDef);
 
     const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
     const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
@@ -228,8 +223,7 @@ describe('SObject Javascript type declaration generator', () => {
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
-    const gen = new TypingGenerator();
-    typePath = await gen.generateType(sobjectFolder, objDef);
+    typePath = await generateType(sobjectFolder, objDef);
 
     const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
     const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
@@ -247,8 +241,7 @@ describe('SObject Javascript type declaration generator', () => {
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
-    const gen = new TypingGenerator();
-    typePath = await gen.generateType(sobjectFolder, objDef);
+    typePath = await generateType(sobjectFolder, objDef);
 
     const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
     const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
@@ -272,8 +265,7 @@ describe('SObject Javascript type declaration generator', () => {
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();
-    const gen = new TypingGenerator();
-    typePath = await gen.generateType(sobjectFolder, objDef);
+    typePath = await generateType(sobjectFolder, objDef);
 
     const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
     const typeText = Buffer.from(writeFileCall[1]).toString('utf8');
