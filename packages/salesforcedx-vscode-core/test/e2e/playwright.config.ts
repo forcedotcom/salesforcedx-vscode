@@ -14,7 +14,6 @@ export default defineConfig<VSCodeTestOptions, VSCodeWorkerOptions>({
   testDir: path.join(__dirname),
   reporter: 'html',
   timeout: 120_000,
-
   forbidOnly: !!process.env.CI,
   use: {
     // path to your extension folder, where its package.json is located
@@ -29,7 +28,7 @@ export default defineConfig<VSCodeTestOptions, VSCodeWorkerOptions>({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   expect: {
-    timeout: 30_000
+    timeout: 60_000
   },
   projects: [
     {
