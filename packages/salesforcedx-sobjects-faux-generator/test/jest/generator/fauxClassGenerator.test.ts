@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
-import { FauxClassGenerator, INDENT } from '../../../src/generator/fauxClassGenerator';
+import { commentToString, FauxClassGenerator, INDENT } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 
 jest.mock('../../../src/generator/declarationGenerator');
@@ -110,7 +110,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
   describe('commentToString()', () => {
     it('Should return empty string for empty input', () => {
       const empty = '';
-      const actual = FauxClassGenerator.commentToString(empty);
+      const actual = commentToString(empty);
       expect(actual).toEqual(empty);
     });
 
@@ -119,7 +119,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
       firstComment += `    */${EOL}`;
       let expectedFirstComment = `${INDENT}/*  Please add a unique name${EOL}`;
       expectedFirstComment += `    ${EOL}${EOL}${INDENT}*/${EOL}`;
-      const parseFirstComment = FauxClassGenerator.commentToString(firstComment);
+      const parseFirstComment = commentToString(firstComment);
       expect(parseFirstComment).toEqual(expectedFirstComment);
     });
 
@@ -130,14 +130,14 @@ describe('FauxClassGenerator Unit Tests.', () => {
       let expectedSecondComment = `${INDENT}/*  More complex ${EOL}`;
       expectedSecondComment += `**************this is a test **************${EOL}`;
       expectedSecondComment += `${EOL}${INDENT}*/${EOL}`;
-      const parseSecondComment = FauxClassGenerator.commentToString(secondComment);
+      const parseSecondComment = commentToString(secondComment);
       expect(parseSecondComment).toEqual(expectedSecondComment);
     });
 
     it('Should parse a comment with spaces.', () => {
       const thirdComment = 'Bring a sweater and/or jacket';
       const expectedThirdComment = `${INDENT}/* Bring a sweater and/or jacket${EOL}${INDENT}*/${EOL}`;
-      const parseThirdComment = FauxClassGenerator.commentToString(thirdComment);
+      const parseThirdComment = commentToString(thirdComment);
       expect(parseThirdComment).toEqual(expectedThirdComment);
     });
   });

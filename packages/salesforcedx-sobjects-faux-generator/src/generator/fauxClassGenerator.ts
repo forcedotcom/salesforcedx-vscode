@@ -31,16 +31,6 @@ export class FauxClassGenerator implements SObjectGenerator {
     }
   }
 
-  private static fieldDeclToString(decl: FieldDeclaration): string {
-    return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;
-  }
-
-  // VisibleForTesting
-  public static commentToString(comment?: string): string {
-    // for some reasons if the comment is on a single line the help context shows the last '*/'
-    return comment ? `${INDENT}/* ${comment.replace(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
-  }
-
   public async generate(output: SObjectRefreshOutput): Promise<void> {
     const outputFolderPath = path.join(output.sfdxPath, ...REL_BASE_FOLDER, this.relativePath);
     if (!(await this.resetOutputFolder(outputFolderPath))) {
@@ -61,31 +51,8 @@ export class FauxClassGenerator implements SObjectGenerator {
   public async generateFauxClass(folderPath: string, definition: SObjectDefinition): Promise<string> {
     await createDirectory(folderPath);
     const fauxClassPath = path.join(folderPath, `${definition.name}${APEX_CLASS_EXTENSION}`);
-    await writeFile(fauxClassPath, this.generateFauxClassText(definition));
+    await writeFile(fauxClassPath, generateFauxClassText(definition));
     return fauxClassPath;
-  }
-
-  // VisibleForTesting
-  public generateFauxClassText(definition: SObjectDefinition): string {
-    let declarations = Array.from(definition.fields);
-    const className = definition.name;
-    // sort, but filter out duplicates
-    // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
-
-    declarations = declarations.filter(
-      (value, index, array): boolean => !index || value.name !== array[index - 1].name
-    );
-
-    const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
-    const declarationLines = declarations.map(FauxClassGenerator.fieldDeclToString).join(`${EOL}`);
-    const classConstructor = `${INDENT}${MODIFIER} ${className} () ${EOL}    {${EOL}    }${EOL}`;
-
-    const generatedClass = `${nls.localize(
-      'class_header_generated_comment'
-    )}${classDeclaration}${declarationLines}${EOL}${EOL}${classConstructor}}`;
-
-    return generatedClass;
   }
 
   private async resetOutputFolder(pathToClean: string): Promise<boolean> {
@@ -97,4 +64,35 @@ export class FauxClassGenerator implements SObjectGenerator {
       throw new Error(`Failed to reset output folder: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+}
+
+// Standalone helper
+export function fieldDeclToString(decl: FieldDeclaration): string {
+  return `${commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;
+}
+
+// VisibleForTesting
+export const commentToString = (comment?: string): string =>
+  // for some reasons if the comment is on a single line the help context shows the last '*/'
+  comment ? `${INDENT}/* ${comment.replace(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
+
+// VisibleForTesting
+export function generateFauxClassText(definition: SObjectDefinition): string {
+  let declarations = Array.from(definition.fields);
+  const className = definition.name;
+  // sort, but filter out duplicates
+  // which can happen due to childRelationships w/o a relationshipName
+  declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
+
+  declarations = declarations.filter((value, index, array): boolean => !index || value.name !== array[index - 1].name);
+
+  const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
+  const declarationLines = declarations.map(fieldDeclToString).join(`${EOL}`);
+  const classConstructor = `${INDENT}${MODIFIER} ${className} () ${EOL}    {${EOL}    }${EOL}`;
+
+  const generatedClass = `${nls.localize(
+    'class_header_generated_comment'
+  )}${classDeclaration}${declarationLines}${EOL}${EOL}${classConstructor}}`;
+
+  return generatedClass;
 }

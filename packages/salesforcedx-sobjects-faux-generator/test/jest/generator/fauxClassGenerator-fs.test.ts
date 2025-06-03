@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR } from '../../../src';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
-import { FauxClassGenerator } from '../../../src/generator/fauxClassGenerator';
+import { FauxClassGenerator, generateFauxClassText } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 import { minimalCustomSObject } from './sObjectMockData';
 
@@ -186,9 +186,8 @@ describe('FauxClassGenerator Filesystem Tests', () => {
 
   it('Should generate a faux class with field inline comments', async () => {
     vscodeMocked.workspace.fs.stat.mockRejectedValue(new Error('Not found'));
-    const gen = getGenerator();
     const customDef = declGenerator.generateSObjectDefinition(minimalCustomSObject);
-    const classContent = gen.generateFauxClassText(customDef);
+    const classContent = generateFauxClassText(customDef);
 
     let standardFieldComment = `    /* Please add a unique name${EOL}`;
     standardFieldComment += `    */${EOL}`;
