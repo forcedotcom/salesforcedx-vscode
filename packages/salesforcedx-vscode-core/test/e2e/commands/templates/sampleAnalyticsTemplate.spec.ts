@@ -9,6 +9,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from 'vscode-test-playwright';
+import { startupWait } from '../../playwright.config';
 import * as analyticsTemplate from './testData/sampleAnalyticsTemplateData';
 
 const TEMPLATE_FOLDER_PATH = path.join('force-app', 'main', 'default', 'waveTemplates', 'sat1');
@@ -29,7 +30,7 @@ test.beforeAll(async ({ baseDir }) => {
 });
 
 test('create Sample Analytics Template', async ({ workbox, baseDir }) => {
-  await workbox.waitForTimeout(2000);
+  await workbox.waitForTimeout(startupWait);
   await openCommandPalette(workbox);
   await runCommandPaletteCommand(workbox, 'SFDX: Create Sample Analytics Template');
 

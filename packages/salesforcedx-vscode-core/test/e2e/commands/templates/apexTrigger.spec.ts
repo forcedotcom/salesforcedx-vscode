@@ -9,6 +9,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from 'vscode-test-playwright';
+import { startupWait } from '../../playwright.config';
 
 test.beforeAll(async ({ baseDir }) => {
   await createProject(baseDir);
@@ -16,7 +17,7 @@ test.beforeAll(async ({ baseDir }) => {
 test('create trigger', async ({ workbox, baseDir }) => {
   const TRIGGER_FOLDER_PATH = path.join('force-app', 'main', 'default', 'triggers');
 
-  await workbox.waitForTimeout(2000); // need time for ext to load so the command is available
+  await workbox.waitForTimeout(startupWait); // need time for ext to load so the command is available
   await openCommandPalette(workbox);
 
   await runCommandPaletteCommand(workbox, 'SFDX: Create Apex Trigger');

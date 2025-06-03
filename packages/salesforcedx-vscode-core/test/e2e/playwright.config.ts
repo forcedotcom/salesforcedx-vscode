@@ -36,6 +36,14 @@ export default defineConfig<VSCodeTestOptions, VSCodeWorkerOptions>({
       use: {
         vscodeVersion: 'insiders'
       }
+    },
+    {
+      name: 'VSCode min',
+      use: {
+        vscodeVersion: '1.98.0'
+      }
     }
   ]
 });
+
+export const startupWait = process.platform !== 'win32' ? 2000 : 8000;

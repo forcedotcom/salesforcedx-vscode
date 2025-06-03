@@ -9,6 +9,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from 'vscode-test-playwright';
+import { startupWait } from '../../playwright.config';
 
 const CLASS_FOLDER_PATH = path.join('force-app', 'main', 'default', 'classes');
 
@@ -19,7 +20,7 @@ test.beforeAll(async ({ baseDir }) => {
 });
 
 test('create Apex Unit Test Class', async ({ workbox, baseDir }) => {
-  await workbox.waitForTimeout(2000);
+  await workbox.waitForTimeout(startupWait);
   await openCommandPalette(workbox);
 
   await runCommandPaletteCommand(workbox, 'SFDX: Create Apex Unit Test Class');

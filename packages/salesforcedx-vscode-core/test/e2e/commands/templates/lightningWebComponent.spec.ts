@@ -9,6 +9,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from 'vscode-test-playwright';
+import { startupWait } from '../../playwright.config';
 
 const LWC_FOLDER_PATH = path.join('force-app', 'main', 'default', 'lwc', 'lightningWebComponent1');
 
@@ -23,7 +24,7 @@ test.beforeAll(async ({ baseDir }) => {
 });
 
 test('create Lightning Web Component', async ({ workbox, baseDir }) => {
-  await workbox.waitForTimeout(2000);
+  await workbox.waitForTimeout(startupWait);
   await openCommandPalette(workbox);
   await runCommandPaletteCommand(workbox, 'SFDX: Create Lightning Web Component');
 

@@ -9,6 +9,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from 'vscode-test-playwright';
+import { startupWait } from '../../playwright.config';
 
 const AURA_EVENT_FOLDER_PATH = path.join('force-app', 'main', 'default', 'aura', 'auraEvent1');
 
@@ -17,7 +18,7 @@ test.beforeAll(async ({ baseDir }) => {
 });
 
 test('create Aura Event', async ({ workbox, baseDir }) => {
-  await workbox.waitForTimeout(2000);
+  await workbox.waitForTimeout(startupWait);
   await openCommandPalette(workbox);
   await runCommandPaletteCommand(workbox, 'SFDX: Create Aura Event');
 
