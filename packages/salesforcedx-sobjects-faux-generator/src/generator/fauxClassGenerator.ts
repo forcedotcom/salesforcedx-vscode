@@ -42,17 +42,9 @@ export class FauxClassGenerator implements SObjectGenerator {
     for (const sobj of sobjects) {
       if (sobj.name) {
         const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
-        await this.generateFauxClass(outputFolderPath, sobjDefinition);
+        await generateFauxClass(outputFolderPath, sobjDefinition);
       }
     }
-  }
-
-  // VisibleForTesting
-  public async generateFauxClass(folderPath: string, definition: SObjectDefinition): Promise<string> {
-    await createDirectory(folderPath);
-    const fauxClassPath = path.join(folderPath, `${definition.name}${APEX_CLASS_EXTENSION}`);
-    await writeFile(fauxClassPath, generateFauxClassText(definition));
-    return fauxClassPath;
   }
 
   private async resetOutputFolder(pathToClean: string): Promise<boolean> {
@@ -66,10 +58,8 @@ export class FauxClassGenerator implements SObjectGenerator {
   }
 }
 
-// Standalone helper
-export function fieldDeclToString(decl: FieldDeclaration): string {
-  return `${commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;
-}
+const fieldDeclToString = (decl: FieldDeclaration): string =>
+  `${commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;
 
 // VisibleForTesting
 export const commentToString = (comment?: string): string =>
@@ -77,15 +67,14 @@ export const commentToString = (comment?: string): string =>
   comment ? `${INDENT}/* ${comment.replace(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
 
 // VisibleForTesting
-export function generateFauxClassText(definition: SObjectDefinition): string {
-  let declarations = Array.from(definition.fields);
-  const className = definition.name;
+export const generateFauxClassText = (definition: SObjectDefinition): string => {
   // sort, but filter out duplicates
   // which can happen due to childRelationships w/o a relationshipName
-  declarations.sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1));
+  const declarations = Array.from(definition.fields ?? [])
+    .sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
+    .filter((value, index, array): boolean => !index || value.name !== array[index - 1].name);
 
-  declarations = declarations.filter((value, index, array): boolean => !index || value.name !== array[index - 1].name);
-
+  const className = definition.name;
   const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
   const declarationLines = declarations.map(fieldDeclToString).join(`${EOL}`);
   const classConstructor = `${INDENT}${MODIFIER} ${className} () ${EOL}    {${EOL}    }${EOL}`;
@@ -95,4 +84,12 @@ export function generateFauxClassText(definition: SObjectDefinition): string {
   )}${classDeclaration}${declarationLines}${EOL}${EOL}${classConstructor}}`;
 
   return generatedClass;
-}
+};
+
+// VisibleForTesting
+export const generateFauxClass = async (folderPath: string, definition: SObjectDefinition): Promise<string> => {
+  await createDirectory(folderPath);
+  const fauxClassPath = path.join(folderPath, `${definition.name}${APEX_CLASS_EXTENSION}`);
+  await writeFile(fauxClassPath, generateFauxClassText(definition));
+  return fauxClassPath;
+};

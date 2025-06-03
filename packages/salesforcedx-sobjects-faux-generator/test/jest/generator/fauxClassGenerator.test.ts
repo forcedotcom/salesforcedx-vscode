@@ -10,7 +10,12 @@ import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
-import { commentToString, FauxClassGenerator, INDENT } from '../../../src/generator/fauxClassGenerator';
+import {
+  commentToString,
+  generateFauxClass,
+  FauxClassGenerator,
+  INDENT
+} from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 
 jest.mock('../../../src/generator/declarationGenerator');
@@ -25,8 +30,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
   const fakePath = './this/is/a/path';
   let typePath = '';
 
-  const getGenerator = (): FauxClassGenerator => new FauxClassGenerator('CUSTOM', 'custom0');
-
   beforeEach(() => {
     jest.clearAllMocks();
     vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
@@ -35,7 +38,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     vscodeMocked.workspace.fs.delete.mockResolvedValue(undefined);
 
     // Mock nls.localize to return the expected error message
-    nlsMocked.localize.mockImplementation((key: string, ...args: string[]) => {
+    nlsMocked.localize.mockImplementation((key, ...args) => {
       if (key === 'no_sobject_output_folder_text') {
         return `No output folder available ${args[0]}.  Please create this folder and refresh again`;
       }
@@ -90,8 +93,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     const sobject1 = `${fieldsHeader}${closeHeader}`;
 
     const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    await gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
+    await generateFauxClass(sobjectFolder, JSON.parse(sobject1));
 
     expect(vscodeMocked.workspace.fs.stat).toHaveBeenNthCalledWith(
       1,
@@ -150,13 +152,11 @@ describe('FauxClassGenerator Unit Tests.', () => {
     let resetOutputFolderMock: jest.SpyInstance;
     let getCustomMock: jest.SpyInstance;
     let getStandardMock: jest.SpyInstance;
-    let generateFauxClassMock: jest.SpyInstance;
 
     beforeEach(() => {
       resetOutputFolderMock = jest
         .spyOn(FauxClassGenerator.prototype as any, 'resetOutputFolder')
         .mockResolvedValue(true);
-      generateFauxClassMock = jest.spyOn(FauxClassGenerator.prototype, 'generateFauxClass');
       getStandardMock = jest.fn();
       getCustomMock = jest.fn();
       fakeOutput = {
@@ -185,7 +185,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
       const fakeSobjectDef = 'look at me the sobject';
       getStandardMock.mockReturnValue([fakeSObject]);
       (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
-      generateFauxClassMock.mockResolvedValue('hooray');
 
       const fauxClassGeneratorInst = new FauxClassGenerator('STANDARD', fakePath);
       await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
@@ -193,7 +192,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
       expect(fakeOutput.getStandard).toHaveBeenCalled();
       expect(fakeOutput.getCustom).not.toHaveBeenCalled();
       expect(declarationGeneratorMocked.prototype.generateSObjectDefinition).toHaveBeenCalledWith(fakeSObject);
-      expect(generateFauxClassMock).toHaveBeenCalledWith(expectedFolderPath, fakeSobjectDef);
     });
 
     it('Should process custom sobjects.', async () => {
@@ -201,7 +199,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
       const fakeSobjectDef = 'look at me the sobject';
       getCustomMock.mockReturnValue([fakeSObject]);
       (declarationGeneratorMocked.prototype.generateSObjectDefinition as any).mockReturnValue(fakeSobjectDef as any);
-      generateFauxClassMock.mockResolvedValue('hooray');
 
       const fauxClassGeneratorInst = new FauxClassGenerator('CUSTOM', fakePath);
       await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
@@ -209,7 +206,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
       expect(fakeOutput.getStandard).not.toHaveBeenCalled();
       expect(fakeOutput.getCustom).toHaveBeenCalled();
       expect(declarationGeneratorMocked.prototype.generateSObjectDefinition).toHaveBeenCalledWith(fakeSObject);
-      expect(generateFauxClassMock).toHaveBeenCalledWith(expectedFolderPath, fakeSobjectDef);
     });
   });
 });
