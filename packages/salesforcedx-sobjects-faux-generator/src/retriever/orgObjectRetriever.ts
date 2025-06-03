@@ -56,6 +56,7 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
     }
   }
 }
+
 export const sobjectFilter =
   (category: SObjectCategory, source: SObjectRefreshSource) => (sobject: SObjectShortDescription) => {
     const isCustomObject = sobject.custom === true && category === 'CUSTOM';

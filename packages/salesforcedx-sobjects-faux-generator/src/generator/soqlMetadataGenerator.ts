@@ -48,7 +48,7 @@ export class SOQLMetadataGenerator implements SObjectGenerator {
   }
 }
 
-// Non-exported helpers
+/** write the typeNames.json file */
 const generateTypesNames = async (folderPath: string, typeNames: SObjectShortDescription[]): Promise<void> => {
   await createDirectory(folderPath);
   const typeNameFile = path.join(folderPath, 'typeNames.json');
