@@ -21,7 +21,7 @@ describe('RefreshSObjectsExecutor', () => {
   let transformer: SObjectTransformer;
 
   beforeEach(() => {
-    transformer = new SObjectTransformer(new EventEmitter(), [], []);
+    transformer = new SObjectTransformer({ emitter: new EventEmitter(), retrievers: [], generators: [] });
     channelServiceSpy = jest.spyOn(channelService, 'showChannelOutput').mockImplementation(jest.fn());
 
     jest.spyOn(channelService, 'clear').mockImplementation(jest.fn());

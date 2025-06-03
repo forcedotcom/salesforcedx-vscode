@@ -32,12 +32,17 @@ export class SObjectTransformer {
   private retrievers: SObjectDefinitionRetriever[];
   private generators: SObjectGenerator[] = [];
 
-  public constructor(
-    emitter: EventEmitter,
-    retrievers: SObjectDefinitionRetriever[],
-    generators: SObjectGenerator[],
-    cancellationToken?: CancellationToken
-  ) {
+  public constructor({
+    emitter,
+    retrievers,
+    generators,
+    cancellationToken
+  }: {
+    emitter: EventEmitter;
+    retrievers: SObjectDefinitionRetriever[];
+    generators: SObjectGenerator[];
+    cancellationToken?: CancellationToken;
+  }) {
     this.emitter = emitter;
     this.generators = generators;
     this.retrievers = retrievers;

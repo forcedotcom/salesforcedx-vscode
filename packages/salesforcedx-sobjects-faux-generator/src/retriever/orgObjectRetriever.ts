@@ -6,10 +6,10 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { SObjectDescribe, SObjectSelector, SObjectShortDescription } from '../describe';
-
+import { SObjectShortDescription } from '../describe';
+import { SObjectDescribe } from '../describe/sObjectDescribe';
 import { nls } from '../messages';
-import { SObjectDefinitionRetriever, SObjectRefreshOutput } from '../types';
+import { SObjectCategory, SObjectDefinitionRetriever, SObjectRefreshOutput, SObjectRefreshSource } from '../types';
 
 export class OrgObjectRetriever implements SObjectDefinitionRetriever {
   private describer: SObjectDescribe;
@@ -19,28 +19,32 @@ export class OrgObjectRetriever implements SObjectDefinitionRetriever {
   }
 
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
-    let sobjects: SObjectShortDescription[] = [];
     try {
-      sobjects = await this.describer.describeGlobal();
+      const sobjects = await this.describer.describeGlobal();
+      output.addTypeNames(sobjects);
     } catch (e) {
       const err = JSON.parse(e);
       output.setError(nls.localize('failure_fetching_sobjects_list_text', err.message), err.stack);
       return;
     }
-    output.addTypeNames(sobjects);
   }
 }
 
 export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
   private describer: SObjectDescribe;
-  private selector: SObjectSelector;
-  public constructor(connection: Connection, selector: SObjectSelector) {
+  private category: SObjectCategory;
+  private source: SObjectRefreshSource;
+  public constructor(connection: Connection, category: SObjectCategory, source: SObjectRefreshSource) {
     this.describer = new SObjectDescribe(connection);
-    this.selector = selector;
+    this.category = category;
+    this.source = source;
   }
 
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
-    const retrieveTypes: string[] = this.selectedTypes(output.getTypeNames());
+    const retrieveTypes: string[] = output
+      .getTypeNames()
+      .filter(sobjectFilter(this.category, this.source))
+      .map(t => t.name);
 
     try {
       const fetchedSObjects = await this.describer.fetchObjects(retrieveTypes);
@@ -51,13 +55,26 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
       return;
     }
   }
-
-  private selectedTypes(types: SObjectShortDescription[]): string[] {
-    return types.reduce((acc: string[], sobject) => {
-      if (this.selector.select(sobject)) {
-        acc.push(sobject.name);
-      }
-      return acc;
-    }, []);
-  }
 }
+export const sobjectFilter =
+  (category: SObjectCategory, source: SObjectRefreshSource) => (sobject: SObjectShortDescription) => {
+    const isCustomObject = sobject.custom === true && category === 'CUSTOM';
+    const isStandardObject = sobject.custom === false && category === 'STANDARD';
+
+    if (category === 'ALL' && source === 'manual') {
+      return true;
+    } else if (
+      category === 'ALL' &&
+      (source === 'startupmin' || source === 'startup') &&
+      isRequiredSObject(sobject.name)
+    ) {
+      return true;
+    } else if ((isCustomObject || isStandardObject) && source === 'manual' && isRequiredSObject(sobject.name)) {
+      return true;
+    }
+    return false;
+  };
+
+/* Ignore all sobjects that end with Share or History or Feed or Event */
+
+const isRequiredSObject = (sobject: string): boolean => !/Share$|History$|Feed$|.+Event$/.test(sobject);
