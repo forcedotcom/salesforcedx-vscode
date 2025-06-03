@@ -10,7 +10,7 @@ import * as path from 'node:path';
 import { SOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
 import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
-import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
+import { generateSObjectDefinition, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
 const APEX_CLASS_EXTENSION = '.cls';
@@ -19,12 +19,10 @@ const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
 export class FauxClassGenerator implements SObjectGenerator {
   private sobjectSelector: SObjectCategory;
   private relativePath: string;
-  private declGenerator: DeclarationGenerator;
 
   public constructor(selector: SObjectCategory, relativePath: string) {
     this.sobjectSelector = selector;
     this.relativePath = relativePath;
-    this.declGenerator = new DeclarationGenerator();
 
     if (selector !== 'STANDARD' && selector !== 'CUSTOM') {
       throw nls.localize('unsupported_sobject_category', String(selector));
@@ -37,14 +35,12 @@ export class FauxClassGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    const sobjects = this.sobjectSelector === 'STANDARD' ? output.getStandard() : output.getCustom();
+    await Promise.all(
+      (this.sobjectSelector === 'STANDARD' ? output.getStandard() : output.getCustom())
 
-    for (const sobj of sobjects) {
-      if (sobj.name) {
-        const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
-        await generateFauxClass(outputFolderPath, sobjDefinition);
-      }
-    }
+        .filter(o => o.name)
+        .map(o => generateFauxClass(outputFolderPath, generateSObjectDefinition(o)))
+    );
   }
 
   private async resetOutputFolder(pathToClean: string): Promise<boolean> {

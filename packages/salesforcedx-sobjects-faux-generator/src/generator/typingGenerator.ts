@@ -8,17 +8,13 @@ import { createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx
 import { EOL } from 'node:os';
 import * as path from 'node:path';
 import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
-import { DeclarationGenerator } from './declarationGenerator';
+import { generateSObjectDefinition } from './declarationGenerator';
 
 const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 
 export class TypingGenerator implements SObjectGenerator {
-  private declGenerator: DeclarationGenerator;
-
-  public constructor() {
-    this.declGenerator = new DeclarationGenerator();
-  }
+  public constructor() {}
 
   public async generate(output: SObjectRefreshOutput): Promise<void> {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
@@ -30,7 +26,7 @@ export class TypingGenerator implements SObjectGenerator {
 
     for (const sobj of sobjects) {
       if (sobj.name) {
-        const sobjDefinition = this.declGenerator.generateSObjectDefinition(sobj);
+        const sobjDefinition = generateSObjectDefinition(sobj);
         await this.generateType(targetFolder, sobjDefinition);
       }
     }
@@ -69,27 +65,27 @@ export class TypingGenerator implements SObjectGenerator {
   }
 
   private convertDeclaration(objName: string, decl: FieldDeclaration): string {
-    const typingType = this.convertType(decl.type);
+    const typingType = convertType(decl.type);
     const content = `declare module "@salesforce/schema/${objName}.${decl.name}" {
   const ${decl.name}:${typingType};
   export default ${decl.name};
 }`;
     return content;
   }
-
-  private convertType(fieldType: string): string {
-    switch (fieldType) {
-      case 'Boolean':
-        return 'boolean';
-      case 'String':
-        return 'string';
-      case 'Decimal':
-      case 'Double':
-      case 'Integer':
-      case 'Long':
-      case 'Number':
-        return 'number';
-    }
-    return 'any';
-  }
 }
+
+const convertType = (fieldType: string): string => {
+  switch (fieldType) {
+    case 'Boolean':
+      return 'boolean';
+    case 'String':
+      return 'string';
+    case 'Decimal':
+    case 'Double':
+    case 'Integer':
+    case 'Long':
+    case 'Number':
+      return 'number';
+  }
+  return 'any';
+};
