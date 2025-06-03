@@ -90,7 +90,7 @@ import { PersistentStorageService, registerConflictView, setupConflictView } fro
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
+import { decorators, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -529,9 +529,6 @@ export const deactivate = async (): Promise<void> => {
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
-
-  disposeTraceFlagExpiration();
-  return turnOffLogging();
 };
 
 const handleTheUnhandled = (): void => {
