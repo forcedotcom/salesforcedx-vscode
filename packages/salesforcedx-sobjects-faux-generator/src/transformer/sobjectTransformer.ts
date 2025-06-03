@@ -132,10 +132,7 @@ export class SObjectTransformer {
   }
 
   private didCancel(): boolean {
-    if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
-      return true;
-    }
-    return false;
+    return Boolean(this.cancellationToken?.isCancellationRequested);
   }
 
   private errorExit(message: string, stack?: string): Promise<SObjectRefreshResult> {
