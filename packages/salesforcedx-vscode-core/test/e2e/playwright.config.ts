@@ -36,13 +36,13 @@ export default defineConfig<VSCodeTestOptions, VSCodeWorkerOptions>({
       use: {
         vscodeVersion: 'insiders'
       }
-    },
-    {
-      name: 'VSCode min',
-      use: {
-        vscodeVersion: '1.98.0'
-      }
     }
+    // {
+    //   name: 'VSCode min',
+    //   use: {
+    //     vscodeVersion: '1.98.0'
+    //   }
+    // }
   ]
 });
 
