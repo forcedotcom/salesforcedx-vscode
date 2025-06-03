@@ -15,11 +15,20 @@ const command = 'stop_apex_debug_logging';
 export const turnOffLogging = async (): Promise<void> => {
   handleStartCommand(command);
 
-  if (developerLogTraceFlag.isActive()) {
+  const connection = await WorkspaceContext.getInstance().getConnection();
+
+  // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
+  const replayDebuggerLevels = await connection.tooling.query(
+    "SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
+  );
+  const replayDebuggerLevelsExists = replayDebuggerLevels.records.length > 0;
+
+  if (replayDebuggerLevelsExists) {
     try {
-      const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
-      const connection = await WorkspaceContext.getInstance().getConnection();
-      await connection.tooling.delete('TraceFlag', nonNullTraceFlag);
+      const traceFlagId = typeof replayDebuggerLevels.records[0].Id === 'string'
+        ? replayDebuggerLevels.records[0].Id
+        : '';
+      await connection.tooling.delete('TraceFlag', traceFlagId);
       developerLogTraceFlag.turnOffLogging();
       disposeTraceFlagExpiration();
       await handleFinishCommand(command, true);
@@ -28,7 +37,7 @@ export const turnOffLogging = async (): Promise<void> => {
       await handleFinishCommand(command, false, error);
       throw new Error('Restoring the debug levels failed.');
     }
-  } else {
+  } else { // TODO don't need an error here, just notify the user
     await handleFinishCommand(command, false, 'No active trace flag found.');
     throw new Error('No active trace flag found.');
   }
