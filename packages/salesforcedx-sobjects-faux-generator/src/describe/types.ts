@@ -9,8 +9,4 @@ import { SObject } from '../types';
 
 export type SObjectShortDescription = Pick<SObject, 'name' | 'custom'>;
 
-export type SObjectSelector = {
-  select(sobject: SObjectShortDescription): boolean;
-};
-
 export type SObjectsStandardAndCustom = { standard: SObject[]; custom: SObject[] };

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AuthInfo, Connection } from '@salesforce/core-bundle';
 import {
   type SObjectCategory,
   type SObjectRefreshSource,
@@ -15,6 +16,7 @@ import {
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
+  ConfigUtil,
   ContinueResponse,
   isSFContainerMode,
   LocalCommandExecution,
@@ -23,14 +25,15 @@ import {
   ProgressNotification,
   projectPaths,
   SfCommandlet,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
+import { SalesforceProjectConfig } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
@@ -121,6 +124,20 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     ProgressNotification.show(execution, cancellationTokenSource, progressLocation);
 
     const commandName = execution.command.logName;
+
+    // precedence user override > project config > connection default
+    const apiVersionOverride =
+      (await ConfigUtil.getUserConfiguredApiVersion()) ?? (await SalesforceProjectConfig.getValue('sourceApiVersion'));
+
+    const versionedConn = apiVersionOverride
+      ? await Connection.create({
+          authInfo: await AuthInfo.create({
+            username: (await WorkspaceContextUtil.getInstance().getConnection()).getUsername()
+          }),
+          connectionOptions: { version: apiVersionOverride }
+        })
+      : await WorkspaceContextUtil.getInstance().getConnection();
+
     try {
       // @ts-expect-error - TODO: remove when core-bundle is no longer used (conn types differ)
       const result = await writeSobjectFiles({
@@ -135,7 +152,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
               category: response.data.category,
               source: response.data.source,
               // TODO: make the consumer pass in the properly versioned connection
-              conn: await WorkspaceContext.getInstance().getConnection()
+              conn: versionedConn
             })
       });
 

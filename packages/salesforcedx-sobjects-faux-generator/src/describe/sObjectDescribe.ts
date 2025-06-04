@@ -13,7 +13,7 @@ import { SObjectShortDescription, SObjectsStandardAndCustom } from './types';
 
 const MAX_BATCH_REQUEST_SIZE = 25;
 
-export class SObjectDescribe {
+class SObjectDescribe {
   private connection: Connection;
   private readonly servicesPath: string = 'services/data';
   private readonly versionPrefix = 'v';
@@ -22,20 +22,6 @@ export class SObjectDescribe {
 
   constructor(connection: Connection) {
     this.connection = connection;
-  }
-
-  /**
-   * Method that returns a list of SObjects based on running a describe global request
-   * More info at https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_describeGlobal.htm
-   * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
-   */
-  public async describeGlobal(): Promise<SObjectShortDescription[]> {
-    const allDescriptions = await this.connection.describeGlobal();
-    const requestedDescriptions = allDescriptions.sobjects.map(sobject => ({
-      name: sobject.name,
-      custom: sobject.custom
-    }));
-    return requestedDescriptions;
   }
 
   public getVersion(): string {
@@ -118,8 +104,7 @@ export const describeSObjects = async (
   conn: Connection,
   sobjectNames: SObjectShortDescription[]
 ): Promise<SObjectsStandardAndCustom> => {
-  const describe = new SObjectDescribe(conn);
-  const objects = await describe.fetchObjects(sobjectNames.map(s => s.name));
+  const objects = await new SObjectDescribe(conn).fetchObjects(sobjectNames.map(s => s.name));
   // TODO node22: object.groupBy
   return {
     standard: objects.filter(o => !o.custom),
@@ -171,11 +156,8 @@ const pick = <T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> => {
  * More info at https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_describeGlobal.htm
  * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
  */
-export const describeGlobal = async (conn: Connection): Promise<SObjectShortDescription[]> => {
-  const allDescriptions = await conn.describeGlobal();
-  const requestedDescriptions = allDescriptions.sobjects.map(sobject => ({
+export const describeGlobal = async (conn: Connection): Promise<SObjectShortDescription[]> =>
+  (await conn.describeGlobal()).sobjects.map(sobject => ({
     name: sobject.name,
     custom: sobject.custom
   }));
-  return requestedDescriptions;
-};

@@ -8,18 +8,11 @@ import { createDirectory, projectPaths, safeDelete, writeFile } from '@salesforc
 import { EOL } from 'node:os';
 import * as path from 'node:path';
 import { SObjectsStandardAndCustom } from '../describe/types';
-import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
+import { FieldDeclaration, SObject, SObjectDefinition } from '../types';
 import { generateSObjectDefinition } from './declarationGenerator';
 
 const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
-
-export class TypingGenerator implements SObjectGenerator {
-  public async generate(output: SObjectRefreshOutput): Promise<void> {
-    const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
-    await generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
-  }
-}
 
 export const generateAllTypes = async (sobjects: SObjectsStandardAndCustom) => {
   const typingsFolderPath = path.join(projectPaths.stateFolder(), ...TYPING_PATH);

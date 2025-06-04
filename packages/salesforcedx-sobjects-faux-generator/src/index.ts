@@ -8,5 +8,4 @@ export { CLIENT_ID, SOBJECTS_DIR, STANDARDOBJECTS_DIR, CUSTOMOBJECTS_DIR, SOQLME
 export * from './types';
 export * from './describe/types';
 export { toMinimalSObject } from './describe/sObjectDescribe';
-export { SObjectTransformer, writeSobjectFiles } from './transformer/sobjectTransformer';
-export { SObjectTransformerFactory } from './transformer/transformerFactory';
+export { writeSobjectFiles } from './transformer/sobjectTransformer';
