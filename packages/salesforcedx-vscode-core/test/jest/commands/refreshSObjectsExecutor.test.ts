@@ -1,33 +1,40 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  type SObjectCategory,
-  type SObjectRefreshSource,
-  SObjectTransformer,
-  SObjectTransformerFactory
-} from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode';
-import { EventEmitter } from 'node:events';
+
+import * as fauxGen from '@salesforce/salesforcedx-sobjects-faux-generator';
+import { ConfigUtil, LocalCommandExecution, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import { channelService } from '../../../src/channels';
 import { RefreshSObjectsExecutor } from '../../../src/commands/refreshSObjects';
+import { SalesforceProjectConfig } from '../../../src/salesforceProject';
 
 describe('RefreshSObjectsExecutor', () => {
   let channelServiceSpy: jest.SpyInstance;
-  let transformer: SObjectTransformer;
 
   beforeEach(() => {
-    transformer = new SObjectTransformer({ emitter: new EventEmitter(), retrievers: [], generators: [] });
     channelServiceSpy = jest.spyOn(channelService, 'showChannelOutput').mockImplementation(jest.fn());
 
     jest.spyOn(channelService, 'clear').mockImplementation(jest.fn());
     jest.spyOn(channelService, 'streamCommandOutput').mockImplementation(jest.fn());
-    jest.spyOn(SObjectTransformerFactory, 'create').mockResolvedValue(transformer);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(ConfigUtil, 'getUserConfiguredApiVersion').mockResolvedValue(undefined);
+    jest.spyOn(SalesforceProjectConfig, 'getValue').mockResolvedValue(undefined);
+    jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
+      getConnection: jest.fn().mockResolvedValue({
+        getUsername: jest.fn().mockResolvedValue('test@example.com')
+      })
+    } as unknown as WorkspaceContextUtil);
+    jest.spyOn(fauxGen, 'writeSobjectFiles').mockResolvedValue({
+      data: {
+        cancelled: false,
+        standardObjects: 0,
+        customObjects: 0
+      }
+    });
   });
 
   it('should open the Output Channel', async () => {
@@ -51,7 +58,7 @@ describe('RefreshSObjectsExecutor', () => {
     });
   });
 
-  const doExecute = async (source: SObjectRefreshSource, category?: SObjectCategory) => {
+  const doExecute = async (source: fauxGen.SObjectRefreshSource, category?: fauxGen.SObjectCategory) => {
     const executor = new RefreshSObjectsExecutor();
     await executor.execute({
       type: 'CONTINUE',
