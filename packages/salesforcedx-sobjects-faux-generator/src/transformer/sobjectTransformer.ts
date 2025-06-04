@@ -14,8 +14,8 @@ import { writeTypeNamesFile, generateAllMetadata } from '../generator/soqlMetada
 import { generateAllTypes } from '../generator/typingGenerator';
 import { nls } from '../messages';
 import { getMinNames, getMinObjects } from '../retriever/minObjectRetriever';
-import { sobjectTypeFilter } from '../retriever/orgObjectRetriever';
 import { SObjectCategory, SObjectRefreshResult, SObjectRefreshSource } from '../types';
+import { sobjectTypeFilter } from './sobjectFilter';
 
 type WriteSobjectFilesArgs = {
   emitter: EventEmitter;
@@ -45,6 +45,7 @@ export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SO
       })
     );
 
+    // those describes are the slow part.  Not much point cancelling now, it's just file transforms and writes
     if (!args.cancellationToken.isCancellationRequested) {
       await Promise.all([
         generateFauxClasses(sobjects),
@@ -81,104 +82,3 @@ const getNamesAndTypes = async (conn: Connection, category: SObjectCategory, sou
   const sobjects = await describeSObjects(conn, sobjectNames);
   return { sobjectNames, sobjects };
 };
-// export class SObjectTransformer {
-//   private emitter: EventEmitter;
-//   private cancellationToken: CancellationToken | undefined;
-//   private result: SObjectRefreshResult;
-//   private retrievers: SObjectDefinitionRetriever[];
-//   private generators: SObjectGenerator[] = [];
-
-//   public constructor({
-//     emitter,
-//     retrievers,
-//     generators,
-//     cancellationToken
-//   }: {
-//     emitter: EventEmitter;
-//     retrievers: SObjectDefinitionRetriever[];
-//     generators: SObjectGenerator[];
-//     cancellationToken?: CancellationToken;
-//   }) {
-//     this.emitter = emitter;
-//     this.generators = generators;
-//     this.retrievers = retrievers;
-//     this.cancellationToken = cancellationToken;
-//     this.result = { data: { cancelled: false } };
-//   }
-
-//   public async transform(): Promise<SObjectRefreshResult> {
-//     const pathToStateFolder = projectPaths.stateFolder();
-
-//     if (!(await fileOrFolderExists(pathToStateFolder))) {
-//       return await this.errorExit(nls.localize('no_generate_if_not_in_project', pathToStateFolder));
-//     }
-
-//     const output: SObjectRefreshData = this.initializeData(pathToStateFolder);
-
-//     for (const retriever of this.retrievers) {
-//       if (this.didCancel()) {
-//         return this.cancelExit();
-//       }
-
-//       if (this.result.error) {
-//         return this.errorExit(this.result.error.message);
-//       }
-
-//       try {
-//         await retriever.retrieve(output);
-//       } catch (err) {
-//         return this.errorExit(err.message);
-//       }
-//     }
-
-//     for (const gen of this.generators) {
-//       if (this.didCancel()) {
-//         return this.cancelExit();
-//       }
-
-//       if (this.result.error) {
-//         return this.errorExit(this.result.error.message);
-//       }
-
-//       try {
-//         gen.generate(output);
-//       } catch (err) {
-//         return this.errorExit(err.message);
-//       }
-//     }
-
-//     this.result.data.standardObjects = output.getStandard().length;
-//     this.result.data.customObjects = output.getCustom().length;
-
-//     return this.successExit();
-//   }
-
-//   private didCancel(): boolean {
-//     return Boolean(this.cancellationToken?.isCancellationRequested);
-//   }
-
-//   private errorExit(message: string, stack?: string): Promise<SObjectRefreshResult> {
-//     this.emitter.emit(STDERR_EVENT, `${message}\n`);
-//     this.emitter.emit(ERROR_EVENT, new Error(message));
-//     this.emitter.emit(EXIT_EVENT, FAILURE_CODE);
-//     this.result.error = { message, stack };
-//     return Promise.reject(this.result);
-//   }
-
-//   private successExit(): Promise<SObjectRefreshResult> {
-//     this.emitter.emit(EXIT_EVENT, SUCCESS_CODE);
-//     return Promise.resolve(this.result);
-//   }
-
-//   private cancelExit(): Promise<SObjectRefreshResult> {
-//     this.emitter.emit(EXIT_EVENT, FAILURE_CODE);
-//     this.result.data.cancelled = true;
-//     return Promise.resolve(this.result);
-//   }
-
-//   private logSObjects(sobjectKind: string, processedLength: number) {
-//     if (processedLength > 0) {
-//       this.emitter.emit(STDOUT_EVENT, nls.localize('processed_sobjects_length_text', processedLength, sobjectKind));
-//     }
-//   }
-// }

@@ -11,6 +11,7 @@ import { SObjectShortDescription, SObjectsStandardAndCustom } from '../describe/
 
 const outputFolderPath = path.join(projectPaths.toolsFolder(), SOQLMETADATA_DIR);
 
+/** writes custom and standard objects in the json format used by SOQL extension */
 export const generateAllMetadata = async (sobjects: SObjectsStandardAndCustom) => {
   await createDirectory(outputFolderPath);
 
@@ -29,6 +30,7 @@ export const generateAllMetadata = async (sobjects: SObjectsStandardAndCustom) =
   ]);
 };
 
+/** writes the typeNames.json file for SOQL*/
 export const writeTypeNamesFile = async (typeNames: SObjectShortDescription[]): Promise<void> => {
   await createDirectory(outputFolderPath);
   const typeNameFile = path.join(outputFolderPath, 'typeNames.json');

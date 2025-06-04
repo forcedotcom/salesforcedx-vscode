@@ -14,6 +14,7 @@ import { generateSObjectDefinition } from './declarationGenerator';
 const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 
+/** writes the d.ts files for the objects */
 export const generateAllTypes = async (sobjects: SObjectsStandardAndCustom) => {
   const typingsFolderPath = path.join(projectPaths.stateFolder(), ...TYPING_PATH);
   await generateTypes([...sobjects.standard, ...sobjects.custom], typingsFolderPath);
