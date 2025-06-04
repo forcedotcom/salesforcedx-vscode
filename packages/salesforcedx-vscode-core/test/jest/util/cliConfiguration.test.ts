@@ -11,10 +11,16 @@ jest.mock('node:child_process', () => ({
   execSync: mockExecSync
 }));
 
-jest.mock('@salesforce/salesforcedx-utils-vscode');
-
 import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+
+// Mock only the ConfigUtil, not the entire package
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
+  ConfigUtil: {
+    isTelemetryDisabled: jest.fn()
+  }
+}));
 import { ENV_SF_DISABLE_TELEMETRY } from '../../../src/constants';
 import { disableCLITelemetry, isCLIInstalled, isCLITelemetryAllowed } from '../../../src/util';
 

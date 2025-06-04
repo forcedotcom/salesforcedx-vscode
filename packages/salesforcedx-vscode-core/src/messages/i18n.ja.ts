@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils-vscode';
+import { MessageKey } from './i18n';
+
 /**
  * Conventions:
  * _message: is for unformatted text that will be shown as-is to
@@ -15,7 +18,7 @@
  *
  * If omitted, we will assume _message.
  */
-export const messages = {
+export const messages: Partial<Record<MessageKey, string>> = {
   channel_name: 'Salesforce CLI',
   channel_starting_message: '開始しています: ',
   channel_end_with_exit_code: 'が終了コード %s で終了しました。',
@@ -165,7 +168,7 @@ export const messages = {
   error_creating_packagexml: 'package.xml の作成中にエラー: %s',
   error_extracting_org_source: 'ダウンロードされたApex ソースの抽出中にエラー: %s',
   error_extracting_packages: 'パッケージの抽出中にエラー: %s',
-  error_updating_sf_project: 'sfdx-project.json の更新中にエラー: %s',
+  error_updating_salesforce_project: 'sfdx-project.json の更新中にエラー: %s',
   error_writing_installed_package_info: 'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
 
@@ -211,7 +214,7 @@ export const messages = {
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
   org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
-  invalid_default_org: 'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
+  invalid_default_org: "The org you've chosen as your default org isn't valid. Please choose a different one.",
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
   config_set_org_text: 'SFDX: デフォルトの組織を設定',
@@ -227,9 +230,9 @@ export const messages = {
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
-    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
+    'We couldn\'t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
   pull_conflicts_error:
-    'We couldn’t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
+    'We couldn\'t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   error_no_target_org:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
   error_no_target_dev_hub:
@@ -583,8 +586,6 @@ export const messages = {
   XOrgHub: 'X Org Hubs',
 
   conflict_detect_error: '競合を検出中にエラーが発生しました。%s',
-  conflict_detect_retrieve_org_source: '競合の検出: 組織のソースを取得しています',
-  conflict_detect_convert_org_source: '競合の検出: 組織のソースを変換しています',
   conflict_detect_conflicts_during_deploy:
     'メタデータのデプロイ中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
   conflict_detect_conflicts_during_retrieve:
@@ -621,5 +622,60 @@ export const messages = {
   predicates_no_folder_opened_text:
     'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
   predicates_no_salesforce_project_found_text:
-    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。'
+    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
+
+  conflict_detect_execution_name: '競合検出',
+  conflict_detect_initialization_error: 'メタデータキャッシュの初期化中に予期せぬエラーが発生しました',
+  conflict_detect_conflict_header_timestamp: '競合:\n    %d 個のファイルに競合が見つかりました:\n',
+  conflict_detect_no_differences: '差分がありません',
+  conflict_detect_remote_last_modified_date: '組織の最終更新日: %s \n',
+  conflict_detect_local_last_modified_date: 'ローカルの最終同期日: %s',
+
+  source_diff_folder_title: '%s - ファイル差分',
+  beta_tapi_mdcontainer_error: 'メタデータコンテナ作成中に予期せぬエラーが発生しました',
+  beta_tapi_membertype_error: '%s メンバー作成中に予期せぬエラーが発生しました',
+  beta_tapi_car_error: 'コンテナ非同期リクエスト作成中に予期せぬエラーが発生しました',
+  beta_tapi_queue_status: 'デプロイがまだキューに入っています',
+  lib_retrieve_result_title: '取得されたソース',
+  lib_retrieve_result_parse_error: '現在の結果を解析できません。',
+  lib_retrieve_message_title: '取得警告',
+  force_function_enter_function: 'ファンクション名を入力',
+  force_function_enter_language: 'ファンクションの言語を選択',
+  force_function_install_npm_dependencies_progress: 'NPM 依存関係をインストール中',
+  force_function_install_npm_dependencies_error:
+    "%s. NodeJS がインストールされていることを確認し (https://nodejs.org/)、'npm install' を実行して package.json から依存関係をインストールしてください",
+  force_function_install_mvn_dependencies_error:
+    "%s. Maven がインストールされていることを確認し (https://maven.apache.org/)、'mvn install' を実行して pom.xml から依存関係をインストールしてください",
+  sobjects_refresh_needed:
+    'ローカルにキャッシュされた sObject がありません。Apex コードで sObject の自動補完を利用するには、SFDX: Refresh SObject Definitions を実行してください。',
+  sobjects_refresh_now: 'SFDX: Refresh SObject Definitions を実行',
+  sobjects_refresh: 'SFDX: SObject 定義を更新',
+  sobject_refresh_all: 'すべての SObject',
+  sobject_refresh_custom: 'カスタム SObject',
+  sobject_refresh_standard: '標準 SObject',
+  sobjects_no_refresh_if_already_active_error_text:
+    'sObject 定義の更新が既に進行中です。プロセスを再開する必要がある場合は、実行中のタスクをキャンセルしてください。',
+  component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',
+  rename_component_input_dup_file_name_error:
+    'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',
+  rename_component_input_placeholder: '一意のコンポーネント名を入力',
+  rename_component_input_prompt: 'Enter で入力を確認、Escape でキャンセル',
+  rename_component_warning:
+    '警告: 古い名前への参照は更新されません。手動で更新し、すべての変更が完了したら再デプロイしてください。',
+  rename_component_error:
+    'コンポーネントの名前を変更できませんでした。手動でコンポーネントの名前を変更してから、変更を再デプロイしてみてください。',
+  error_function_type: '実行中のファンクションの種類を判定できません。',
+  error_unable_to_get_started_function: '"{0}" のファンクションにアクセスできません。',
+  pending_org_expiration_expires_on_message: '%s\n(%s に期限切れ)',
+  pending_org_expiration_notification_message:
+    '警告: 今後 %d 日以内に期限切れになる組織が 1 つ以上あります。詳細については、出力パネルを確認してください。',
+  pending_org_expiration_output_channel_message:
+    '警告: 以下の組織が今後 %d 日以内に期限切れになります:\n\n%s\n\nこれらの組織に重要なデータや設定が含まれている場合は、組織が期限切れになる前にバックアップしてください。',
+  source_status: 'ソースステータス',
+  rename_not_supported: '複数コンポーネントの名前変更はサポートされていません',
+  input_no_component_name: '入力にコンポーネント名が含まれていません',
+  component_empty: 'コンポーネントは空にできません',
+  create_not_supported: '複数コンポーネントの作成はサポートされていません',
+  input_incorrect_properties: '入力に正しいコンポーネントプロパティが含まれていません',
+  missing_label: MISSING_LABEL_MSG + ': %s'
 };

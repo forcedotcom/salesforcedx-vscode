@@ -12,7 +12,7 @@ import { SObjectCategory, SObjectRefreshOutput, SOBJECTS_DIR } from '../../../sr
 import { FauxClassGenerator } from '../../../src/generator';
 import { DeclarationGenerator } from '../../../src/generator/declarationGenerator';
 import { INDENT } from '../../../src/generator/fauxClassGenerator';
-import { nls } from '../../../src/messages';
+import { nls, MessageKey } from '../../../src/messages';
 
 jest.mock('../../../src/generator/declarationGenerator');
 jest.mock('../../../src/messages');
@@ -36,7 +36,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     vscodeMocked.workspace.fs.delete.mockResolvedValue(undefined);
 
     // Mock nls.localize to return the expected error message
-    nlsMocked.localize.mockImplementation((key: string, ...args: string[]) => {
+    nlsMocked.localize.mockImplementation((key: MessageKey, ...args: any[]) => {
       if (key === 'no_sobject_output_folder_text') {
         return `No output folder available ${args[0]}.  Please create this folder and refresh again`;
       }

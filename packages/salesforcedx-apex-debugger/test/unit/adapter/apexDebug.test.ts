@@ -85,7 +85,31 @@ describe('Interactive debugger adapter - unit', () => {
     adapter = new ApexDebugForTest(new RequestService());
   });
 
+  afterEach(async () => {
+    if (adapter) {
+      // Properly disconnect the debug session to clean up resources
+      const disconnectResponse = {
+        command: 'disconnect',
+        success: true,
+        request_seq: 0,
+        seq: 0,
+        type: 'response'
+      } as DebugProtocol.DisconnectResponse;
+      const disconnectArgs = {} as DebugProtocol.DisconnectArguments;
+
+      try {
+        await adapter.disconnectReq(disconnectResponse, disconnectArgs);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        // Ignore disconnect errors in tests
+      }
+
+      adapter.clearIdleTimers();
+    }
+  });
+
   afterAll(() => {
+    // Final cleanup
     if (adapter) {
       adapter.clearIdleTimers();
     }
