@@ -1,3 +1,11 @@
+# 63.16.3 - June 6, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- [@W-18656877@] require find-java-home instead of import ([PR #6316](https://github.com/forcedotcom/salesforcedx-vscode/pull/6316))
+
 # 63.15.1 - May 30, 2025
 
 ## Added
