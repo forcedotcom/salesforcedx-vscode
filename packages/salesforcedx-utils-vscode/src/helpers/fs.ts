@@ -26,9 +26,7 @@ export const readFile = async (filePath: string): Promise<string> => {
 export const writeFile = async (filePath: string, content: string): Promise<void> => {
   try {
     const dirPath = dirname(filePath);
-    if (!(await fileOrFolderExists(dirPath))) {
-      await createDirectory(dirPath);
-    }
+    await createDirectory(dirPath);
 
     const encoder = new TextEncoder();
     const uint8Array = encoder.encode(content);

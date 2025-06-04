@@ -30,7 +30,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
-    vscodeMocked.workspace.fs.stat.mockResolvedValue({ type: 1, ctime: 0, mtime: 0, size: 0, permissions: 1 });
     vscodeMocked.workspace.fs.createDirectory.mockResolvedValue(undefined);
     vscodeMocked.workspace.fs.delete.mockResolvedValue(undefined);
 
@@ -58,6 +57,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
   });
 
   it('Should generate a faux class with a proper header comment', async () => {
+    const createDirSpy = jest.spyOn(utils, 'createDirectory');
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -65,14 +65,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
 
     const sobjectFolder = process.cwd();
     await generateFauxClass(sobjectFolder, JSON.parse(sobject1));
-
-    expect(vscodeMocked.workspace.fs.stat).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        path: sobjectFolder,
-        scheme: 'file'
-      })
-    );
+    expect(createDirSpy).toHaveBeenCalledWith(sobjectFolder);
     expect(vscodeMocked.workspace.fs.writeFile).toHaveBeenCalled();
 
     const writeFileCall = vscodeMocked.workspace.fs.writeFile.mock.calls[0];
