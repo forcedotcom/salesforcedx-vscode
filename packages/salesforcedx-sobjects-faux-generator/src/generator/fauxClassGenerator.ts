@@ -8,15 +8,16 @@ import { TOOLS, createDirectory, projectPaths, safeDelete, writeFile } from '@sa
 import { EOL } from 'node:os';
 import * as path from 'node:path';
 import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
+import { SObjectsStandardAndCustom } from '../describe/types';
 import { nls } from '../messages';
-import { FieldDeclaration, SObject, SObjectDefinition } from '../types';
+import { FieldDeclaration, SObjectDefinition } from '../types';
 import { generateSObjectDefinition, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
 const APEX_CLASS_EXTENSION = '.cls';
 const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
 
-export const generateFauxClasses = async (sobjects: { standard: SObject[]; custom: SObject[] }): Promise<string[]> =>
+export const generateFauxClasses = async (sobjects: SObjectsStandardAndCustom): Promise<string[]> =>
   (
     await Promise.all(
       Object.entries(sobjects)

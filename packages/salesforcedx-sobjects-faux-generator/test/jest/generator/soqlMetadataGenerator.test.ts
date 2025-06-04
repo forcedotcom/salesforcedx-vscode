@@ -8,7 +8,7 @@
 import * as utils from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../../src/constants';
-import { generateAllMetadata } from '../../../src/generator/soqlMetadataGenerator';
+import { generateAllMetadata, writeTypeNamesFile } from '../../../src/generator/soqlMetadataGenerator';
 
 const outputFolderPath = join(utils.projectPaths.toolsFolder(), SOQLMETADATA_DIR);
 
@@ -90,5 +90,22 @@ describe('SOQL metadata files generator', () => {
       join(standardPath, 'Account.json'),
       JSON.stringify(standardMock, null, 2)
     );
+  });
+
+  it('Should write typeNames file', async () => {
+    const typeNames = [
+      { name: 'Account', label: 'Account', custom: false },
+      { name: 'Foo__c', label: 'Foo', custom: true }
+    ];
+    const typeNameFile = join(outputFolderPath, 'typeNames.json');
+    const createDirectoryMock = jest.spyOn(utils, 'createDirectory').mockResolvedValue(undefined);
+    const safeDeleteMock = jest.spyOn(utils, 'safeDelete').mockResolvedValue(undefined);
+    const writeFileMock = jest.spyOn(utils, 'writeFile').mockResolvedValue(undefined);
+
+    await writeTypeNamesFile(typeNames);
+
+    expect(createDirectoryMock).toHaveBeenCalledWith(outputFolderPath);
+    expect(safeDeleteMock).toHaveBeenCalledWith(typeNameFile);
+    expect(writeFileMock).toHaveBeenCalledWith(typeNameFile, JSON.stringify(typeNames, null, 2));
   });
 });

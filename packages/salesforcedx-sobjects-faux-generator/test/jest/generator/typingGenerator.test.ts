@@ -4,10 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { fileOrFolderExists, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import * as sfdxUtils from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
-import { generateType } from '../../../src/generator/typingGenerator';
+import { generateType, generateAllTypes } from '../../../src/generator/typingGenerator';
+import { minimalCustomSObject } from './sObjectMockData';
 
 jest.mock('vscode');
 const vscodeMocked = jest.mocked(vscode);
@@ -277,5 +279,26 @@ describe('SObject Javascript type declaration generator', () => {
     expect(typeText).toContain('declare module "@salesforce/schema/PE1__e.DoubleField"');
     expect(typeText).toContain('const DoubleField:number;');
     expect(typeText).toContain('export default DoubleField;');
+  });
+
+  it('Should generate all types for standard and custom sobjects', async () => {
+    const standard = { ...minimalCustomSObject, name: 'StandardObj', custom: false };
+    const custom = { ...minimalCustomSObject, name: 'CustomObj__c', custom: true };
+    const sobjects = { standard: [standard], custom: [custom] };
+
+    // Mock projectPaths.stateFolder to a temp dir
+    const tempDir = '/tmp/typings-test';
+    jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(tempDir);
+    const createDirectoryMock = jest.spyOn(sfdxUtils, 'createDirectory').mockResolvedValue(undefined);
+    const writeFileMock = jest.spyOn(sfdxUtils, 'writeFile').mockResolvedValue(undefined);
+    const safeDeleteMock = jest.spyOn(sfdxUtils, 'safeDelete').mockResolvedValue(undefined);
+
+    await generateAllTypes(sobjects);
+
+    expect(createDirectoryMock).toHaveBeenCalledWith(`${tempDir}/typings/lwc/sobjects`);
+    expect(writeFileMock).toHaveBeenCalledWith(expect.stringContaining('StandardObj.d.ts'), expect.any(String));
+    expect(writeFileMock).toHaveBeenCalledWith(expect.stringContaining('CustomObj__c.d.ts'), expect.any(String));
+    expect(safeDeleteMock).toHaveBeenCalledWith(expect.stringContaining('StandardObj.d.ts'));
+    expect(safeDeleteMock).toHaveBeenCalledWith(expect.stringContaining('CustomObj__c.d.ts'));
   });
 });
