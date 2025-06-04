@@ -1,33 +1,30 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
+
+import * as utils from '@salesforce/salesforcedx-utils-vscode';
+import { strict as assert } from 'node:assert';
 import { EOL } from 'node:os';
-import { join } from 'node:path';
 import * as vscode from 'vscode';
-import { SObjectRefreshOutput, SOBJECTS_DIR } from '../../../src';
-import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
+import * as declarationGenerator from '../../../src/generator/declarationGenerator';
 import {
   commentToString,
   generateFauxClass,
-  FauxClassGenerator,
+  generateFauxClasses,
   INDENT
 } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
 
-jest.mock('../../../src/generator/declarationGenerator');
 jest.mock('../../../src/messages');
 
 const vscodeMocked = jest.mocked(vscode);
 const nlsMocked = jest.mocked(nls);
 
-const declarationGeneratorMocked = jest.mocked(generateSObjectDefinition);
-
 describe('FauxClassGenerator Unit Tests.', () => {
-  const fakePath = './this/is/a/path';
+  // const fakePath = './this/is/a/path';
   let typePath = '';
 
   beforeEach(() => {
@@ -47,19 +44,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
       }
       return key;
     });
-
-    // Mock Uri.file to return a proper URI object
-    vscodeMocked.Uri.file.mockImplementation((path: string) => ({
-      fsPath: path,
-      scheme: 'file',
-      path,
-      authority: '',
-      query: '',
-      fragment: '',
-      with: jest.fn(),
-      toString: () => `file://${path}`,
-      toJSON: () => ({ scheme: 'file', path })
-    }));
   });
 
   afterEach(() => {
@@ -71,18 +55,6 @@ describe('FauxClassGenerator Unit Tests.', () => {
       }
       typePath = '';
     }
-  });
-
-  it('Should be able to create an instance.', () => {
-    const fauxClassGeneratorInst = new FauxClassGenerator('STANDARD', fakePath);
-    expect(fauxClassGeneratorInst).toBeDefined();
-    expect(fauxClassGeneratorInst).toBeInstanceOf(FauxClassGenerator);
-  });
-
-  it('Should not be able to create an instance for all types.', () => {
-    expect(() => {
-      new FauxClassGenerator('ALL', fakePath);
-    }).toThrowError('SObject category cannot be used to generate metadata ALL');
   });
 
   it('Should generate a faux class with a proper header comment', async () => {
@@ -144,67 +116,54 @@ describe('FauxClassGenerator Unit Tests.', () => {
   });
 
   describe('generate()', () => {
-    const fakeSfdxPath = '.totallyFake';
-    const expectedFolderPath = join(String(fakeSfdxPath), TOOLS, SOBJECTS_DIR, fakePath);
+    let declarationGeneratorSpy: jest.SpyInstance;
 
-    let fakeOutput: any;
-    let resetOutputFolderMock: jest.SpyInstance;
-    let getCustomMock: jest.SpyInstance;
-    let getStandardMock: jest.SpyInstance;
+    const standardMock = {
+      name: 'Account',
+      label: 'Account',
+      fields: [{ name: 'Id', label: 'Account ID', type: 'string' }]
+    };
+    const customMock = { name: 'Foo__c', label: 'Foo', fields: [{ name: 'Id', label: 'Foo ID', type: 'string' }] };
 
     beforeEach(() => {
-      resetOutputFolderMock = jest
-        .spyOn(FauxClassGenerator.prototype as any, 'resetOutputFolder')
-        .mockResolvedValue(true);
-      getStandardMock = jest.fn();
-      getCustomMock = jest.fn();
-      fakeOutput = {
-        sfdxPath: fakeSfdxPath,
-        getStandard: getStandardMock,
-        getCustom: getCustomMock
-      };
+      jest.restoreAllMocks();
+      declarationGeneratorSpy = jest.spyOn(declarationGenerator, 'generateSObjectDefinition');
     });
 
     it('Should throw if output folder can not be reset.', async () => {
-      resetOutputFolderMock.mockResolvedValue(false);
-      getStandardMock.mockReturnValue([]);
-      getCustomMock.mockReturnValue([]);
-      const expectedError = nls.localize('no_sobject_output_folder_text', expectedFolderPath);
-      const fauxClassGeneratorInst = new FauxClassGenerator('STANDARD', fakePath);
+      const originalErrorMsg = 'Failed to delete folder';
+      jest.spyOn(utils, 'safeDelete').mockRejectedValue(new Error(originalErrorMsg));
 
       try {
-        await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
+        // @ts-expect-error - partial mock
+        await generateFauxClasses({ standard: [standardMock], custom: [] });
       } catch (error) {
-        expect(error).toEqual(expectedError);
+        assert(error instanceof Error);
+        expect(error.message).toContain(utils.projectPaths.toolsFolder());
+        expect(error.message).toContain(originalErrorMsg);
       }
     });
 
     it('Should process standard sobjects.', async () => {
-      const fakeSObject = { name: 'fake' };
-      const fakeSobjectDef = 'look at me the sobject';
-      getStandardMock.mockReturnValue([fakeSObject]);
-      declarationGeneratorMocked.mockReturnValue(fakeSobjectDef as any);
-
-      const fauxClassGeneratorInst = new FauxClassGenerator('STANDARD', fakePath);
-      await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
-
-      expect(fakeOutput.getStandard).toHaveBeenCalled();
-      expect(fakeOutput.getCustom).not.toHaveBeenCalled();
-      expect(declarationGeneratorMocked).toHaveBeenCalledWith(fakeSObject);
+      // @ts-expect-error - partial mock
+      await generateFauxClasses({ standard: [standardMock], custom: [] });
+      // the actual declarationGenerated is tested separately, so we just check that it is being was called
+      expect(declarationGeneratorSpy).toHaveBeenCalledWith(standardMock);
     });
 
     it('Should process custom sobjects.', async () => {
-      const fakeSObject = { name: 'fake' };
-      const fakeSobjectDef = 'look at me the sobject';
-      getCustomMock.mockReturnValue([fakeSObject]);
-      declarationGeneratorMocked.mockReturnValue(fakeSobjectDef as any);
+      // @ts-expect-error - partial mock
+      await generateFauxClasses({ standard: [], custom: [customMock] });
+      // the actual declarationGenerated is tested separately, so we just check that it is being was called
+      expect(declarationGeneratorSpy).toHaveBeenCalledWith(customMock);
+    });
 
-      const fauxClassGeneratorInst = new FauxClassGenerator('CUSTOM', fakePath);
-      await fauxClassGeneratorInst.generate(fakeOutput as SObjectRefreshOutput);
-
-      expect(fakeOutput.getStandard).not.toHaveBeenCalled();
-      expect(fakeOutput.getCustom).toHaveBeenCalled();
-      expect(declarationGeneratorMocked).toHaveBeenCalledWith(fakeSObject);
+    it('Should process both standard and custom sobjects.', async () => {
+      // @ts-expect-error - partial mock
+      await generateFauxClasses({ standard: [standardMock], custom: [customMock] });
+      // the actual declarationGenerated is tested separately, so we just check that it is being was called
+      expect(declarationGeneratorSpy).toHaveBeenCalledWith(standardMock);
+      expect(declarationGeneratorSpy).toHaveBeenCalledWith(customMock);
     });
   });
 });

@@ -39,7 +39,9 @@ const resetOutputFolder = async (pathToClean: string): Promise<string> => {
     await createDirectory(pathToClean);
     return pathToClean;
   } catch (error) {
-    throw new Error(`Failed to reset output folder: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Failed to reset output folder ${pathToClean}: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 };
 

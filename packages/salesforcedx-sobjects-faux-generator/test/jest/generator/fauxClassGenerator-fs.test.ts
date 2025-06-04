@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+
+import * as utils from '@salesforce/salesforcedx-utils-vscode';
+import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
-import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR } from '../../../src';
+import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR } from '../../../src/constants';
 import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
 import { generateFauxClass, generateFauxClassText } from '../../../src/generator/fauxClassGenerator';
 import { nls } from '../../../src/messages';
@@ -20,7 +22,7 @@ const vscodeMocked = jest.mocked(vscode);
 describe('FauxClassGenerator Filesystem Tests', () => {
   let classPath = '';
   const sfdxPath = process.cwd();
-  const baseFolder = join(sfdxPath, TOOLS, SOBJECTS_DIR);
+  const baseFolder = join(sfdxPath, utils.TOOLS, SOBJECTS_DIR);
   const customOutputPath = join(baseFolder, CUSTOMOBJECTS_DIR);
 
   beforeEach(() => {
