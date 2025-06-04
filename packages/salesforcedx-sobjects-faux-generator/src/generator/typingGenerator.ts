@@ -70,7 +70,7 @@ const convertDeclarations = (definition: SObjectDefinition): string =>
     .join(`${EOL}`)
     .concat(`${EOL}`);
 
-// Non-exported helper
+/** delete the existing file and write a new one for each sobject */
 export const generateType = async (folderPath: string, definition: SObjectDefinition): Promise<string> => {
   const typingPath = path.join(folderPath, `${definition.name}${TYPESCRIPT_TYPE_EXT}`);
   await safeDelete(typingPath);
