@@ -7,12 +7,12 @@
 import type { Connection } from '@salesforce/core';
 import type { CancellationToken } from '@salesforce/salesforcedx-utils';
 import { EventEmitter } from 'node:events';
-// import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
+import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
 import { describeGlobal, describeSObjects } from '../describe/sObjectDescribe';
 import { generateFauxClasses } from '../generator/fauxClassGenerator';
 import { writeTypeNamesFile, generateAllMetadata } from '../generator/soqlMetadataGenerator';
 import { generateAllTypes } from '../generator/typingGenerator';
-// import { nls } from '../messages';
+import { nls } from '../messages';
 import { getMinNames, getMinObjects } from '../retriever/minObjectRetriever';
 import { sobjectTypeFilter } from '../retriever/orgObjectRetriever';
 import { SObjectCategory, SObjectRefreshResult, SObjectRefreshSource } from '../types';
@@ -33,28 +33,47 @@ type WriteSobjectFilesArgs = {
 );
 
 export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SObjectRefreshResult> => {
-  const { sobjectNames, sobjects } =
-    args.source === 'startupmin'
-      ? { sobjectNames: getMinNames(), sobjects: getMinObjects() }
-      : await getNamesAndTypes(args.conn, args.category, args.source);
+  try {
+    const { sobjectNames, sobjects } =
+      args.source === 'startupmin'
+        ? { sobjectNames: getMinNames(), sobjects: getMinObjects() }
+        : await getNamesAndTypes(args.conn, args.category, args.source);
 
-  await Promise.all([
-    generateFauxClasses(sobjects),
-    generateAllTypes(sobjects),
-    writeTypeNamesFile(sobjectNames),
-    generateAllMetadata(sobjects)
-  ]);
-  return {
-    data: {
-      cancelled: false,
-      standardObjects: sobjects.standard.length,
-      customObjects: sobjects.custom.length
+    Array.from(
+      Object.entries(sobjects).map(([category, objects]) => {
+        args.emitter.emit(STDOUT_EVENT, nls.localize('processed_sobjects_length_text', objects.length, category));
+      })
+    );
+
+    if (!args.cancellationToken.isCancellationRequested) {
+      await Promise.all([
+        generateFauxClasses(sobjects),
+        generateAllTypes(sobjects),
+        writeTypeNamesFile(sobjectNames),
+        generateAllMetadata(sobjects)
+      ]);
+
+      args.emitter.emit(EXIT_EVENT, SUCCESS_CODE);
+    } else {
+      args.emitter.emit(EXIT_EVENT, FAILURE_CODE);
     }
-    // TODO: logging?
-    // TODO: error handling
-    // TODO: cancellable wrapper for fns.
-    // TODO: event handling
-  };
+
+    return {
+      data: {
+        cancelled: args.cancellationToken.isCancellationRequested,
+        standardObjects: sobjects.standard.length,
+        customObjects: sobjects.custom.length
+      }
+    };
+  } catch (error) {
+    args.emitter.emit(STDERR_EVENT, `${error instanceof Error ? error.message : String(error)}\n`);
+    args.emitter.emit(ERROR_EVENT, error);
+    args.emitter.emit(EXIT_EVENT, FAILURE_CODE);
+    return Promise.reject({
+      error: error instanceof Error ? error : new Error(String(error)),
+      data: { cancelled: false }
+    });
+  }
 };
 
 const getNamesAndTypes = async (conn: Connection, category: SObjectCategory, source: SObjectRefreshSource) => {
