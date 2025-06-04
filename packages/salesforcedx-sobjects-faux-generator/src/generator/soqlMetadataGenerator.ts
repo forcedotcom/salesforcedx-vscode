@@ -4,20 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS, createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { TOOLS, createDirectory, projectPaths, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../constants';
-import { SObjectShortDescription } from '../describe/types';
+import { SObjectShortDescription, SObjectsStandardAndCustom } from '../describe/types';
 import { nls } from '../messages';
 import { SObject, SObjectCategory, SObjectGenerator, SObjectRefreshOutput } from '../types';
 
 const BASE_FOLDER = [TOOLS, SOQLMETADATA_DIR];
+const outputFolderPath = path.join(projectPaths.stateFolder(), ...BASE_FOLDER);
 
 export class SOQLMetadataGenerator implements SObjectGenerator {
   public constructor(private category: SObjectCategory) {}
 
   public async generate(output: SObjectRefreshOutput): Promise<void> {
-    const outputFolderPath = path.join(output.sfdxPath, ...BASE_FOLDER);
     if (!(await this.resetOutputFolder(outputFolderPath, this.category))) {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
@@ -64,4 +64,29 @@ const generateMetadataForSObject = async (folderPath: string, sobject: SObject):
     `${sobject.name}.json`
   );
   await writeFile(targetPath, JSON.stringify(sobject, null, 2));
+};
+
+export const generateAllMetadata = async (sobjects: SObjectsStandardAndCustom) => {
+  await createDirectory(outputFolderPath);
+
+  await Promise.all([
+    ...Object.entries(sobjects)
+      .filter(([_, objects]) => objects.length > 0)
+      .map(async ([category, objects]) => {
+        const objectFolder = path.join(
+          outputFolderPath,
+          category === 'standard' ? STANDARDOBJECTS_DIR : CUSTOMOBJECTS_DIR
+        );
+        await safeDelete(objectFolder, { recursive: true, useTrash: false });
+        await createDirectory(objectFolder);
+        return objects.map(o => generateMetadataForSObject(objectFolder, o));
+      })
+  ]);
+};
+
+export const writeTypeNamesFile = async (typeNames: SObjectShortDescription[]): Promise<void> => {
+  await createDirectory(outputFolderPath);
+  const typeNameFile = path.join(outputFolderPath, 'typeNames.json');
+  await safeDelete(typeNameFile);
+  await writeFile(typeNameFile, JSON.stringify(typeNames, null, 2));
 };

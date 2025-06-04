@@ -43,7 +43,7 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
     const retrieveTypes: string[] = output
       .getTypeNames()
-      .filter(sobjectFilter(this.category, this.source))
+      .filter(sobjectTypeFilter(this.category, this.source))
       .map(t => t.name);
 
     try {
@@ -57,7 +57,8 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
   }
 }
 
-export const sobjectFilter =
+/** filter out standard or custom if necessary and handle the "required" sobject types */
+export const sobjectTypeFilter =
   (category: SObjectCategory, source: SObjectRefreshSource) => (sobject: SObjectShortDescription) => {
     const isCustomObject = sobject.custom === true && category === 'CUSTOM';
     const isStandardObject = sobject.custom === false && category === 'STANDARD';
@@ -77,5 +78,4 @@ export const sobjectFilter =
   };
 
 /* Ignore all sobjects that end with Share or History or Feed or Event */
-
 const isRequiredSObject = (sobject: string): boolean => !/Share$|History$|Feed$|.+Event$/.test(sobject);

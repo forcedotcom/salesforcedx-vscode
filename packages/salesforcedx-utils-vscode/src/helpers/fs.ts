@@ -53,7 +53,7 @@ export const fileOrFolderExists = async (filePath: string): Promise<boolean> => 
 };
 
 /**
- * Creates a directory recursively
+ * Creates a directory recursively.  Will not throw if the directory already exists.
  * @param dirPath The path to the directory
  */
 export const createDirectory = async (dirPath: string): Promise<void> => {

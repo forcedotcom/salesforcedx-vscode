@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { createDirectory, projectPaths, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import * as path from 'node:path';
+import { SObjectsStandardAndCustom } from '../describe/types';
 import { FieldDeclaration, SObject, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { generateSObjectDefinition } from './declarationGenerator';
 
@@ -16,21 +17,25 @@ const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 export class TypingGenerator implements SObjectGenerator {
   public async generate(output: SObjectRefreshOutput): Promise<void> {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
-    await this.generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
-  }
-
-  public async generateTypes(sobjects: SObject[], targetFolder: string): Promise<void> {
-    await createDirectory(targetFolder);
-
-    await Promise.all(
-      sobjects
-        .filter(o => o.name)
-        .map(o => generateSObjectDefinition(o))
-        .map(o => generateType(targetFolder, o))
-    );
+    await generateTypes([...output.getStandard(), ...output.getCustom()], typingsFolderPath);
   }
 }
 
+export const generateAllTypes = async (sobjects: SObjectsStandardAndCustom) => {
+  const typingsFolderPath = path.join(projectPaths.stateFolder(), ...TYPING_PATH);
+  await generateTypes([...sobjects.standard, ...sobjects.custom], typingsFolderPath);
+};
+
+const generateTypes = async (sobjects: SObject[], targetFolder: string): Promise<void> => {
+  await createDirectory(targetFolder);
+
+  await Promise.all(
+    sobjects
+      .filter(o => o.name)
+      .map(o => generateSObjectDefinition(o))
+      .map(o => generateType(targetFolder, o))
+  );
+};
 const isCollectionType = (fieldType: string): boolean =>
   fieldType.startsWith('List<') || fieldType.startsWith('Set<') || fieldType.startsWith('Map<');
 

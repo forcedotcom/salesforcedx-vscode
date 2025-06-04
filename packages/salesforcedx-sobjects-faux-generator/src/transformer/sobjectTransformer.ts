@@ -4,18 +4,27 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Connection } from '@salesforce/core';
 import type { CancellationToken } from '@salesforce/salesforcedx-utils';
 import { fileOrFolderExists, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'node:events';
 import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
+import { describeGlobal, describeSObjects } from '../describe/sObjectDescribe';
 import { SObjectShortDescription } from '../describe/types';
+import { generateFauxClasses } from '../generator/fauxClassGenerator';
+import { writeTypeNamesFile, generateAllMetadata } from '../generator/soqlMetadataGenerator';
+import { generateAllTypes } from '../generator/typingGenerator';
 import { nls } from '../messages';
+import { getMinNames, getMinObjects } from '../retriever/minObjectRetriever';
+import { sobjectTypeFilter } from '../retriever/orgObjectRetriever';
 import {
   SObject,
+  SObjectCategory,
   SObjectDefinitionRetriever,
   SObjectGenerator,
   SObjectRefreshOutput as SObjectRefreshData,
-  SObjectRefreshResult
+  SObjectRefreshResult,
+  SObjectRefreshSource
 } from '../types';
 
 type SObjectRefreshTransformData = SObjectRefreshData & {
@@ -23,6 +32,45 @@ type SObjectRefreshTransformData = SObjectRefreshData & {
   standard: SObject[];
   custom: SObject[];
   error?: { message: string; stack?: string };
+};
+
+type WriteSobjectFilesArgs = {
+  emitter: EventEmitter;
+  cancellationToken: CancellationToken;
+} & (
+  | {
+      source: Extract<SObjectRefreshSource, 'startupmin'>;
+      category: Extract<SObjectCategory, 'STANDARD'>;
+    }
+  | {
+      source: Exclude<SObjectRefreshSource, 'startupmin'>;
+      category: SObjectCategory;
+      conn: Connection;
+    }
+);
+
+export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SObjectRefreshResult> => {
+  const sobjectNames =
+    args.source === 'startupmin'
+      ? getMinNames()
+      : (await describeGlobal(args.conn)).filter(sobjectTypeFilter(args.category, args.source));
+  // TODO: cancellable wrapper for fns.
+  const sobjects = args.source === 'startupmin' ? getMinObjects() : await describeSObjects(args.conn, sobjectNames);
+  await Promise.all([
+    generateFauxClasses(sobjects),
+    generateAllTypes(sobjects),
+    writeTypeNamesFile(sobjectNames),
+    generateAllMetadata(sobjects)
+  ]);
+  return {
+    data: {
+      cancelled: false,
+      standardObjects: sobjects.standard.length,
+      customObjects: sobjects.custom.length
+    }
+    // TODO: error handling
+    // TODO: cancellable wrapper for fns.
+  };
 };
 
 export class SObjectTransformer {

@@ -9,8 +9,8 @@ import {
   type SObjectCategory,
   type SObjectRefreshSource,
   SOBJECTS_DIR,
-  SObjectTransformerFactory,
-  STANDARDOBJECTS_DIR
+  STANDARDOBJECTS_DIR,
+  writeSobjectFiles
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
@@ -29,8 +29,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
-import { SalesforceProjectConfig } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
@@ -122,7 +122,8 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
 
     const commandName = execution.command.logName;
     try {
-      const transformer = await SObjectTransformerFactory.create({
+      // @ts-expect-error - TODO: remove when core-bundle is no longer used (conn types differ)
+      const result = await writeSobjectFiles({
         emitter: execution.cmdEmitter,
         cancellationToken,
         ...(response.data.source === 'startupmin'
@@ -132,13 +133,11 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
             }
           : {
               category: response.data.category,
-              source: response.data.source
-            }),
-        // @ts-expect-error - TODO: remove when core-bundle is no longer used
-        sfProject: await SalesforceProjectConfig.getInstance()
+              source: response.data.source,
+              // TODO: make the consumer pass in the properly versioned connection
+              conn: await WorkspaceContext.getInstance().getConnection()
+            })
       });
-
-      const result = await transformer.transform();
 
       console.log('Generate success ' + JSON.stringify(result.data));
       this.logMetric(

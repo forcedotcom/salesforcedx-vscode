@@ -4,12 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS, createDirectory, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
+import { TOOLS, createDirectory, projectPaths, safeDelete, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import * as path from 'node:path';
-import { SOBJECTS_DIR } from '../constants';
+import { CUSTOMOBJECTS_DIR, SOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../constants';
 import { nls } from '../messages';
-import { FieldDeclaration, SObjectCategory, SObjectDefinition, SObjectGenerator, SObjectRefreshOutput } from '../types';
+import {
+  FieldDeclaration,
+  SObject,
+  SObjectCategory,
+  SObjectDefinition,
+  SObjectGenerator,
+  SObjectRefreshOutput
+} from '../types';
 import { generateSObjectDefinition, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
@@ -31,7 +38,7 @@ export class FauxClassGenerator implements SObjectGenerator {
 
   public async generate(output: SObjectRefreshOutput): Promise<void> {
     const outputFolderPath = path.join(output.sfdxPath, ...REL_BASE_FOLDER, this.relativePath);
-    if (!(await this.resetOutputFolder(outputFolderPath))) {
+    if (!(await resetOutputFolder(outputFolderPath))) {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
@@ -42,17 +49,34 @@ export class FauxClassGenerator implements SObjectGenerator {
         .map(o => generateFauxClass(outputFolderPath, generateSObjectDefinition(o)))
     );
   }
-
-  private async resetOutputFolder(pathToClean: string): Promise<boolean> {
-    try {
-      await safeDelete(pathToClean, { recursive: true, useTrash: false });
-      await createDirectory(pathToClean);
-      return true;
-    } catch (error) {
-      throw new Error(`Failed to reset output folder: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
 }
+
+export const generateFauxClasses = async (sobjects: { standard: SObject[]; custom: SObject[] }): Promise<string[]> =>
+  (
+    await Promise.all(
+      Object.entries(sobjects)
+        .filter(([_, objects]) => objects.length > 0)
+        .map(async ([category, objects]) => {
+          const filePath = path.join(
+            projectPaths.stateFolder(),
+            ...REL_BASE_FOLDER,
+            category === 'standard' ? STANDARDOBJECTS_DIR : CUSTOMOBJECTS_DIR
+          );
+          await resetOutputFolder(filePath);
+          return Promise.all(objects.map(o => generateFauxClass(filePath, generateSObjectDefinition(o))));
+        })
+    )
+  ).flat();
+
+const resetOutputFolder = async (pathToClean: string): Promise<string> => {
+  try {
+    await safeDelete(pathToClean, { recursive: true, useTrash: false });
+    await createDirectory(pathToClean);
+    return pathToClean;
+  } catch (error) {
+    throw new Error(`Failed to reset output folder: ${error instanceof Error ? error.message : String(error)}`);
+  }
+};
 
 const fieldDeclToString = (decl: FieldDeclaration): string =>
   `${commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;

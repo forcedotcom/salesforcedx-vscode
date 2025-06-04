@@ -16,3 +16,9 @@ export class MinObjectRetriever implements SObjectDefinitionRetriever {
     output.addStandard(minMetadata.standard);
   }
 }
+
+export const getMinNames = () => minSObjectsFromFile.typeNames;
+export const getMinObjects = () => ({
+  standard: minSObjectsFromFile.standard,
+  custom: []
+});
