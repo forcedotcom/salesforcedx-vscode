@@ -6,6 +6,7 @@
  */
 import { fileOrFolderExists, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as sfdxUtils from '@salesforce/salesforcedx-utils-vscode';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { generateSObjectDefinition } from '../../../src/generator/declarationGenerator';
 import { generateType, generateAllTypes } from '../../../src/generator/typingGenerator';
@@ -287,7 +288,7 @@ describe('SObject Javascript type declaration generator', () => {
     const sobjects = { standard: [standard], custom: [custom] };
 
     // Mock projectPaths.stateFolder to a temp dir
-    const tempDir = '/tmp/typings-test';
+    const tempDir = path.join('tmp', 'typings-test');
     jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(tempDir);
     const createDirectoryMock = jest.spyOn(sfdxUtils, 'createDirectory').mockResolvedValue(undefined);
     const writeFileMock = jest.spyOn(sfdxUtils, 'writeFile').mockResolvedValue(undefined);
@@ -295,10 +296,11 @@ describe('SObject Javascript type declaration generator', () => {
 
     await generateAllTypes(sobjects);
 
-    expect(createDirectoryMock).toHaveBeenCalledWith(`${tempDir}/typings/lwc/sobjects`);
-    expect(writeFileMock).toHaveBeenCalledWith(expect.stringContaining('StandardObj.d.ts'), expect.any(String));
-    expect(writeFileMock).toHaveBeenCalledWith(expect.stringContaining('CustomObj__c.d.ts'), expect.any(String));
-    expect(safeDeleteMock).toHaveBeenCalledWith(expect.stringContaining('StandardObj.d.ts'));
-    expect(safeDeleteMock).toHaveBeenCalledWith(expect.stringContaining('CustomObj__c.d.ts'));
+    const typingsFolder = path.join(tempDir, 'typings', 'lwc', 'sobjects');
+    expect(createDirectoryMock).toHaveBeenCalledWith(typingsFolder);
+    expect(writeFileMock).toHaveBeenCalledWith(path.join(typingsFolder, 'StandardObj.d.ts'), expect.any(String));
+    expect(writeFileMock).toHaveBeenCalledWith(path.join(typingsFolder, 'CustomObj__c.d.ts'), expect.any(String));
+    expect(safeDeleteMock).toHaveBeenCalledWith(path.join(typingsFolder, 'StandardObj.d.ts'));
+    expect(safeDeleteMock).toHaveBeenCalledWith(path.join(typingsFolder, 'CustomObj__c.d.ts'));
   });
 });
