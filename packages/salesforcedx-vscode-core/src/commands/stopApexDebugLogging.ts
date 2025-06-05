@@ -17,16 +17,15 @@ export const turnOffLogging = async (): Promise<void> => {
 
   const connection = await WorkspaceContext.getInstance().getConnection();
 
-  // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
-  const replayDebuggerLevels = await connection.tooling.query(
+  // Check if a TraceFlag already exists
+  const traceFlags = await connection.tooling.query(
     "SELECT id FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
   );
-  const replayDebuggerLevelsExists = replayDebuggerLevels.records.length > 0;
+  const traceFlagExists = traceFlags.records.length > 0;
 
-  if (replayDebuggerLevelsExists) {
-    try {
-      const traceFlagId = typeof replayDebuggerLevels.records[0].Id === 'string'
-        ? replayDebuggerLevels.records[0].Id
+  if (traceFlagExists) {
+    const traceFlagId = typeof traceFlags.records[0].Id === 'string'
+      ? traceFlags.records[0].Id
         : '';
       await connection.tooling.delete('TraceFlag', traceFlagId);
       developerLogTraceFlag.turnOffLogging();
