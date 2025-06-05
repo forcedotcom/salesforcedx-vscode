@@ -19,7 +19,7 @@ export const turnOffLogging = async (): Promise<void> => {
 
   // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
   const replayDebuggerLevels = await connection.tooling.query(
-    "SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
+    "SELECT id FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
   );
   const replayDebuggerLevelsExists = replayDebuggerLevels.records.length > 0;
 
