@@ -126,6 +126,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     token?: CancellationToken
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
+    // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const testService = new TestService(connection);
     const testLevel = TestLevel.RunSpecifiedTests;
     const codeCoverage = settings.retrieveTestCodeCoverage();

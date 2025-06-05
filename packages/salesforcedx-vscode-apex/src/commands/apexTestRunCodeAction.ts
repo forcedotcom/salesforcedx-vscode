@@ -15,11 +15,10 @@ import {
   TestService
 } from '@salesforce/apex-node-bundle';
 import { ApexDiagnostic } from '@salesforce/apex-node-bundle/lib/src/utils';
-import { NamedPackageDir, SfProject } from '@salesforce/core-bundle';
+import type { NamedPackageDir } from '@salesforce/core';
 import {
   ContinueResponse,
   EmptyParametersGatherer,
-  getRootWorkspacePath,
   getTestResultsFolder,
   LibraryCommandletExecutor,
   notificationService,
@@ -27,6 +26,7 @@ import {
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -60,6 +60,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     token?: vscode.CancellationToken
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
+    // @ts-expect-error - mismatch in Logger between core and core-bundle
     const testService = new TestService(connection);
     const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, this.tests.join());
 
@@ -98,17 +99,21 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 
   private async handleDiagnostics(result: TestResult): Promise<void> {
     ApexLibraryTestRunExecutor.diagnostics.clear();
-    const projectPath = getRootWorkspacePath();
-    const project = await SfProject.resolve(projectPath);
 
     const testsWithDiagnostics = result.tests.filter(isTestWithDiagnostic);
     if (testsWithDiagnostics.length === 0) {
       return;
     }
 
+    const coreExtAPI = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
+    const project = await coreExtAPI?.exports.services.SalesforceProjectConfig.getInstance();
+
+    if (!project) {
+      return;
+    }
     const correlatedArtifacts = await this.mapApexArtifactToFilesystem(
       testsWithDiagnostics,
-      project.getPackageDirectories()
+      await project.getUniquePackageDirectories()
     );
 
     testsWithDiagnostics.forEach(test => {

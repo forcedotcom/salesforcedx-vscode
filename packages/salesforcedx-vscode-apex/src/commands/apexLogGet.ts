@@ -74,6 +74,7 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
 
   public async getLogRecords(): Promise<LogRecord[]> {
     const connection = await workspaceContext.getConnection();
+    // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const logService = new LogService(connection);
     return vscode.window.withProgress(
       {
@@ -94,6 +95,7 @@ class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
 
   public async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
+    // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 

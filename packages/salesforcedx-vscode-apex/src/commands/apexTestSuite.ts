@@ -45,6 +45,7 @@ const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const connection = await workspaceContext.getConnection();
+  // @ts-expect-error - mismatch between core and core-bundle because of Logger
   const testService = new TestService(connection);
   const testSuites = await testService.retrieveAllSuites();
 
@@ -128,6 +129,7 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
 
   public async run(response: ContinueResponse<ApexTestSuiteOptions>): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
+    // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const testService = new TestService(connection);
     await testService.buildSuite(response.data.suitename, response.data.tests);
     return true;
