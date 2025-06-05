@@ -15,6 +15,7 @@ import { generateAllTypes } from '../generator/typingGenerator';
 import { nls } from '../messages';
 import { getMinNames, getMinObjects } from '../retriever/minObjectRetriever';
 import { SObjectCategory, SObjectRefreshResult, SObjectRefreshSource } from '../types';
+import { capitalize } from '../utils';
 import { sobjectTypeFilter } from './sobjectFilter';
 
 type WriteSobjectFilesArgs = {
@@ -41,7 +42,10 @@ export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SO
 
     Array.from(
       Object.entries(sobjects).map(([category, objects]) => {
-        args.emitter.emit(STDOUT_EVENT, nls.localize('processed_sobjects_length_text', objects.length, category));
+        args.emitter.emit(
+          STDOUT_EVENT,
+          nls.localize('processed_sobjects_length_text', objects.length, capitalize(category))
+        );
       })
     );
 
