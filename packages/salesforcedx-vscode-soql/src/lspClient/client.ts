@@ -47,9 +47,4 @@ export const startLanguageClient = async (extensionContext: ExtensionContext): P
   client = queryValidation.afterStart(client);
 };
 
-export const stopLanguageClient = (): Thenable<void> | undefined => {
-  if (!client) {
-    return undefined;
-  }
-  return client.stop();
-};
+export const stopLanguageClient = (): Thenable<void> | undefined => client?.stop();
