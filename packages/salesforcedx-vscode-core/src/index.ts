@@ -87,10 +87,10 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, TRACE_FLAG_EXPIRATION_KEY } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, showDemoMode } from './decorators';
+import { decorators, showDemoMode, showTraceFlagExpiration } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -216,7 +216,10 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger);
 
-  const startApexDebugLoggingCmd = vscode.commands.registerCommand('sf.start.apex.debug.logging', turnOnLogging);
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sf.start.apex.debug.logging',
+    () => turnOnLogging(extensionContext)
+  );
 
   const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
 
@@ -385,6 +388,12 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
   void showTelemetryMessage(extensionContext);
+
+  // Apex Replay Debugger Expiration Status Bar Entry
+  const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
+  if (expirationDate) {
+    showTraceFlagExpiration(new Date(expirationDate));
+  }
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider('sf.tasks.view', taskViewService);

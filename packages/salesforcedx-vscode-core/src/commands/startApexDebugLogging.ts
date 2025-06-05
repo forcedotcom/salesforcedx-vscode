@@ -6,7 +6,8 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
+import * as vscode from 'vscode';
+import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { showTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { nls } from '../messages';
@@ -17,7 +18,7 @@ import { developerLogTraceFlag } from '.';
 
 const command = 'start_apex_debug_logging';
 
-export const turnOnLogging = async (): Promise<void> => {
+export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   handleStartCommand(command);
 
   try {
@@ -60,6 +61,7 @@ export const turnOnLogging = async (): Promise<void> => {
     }
 
     developerLogTraceFlag.setTraceFlagDebugLevelInfo(traceFlagResult.id, traceFlag.StartDate, traceFlag.ExpirationDate, debugLevelResultId ?? null);
+    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, expirationDate);
     showTraceFlagExpiration(expirationDate);
     developerLogTraceFlag.turnOnLogging();
 
