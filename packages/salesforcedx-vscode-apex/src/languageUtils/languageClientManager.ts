@@ -58,6 +58,12 @@ export interface ProcessDetail {
   orphaned: boolean;
 }
 
+export type LineBreakpointInfo = {
+  uri: string;
+  typeref: string;
+  lines: number[];
+};
+
 interface RestartQuickPickItem extends vscode.QuickPickItem {
   type: 'restart' | 'reset';
 }
@@ -110,8 +116,8 @@ export class LanguageClientManager {
     this.status = new LanguageClientStatus(status, message);
   }
 
-  public async getLineBreakpointInfo(): Promise<{}> {
-    return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_LINE_BREAKPOINTS) : {};
+  public async getLineBreakpointInfo(): Promise<LineBreakpointInfo[]> {
+    return this.clientInstance ? this.clientInstance.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS) : [];
   }
 
   public async getApexTests(): Promise<ApexTestMethod[]> {

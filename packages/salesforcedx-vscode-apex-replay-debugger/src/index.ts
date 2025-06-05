@@ -21,6 +21,8 @@ import {
   breakpointUtil
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as path from 'node:path';
+import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
@@ -46,7 +48,9 @@ export enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
-const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
+const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
+  'salesforce.salesforcedx-vscode-core'
+);
 
 const registerCommands = (): vscode.Disposable => {
   const dialogStartingPathUri = getDialogStartingPath(extContext);
@@ -190,10 +194,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
 
   // Telemetry
-  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+  if (salesforceCoreExtension) {
     telemetryService.initializeService(
       salesforceCoreExtension.exports.telemetryService.getReporters(),
-      salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
+      await salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
 
@@ -201,8 +205,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 };
 
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
-  const salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
-  if (salesforceApexExtension && salesforceApexExtension.exports) {
+  const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
+  if (salesforceApexExtension) {
     let expired = false;
     let i = 0;
     while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
@@ -222,7 +226,7 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
       return false;
     } else {
       const lineBpInfo = await salesforceApexExtension.exports.getLineBreakpointInfo();
-      if (lineBpInfo && lineBpInfo.length > 0) {
+      if (lineBpInfo?.length) {
         console.log(nls.localize('line_breakpoint_information_success'));
         breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
         return true;
