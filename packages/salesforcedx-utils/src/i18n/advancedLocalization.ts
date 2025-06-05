@@ -12,7 +12,19 @@ import { Message } from './message';
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-const SUPPORTED_LOCALES = [DEFAULT_LOCALE, 'ja'] as const;
+const SUPPORTED_LOCALES: Locale[] = [DEFAULT_LOCALE, 'ja'] as const;
+
+/**
+ * Type guard function to check if a value is a valid Locale
+ * @param value - The value to check
+ * @returns true if the value is a valid Locale, false otherwise
+ */
+export const isLocale = (value: unknown): value is Locale => {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  return SUPPORTED_LOCALES.includes(value as Locale);
+};
 
 class LocalizationConfig {
   private static instance: LocalizationConfig | undefined;
@@ -20,20 +32,15 @@ class LocalizationConfig {
   private constructor() {}
 
   public static getInstance(instanceName: string): LocalizationConfig {
-    if (!LocalizationConfig.instance) {
-      LocalizationConfig.instance = new LocalizationConfig();
-    }
+    LocalizationConfig.instance ??= new LocalizationConfig();
     return LocalizationConfig.instance;
   }
 
   public isLocaleSupported(locale: unknown): boolean {
-    if (typeof locale !== 'string') {
-      return false;
-    }
-    return SUPPORTED_LOCALES.includes(locale as Locale);
+    return isLocale(locale);
   }
 
-  public getDefaultLocale(): string {
+  public getDefaultLocale(): Locale {
     return DEFAULT_LOCALE;
   }
 }

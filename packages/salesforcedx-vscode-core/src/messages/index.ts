@@ -6,6 +6,7 @@
  */
 
 import { LOCALE_JA, LocalizationService, MessageArgs } from '@salesforce/salesforcedx-utils-vscode';
+import { telemetryService } from '../telemetry';
 import { messages as enMessages, isValidMessageKey, MessageKey } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
@@ -29,6 +30,13 @@ export const nls = {
     localizationService.localize(key, ...args)
 };
 
-export function coerceMessageKey(key: string): MessageKey {
-  return isValidMessageKey(key) ? key : 'missing_label';
-}
+export const coerceMessageKey = (key: string): MessageKey => {
+  const isValid = isValidMessageKey(key);
+
+  if (!isValid) {
+    // Send telemetry exception for missing message key
+    telemetryService.sendException('missing_message_key', `Invalid message key: ${key}`);
+  }
+
+  return isValid ? key : 'missing_label';
+};
