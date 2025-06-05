@@ -11,7 +11,8 @@ import {
   RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL,
-  extractJsonObject
+  extractJsonObject,
+  LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
@@ -35,7 +36,7 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import * as os from 'node:os';
 import { basename } from 'node:path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
-import { LineBreakpointInfo, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
+import { LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {
   DebuggerResponse,
   FrameCommand,

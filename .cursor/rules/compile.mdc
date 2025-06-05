@@ -1,0 +1,7 @@
+---
+description: compile, checking changes
+globs:
+alwaysApply: false
+---
+`npm run compile` will re-compile all the packages.
+`npm run compile -w [packageName from package.json]` to compile a single package

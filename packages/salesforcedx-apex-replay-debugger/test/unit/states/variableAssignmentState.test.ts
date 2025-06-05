@@ -8,12 +8,9 @@
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  ApexReplayDebug,
-  ApexVariableContainer,
-  LaunchRequestArguments,
-  VariableContainer
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { ApexVariableContainer, VariableContainer } from '../../../src/adapter/VariableContainer';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
 

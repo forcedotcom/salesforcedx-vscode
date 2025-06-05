@@ -10,14 +10,11 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { EXTENT_TRIGGER_PREFIX } from '../../../src';
-import {
-  ApexDebugStackFrameInfo,
-  ApexReplayDebug,
-  ApexVariable,
-  ApexVariableContainer,
-  LaunchRequestArguments,
-  VariableContainer
-} from '../../../src/adapter/apexReplayDebug';
+import { ApexDebugStackFrameInfo } from '../../../src/adapter/ApexDebugStackFrameInfo';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { ApexVariable } from '../../../src/adapter/ApexVariable';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { ApexVariableContainer, VariableContainer } from '../../../src/adapter/VariableContainer';
 import { ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
 import { ApexHeapDump, LogContext } from '../../../src/core';
 import { Handles } from '../../../src/core/handles';
@@ -215,7 +212,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
         adapter.setLogFile(launchRequestArgs);
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
-        staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
+        staticVariablesClassMap = new Map<string, Map<string, VariableContainer>>();
         getTopFrameStub = sinon.stub(LogContext.prototype, 'getTopFrame').returns(topFrame);
 
         createStringRefsFromHeapdumpSpy = sinon.spy(HeapDumpService.prototype, 'createStringRefsFromHeapdump');
@@ -529,7 +526,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
         adapter.setLogFile(launchRequestArgs);
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
-        staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
+        staticVariablesClassMap = new Map<string, Map<string, VariableContainer>>();
         getTopFrameStub = sinon.stub(LogContext.prototype, 'getTopFrame').returns(topFrame);
         getFrameHandlerStub = sinon.stub(LogContext.prototype, 'getFrameHandler').returns(frameHandler);
         getRefsMapStub = sinon.stub(LogContext.prototype, 'getRefsMap').returns(refsMap);
