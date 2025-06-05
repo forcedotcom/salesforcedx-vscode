@@ -88,10 +88,6 @@ const getUserId = async (connection: Connection): Promise<string> => {
     throw new Error(err);
   }
 
-  const result = await connection.singleRecordQuery(`SELECT Id FROM User WHERE Username = '${username}'`);
-  const userId = result?.Id;
-  if (!userId) {
-    throw new Error('User ID not found');
-  }
-  return userId;
+  const result = await connection.singleRecordQuery<{ Id: string }>(`SELECT Id FROM User WHERE Username = '${username}'`);
+  return result.Id;
 };
