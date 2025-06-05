@@ -14,7 +14,7 @@ describe('Breakpoint utilities', () => {
   it('Should not have line number mapping', () => {
     util = new BreakpointUtil();
 
-    expect(util.hasLineNumberMapping()).to.be.false;
+    expect(util.getLineNumberMapping()).to.be.empty;
   });
 
   it('Should return line number mapping', () => {
@@ -28,7 +28,6 @@ describe('Breakpoint utilities', () => {
 
     util.setValidLines(lineNumberMapping, typerefMapping);
 
-    expect(util.hasLineNumberMapping()).to.be.true;
     expect(util.getLineNumberMapping()).to.deep.equal(lineNumberMapping);
     expect(util.getTyperefMapping()).to.deep.equal(typerefMapping);
   });
