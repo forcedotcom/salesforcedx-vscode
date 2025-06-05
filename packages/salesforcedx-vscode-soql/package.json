@@ -32,7 +32,6 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/core-bundle": "^8.12.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "63.16.3",
     "@salesforce/salesforcedx-utils-vscode": "63.16.3",
     "@salesforce/soql-builder-ui": "1.0.0",
@@ -40,12 +39,13 @@
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "1.0.0",
-    "debounce": "^1.2.0",
+    "debounce": "^2.2.0",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/core": "^8.12.0",
     "@salesforce/salesforcedx-utils": "63.16.3",
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
