@@ -1,3 +1,11 @@
+# 63.16.3 - June 6, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We resolved an issue that caused a run-time error when activating the Apex Language Server. ([Issue #6317](https://github.com/forcedotcom/salesforcedx-vscode/issues/6317)) ([PR #6316](https://github.com/forcedotcom/salesforcedx-vscode/pull/6316))
+
 # 63.15.1 - May 30, 2025
 
 ## Added
