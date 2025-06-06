@@ -20,13 +20,11 @@ export const runQuery =
 
     try {
       const rawQueryData = await conn.query(pureSOQLText);
-      const cleanQueryData = {
+      return {
         ...rawQueryData,
         records: flattenQueryRecords(rawQueryData.records)
       };
-      return cleanQueryData;
     } catch (error) {
-      // TODO: i18n
       if (options.showErrors) {
         const message = nls.localize('error_run_soql_query', error.message);
         vscode.window.showErrorMessage(message);
