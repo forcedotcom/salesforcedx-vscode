@@ -24,7 +24,6 @@ const vscodeMocked = jest.mocked(vscode);
 const nlsMocked = jest.mocked(nls);
 
 describe('FauxClassGenerator Unit Tests.', () => {
-  // const fakePath = './this/is/a/path';
   let typePath = '';
 
   beforeEach(() => {
