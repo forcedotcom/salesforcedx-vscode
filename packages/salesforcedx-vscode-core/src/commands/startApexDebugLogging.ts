@@ -24,6 +24,23 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
   try {
     const connection = await WorkspaceContext.getInstance().getConnection();
 
+    // If an expired TraceFlag exists, delete it
+    const traceFlags = await connection.tooling.query(
+      "SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG'"
+    );
+    console.log(JSON.stringify(traceFlags, null, 2));
+    const currentTime = new Date();
+    const expiredTraceFlagExists = traceFlags.records.filter(
+      (flag: any) => flag.ExpirationDate && new Date(flag.ExpirationDate) < currentTime
+    ).length > 0;
+
+    if (expiredTraceFlagExists) {
+      const traceFlagId = typeof traceFlags.records[0].Id === 'string'
+        ? traceFlags.records[0].Id
+        : '';
+      await connection.tooling.delete('TraceFlag', traceFlagId);
+    }
+
     // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
     const replayDebuggerLevels = await connection.tooling.query(
       "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
@@ -46,7 +63,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
       debugLevelResultId = debugLevelResult.id;
     }
 
-    const expirationDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+    const expirationDate = new Date(currentTime.getTime() + 30 * 60 * 1000); // 30 minutes from now
     const traceFlag = {
       TracedEntityId: await getUserId(connection),
       LogType: 'DEVELOPER_LOG',
