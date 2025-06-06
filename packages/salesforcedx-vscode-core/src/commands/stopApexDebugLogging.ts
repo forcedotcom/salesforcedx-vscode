@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as vscode from 'vscode';
+import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { WorkspaceContext } from '../context';
 import { disposeTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
@@ -12,7 +14,7 @@ import { developerLogTraceFlag } from '.';
 
 const command = 'stop_apex_debug_logging';
 
-export const turnOffLogging = async (): Promise<void> => {
+export const turnOffLogging = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   handleStartCommand(command);
 
   const connection = await WorkspaceContext.getInstance().getConnection();
@@ -28,6 +30,7 @@ export const turnOffLogging = async (): Promise<void> => {
       ? traceFlags.records[0].Id
         : '';
       await connection.tooling.delete('TraceFlag', traceFlagId);
+    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
       developerLogTraceFlag.turnOffLogging();
       disposeTraceFlagExpiration();
       await handleFinishCommand(command, true);

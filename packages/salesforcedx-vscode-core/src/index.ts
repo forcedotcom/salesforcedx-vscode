@@ -221,7 +221,10 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     () => turnOnLogging(extensionContext)
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sf.stop.apex.debug.logging',
+    () => turnOffLogging(extensionContext)
+  );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
