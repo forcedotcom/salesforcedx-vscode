@@ -1,0 +1,35 @@
+name: Templates End to End Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      automationBranch:
+        description: 'Branch to run tests against'
+        required: false
+        type: string
+      vscodeVersion:
+        description: 'VSCode version to test against'
+        required: false
+        type: string
+      runId:
+        description: 'Run ID for tracking'
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      automationBranch:
+        required: false
+        type: string
+      vscodeVersion:
+        required: false
+        type: string
+      runId:
+        required: true
+        type: string
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Placeholder job"
