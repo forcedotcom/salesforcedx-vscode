@@ -139,7 +139,7 @@ describe('FauxClassGenerator Unit Tests.', () => {
     it('Should process standard sobjects.', async () => {
       // @ts-expect-error - partial mock
       await generateFauxClasses({ standard: [standardMock], custom: [] });
-      // the actual declarationGenerated is tested separately, so we just check that it is being was called
+      // the actual declarationGenerated is tested separately, so we just check that it is being called
       expect(declarationGeneratorSpy).toHaveBeenCalledWith(standardMock);
     });
 
