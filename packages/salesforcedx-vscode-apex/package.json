@@ -16,6 +16,8 @@
   },
   "version": "63.16.3",
   "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
