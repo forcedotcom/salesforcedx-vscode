@@ -4,7 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-// This is only done in tests because we are mocking things
+
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
 
 import {
   ConfigGet,
@@ -99,7 +107,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       try {
         await adapter.disconnectReq(disconnectResponse, disconnectArgs);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         // Ignore disconnect errors in tests
       }

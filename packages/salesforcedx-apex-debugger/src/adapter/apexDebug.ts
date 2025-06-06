@@ -1544,11 +1544,4 @@ export class ApexDebug extends LoggingDebugSession {
   }
 }
 
-// Only run the debug session if not in test mode
-// Check for Jest environment using multiple indicators
-const isTestEnvironment =
-  process.env.NODE_ENV === 'test' || typeof jest !== 'undefined' || process.env.JEST_WORKER_ID !== undefined;
-
-if (!isTestEnvironment) {
-  DebugSession.run(ApexDebug);
-}
+DebugSession.run(ApexDebug);
