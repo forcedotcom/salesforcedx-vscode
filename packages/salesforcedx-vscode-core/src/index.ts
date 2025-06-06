@@ -389,12 +389,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   await telemetryService.initializeService(extensionContext);
   void showTelemetryMessage(extensionContext);
 
-  // Apex Replay Debugger Expiration Status Bar Entry
-  const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
-  if (expirationDate) {
-    showTraceFlagExpiration(new Date(expirationDate));
-  }
-
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider('sf.tasks.view', taskViewService);
   extensionContext.subscriptions.push(treeDataProvider);
@@ -503,6 +497,35 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
+
+  console.log('DOING TRACE FLAG STUFF');
+
+  const connection = await WorkspaceContext.getInstance().getConnection();
+
+  // If an expired TraceFlag exists, delete it
+  const traceFlags = await connection.tooling.query(
+    "SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG'"
+  );
+  console.log(JSON.stringify(traceFlags, null, 2));
+  const currentTime = new Date();
+  const expiredTraceFlagExists = traceFlags.records.filter(
+    (flag: any) => flag.ExpirationDate && new Date(flag.ExpirationDate) < currentTime
+  ).length > 0;
+
+  if (expiredTraceFlagExists) {
+    const traceFlagId = typeof traceFlags.records[0].Id === 'string'
+      ? traceFlags.records[0].Id
+      : '';
+    await connection.tooling.delete('TraceFlag', traceFlagId);
+    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+  }
+
+  // Apex Replay Debugger Expiration Status Bar Entry
+  const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
+  if (expirationDate) {
+    showTraceFlagExpiration(new Date(expirationDate));
+  }
+
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
   return api;
