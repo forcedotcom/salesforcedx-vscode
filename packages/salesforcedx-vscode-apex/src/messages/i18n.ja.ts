@@ -16,7 +16,7 @@
  * If omitted, we will assume _message.
  */
 
-import { MessageKey } from '././i18n';
+import { MessageKey } from './i18n';
 
 export const messages: Partial<Record<MessageKey, string>> = {
   active_text_editor_not_apex: 'アクティブなテキストエディタは Apex クラスファイルではありません',
