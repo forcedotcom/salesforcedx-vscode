@@ -10,9 +10,6 @@ export {
   FieldDeclaration,
   SObjectCategory,
   SObjectDefinition,
-  SObjectDefinitionRetriever,
-  SObjectGenerator,
-  SObjectRefreshOutput,
   SObjectRefreshResult,
   SObjectRefreshSource
 } from './general';

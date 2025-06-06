@@ -61,7 +61,6 @@ export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionC
  * Checks for existing component name between LWC and Aura during create
  */
 export class LwcAuraDuplicateComponentCheckerForCreate implements PostconditionChecker<OneOrMany> {
-  constructor() {}
   async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (!isContinue(inputs)) {
       return Promise.resolve(inputs);

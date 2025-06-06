@@ -24,8 +24,6 @@ class MockMemento implements Memento {
   private keyValues: string[] = [];
   private values: any[] = [];
 
-  constructor() {}
-
   private getIndex(key: string): number {
     return this.keys().findIndex(value => value === key);
   }

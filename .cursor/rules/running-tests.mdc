@@ -7,4 +7,7 @@ when running tests, use `npm run test:unit`
 always run tests from the top of the project
 you can run tests for a single workspace by using `npm run test:unit -w <npm package name here>`
 peek in a workspace's package.json for the `name` property to pass that to -w
-you always have permission to run unit tests without me telling you to
+you always have permission to run unit tests without asking
+
+Run a single test by invoking jest like this -- you're passing the file to run and the related config file from it's package
+node 'node_modules/.bin/jest' '/Users/shane.mclaughlin/eng/forcedotcom/salesforcedx-vscode/packages/salesforcedx-sobjects-faux-generator/test/jest/generator/fauxClassGenerator-fs-clean.test.ts' -c '/Users/shane.mclaughlin/eng/forcedotcom/salesforcedx-vscode/packages/salesforcedx-sobjects-faux-generator/jest.config.js'

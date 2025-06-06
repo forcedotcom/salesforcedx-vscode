@@ -4,157 +4,84 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Connection } from '@salesforce/core';
 import type { CancellationToken } from '@salesforce/salesforcedx-utils';
-import { fileOrFolderExists, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'node:events';
 import { ERROR_EVENT, EXIT_EVENT, FAILURE_CODE, STDERR_EVENT, STDOUT_EVENT, SUCCESS_CODE } from '../constants';
-import { SObjectShortDescription } from '../describe';
+import { describeGlobal, describeSObjects } from '../describe/sObjectDescribe';
+import { generateFauxClasses } from '../generator/fauxClassGenerator';
+import { writeTypeNamesFile, generateAllMetadata } from '../generator/soqlMetadataGenerator';
+import { generateAllTypes } from '../generator/typingGenerator';
 import { nls } from '../messages';
-import {
-  SObject,
-  SObjectDefinitionRetriever,
-  SObjectGenerator,
-  SObjectRefreshOutput as SObjectRefreshData,
-  SObjectRefreshResult
-} from '../types';
+import { getMinNames, getMinObjects } from '../retriever/minObjectRetriever';
+import { SObjectCategory, SObjectRefreshResult, SObjectRefreshSource } from '../types';
+import { capitalize } from '../utils';
+import { sobjectTypeFilter } from './sobjectFilter';
 
-type SObjectRefreshTransformData = SObjectRefreshData & {
-  typeNames: SObjectShortDescription[];
-  standard: SObject[];
-  custom: SObject[];
-  error?: { message: string; stack?: string };
+type WriteSobjectFilesArgs = {
+  emitter: EventEmitter;
+  cancellationToken: CancellationToken;
+} & (
+  | {
+      source: Extract<SObjectRefreshSource, 'startupmin'>;
+      category: Extract<SObjectCategory, 'STANDARD'>;
+    }
+  | {
+      source: Exclude<SObjectRefreshSource, 'startupmin'>;
+      category: SObjectCategory;
+      conn: Connection;
+    }
+);
+
+export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SObjectRefreshResult> => {
+  try {
+    const { sobjectNames, sobjects } =
+      args.source === 'startupmin'
+        ? { sobjectNames: getMinNames(), sobjects: getMinObjects() }
+        : await getNamesAndTypes(args.conn, args.category, args.source);
+
+    if (!args.cancellationToken.isCancellationRequested) {
+      Array.from(
+        Object.entries(sobjects).map(([category, objects]) => {
+          args.emitter.emit(
+            STDOUT_EVENT,
+            nls.localize('processed_sobjects_length_text', objects.length, capitalize(category))
+          );
+        })
+      );
+    }
+    // those describes are the slow part.  Not much point cancelling now, it's just file transforms and writes
+    if (!args.cancellationToken.isCancellationRequested) {
+      await Promise.all([
+        generateFauxClasses(sobjects),
+        generateAllTypes(sobjects),
+        writeTypeNamesFile(sobjectNames),
+        generateAllMetadata(sobjects)
+      ]);
+    }
+
+    args.emitter.emit(EXIT_EVENT, !args.cancellationToken.isCancellationRequested ? SUCCESS_CODE : FAILURE_CODE);
+
+    return {
+      data: {
+        cancelled: args.cancellationToken.isCancellationRequested,
+        standardObjects: sobjects.standard.length,
+        customObjects: sobjects.custom.length
+      }
+    };
+  } catch (error) {
+    args.emitter.emit(STDERR_EVENT, `${error instanceof Error ? error.message : String(error)}\n`);
+    args.emitter.emit(ERROR_EVENT, error);
+    args.emitter.emit(EXIT_EVENT, FAILURE_CODE);
+    return Promise.reject({
+      error: error instanceof Error ? error : new Error(String(error)),
+      data: { cancelled: false }
+    });
+  }
 };
 
-export class SObjectTransformer {
-  private emitter: EventEmitter;
-  private cancellationToken: CancellationToken | undefined;
-  private result: SObjectRefreshResult;
-  private retrievers: SObjectDefinitionRetriever[];
-  private generators: SObjectGenerator[] = [];
-
-  public constructor(
-    emitter: EventEmitter,
-    retrievers: SObjectDefinitionRetriever[],
-    generators: SObjectGenerator[],
-    cancellationToken?: CancellationToken
-  ) {
-    this.emitter = emitter;
-    this.generators = generators;
-    this.retrievers = retrievers;
-    this.cancellationToken = cancellationToken;
-    this.result = { data: { cancelled: false } };
-  }
-
-  public async transform(): Promise<SObjectRefreshResult> {
-    const pathToStateFolder = projectPaths.stateFolder();
-
-    if (!(await fileOrFolderExists(pathToStateFolder))) {
-      return await this.errorExit(nls.localize('no_generate_if_not_in_project', pathToStateFolder));
-    }
-
-    const output: SObjectRefreshData = this.initializeData(pathToStateFolder);
-
-    for (const retriever of this.retrievers) {
-      if (this.didCancel()) {
-        return this.cancelExit();
-      }
-
-      if (this.result.error) {
-        return this.errorExit(this.result.error.message);
-      }
-
-      try {
-        await retriever.retrieve(output);
-      } catch (err) {
-        return this.errorExit(err.message);
-      }
-    }
-
-    for (const gen of this.generators) {
-      if (this.didCancel()) {
-        return this.cancelExit();
-      }
-
-      if (this.result.error) {
-        return this.errorExit(this.result.error.message);
-      }
-
-      try {
-        gen.generate(output);
-      } catch (err) {
-        return this.errorExit(err.message);
-      }
-    }
-
-    this.result.data.standardObjects = output.getStandard().length;
-    this.result.data.customObjects = output.getCustom().length;
-
-    return this.successExit();
-  }
-
-  private initializeData(pathToStateFolder: string): SObjectRefreshData {
-    const output: SObjectRefreshTransformData = {
-      addTypeNames: names => {
-        output.typeNames = output.typeNames.concat(names);
-      },
-      getTypeNames: () => output.typeNames,
-
-      addStandard: defs => {
-        output.standard = output.standard.concat(defs);
-        this.result.data.standardObjects = output.standard.length;
-        this.logSObjects('Standard', defs.length);
-      },
-      getStandard: () => output.standard,
-
-      addCustom: defs => {
-        output.custom = output.custom.concat(defs);
-        this.result.data.customObjects = output.custom.length;
-        this.logSObjects('Custom', defs.length);
-      },
-      getCustom: () => output.custom,
-
-      setError: (message, stack) => {
-        this.result.error = { message, stack };
-      },
-
-      sfdxPath: pathToStateFolder,
-
-      typeNames: [],
-      custom: [],
-      standard: []
-    };
-    return output;
-  }
-
-  private didCancel(): boolean {
-    if (this.cancellationToken && this.cancellationToken.isCancellationRequested) {
-      return true;
-    }
-    return false;
-  }
-
-  private errorExit(message: string, stack?: string): Promise<SObjectRefreshResult> {
-    this.emitter.emit(STDERR_EVENT, `${message}\n`);
-    this.emitter.emit(ERROR_EVENT, new Error(message));
-    this.emitter.emit(EXIT_EVENT, FAILURE_CODE);
-    this.result.error = { message, stack };
-    return Promise.reject(this.result);
-  }
-
-  private successExit(): Promise<SObjectRefreshResult> {
-    this.emitter.emit(EXIT_EVENT, SUCCESS_CODE);
-    return Promise.resolve(this.result);
-  }
-
-  private cancelExit(): Promise<SObjectRefreshResult> {
-    this.emitter.emit(EXIT_EVENT, FAILURE_CODE);
-    this.result.data.cancelled = true;
-    return Promise.resolve(this.result);
-  }
-
-  private logSObjects(sobjectKind: string, processedLength: number) {
-    if (processedLength > 0) {
-      this.emitter.emit(STDOUT_EVENT, nls.localize('processed_sobjects_length_text', processedLength, sobjectKind));
-    }
-  }
-}
+const getNamesAndTypes = async (conn: Connection, category: SObjectCategory, source: SObjectRefreshSource) => {
+  const sobjectNames = (await describeGlobal(conn)).filter(sobjectTypeFilter(category, source));
+  const sobjects = await describeSObjects(conn, sobjectNames);
+  return { sobjectNames, sobjects };
+};
