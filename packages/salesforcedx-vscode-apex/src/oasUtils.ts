@@ -20,7 +20,6 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import * as yaml from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
-import { nls } from './messages';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
@@ -34,44 +33,50 @@ const gil = GenerationInteractionLogger.getInstance();
 /**
  * Processes an OAS document from a YAML string.
  * @param {string} oasDoc - The OAS document as a YAML string.
- * @param {ApexClassOASGatherContextResponse} [context] - The context for the OAS document.
- * @param {ApexClassOASEligibleResponse} [eligibleResult] - The eligible result for the OAS document.
- * @param {boolean} [isRevalidation] - Whether the document is being revalidated.
+ * @param {object} [options] - Options for processing the OAS document.
+ * @param {ApexClassOASGatherContextResponse} [options.context] - The context for the OAS document.
+ * @param {ApexClassOASEligibleResponse} [options.eligibleResult] - The eligible result for the OAS document.
+ * @param {boolean} [options.isRevalidation] - Whether the document is being revalidated.
+ * @param {string} [options.betaInfo] - Beta information for the document.
  * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
  */
 export const processOasDocumentFromYaml = async (
   oasDoc: string,
-  context?: ApexClassOASGatherContextResponse,
-  eligibleResult?: ApexClassOASEligibleResponse,
-  isRevalidation?: boolean
-): Promise<ProcessorInputOutput> =>
-  processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), context, eligibleResult, isRevalidation);
+  options?: {
+    context?: ApexClassOASGatherContextResponse;
+    eligibleResult?: ApexClassOASEligibleResponse;
+    isRevalidation?: boolean;
+    betaInfo?: string;
+  }
+): Promise<ProcessorInputOutput> => processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), options);
 
 /**
  * Processes an OAS document.
  * @param {string} oasDoc - The OAS document as a string.
- * @param {ApexClassOASGatherContextResponse} [context] - The context for the OAS document.
- * @param {ApexClassOASEligibleResponse} [eligibleResult] - The eligible result for the OAS document.
- * @param {boolean} [isRevalidation] - Whether the document is being revalidated.
+ * @param {object} [options] - Options for processing the OAS document.
+ * @param {ApexClassOASGatherContextResponse} [options.context] - The context for the OAS document.
+ * @param {ApexClassOASEligibleResponse} [options.eligibleResult] - The eligible result for the OAS document.
+ * @param {boolean} [options.isRevalidation] - Whether the document is being revalidated.
+ * @param {string} [options.betaInfo] - Beta information for the document.
  * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
  * @throws Will throw an error if the document is invalid for processing.
  */
 export const processOasDocument = async (
   oasDoc: string,
-  context?: ApexClassOASGatherContextResponse,
-  eligibleResult?: ApexClassOASEligibleResponse,
-  isRevalidation?: boolean
-): Promise<ProcessorInputOutput> => {
-  if (isRevalidation || context?.classDetail.annotations.find(a => a.name === 'RestResource')) {
-    const parsed = parseOASDocFromJson(oasDoc);
-
-    const oasProcessor = new OasProcessor(parsed, eligibleResult);
-
-    const processResult = await oasProcessor.process(!isRevalidation);
-
-    return processResult;
+  options?: {
+    context?: ApexClassOASGatherContextResponse;
+    eligibleResult?: ApexClassOASEligibleResponse;
+    isRevalidation?: boolean;
+    betaInfo?: string;
   }
-  throw nls.localize('invalid_file_for_processing_oas_doc');
+): Promise<ProcessorInputOutput> => {
+  const parsed = parseOASDocFromJson(oasDoc);
+
+  const oasProcessor = new OasProcessor(parsed, options);
+
+  const processResult = await oasProcessor.process();
+
+  return processResult;
 };
 
 /**
