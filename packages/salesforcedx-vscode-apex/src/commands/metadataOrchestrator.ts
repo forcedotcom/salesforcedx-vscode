@@ -42,7 +42,7 @@ export class MetadataOrchestrator {
     }
     if (!isEligibleResponses[0].isApexOasEligible) {
       if (isMethodSelected) {
-        const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
+        const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name ?? 'Should Never Be Empty';
         throw new Error(nls.localize('not_eligible_method', name));
       }
       throw new Error(

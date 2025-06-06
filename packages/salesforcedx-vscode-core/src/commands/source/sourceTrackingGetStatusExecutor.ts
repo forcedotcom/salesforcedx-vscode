@@ -10,13 +10,13 @@ import {
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels';
-import { nls } from '../../messages';
+import { coerceMessageKey, nls } from '../../messages';
 
 export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<string> {
   private options;
 
   constructor(executionName: string, logName: string, options?: { local: boolean; remote: boolean }) {
-    super(nls.localize(executionName), logName, OUTPUT_CHANNEL);
+    super(nls.localize(coerceMessageKey(executionName)), logName, OUTPUT_CHANNEL);
     this.options = options;
   }
 

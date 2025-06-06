@@ -21,12 +21,10 @@ import { ApexTestMethod } from './lspConverter';
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-const safeLocalize = (val: string) => nls.localize(val);
-
 // Message
-const LOADING_MESSAGE = safeLocalize('test_view_loading_message');
-const NO_TESTS_MESSAGE = safeLocalize('test_view_no_tests_message');
-const NO_TESTS_DESCRIPTION = safeLocalize('test_view_no_tests_description');
+const LOADING_MESSAGE = nls.localize('test_view_loading_message');
+const NO_TESTS_MESSAGE = nls.localize('test_view_no_tests_message');
+const NO_TESTS_DESCRIPTION = nls.localize('test_view_no_tests_description');
 
 const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
@@ -231,7 +229,7 @@ export abstract class TestNode extends vscode.TreeItem {
     this.name = label;
     this.command = {
       command: `${BASE_ID}.showError`,
-      title: safeLocalize('test_view_show_error_title'),
+      title: nls.localize('test_view_show_error_title'),
       arguments: [this]
     };
   }

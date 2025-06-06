@@ -311,9 +311,7 @@ export class LanguageClientManager {
           languageServerStatusBarItem.error(message);
         });
         languageClient.errorHandler?.addListener('restarting', (count: number) => {
-          languageServerStatusBarItem.error(
-            nls.localize('apex_language_server_quit_and_restarting').replace('$N', `${count}`)
-          );
+          languageServerStatusBarItem.error(nls.localize('apex_language_server_quit_and_restarting', count));
         });
         languageClient.errorHandler?.addListener('startFailed', () => {
           languageServerStatusBarItem.error(nls.localize('apex_language_server_failed_activate'));

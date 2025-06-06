@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { MessageKey } from './i18n';
+
 /**
  * Conventions:
  * _message: is for unformatted text that will be shown as-is to
@@ -15,7 +17,7 @@
  *
  * If omitted, we will assume _message.
  */
-export const messages = {
+export const messages: Partial<Record<MessageKey, string>> = {
   soql_channel_name: 'SOQL Extension',
   soql_query_results: 'SOQL Query Results',
   info_no_default_org:

@@ -194,7 +194,7 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
         const combinedText = combineYamlByMethod(oas, this.context.classDetail.name);
         return combinedText;
       } catch (e) {
-        throw new Error(nls.localize('failed_to_combine_oas', e));
+        throw new Error(nls.localize('failed_to_combine_oas', e instanceof Error ? e.message : String(e)));
       }
     } else {
       throw new Error(nls.localize('no_oas_generated'));

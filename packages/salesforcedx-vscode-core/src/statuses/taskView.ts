@@ -93,7 +93,7 @@ export class Task extends TreeItem {
     execution: CommandExecution,
     cancellationTokenSource?: CancellationTokenSource
   ) {
-    super(nls.localize('task_view_running_message', execution.command), TreeItemCollapsibleState.None);
+    super(nls.localize('task_view_running_message', execution.command.toString()), TreeItemCollapsibleState.None);
 
     this.taskViewProvider = taskViewProvider;
     this.execution = execution;

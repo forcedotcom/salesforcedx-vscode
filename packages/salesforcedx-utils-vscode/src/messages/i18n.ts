@@ -49,4 +49,6 @@ export const messages = {
   type: 'TYPE',
   project_path: 'PROJECT PATH',
   ignored: 'IGNORED'
-};
+} as const;
+
+export type MessageKey = keyof typeof messages;

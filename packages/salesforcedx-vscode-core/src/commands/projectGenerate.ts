@@ -17,7 +17,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { nls } from '../messages';
+import { coerceMessageKey, nls } from '../messages';
 import { notificationService } from '../notifications';
 import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
@@ -31,8 +31,8 @@ class ProjectTemplateItem implements vscode.QuickPickItem {
   public label: string;
   public description: string;
   constructor(name: string, description: string) {
-    this.label = nls.localize(name);
-    this.description = nls.localize(description);
+    this.label = nls.localize(coerceMessageKey(name));
+    this.description = nls.localize(coerceMessageKey(description));
   }
 }
 

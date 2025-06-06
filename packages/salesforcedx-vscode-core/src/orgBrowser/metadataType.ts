@@ -14,7 +14,7 @@ import {
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { describeMetadata } from '../commands';
-import { nls } from '../messages';
+import { coerceMessageKey, nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
 export type MetadataObject = {
@@ -76,9 +76,9 @@ const buildTypesList = (input: { metadataTypesPath: string } | { metadataJSONCon
       .filter(type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName))
       .map(mdTypeObject => ({
         ...mdTypeObject,
-        label: nls.localize(mdTypeObject.xmlName).startsWith(MISSING_LABEL_MSG)
+        label: nls.localize(coerceMessageKey(mdTypeObject.xmlName)).startsWith(MISSING_LABEL_MSG)
           ? mdTypeObject.xmlName
-          : nls.localize(mdTypeObject.xmlName)
+          : nls.localize(coerceMessageKey(mdTypeObject.xmlName))
       }))
       .sort((a, b) => (a.label > b.label ? 1 : -1));
     telemetryService.sendEventData('Metadata Types Quantity', undefined, {

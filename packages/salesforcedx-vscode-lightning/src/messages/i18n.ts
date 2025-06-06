@@ -19,4 +19,6 @@ export const messages = {
   channel_name: 'Aura Language Server',
   client_name: 'Aura Language Server',
   index_components_text: 'Indexing Lightning Components'
-};
+} as const;
+
+export type MessageKey = keyof typeof messages;
