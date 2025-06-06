@@ -11,7 +11,8 @@ import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   OrgDisplay,
   OrgInfo,
-  RequestService
+  RequestService,
+  LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import { OutputEvent, Source, StackFrame, StoppedEvent, ThreadEvent } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
@@ -27,7 +28,7 @@ import {
   LaunchRequestArguments,
   SetExceptionBreakpointsArguments
 } from '../../../src/adapter/apexDebug';
-import { LineBreakpointInfo, LineBreakpointsInTyperef } from '../../../src/breakpoints/lineBreakpoint';
+import { LineBreakpointsInTyperef } from '../../../src/breakpoints/lineBreakpoint';
 import { RunCommand, StateCommand, StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands';
 import {
   DEFAULT_IDLE_TIMEOUT_MS,

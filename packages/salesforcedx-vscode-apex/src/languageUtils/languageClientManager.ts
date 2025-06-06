@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
 import { execSync } from 'node:child_process';
 import * as vscode from 'vscode';
@@ -110,8 +111,8 @@ export class LanguageClientManager {
     this.status = new LanguageClientStatus(status, message);
   }
 
-  public async getLineBreakpointInfo(): Promise<{}> {
-    return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_LINE_BREAKPOINTS) : {};
+  public async getLineBreakpointInfo(): Promise<LineBreakpointInfo[]> {
+    return this.clientInstance ? this.clientInstance.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS) : [];
   }
 
   public async getApexTests(): Promise<ApexTestMethod[]> {

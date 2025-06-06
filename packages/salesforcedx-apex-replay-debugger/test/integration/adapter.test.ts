@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../src/adapter/apexReplayDebug';
-import { LineBreakpointInfo } from '../../src/breakpoints';
 import { GoldFileUtil } from './goldFileUtil';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;

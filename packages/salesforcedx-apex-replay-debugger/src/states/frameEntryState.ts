@@ -8,7 +8,7 @@
 import { basename } from 'path';
 import { Source, StackFrame } from '@vscode/debugadapter';
 import { URI } from 'vscode-uri';
-import { ApexDebugStackFrameInfo } from '../adapter/apexReplayDebug';
+import { ApexDebugStackFrameInfo } from '../adapter/ApexDebugStackFrameInfo';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 import { FrameState } from './frameState';

@@ -26,7 +26,6 @@
   "dependencies": {
     "@salesforce/apex-node-bundle": "^8.1.26",
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/core-bundle": "^8.12.0",
     "@salesforce/salesforcedx-utils": "63.16.3",
     "@salesforce/salesforcedx-utils-vscode": "63.16.3",
     "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
@@ -46,6 +45,8 @@
     "yaml": "2.6.0"
   },
   "devDependencies": {
+    "salesforcedx-vscode-core": "63.16.3",
+    "@salesforce/core": "^8.12.0",
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "@types/node": "^20.0.0",

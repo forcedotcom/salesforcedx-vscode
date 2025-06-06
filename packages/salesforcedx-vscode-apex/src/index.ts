@@ -112,7 +112,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   extensionContext.subscriptions.push(registerTestView());
 
-  const exportedApi = {
+  const exportedApi: ApexVSCodeApi = {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
     getApexTests,
@@ -289,4 +289,11 @@ export const deactivate = async () => {
   await languageClientManager.getClientInstance()?.stop();
   const telemetryService = await getTelemetryService();
   telemetryService?.sendExtensionDeactivationEvent();
+};
+
+export type ApexVSCodeApi = {
+  getLineBreakpointInfo: typeof getLineBreakpointInfo;
+  getExceptionBreakpointInfo: typeof getExceptionBreakpointInfo;
+  getApexTests: typeof getApexTests;
+  languageClientManager: typeof languageClientManager;
 };

@@ -7,7 +7,8 @@
 
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
-import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { StatementExecuteState } from '../../../src/states';
