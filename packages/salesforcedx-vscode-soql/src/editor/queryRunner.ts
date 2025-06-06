@@ -5,24 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core-bundle';
+import type { Connection } from '@salesforce/core';
 import { soqlComments } from '@salesforce/soql-common';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 type QueryResult<T> = Awaited<ReturnType<Connection['query']>>;
-export class QueryRunner {
-  constructor(private connection: Connection) {}
 
-  public async runQuery(queryText: string, options = { showErrors: true }): Promise<QueryResult<JsonMap>> {
+export const runQuery =
+  (conn: Connection) =>
+  async (queryText: string, options = { showErrors: true }): Promise<QueryResult<JsonMap>> => {
     const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
 
     try {
-      const rawQueryData = await this.connection.query(pureSOQLText);
+      const rawQueryData = await conn.query(pureSOQLText);
       const cleanQueryData = {
         ...rawQueryData,
-        records: this.flattenQueryRecords(rawQueryData.records)
+        records: flattenQueryRecords(rawQueryData.records)
       };
       return cleanQueryData;
     } catch (error) {
@@ -33,14 +33,12 @@ export class QueryRunner {
       }
       throw error;
     }
-  }
-  /*
+  };
+/**
   As query complexity grows
   we will need to flatten the results of nested values
   in order to be parsed and diplayed correctly
-  */
-  private flattenQueryRecords(rawQueryRecords: JsonMap[]) {
-    // filter out the attributes key
-    return rawQueryRecords.map(({ attributes, ...cleanRecords }) => cleanRecords);
-  }
-}
+ */
+const flattenQueryRecords = (rawQueryRecords: JsonMap[]) =>
+  // filter out the attributes key
+  rawQueryRecords.map(({ attributes, ...cleanRecords }) => cleanRecords);

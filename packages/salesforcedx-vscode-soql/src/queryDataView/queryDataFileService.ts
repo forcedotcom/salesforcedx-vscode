@@ -47,8 +47,6 @@ export class QueryDataFileService {
   }
 
   public async save(): Promise<string> {
-    let selectedFileSavePath = '';
-    const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
     const defaultFileName = this.dataProvider.getFileName();
     /*
         queryDataDefaultFilePath will be used as the default options in the save dialog
@@ -56,10 +54,8 @@ export class QueryDataFileService {
             path: the same directory as the .soql file text doc
                   or the home directory if .soql file does not exist yet
     */
-    let saveDir = path.parse(this.document.uri.path).dir;
-    if (!saveDir) {
-      saveDir = homedir();
-    }
+
+    const saveDir = path.parse(this.document.uri.path).dir ?? homedir();
     const queryDataDefaultFilePath = path.join(saveDir, defaultFileName);
 
     const fileInfo: URI | undefined = await vscode.window.showSaveDialog({
@@ -68,23 +64,26 @@ export class QueryDataFileService {
 
     if (fileInfo?.fsPath) {
       // use .fsPath, not .path to account for OS.
-      selectedFileSavePath = fileInfo.fsPath;
+      const selectedFileSavePath = fileInfo.fsPath;
+      const fileContentString = this.dataProvider.getFileContent(this.queryText, this.queryData.records);
+
       // Save query results to disk
       await writeFile(selectedFileSavePath, fileContentString);
-      this.showFileInExplorer(selectedFileSavePath);
-      this.showSaveSuccessMessage(path.basename(selectedFileSavePath));
+      showFileInExplorer(selectedFileSavePath);
+      showSaveSuccessMessage(path.basename(selectedFileSavePath));
+      return selectedFileSavePath;
     }
-    return selectedFileSavePath;
-  }
-
-  private showFileInExplorer(targetPath: string) {
-    // Only reveal saved file if its inside current workspace
-    if (targetPath.startsWith(getRootWorkspacePath())) {
-      vscode.commands.executeCommand('revealInExplorer', URI.file(targetPath));
-    }
-  }
-
-  private showSaveSuccessMessage(savedFileName: string) {
-    vscode.window.showInformationMessage(nls.localize('info_file_save_success', savedFileName));
+    return '';
   }
 }
+
+const showFileInExplorer = (targetPath: string) => {
+  // Only reveal saved file if its inside current workspace
+  if (targetPath.startsWith(getRootWorkspacePath())) {
+    vscode.commands.executeCommand('revealInExplorer', URI.file(targetPath));
+  }
+};
+
+const showSaveSuccessMessage = (savedFileName: string) => {
+  vscode.window.showInformationMessage(nls.localize('info_file_save_success', savedFileName));
+};
