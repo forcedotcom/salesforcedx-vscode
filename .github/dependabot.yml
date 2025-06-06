@@ -10,25 +10,25 @@
 version: 2
 updates:
   # Minor, Patch updates (to be auto-merged using 'release-management/dependabot-automerge')
-  - package-ecosystem: "npm"
-    directory: "/" # Location of package manifests
+  - package-ecosystem: 'npm'
+    directory: '/' # Location of package manifests
     schedule:
       # After the weekly release branch cut-off on Monday
-      interval: "weekly"
-      day: "wednesday"
-      time: "06:00"
-      timezone: "America/Los_Angeles"
+      interval: 'weekly'
+      day: 'wednesday'
+      time: '06:00'
+      timezone: 'America/Los_Angeles'
     ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-    open-pull-requests-limit: 10
-    rebase-strategy: disabled
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    open-pull-requests-limit: 3
+    rebase-strategy: auto
     versioning-strategy: increase
   # Exclude updates to doc tools
   # TODO: Enable after adding automated check(s) for doc generation
-  - package-ecosystem: "bundler"
-    directory: "/docs" # Location of package manifests
+  - package-ecosystem: 'bundler'
+    directory: '/docs' # Location of package manifests
     ignore:
-      - dependency-name: "*"
+      - dependency-name: '*'
     schedule:
-      interval: "monthly"
+      interval: 'monthly'
