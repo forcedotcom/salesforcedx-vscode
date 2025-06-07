@@ -56,6 +56,3 @@ export {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './templates';
-import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
-
-export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();

@@ -10,7 +10,6 @@ import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { WorkspaceContext } from '../context';
 import { disposeTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
-import { developerLogTraceFlag } from '.';
 
 const command = 'stop_apex_debug_logging';
 
@@ -31,7 +30,6 @@ export const turnOffLogging = async (extensionContext: vscode.ExtensionContext):
         : '';
       await connection.tooling.delete('TraceFlag', traceFlagId);
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
-      developerLogTraceFlag.turnOffLogging();
       disposeTraceFlagExpiration();
       await handleFinishCommand(command, true);
     } catch (error) {

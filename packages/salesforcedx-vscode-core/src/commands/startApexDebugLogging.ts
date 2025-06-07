@@ -14,7 +14,6 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo } from '../util';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
-import { developerLogTraceFlag } from '.';
 
 const command = 'start_apex_debug_logging';
 
@@ -77,10 +76,8 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
       throw new Error('Failed to create trace flag');
     }
 
-    developerLogTraceFlag.setTraceFlagDebugLevelInfo(traceFlagResult.id, traceFlag.StartDate, traceFlag.ExpirationDate, debugLevelResultId ?? null);
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, expirationDate);
     showTraceFlagExpiration(expirationDate);
-    developerLogTraceFlag.turnOnLogging();
 
     await handleFinishCommand(command, true);
   } catch (error) {
