@@ -66,7 +66,6 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
     const traceFlag = {
       TracedEntityId: await getUserId(connection),
       LogType: 'DEVELOPER_LOG',
-      StartDate: '',
       ExpirationDate: expirationDate.toUTCString(),
       DebugLevelId: debugLevelResultId
     };
