@@ -81,8 +81,8 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
     await handleFinishCommand(command, true);
   } catch (error) {
     console.error(error);
-    await handleFinishCommand(command, false, 'Cannot create trace flag.');
-    throw new Error('Cannot create trace flag.');
+    await handleFinishCommand(command, false, 'Trace flag for Apex Replay Debugger already exists.');
+    throw new Error('Trace flag for Apex Replay Debugger already exists.');
   }
 };
 
