@@ -12,7 +12,17 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { commands, CompletionItem, CompletionList, EndOfLine, Position, TextDocument, Uri, workspace } from 'vscode';
+import {
+  commands,
+  CompletionContext,
+  CompletionItem,
+  CompletionList,
+  EndOfLine,
+  Position,
+  TextDocument,
+  Uri,
+  workspace
+} from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
 import { Middleware } from 'vscode-languageclient/node';
@@ -90,21 +100,20 @@ export const soqlMiddleware: Middleware = {
 const doSOQLCompletion = async (
   document: TextDocument,
   position: Position,
-  context: any,
-  soqlBlock: any
+  context: CompletionContext,
+  soqlBlock: { queryText: string; location: any }
 ): Promise<CompletionItem[] | CompletionList<CompletionItem>> => {
   const originalUri = document.uri.path;
   virtualDocumentContents.set(originalUri, getSOQLVirtualContent(document, position, soqlBlock));
 
-  const vdocUriString = `embedded-soql://soql/${originalUri}.soql`;
-  const vdocUri = Uri.parse(vdocUriString);
+  const vdocUri = Uri.parse(`embedded-soql://soql/${originalUri}.soql`);
   const soqlCompletions = await commands.executeCommand<CompletionList>(
     'vscode.executeCompletionItemProvider',
     vdocUri,
     position,
     context.triggerCharacter
   );
-  return soqlCompletions || [];
+  return soqlCompletions ?? [];
 };
 
 const eolForDocument = (doc: TextDocument) => {

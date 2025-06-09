@@ -30,7 +30,6 @@ import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
@@ -59,8 +58,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
-    // @ts-expect-error - mismatch in Logger between core and core-bundle
+    const connection = await vscode.extensions
+      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
+      ?.exports.WorkspaceContext.getInstance()
+      .getConnection();
+    // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const testService = new TestService(connection);
     const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, this.tests.join());
 
@@ -137,38 +139,34 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     tests: ApexTestResultData[],
     packageDirectories: NamedPackageDir[]
   ): Promise<Map<string, string>> {
-    const correlatedArtifacts: Map<string, string> = new Map();
-
-    for (const test of tests) {
-      const testName = test.apexClass.fullName ?? test.apexClass.name;
-      correlatedArtifacts.set(testName, 'unknown');
-    }
+    const correlatedArtifacts: Map<string, string> = new Map(
+      tests.map(test => [test.apexClass.fullName ?? test.apexClass.name, 'unknown'])
+    );
 
     const workspaceFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0] : undefined;
     if (!workspaceFolder) {
       return correlatedArtifacts;
     }
 
-    const patterns = packageDirectories.map(pkgDir => {
-      const relativePath = path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath);
-      return `${relativePath}/**/*.cls`;
-    });
+    Array.from(
+      new Set(
+        (
+          await Promise.all(
+            packageDirectories
+              .map(pkgDir => `${path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath)}/**/*.cls`)
+              .flatMap(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'))
+          )
+        ).map(file => file.toString())
+      )
+    )
+      .map(filePath => URI.parse(filePath))
+      .map(file => {
+        const fileName = path.basename(file.fsPath, '.cls');
+        if (correlatedArtifacts.has(fileName)) {
+          correlatedArtifacts.set(fileName, file.fsPath);
+        }
+      });
 
-    const findFilesPromises = patterns.map(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'));
-
-    const filesWithDuplicates = (await Promise.all(findFilesPromises)).flat();
-
-    const files = Array.from(new Set(filesWithDuplicates.map(file => file.toString()))).map(filePath =>
-      URI.parse(filePath)
-    );
-
-    for (const file of files) {
-      const fileName = path.basename(file.fsPath, '.cls');
-
-      if (correlatedArtifacts.has(fileName)) {
-        correlatedArtifacts.set(fileName, file.fsPath);
-      }
-    }
     return correlatedArtifacts;
   }
 }

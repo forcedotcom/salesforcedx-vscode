@@ -14,15 +14,4 @@ export class ApexDebugStackFrameInfo {
     this.locals = new Map<string, VariableContainer>();
     this.globals = new Map<string, VariableContainer>();
   }
-
-  public copy(): ApexDebugStackFrameInfo {
-    const me = new ApexDebugStackFrameInfo(this.frameNumber, this.signature);
-    this.statics.forEach((value, key) => {
-      me.statics.set(key, value.copy());
-    });
-    this.locals.forEach((value, key) => {
-      me.locals.set(key, value.copy());
-    });
-    return me;
-  }
 }

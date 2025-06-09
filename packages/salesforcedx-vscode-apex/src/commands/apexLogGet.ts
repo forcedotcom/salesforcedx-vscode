@@ -16,9 +16,9 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
 const LOG_DIRECTORY = projectPaths.debugLogsFolder();
@@ -38,17 +38,15 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await this.getLogRecords();
 
-    if (logInfos && logInfos.length > 0) {
+    if (logInfos?.length) {
       const logItems = logInfos.map(logInfo => {
-        const icon = '$(file-text) ';
-        const localUTCDate = new Date(logInfo.StartTime);
-        const localDateFormatted = localUTCDate.toLocaleDateString(undefined, optionYYYYMMddHHmmss);
+        const localDateFormatted = new Date(logInfo.StartTime).toLocaleDateString(undefined, optionYYYYMMddHHmmss);
 
         return {
           id: logInfo.Id,
-          label: icon + logInfo.LogUser.Name + ' - ' + logInfo.Operation,
+          label: `$(file-text) ${logInfo.LogUser.Name} - ${logInfo.Operation}`,
           startTime: localDateFormatted,
-          detail: localDateFormatted + ' - ' + logInfo.Status.substring(0, 150),
+          detail: `${localDateFormatted} - ${logInfo.Status.substring(0, 150)}`,
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } satisfies ApexDebugLogItem;
       });
@@ -73,7 +71,10 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
   }
 
   public async getLogRecords(): Promise<LogRecord[]> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await vscode.extensions
+      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
+      ?.exports.WorkspaceContext.getInstance()
+      .getConnection();
     // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const logService = new LogService(connection);
     return vscode.window.withProgress(
@@ -94,7 +95,10 @@ class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   }
 
   public async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await vscode.extensions
+      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
+      ?.exports.WorkspaceContext.getInstance()
+      .getConnection();
     // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const logService = new LogService(connection);
     const { id: logId } = response.data;

@@ -17,18 +17,17 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';
-import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
-const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
-  const apexClassItems = apexClasses
+const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> =>
+  (await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER))
     .filter(apexClass => {
       const fileContent = readFileSync(apexClass.fsPath).toString();
       return IS_TEST_REG_EXP.test(fileContent);
@@ -40,21 +39,19 @@ const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  return apexClassItems;
-};
-
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const connection = await workspaceContext.getConnection();
+  const connection = await vscode.extensions
+    .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
+    ?.exports.WorkspaceContext.getInstance()
+    .getConnection();
   // @ts-expect-error - mismatch between core and core-bundle because of Logger
   const testService = new TestService(connection);
-  const testSuites = await testService.retrieveAllSuites();
 
-  const quickPickItems = testSuites.map(testSuite => ({
+  return (await testService.retrieveAllSuites()).map(testSuite => ({
     label: testSuite.TestSuiteName,
     description: testSuite.id,
     type: TestType.Suite
   }));
-  return quickPickItems;
 };
 
 class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
@@ -128,7 +125,10 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
   }
 
   public async run(response: ContinueResponse<ApexTestSuiteOptions>): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await vscode.extensions
+      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
+      ?.exports.WorkspaceContext.getInstance()
+      .getConnection();
     // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const testService = new TestService(connection);
     await testService.buildSuite(response.data.suitename, response.data.tests);
