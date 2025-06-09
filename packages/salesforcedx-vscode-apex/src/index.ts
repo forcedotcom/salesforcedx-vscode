@@ -7,6 +7,7 @@
 
 import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
@@ -31,7 +32,6 @@ import {
   ApexActionController
 } from './commands';
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
-import { workspaceContext } from './context';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
   configureApexLanguage,
@@ -44,30 +44,36 @@ import {
 } from './languageUtils';
 import { nls } from './messages';
 import { checkIfESRIsDecomposed } from './oasUtils';
-import { getTelemetryService } from './telemetry/telemetry';
+import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 const metadataOrchestrator = new MetadataOrchestrator();
-let extensionContext: vscode.ExtensionContext;
+const vscodeCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
+  'salesforce.salesforcedx-vscode-core'
+);
+if (!vscodeCoreExtension) {
+  throw new Error('Could not fetch a SalesforceVSCodeCoreApi instance');
+}
 
 // Apex Action Controller
 export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (context: vscode.ExtensionContext) => {
-  extensionContext = context;
-  const telemetryService = await getTelemetryService();
+  const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
+
+  // Telemetry
+  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance();
+  await telemetryService.initializeService(context);
   if (!telemetryService) {
     throw new Error('Could not fetch a telemetry service instance');
   }
+  setTelemetryService(telemetryService);
 
-  // Telemetry
-  await telemetryService.initializeService(extensionContext);
-
-  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
+  const activationTracker = new ActivationTracker(context, telemetryService);
 
   const testOutlineProvider = getTestOutlineProvider();
-  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+  if (vscode.workspace?.workspaceFolders) {
     const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
 
     const testResultOutput = path.join(apexDirPath, '*.json');
@@ -75,24 +81,24 @@ export const activate = async (context: vscode.ExtensionContext) => {
     testResultFileWatcher.onDidCreate(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
     testResultFileWatcher.onDidChange(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
 
-    extensionContext.subscriptions.push(testResultFileWatcher);
+    context.subscriptions.push(testResultFileWatcher);
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
 
   // Workspace Context
-  await workspaceContext.initialize(extensionContext);
+  await workspaceContext.initialize(context);
 
   // start the language server and client
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   languageClientManager.setStatusBarInstance(languageServerStatusBarItem);
-  await createLanguageClient(extensionContext, languageServerStatusBarItem);
+  await createLanguageClient(context, languageServerStatusBarItem);
 
   // Javadoc support
   configureApexLanguage();
 
   // Initialize the apexActionController
-  await apexActionController.initialize(extensionContext);
+  await apexActionController.initialize(context);
 
   const isESRDecomposed = await checkIfESRIsDecomposed();
   // Initialize if ESR xml is decomposed
@@ -107,10 +113,8 @@ export const activate = async (context: vscode.ExtensionContext) => {
     await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', false);
   }
   // Commands
-  const commands = registerCommands();
-  extensionContext.subscriptions.push(commands);
-
-  extensionContext.subscriptions.push(registerTestView());
+  const commands = registerCommands(context);
+  context.subscriptions.push(commands, registerTestView());
 
   const exportedApi: ApexVSCodeApi = {
     getLineBreakpointInfo,
@@ -129,7 +133,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
   return exportedApi;
 };
 
-const registerCommands = (): vscode.Disposable => {
+const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable => {
   // Colorize code coverage
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
@@ -196,7 +200,7 @@ const registerCommands = (): vscode.Disposable => {
   const restartApexLanguageServerCmd = vscode.commands.registerCommand(
     'sf.apex.languageServer.restart',
     async (source?: 'commandPalette' | 'statusBar') => {
-      await restartLanguageServerAndClient(extensionContext, source ?? 'commandPalette');
+      await restartLanguageServerAndClient(context, source ?? 'commandPalette');
     }
   );
 
@@ -234,61 +238,44 @@ const registerTestView = (): vscode.Disposable => {
   const testRunner = new ApexTestRunner(testOutlineProvider);
 
   // Test View
-  const testViewItems = new Array<vscode.Disposable>();
-
-  const testProvider = vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider);
-  testViewItems.push(testProvider);
-
-  // Run Test Button on Test View command
-  testViewItems.push(
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests())
-  );
-  // Show Error Message command
-  testViewItems.push(
+  const testViewItems: vscode.Disposable[] = [
+    vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider),
+    // Run Test Button on Test View command
+    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests()),
+    // Show Error Message command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.showError`, (test: TestNode) =>
       testRunner.showErrorMessage(test)
-    )
-  );
-  // Show Definition command
-  testViewItems.push(
+    ),
+    // Show Definition command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.goToDefinition`, (test: TestNode) =>
       testRunner.showErrorMessage(test)
-    )
-  );
-  // Run Class Tests command
-  testViewItems.push(
+    ),
+    // Run Class Tests command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runClassTests`, (test: TestNode) =>
       testRunner.runApexTests([test.name], TestRunType.Class)
-    )
-  );
-  // Run Single Test command
-  testViewItems.push(
+    ),
+    // Run Single Test command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runSingleTest`, (test: TestNode) =>
       testRunner.runApexTests([test.name], TestRunType.Method)
-    )
-  );
-  // Refresh Test View command
-  testViewItems.push(
+    ),
+    // Refresh Test View command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, () => {
       if (languageClientManager.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
-    })
-  );
-  // Collapse All Apex Tests command
-  testViewItems.push(
+    }),
+    // Collapse All Apex Tests command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.collapseAll`, () =>
       testOutlineProvider.collapseAll()
     )
-  );
+  ];
 
   return vscode.Disposable.from(...testViewItems);
 };
 
 export const deactivate = async () => {
   await languageClientManager.getClientInstance()?.stop();
-  const telemetryService = await getTelemetryService();
-  telemetryService?.sendExtensionDeactivationEvent();
+  getTelemetryService().sendExtensionDeactivationEvent();
 };
 
 export type ApexVSCodeApi = {
