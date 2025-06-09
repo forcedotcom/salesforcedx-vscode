@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Message, MISSING_LABEL_MSG } from '../../../src';
+import { MISSING_LABEL_MSG } from '../../../src/constants';
+import { Message } from '../../../src/i18n/message';
 
 describe('Message Unit Tests.', () => {
   const messageBundle = {
