@@ -24,6 +24,7 @@ import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
+import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
 
 const DOT_SFDX = '.sfdx';
 const TEMPLATES_DIR = path.join(DOT_SFDX, 'resources', 'templates');
@@ -256,3 +257,35 @@ export const getCurrentTimestamp = (): string => {
   const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
   return formattedDate;
 };
+
+/**
+ * Checks if a class has valid REST annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class has valid REST annotations.
+ */
+export const hasValidRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
+  const validClassAnnotations = retrieveAAClassRestAnnotations();
+  const validMethodAnnotations = retrieveAAMethodRestAnnotations();
+
+  // Check for class-level RestResource annotation
+  const hasRestResourceAnnotation = context.classDetail.annotations.some(a => validClassAnnotations.includes(a.name));
+
+  if (!hasRestResourceAnnotation) {
+    return false;
+  }
+
+  // Check for at least one method with HTTP REST annotation
+  return context.methods.some(method =>
+    method.annotations.some(annotation => validMethodAnnotations.includes(annotation.name))
+  );
+};
+
+/**
+ * Checks if any method has AuraEnabled annotations and the class has no annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class has no annotations and any method has AuraEnabled annotation.
+ */
+export const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): boolean =>
+  // Check for no class annotations AND at least one method with AuraEnabled annotation
+  context.classDetail.annotations.length === 0 &&
+  context.methods.some(method => method.annotations.some(annotation => annotation.name === 'AuraEnabled'));

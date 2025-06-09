@@ -9,6 +9,7 @@ import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '..';
 import { workspaceContext } from '../../../context';
+import { hasAuraEnabledMethods } from '../../../oasUtils';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -71,9 +72,7 @@ export class AuraEnabledStrategy extends GenerationStrategy {
     await this.checkOrgVersion();
 
     // Check if any method has @AuraEnabled annotation
-    const hasAuraEnabled = this.context.methods.some(method =>
-      method.annotations.some(annotation => annotation.name === 'AuraEnabled')
-    );
+    const hasAuraEnabled = hasAuraEnabledMethods(this.context);
 
     // Only bid if we have Aura-enabled methods AND we're in the default org AND the org version is compatible AND the class exists in org
     const shouldBid = hasAuraEnabled && this.isDefaultOrg && this.isOrgVersionCompatible;

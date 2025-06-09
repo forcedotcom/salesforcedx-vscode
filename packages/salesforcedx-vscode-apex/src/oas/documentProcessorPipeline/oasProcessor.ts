@@ -52,7 +52,8 @@ export class OasProcessor {
     const output = await pipeline.execute({
       openAPIDoc: this.document,
       errors: [],
-      eligibilityResult: this.options?.eligibleResult
+      eligibilityResult: this.options?.eligibleResult,
+      context: this.options?.context
     });
     console.log('Pipeline output:', output);
     return output;

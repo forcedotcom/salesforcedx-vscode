@@ -16,7 +16,12 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
 import { nls } from '../messages';
-import { createProblemTabEntriesForOasDocument, getCurrentTimestamp } from '../oasUtils';
+import {
+  createProblemTabEntriesForOasDocument,
+  getCurrentTimestamp,
+  hasValidRestAnnotations,
+  hasAuraEnabledMethods
+} from '../oasUtils';
 import { ProcessorInputOutput } from './documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './generationInteractionLogger';
 import { ApexOASInfo, ExternalServiceOperation } from './schemas';
@@ -35,10 +40,11 @@ export class ExternalServiceRegistrationManager {
   private overwrite = false;
   private originalPath: string = '';
   private newPath: string = '';
+  providerType: string | undefined;
 
   constructor() {}
 
-  private async initialize(
+  private initialize(
     isESRDecomposed: boolean,
     processedOasResult: ProcessorInputOutput,
     fullPath: [originalPath: string, newPath: string]
@@ -48,6 +54,32 @@ export class ExternalServiceRegistrationManager {
     this.overwrite = fullPath[0] === fullPath[1];
     this.originalPath = fullPath[0];
     this.newPath = fullPath[1];
+  }
+
+  /**
+   * Determines the provider type based on the annotations in the context.
+   * @param context - The context containing class and method details with annotations
+   * @returns
+   * "ApexRest" if class has RestResource annotation and methods have Http* annotations,
+   * "AuraEnabled" if no class annotation and methods have AuraEnabled annotations,
+   * or undefined if neither pattern matches
+   */
+  private determineProviderType(context?: ProcessorInputOutput['context']): string | undefined {
+    if (!context) {
+      return undefined;
+    }
+
+    // ApexRest: has class RestResource annotation AND at least one Http* method annotation
+    if (hasValidRestAnnotations(context)) {
+      return 'ApexRest';
+    }
+
+    // AuraEnabled: no class annotation AND at least one AuraEnabled method annotation
+    if (hasAuraEnabledMethods(context)) {
+      return 'AuraEnabled';
+    }
+
+    return undefined;
   }
 
   /**
@@ -67,7 +99,8 @@ export class ExternalServiceRegistrationManager {
     processedOasResult: ProcessorInputOutput,
     fullPath: FullPath
   ): Promise<void> {
-    await this.initialize(isESRDecomposed, processedOasResult, fullPath);
+    this.initialize(isESRDecomposed, processedOasResult, fullPath);
+    this.providerType = this.determineProviderType(processedOasResult.context);
 
     const existingContent = fs.existsSync(this.newPath) ? fs.readFileSync(this.newPath, 'utf8') : undefined;
 
@@ -122,7 +155,7 @@ export class ExternalServiceRegistrationManager {
     const baseName = path.basename(this.newPath).split('.')[0];
     const className = this.newPath.includes('esr_files_for_merge')
       ? // The class name is the part before the second to last underscore
-      baseName.split('_').slice(0, -2).join('_')
+        baseName.split('_').slice(0, -2).join('_')
       : baseName;
 
     const { description } = this.extractInfoProperties();
@@ -185,7 +218,7 @@ export class ExternalServiceRegistrationManager {
         systemVersion: '3',
         operations,
         registrationProvider: className,
-        registrationProviderType: 'ApexRest',
+        registrationProviderType: this.providerType,
         namedCredential: 'null'
       }
     };

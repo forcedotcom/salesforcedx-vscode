@@ -9,8 +9,8 @@ import * as fs from 'node:fs';
 import { DocumentSymbol } from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
-import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../../oasUtils';
-import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from '../../../settings';
+import { cleanupGeneratedDoc, parseOASDocFromJson, hasValidRestAnnotations } from '../../../oasUtils';
+import { retrieveAAClassRestAnnotations } from '../../../settings';
 import { getTelemetryService } from '../../../telemetry/telemetry';
 import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
@@ -68,25 +68,6 @@ export class ApexRestStrategy extends GenerationStrategy {
     );
     this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
     this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
-  }
-
-  private hasValidRestAnnotations(): boolean {
-    const validClassAnnotations = retrieveAAClassRestAnnotations();
-    const validMethodAnnotations = retrieveAAMethodRestAnnotations();
-
-    // Check for class-level RestResource annotation
-    const hasRestResourceAnnotation = this.context.classDetail.annotations.some(a =>
-      validClassAnnotations.includes(a.name)
-    );
-
-    if (!hasRestResourceAnnotation) {
-      return false;
-    }
-
-    // Check for at least one method with HTTP REST annotation
-    return this.context.methods.some(method =>
-      method.annotations.some(annotation => validMethodAnnotations.includes(annotation.name))
-    );
   }
 
   async resolveLLMResponses(serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
@@ -222,7 +203,7 @@ export class ApexRestStrategy extends GenerationStrategy {
 
   public async bid(): Promise<PromptGenerationStrategyBid> {
     // First check if the class has valid REST annotations
-    if (!this.hasValidRestAnnotations()) {
+    if (!hasValidRestAnnotations(this.context)) {
       return {
         result: {
           maxBudget: 0,
