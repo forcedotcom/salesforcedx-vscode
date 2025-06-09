@@ -6,7 +6,7 @@
  */
 
 // Maps placeholders to types
-export type PlaceholderToType<S extends string> = S extends '%s'
+type PlaceholderToType<S extends string> = S extends '%s'
   ? string
   : S extends '%d'
     ? number
@@ -19,7 +19,7 @@ export type PlaceholderToType<S extends string> = S extends '%s'
           : unknown;
 
 // Recursively extracts argument types from a message string
-export type ExtractArgs<S extends string, Acc extends any[] = []> = S extends `${infer _}%${infer P}${infer Rest}`
+type ExtractArgs<S extends string, Acc extends any[] = []> = S extends `${infer _}%${infer P}${infer Rest}`
   ? P extends 's' | 'd' | 'i' | 'f' | 'j'
     ? ExtractArgs<Rest, [...Acc, PlaceholderToType<`%${P}`>]>
     : ExtractArgs<Rest, Acc>

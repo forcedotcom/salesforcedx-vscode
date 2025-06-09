@@ -19,7 +19,7 @@ const SUPPORTED_LOCALES: Locale[] = [DEFAULT_LOCALE, 'ja'] as const;
  * @param value - The value to check
  * @returns true if the value is a valid Locale, false otherwise
  */
-export const isLocale = (value: unknown): value is Locale => {
+const isLocale = (value: unknown): value is Locale => {
   if (typeof value !== 'string') {
     return false;
   }

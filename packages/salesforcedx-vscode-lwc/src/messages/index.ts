@@ -6,13 +6,7 @@
  */
 
 // Import message bundles
-import {
-  AdvancedMessageBundle,
-  LOCALE_JA,
-  LocalizationService,
-  MessageArgs,
-  MessageBundleManager
-} from '@salesforce/salesforcedx-utils';
+import { LOCALE_JA, LocalizationService, MessageArgs } from '@salesforce/salesforcedx-utils';
 import { messages as enMessages, MessageKey } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
@@ -35,9 +29,6 @@ messageBundleManager.registerMessageBundle(DEFAULT_INSTANCE, {
   type: 'locale',
   locale: LOCALE_JA
 });
-
-// Export the advanced localization service
-export { LocalizationService, AdvancedMessageBundle, MessageBundleManager };
 
 export const nls = {
   localize: <K extends MessageKey>(key: K, ...args: MessageArgs<K, typeof enMessages>): string =>
