@@ -26,7 +26,8 @@ const isLocale = (value: unknown): value is Locale => {
   return SUPPORTED_LOCALES.includes(value as Locale);
 };
 
-class LocalizationConfig {
+/** export only for test */
+export class LocalizationConfig {
   private static instance: LocalizationConfig | undefined;
 
   private constructor() {}
@@ -45,7 +46,8 @@ class LocalizationConfig {
   }
 }
 
-class MessageBundleManager {
+/** exported only for test */
+export class MessageBundleManager {
   private static instances = new Map<string, MessageBundleManager>();
   private baseMessages: Message | null = null;
   private localeMessages = new Map<Locale, Message>();
@@ -165,6 +167,3 @@ export class LocalizationService {
     this._nls = null;
   }
 }
-
-// Export the service classes for custom instance creation
-export { LocalizationConfig, MessageBundleManager };

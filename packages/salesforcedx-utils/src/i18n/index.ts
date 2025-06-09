@@ -7,4 +7,4 @@
 
 export { Localization } from './localization';
 export { Message } from './message';
-export { LocalizationService, LocalizationConfig, MessageBundleManager } from './advancedLocalization';
+export { LocalizationService } from './advancedLocalization';
