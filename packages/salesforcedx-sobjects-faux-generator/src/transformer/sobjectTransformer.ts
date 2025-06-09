@@ -15,6 +15,7 @@ import { generateAllTypes } from '../generator/typingGenerator';
 import { nls } from '../messages';
 import { getMinNames, getMinObjects } from '../retriever/minObjectRetriever';
 import { SObjectCategory, SObjectRefreshResult, SObjectRefreshSource } from '../types';
+import { capitalize } from '../utils';
 import { sobjectTypeFilter } from './sobjectFilter';
 
 type WriteSobjectFilesArgs = {
@@ -39,12 +40,16 @@ export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SO
         ? { sobjectNames: getMinNames(), sobjects: getMinObjects() }
         : await getNamesAndTypes(args.conn, args.category, args.source);
 
-    Array.from(
-      Object.entries(sobjects).map(([category, objects]) => {
-        args.emitter.emit(STDOUT_EVENT, nls.localize('processed_sobjects_length_text', objects.length, category));
-      })
-    );
-
+    if (!args.cancellationToken.isCancellationRequested) {
+      Array.from(
+        Object.entries(sobjects).map(([category, objects]) => {
+          args.emitter.emit(
+            STDOUT_EVENT,
+            nls.localize('processed_sobjects_length_text', objects.length, capitalize(category))
+          );
+        })
+      );
+    }
     // those describes are the slow part.  Not much point cancelling now, it's just file transforms and writes
     if (!args.cancellationToken.isCancellationRequested) {
       await Promise.all([
@@ -53,11 +58,9 @@ export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SO
         writeTypeNamesFile(sobjectNames),
         generateAllMetadata(sobjects)
       ]);
-
-      args.emitter.emit(EXIT_EVENT, SUCCESS_CODE);
-    } else {
-      args.emitter.emit(EXIT_EVENT, FAILURE_CODE);
     }
+
+    args.emitter.emit(EXIT_EVENT, !args.cancellationToken.isCancellationRequested ? SUCCESS_CODE : FAILURE_CODE);
 
     return {
       data: {

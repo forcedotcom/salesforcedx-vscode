@@ -6,6 +6,7 @@
  */
 import { ChildRelationship, FieldDeclaration, SObject, SObjectDefinition } from '../types';
 import { SObjectField } from '../types/describe';
+import { capitalize } from '../utils';
 
 export const MODIFIER = 'global';
 const TYPE_MAPPING: Map<string, string> = new Map([
@@ -50,8 +51,6 @@ export const generateSObjectDefinition = (sobject: SObject): SObjectDefinition =
 };
 
 const stripId = (name: string): string => (name.endsWith('Id') ? name.slice(0, name.length - 2) : name);
-
-const capitalize = (input: string): string => input.charAt(0).toUpperCase() + input.slice(1);
 
 const getTargetType = (describeType: string): string => TYPE_MAPPING.get(describeType) ?? capitalize(describeType);
 
