@@ -24,7 +24,6 @@ const vscodeMocked = jest.mocked(vscode);
 const nlsMocked = jest.mocked(nls);
 
 describe('FauxClassGenerator Unit Tests.', () => {
-  // const fakePath = './this/is/a/path';
   let typePath = '';
 
   beforeEach(() => {
@@ -140,21 +139,21 @@ describe('FauxClassGenerator Unit Tests.', () => {
     it('Should process standard sobjects.', async () => {
       // @ts-expect-error - partial mock
       await generateFauxClasses({ standard: [standardMock], custom: [] });
-      // the actual declarationGenerated is tested separately, so we just check that it is being was called
+      // the actual declarationGenerated is tested separately, so we just check that it is being called
       expect(declarationGeneratorSpy).toHaveBeenCalledWith(standardMock);
     });
 
     it('Should process custom sobjects.', async () => {
       // @ts-expect-error - partial mock
       await generateFauxClasses({ standard: [], custom: [customMock] });
-      // the actual declarationGenerated is tested separately, so we just check that it is being was called
+      // the actual declarationGenerated is tested separately, so we just check that it is being called
       expect(declarationGeneratorSpy).toHaveBeenCalledWith(customMock);
     });
 
     it('Should process both standard and custom sobjects.', async () => {
       // @ts-expect-error - partial mock
       await generateFauxClasses({ standard: [standardMock], custom: [customMock] });
-      // the actual declarationGenerated is tested separately, so we just check that it is being was called
+      // the actual declarationGenerated is tested separately, so we just check that it is being called
       expect(declarationGeneratorSpy).toHaveBeenCalledWith(standardMock);
       expect(declarationGeneratorSpy).toHaveBeenCalledWith(customMock);
     });
