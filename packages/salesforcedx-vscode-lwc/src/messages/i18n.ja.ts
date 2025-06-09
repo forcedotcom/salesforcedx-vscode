@@ -79,7 +79,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   lightning_lwc_preview_select_target_app: 'ターゲットアプリケーションを選択...',
   lightning_lwc_preview_desktop_label: 'デスクトップブラウザを使用',
   lightning_lwc_preview_desktop_description: 'デスクトップブラウザ上でコンポーネントをプレビュー',
-  lwc_output_channel_name: 'LWC Extension',
   lightning_lwc_no_redhat_extension_found:
     'Salesforce js-meta.xml IntelliSense を使用するには、Red Hat XML 拡張機能が必要です。',
   lightning_lwc_deprecated_redhat_extension:

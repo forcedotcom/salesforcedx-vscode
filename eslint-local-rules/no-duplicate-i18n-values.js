@@ -85,12 +85,20 @@ module.exports = {
             jaValue = node.value.quasis.map(q => q.value.cooked).join('');
           }
           const enValue = enMessages[key];
-          console.log('[i18n-dup-rule] Checking key:', key, 'jaValue:', jaValue, 'enValue:', enValue);
           if (jaValue && enValue && jaValue === enValue) {
             context.report({
               node,
               message: `Japanese translation for "${key}" duplicates the English value.`,
-              fix: fixer => fixer.remove(node)
+              fix: fixer => {
+                const sourceCode = context.getSourceCode();
+                const nextToken = sourceCode.getTokenAfter(node);
+                const prevToken = sourceCode.getTokenBefore(node);
+                return nextToken && nextToken.value === ','
+                  ? fixer.removeRange([node.range[0], nextToken.range[1]])
+                  : prevToken && prevToken.value === ','
+                    ? fixer.removeRange([prevToken.range[0], node.range[1]])
+                    : fixer.remove(node);
+              }
             });
           }
         }

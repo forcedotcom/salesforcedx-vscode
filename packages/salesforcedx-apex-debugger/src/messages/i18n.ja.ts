@@ -39,9 +39,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'ISV デバッグ用のプロジェクト設定が無効か未完了です。設定の Apex デバッガのページに戻り、新しいパートナーデバッグセッションを開始し、再実行してください。',
   unexpected_error_help_text:
     'デバッガセッションを起動する際に予期せぬエラーが発生しました。詳細は、デバッグコンソールを参照してください。',
-  isv_debugger_launched_successfully: 'ISV Debugger has been launched successfully.',
-  interactive_debugger_launched_successfully: 'Interactive Debugger has been launched successfully.',
+
   isv_debugger_session_authentication_invalid:
-    'The forceIde:// URL of the ISV debugger session is expired or org-isv-debugger-sid has an invalid value.',
-  org_isv_debugger_url_invalid: 'The config variable org-isv-debugger-url has an invalid value.'
+    'The forceIde:// URL of the ISV debugger session is expired or org-isv-debugger-sid has an invalid value.'
 };
