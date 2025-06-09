@@ -24,7 +24,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core-bundle": "^8.10.3",
+    "@salesforce/core-bundle": "^8.12.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "64.0.0",
     "@salesforce/salesforcedx-utils": "64.0.0",
     "@salesforce/salesforcedx-utils-vscode": "64.0.0",

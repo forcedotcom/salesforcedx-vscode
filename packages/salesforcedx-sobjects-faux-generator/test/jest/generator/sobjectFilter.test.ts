@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { GeneralSObjectSelector } from '../../../src/transformer/transformerFactory';
-import { SObjectCategory, SObjectRefreshSource } from '../../../src/types';
+import { sobjectTypeFilter } from '../../../src/transformer/sobjectFilter';
 
 const SOBJECTS_DESCRIBE_SAMPLE = {
   sobjects: [
@@ -27,9 +26,7 @@ const SOBJECTS_DESCRIBE_SAMPLE = {
 
 describe('Select sObjects', () => {
   it('Should return only custom sobjects for MANUAL', () => {
-    const selector = new GeneralSObjectSelector(SObjectCategory.CUSTOM, SObjectRefreshSource.Manual);
-
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(sobjectTypeFilter('CUSTOM', 'manual'));
 
     expect(results).toHaveLength(3);
     expect(results).toEqual([
@@ -40,9 +37,7 @@ describe('Select sObjects', () => {
   });
 
   it('Should return only standard sobjects for MANUAL', () => {
-    const selector = new GeneralSObjectSelector(SObjectCategory.STANDARD, SObjectRefreshSource.Manual);
-
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(sobjectTypeFilter('STANDARD', 'manual'));
 
     expect(results).toHaveLength(4);
     expect(results).toEqual([
@@ -54,9 +49,7 @@ describe('Select sObjects', () => {
   });
 
   it('Should filter out sobjects if category is CUSTOM & source MANUAL', () => {
-    const selector = new GeneralSObjectSelector(SObjectCategory.CUSTOM, SObjectRefreshSource.Manual);
-
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(sobjectTypeFilter('CUSTOM', 'manual'));
 
     expect(results).toHaveLength(3);
     expect(results).toEqual([
@@ -67,9 +60,7 @@ describe('Select sObjects', () => {
   });
 
   it('Should filter out sobjects if category is STANDARD & source MANUAL', () => {
-    const selector = new GeneralSObjectSelector(SObjectCategory.STANDARD, SObjectRefreshSource.Manual);
-
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(sobjectTypeFilter('STANDARD', 'manual'));
 
     expect(results).toHaveLength(4);
     expect(results).toEqual([
@@ -81,9 +72,7 @@ describe('Select sObjects', () => {
   });
 
   it('Should filter out associated sobjects if category is ALL & source is Startup', () => {
-    const selector = new GeneralSObjectSelector(SObjectCategory.ALL, SObjectRefreshSource.Startup);
-
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(sobjectTypeFilter('ALL', 'startup'));
 
     expect(results).toHaveLength(7);
     expect(results).toEqual([
@@ -98,9 +87,7 @@ describe('Select sObjects', () => {
   });
 
   it('Should filter out sobjects if category is ALL & source is StartupMin', () => {
-    const selector = new GeneralSObjectSelector(SObjectCategory.ALL, SObjectRefreshSource.Startup);
-
-    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(s => selector.select(s));
+    const results = SOBJECTS_DESCRIBE_SAMPLE.sobjects.filter(sobjectTypeFilter('ALL', 'startupmin'));
 
     expect(results).toHaveLength(7);
     expect(results).toEqual([

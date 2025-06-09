@@ -53,6 +53,7 @@ describe('Deploy Executor', () => {
   let getEnableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
+    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     constructor(s: string, t: string) {
       super(s, t);
     }
