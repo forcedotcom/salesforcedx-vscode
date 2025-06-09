@@ -15,6 +15,7 @@ import { generateAllTypes } from '../generator/typingGenerator';
 import { nls } from '../messages';
 import { getMinNames, getMinObjects } from '../retriever/minObjectRetriever';
 import { SObjectCategory, SObjectRefreshResult, SObjectRefreshSource } from '../types';
+import { capitalize } from '../utils';
 import { sobjectTypeFilter } from './sobjectFilter';
 
 type WriteSobjectFilesArgs = {
