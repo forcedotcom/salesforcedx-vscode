@@ -146,8 +146,8 @@ export class LocalizationService {
   public get nls(): Localization {
     if (!this._nls) {
       try {
-        const messageBundle = this.messageBundleManager.loadMessageBundle();
-        this._nls = new Localization(messageBundle);
+        const message = this.messageBundleManager.loadMessageBundle();
+        this._nls = new Localization(message);
       } catch (error) {
         console.warn(
           `LocalizationService: No messages registered for instance '${this.instanceName}', using fallback localization`
