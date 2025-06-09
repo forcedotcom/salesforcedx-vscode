@@ -22,8 +22,7 @@ export class BaseDebuggerCommand extends BaseCommand {
   }
 
   public getCommandUrl(): string {
-    const urlElements = [this.debuggerApiPath, this.commandName, this.debuggedRequestId];
-    return urlElements.join('/');
+    return [this.debuggerApiPath, this.commandName, this.debuggedRequestId].join('/');
   }
 
   public getQueryString(): string | undefined {
