@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import {
   readFile,
   writeFile,
@@ -25,7 +26,8 @@ describe('file system utilities', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (vscode.Uri.file as jest.Mock).mockReturnValue(mockUri);
+    // @ts-expect-error - partial mock
+    jest.spyOn(URI, 'file').mockImplementation((fsPath: string) => ({ fsPath }));
   });
 
   describe('readFile', () => {

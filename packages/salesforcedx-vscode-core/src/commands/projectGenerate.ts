@@ -79,7 +79,7 @@ type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = 'standard' | 'empty' | 'analytics';
+type ProjectTemplate = 'standard' | 'empty' | 'analytics';
 
 class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{ projectTemplate: ProjectTemplate }>> {

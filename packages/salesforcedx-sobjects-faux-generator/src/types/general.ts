@@ -4,20 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SObjectShortDescription } from '../describe';
 import { SObject } from './describe';
 
-export enum SObjectCategory {
-  ALL = 'ALL',
-  STANDARD = 'STANDARD',
-  CUSTOM = 'CUSTOM'
-}
+export type SObjectCategory = 'ALL' | 'STANDARD' | 'CUSTOM';
 
-export enum SObjectRefreshSource {
-  Manual = 'manual',
-  Startup = 'startup',
-  StartupMin = 'startupmin'
-}
+export type SObjectRefreshSource = 'manual' | 'startup' | 'startupmin';
 
 export type FieldDeclaration = {
   modifier: string;
@@ -28,25 +19,6 @@ export type FieldDeclaration = {
 
 export type SObjectDefinition = Pick<SObject, 'name'> & {
   fields: FieldDeclaration[];
-};
-
-export type SObjectDefinitionRetriever = {
-  retrieve: (output: SObjectRefreshOutput) => Promise<void>;
-};
-
-export type SObjectGenerator = {
-  generate: (output: SObjectRefreshOutput) => Promise<void>;
-};
-
-export type SObjectRefreshOutput = {
-  sfdxPath: string;
-  addTypeNames: (names: SObjectShortDescription[]) => void;
-  getTypeNames: () => SObjectShortDescription[];
-  addStandard: (standard: SObject[]) => void;
-  getStandard: () => SObject[];
-  addCustom: (standard: SObject[]) => void;
-  getCustom: () => SObject[];
-  setError: (message: string, stack?: string) => void;
 };
 
 export type SObjectRefreshResult = {

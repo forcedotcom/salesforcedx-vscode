@@ -43,8 +43,6 @@ type FileStats = {
 };
 
 class CommonDirDirectoryDiffer implements DirectoryDiffer {
-  constructor() {}
-
   public diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults {
     const localSet = this.listFiles(localSourcePath);
     const different = new Set<TimestampFileProperties>();

@@ -36,8 +36,6 @@ export class ExternalServiceRegistrationManager {
   private originalPath: string = '';
   private newPath: string = '';
 
-  constructor() {}
-
   private async initialize(
     isESRDecomposed: boolean,
     processedOasResult: ProcessorInputOutput,
@@ -122,7 +120,7 @@ export class ExternalServiceRegistrationManager {
     const baseName = path.basename(this.newPath).split('.')[0];
     const className = this.newPath.includes('esr_files_for_merge')
       ? // The class name is the part before the second to last underscore
-      baseName.split('_').slice(0, -2).join('_')
+        baseName.split('_').slice(0, -2).join('_')
       : baseName;
 
     const { description } = this.extractInfoProperties();

@@ -1,109 +1,111 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import * as utils from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
-import * as vscode from 'vscode';
 import { CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR, STANDARDOBJECTS_DIR } from '../../../src/constants';
-import { SObjectShortDescription } from '../../../src/describe';
-import { SOQLMetadataGenerator } from '../../../src/generator/soqlMetadataGenerator';
-import { MinObjectRetriever } from '../../../src/retriever';
-import { SObject, SObjectCategory, SObjectRefreshOutput } from '../../../src/types';
+import { generateAllMetadata, writeTypeNamesFile } from '../../../src/generator/soqlMetadataGenerator';
 
-jest.mock('vscode');
-const vscodeMocked = jest.mocked(vscode);
+const outputFolderPath = join(utils.projectPaths.toolsFolder(), SOQLMETADATA_DIR);
 
 describe('SOQL metadata files generator', () => {
-  const sfdxPath = process.cwd();
-  const soqlMetadataFolder = join(sfdxPath, 'tools', SOQLMETADATA_DIR);
-  const standardFolder = join(soqlMetadataFolder, STANDARDOBJECTS_DIR);
-  const customFolder = join(soqlMetadataFolder, CUSTOMOBJECTS_DIR);
+  const customMock = { name: 'Foo__c', label: 'Account', fields: [{ name: 'Id', label: 'Foo ID' }] };
+  const standardMock = { name: 'Account', label: 'Account', fields: [{ name: 'Id', label: 'Account ID' }] };
 
+  const customPath = join(outputFolderPath, CUSTOMOBJECTS_DIR);
+  const standardPath = join(outputFolderPath, STANDARDOBJECTS_DIR);
   beforeEach(() => {
     jest.clearAllMocks();
-    vscodeMocked.workspace.fs.writeFile.mockResolvedValue();
-    vscodeMocked.workspace.fs.stat.mockResolvedValue({ type: 2, ctime: 0, mtime: 0, size: 0 });
-    vscodeMocked.workspace.fs.createDirectory.mockResolvedValue();
-    vscodeMocked.workspace.fs.delete.mockResolvedValue();
-    vscodeMocked.workspace.fs.readFile.mockResolvedValue(
-      Buffer.from(
-        JSON.stringify({
-          name: 'Account',
-          label: 'Account',
-          fields: [{ name: 'Id', label: 'Account ID' }]
-        })
-      )
+    jest.spyOn(utils, 'safeDelete').mockResolvedValue(undefined);
+    jest.spyOn(utils, 'writeFile').mockResolvedValue(undefined);
+    jest.spyOn(utils, 'createDirectory').mockResolvedValue(undefined);
+  });
+
+  it('Should delete and recreate standardObjects folder', async () => {
+    await generateAllMetadata({
+      // @ts-expect-error - partial mock
+      standard: [standardMock],
+      custom: []
+    });
+    expect(utils.safeDelete).toHaveBeenCalledTimes(1);
+    expect(utils.safeDelete).toHaveBeenCalledWith(standardPath, {
+      recursive: true,
+      useTrash: false
+    });
+    expect(utils.createDirectory).toHaveBeenCalledTimes(2);
+    expect(utils.createDirectory).toHaveBeenCalledWith(standardPath);
+    expect(utils.createDirectory).toHaveBeenCalledWith(outputFolderPath);
+    expect(utils.writeFile).toHaveBeenCalledTimes(1);
+    expect(utils.writeFile).toHaveBeenCalledWith(
+      join(standardPath, 'Account.json'),
+      JSON.stringify(standardMock, null, 2)
     );
   });
 
-  it('Should generate metadata files from "minimal" object set', async () => {
-    const MINS_SOBJECTS_COUNT = 19;
-    const retrieve = new MinObjectRetriever();
-    const output = new TestSObjectRefreshOutput(sfdxPath);
-    await retrieve.retrieve(output);
-    expect(output.getTypeNames()).toHaveLength(MINS_SOBJECTS_COUNT);
-
-    const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
-    await gen.generate(output);
-
-    const accountFile = await readFile(join(standardFolder, 'Account.json'));
-    const accountSObject = JSON.parse(accountFile.toString());
-
-    expect(accountSObject.name).toBe('Account');
-    expect(accountSObject.label).toBe('Account');
-    expect(accountSObject.fields[0].name).toBe('Id');
-    expect(accountSObject.fields[0].label).toBe('Account ID');
+  it('Should delete and recreate customObjects folder', async () => {
+    await generateAllMetadata({
+      // @ts-expect-error - partial mock
+      custom: [customMock],
+      standard: []
+    });
+    expect(utils.safeDelete).toHaveBeenCalledTimes(1);
+    expect(utils.safeDelete).toHaveBeenCalledWith(customPath, {
+      recursive: true,
+      useTrash: false
+    });
+    expect(utils.createDirectory).toHaveBeenCalledTimes(2);
+    expect(utils.createDirectory).toHaveBeenCalledWith(customPath);
+    expect(utils.createDirectory).toHaveBeenCalledWith(outputFolderPath);
+    expect(utils.writeFile).toHaveBeenCalledTimes(1);
+    expect(utils.writeFile).toHaveBeenCalledWith(join(customPath, 'Foo__c.json'), JSON.stringify(customMock, null, 2));
   });
 
-  it('Should temporarily remove standardObjects folder when category is STANDARD', async () => {
-    const gen = new SOQLMetadataGenerator(SObjectCategory.STANDARD);
-    const output = new TestSObjectRefreshOutput(sfdxPath);
-    await gen.generate(output);
-    expect(await fileOrFolderExists(customFolder)).toBe(true);
-    expect(await fileOrFolderExists(standardFolder)).toBe(true);
+  it('Should delete and recreate both folders', async () => {
+    await generateAllMetadata({
+      // @ts-expect-error - partial mock
+      custom: [customMock],
+      // @ts-expect-error - partial mock
+      standard: [standardMock]
+    });
+    expect(utils.safeDelete).toHaveBeenCalledTimes(2);
+    expect(utils.safeDelete).toHaveBeenCalledWith(customPath, {
+      recursive: true,
+      useTrash: false
+    });
+    expect(utils.safeDelete).toHaveBeenCalledWith(standardPath, {
+      recursive: true,
+      useTrash: false
+    });
+    expect(utils.createDirectory).toHaveBeenCalledTimes(3);
+    expect(utils.createDirectory).toHaveBeenCalledWith(customPath);
+    expect(utils.createDirectory).toHaveBeenCalledWith(standardPath);
+    expect(utils.createDirectory).toHaveBeenCalledWith(outputFolderPath);
+    expect(utils.writeFile).toHaveBeenCalledTimes(2);
+    expect(utils.writeFile).toHaveBeenCalledWith(join(customPath, 'Foo__c.json'), JSON.stringify(customMock, null, 2));
+    expect(utils.writeFile).toHaveBeenCalledWith(
+      join(standardPath, 'Account.json'),
+      JSON.stringify(standardMock, null, 2)
+    );
   });
 
-  it('Should temporarily remove customObjects folder when category is CUSTOM', async () => {
-    const gen = new SOQLMetadataGenerator(SObjectCategory.CUSTOM);
-    const output = new TestSObjectRefreshOutput(sfdxPath);
-    await gen.generate(output);
-    expect(await fileOrFolderExists(customFolder)).toBe(true);
-    expect(await fileOrFolderExists(standardFolder)).toBe(true);
+  it('Should write typeNames file', async () => {
+    const typeNames = [
+      { name: 'Account', label: 'Account', custom: false },
+      { name: 'Foo__c', label: 'Foo', custom: true }
+    ];
+    const typeNameFile = join(outputFolderPath, 'typeNames.json');
+    const createDirectoryMock = jest.spyOn(utils, 'createDirectory').mockResolvedValue(undefined);
+    const safeDeleteMock = jest.spyOn(utils, 'safeDelete').mockResolvedValue(undefined);
+    const writeFileMock = jest.spyOn(utils, 'writeFile').mockResolvedValue(undefined);
+
+    await writeTypeNamesFile(typeNames);
+
+    expect(createDirectoryMock).toHaveBeenCalledWith(outputFolderPath);
+    expect(safeDeleteMock).toHaveBeenCalledWith(typeNameFile);
+    expect(writeFileMock).toHaveBeenCalledWith(typeNameFile, JSON.stringify(typeNames, null, 2));
   });
 });
-
-class TestSObjectRefreshOutput implements SObjectRefreshOutput {
-  private typeNames: SObjectShortDescription[] = [];
-  private standard: SObject[] = [];
-  private custom: SObject[] = [];
-  public error: { message?: string; stack?: string } = {};
-
-  public constructor(public sfdxPath: string) {}
-
-  public addTypeNames(sobjShort: SObjectShortDescription[]): void {
-    this.typeNames.push(...sobjShort);
-  }
-  public getTypeNames(): SObjectShortDescription[] {
-    return this.typeNames;
-  }
-
-  public addStandard(sobjs: SObject[]): void {
-    this.standard.push(...sobjs);
-  }
-  public getStandard(): SObject[] {
-    return this.standard;
-  }
-  public addCustom(sobjs: SObject[]): void {
-    this.custom.push(...sobjs);
-  }
-  public getCustom(): SObject[] {
-    return this.custom;
-  }
-  public setError(message: string, stack?: string | undefined): void {
-    this.error = { message, stack };
-  }
-}
