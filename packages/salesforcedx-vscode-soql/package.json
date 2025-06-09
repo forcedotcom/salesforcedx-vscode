@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "63.16.3",
+  "version": "64.0.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -33,8 +33,8 @@
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.8.1",
     "@salesforce/core-bundle": "^8.12.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "63.16.3",
-    "@salesforce/salesforcedx-utils-vscode": "63.16.3",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "64.0.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.0.0",
     "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-data-view": "0.1.0",
@@ -46,7 +46,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils": "63.16.3",
+    "@salesforce/salesforcedx-utils": "64.0.0",
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/node": "^20.0.0",
