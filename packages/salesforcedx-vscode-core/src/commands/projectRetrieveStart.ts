@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
-import { nls } from '../messages';
+import { coerceMessageKey, nls } from '../messages';
 import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 const pullCommand: CommandParams = {
@@ -44,13 +44,13 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
 
   public build(data: {}): Command {
     const builder = new SfCommandBuilder()
-      .withDescription(nls.localize(this.params.description.default))
+      .withDescription(nls.localize(coerceMessageKey(this.params.description.default)))
       .withArg(this.params.command)
       .withJson()
       .withLogName(this.params.logName.default);
 
     if (this.flag === '--ignore-conflicts') {
-      builder.withArg(this.flag).withDescription(nls.localize(this.params.description.ignoreConflicts));
+      builder.withArg(this.flag).withDescription(nls.localize(coerceMessageKey(this.params.description.ignoreConflicts)));
     }
     return builder.build();
   }
@@ -183,7 +183,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
         },
         { key: 'error', label: nls.localize('table_header_errors') }
       ],
-      nls.localize(`table_title_${titleType}_errors`)
+      nls.localize(coerceMessageKey(`table_title_${titleType}_errors`))
     );
     return outputTable;
   }
