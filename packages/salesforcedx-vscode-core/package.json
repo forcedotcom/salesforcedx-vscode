@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils-vscode": "64.0.0",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
-    "@salesforce/templates": "^63.0.4",
+    "@salesforce/templates": "^64.1.0",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "applicationinsights": "1.0.7",
@@ -44,7 +44,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.5",
     "@types/node": "^20.0.0",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "^1.100.0",
     "cross-env": "5.2.0",
     "esbuild": "0.25.4",
     "esbuild-plugin-pino": "^2.2.2",
