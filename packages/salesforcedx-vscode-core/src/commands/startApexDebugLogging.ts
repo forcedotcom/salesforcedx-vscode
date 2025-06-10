@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContext } from '../context';
@@ -17,26 +18,26 @@ const command = 'start_apex_debug_logging';
 export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   handleStartCommand(command);
 
+  const connection = await WorkspaceContext.getInstance().getConnection();
+
+  // If an expired TraceFlag exists for the current user, delete it
+  const traceFlags = await connection.tooling.query(
+    `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await OrgAuthInfo.getUserId()}'`
+  );
+  console.log(JSON.stringify(traceFlags, null, 2));
+  const currentTime = new Date();
+  const expiredTraceFlagExists = traceFlags.records.filter(
+    (flag: any) => flag.ExpirationDate && new Date(flag.ExpirationDate) < currentTime
+  ).length > 0;
+
+  if (expiredTraceFlagExists) {
+    const traceFlagId = typeof traceFlags.records[0].Id === 'string'
+      ? traceFlags.records[0].Id
+      : '';
+    await connection.tooling.delete('TraceFlag', traceFlagId);
+  }
+
   try {
-    const connection = await WorkspaceContext.getInstance().getConnection();
-
-    // If an expired TraceFlag exists for the current user, delete it
-    const traceFlags = await connection.tooling.query(
-      `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await OrgAuthInfo.getUserId()}'`
-    );
-    console.log(JSON.stringify(traceFlags, null, 2));
-    const currentTime = new Date();
-    const expiredTraceFlagExists = traceFlags.records.filter(
-      (flag: any) => flag.ExpirationDate && new Date(flag.ExpirationDate) < currentTime
-    ).length > 0;
-
-    if (expiredTraceFlagExists) {
-      const traceFlagId = typeof traceFlags.records[0].Id === 'string'
-        ? traceFlags.records[0].Id
-        : '';
-      await connection.tooling.delete('TraceFlag', traceFlagId);
-    }
-
     // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
     const replayDebuggerLevels = await connection.tooling.query(
       "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
@@ -76,9 +77,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
     showTraceFlagExpiration(expirationDate);
 
     await handleFinishCommand(command, true);
-  } catch (error) {
-    console.error(error);
-    await handleFinishCommand(command, false, 'Trace flag for Apex Replay Debugger already exists.');
-    throw new Error('Trace flag for Apex Replay Debugger already exists.');
+  } catch {
+    await notificationService.showInformationMessage(`Trace flag already exists. It will expire at ${new Date(traceFlags.records[0].ExpirationDate).toLocaleTimeString()}.`);
   }
 };
