@@ -5,13 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core-bundle';
 import * as vscode from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY, VISUALFORCE_DEBUG_LEVEL } from '../constants';
-import { WorkspaceContext, workspaceContextUtils } from '../context';
+import { WorkspaceContext } from '../context';
 import { showTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
-import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
 import { OrgAuthInfo } from '../util';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 
@@ -25,7 +22,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
 
     // If an expired TraceFlag exists for the current user, delete it
     const traceFlags = await connection.tooling.query(
-      `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await getUserId(connection)}'`
+      `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await OrgAuthInfo.getUserId()}'`
     );
     console.log(JSON.stringify(traceFlags, null, 2));
     const currentTime = new Date();
@@ -64,7 +61,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
 
     const expirationDate = new Date(currentTime.getTime() + 30 * 60 * 1000); // 30 minutes from now
     const traceFlag = {
-      TracedEntityId: await getUserId(connection),
+      TracedEntityId: await OrgAuthInfo.getUserId(),
       LogType: 'DEVELOPER_LOG',
       ExpirationDate: expirationDate.toUTCString(),
       DebugLevelId: debugLevelResultId
@@ -84,23 +81,4 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
     await handleFinishCommand(command, false, 'Trace flag for Apex Replay Debugger already exists.');
     throw new Error('Trace flag for Apex Replay Debugger already exists.');
   }
-};
-
-export const getUserId = async (connection: Connection): Promise<string> => {
-  const targetOrgOrAlias = await workspaceContextUtils.getTargetOrgOrAlias();
-  if (!targetOrgOrAlias) {
-    const err = nls.localize('error_no_target_org');
-    telemetryService.sendException('replay_debugger_undefined_username', err);
-    throw new Error(err);
-  }
-
-  const username = await OrgAuthInfo.getUsername(targetOrgOrAlias);
-  if (!username) {
-    const err = nls.localize('error_no_target_org');
-    telemetryService.sendException('replay_debugger_undefined_username', err);
-    throw new Error(err);
-  }
-
-  const result = await connection.singleRecordQuery<{ Id: string }>(`SELECT Id FROM User WHERE Username = '${username}'`);
-  return result.Id;
 };

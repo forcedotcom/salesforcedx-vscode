@@ -507,7 +507,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // If an expired TraceFlag exists, delete it
   const traceFlags = await connection.tooling.query(
-    "SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG'"
+    `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await OrgAuthInfo.getUserId()}'`
   );
   console.log(JSON.stringify(traceFlags, null, 2));
   const currentTime = new Date();
