@@ -6,7 +6,7 @@
  */
 import { ChannelService, notificationService, SettingsService } from '@salesforce/salesforcedx-utils-vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { nls } from '../messages';
+import { coerceMessageKey, nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
 const channelService = new ChannelService(OUTPUT_CHANNEL);
@@ -15,7 +15,9 @@ export const handleStartCommand = (command: string): void => {
   if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
     channelService.clear();
   }
-  channelService.showCommandWithTimestamp(`${nls.localize('channel_starting_message')}${nls.localize(command)}\n`);
+  channelService.showCommandWithTimestamp(
+    `${nls.localize('channel_starting_message')}${nls.localize(coerceMessageKey(command))}\n`
+  );
 };
 
 export const handleFinishCommand = async (
@@ -24,11 +26,11 @@ export const handleFinishCommand = async (
   error: string = 'Command failed'
 ): Promise<void> => {
   const exitCode = isSuccess ? '0' : '1';
-  channelService.showCommandWithTimestamp(nls.localize(command));
+  channelService.showCommandWithTimestamp(nls.localize(coerceMessageKey(command)));
   channelService.appendLine(' ' + nls.localize('channel_end_with_exit_code', exitCode));
 
   if (isSuccess) {
-    await notificationService.showInformationMessage(`${nls.localize(command)} successfully ran`);
+    await notificationService.showInformationMessage(`${nls.localize(coerceMessageKey(command))} successfully ran`);
     telemetryService.sendCommandEvent(command);
   } else {
     telemetryService.sendException(command, error);

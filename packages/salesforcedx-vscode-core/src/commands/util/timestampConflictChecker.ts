@@ -16,7 +16,7 @@ import { channelService } from '../../channels';
 import { conflictView, DirectoryDiffResults, MetadataCacheService } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
-import { nls } from '../../messages';
+import { coerceMessageKey, nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, salesforceCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
@@ -95,7 +95,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       });
 
       const choice = await notificationService.showWarningModal(
-        nls.localize(this.messages.warningMessageKey),
+        nls.localize(coerceMessageKey(this.messages.warningMessageKey)),
         nls.localize('conflict_detect_show_conflicts'),
         nls.localize('conflict_detect_override')
       );

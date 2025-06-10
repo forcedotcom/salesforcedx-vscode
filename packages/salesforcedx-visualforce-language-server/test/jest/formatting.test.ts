@@ -21,31 +21,37 @@ describe('HTML Embedded Formatting', () => {
     message?: string
   ): void => {
     const languageModes = getLanguageModes({ css: true, javascript: true });
-    if (options) {
-      languageModes
-        .getAllModes()
-        .filter(m => m.configure)
-        .map(m => m.configure(options));
+
+    try {
+      if (options) {
+        languageModes
+          .getAllModes()
+          .filter(m => m.configure)
+          .map(m => m.configure(options));
+      }
+
+      let rangeStartOffset = value.indexOf('|');
+      let rangeEndOffset;
+      if (rangeStartOffset !== -1) {
+        value = value.substr(0, rangeStartOffset) + value.substr(rangeStartOffset + 1);
+
+        rangeEndOffset = value.indexOf('|');
+        value = value.substr(0, rangeEndOffset) + value.substr(rangeEndOffset + 1);
+      } else {
+        rangeStartOffset = 0;
+        rangeEndOffset = value.length;
+      }
+      const document = TextDocument.create('test://test/test.html', 'html', 0, value);
+      const range = Range.create(document.positionAt(rangeStartOffset), document.positionAt(rangeEndOffset));
+
+      const result = format(languageModes, document, range, formatOptions, void 0, { css: true, javascript: true });
+
+      const actual = applyEdits(document, result);
+      assert.equal(actual, expected, message);
+    } finally {
+      // Always dispose language modes to clean up intervals
+      languageModes.dispose();
     }
-
-    let rangeStartOffset = value.indexOf('|');
-    let rangeEndOffset;
-    if (rangeStartOffset !== -1) {
-      value = value.substr(0, rangeStartOffset) + value.substr(rangeStartOffset + 1);
-
-      rangeEndOffset = value.indexOf('|');
-      value = value.substr(0, rangeEndOffset) + value.substr(rangeEndOffset + 1);
-    } else {
-      rangeStartOffset = 0;
-      rangeEndOffset = value.length;
-    }
-    const document = TextDocument.create('test://test/test.html', 'html', 0, value);
-    const range = Range.create(document.positionAt(rangeStartOffset), document.positionAt(rangeEndOffset));
-
-    const result = format(languageModes, document, range, formatOptions, void 0, { css: true, javascript: true });
-
-    const actual = applyEdits(document, result);
-    assert.equal(actual, expected, message);
   };
 
   const assertFormatWithFixture = (

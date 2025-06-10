@@ -43,7 +43,7 @@ export class ApexActionController {
       : 'SFDX: Create OpenAPI Document from Selected Method';
     let eligibilityResult;
     let context;
-    let name;
+    let name: string = 'Should Never Be Empty';
     let generationHrStart: [number, number] = [-1, -1];
     let generationHrDuration: [number, number] = [-1, -1];
     let overwrite = true;
@@ -82,6 +82,8 @@ export class ApexActionController {
           if (!eligibilityResult) {
             throw new Error(nls.localize('class_validation_failed', type));
           }
+
+          nls.localize('apex_class_not_valid', '123');
 
           // Step 2: Gather context
           progress.report({ message: nls.localize('gathering_context') });

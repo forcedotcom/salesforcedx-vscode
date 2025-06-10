@@ -31,8 +31,8 @@ export const messages = {
   created_exception_breakpoint_text: 'Created exception breakpoint for %s.',
   removed_exception_breakpoint_text: 'Removed exception breakpoint for %s.',
   idle_warn_text:
-    'You have been idle for %s minutes. To prevent your debugger session from being terminated, run or step through code, or inspect your variables, in the next %s minutes.',
-  idle_terminated_text: 'Your debugger session is being terminated because it has been idle for %s minutes.',
+    'You have been idle for %d minutes. To prevent your debugger session from being terminated, run or step through code, or inspect your variables, in the next %d minutes.',
+  idle_terminated_text: 'Your debugger session is being terminated because it has been idle for %d minutes.',
   invalid_isv_project_config:
     'Your project configuration is invalid or incomplete for ISV debugging. Return to the Apex Debugger page in Setup, start a new partner debugging session, and try again.',
   unexpected_error_help_text:
@@ -42,4 +42,6 @@ export const messages = {
   isv_debugger_session_authentication_invalid:
     'The forceIde:// URL of the ISV debugger session is expired or the config variable org-isv-debugger-sid has an invalid value.',
   org_isv_debugger_url_invalid: 'The config variable org-isv-debugger-url has an invalid value.'
-};
+} as const;
+
+export type MessageKey = keyof typeof messages;

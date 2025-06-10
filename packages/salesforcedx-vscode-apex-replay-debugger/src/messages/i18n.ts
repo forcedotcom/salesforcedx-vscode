@@ -19,10 +19,10 @@ export const messages = {
   config_name_text: 'Launch Apex Replay Debugger',
   session_language_server_error_text: 'Apex language server could not provide information about valid breakpoints.',
   up_to_five_checkpoints:
-    'You have %s of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
+    'You have %d of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
   no_enabled_checkpoints: "You don't have any checkpoints enabled. Enable a checkpoint and try again.",
   checkpoints_can_only_be_on_valid_apex_source:
-    'Checkpoints can be set on a valid line of Apex source. Invalid checkpoint location: URI=%s, Line=%s',
+    'Checkpoints can be set on a valid line of Apex source. Invalid checkpoint location: URI=%s, Line=%d',
   local_source_is_out_of_sync_with_the_server:
     "The local source is out of sync with the server. Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
   long_command_start: 'Starting',
@@ -55,4 +55,6 @@ export const messages = {
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',
   channel_name: 'Apex Replay Debugger'
-};
+} as const;
+
+export type MessageKey = keyof typeof messages;

@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { MessageKey } from './i18n';
+
 /**
  * Conventions:
  * _message: is for unformatted text that will be shown as-is to
@@ -15,7 +17,7 @@
  *
  * If omitted, we will assume _message.
  */
-export const messages = {
+export const messages: Partial<Record<MessageKey, string>> = {
   command_failure: '%s の実行に失敗しました。',
   command_canceled: '%s はキャンセルされました。',
   lightning_lwc_start_text: 'SFDX: ローカルの開発サーバを起動',
@@ -26,7 +28,7 @@ export const messages = {
   lightning_lwc_inactive_scratch_org:
     'スクラッチ組織が有効ではないため、ローカルの開発サーバを起動できませんでした。「SFDX: デフォルトのスクラッチ組織を作成」を実行してスクラッチ組織を作成するか、「SFDX: デフォルトの組織を設定」を実行して有効なスクラッチ組織を選択してください。',
   lightning_lwc_start_failed: 'ローカルの開発サーバを起動できませんでした。',
-  lightning_lwc_start_exited: 'ローカルの開発サーバがエラーコード %s で予期せず終了しました。',
+  lightning_lwc_start_exited: 'ローカルの開発サーバがエラーコード %d で予期せず終了しました。',
   lightning_lwc_start_already_running: 'ローカルの開発サーバは既に起動しています。',
   lightning_lwc_stop_text: 'SFDX: ローカルの開発サーバを停止',
   lightning_lwc_stop_not_running: 'ローカルの開発サーバが起動していません。',
@@ -77,7 +79,6 @@ export const messages = {
   lightning_lwc_preview_select_target_app: 'ターゲットアプリケーションを選択...',
   lightning_lwc_preview_desktop_label: 'デスクトップブラウザを使用',
   lightning_lwc_preview_desktop_description: 'デスクトップブラウザ上でコンポーネントをプレビュー',
-  lwc_output_channel_name: 'LWC Extension',
   lightning_lwc_no_redhat_extension_found:
     'Salesforce js-meta.xml IntelliSense を使用するには、Red Hat XML 拡張機能が必要です。',
   lightning_lwc_deprecated_redhat_extension:

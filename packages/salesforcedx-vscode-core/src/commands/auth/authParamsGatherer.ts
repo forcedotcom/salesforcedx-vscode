@@ -9,6 +9,7 @@ import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforc
 import * as vscode from 'vscode';
 
 import { nls } from '../../messages';
+import { MessageKey } from '../../messages/i18n';
 import { SalesforceProjectConfig } from '../../salesforceProject';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
@@ -64,7 +65,7 @@ const inputAccessToken = async (): Promise<string | undefined> => {
 class OrgTypeItem implements vscode.QuickPickItem {
   public label: string;
   public detail: string;
-  constructor(localizeLabel: string, localizeDetail: string) {
+  constructor(localizeLabel: MessageKey, localizeDetail: MessageKey) {
     this.label = nls.localize(localizeLabel);
     this.detail = nls.localize(localizeDetail);
   }

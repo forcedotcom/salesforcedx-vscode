@@ -47,7 +47,7 @@ const getPlatformSpecificBinary = (binary: string): string => (process.platform 
 
 const validateJavaInstallation = async (javaHome: string): Promise<boolean> => {
   if (!javaHome) {
-    throw new Error(nls.localize('java_runtime_missing_text'));
+    throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
   }
 
   const requiredBinaries = ['java', 'javac'];
@@ -164,7 +164,7 @@ const isLocal = (javaHome: string): boolean => {
 
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
   if (!javaHome || typeof javaHome !== 'string') {
-    throw new Error(nls.localize('java_runtime_missing_text'));
+    throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
   }
 
   const cmdFile = path.join(javaHome, 'bin', getPlatformSpecificBinary('java'));

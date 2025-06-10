@@ -6,7 +6,8 @@
     "strict": false,
     "noImplicitAny": false
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "./test/ui-test/resources/extensions"],
+  "exclude": ["node_modules", ".vscode-test", "out", "./test/ui-test/resources/extensions", "dist"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-sobjects-faux-generator"
