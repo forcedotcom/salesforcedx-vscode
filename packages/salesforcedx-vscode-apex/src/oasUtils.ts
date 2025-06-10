@@ -289,3 +289,12 @@ export const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse
   // Check for no class annotations AND at least one method with AuraEnabled annotation
   context.classDetail.annotations.length === 0 &&
   context.methods.some(method => method.annotations.some(annotation => annotation.name === 'AuraEnabled'));
+/**
+ * Validates if a registration provider type is one of the allowed values.
+ * @param {string | undefined} providerType - The provider type to validate.
+ * @returns {boolean} - True if the provider type is valid, false otherwise.
+ */
+export const isValidRegistrationProviderType = (providerType: string | undefined): boolean => {
+  const validProviderTypes = ['Custom', 'ApexRest', 'AuraEnabled'];
+  return providerType !== undefined && validProviderTypes.includes(providerType);
+};
