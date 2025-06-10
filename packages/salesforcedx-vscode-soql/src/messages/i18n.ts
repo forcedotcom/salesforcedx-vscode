@@ -37,4 +37,6 @@ export const messages = {
   error_sobject_metadata_fs_request: 'ERROR: We can’t retrieve the fields for %s. Expected metadata file at: %s.',
   error_sobjects_fs_request: 'ERROR: We can’t retrieve list of objects. Expected JSON files in directory: %s.',
   error_no_workspace_folder: 'ERROR: Unable to find workspace SFDX folder'
-};
+} as const;
+
+export type MessageKey = keyof typeof messages;

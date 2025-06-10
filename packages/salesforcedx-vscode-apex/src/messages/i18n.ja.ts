@@ -15,7 +15,10 @@
  *
  * If omitted, we will assume _message.
  */
-export const messages = {
+
+import { MessageKey } from './i18n';
+
+export const messages: Partial<Record<MessageKey, string>> = {
   active_text_editor_not_apex: 'アクティブなテキストエディタは Apex クラスファイルではありません',
   anon_apex_execute_document_text: 'SFDX: エディタの内容で匿名 Apex コードを実行',
   anon_apex_execute_selection_text: 'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
@@ -58,7 +61,6 @@ export const messages = {
   cannot_gather_context: 'Apex クラスのコンテキスト収集中にエラーが発生しました。',
   cannot_get_apexoaseligibility_response: 'Apex 言語サーバからの apexoas/isEligible の応答を取得できませんでした',
   cancel: 'キャンセル',
-  channel_name: 'Apex',
   check_openapi_doc_failed: 'OpenAPI ドキュメントのチェックに失敗しました',
   check_openapi_doc_succeeded: 'OpenAPI ドキュメント %s の検証に成功しました',
   class_validation_failed: '%s からの適格性の検証に失敗しました',
@@ -165,5 +167,6 @@ export const messages = {
   wrong_java_version_short: 'サポートされていない Java バージョン',
   wrong_java_version_text:
     'サポートされていない Java バージョンを検出しました。Java 11 以上がサポートされています。拡張機能の実行には [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) を推奨します。詳細については、[Java バージョンの設定](%s) を参照してください。',
-  yes: 'はい'
+  yes: 'はい',
+  launch_apex_replay_debugger_with_selected_file: '選択されたファイルで Apex リプレイデバッガを起動'
 };

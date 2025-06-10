@@ -34,7 +34,9 @@ export class Message implements LocalizationProvider {
 
     let labelArgs = args;
     if (args.length >= 1) {
-      const expectedNumArgs = possibleLabel.split('%s').length - 1;
+      // Count all printf-style format specifiers: %s, %d, %i, %f, %j, %%, etc.
+      const formatSpecifiers = possibleLabel.match(/%[sdifj%]/g);
+      const expectedNumArgs = formatSpecifiers ? formatSpecifiers.filter(spec => spec !== '%%').length : 0;
       if (args.length !== expectedNumArgs) {
         // just log it, we might want to hide some in some languages on purpose
         console.log(`Arguments do not match for label '${label}', got ${args.length} but want ${expectedNumArgs}`);
