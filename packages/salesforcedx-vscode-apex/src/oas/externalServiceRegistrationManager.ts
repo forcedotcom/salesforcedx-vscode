@@ -10,7 +10,7 @@ import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -39,7 +39,7 @@ export class ExternalServiceRegistrationManager {
     'salesforce.salesforcedx-vscode-core'
   );
 
-  private async initialize(
+  private initialize(
     isESRDecomposed: boolean,
     processedOasResult: ProcessorInputOutput,
     fullPath: [originalPath: string, newPath: string]
@@ -68,7 +68,7 @@ export class ExternalServiceRegistrationManager {
     processedOasResult: ProcessorInputOutput,
     fullPath: FullPath
   ): Promise<void> {
-    await this.initialize(isESRDecomposed, processedOasResult, fullPath);
+    this.initialize(isESRDecomposed, processedOasResult, fullPath);
 
     const existingContent = fs.existsSync(this.newPath) ? fs.readFileSync(this.newPath, 'utf8') : undefined;
 

@@ -92,8 +92,8 @@ describe('ExternalServiceRegistrationManager', () => {
     };
   });
   describe('initialize', () => {
-    it('should initialize with right values', async () => {
-      await esrHandler['initialize'](true, processedOasResult, fullPath);
+    it('should initialize with right values', () => {
+      esrHandler['initialize'](true, processedOasResult, fullPath);
 
       expect(esrHandler['isESRDecomposed']).toBe(true);
       expect(esrHandler['oasSpec']).toBe(processedOasResult.openAPIDoc);
@@ -102,17 +102,17 @@ describe('ExternalServiceRegistrationManager', () => {
       expect(esrHandler['newPath']).toBe(fullPath[1]);
     });
 
-    it('should initialize with overwrite set to true when paths are the same', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.xml']);
+    it('should initialize with overwrite set to true when paths are the same', () => {
+      esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.xml']);
       expect(esrHandler['overwrite']).toBe(true);
     });
-    it('should initialize with overwrite set to false when paths differ only by extension', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.pdf']);
+    it('should initialize with overwrite set to false when paths differ only by extension', () => {
+      esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.pdf']);
       expect(esrHandler['overwrite']).toBe(false);
     });
 
-    it('should initialize with overwrite set to false when paths are different', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.xml']);
+    it('should initialize with overwrite set to false when paths are different', () => {
+      esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.xml']);
       expect(esrHandler['overwrite']).toBe(false);
     });
   });

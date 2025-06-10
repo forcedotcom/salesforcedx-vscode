@@ -6,7 +6,7 @@
  */
 
 import { JSONPath } from 'jsonpath-plus';
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class PropertyCorrectionStep implements ProcessorStep {
