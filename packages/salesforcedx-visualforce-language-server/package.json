@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-visualforce-markup-language-server": "64.0.0",
-    "typescript": "^5.6.2",
     "vscode-css-languageservice": "^2.1.9",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
