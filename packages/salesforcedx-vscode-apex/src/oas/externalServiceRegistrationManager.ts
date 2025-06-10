@@ -42,8 +42,6 @@ export class ExternalServiceRegistrationManager {
   private newPath: string = '';
   providerType: string | undefined;
 
-  constructor() {}
-
   private initialize(
     isESRDecomposed: boolean,
     processedOasResult: ProcessorInputOutput,

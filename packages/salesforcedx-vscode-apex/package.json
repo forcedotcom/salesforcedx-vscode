@@ -28,7 +28,7 @@
   "dependencies": {
     "@salesforce/apex-node-bundle": "^8.1.26",
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/core-bundle": "^8.10.3",
+    "@salesforce/core-bundle": "^8.12.0",
     "@salesforce/salesforcedx-utils": "64.0.0",
     "@salesforce/salesforcedx-utils-vscode": "64.0.0",
     "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
