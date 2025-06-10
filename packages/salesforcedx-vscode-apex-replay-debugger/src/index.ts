@@ -36,7 +36,6 @@ import {
 import { channelService } from './channels';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
-import { workspaceContext } from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
@@ -51,6 +50,9 @@ export enum VSCodeWindowTypeEnum {
 const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
   'salesforce.salesforcedx-vscode-core'
 );
+if (!salesforceCoreExtension) {
+  throw new Error('Salesforce Core Extension not initialized');
+}
 
 const registerCommands = (): vscode.Disposable => {
   const dialogStartingPathUri = getDialogStartingPath(extContext);
@@ -129,7 +131,7 @@ export const getDebuggerType = async (session: vscode.DebugSession): Promise<str
 
 const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
-    if (event && event.session) {
+    if (event?.session) {
       const type = await getDebuggerType(event.session);
       if (type !== DEBUGGER_TYPE) {
         return;
@@ -170,7 +172,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
 
   // Workspace Context
-  await workspaceContext.initialize(extensionContext);
+  await salesforceCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async test => {

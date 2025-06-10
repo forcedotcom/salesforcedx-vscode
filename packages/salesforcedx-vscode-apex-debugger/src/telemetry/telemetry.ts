@@ -7,7 +7,7 @@
 
 import * as util from 'node:util';
 import { DebugSessionCustomEvent } from 'vscode';
-import TelemetryReporter from 'vscode-extension-telemetry';
+import type TelemetryReporter from 'vscode-extension-telemetry';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex-debugger';
 
