@@ -23,9 +23,9 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
   try {
     const connection = await WorkspaceContext.getInstance().getConnection();
 
-    // If an expired TraceFlag exists, delete it
+    // If an expired TraceFlag exists for the current user, delete it
     const traceFlags = await connection.tooling.query(
-      "SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG'"
+      `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await getUserId(connection)}'`
     );
     console.log(JSON.stringify(traceFlags, null, 2));
     const currentTime = new Date();
@@ -86,7 +86,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
   }
 };
 
-const getUserId = async (connection: Connection): Promise<string> => {
+export const getUserId = async (connection: Connection): Promise<string> => {
   const targetOrgOrAlias = await workspaceContextUtils.getTargetOrgOrAlias();
   if (!targetOrgOrAlias) {
     const err = nls.localize('error_no_target_org');

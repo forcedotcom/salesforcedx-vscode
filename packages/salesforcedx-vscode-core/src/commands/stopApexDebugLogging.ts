@@ -11,6 +11,7 @@ import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { WorkspaceContext } from '../context';
 import { disposeTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
+import { getUserId } from './startApexDebugLogging';
 
 const command = 'stop_apex_debug_logging';
 
@@ -19,9 +20,9 @@ export const turnOffLogging = async (extensionContext: vscode.ExtensionContext):
 
   const connection = await WorkspaceContext.getInstance().getConnection();
 
-  // Check if a TraceFlag already exists
+  // Check if a TraceFlag already exists for the current user
   const traceFlags = await connection.tooling.query(
-    "SELECT id FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
+    `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await getUserId(connection)}'`
   );
   const traceFlagExists = traceFlags.records.length > 0;
 
