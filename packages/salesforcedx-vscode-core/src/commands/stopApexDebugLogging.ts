@@ -24,13 +24,10 @@ export const turnOffLogging = async (extensionContext: vscode.ExtensionContext):
   const traceFlags = await connection.tooling.query(
     `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await OrgAuthInfo.getUserId()}'`
   );
-  const traceFlagExists = traceFlags.records.length > 0;
+  const [firstTraceFlag] = traceFlags.records;
 
-  if (traceFlagExists) {
-    const traceFlagId = typeof traceFlags.records[0].Id === 'string'
-      ? traceFlags.records[0].Id
-      : '';
-    await connection.tooling.delete('TraceFlag', traceFlagId);
+  if (firstTraceFlag?.Id) {
+    await connection.tooling.delete('TraceFlag', firstTraceFlag.Id);
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
     disposeTraceFlagExpiration();
     await handleFinishCommand(command, true);

@@ -511,15 +511,12 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
   console.log(JSON.stringify(traceFlags, null, 2));
   const currentTime = new Date();
-  const expiredTraceFlagExists = traceFlags.records.filter(
+  const [expiredTraceFlag] = traceFlags.records.filter(
     (flag: any) => flag.ExpirationDate && new Date(flag.ExpirationDate) < currentTime
-  ).length > 0;
+  );
 
-  if (expiredTraceFlagExists) {
-    const traceFlagId = typeof traceFlags.records[0].Id === 'string'
-      ? traceFlags.records[0].Id
-      : '';
-    await connection.tooling.delete('TraceFlag', traceFlagId);
+  if (expiredTraceFlag?.Id) {
+    await connection.tooling.delete('TraceFlag', expiredTraceFlag.Id);
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
   }
 
