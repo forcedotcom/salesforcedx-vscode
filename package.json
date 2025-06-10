@@ -1,5 +1,5 @@
 {
-  "name": "salesforcedx-vscode",
+  "name": "@salesforce/salesforcedx-vscode",
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "workspaces": [
