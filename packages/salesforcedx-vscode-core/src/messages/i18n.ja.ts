@@ -196,15 +196,10 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
   org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
-  invalid_default_org: "The org you've chosen as your default org isn't valid. Please choose a different one.",
 
   config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file: 'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
 
-  push_conflicts_error:
-    'We couldn\'t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Ignore Conflicts".',
-  pull_conflicts_error:
-    'We couldn\'t pull your source due to conflicts. Make sure that you want to overwrite the metadata in your local project, then run "SFDX: Pull Source to Default Scratch Org and Ignore Conflicts".',
   error_no_target_org:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
   error_no_target_dev_hub:
@@ -242,7 +237,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   conflict_detect_view_init: '競合検出ビューが初期化されていません',
   conflict_detect_not_enabled: '組織との差分を表示するために、Detect Conflicts at Sync 設定を有効化してください',
 
-  conflict_detect_view_root: '%s : %s file difference(s)',
   conflict_detect_no_conflicts: '競合がありません',
 
   conflict_detect_diff_command_title: 'ファイルを比較',

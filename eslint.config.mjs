@@ -52,7 +52,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        projectService: true,
         sourceType: 'module',
         ecmaVersion: 2020,
         globals: {
