@@ -6,16 +6,11 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { SfProject } from '@salesforce/core-bundle';
-import {
-  extensionUris,
-  getJsonCandidate,
-  identifyJsonTypeInString,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { extensionUris, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import * as yaml from 'yaml';
@@ -114,10 +109,11 @@ export const createProblemTabEntriesForOasDocument = (
  * @returns {Promise<boolean>} - True if sfdx-project.json contains decomposeExternalServiceRegistrationBeta.
  */
 export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
-  const projectPath = workspaceUtils.getRootWorkspacePath();
-  const sfProject = await SfProject.resolve(projectPath);
-  const sfdxProjectJson = sfProject.getSfProjectJson();
-  if (sfdxProjectJson.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
+  const sfdxProjectJson = await vscode.extensions
+    .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
+    ?.exports.services.SalesforceProjectConfig.getInstance();
+
+  if (sfdxProjectJson?.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
     return true;
   }
 

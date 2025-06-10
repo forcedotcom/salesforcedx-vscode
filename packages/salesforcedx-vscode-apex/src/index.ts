@@ -75,9 +75,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace?.workspaceFolders) {
     const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
-
-    const testResultOutput = path.join(apexDirPath, '*.json');
-    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(testResultOutput);
+    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(path.join(apexDirPath, '*.json'));
     testResultFileWatcher.onDidCreate(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
     testResultFileWatcher.onDidChange(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
 
@@ -100,18 +98,13 @@ export const activate = async (context: vscode.ExtensionContext) => {
   // Initialize the apexActionController
   await apexActionController.initialize(context);
 
-  const isESRDecomposed = await checkIfESRIsDecomposed();
   // Initialize if ESR xml is decomposed
-  void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', isESRDecomposed);
-
-  const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
+  void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', await checkIfESRIsDecomposed());
 
   // Set context based on mulesoft extension
-  if (!muleDxApiExtension?.isActive) {
-    await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', true);
-  } else {
-    await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', false);
-  }
+  const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
+  await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', !muleDxApiExtension?.isActive);
+
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands, registerTestView());

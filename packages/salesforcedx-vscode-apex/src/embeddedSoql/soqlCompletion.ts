@@ -38,6 +38,29 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
   }
 });
 
+export const soqlMiddleware: Middleware = {
+  // @ts-ignore
+  provideCompletionItem: async (document, position, context, token, next) => {
+    const apexCompletionItems = await next(document, position, context, token);
+    if (!apexCompletionItems) {
+      return;
+    }
+
+    const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
+      ? (apexCompletionItems as ProtocolCompletionItem[])
+      : (apexCompletionItems.items as ProtocolCompletionItem[]);
+
+    const soqlBlock = insideSOQLBlock(items);
+    if (soqlBlock) {
+      if (!insideApexBindingExpression(document, soqlBlock.queryText, position)) {
+        return await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock);
+      } else {
+        return items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
+      }
+    } else return apexCompletionItems;
+  }
+};
+
 const insideSOQLBlock = (apexItems: ProtocolCompletionItem[]): { queryText: string; location: any } | undefined => {
   const soqlItem = apexItems.find(i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
   return soqlItem ? { queryText: soqlItem.detail as string, location: soqlItem.data } : undefined;
@@ -64,37 +87,7 @@ const getSOQLVirtualContent = (
     .map(line => ' '.repeat(line.length))
     .join(eol);
 
-  const content =
-    blankedContent.slice(0, soqlBlock.location.startIndex) +
-    ' ' +
-    soqlBlock.queryText +
-    ' ' +
-    blankedContent.slice(soqlBlock.location.startIndex + soqlBlock.queryText.length + 2);
-
-  return content;
-};
-
-export const soqlMiddleware: Middleware = {
-  // @ts-ignore
-  provideCompletionItem: async (document, position, context, token, next) => {
-    const apexCompletionItems = await next(document, position, context, token);
-    if (!apexCompletionItems) {
-      return;
-    }
-
-    const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
-      ? (apexCompletionItems as ProtocolCompletionItem[])
-      : (apexCompletionItems.items as ProtocolCompletionItem[]);
-
-    const soqlBlock = insideSOQLBlock(items);
-    if (soqlBlock) {
-      if (!insideApexBindingExpression(document, soqlBlock.queryText, position)) {
-        return await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock);
-      } else {
-        return items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
-      }
-    } else return apexCompletionItems;
-  }
+  return `${blankedContent.slice(0, soqlBlock.location.startIndex)} ${soqlBlock.queryText} ${blankedContent.slice(soqlBlock.location.startIndex + soqlBlock.queryText.length + 2)}`;
 };
 
 const doSOQLCompletion = async (
