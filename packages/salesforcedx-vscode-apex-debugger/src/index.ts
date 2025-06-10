@@ -25,6 +25,7 @@ import {
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
+import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
@@ -107,8 +108,9 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 ];
 
 const configureExceptionBreakpoint = async (): Promise<void> => {
-  const salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
-  if (salesforceApexExtension && salesforceApexExtension.exports) {
+  const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
+  if (salesforceApexExtension?.exports) {
+    // @ts-expect-error - typing ExceptionBreakpointItem exists only in the debugger, but the breakpoints are coming from core ext which doesn't have the types
     const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
       await salesforceApexExtension.exports.getExceptionBreakpointInfo();
     console.log('Retrieved exception breakpoint info from language server');

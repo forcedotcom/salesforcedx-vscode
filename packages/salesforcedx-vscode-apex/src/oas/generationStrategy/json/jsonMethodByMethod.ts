@@ -162,7 +162,7 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
   }
 
   private async executeWithRetry(fn: () => Promise<string>, retryLimit: number): Promise<string> {
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     let attempts = 0;
     while (attempts < retryLimit) {
       await this.incrementCallCount();

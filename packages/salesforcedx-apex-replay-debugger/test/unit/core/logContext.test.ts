@@ -8,7 +8,8 @@
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { BreakpointUtil } from '../../../src/breakpoints';
 import {
   EVENT_CODE_UNIT_FINISHED,

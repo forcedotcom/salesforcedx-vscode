@@ -83,7 +83,7 @@ export class ApexTestRunner {
   }
 
   public async getTempFolder(): Promise<string> {
-    if (vscode.workspace && vscode.workspace.workspaceFolders) {
+    if (vscode.workspace?.workspaceFolders) {
       const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
       return apexDir;
     } else {

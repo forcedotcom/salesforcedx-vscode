@@ -5,20 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  OrgDisplay,
-  RequestService,
-  RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils';
+import { OrgDisplay, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import * as path from 'path';
 import { StackFrame } from '@vscode/debugadapter';
-import {
-  ApexDebugStackFrameInfo,
-  ApexReplayDebug,
-  ApexVariableContainer,
-  LaunchRequestArguments,
-  VariableContainer
-} from '../adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../adapter/apexReplayDebug';
+import { ApexDebugStackFrameInfo } from '../adapter/ApexDebugStackFrameInfo';
+import { LaunchRequestArguments } from '../adapter/types';
 import { breakpointUtil } from '../breakpoints';
 import {
   ApexExecutionOverlayResultCommand,
@@ -60,6 +52,7 @@ import {
 import { Handles } from './handles';
 import { ApexHeapDump } from './heapDump';
 import { LogContextUtil } from './logContextUtil';
+import { ApexVariableContainer, VariableContainer } from '../adapter/VariableContainer';
 
 export class LogContext {
   private readonly util = new LogContextUtil();
@@ -69,10 +62,7 @@ export class LogContext {
   private readonly logSize: number;
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
-  private staticVariablesClassMap = new Map<
-    string,
-    Map<string, ApexVariableContainer>
-  >();
+  private staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
   private refsMap = new Map<string, ApexVariableContainer>();
   private variableHandles = new Handles<ApexVariableContainer>();
   private stackFrameInfos: StackFrame[] = [];
@@ -116,11 +106,7 @@ export class LogContext {
   }
 
   public hasLogLines(): boolean {
-    return (
-      this.logLines &&
-      this.logLines.length > 0 &&
-      this.logLinePosition < this.logLines.length
-    );
+    return this.logLines && this.logLines.length > 0 && this.logLinePosition < this.logLines.length;
   }
 
   public meetsLogLevelRequirements(): boolean {
@@ -141,15 +127,9 @@ export class LogContext {
     return this.apexHeapDumps.length > 0;
   }
 
-  public getHeapDumpForThisLocation(
-    frameName: string,
-    lineNumber: number
-  ): ApexHeapDump | undefined {
+  public getHeapDumpForThisLocation(frameName: string, lineNumber: number): ApexHeapDump | undefined {
     for (const heapdump of this.apexHeapDumps) {
-      if (
-        frameName.includes(heapdump.getClassName()) &&
-        lineNumber === heapdump.getLine()
-      ) {
+      if (frameName.includes(heapdump.getClassName()) && lineNumber === heapdump.getLine()) {
         return heapdump;
       }
     }
@@ -158,10 +138,7 @@ export class LogContext {
   public hasHeapDumpForTopFrame(): string | undefined {
     const topFrame = this.getTopFrame();
     if (topFrame) {
-      const heapDump = this.getHeapDumpForThisLocation(
-        topFrame.name,
-        topFrame.line
-      );
+      const heapDump = this.getHeapDumpForThisLocation(topFrame.name, topFrame.line);
       if (
         heapDump &&
         topFrame.name.includes(this.lastSeenHeapDumpClass) &&
@@ -186,9 +163,7 @@ export class LogContext {
   }
 
   public copyStateForHeapDump(): void {
-    this.backupStackFrameInfos = JSON.parse(
-      JSON.stringify(this.stackFrameInfos)
-    );
+    this.backupStackFrameInfos = JSON.parse(JSON.stringify(this.stackFrameInfos));
     this.backupFrameHandles = this.frameHandles.copy();
     this.backupRefsMap = new Map<string, ApexVariableContainer>();
     this.backupVariableHandles = new Handles<ApexVariableContainer>();
@@ -213,10 +188,7 @@ export class LogContext {
   }
 
   private cloneStaticVariablesClassMap() {
-    this.backupStaticVariablesClassMap = new Map<
-      string,
-      Map<string, ApexVariableContainer>
-    >();
+    this.backupStaticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
     this.staticVariablesClassMap.forEach((value, key) => {
       const varMap = value as Map<string, ApexVariableContainer>;
       const newMap = new Map<string, ApexVariableContainer>();
@@ -252,18 +224,14 @@ export class LogContext {
         } else {
           // With the way log lines are, this would only happen
           // if the user manually edited the log file.
-          this.session.printToDebugConsole(
-            nls.localize('malformed_log_line', index + 1, line)
-          );
+          this.session.printToDebugConsole(nls.localize('malformed_log_line', index + 1, line));
         }
       }
     });
     return this.apexHeapDumps.length > 0;
   }
 
-  public async fetchOverlayResultsForApexHeapDumps(
-    projectPath: string
-  ): Promise<boolean> {
+  public async fetchOverlayResultsForApexHeapDumps(projectPath: string): Promise<boolean> {
     let success = true;
     try {
       const orgInfo = await new OrgDisplay().getOrgInfo(projectPath);
@@ -272,34 +240,24 @@ export class LogContext {
       requestService.accessToken = orgInfo.accessToken;
 
       for (const heapDump of this.apexHeapDumps) {
-        this.session.printToDebugConsole(
-          nls.localize('fetching_heap_dump', heapDump.toString())
-        );
-        const overlayActionCommand = new ApexExecutionOverlayResultCommand(
-          heapDump.getHeapDumpId()
-        );
+        this.session.printToDebugConsole(nls.localize('fetching_heap_dump', heapDump.toString()));
+        const overlayActionCommand = new ApexExecutionOverlayResultCommand(heapDump.getHeapDumpId());
         let errorString;
         let returnString;
-        await requestService
-          .execute(overlayActionCommand, RestHttpMethodEnum.Get)
-          .then(
-            value => {
-              returnString = value;
-            },
-            reason => {
-              errorString = reason;
-            }
-          );
+        await requestService.execute(overlayActionCommand, RestHttpMethodEnum.Get).then(
+          value => {
+            returnString = value;
+          },
+          reason => {
+            errorString = reason;
+          }
+        );
         if (returnString) {
-          heapDump.setOverlaySuccessResult(
-            JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess
-          );
+          heapDump.setOverlaySuccessResult(JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess);
         } else if (errorString) {
           try {
             success = false;
-            const error = JSON.parse(
-              errorString
-            ) as ApexExecutionOverlayResultCommandFailure[];
+            const error = JSON.parse(errorString) as ApexExecutionOverlayResultCommandFailure[];
             const errorMessage = nls.localize(
               'heap_dump_error',
               error[0].message,
@@ -316,9 +274,7 @@ export class LogContext {
     } catch (error) {
       success = false;
       const result = JSON.parse(error) as OrgInfoError;
-      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
-        result.message
-      }`;
+      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
       this.session.errorToDebugConsole(errorMessage);
     }
     return success;
@@ -358,10 +314,7 @@ export class LogContext {
     return this.refsMap;
   }
 
-  public getStaticVariablesClassMap(): Map<
-    string,
-    Map<string, VariableContainer>
-  > {
+  public getStaticVariablesClassMap(): Map<string, Map<string, VariableContainer>> {
     return this.staticVariablesClassMap;
   }
 
@@ -394,10 +347,7 @@ export class LogContext {
       return this.getLogFilePath();
     }
     const processedSignature = signature.endsWith(')')
-      ? signature.substring(
-          0,
-          signature.substring(0, signature.indexOf('(')).lastIndexOf('.')
-        )
+      ? signature.substring(0, signature.substring(0, signature.indexOf('(')).lastIndexOf('.'))
       : signature;
     const typerefMapping = breakpointUtil.getTyperefMapping();
     let uri = '';
@@ -432,10 +382,7 @@ export class LogContext {
       const logLine = this.logLines[this.logLinePosition];
       if (logLine) {
         this.setState(this.parseLogEvent(logLine));
-        if (
-          this.session.shouldTraceLogFile() &&
-          !(this.state instanceof UserDebugState)
-        ) {
+        if (this.session.shouldTraceLogFile() && !(this.state instanceof UserDebugState)) {
           this.session.printToDebugConsole(logLine);
         }
         if (this.state && this.state.handle(this)) {
@@ -450,10 +397,7 @@ export class LogContext {
       return new LogEntryState();
     }
     if (logLine.startsWith(EVENT_EXECUTE_ANONYMOUS)) {
-      this.execAnonMapping.set(
-        this.execAnonMapping.size + 1,
-        this.logLinePosition + 1
-      );
+      this.execAnonMapping.set(this.execAnonMapping.size + 1, this.logLinePosition + 1);
     }
     const fields = logLine.split('|');
     if (fields.length >= 3) {
@@ -463,11 +407,7 @@ export class LogContext {
         case EVENT_METHOD_ENTRY:
           return new FrameEntryState(fields);
         case EVENT_VF_APEX_CALL_START:
-          if (
-            FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(
-              fields[fields.length - 2]
-            )
-          ) {
+          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields[fields.length - 2])) {
             return new NoOpState();
           } else {
             return new FrameEntryState(fields);
@@ -481,11 +421,7 @@ export class LogContext {
         case EVENT_VARIABLE_ASSIGNMENT:
           return new VariableAssignmentState(fields);
         case EVENT_VF_APEX_CALL_END:
-          if (
-            FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(
-              fields[fields.length - 2]
-            )
-          ) {
+          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields[fields.length - 2])) {
             return new NoOpState();
           } else {
             return new FrameExitState(fields);

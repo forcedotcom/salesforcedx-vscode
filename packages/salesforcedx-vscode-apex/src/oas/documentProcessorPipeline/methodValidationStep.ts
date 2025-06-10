@@ -7,7 +7,7 @@
 
 import { difference } from '@salesforce/salesforcedx-utils-vscode';
 import { JSONPath } from 'jsonpath-plus';
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { ApexClassOASEligibleResponse } from '../schemas';

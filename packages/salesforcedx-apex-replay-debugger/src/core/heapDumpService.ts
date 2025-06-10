@@ -6,7 +6,7 @@
  */
 
 import { StackFrame } from '@vscode/debugadapter';
-import { ApexVariableContainer } from '../adapter/apexReplayDebug';
+import { ApexVariableContainer } from '../adapter/VariableContainer';
 import {
   ApexExecutionOverlayResultCommandSuccess,
   HeapDumpExtents,
