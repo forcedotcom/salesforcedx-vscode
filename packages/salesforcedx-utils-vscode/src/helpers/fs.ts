@@ -6,10 +6,11 @@
  */
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
 export const readFile = async (filePath: string): Promise<string> => {
   try {
-    const uri = vscode.Uri.file(filePath);
+    const uri = URI.file(filePath);
     const data = await vscode.workspace.fs.readFile(uri);
     return Buffer.from(data).toString('utf8');
   } catch (error) {
@@ -25,13 +26,11 @@ export const readFile = async (filePath: string): Promise<string> => {
 export const writeFile = async (filePath: string, content: string): Promise<void> => {
   try {
     const dirPath = dirname(filePath);
-    if (!(await fileOrFolderExists(dirPath))) {
-      await createDirectory(dirPath);
-    }
+    await createDirectory(dirPath);
 
     const encoder = new TextEncoder();
     const uint8Array = encoder.encode(content);
-    await vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), uint8Array);
+    await vscode.workspace.fs.writeFile(URI.file(filePath), uint8Array);
   } catch (error) {
     throw new Error(`Failed to write file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -44,7 +43,7 @@ export const writeFile = async (filePath: string, content: string): Promise<void
  */
 export const fileOrFolderExists = async (filePath: string): Promise<boolean> => {
   try {
-    const uri = vscode.Uri.file(filePath);
+    const uri = URI.file(filePath);
     await vscode.workspace.fs.stat(uri);
     return true;
   } catch {
@@ -53,12 +52,12 @@ export const fileOrFolderExists = async (filePath: string): Promise<boolean> => 
 };
 
 /**
- * Creates a directory recursively
+ * Creates a directory recursively.  Will not throw if the directory already exists.
  * @param dirPath The path to the directory
  */
 export const createDirectory = async (dirPath: string): Promise<void> => {
   try {
-    const uri = vscode.Uri.file(dirPath);
+    const uri = URI.file(dirPath);
     await vscode.workspace.fs.createDirectory(uri);
   } catch (error) {
     throw new Error(`Failed to create directory ${dirPath}: ${error instanceof Error ? error.message : String(error)}`);
@@ -74,7 +73,7 @@ export const deleteFile = async (
   options: { recursive?: boolean; useTrash?: boolean } = {}
 ): Promise<void> => {
   try {
-    const uri = vscode.Uri.file(filePath);
+    const uri = URI.file(filePath);
     await vscode.workspace.fs.delete(uri, options);
   } catch (error) {
     throw new Error(`Failed to delete file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
@@ -88,7 +87,7 @@ export const deleteFile = async (
  */
 export const readDirectory = async (dirPath: string): Promise<string[]> => {
   try {
-    const uri = vscode.Uri.file(dirPath);
+    const uri = URI.file(dirPath);
     const entries = await vscode.workspace.fs.readDirectory(uri);
     return entries.map(([name]) => name);
   } catch (error) {
@@ -103,7 +102,7 @@ export const readDirectory = async (dirPath: string): Promise<string[]> => {
  */
 export const stat = async (filePath: string): Promise<vscode.FileStat> => {
   try {
-    const uri = vscode.Uri.file(filePath);
+    const uri = URI.file(filePath);
     return await vscode.workspace.fs.stat(uri);
   } catch (error) {
     throw new Error(
@@ -117,7 +116,7 @@ export const safeDelete = async (
   options?: { recursive?: boolean; useTrash?: boolean }
 ): Promise<void> => {
   try {
-    const uri = vscode.Uri.file(filePath);
+    const uri = URI.file(filePath);
     await vscode.workspace.fs.stat(uri);
     await vscode.workspace.fs.delete(uri, options);
   } catch {
@@ -132,7 +131,7 @@ export const safeDelete = async (
 export const ensureCurrentWorkingDirIsProjectPath = async (rootWorkspacePath: string): Promise<void> => {
   if (rootWorkspacePath && process.cwd() !== rootWorkspacePath) {
     try {
-      const uri = vscode.Uri.file(rootWorkspacePath);
+      const uri = URI.file(rootWorkspacePath);
       await vscode.workspace.fs.stat(uri);
       process.chdir(rootWorkspacePath);
     } catch {
