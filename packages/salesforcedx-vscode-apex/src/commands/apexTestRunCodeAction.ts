@@ -143,7 +143,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       tests.map(test => [test.apexClass.fullName ?? test.apexClass.name, 'unknown'])
     );
 
-    const workspaceFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0] : undefined;
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       return correlatedArtifacts;
     }
@@ -179,7 +179,7 @@ export const apexTestRunCodeAction = async (tests: string[]) => {
 };
 
 const getTempFolder = async (): Promise<string> => {
-  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+  if (vscode.workspace?.workspaceFolders) {
     const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
     return apexDir;
   } else {

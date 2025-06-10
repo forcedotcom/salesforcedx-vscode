@@ -148,7 +148,7 @@ export class LanguageClientManager {
     source: 'commandPalette' | 'statusBar',
     restartBehavior: string
   ): Promise<void> {
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     telemetryService.sendEventData('apexLSPRestart', {
       restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
       selectedOption: selectedOption.type,
@@ -282,14 +282,13 @@ export class LanguageClientManager {
       const wsrf = vscode.workspace.workspaceFolders[0].uri;
       const toolsUri = URI.parse(wsrf.toString()).with({ path: wsrf.path + '/.sfdx/tools' });
       try {
-        const entries = await vscode.workspace.fs.readDirectory(toolsUri);
-        const releaseFolders = entries
-          .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
-          .map(([name]) => name);
-        for (const folder of releaseFolders) {
-          const folderUri = URI.parse(toolsUri.toString()).with({ path: toolsUri.path + '/' + folder });
-          await vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true });
-        }
+        await Promise.all(
+          (await vscode.workspace.fs.readDirectory(toolsUri))
+            .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
+            .map(([name]) => name)
+            .map(folder => URI.parse(toolsUri.toString()).with({ path: toolsUri.path + '/' + folder }))
+            .map(folderUri => vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true }))
+        );
       } catch (error) {
         console.log('Error, failed to delete folder:' + error.message);
       }
@@ -300,7 +299,7 @@ export class LanguageClientManager {
     extensionContext: vscode.ExtensionContext,
     languageServerStatusBarItem: ApexLSPStatusBarItem
   ): Promise<void> {
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     try {
       const langClientHRStart = process.hrtime();
       this.setClientInstance(await languageServer.createLanguageServer(extensionContext));
@@ -375,7 +374,7 @@ export class LanguageClientManager {
   }
 
   public async findAndCheckOrphanedProcesses(): Promise<ProcessDetail[]> {
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     const isWindows = process.platform === 'win32';
 
     if (!this.canRunCheck(isWindows)) {

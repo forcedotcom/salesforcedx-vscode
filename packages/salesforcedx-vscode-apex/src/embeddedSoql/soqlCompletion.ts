@@ -109,11 +109,4 @@ const doSOQLCompletion = async (
   return soqlCompletions ?? [];
 };
 
-const eolForDocument = (doc: TextDocument) => {
-  switch (doc.eol) {
-    case EndOfLine.LF:
-      return '\n';
-    case EndOfLine.CRLF:
-      return '\r\n';
-  }
-};
+const eolForDocument = (doc: TextDocument) => (doc.eol === EndOfLine.LF ? '\n' : '\r\n');

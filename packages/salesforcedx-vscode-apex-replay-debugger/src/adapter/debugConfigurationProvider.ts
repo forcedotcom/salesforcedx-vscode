@@ -6,11 +6,14 @@
  */
 
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '@salesforce/salesforcedx-apex-replay-debugger';
+import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
-  private salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
+  private salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(
+    'salesforce.salesforcedx-vscode-apex'
+  );
   public static getConfig(logFile?: string, stopOnEntry: boolean = true): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
@@ -51,7 +54,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       config.trace = true;
     }
 
-    if (vscode.workspace && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+    if (vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
       config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
 
@@ -66,8 +69,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     let expired = false;
     let i = 0;
     while (
-      this.salesforceApexExtension &&
-      this.salesforceApexExtension.exports &&
+      this.salesforceApexExtension?.exports &&
       !this.salesforceApexExtension.exports.languageClientManager.getStatus().isReady() &&
       !expired
     ) {

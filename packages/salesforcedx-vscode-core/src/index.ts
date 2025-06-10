@@ -13,6 +13,7 @@ import {
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -475,6 +476,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     taskViewService,
     telemetryService,
     services: {
+      RegistryAccess,
       ChannelService,
       SalesforceProjectConfig,
       TelemetryService,
@@ -598,6 +600,7 @@ export type SalesforceVSCodeCoreApi = {
   taskViewService: typeof taskViewService;
   telemetryService: typeof telemetryService;
   services: {
+    RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
     SalesforceProjectConfig: typeof SalesforceProjectConfig;
     TelemetryService: typeof TelemetryService;

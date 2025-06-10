@@ -13,12 +13,8 @@ import { languageClientManager } from '../../../src/languageUtils';
 import { nls } from '../../../src/messages';
 import GenerationInteractionLogger from '../../../src/oas/generationInteractionLogger';
 import { ApexOASResource } from '../../../src/oas/schemas';
-import { getTelemetryService } from '../../../src/telemetry/telemetry';
+import { setTelemetryService } from '../../../src/telemetry/telemetry';
 import { MockTelemetryService } from '../telemetry/mockTelemetryService';
-
-jest.mock('../../../src/telemetry/telemetry', () => ({
-  getTelemetryService: jest.fn()
-}));
 
 describe('MetadataOrchestrator', () => {
   let orchestrator: MetadataOrchestrator;
@@ -90,7 +86,7 @@ describe('MetadataOrchestrator', () => {
 
   describe('gatherContext', () => {
     beforeEach(() => {
-      (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
+      setTelemetryService(new MockTelemetryService());
     });
 
     afterEach(() => {
@@ -135,7 +131,7 @@ describe('MetadataOrchestrator', () => {
     let eligibilityDelegateSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
+      setTelemetryService(new MockTelemetryService());
     });
     it('should call eligibilityDelegate with expected parameter when there are multiple uris (requests)', async () => {
       const responses = [{ isApexOasEligible: true, isEligible: true, resourceUri: URI.parse('file.cls') }];
@@ -216,7 +212,7 @@ describe('MetadataOrchestrator', () => {
 
   describe('eligibilityDelegate', () => {
     beforeEach(() => {
-      (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
+      setTelemetryService(new MockTelemetryService());
     });
     it('should return undefined when language client not available', async () => {
       const sampleRequest = {
