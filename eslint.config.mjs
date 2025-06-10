@@ -289,6 +289,8 @@ export default [
       'no-unused-expressions': 'off',
       'no-unused-labels': 'error',
       'no-use-before-define': 'off',
+      'no-useless-constructor': 'off',
+      '@typescript-eslint/no-useless-constructor': 'error',
       'no-var': 'error',
       'object-shorthand': 'error',
       'one-var': ['error', 'never'],
@@ -330,10 +332,6 @@ export default [
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unused-expressions': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/restrict-template-expressions': 'warn',
-      '@typescript-eslint/unbound-method': 'off',
-      'jest/unbound-method': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -342,7 +340,12 @@ export default [
           argsIgnorePattern: '.*',
           ignoreRestSiblings: true
         }
-      ]
+      ],
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/restrict-template-expressions': 'warn',
+      '@typescript-eslint/unbound-method': 'off',
+      'jest/unbound-method': 'error',
+      'no-useless-constructor': 'off'
     }
   },
   {

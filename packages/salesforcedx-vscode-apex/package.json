@@ -14,8 +14,10 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.16.3",
+  "version": "64.0.0",
   "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
@@ -26,9 +28,9 @@
   "dependencies": {
     "@salesforce/apex-node-bundle": "^8.1.26",
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/core-bundle": "^8.10.3",
-    "@salesforce/salesforcedx-utils": "63.16.3",
-    "@salesforce/salesforcedx-utils-vscode": "63.16.3",
+    "@salesforce/core-bundle": "^8.12.0",
+    "@salesforce/salesforcedx-utils": "64.0.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.0.0",
     "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.20.0",
@@ -50,7 +52,7 @@
     "@types/ejs": "3.1.5",
     "@types/node": "^20.0.0",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "^1.100.0",
     "cross-env": "5.2.0",
     "esbuild": "0.25.4",
     "esbuild-plugin-pino": "^2.2.2",
