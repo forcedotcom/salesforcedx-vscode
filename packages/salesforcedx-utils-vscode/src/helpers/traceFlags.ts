@@ -55,9 +55,6 @@ export class TraceFlags {
     } else {
       // create a debug level
       const debugLevelId = await this.getOrCreateDebugLevel();
-      if (!debugLevelId) {
-        throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
-      }
 
       // create a trace flag
       const expirationDate = this.calculateExpirationDate(new Date());
@@ -79,15 +76,16 @@ export class TraceFlags {
     return result.success;
   }
 
-  public async getOrCreateDebugLevel(): Promise<string | undefined> {
+  public async getOrCreateDebugLevel(): Promise<string> {
     // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
     const replayDebuggerLevels = await this.connection.tooling.query(
       "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
     );
-    const replayDebuggerLevelsExists = replayDebuggerLevels.records.length > 0;
-    const debugLevelResultId = replayDebuggerLevels.records[0]?.Id;
+    const [firstReplayDebuggerLevel] = replayDebuggerLevels.records;
+    if (firstReplayDebuggerLevel.Id) {
+      return firstReplayDebuggerLevel.Id;
+    }
 
-    if (!replayDebuggerLevelsExists) {
       // Create a new DebugLevel
       const debugLevel = {
         DeveloperName: 'ReplayDebuggerLevels',
@@ -96,11 +94,10 @@ export class TraceFlags {
         Visualforce: 'FINER'
       };
       const debugLevelResult = await this.connection.tooling.create('DebugLevel', debugLevel);
-      return debugLevelResult.success && debugLevelResult.id ? debugLevelResult.id : undefined;
-    } else {
-      // If the DebugLevel already exists, return its ID
-      return debugLevelResultId;
+    if (!debugLevelResult.success) {
+      throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
     }
+    return debugLevelResult.id;
   }
 
   private async updateTraceFlag(id: string, expirationDate: Date): Promise<boolean> {
