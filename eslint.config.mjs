@@ -18,6 +18,12 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
+import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
+
+const localRules = {
+  'no-duplicate-i18n-values': noDuplicateI18nValues
+};
+
 export default [
   {
     ignores: [
@@ -46,7 +52,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        projectService: true,
         sourceType: 'module',
         ecmaVersion: 2020,
         globals: {
@@ -62,9 +68,11 @@ export default [
       'jest-formatting': eslintPluginJestFormatting,
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
-      unicorn: eslintPluginUnicorn
+      unicorn: eslintPluginUnicorn,
+      local: { rules: localRules }
     },
     rules: {
+      'local/no-duplicate-i18n-values': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/filename-case': [
         'error',
@@ -289,6 +297,8 @@ export default [
       'no-unused-expressions': 'off',
       'no-unused-labels': 'error',
       'no-use-before-define': 'off',
+      'no-useless-constructor': 'off',
+      '@typescript-eslint/no-useless-constructor': 'error',
       'no-var': 'error',
       'object-shorthand': 'error',
       'one-var': ['error', 'never'],
@@ -330,10 +340,6 @@ export default [
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unused-expressions': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/restrict-template-expressions': 'warn',
-      '@typescript-eslint/unbound-method': 'off',
-      'jest/unbound-method': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -342,7 +348,12 @@ export default [
           argsIgnorePattern: '.*',
           ignoreRestSiblings: true
         }
-      ]
+      ],
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/restrict-template-expressions': 'warn',
+      '@typescript-eslint/unbound-method': 'off',
+      'jest/unbound-method': 'error',
+      'no-useless-constructor': 'off'
     }
   },
   {
