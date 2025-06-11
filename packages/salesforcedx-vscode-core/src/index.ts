@@ -502,7 +502,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
 
-  // Delete expired TraceFlags
+  // Delete expired TraceFlags for the current user
   const connection = await WorkspaceContext.getInstance().getConnection();
   const traceFlags = new TraceFlags(connection);
   const username = connection.getUsername();
