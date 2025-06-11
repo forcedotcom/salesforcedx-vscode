@@ -170,20 +170,16 @@ export class TraceFlags {
 
   public async deleteExpiredTraceFlags(userId: string): Promise<boolean> {
     // If an expired TraceFlag exists, delete it
-    const traceFlags = await this.connection.tooling.query(
-      `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${userId}'`
-    );
-    console.log(JSON.stringify(traceFlags, null, 2));
+    const myTraceFlag = await this.getTraceFlagForUser(userId);
+    if (!myTraceFlag) {
+      return false;
+    }
+    console.log(JSON.stringify(myTraceFlag, null, 2));
     const currentTime = new Date();
-    const [expiredTraceFlag] = traceFlags.records.filter(
-      (flag: any) => flag.ExpirationDate && new Date(flag.ExpirationDate) < currentTime
-    );
-
-    if (expiredTraceFlag?.Id) {
-      await this.connection.tooling.delete('TraceFlag', expiredTraceFlag.Id);
+    if (myTraceFlag.ExpirationDate && myTraceFlag.ExpirationDate < currentTime) {
+      await this.connection.tooling.delete('TraceFlag', myTraceFlag.Id);
       return true;
     }
-
     return false;
   }
 }
