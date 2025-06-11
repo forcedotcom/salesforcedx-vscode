@@ -21,6 +21,7 @@ updates:
     ignore:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
+      - dependency-name: '@types/vscode'
     open-pull-requests-limit: 3
     rebase-strategy: auto
     versioning-strategy: increase
