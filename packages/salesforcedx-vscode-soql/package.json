@@ -54,8 +54,7 @@
     "applicationinsights": "1.0.7",
     "cross-env": "5.2.0",
     "esbuild": "0.25.4",
-    "esbuild-plugin-pino": "^2.2.2",
-    "typescript": "^5.6.2"
+    "esbuild-plugin-pino": "^2.2.2"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"

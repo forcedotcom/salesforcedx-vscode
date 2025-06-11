@@ -50,8 +50,7 @@
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
     "nyc": "^15",
-    "ts-jest": "^29.1.1",
-    "typescript": "^5.6.2"
+    "ts-jest": "^29.1.1"
   },
   "packaging": {
     "assets": [
