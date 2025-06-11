@@ -154,7 +154,7 @@ export class TraceFlags {
     return userResult.records[0].Id;
   }
 
-  private async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
+  public async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
     const traceFlagQuery = `
       SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce
       FROM TraceFlag

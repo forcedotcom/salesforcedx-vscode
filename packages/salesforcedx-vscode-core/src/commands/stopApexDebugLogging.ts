@@ -27,13 +27,10 @@ export const turnOffLogging = async (extensionContext: vscode.ExtensionContext):
   const userId = await traceFlags.getUserIdOrThrow(username);
 
   // Check if a TraceFlag already exists for the current user
-  const traceFlagsList = await connection.tooling.query(
-    `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${userId}'`
-  );
-  const [firstTraceFlag] = traceFlagsList.records;
+  const myTraceFlag = await traceFlags.getTraceFlagForUser(userId);
 
-  if (firstTraceFlag?.Id) {
-    await connection.tooling.delete('TraceFlag', firstTraceFlag.Id);
+  if (myTraceFlag?.Id) {
+    await connection.tooling.delete('TraceFlag', myTraceFlag.Id);
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
     disposeTraceFlagExpiration();
     await handleFinishCommand(command, true);
