@@ -66,7 +66,10 @@ describe('AppInsights', () => {
 
   describe('dispose', () => {
     let appInsights: AppInsights;
-    const flushMock = jest.fn();
+    const flushMock = jest.fn().mockImplementation((options: { callback: () => void }) => {
+      // Simulate flush completion by calling the callback immediately
+      options.callback();
+    });
     const appInsightsClientMock = {
       flush: flushMock
     };
@@ -76,22 +79,26 @@ describe('AppInsights', () => {
       (appInsights as any).appInsightsClient = appInsightsClientMock;
     });
 
-    it('should flush events to appInsightsClient and resolve', () => {
-      const expectedPromiseResult = Promise.resolve();
+    it('should flush events to appInsightsClient and resolve', async () => {
+      // Ensure the mock implementation is properly set for this test
+      flushMock.mockImplementation((options: { callback: () => void }) => {
+        options.callback();
+      });
 
       const disposePromise = appInsights.dispose();
 
       expect(flushMock).toHaveBeenCalledTimes(1);
-      expect(disposePromise).toEqual(expectedPromiseResult);
+      expect(disposePromise).toBeInstanceOf(Promise);
+      await expect(disposePromise).resolves.toBeUndefined();
     });
 
-    it('should resolve immediately if appInsightsClient is undefined', () => {
+    it('should resolve immediately if appInsightsClient is undefined', async () => {
       (appInsights as any).appInsightsClient = undefined;
-      const expectedPromiseResult = Promise.resolve();
 
       const disposePromise = appInsights.dispose();
 
-      expect(disposePromise).toEqual(expectedPromiseResult);
+      expect(disposePromise).toBeInstanceOf(Promise);
+      await expect(disposePromise).resolves.toBeUndefined();
     });
   });
 

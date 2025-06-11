@@ -37,3 +37,4 @@ export * from './providers';
 export * from './services';
 export * from './settings';
 export * from './languageClients/conversion';
+export * from './messages';
