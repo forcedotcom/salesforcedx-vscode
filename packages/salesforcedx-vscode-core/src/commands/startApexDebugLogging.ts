@@ -7,7 +7,7 @@
 
 import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY, VISUALFORCE_DEBUG_LEVEL } from '../constants';
+import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { WorkspaceContext } from '../context';
 import { showTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { OrgAuthInfo } from '../util';
@@ -25,27 +25,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
   await traceFlags.deleteExpiredTraceFlags(connection, await OrgAuthInfo.getUserId());
 
   try {
-    // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
-    const replayDebuggerLevels = await connection.tooling.query(
-      "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
-    );
-    const replayDebuggerLevelsExists = replayDebuggerLevels.records.length > 0;
-    let debugLevelResultId = replayDebuggerLevels.records[0]?.Id;
-
-    if (!replayDebuggerLevelsExists) {
-      // Create a new DebugLevel
-      const debugLevel = {
-        DeveloperName: 'ReplayDebuggerLevels',
-        MasterLabel: 'ReplayDebuggerLevels',
-        ApexCode: APEX_CODE_DEBUG_LEVEL,
-        Visualforce: VISUALFORCE_DEBUG_LEVEL
-      };
-      const debugLevelResult = await connection.tooling.create('DebugLevel', debugLevel);
-      if (!debugLevelResult.success) {
-        throw new Error('Failed to create debug level');
-      }
-      debugLevelResultId = debugLevelResult.id;
-    }
+    const debugLevelResultId = await traceFlags.getOrCreateDebugLevel();
 
     const expirationDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
     const traceFlag = {

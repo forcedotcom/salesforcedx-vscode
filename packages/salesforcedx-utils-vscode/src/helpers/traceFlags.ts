@@ -55,7 +55,7 @@ export class TraceFlags {
       return await this.updateTraceFlag(traceFlag.Id, expirationDate);
     } else {
       // create a debug level
-      const debugLevelId = await this.createDebugLevel();
+      const debugLevelId = await this.getOrCreateDebugLevel();
       if (!debugLevelId) {
         throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
       }
@@ -80,16 +80,28 @@ export class TraceFlags {
     return result.success;
   }
 
-  private async createDebugLevel(): Promise<string | undefined> {
-    const developerName = `ReplayDebuggerLevels${Date.now()}`;
-    const debugLevel = {
-      developerName,
-      MasterLabel: developerName,
-      ApexCode: 'FINEST',
-      Visualforce: 'FINER'
-    };
-    const result = await this.connection.tooling.create('DebugLevel', debugLevel);
-    return result.success && result.id ? result.id : undefined;
+  public async getOrCreateDebugLevel(): Promise<string | undefined> {
+    // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
+    const replayDebuggerLevels = await this.connection.tooling.query(
+      "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
+    );
+    const replayDebuggerLevelsExists = replayDebuggerLevels.records.length > 0;
+    const debugLevelResultId = replayDebuggerLevels.records[0]?.Id;
+
+    if (!replayDebuggerLevelsExists) {
+      // Create a new DebugLevel
+      const debugLevel = {
+        DeveloperName: 'ReplayDebuggerLevels',
+        MasterLabel: 'ReplayDebuggerLevels',
+        ApexCode: 'FINEST',
+        Visualforce: 'FINER'
+      };
+      const debugLevelResult = await this.connection.tooling.create('DebugLevel', debugLevel);
+      return debugLevelResult.success && debugLevelResult.id ? debugLevelResult.id : undefined;
+    } else {
+      // If the DebugLevel already exists, return its ID
+      return debugLevelResultId;
+    }
   }
 
   private async updateTraceFlag(id: string, expirationDate: Date): Promise<boolean> {
