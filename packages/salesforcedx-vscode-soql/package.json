@@ -48,7 +48,6 @@
     "@salesforce/core": "^8.12.0",
     "@salesforce/salesforcedx-utils": "64.0.0",
     "@salesforce/ts-types": "2.0.12",
-    "@types/debounce": "^1.2.0",
     "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
     "applicationinsights": "1.0.7",
@@ -60,7 +59,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.js",
+    "bundle:extension": "node ./esbuild.config.mjs",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
@@ -75,9 +74,6 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
   "main": "out/src",
   "serverPath": [
     "..",
