@@ -22,7 +22,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
 
   // If an expired TraceFlag exists for the current user, delete it
   const traceFlags = new TraceFlags(connection);
-  await traceFlags.deleteExpiredTraceFlags(connection, await OrgAuthInfo.getUserId());
+  await traceFlags.deleteExpiredTraceFlags(await OrgAuthInfo.getUserId());
 
   try {
     const debugLevelResultId = await traceFlags.getOrCreateDebugLevel();

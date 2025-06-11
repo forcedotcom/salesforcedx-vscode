@@ -505,7 +505,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // Delete expired TraceFlags
   const connection = await WorkspaceContext.getInstance().getConnection();
   const traceFlags = new TraceFlags(connection);
-  const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(connection, await OrgAuthInfo.getUserId());
+  const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(await OrgAuthInfo.getUserId());
   if (expiredTraceFlagExists) {
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
   }
