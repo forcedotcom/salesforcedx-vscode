@@ -26,8 +26,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
 
   try {
     const debugLevelResultId = await traceFlags.getOrCreateDebugLevel();
-
-    const expirationDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+    const expirationDate = traceFlags.calculateExpirationDate(new Date());
     const traceFlag = {
       TracedEntityId: await OrgAuthInfo.getUserId(),
       LogType: 'DEVELOPER_LOG',
