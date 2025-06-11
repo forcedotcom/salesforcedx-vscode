@@ -164,7 +164,7 @@ export class TraceFlags {
       return false;
     }
     const currentTime = new Date();
-    if (myTraceFlag.ExpirationDate && myTraceFlag.ExpirationDate < currentTime) {
+    if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) < currentTime) {
       await this.connection.tooling.delete('TraceFlag', myTraceFlag.Id);
       return true;
     }
