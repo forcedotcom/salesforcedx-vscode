@@ -10,7 +10,6 @@ import * as vscode from 'vscode';
 import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { WorkspaceContext } from '../context';
 import { showTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
-import { OrgAuthInfo } from '../util';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 
 const command = 'start_apex_debug_logging';
@@ -20,15 +19,21 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
 
   const connection = await WorkspaceContext.getInstance().getConnection();
 
-  // If an expired TraceFlag exists for the current user, delete it
   const traceFlags = new TraceFlags(connection);
-  await traceFlags.deleteExpiredTraceFlags(await OrgAuthInfo.getUserId());
+  const username = connection.getUsername();
+  if (!username) {
+    throw new Error('No username found for the current connection.');
+  }
+  const userId = await traceFlags.getUserIdOrThrow(username);
+
+  // If an expired TraceFlag exists for the current user, delete it
+  await traceFlags.deleteExpiredTraceFlags(userId);
 
   try {
     const debugLevelResultId = await traceFlags.getOrCreateDebugLevel();
     const expirationDate = traceFlags.calculateExpirationDate(new Date());
     const traceFlag = {
-      TracedEntityId: await OrgAuthInfo.getUserId(),
+      TracedEntityId: userId,
       LogType: 'DEVELOPER_LOG',
       ExpirationDate: expirationDate.toUTCString(),
       DebugLevelId: debugLevelResultId

@@ -40,8 +40,7 @@ export class TraceFlags {
       throw new Error(nls.localize('error_no_target_org'));
     }
 
-    const userRecord = await this.getUserIdOrThrow(username);
-    const userId = userRecord.Id;
+    const userId = await this.getUserIdOrThrow(username);
     const traceFlag = await this.getTraceFlagForUser(userId);
     if (traceFlag) {
       // update existing debug level and trace flag
@@ -148,14 +147,14 @@ export class TraceFlags {
     return expirationDate;
   }
 
-  private async getUserIdOrThrow(username: string): Promise<UserRecord> {
+  public async getUserIdOrThrow(username: string): Promise<string> {
     const userQuery = `SELECT id FROM User WHERE username='${username}'`;
     const userResult = await this.connection.query<UserRecord>(userQuery);
 
     if (!userResult.totalSize || userResult.totalSize === 0) {
       throw new Error(nls.localize('trace_flags_unknown_user'));
     }
-    return userResult.records[0];
+    return userResult.records[0].Id;
   }
 
   private async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {

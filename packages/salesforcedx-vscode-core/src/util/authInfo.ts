@@ -8,7 +8,7 @@ import { AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core-bun
 import { ConfigSource, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { WorkspaceContext, workspaceContextUtils } from '../context';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -151,26 +151,6 @@ export class OrgAuthInfo {
     const apiVersion = connection.getApiVersion();
     return apiVersion ? String(apiVersion) : undefined;
   }
-
-  public static async getUserId(): Promise<string> {
-    const connection = await WorkspaceContext.getInstance().getConnection();
-    const targetOrgOrAlias = await workspaceContextUtils.getTargetOrgOrAlias();
-    if (!targetOrgOrAlias) {
-      const err = nls.localize('error_no_target_org');
-      telemetryService.sendException('replay_debugger_undefined_username', err);
-      throw new Error(err);
-    }
-
-    const username = await OrgAuthInfo.getUsername(targetOrgOrAlias);
-    if (!username) {
-      const err = nls.localize('error_no_target_org');
-      telemetryService.sendException('replay_debugger_undefined_username', err);
-      throw new Error(err);
-    }
-
-    const result = await connection.singleRecordQuery<{ Id: string }>(`SELECT Id FROM User WHERE Username = '${username}'`);
-    return result.Id;
-  };
 }
 
 enum VSCodeWindowTypeEnum {
