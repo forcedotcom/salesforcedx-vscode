@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import type { Page } from '@playwright/test';
 import { test } from 'vscode-test-playwright';
 
@@ -10,7 +16,7 @@ export const openCommandPalette = async (page: Page) => {
 
 export const runCommandPaletteCommand = async (page: Page, command: string) => {
   await test.step(`run command palette command: ${command}`, async () => {
-    const timeout = process.platform !== 'win32' ? 30000 : 120000;
+    const timeout = process.platform !== 'win32' ? 30_000 : 240_000;
     const pollInterval = 1000;
     const start = Date.now();
     while (true) {

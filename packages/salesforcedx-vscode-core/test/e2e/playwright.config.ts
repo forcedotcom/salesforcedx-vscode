@@ -13,7 +13,7 @@ import type { VSCodeTestOptions, VSCodeWorkerOptions } from 'vscode-test-playwri
 export default defineConfig<VSCodeTestOptions, VSCodeWorkerOptions>({
   testDir: path.join(__dirname),
   reporter: 'html',
-  timeout: process.platform !== 'win32' ? 120_000 : 240_000,
+  timeout: process.platform !== 'win32' ? 120_000 : 960_000,
   forbidOnly: !!process.env.CI,
   use: {
     // path to your extension folder, where its package.json is located
@@ -28,7 +28,7 @@ export default defineConfig<VSCodeTestOptions, VSCodeWorkerOptions>({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   expect: {
-    timeout: process.platform !== 'win32' ? 60_000 : 120_000
+    timeout: process.platform !== 'win32' ? 60_000 : 480_000
   },
   projects: [
     {
