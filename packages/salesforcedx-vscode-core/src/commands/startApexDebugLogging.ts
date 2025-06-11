@@ -17,14 +17,9 @@ const command = 'start_apex_debug_logging';
 export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   handleStartCommand(command);
 
-  const connection = await WorkspaceContext.getInstance().getConnection();
+  const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
 
-  const traceFlags = new TraceFlags(connection);
-  const username = connection.getUsername();
-  if (!username) {
-    throw new Error('No username found for the current connection.');
-  }
-  const userId = await traceFlags.getUserIdOrThrow(username);
+  const userId = await traceFlags.getUserIdOrThrow();
 
   // If an expired TraceFlag exists for the current user, delete it
   await traceFlags.deleteExpiredTraceFlags(userId);
@@ -42,7 +37,9 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
     const expirationDate = extensionContext.workspaceState.get<Date>(TRACE_FLAG_EXPIRATION_KEY);
     if (expirationDate) {
       const expirationDateValidated = new Date(expirationDate);
-      await notificationService.showInformationMessage(`Trace flag already exists. It will expire at ${expirationDateValidated.toLocaleTimeString()}.`);
+      await notificationService.showInformationMessage(
+        `Trace flag already exists. It will expire at ${expirationDateValidated.toLocaleTimeString()}.`
+      );
     }
   }
 };

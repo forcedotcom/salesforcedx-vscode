@@ -18,13 +18,8 @@ export const turnOffLogging = async (extensionContext: vscode.ExtensionContext):
   handleStartCommand(command);
 
   const connection = await WorkspaceContext.getInstance().getConnection();
-
   const traceFlags = new TraceFlags(connection);
-  const username = connection.getUsername();
-  if (!username) {
-    throw new Error('No username found for the current connection.');
-  }
-  const userId = await traceFlags.getUserIdOrThrow(username);
+  const userId = await traceFlags.getUserIdOrThrow();
 
   // Check if a TraceFlag already exists for the current user
   const myTraceFlag = await traceFlags.getTraceFlagForUser(userId);
