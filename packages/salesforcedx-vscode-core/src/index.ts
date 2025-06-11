@@ -217,14 +217,12 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger);
 
-  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sf.start.apex.debug.logging',
-    () => turnOnLogging(extensionContext)
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand('sf.start.apex.debug.logging', () =>
+    turnOnLogging(extensionContext)
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sf.stop.apex.debug.logging',
-    () => turnOffLogging(extensionContext)
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', () =>
+    turnOffLogging(extensionContext)
   );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
@@ -503,13 +501,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   MetricsReporter.extensionPackStatus();
 
   // Delete expired TraceFlags for the current user
-  const connection = await WorkspaceContext.getInstance().getConnection();
-  const traceFlags = new TraceFlags(connection);
-  const username = connection.getUsername();
-  if (!username) {
-    throw new Error('No username found for the current connection.');
-  }
-  const userId = await traceFlags.getUserIdOrThrow(username);
+  const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+
+  const userId = await traceFlags.getUserIdOrThrow();
 
   const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
   if (expiredTraceFlagExists) {

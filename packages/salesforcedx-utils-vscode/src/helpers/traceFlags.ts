@@ -7,10 +7,6 @@
 import { Connection } from '@salesforce/core-bundle';
 import { nls } from '../messages';
 
-type UserRecord = {
-  Id: string;
-};
-
 type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;
@@ -35,13 +31,7 @@ export class TraceFlags {
   }
 
   public async ensureTraceFlags(): Promise<boolean> {
-    const username = this.connection.getUsername();
-    if (!username) {
-      throw new Error(nls.localize('error_no_target_org'));
-    }
-
-    const userId = await this.getUserIdOrThrow(username);
-    const traceFlag = await this.getTraceFlagForUser(userId);
+    const traceFlag = await this.getTraceFlagForUser(await this.getUserIdOrThrow());
     if (traceFlag) {
       // update existing debug level and trace flag
       if (!(await this.updateDebugLevel(traceFlag.DebugLevelId))) {
@@ -58,7 +48,7 @@ export class TraceFlags {
 
       // create a trace flag
       const expirationDate = this.calculateExpirationDate(new Date());
-      if (!(await this.createTraceFlag(userId, debugLevelId, expirationDate))) {
+      if (!(await this.createTraceFlag(await this.getUserIdOrThrow(), debugLevelId, expirationDate))) {
         return false;
       }
     }
@@ -144,14 +134,13 @@ export class TraceFlags {
     return expirationDate;
   }
 
-  public async getUserIdOrThrow(username: string): Promise<string> {
-    const userQuery = `SELECT id FROM User WHERE username='${username}'`;
-    const userResult = await this.connection.query<UserRecord>(userQuery);
-
-    if (!userResult.totalSize || userResult.totalSize === 0) {
+  public async getUserIdOrThrow(): Promise<string> {
+    // if we have a userId in the authFiles, use that, otherwise ask the org for the user for the connection
+    const userId = this.connection.getAuthInfoFields().userId ?? (await this.connection.identity()).user_id;
+    if (!userId) {
       throw new Error(nls.localize('trace_flags_unknown_user'));
     }
-    return userResult.records[0].Id;
+    return userId;
   }
 
   public async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
