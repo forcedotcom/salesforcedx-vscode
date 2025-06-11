@@ -10,6 +10,7 @@ import {
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
+  TraceFlags,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -501,22 +502,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
 
-  console.log('DOING TRACE FLAG STUFF');
-
+  // Delete expired TraceFlags
   const connection = await WorkspaceContext.getInstance().getConnection();
-
-  // If an expired TraceFlag exists, delete it
-  const traceFlags = await connection.tooling.query(
-    `SELECT Id, ExpirationDate FROM TraceFlag WHERE LogType = 'DEVELOPER_LOG' AND TracedEntityId = '${await OrgAuthInfo.getUserId()}'`
-  );
-  console.log(JSON.stringify(traceFlags, null, 2));
-  const currentTime = new Date();
-  const [expiredTraceFlag] = traceFlags.records.filter(
-    (flag: any) => flag.ExpirationDate && new Date(flag.ExpirationDate) < currentTime
-  );
-
-  if (expiredTraceFlag?.Id) {
-    await connection.tooling.delete('TraceFlag', expiredTraceFlag.Id);
+  const traceFlags = new TraceFlags(connection);
+  const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(connection, await OrgAuthInfo.getUserId());
+  if (expiredTraceFlagExists) {
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
   }
 
