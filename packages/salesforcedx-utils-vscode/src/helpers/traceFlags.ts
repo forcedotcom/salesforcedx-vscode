@@ -86,14 +86,14 @@ export class TraceFlags {
       return firstReplayDebuggerLevel.Id;
     }
 
-      // Create a new DebugLevel
-      const debugLevel = {
-        DeveloperName: 'ReplayDebuggerLevels',
-        MasterLabel: 'ReplayDebuggerLevels',
-        ApexCode: 'FINEST',
-        Visualforce: 'FINER'
-      };
-      const debugLevelResult = await this.connection.tooling.create('DebugLevel', debugLevel);
+    // Create a new DebugLevel
+    const debugLevel = {
+      DeveloperName: 'ReplayDebuggerLevels',
+      MasterLabel: 'ReplayDebuggerLevels',
+      ApexCode: 'FINEST',
+      Visualforce: 'FINER'
+    };
+    const debugLevelResult = await this.connection.tooling.create('DebugLevel', debugLevel);
     if (!debugLevelResult.success) {
       throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
     }
@@ -110,7 +110,7 @@ export class TraceFlags {
     return result.success;
   }
 
-  private async createTraceFlag(
+  public async createTraceFlag(
     userId: string,
     debugLevelId: string,
     expirationDate: Date

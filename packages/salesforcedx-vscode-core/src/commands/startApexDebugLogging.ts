@@ -32,17 +32,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
   try {
     const debugLevelResultId = await traceFlags.getOrCreateDebugLevel();
     const expirationDate = traceFlags.calculateExpirationDate(new Date());
-    const traceFlag = {
-      TracedEntityId: userId,
-      LogType: 'DEVELOPER_LOG',
-      ExpirationDate: expirationDate.toUTCString(),
-      DebugLevelId: debugLevelResultId
-    };
-
-    const traceFlagResult = await connection.tooling.create('TraceFlag', traceFlag);
-    if (!traceFlagResult.success) {
-      throw new Error('Failed to create trace flag');
-    }
+    await traceFlags.createTraceFlag(userId, debugLevelResultId, expirationDate);
 
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, expirationDate);
     showTraceFlagExpiration(expirationDate);
