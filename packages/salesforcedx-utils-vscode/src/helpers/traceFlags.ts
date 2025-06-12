@@ -7,6 +7,10 @@
 import { Connection } from '@salesforce/core-bundle';
 import { nls } from '../messages';
 
+type UserRecord = {
+  Id: string;
+};
+
 type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;
@@ -31,7 +35,14 @@ export class TraceFlags {
   }
 
   public async ensureTraceFlags(): Promise<boolean> {
-    const traceFlag = await this.getTraceFlagForUser(await this.getUserIdOrThrow());
+    const username = this.connection.getUsername();
+    if (!username) {
+      throw new Error(nls.localize('error_no_target_org'));
+    }
+
+    const userRecord = await this.getUserIdOrThrow(username);
+    const userId = userRecord.Id;
+    const traceFlag = await this.getTraceFlagForUser(userId);
     if (traceFlag) {
       // update existing debug level and trace flag
       if (!(await this.updateDebugLevel(traceFlag.DebugLevelId))) {
@@ -44,11 +55,14 @@ export class TraceFlags {
       return await this.updateTraceFlag(traceFlag.Id, expirationDate);
     } else {
       // create a debug level
-      const debugLevelId = await this.getOrCreateDebugLevel();
+      const debugLevelId = await this.createDebugLevel();
+      if (!debugLevelId) {
+        throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
+      }
 
       // create a trace flag
       const expirationDate = this.calculateExpirationDate(new Date());
-      if (!(await this.createTraceFlag(await this.getUserIdOrThrow(), debugLevelId, expirationDate))) {
+      if (!(await this.createTraceFlag(userId, debugLevelId, expirationDate))) {
         return false;
       }
     }
@@ -66,28 +80,16 @@ export class TraceFlags {
     return result.success;
   }
 
-  public async getOrCreateDebugLevel(): Promise<string> {
-    // Check if a DebugLevel with DeveloperName 'ReplayDebuggerLevels' already exists
-    const replayDebuggerLevels = await this.connection.tooling.query(
-      "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
-    );
-    const [firstReplayDebuggerLevel] = replayDebuggerLevels.records;
-    if (firstReplayDebuggerLevel.Id) {
-      return firstReplayDebuggerLevel.Id;
-    }
-
-    // Create a new DebugLevel
+  private async createDebugLevel(): Promise<string | undefined> {
+    const developerName = `ReplayDebuggerLevels${Date.now()}`;
     const debugLevel = {
-      DeveloperName: 'ReplayDebuggerLevels',
-      MasterLabel: 'ReplayDebuggerLevels',
+      developerName,
+      MasterLabel: developerName,
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const debugLevelResult = await this.connection.tooling.create('DebugLevel', debugLevel);
-    if (!debugLevelResult.success) {
-      throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
-    }
-    return debugLevelResult.id;
+    const result = await this.connection.tooling.create('DebugLevel', debugLevel);
+    return result.success && result.id ? result.id : undefined;
   }
 
   private async updateTraceFlag(id: string, expirationDate: Date): Promise<boolean> {
@@ -100,7 +102,7 @@ export class TraceFlags {
     return result.success;
   }
 
-  public async createTraceFlag(
+  private async createTraceFlag(
     userId: string,
     debugLevelId: string,
     expirationDate: Date
@@ -127,23 +129,24 @@ export class TraceFlags {
     return expirationDate.getTime() - currDate > this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE;
   }
 
-  public calculateExpirationDate(expirationDate: Date): Date {
+  private calculateExpirationDate(expirationDate: Date): Date {
     if (!this.isValidDateLength(expirationDate)) {
       expirationDate = new Date(Date.now() + this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE);
     }
     return expirationDate;
   }
 
-  public async getUserIdOrThrow(): Promise<string> {
-    // if we have a userId in the authFiles, use that, otherwise ask the org for the user for the connection
-    const userId = this.connection.getAuthInfoFields().userId ?? (await this.connection.identity()).user_id;
-    if (!userId) {
+  private async getUserIdOrThrow(username: string): Promise<UserRecord> {
+    const userQuery = `SELECT id FROM User WHERE username='${username}'`;
+    const userResult = await this.connection.query<UserRecord>(userQuery);
+
+    if (!userResult.totalSize || userResult.totalSize === 0) {
       throw new Error(nls.localize('trace_flags_unknown_user'));
     }
-    return userId;
+    return userResult.records[0];
   }
 
-  public async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
+  private async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
     const traceFlagQuery = `
       SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce
       FROM TraceFlag
@@ -155,19 +158,5 @@ export class TraceFlags {
       return traceFlagResult.records[0];
     }
     return undefined;
-  }
-
-  public async deleteExpiredTraceFlags(userId: string): Promise<boolean> {
-    // If an expired TraceFlag exists, delete it
-    const myTraceFlag = await this.getTraceFlagForUser(userId);
-    if (!myTraceFlag) {
-      return false;
-    }
-    const currentTime = new Date();
-    if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) < currentTime) {
-      await this.connection.tooling.delete('TraceFlag', myTraceFlag.Id);
-      return true;
-    }
-    return false;
   }
 }
