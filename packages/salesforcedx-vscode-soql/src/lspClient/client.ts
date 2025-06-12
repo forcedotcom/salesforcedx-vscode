@@ -14,15 +14,18 @@ let client: LanguageClient;
 
 export const startLanguageClient = async (extensionContext: ExtensionContext): Promise<void> => {
   // path to language server module
-  const serverPath = extensionContext.extension.packageJSON.serverPath;
-  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
+
+  const module = extensionContext.asAbsolutePath(
+    path.join('dist', 'server.js') // or wherever your bundled server is
+  );
+
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
   // provide for different run/debug modes
   const serverOptions: ServerOptions = {
-    run: { module: serverModule, transport: TransportKind.ipc },
+    run: { module, transport: TransportKind.ipc },
     debug: {
-      module: serverModule,
+      module,
       transport: TransportKind.ipc,
       options: debugOptions
     }
