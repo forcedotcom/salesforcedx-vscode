@@ -17,6 +17,7 @@ import { telemetryService } from './telemetry';
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<any> => {
   await telemetryService.initializeService(extensionContext);
+  channelService.appendLine(`SOQL Extension Initializing in mode ${extensionContext.extensionMode}`);
   const activationTracker = new ActivationTracker(extensionContext, telemetryService);
 
   extensionContext.subscriptions.push(SOQLEditorProvider.register(extensionContext));
@@ -30,7 +31,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   await startLanguageClient(extensionContext);
   void activationTracker.markActivationStop();
-  console.log('SOQL Extension Activated');
+  channelService.appendLine('SOQL Extension Activated');
   return { workspaceContext, channelService };
 };
 
