@@ -14,8 +14,10 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "63.1.1",
+  "version": "64.0.0",
   "publisher": "salesforce",
+  "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+  "enableO11y": "true",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
@@ -24,35 +26,36 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "8.1.12",
-    "@salesforce/apex-tmlanguage": "1.8.0",
-    "@salesforce/core-bundle": "8.8.2",
-    "@salesforce/salesforcedx-utils-vscode": "63.1.1",
-    "@salesforce/vscode-service-provider": "1.2.1",
+    "@salesforce/apex-node-bundle": "^8.1.26",
+    "@salesforce/apex-tmlanguage": "1.8.1",
+    "@salesforce/core-bundle": "^8.12.0",
+    "@salesforce/salesforcedx-utils": "64.0.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.0.0",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
+    "@salesforce/vscode-service-provider": "^1.4.0",
+    "@stoplight/spectral-core": "1.20.0",
+    "@stoplight/spectral-functions": "1.9.3",
+    "@stoplight/spectral-rulesets": "1.22.0",
+    "async-lock": "1.4.1",
+    "ejs": "3.1.10",
     "expand-home-dir": "0.0.3",
-    "find-java-home": "0.2.0",
-    "shelljs": "0.8.5",
-    "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "8.1.0"
+    "fast-xml-parser": "4.5.1",
+    "find-java-home": "1.2.2",
+    "jsonpath-plus": "10.3.0",
+    "openapi-types": "12.1.3",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-uri": "^3.1.0",
+    "yaml": "2.6.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "63.1.1",
-    "@salesforce/ts-sinon": "1.4.30",
-    "@types/chai": "4.3.3",
-    "@types/mocha": "^5",
+    "@types/async-lock": "1.4.2",
+    "@types/ejs": "3.1.5",
     "@types/node": "^20.0.0",
-    "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "^1.90.0",
-    "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "esbuild": "^0.19.5",
-    "esbuild-plugin-pino": "^2.1.0",
-    "mocha": "^10",
-    "prettier": "3.3.3",
-    "sinon": "^13.0.1",
-    "typescript": "^5.6.2",
-    "vscode-extension-telemetry": "0.0.17"
+    "esbuild": "0.25.4",
+    "esbuild-plugin-pino": "^2.2.2",
+    "sinon": "^13.0.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -77,7 +80,7 @@
   },
   "packaging": {
     "assets": [
-      "License.txt",
+      "LICENSE.txt",
       "package.nls.ja.json",
       "package.nls.json",
       "README.md",
@@ -95,8 +98,8 @@
       "languageServerDir": "dist",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "shelljs": "0.8.5",
-        "jsonpath": "1.1.1"
+        "jsonpath": "1.1.1",
+        "jsonc-parser": "2.2.1"
       },
       "devDependencies": {}
     }
@@ -126,6 +129,30 @@
       ]
     },
     "menus": {
+      "editor/context": [
+        {
+          "command": "sf.create.apex.action.method",
+          "when": "false"
+        },
+        {
+          "command": "sf.create.apex.action.class",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.create.apex.action.class",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
+        }
+      ],
       "view/title": [
         {
           "command": "sf.test.view.run",
@@ -164,6 +191,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "sf.apex.languageServer.restart",
+          "when": "sf:project_opened"
+        },
         {
           "command": "sf.anon.apex.execute.selection",
           "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
@@ -235,6 +266,18 @@
         {
           "command": "sf.test.view.collapseAll",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.create.apex.action.method",
+          "when": "false"
+        },
+        {
+          "command": "sf.create.apex.action.class",
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
+        },
+        {
+          "command": "sf.validate.oas.document",
+          "when": "sf:project_opened && sf:has_target_org && (resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
         }
       ]
     },
@@ -246,6 +289,10 @@
       {
         "command": "sf.anon.apex.execute.selection",
         "title": "%anon_apex_execute_selection_text%"
+      },
+      {
+        "command": "sf.apex.languageServer.restart",
+        "title": "%apex_language_server_restart%"
       },
       {
         "command": "sf.apex.log.get",
@@ -338,6 +385,18 @@
       {
         "command": "sf.apex.test.last.method.run",
         "title": "%apex_test_last_method_run_text%"
+      },
+      {
+        "command": "sf.create.apex.action.method",
+        "title": "%create_openapi_doc_method%"
+      },
+      {
+        "command": "sf.create.apex.action.class",
+        "title": "%create_openapi_doc_class%"
+      },
+      {
+        "command": "sf.validate.oas.document",
+        "title": "%validate_oas_document%"
       }
     ],
     "configuration": {
@@ -392,6 +451,86 @@
           "type": "boolean",
           "default": false,
           "description": "%enable-apex-ls-error-to-telemetry%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.class.access-modifiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "global",
+              "public"
+            ]
+          },
+          "default": [
+            "global",
+            "public"
+          ],
+          "description": "%apex_oas_general_class_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.method.access-modifiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "global",
+              "public"
+            ]
+          },
+          "default": [
+            "global",
+            "public"
+          ],
+          "description": "%apex_oas_general_method_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.apexoas.general.property.access-modifiers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "global",
+              "public"
+            ]
+          },
+          "default": [
+            "global",
+            "public"
+          ],
+          "description": "%apex_oas_general_property_access-modifiers%"
+        },
+        "salesforcedx-vscode-apex.oas_generation_strategy": {
+          "type": "string",
+          "enum": [
+            "LEAST_CALLS",
+            "MOST_CALLS",
+            "JSON_METHOD_BY_METHOD"
+          ],
+          "default": "JSON_METHOD_BY_METHOD",
+          "description": "%apex_oas_generation_strategy%"
+        },
+        "salesforcedx-vscode-apex.oas_generation_include_schema": {
+          "type": "boolean",
+          "default": true,
+          "description": "%apex_oas_generation_schema%"
+        },
+        "salesforcedx-vscode-apex.oas_generation_output_token_limit": {
+          "type": "number",
+          "default": 750,
+          "description": "%apex_generation_output_token_limit%"
+        },
+        "salesforcedx-vscode-apex.languageServer.restartBehavior": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "restart",
+            "reset"
+          ],
+          "default": "prompt",
+          "description": "%apex_language_server_restart_behavior_description%",
+          "enumDescriptions": [
+            "%apex_language_server_restart_behavior_prompt_description%",
+            "%apex_language_server_restart_behavior_restart_description%",
+            "%apex_language_server_restart_behavior_reset_description%"
+          ]
         }
       }
     },

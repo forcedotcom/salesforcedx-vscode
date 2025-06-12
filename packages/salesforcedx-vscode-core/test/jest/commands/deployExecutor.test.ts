@@ -6,7 +6,7 @@
  */
 import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { channelService } from '../../../src/channels';
 import { DeployExecutor, DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { SfCommandletExecutor } from '../../../src/commands/util';
@@ -16,35 +16,25 @@ import * as diagnostics from '../../../src/diagnostics';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../../../src/settings';
 
-jest.mock('@salesforce/source-deploy-retrieve-bundle', () => {
-  return {
-    ...jest.requireActual('@salesforce/source-deploy-retrieve-bundle'),
-    ComponentSet: jest.fn().mockImplementation(() => {
-      return {
-        deploy: jest.fn().mockImplementation(() => {
-          return { pollStatus: jest.fn() };
-        }),
-        getSourceComponents: jest.fn().mockReturnValue([
-          { name: '1', type: 'ApexClass' },
-          { name: '2', type: 'ApexClass' }
-        ])
-      };
-    })
-  };
-});
+jest.mock('@salesforce/source-deploy-retrieve-bundle', () => ({
+  ...jest.requireActual('@salesforce/source-deploy-retrieve-bundle'),
+  ComponentSet: jest.fn().mockImplementation(() => ({
+    deploy: jest.fn().mockImplementation(() => ({ pollStatus: jest.fn() })),
+    getSourceComponents: jest.fn().mockReturnValue([
+      { name: '1', type: 'ApexClass' },
+      { name: '2', type: 'ApexClass' }
+    ])
+  }))
+}));
 
-jest.mock('../../../src/commands/baseDeployRetrieve', () => {
-  return {
-    ...jest.requireActual('../../../src/commands/baseDeployRetrieve'),
-    RetrieveExecutor: jest.fn()
-  };
-});
+jest.mock('../../../src/commands/baseDeployRetrieve', () => ({
+  ...jest.requireActual('../../../src/commands/baseDeployRetrieve'),
+  RetrieveExecutor: jest.fn()
+}));
 
-jest.mock('../../../src/conflict/metadataCacheService', () => {
-  return {
-    ...jest.requireActual('../../../src/conflict/metadataCacheService')
-  };
-});
+jest.mock('../../../src/conflict/metadataCacheService', () => ({
+  ...jest.requireActual('../../../src/conflict/metadataCacheService')
+}));
 
 jest.mock('../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../src/commands/util/timestampConflictChecker');
@@ -58,13 +48,12 @@ describe('Deploy Executor', () => {
   const mockWorkspaceContext = { getConnection: jest.fn() } as any;
   const ensureLocalTrackingSpy = jest.fn();
 
-  let workspaceContextGetInstanceSpy: jest.SpyInstance;
-  let getUsernameStub: jest.SpyInstance;
   let getSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
   let getEnableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
+    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     constructor(s: string, t: string) {
       super(s, t);
     }
@@ -82,8 +71,8 @@ describe('Deploy Executor', () => {
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    workspaceContextGetInstanceSpy = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
-    getUsernameStub = jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue(dummyUsername);
+    jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
+    jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue(dummyUsername);
     getSourceTrackingSpy = jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue({
       ensureLocalTracking: ensureLocalTrackingSpy
     } as any);

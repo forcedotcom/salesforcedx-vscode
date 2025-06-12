@@ -19,7 +19,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: 'stable'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -38,7 +38,7 @@ jobs:
       matrix:
         os: ${{ fromJson(inputs.os) }}
         nodeVersion:
-          - 20.9.0
+          - 20.17.0
         vscodeVersion:
           - ${{ inputs.vscodeVersion }}
     steps:
@@ -135,3 +135,8 @@ jobs:
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: ./salesforcedx-vscode/extensions/screenshots
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.testToRun }} == 'createOASDoc'
+        with:
+          name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
+          path: ./${{ inputs.automationRepo }}/e2e-temp/TempProject-CreateOASDoc/llm-logs

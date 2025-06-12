@@ -18,12 +18,14 @@ import {
   hasRootWorkspace,
   projectPaths
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL, channelService } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
+import { getZeroBasedRange } from './range';
 
 type ApexExecuteParameters = {
   apexCode?: string;
@@ -31,7 +33,7 @@ type ApexExecuteParameters = {
   selection?: vscode.Range;
 };
 
-export class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameters> {
+class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameters> {
   public gather(): Promise<CancelResponse | ContinueResponse<ApexExecuteParameters>> {
     if (hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;
@@ -61,7 +63,7 @@ export class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameter
   }
 }
 
-export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
+class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
   private isDebugging: boolean;
@@ -188,7 +190,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
         range: this.adjustErrorRange(Number(lineNumber), Number(columnNumber), selection)
       };
 
-      AnonApexLibraryExecuteExecutor.diagnostics.set(vscode.Uri.file(filePath), [vscDiagnostic]);
+      AnonApexLibraryExecuteExecutor.diagnostics.set(URI.file(filePath), [vscDiagnostic]);
     }
   }
 
@@ -199,12 +201,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<Ap
   ): vscode.Range {
     const lineOffset = selection ? selection.start.line : 0;
     const adjustedLine = lineNumber ? lineNumber + lineOffset : 1;
-    return this.getZeroBasedRange(adjustedLine, columnNumber || 1);
-  }
-
-  private getZeroBasedRange(line: number, column: number): vscode.Range {
-    const pos = new vscode.Position(line > 0 ? line - 1 : 0, column > 0 ? column - 1 : 0);
-    return new vscode.Range(pos, pos);
+    return getZeroBasedRange(adjustedLine, columnNumber || 1);
   }
 }
 

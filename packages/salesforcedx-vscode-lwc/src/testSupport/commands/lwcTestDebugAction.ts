@@ -10,7 +10,7 @@ import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from '../testRunner';
 import { TestCaseInfo, TestExecutionInfo, TestFileInfo, TestInfoKind, TestType } from '../types';
 import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
-import { isLwcJestTest } from '../utils';
+import { isLwcJestTest } from '../utils/isLwcJestTest';
 
 import { workspaceService } from '../workspace/workspaceService';
 
@@ -22,7 +22,11 @@ const debugSessionStartTimes = new Map<string, [number, number]>();
  * @param args CLI arguments
  * @param cwd current working directory
  */
-export const getDebugConfiguration = (command: string, args: string[], cwd: string): vscode.DebugConfiguration => {
+const getDebugConfiguration = async (
+  command: Promise<string>,
+  args: string[],
+  cwd: string
+): Promise<vscode.DebugConfiguration> => {
   const sfDebugSessionId = uuid.v4();
   const debugConfiguration: vscode.DebugConfiguration = {
     sfDebugSessionId,
@@ -30,7 +34,7 @@ export const getDebugConfiguration = (command: string, args: string[], cwd: stri
     request: 'launch',
     name: 'Debug LWC test(s)',
     cwd,
-    runtimeExecutable: command,
+    runtimeExecutable: await command,
     args,
     resolveSourceMapLocations: ['**', '!**/node_modules/**'],
     console: 'integratedTerminal',
@@ -45,13 +49,13 @@ export const getDebugConfiguration = (command: string, args: string[], cwd: stri
  * Start a debug session with provided test execution information
  * @param testExecutionInfo test execution information
  */
-export const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
+const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
-  const shellExecutionInfo = testRunner.getShellExecutionInfo();
+  const shellExecutionInfo = await testRunner.getShellExecutionInfo();
   if (shellExecutionInfo) {
     const { command, args, workspaceFolder, testResultFsPath } = shellExecutionInfo;
     testRunner.startWatchingTestResults(testResultFsPath);
-    const debugConfiguration = getDebugConfiguration(command, args, workspaceFolder.uri.fsPath);
+    const debugConfiguration = await getDebugConfiguration(Promise.resolve(command), args, workspaceFolder.uri.fsPath);
     await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
   }
 };

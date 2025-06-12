@@ -5,22 +5,96 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename } from 'path';
+import { basename } from 'node:path';
 import { telemetryService } from '../telemetry';
 
-export const isNullOrUndefined = (object: any): object is null | undefined => {
-  return object === null || object === undefined;
+export const getJsonCandidate = (str: string): string | null => {
+  const firstCurly = str.indexOf('{');
+  const lastCurly = str.lastIndexOf('}');
+  const firstSquare = str.indexOf('[');
+  const lastSquare = str.lastIndexOf(']');
+
+  // Detect the correct JSON structure (object vs. array)
+  const isObject = firstCurly !== -1 && lastCurly !== -1 && firstCurly < lastCurly;
+  const isArray = firstSquare !== -1 && lastSquare !== -1 && firstSquare < lastSquare;
+
+  let jsonCandidate: string | null = null;
+
+  if (isObject && isArray) {
+    // If both are present, pick the one that appears first
+    jsonCandidate =
+      firstCurly < firstSquare ? str.slice(firstCurly, lastCurly + 1) : str.slice(firstSquare, lastSquare + 1);
+  } else if (isObject) {
+    jsonCandidate = str.slice(firstCurly, lastCurly + 1);
+  } else if (isArray) {
+    jsonCandidate = str.slice(firstSquare, lastSquare + 1);
+  }
+  return jsonCandidate;
 };
 
-export const extractJsonObject = (str: string): any => {
-  const isJsonString = str.indexOf('{') !== -1 && str.lastIndexOf('}') !== -1;
-  let jsonString;
-  if (isJsonString) {
-    jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
-    return JSON.parse(jsonString);
+export const identifyJsonTypeInString = (str: string): 'object' | 'array' | 'primitive' | 'none' => {
+  str = str.trim(); // Remove leading/trailing whitespace
+
+  const jsonCandidate: string | null = getJsonCandidate(str);
+
+  // Check if the JSON candidate is a valid object or array
+  if (jsonCandidate) {
+    const stack: string[] = [];
+    for (let i = 0; i < jsonCandidate.length; i++) {
+      const char = jsonCandidate[i];
+      if (char === '{' || char === '[') {
+        stack.push(char);
+      } else if (char === '}' || char === ']') {
+        const last = stack.pop();
+        if ((char === '}' && last !== '{') || (char === ']' && last !== '[')) {
+          return 'none';
+        }
+      } else if (char === '"' && (i === 0 || jsonCandidate[i - 1] !== '\\')) {
+        // Skip over strings
+        i++;
+        while (i < jsonCandidate.length && (jsonCandidate[i] !== '"' || jsonCandidate[i - 1] === '\\')) {
+          i++;
+        }
+      }
+    }
+
+    if (stack.length === 0) {
+      if (jsonCandidate.startsWith('{') && jsonCandidate.endsWith('}')) {
+        return 'object';
+      } else if (jsonCandidate.startsWith('[') && jsonCandidate.endsWith(']')) {
+        return 'array';
+      }
+    }
   }
-  throw new Error(`The string "${str}" is not a valid JSON string.`);
+
+  // Check if the entire string is a valid JSON primitive
+  if (
+    /^"([^"\\]|\\.)*"$/.test(str) || // String
+    /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(str) || // Number
+    /^(true|false|null)$/.test(str)
+  ) {
+    // Boolean or null
+    return 'primitive';
+  }
+
+  return 'none';
 };
+
+export const extractJson = <T = any>(str: string): T => {
+  str = str.trim(); // Remove leading/trailing whitespace
+
+  const jsonCandidate: string | null = getJsonCandidate(str);
+  const jsonType = identifyJsonTypeInString(str);
+
+  if (!jsonCandidate || jsonType === 'none' || jsonType === 'primitive') {
+    throw new Error(`The string "${str}" does not contain an array or object.`);
+  }
+  // Try parsing the detected JSON structure
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  return JSON.parse(jsonCandidate) as T; // Cast to generic type
+};
+
+export const isNullOrUndefined = (object: any): object is null | undefined => object === null || object === undefined;
 
 // There's a bug in VS Code where, after a file has been renamed,
 // the URI that VS Code passes to the command is stale and is the
@@ -29,7 +103,7 @@ export const extractJsonObject = (str: string): any => {
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
 
-export const flushFilePath = (filePath: string): string => {
+const flushFilePath = (filePath: string): string => {
   if (filePath === '') {
     return filePath;
   }
@@ -60,7 +134,7 @@ export const flushFilePath = (filePath: string): string => {
   return nativePath;
 };
 
-export const flushFilePaths = (filePaths: string[]): string[] => {
+const flushFilePaths = (filePaths: string[]): string[] => {
   for (let i = 0; i < filePaths.length; i++) {
     filePaths[i] = flushFilePath(filePaths[i]);
   }
@@ -68,25 +142,15 @@ export const flushFilePaths = (filePaths: string[]): string[] => {
   return filePaths;
 };
 
-export const asyncFilter = async <T>(arr: T[], callback: (value: T, index: number, array: T[]) => unknown) => {
-  const results = await Promise.all(arr.map(callback));
-
-  return arr.filter((_v, index) => results[index]);
-};
-
 export const fileUtils = {
   flushFilePaths,
   flushFilePath,
-  extractJsonObject
+  extractJson
 };
 
-export const stripAnsiInJson = (str: string, hasJson: boolean): string => {
-  return str && hasJson ? stripAnsi(str) : str;
-};
+export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
 
-export const stripAnsi = (str: string): string => {
-  return str ? str.replaceAll(ansiRegex(), '') : str;
-};
+export const stripAnsi = (str: string): string => (str ? str.replaceAll(ansiRegex(), '') : str);
 
 export const getMessageFromError = (err: any): string => {
   if (err instanceof Error) {
@@ -121,7 +185,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
+const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
   const pattern = [
     '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
     '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))'
@@ -129,3 +193,20 @@ export const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
 
   return new RegExp(pattern, onlyFirst ? undefined : 'g');
 };
+
+/**
+ * Returns elements that are in setA but not in setB.
+ * @param setA
+ * @param setB
+ * @returns
+ */
+export const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => new Set([...setA].filter(x => !setB.has(x)));
+
+/**
+ * Used to remove column/line from org Apex compilations errors.
+ * @param error
+ * @returns
+ */
+export const fixupError = (error: string | undefined): string =>
+  // Normalize error messages by trimming whitespace and removing redundant prefixes
+  error !== undefined ? error.replace(/\(\d+:\d+\)/, '').trim() : 'Unknown error occurred.';

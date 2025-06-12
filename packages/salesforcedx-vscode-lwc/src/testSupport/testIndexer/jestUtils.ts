@@ -33,6 +33,7 @@ const populateAncestorTitlesRecursive = (
 ) => {
   node.ancestorTitles = ancestorTitles;
   if (node.type === ParsedNodeTypes.it) {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     itBlocksWithAncestorTitles.push(node as ItBlockWithAncestorTitles);
   }
   if (node.type === ParsedNodeTypes.root || node.type === ParsedNodeTypes.describe) {
@@ -84,7 +85,7 @@ export const extractPositionFromFailureMessage = (testFsPath: string, failureMes
       return new vscode.Position(line - 1, column - 1);
     }
     return undefined;
-  } catch (error) {
+  } catch {
     return undefined;
   }
 };
@@ -93,6 +94,4 @@ export const extractPositionFromFailureMessage = (testFsPath: string, failureMes
  * Strip the ANSI color codes from failure message
  * @param failureMessage failure message from Jest output
  */
-export const sanitizeFailureMessage = (failureMessage: string) => {
-  return stripAnsi(failureMessage);
-};
+export const sanitizeFailureMessage = (failureMessage: string) => stripAnsi(failureMessage);

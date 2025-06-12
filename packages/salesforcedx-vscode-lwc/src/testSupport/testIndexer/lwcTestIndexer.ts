@@ -7,6 +7,7 @@
 import { Indexer } from '@salesforce/lightning-lsp-common';
 import { parse } from 'jest-editor-support';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import {
   LwcJestTestResults,
   RawTestResult,
@@ -110,7 +111,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     return await this.indexAllTestFiles();
   }
 
-  public async indexTestCases(testUri: vscode.Uri) {
+  public async indexTestCases(testUri: URI) {
     // parse
     const { fsPath: testFsPath } = testUri;
     let testFileInfo = this.testFileInfoMap.get(testFsPath);
@@ -125,7 +126,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
    * It lazily parses test information, until expanding the test file or providing code lens
    * @param testUri uri of test file
    */
-  public async findTestInfoFromLwcJestTestFile(testUri: vscode.Uri): Promise<TestCaseInfo[]> {
+  public async findTestInfoFromLwcJestTestFile(testUri: URI): Promise<TestCaseInfo[]> {
     // parse
     const { fsPath: testFsPath } = testUri;
     let testFileInfo = this.testFileInfoMap.get(testFsPath);
@@ -142,8 +143,12 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     try {
       const { testUri } = testFileInfo;
       const { fsPath: testFsPath } = testUri;
+      // here, and 3 lines later, type assertions seem to be helping the library get correct types.
+      // or, maybe we're doing it wrong and the types were trying to tell us.
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const parseResults = parse(testFsPath) as IExtendedParseResults;
       populateAncestorTitles(parseResults);
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const itBlocks = (parseResults.itBlocksWithAncestorTitles ||
         parseResults.itBlocks) as ItBlockWithAncestorTitles[];
       const testCasesInfo: TestCaseInfo[] = itBlocks.map(itBlock => {
@@ -196,7 +201,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   }
 
   private indexTestFile(testFsPath: string): TestFileInfo {
-    const testUri = vscode.Uri.file(testFsPath);
+    const testUri = URI.file(testFsPath);
     const testLocation = new vscode.Location(testUri, new vscode.Position(0, 0));
     const testFileInfo: TestFileInfo = {
       kind: TestInfoKind.TEST_FILE,
@@ -249,7 +254,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   public updateTestResults(testResults: LwcJestTestResults) {
     testResults.testResults.forEach(testResult => {
       const { name, status: testFileStatus, assertionResults } = testResult;
-      const testFsPath = vscode.Uri.file(name).fsPath;
+      const testFsPath = URI.file(name).fsPath;
       let testFileInfo = this.testFileInfoMap.get(testFsPath);
       if (!testFileInfo) {
         // If testFileInfo not found index it by fsPath.
@@ -266,7 +271,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
         status: testFileResultStatus
       };
 
-      const testUri = vscode.Uri.file(testFsPath);
+      const testUri = URI.file(testFsPath);
       const diagnostics = assertionResults.reduce((diagnosticsResult: vscode.Diagnostic[], assertionResult) => {
         const { failureMessages, location } = assertionResult;
         if (failureMessages && failureMessages.length > 0) {

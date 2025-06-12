@@ -11,42 +11,35 @@ import { ConfigAggregatorProvider, TelemetryService, WorkspaceContextUtil } from
 import { ConfigUtil } from '../../../src/config/configUtil';
 import { WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages';
-jest.mock('@salesforce/core-bundle', () => {
-  return {
-    Logger: {
-      childFromRoot: () => {
-        return {
-          debug: jest.fn()
-        };
-      }
-    },
 
-    Messages: jest.fn().mockImplementation((arg1: string, arg2: string, arg3: Map<string, string>) => {
-      return {
-        loadMessages: jest.fn((arg4, arg5) => {
-          return `Mocked message for arg4: ${arg4} and arg5: ${arg5}`;
-        })
-      };
-    }),
+jest.mock('@salesforce/core-bundle', () => ({
+  Logger: {
+    childFromRoot: () => ({
+      debug: jest.fn()
+    })
+  },
 
-    SfError: class {},
+  Messages: jest.fn().mockImplementation((arg1: string, arg2: string, arg3: Map<string, string>) => ({
+    loadMessages: jest.fn((arg4, arg5) => `Mocked message for arg4: ${arg4} and arg5: ${arg5}`)
+  })),
 
-    StateAggregator: {
-      clearInstance: jest.fn()
-    },
+  SfError: class {},
 
-    AuthInfo: {
-      create: jest.fn()
-    },
+  StateAggregator: {
+    clearInstance: jest.fn()
+  },
 
-    Connection: {
-      create: jest.fn()
-    },
-    envVars: {
-      getNumber: jest.fn()
-    }
-  };
-});
+  AuthInfo: {
+    create: jest.fn()
+  },
+
+  Connection: {
+    create: jest.fn()
+  },
+  envVars: {
+    getNumber: jest.fn()
+  }
+}));
 jest.mock('../../../src/config/configUtil');
 
 const authInfoMock = jest.mocked(AuthInfo);
@@ -124,9 +117,7 @@ describe('WorkspaceContextUtil', () => {
 
   it('should load the target org, alias, and orgId and clear the cache of the core types upon initialization', async () => {
     getConnectionMock.mockReturnValue({
-      getAuthInfoFields: () => {
-        return { orgId: dummyOrgId };
-      }
+      getAuthInfoFields: () => ({ orgId: dummyOrgId })
     });
 
     // Re-initialize the workspaceContextUtil instance so that it re- sets _orgId
@@ -162,9 +153,7 @@ describe('WorkspaceContextUtil', () => {
 
   it('should update target org, alias, and orgId and clear the cache of the core types upon config change', async () => {
     getConnectionMock.mockReturnValue({
-      getAuthInfoFields: () => {
-        return { orgId: dummyOrgId2 };
-      }
+      getAuthInfoFields: () => ({ orgId: dummyOrgId2 })
     });
 
     getUsernameOrAliasStub.mockReturnValue(testUser2);
@@ -238,12 +227,9 @@ describe('WorkspaceContextUtil', () => {
     const mockAuthInfo = { test: 'test' };
     const mockConnection = { authInfo: mockAuthInfo };
 
-    let createAuthStub: jest.SpyInstance;
-    let createConnectionStub: jest.SpyInstance;
-
     beforeEach(() => {
-      createAuthStub = jest.spyOn(AuthInfo, 'create');
-      createConnectionStub = jest.spyOn(Connection, 'create');
+      jest.spyOn(AuthInfo, 'create');
+      jest.spyOn(Connection, 'create');
     });
 
     it('should return connection for the default org', async () => {

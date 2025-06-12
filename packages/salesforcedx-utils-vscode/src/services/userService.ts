@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { randomBytes } from 'crypto';
+import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { randomBytes } from 'node:crypto';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecutor, CommandOutput, SfCommandBuilder, workspaceUtils } from '..';
+import { CliCommandExecutor, workspaceUtils } from '..';
 import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
 
 export class UserService {
@@ -34,6 +35,8 @@ export class UserService {
 
     globalStateUserId = await this.executeCliTelemetry()
       .then((getCliTelemetryData): string => {
+        // will be removed as part of removing CLI calls
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         const cmdResult = JSON.parse(getCliTelemetryData) as {
           result?: { cliId: string };
         };

@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeSObjectResult, Field } from '@jsforce/jsforce-node';
-import { ChildRelationship } from '@jsforce/jsforce-node/lib/api/soap/schema';
-export { ChildRelationship };
+import type { Connection } from '@salesforce/core';
+
+export type DescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
+export type ChildRelationship = DescribeSObjectResult['childRelationships'][number];
+export type Field = DescribeSObjectResult['fields'][number];
 
 export type SObjectField = Pick<
   Field,
@@ -32,7 +34,7 @@ export type SObject = Pick<DescribeSObjectResult, 'childRelationships' | 'label'
   fields: SObjectField[];
 };
 
-export type SubRequest = { method: string; url: string };
+type SubRequest = { method: string; url: string };
 export type BatchRequest = { batchRequests: SubRequest[] };
-export type SubResponse = { statusCode: number; result: DescribeSObjectResult };
+type SubResponse = { statusCode: number; result: DescribeSObjectResult };
 export type BatchResponse = { hasErrors: boolean; results: SubResponse[] };

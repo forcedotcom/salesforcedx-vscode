@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -12,18 +12,16 @@ import {
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import * as shell from 'shelljs';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { workspaceUtils } from '../util';
 
-export type MetadataContext = {
+type MetadataContext = {
   baseDirectory: string;
   commonRoot: string;
   components: SourceComponent[];
@@ -64,7 +62,6 @@ export class MetadataCacheService {
   private static PROPERTIES_FOLDER = ['prop'];
   private static PROPERTIES_FILE = 'file-props.json';
 
-  private username: string;
   private cachePath: string;
   private componentPath?: string;
   private projectPath?: string;
@@ -72,7 +69,6 @@ export class MetadataCacheService {
   private sourceComponents: ComponentSet;
 
   public constructor(username: string) {
-    this.username = username;
     this.sourceComponents = new ComponentSet();
     this.cachePath = this.makeCachePath(username);
   }
@@ -359,7 +355,7 @@ export class MetadataCacheService {
 
   private clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {
     try {
-      shell.rm('-rf', dirToRemove);
+      fs.rmSync(dirToRemove, { recursive: true, force: true });
     } catch (error) {
       if (throwErrorOnFailure) {
         throw error;
@@ -368,7 +364,7 @@ export class MetadataCacheService {
   }
 }
 
-export type MetadataCacheCallback = (username: string, cache: MetadataCacheResult | undefined) => Promise<void>;
+type MetadataCacheCallback = (username: string, cache: MetadataCacheResult | undefined) => Promise<void>;
 
 export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   private cacheService: MetadataCacheService;

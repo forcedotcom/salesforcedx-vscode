@@ -5,32 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecution,
   CliCommandExecutor,
-  Command,
   ContinueResponse,
+  EmptyParametersGatherer,
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult,
-  Row,
-  SfCommandBuilder,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
-import { nls } from '../messages';
-import {
-  CommandParams,
-  EmptyParametersGatherer,
-  FlagParameter,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { coerceMessageKey, nls } from '../messages';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export const pullCommand: CommandParams = {
+const pullCommand: CommandParams = {
   command: 'project:retrieve:start',
   description: {
     default: 'project_retrieve_start_default_org_text',
@@ -52,13 +44,13 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
 
   public build(data: {}): Command {
     const builder = new SfCommandBuilder()
-      .withDescription(nls.localize(this.params.description.default))
+      .withDescription(nls.localize(coerceMessageKey(this.params.description.default)))
       .withArg(this.params.command)
       .withJson()
       .withLogName(this.params.logName.default);
 
     if (this.flag === '--ignore-conflicts') {
-      builder.withArg(this.flag).withDescription(nls.localize(this.params.description.ignoreConflicts));
+      builder.withArg(this.flag).withDescription(nls.localize(coerceMessageKey(this.params.description.ignoreConflicts)));
     }
     return builder.build();
   }
@@ -169,7 +161,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(
-      rows as unknown as Row[],
+      rows ?? [],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -181,9 +173,9 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     return outputTable;
   }
 
-  protected getErrorTable(table: Table, result: unknown, titleType: string) {
+  protected getErrorTable(table: Table, result: ProjectRetrieveStartResult[], titleType: string) {
     const outputTable = table.createTable(
-      result as Row[],
+      result,
       [
         {
           key: 'filePath',
@@ -191,7 +183,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
         },
         { key: 'error', label: nls.localize('table_header_errors') }
       ],
-      nls.localize(`table_title_${titleType}_errors`)
+      nls.localize(coerceMessageKey(`table_title_${titleType}_errors`))
     );
     return outputTable;
   }

@@ -4,16 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CliStatusEnum, CliVersionStatus, ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ActivationTracker,
   ChannelService,
+  ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
+  ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as os from 'os';
-import * as path from 'path';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -29,7 +30,6 @@ import {
   deleteSource,
   deployManifest,
   deploySourcePaths,
-  forceLightningLwcTestCreate,
   initSObjectDefinitions,
   internalLightningGenerateApp,
   internalLightningGenerateAuraComponent,
@@ -66,7 +66,6 @@ import {
   sourceDiff,
   sourceFolderDiff,
   startApexDebugLogging,
-  stopApexDebugLogging,
   taskStop,
   turnOffLogging,
   viewAllChanges,
@@ -79,8 +78,6 @@ import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { getUserId } from './commands/startApexDebugLogging';
 import {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
   FlagParameter,
   SelectFileName,
   SelectOutputDir,
@@ -91,12 +88,12 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, SF_CLI_DOWNLOAD_LINK } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
+import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
-import { nls } from './messages';
-import { isDemoMode } from './modes/demo-mode';
-import { ProgressNotification, notificationService } from './notifications';
+import { isDemoMode } from './modes/demoMode';
+import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSalesforceProjectOpened } from './predicates';
@@ -105,7 +102,7 @@ import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './serv
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { MetricsReporter } from './telemetry/MetricsReporter';
+import { MetricsReporter } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
@@ -196,11 +193,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const lightningGenerateLwcCmd = vscode.commands.registerCommand('sf.lightning.generate.lwc', lightningGenerateLwc);
 
-  const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
-    'sf.force.lightning.lwc.test.create',
-    forceLightningLwcTestCreate
-  );
-
   const debuggerStopCmd = vscode.commands.registerCommand('sf.debugger.stop', debuggerStop);
   const configListCmd = vscode.commands.registerCommand('sf.config.list', configList);
   const forceAliasListCmd = vscode.commands.registerCommand('sf.alias.list', aliasList);
@@ -230,7 +222,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     startApexDebugLogging
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', stopApexDebugLogging);
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
@@ -293,7 +285,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     lightningGenerateEventCmd,
     lightningGenerateInterfaceCmd,
     lightningGenerateLwcCmd,
-    forceLightningLwcTestCreateCmd,
     debuggerStopCmd,
     configListCmd,
     forceAliasListCmd,
@@ -393,8 +384,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // commands are run with the project path returned from process.cwd(),
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
-  ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
-  // validateCliInstallationAndVersion();
+  await ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   setNodeExtraCaCerts();
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
@@ -417,7 +407,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     // Api
     const internalApi: any = {
       channelService,
-      EmptyParametersGatherer,
       isCLIInstalled,
       notificationService,
       OrgAuthInfo,
@@ -447,6 +436,17 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
 
+  // Set initial context
+  await checkPackageDirectoriesEditorView();
+
+  // Register editor change listener
+  const editorChangeDisposable = vscode.window.onDidChangeActiveTextEditor(async () => {
+    await checkPackageDirectoriesEditorView();
+  });
+
+  // Add to subscriptions
+  extensionContext.subscriptions.push(editorChangeDisposable);
+
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);
   }
@@ -459,8 +459,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   const api: any = {
     channelService,
-    CompositeParametersGatherer,
-    EmptyParametersGatherer,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
     getUserId,
     isCLIInstalled,
@@ -502,9 +500,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
   console.log('SF CLI Extension Activated');
-
   handleTheUnhandled();
-
   return api;
 };
 
@@ -543,52 +539,6 @@ export const deactivate = async (): Promise<void> => {
   return turnOffLogging();
 };
 
-export const validateCliInstallationAndVersion = (): void => {
-  // Check that the CLI is installed and that it is a supported version
-  // If there is no CLI or it is an unsupported version then the Core extension will not activate
-  const c = new CliVersionStatus();
-
-  const sfdxCliVersionString = c.getCliVersion(true);
-  const sfCliVersionString = c.getCliVersion(false);
-
-  const sfdxCliVersionParsed = c.parseCliVersion(sfdxCliVersionString);
-  const sfCliVersionParsed = c.parseCliVersion(sfCliVersionString);
-
-  const cliInstallationResult = c.validateCliInstallationAndVersion(sfdxCliVersionParsed, sfCliVersionParsed);
-
-  switch (cliInstallationResult) {
-    case CliStatusEnum.cliNotInstalled: {
-      showErrorNotification('sfdx_cli_not_found', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
-      throw Error('No Salesforce CLI installed');
-    }
-    case CliStatusEnum.onlySFv1: {
-      showErrorNotification('sf_v1_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
-      throw Error('Only SF v1 installed');
-    }
-    case CliStatusEnum.outdatedSFDXVersion: {
-      showErrorNotification('sfdx_cli_not_supported', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
-      throw Error('Outdated SFDX CLI version that is no longer supported');
-    }
-    case CliStatusEnum.bothSFDXAndSFInstalled: {
-      showErrorNotification('both_sfdx_and_sf', []);
-      throw Error('Both SFDX v7 and SF v2 are installed');
-    }
-    case CliStatusEnum.SFDXv7Valid: {
-      showWarningNotification('sfdx_v7_deprecation', [SF_CLI_DOWNLOAD_LINK, SF_CLI_DOWNLOAD_LINK]);
-    }
-  }
-};
-
-export const showErrorNotification = (type: string, args: any[]) => {
-  const showMessage = nls.localize(type, ...args);
-  void vscode.window.showErrorMessage(showMessage);
-};
-
-export const showWarningNotification = (type: string, args: any[]) => {
-  const showMessage = nls.localize(type, ...args);
-  void vscode.window.showWarningMessage(showMessage);
-};
-
 const handleTheUnhandled = (): void => {
   process.on('unhandledRejection', (reason: Error, promise: Promise<any>) => {
     const collectedData: {
@@ -610,15 +560,22 @@ const handleTheUnhandled = (): void => {
     collectedData.stackTrace ??= reason ? reason.stack : 'No stack trace available';
 
     // make an attempt to isolate the first reference to one of our extensions from the stack
-    const fromExtension = collectedData.stackTrace
+    const dxExtension = collectedData.stackTrace
       ?.split(os.EOL)
       .filter(l => l.includes('at '))
       .flatMap(l => l.split(path.sep))
       .find(w => w.startsWith('salesforcedx-vscode'));
 
-    collectedData.fromExtension = fromExtension;
-
-    // Send detailed telemetry data
-    telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+    const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
+    // Send detailed telemetry data for only dx extensions by default.
+    // If the exception catcher is enabled, send telemetry data for all extensions.
+    if (dxExtension || exceptionCatcher) {
+      collectedData.fromExtension = dxExtension;
+      telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+      if (exceptionCatcher) {
+        console.log('Debug mode is enabled');
+        console.log('error data: %s', JSON.stringify(collectedData));
+      }
+    }
   });
 };

@@ -4,24 +4,45 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'fs';
+import * as vscode from 'vscode';
+import * as workspaceUtils from '../../../../src';
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  promises: {
-    appendFile: jest.fn().mockResolvedValue({})
-  }
-}));
+jest.mock('vscode');
+const vscodeMocked = jest.mocked(vscode);
 
 describe('TelemetryFile', () => {
   let telemetryFile: TelemetryFile;
   let writeToFileMock: jest.SpyInstance;
+  let getRootWorkspacePathSpy: jest.SpyInstance;
   const dummyExtensionId = 'extensionId';
+  const mockWorkspacePath = '/mock/workspace/path';
 
   beforeEach(() => {
+    // Mock getRootWorkspacePath first
+    getRootWorkspacePathSpy = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(mockWorkspacePath);
+
+    // Mock Uri.file before creating TelemetryFile instance
+    vscodeMocked.Uri.file.mockImplementation(filePath => ({
+      fsPath: filePath,
+      scheme: 'file',
+      authority: '',
+      path: filePath,
+      query: '',
+      fragment: '',
+      with: jest.fn(),
+      toString: jest.fn().mockReturnValue(`file://${filePath}`),
+      toJSON: jest.fn().mockReturnValue({ scheme: 'file', path: filePath })
+    }));
+
+    // Create TelemetryFile instance after mocks are set up
     telemetryFile = new TelemetryFile(dummyExtensionId);
     writeToFileMock = jest.spyOn(telemetryFile as any, 'writeToFile');
+    vscodeMocked.workspace.fs.writeFile.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    getRootWorkspacePathSpy.mockRestore();
   });
 
   it('should append the telemetry event to the telemetry file.', () => {
@@ -62,7 +83,10 @@ describe('TelemetryFile', () => {
 
       await (telemetryFile as any).writeToFile(eventName, properties);
 
-      expect((fs.promises.appendFile as jest.Mock).mock.calls[0]).toMatchSnapshot();
+      expect(vscodeMocked.workspace.fs.writeFile).toHaveBeenCalled();
+      const writeCall = (vscodeMocked.workspace.fs.writeFile as jest.Mock).mock.calls[0];
+      const writtenData = writeCall[1].toString();
+      expect([`${dummyExtensionId}-telemetry.json`, writtenData]).toMatchSnapshot();
     });
   });
 });

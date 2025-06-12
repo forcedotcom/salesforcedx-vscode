@@ -41,7 +41,7 @@ class LwcTestCodeLensProvider implements CodeLensProvider {
   }
 }
 
-export const lwcTestCodeLensProvider = new LwcTestCodeLensProvider();
+const lwcTestCodeLensProvider = new LwcTestCodeLensProvider();
 
 /**
  * Register Code Lens Provider with the extension context

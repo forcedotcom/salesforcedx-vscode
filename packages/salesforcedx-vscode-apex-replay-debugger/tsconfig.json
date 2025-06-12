@@ -4,11 +4,8 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out"
-  ],
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-apex-replay-debugger"
@@ -18,9 +15,6 @@
     },
     {
       "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-test-utils-vscode"
     }
   ]
 }

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ChildProcess } from 'child_process';
+import { ChildProcess } from 'node:child_process';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
@@ -13,6 +13,7 @@ import { Command } from './command';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const treeKill = require('tree-kill');
+
 export const NO_PID_ERROR = 'No process associated with sfdx command.';
 export const NO_STDOUT_ERROR = 'No stdout found for childProcess';
 export const NO_STDERR_ERROR = 'No stderr found for childProcess';
@@ -89,8 +90,8 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-const killPromise = (processId: number, signal: string): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
+const killPromise = (processId: number, signal: string): Promise<void> =>
+  new Promise<void>((resolve, reject) => {
     treeKill(processId, signal, (err: Error | undefined) => {
       if (err) {
         reject(err);
@@ -98,4 +99,3 @@ const killPromise = (processId: number, signal: string): Promise<void> => {
       resolve();
     });
   });
-};

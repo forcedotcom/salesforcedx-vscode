@@ -7,8 +7,8 @@
 
 import { CodeCoverageResult } from '@salesforce/apex-node-bundle';
 import { SFDX_FOLDER, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import { existsSync, readFileSync } from 'fs';
-import { join, extname, basename } from 'path';
+import { existsSync, readFileSync } from 'node:fs';
+import { join, extname, basename } from 'node:path';
 import { Range, TextDocument, TextEditor, TextLine, window, workspace } from 'vscode';
 import { channelService } from '../channels';
 import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';
@@ -16,15 +16,15 @@ import { nls } from '../messages';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-export const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
+const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
-export const getLineRange = (document: TextDocument, lineNumber: number): Range => {
+const getLineRange = (document: TextDocument, lineNumber: number): Range => {
   let adjustedLineNumber: number;
   let firstLine: TextLine;
   try {
     adjustedLineNumber = lineNumber - 1;
     firstLine = document.lineAt(adjustedLineNumber);
-  } catch (e) {
+  } catch {
     throw new Error(nls.localize('colorizer_out_of_sync_code_coverage_data'));
   }
 
@@ -36,13 +36,7 @@ export const getLineRange = (document: TextDocument, lineNumber: number): Range 
   );
 };
 
-export type CoverageTestResult = {
-  coverage: {
-    coverage: CoverageItem[];
-  };
-};
-
-export type CoverageItem = {
+type CoverageItem = {
   id: string;
   name: string;
   totalLines: number;
@@ -73,9 +67,7 @@ const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
   return testResult.codecoverage || testResult.coverage.coverage;
 };
 
-const isApexMetadata = (filePath: string): boolean => {
-  return IS_CLS_OR_TRIGGER.test(filePath);
-};
+const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);
 
 const getApexMemberName = (filePath: string): string => {
   if (isApexMetadata(filePath)) {
@@ -155,15 +147,13 @@ const applyCoverageToSource = (
   coveredLines: Range[];
   uncoveredLines: Range[];
 } => {
-  let coveredLines = Array<Range>();
-  let uncoveredLines = Array<Range>();
   if (
     document &&
     !document.uri.fsPath.includes(SFDX_FOLDER) &&
     isApexMetadata(document.uri.fsPath) &&
     !IS_TEST_REG_EXP.test(document.getText())
   ) {
-    const codeCovArray = getCoverageData() as { name: string }[];
+    const codeCovArray = getCoverageData();
     const apexMemberName = getApexMemberName(document.uri.fsPath);
     const codeCovItem = codeCovArray.find(covItem => covItem.name === apexMemberName);
 
@@ -171,25 +161,26 @@ const applyCoverageToSource = (
       throw new Error(nls.localize('colorizer_no_code_coverage_current_file', document.uri.fsPath));
     }
 
-    if (Reflect.has(codeCovItem, 'lines') && !Reflect.has(codeCovItem, 'uncoveredLines')) {
-      const covItem = codeCovItem as CoverageItem;
-      for (const key in covItem.lines) {
-        if (covItem.lines[key] === 1) {
-          coveredLines.push(getLineRange(document, Number(key)));
-        } else {
-          uncoveredLines.push(getLineRange(document, Number(key)));
-        }
-      }
-    } else {
-      const covResult = codeCovItem as CodeCoverageResult;
-      coveredLines = covResult.coveredLines.map(cov => getLineRange(document, Number(cov)));
-      uncoveredLines = covResult.uncoveredLines.map(uncov => getLineRange(document, Number(uncov)));
+    if (isCodeCoverageItem(codeCovItem)) {
+      return {
+        // TODO node 22: use native js object.groupBy
+        coveredLines: Object.entries(codeCovItem.lines)
+          .filter(([, value]) => value === 1)
+          .map(([key]) => getLineRange(document, Number(key))),
+        uncoveredLines: Object.entries(codeCovItem.lines)
+          .filter(([, value]) => value !== 1)
+          .map(([key]) => getLineRange(document, Number(key)))
+      };
     }
+    return {
+      coveredLines: codeCovItem.coveredLines.map(cov => getLineRange(document, Number(cov))),
+      uncoveredLines: codeCovItem.uncoveredLines.map(uncov => getLineRange(document, Number(uncov)))
+    };
   }
-  return { coveredLines, uncoveredLines };
+  return {
+    coveredLines: [],
+    uncoveredLines: []
+  };
 };
 
-// export is for testing
-export const colorizer = {
-  applyCoverageToSource
-};
+const isCodeCoverageItem = (item: CoverageItem | CodeCoverageResult): item is CoverageItem => 'lines' in item;

@@ -5,12 +5,12 @@
     "outDir": "out",
     "resolveJsonModule": true
   },
-  "include": ["src/**/*","src/data/*.json", "test/**/*"],
-  "exclude": [
-    "node_modules",
-    "out"
-  ],
+  "include": ["src/**/*", "src/data/*.json", "test/**/*"],
+  "exclude": ["node_modules", "out"],
   "references": [
+    {
+      "path": "../salesforcedx-utils"
+    },
     {
       "path": "../salesforcedx-utils-vscode"
     }

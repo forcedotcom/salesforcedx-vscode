@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as path from 'node:path';
+import { Uri, workspace } from 'vscode';
 import { getRootWorkspacePath } from '../..';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
 
@@ -14,15 +14,16 @@ import { LOCAL_TELEMETRY_FILE } from '../../constants';
  * Represents a telemetry file that logs telemetry events by appending to a local file.
  */
 export class TelemetryFile implements TelemetryReporter {
-  private filePath: string;
+  private fileUri: Uri;
+  private buffer: string = '';
 
   constructor(extensionId: string) {
-    this.filePath = this.logFilePathFor(extensionId);
+    this.fileUri = Uri.file(path.join(getRootWorkspacePath(), `${extensionId}-${LOCAL_TELEMETRY_FILE}`));
     console.log(
       'Local telemetry event logging enabled for: ' +
         extensionId +
         '. Telemetry events will be appended to the file at: ' +
-        this.filePath +
+        this.fileUri.fsPath +
         '.'
     );
   }
@@ -43,15 +44,16 @@ export class TelemetryFile implements TelemetryReporter {
     void this.writeToFile(exceptionName, { exceptionMessage, ...measurements });
   }
 
-  public dispose(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      try {
-        console.log('dispose called on Local Telemetry Logger.');
-        resolve();
-      } catch (error) {
-        reject(error);
+  public async dispose(): Promise<void> {
+    try {
+      console.log('dispose called on Local Telemetry Logger.');
+      if (this.buffer) {
+        await this.flushBuffer();
       }
-    });
+    } catch (error) {
+      console.error('Error disposing telemetry file:', error);
+      throw error;
+    }
   }
 
   /**
@@ -66,11 +68,16 @@ export class TelemetryFile implements TelemetryReporter {
     }
   ) {
     const timestamp = new Date().toISOString();
-
-    await fs.promises.appendFile(this.filePath, JSON.stringify({ timestamp, command, data }, null, 2) + ',');
+    const content = JSON.stringify({ timestamp, command, data }, null, 2) + ',';
+    this.buffer += content;
+    await this.flushBuffer();
   }
 
-  private logFilePathFor(extensionId: string): string {
-    return path.join(getRootWorkspacePath(), `${extensionId}-${LOCAL_TELEMETRY_FILE}`);
+  private async flushBuffer(): Promise<void> {
+    try {
+      await workspace.fs.writeFile(this.fileUri, Buffer.from(this.buffer));
+    } catch (error) {
+      console.error('Failed to write telemetry log:', error);
+    }
   }
 }

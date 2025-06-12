@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJsonObject } from '../../helpers';
+import { extractJson } from '../../helpers';
 
 export const CONFLICT_ERROR_NAME = 'SourceConflictError';
 
@@ -39,8 +39,8 @@ export class ProjectDeployStartResultParser {
 
   constructor(stdout: string) {
     try {
-      this.response = extractJsonObject(stdout);
-    } catch (e) {
+      this.response = extractJson(stdout);
+    } catch {
       const err = new Error('Error parsing project deploy start result');
       err.name = 'ProjectDeployStartParserFail';
       throw err;
@@ -50,6 +50,7 @@ export class ProjectDeployStartResultParser {
   public getErrors(): ProjectDeployStartErrorResponse | undefined {
     if (this.response.status === 1) {
       const files = this.response.data ?? this.response.result?.files;
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return {
         message: this.response.message ?? 'Push failed. ',
         name: this.response.name ?? 'DeployFailed',
@@ -68,6 +69,7 @@ export class ProjectDeployStartResultParser {
       if (pushedSource) {
         return { status, result: { files: pushedSource } };
       }
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return this.response as ProjectDeployStartSuccessResponse;
     }
     if (partialSuccess) {

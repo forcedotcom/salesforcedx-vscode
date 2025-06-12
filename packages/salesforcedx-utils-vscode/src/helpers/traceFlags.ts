@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core-bundle';
-import { TraceFlagsRemover } from '../helpers';
 import { nls } from '../messages';
 
 type UserRecord = {
@@ -24,12 +23,6 @@ type TraceFlagRecord = {
   StartDate: Date | undefined;
   ExpirationDate: Date | undefined;
   DebugLevel: DebugLevelRecord;
-};
-
-type DataRecordResult = {
-  id?: string;
-  errors?: any[];
-  success: boolean;
 };
 
 export class TraceFlags {
@@ -83,7 +76,7 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.update('DebugLevel', debugLevel)) as DataRecordResult;
+    const result = await this.connection.tooling.update('DebugLevel', debugLevel);
     return result.success;
   }
 
@@ -95,7 +88,7 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.create('DebugLevel', debugLevel)) as DataRecordResult;
+    const result = await this.connection.tooling.create('DebugLevel', debugLevel);
     return result.success && result.id ? result.id : undefined;
   }
 
@@ -105,7 +98,7 @@ export class TraceFlags {
       StartDate: Date.now(),
       ExpirationDate: expirationDate.toUTCString()
     };
-    const result = (await this.connection.tooling.update('TraceFlag', traceFlag)) as DataRecordResult;
+    const result = await this.connection.tooling.update('TraceFlag', traceFlag);
     return result.success;
   }
 
@@ -122,10 +115,9 @@ export class TraceFlags {
       ExpirationDate: expirationDate.toUTCString()
     };
 
-    const result = (await this.connection.tooling.create('TraceFlag', traceFlag)) as DataRecordResult;
+    const result = await this.connection.tooling.create('TraceFlag', traceFlag);
 
     if (result.success && result.id) {
-      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(result.id);
       return result.id;
     } else {
       return undefined;

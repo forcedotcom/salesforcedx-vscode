@@ -11,7 +11,7 @@ import {
   ParametersGatherer,
   PreconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { Uri } from 'vscode';
 import { salesforceCoreSettings } from '../../settings';
 

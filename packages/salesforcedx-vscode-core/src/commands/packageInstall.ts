@@ -5,32 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
-  Command,
+  CompositeParametersGatherer,
   ContinueResponse,
   isRecordIdFormat,
-  ParametersGatherer,
-  SfCommandBuilder
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
+import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
 
-type packageInstallOptions = {
-  packageId: string;
-  installationKey: string;
-};
-
-export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
-  private readonly options: packageInstallOptions;
-
-  public constructor(options = { packageId: '', installationKey: '' }) {
-    super();
-    this.options = options;
-  }
-
+class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
   public build(data: PackageIdAndInstallationKey): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize('package_install_text'))
@@ -46,34 +34,31 @@ export class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndIns
   }
 }
 
-export type PackageIdAndInstallationKey = PackageID & InstallationKey;
+type PackageIdAndInstallationKey = PackageID & InstallationKey;
 
-export type PackageID = {
+type PackageID = {
   packageId: string;
 };
 
-export type InstallationKey = {
+type InstallationKey = {
   installationKey: string;
 };
 
-export class SelectPackageID implements ParametersGatherer<PackageID> {
+class SelectPackageID implements ParametersGatherer<PackageID> {
   public async gather(): Promise<CancelResponse | ContinueResponse<PackageID>> {
-    const packageIdInputOptions = {
+    const packageIdInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_package_id'),
       placeHolder: nls.localize('package_id_gatherer_placeholder'),
-      validateInput: value => {
-        return isRecordIdFormat(value, PKG_ID_PREFIX) || value === ''
-          ? null
-          : nls.localize('package_id_validation_error');
-      }
-    } as vscode.InputBoxOptions;
+      validateInput: value =>
+        isRecordIdFormat(value, PKG_ID_PREFIX) || value === '' ? null : nls.localize('package_id_validation_error')
+    };
 
     const packageId = await vscode.window.showInputBox(packageIdInputOptions);
     return packageId ? { type: 'CONTINUE', data: { packageId } } : { type: 'CANCEL' };
   }
 }
 
-export class SelectInstallationKey implements ParametersGatherer<InstallationKey> {
+class SelectInstallationKey implements ParametersGatherer<InstallationKey> {
   private readonly prefillValueProvider?: () => string;
 
   constructor(prefillValueProvider?: () => string) {
@@ -81,9 +66,9 @@ export class SelectInstallationKey implements ParametersGatherer<InstallationKey
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<InstallationKey>> {
-    const installationKeyInputOptions = {
+    const installationKeyInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_installation_key_if_necessary')
-    } as vscode.InputBoxOptions;
+    };
     if (this.prefillValueProvider) {
       installationKeyInputOptions.value = this.prefillValueProvider();
     }

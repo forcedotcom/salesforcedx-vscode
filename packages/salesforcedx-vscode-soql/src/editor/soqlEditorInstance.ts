@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeSObjectResult, QueryResult } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core-bundle';
-import { JsonMap } from '@salesforce/ts-types';
+import type { QueryResult, DescribeSObjectResult } from '../types';
+import type { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
 import { trackErrorWithTelemetry } from '../commonUtils';
@@ -25,25 +24,49 @@ import { TelemetryModelJson } from '../telemetry';
 import { QueryRunner } from './queryRunner';
 
 // TODO: This should be exported from soql-builder-ui
-export type SoqlEditorEvent = {
-  type: string;
-  payload?: string | string[] | JsonMap;
-};
+type SoqlEditorEvent =
+  | {
+      type: 'ui_activated';
+      payload: never;
+    }
+  | {
+      type: 'ui_soql_changed';
+      payload: string;
+    }
+  | {
+      type: 'ui_telemetry';
+      payload: TelemetryModelJson;
+    }
+  | {
+      type: 'sobject_metadata_request';
+      payload: string;
+    }
+  | {
+      type: 'sobject_metadata_response';
+      payload: DescribeSObjectResult;
+    }
+  | {
+      type: 'sobjects_request';
+      payload: never;
+    }
+  | {
+      type: 'run_query';
+      payload: never;
+    };
 
 // TODO: This should be shared with soql-builder-ui
-export enum MessageType {
-  UI_ACTIVATED = 'ui_activated',
-  UI_SOQL_CHANGED = 'ui_soql_changed',
-  UI_TELEMETRY = 'ui_telemetry',
-  SOBJECT_METADATA_REQUEST = 'sobject_metadata_request',
-  SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
-  SOBJECTS_REQUEST = 'sobjects_request',
-  SOBJECTS_RESPONSE = 'sobjects_response',
-  TEXT_SOQL_CHANGED = 'text_soql_changed',
-  RUN_SOQL_QUERY = 'run_query',
-  CONNECTION_CHANGED = 'connection_changed',
-  RUN_SOQL_QUERY_DONE = 'run_query_done'
-}
+type MessageType =
+  | 'ui_activated'
+  | 'ui_soql_changed'
+  | 'ui_telemetry'
+  | 'sobject_metadata_request'
+  | 'sobject_metadata_response'
+  | 'sobjects_request'
+  | 'sobjects_response'
+  | 'text_soql_changed'
+  | 'run_query'
+  | 'connection_changed'
+  | 'run_query_done';
 
 class ConnectionChangedListener {
   protected editorInstances: SOQLEditorInstance[];
@@ -103,7 +126,7 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected sendMessageToUi(type: string, payload?: string | string[] | DescribeSObjectResult): void {
+  protected sendMessageToUi(type: MessageType, payload?: string | string[] | DescribeSObjectResult): void {
     this.webviewPanel.webview
       .postMessage({
         type,
@@ -124,17 +147,17 @@ export class SOQLEditorInstance {
     // For more info, see section "From TextDocument to webviews"
     // url: https://code.visualstudio.com/api/extension-guides/custom-editors#synchronizing-changes-with-the-textdocument
     if (this.lastIncomingSoqlStatement !== newSoqlStatement) {
-      this.sendMessageToUi(MessageType.TEXT_SOQL_CHANGED, newSoqlStatement);
+      this.sendMessageToUi('text_soql_changed', newSoqlStatement);
     }
     this.lastIncomingSoqlStatement = '';
   }
 
   protected updateSObjects(sobjectNames: string[]): void {
-    this.sendMessageToUi(MessageType.SOBJECTS_RESPONSE, sobjectNames);
+    this.sendMessageToUi('sobjects_response', sobjectNames);
   }
 
   protected updateSObjectMetadata(sobject: DescribeSObjectResult): void {
-    this.sendMessageToUi(MessageType.SOBJECT_METADATA_RESPONSE, sobject);
+    this.sendMessageToUi('sobject_metadata_response', sobject);
   }
 
   protected onDocumentChangeHandler(e: vscode.TextDocumentChangeEvent): void {
@@ -145,18 +168,18 @@ export class SOQLEditorInstance {
 
   protected onDidRecieveMessageHandler(event: SoqlEditorEvent): void {
     switch (event.type) {
-      case MessageType.UI_ACTIVATED: {
+      case 'ui_activated': {
         this.updateWebview(this.document);
         break;
       }
-      case MessageType.UI_SOQL_CHANGED: {
-        const soql = event.payload as string;
+      case 'ui_soql_changed': {
+        const soql = event.payload;
         this.lastIncomingSoqlStatement = soql;
         this.updateTextDocument(this.document, soql);
         break;
       }
-      case MessageType.UI_TELEMETRY: {
-        const { unsupported } = event.payload as TelemetryModelJson;
+      case 'ui_telemetry': {
+        const { unsupported } = event.payload;
         const hasUnsupported = Array.isArray(unsupported) ? unsupported.length : unsupported;
         if (hasUnsupported) {
           trackErrorWithTelemetry('syntax_unsupported', JSON.stringify(event.payload)).catch(console.error);
@@ -165,8 +188,8 @@ export class SOQLEditorInstance {
         }
         break;
       }
-      case MessageType.SOBJECT_METADATA_REQUEST: {
-        retrieveSObject(event.payload as string)
+      case 'sobject_metadata_request': {
+        retrieveSObject(event.payload)
           .then(sobject => this.updateSObjectMetadata(sobject))
           .catch(() => {
             const message = nls.localize('error_sobject_metadata_request', event.payload);
@@ -174,7 +197,7 @@ export class SOQLEditorInstance {
           });
         break;
       }
-      case MessageType.SOBJECTS_REQUEST: {
+      case 'sobjects_request': {
         retrieveSObjects()
           .then(sobjectNames => this.updateSObjects(sobjectNames))
           .catch(() => {
@@ -183,7 +206,7 @@ export class SOQLEditorInstance {
           });
         break;
       }
-      case MessageType.RUN_SOQL_QUERY: {
+      case 'run_query': {
         vscode.window
           .withProgress(
             {
@@ -220,14 +243,14 @@ export class SOQLEditorInstance {
 
     const queryText = this.document.getText();
     const conn = await workspaceContext.getConnection();
-    const queryData = await new QueryRunner(conn as unknown as Connection).runQuery(queryText);
+    const queryData = await new QueryRunner(conn).runQuery(queryText);
     this.openQueryDataView(queryData);
     this.runQueryDone();
   }
 
   protected runQueryDone(): void {
     this.webviewPanel.webview.postMessage({
-      type: MessageType.RUN_SOQL_QUERY_DONE
+      type: 'run_query_done' satisfies MessageType
     });
   }
 
@@ -258,6 +281,6 @@ export class SOQLEditorInstance {
   }
 
   public onConnectionChanged(): void {
-    this.sendMessageToUi(MessageType.CONNECTION_CHANGED);
+    this.sendMessageToUi('connection_changed');
   }
 }

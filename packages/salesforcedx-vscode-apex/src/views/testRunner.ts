@@ -11,11 +11,11 @@ import {
   SfWorkspaceChecker,
   getTestResultsFolder
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as events from 'events';
+import * as events from 'node:events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
-import { languageClientUtils } from '../languageUtils';
+import { languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService } from '../testRunCache';
@@ -82,9 +82,9 @@ export class ApexTestRunner {
     }
   }
 
-  public getTempFolder(): string {
+  public async getTempFolder(): Promise<string> {
     if (vscode.workspace && vscode.workspace.workspaceFolders) {
-      const apexDir = getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+      const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
       return apexDir;
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));
@@ -97,7 +97,7 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientUtils.getStatus();
+    const languageClientStatus = languageClientManager.getStatus();
     if (!languageClientStatus.isReady()) {
       if (languageClientStatus.failedToInitialize()) {
         vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
@@ -105,7 +105,7 @@ export class ApexTestRunner {
       }
     }
 
-    const tmpFolder = this.getTempFolder();
+    const tmpFolder = await this.getTempFolder();
     const getCodeCoverage = settings.retrieveTestCodeCoverage();
     if (testRunType === TestRunType.Class) {
       await apexTestRunCacheService.setCachedClassTestParam(tests[0]);

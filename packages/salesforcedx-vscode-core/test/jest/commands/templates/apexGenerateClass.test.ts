@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { URI } from 'vscode-uri';
 import { apexGenerateClass } from '../../../../src/commands/templates';
 import { clearGathererCache } from '../../../../src/commands/templates/apexGenerateClass';
-import { LibraryApexGenerateClassExecutor } from '../../../../src/commands/templates/executors/LibraryApexGenerateClassExecutor';
+import { LibraryApexGenerateClassExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateClassExecutor';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_NAME_MAX_LENGTH,
@@ -16,7 +17,6 @@ import {
 } from '../../../../src/commands/templates/metadataTypeConstants';
 import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
-  CompositeParametersGatherer,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
@@ -25,11 +25,18 @@ import {
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
-jest.mock('../../../../src/commands/templates/executors/LibraryApexGenerateClassExecutor');
+jest.mock('../../../../src/commands/templates/executors/libraryApexGenerateClassExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
 jest.mock('../../../../src/commands/util/timestampConflictChecker');
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
+  const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
+  return {
+    ...actual,
+    CompositeParametersGatherer: jest.fn()
+  };
+});
 
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
@@ -49,11 +56,9 @@ describe('apexGenerateClass Unit Tests.', () => {
     runMock = jest.fn();
     // Note that the entire sfCommandlet module can not be mocked like the other modules b/c
     // there are multiple exports there that cause issues if not available.
-    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => {
-      return {
-        run: runMock
-      };
-    });
+    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+      run: runMock
+    }));
   });
 
   it('Should be able to execute apexGenerateClass.', async () => {
@@ -72,9 +77,7 @@ describe('apexGenerateClass Unit Tests.', () => {
 
   it('Should not prompt if called from file context menu', async () => {
     // This happens when the command is executed from the context menu in the explorer on the classes folder.
-    const selectedPathUri = {
-      fsPath: '/path1/path2/project/force-app/main/default/classes'
-    } as unknown as vscode.Uri;
+    const selectedPathUri = URI.file('/path1/path2/project/force-app/main/default/classes');
     await apexGenerateClass(selectedPathUri);
     expect(selectFileNameMocked).toHaveBeenCalledWith(APEX_CLASS_NAME_MAX_LENGTH);
     // still called to initialize, not actually used

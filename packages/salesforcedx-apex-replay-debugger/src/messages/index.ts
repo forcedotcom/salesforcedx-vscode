@@ -5,42 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  BASE_FILE_EXTENSION,
-  BASE_FILE_NAME,
-  Config,
-  DEFAULT_LOCALE,
-  Localization,
-  Message
-} from '@salesforce/salesforcedx-utils';
-import { messages } from './i18n';
+import { LOCALE_JA, LocalizationService, MessageArgs } from '@salesforce/salesforcedx-utils';
+import { messages as enMessages, MessageKey } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
-function loadMessageBundle(config?: Config): Message {
-  function resolveFileName(locale: string): string {
-    return locale === DEFAULT_LOCALE
-      ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
-      : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
-  }
+// Default instance name for backward compatibility
+const DEFAULT_INSTANCE = 'salesforcedx-apex-replay-debugger';
 
-  const base = new Message(messages);
+// Register default Apex extension messages
+const localizationService = LocalizationService.getInstance(DEFAULT_INSTANCE);
 
-  if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
-    if (config.locale === 'ja') {
-      const layer = new Message(jaMessages, base);
-      return layer;
-    }
+localizationService.messageBundleManager.registerMessageBundle(DEFAULT_INSTANCE, {
+  messages: enMessages,
+  type: 'base'
+});
+localizationService.messageBundleManager.registerMessageBundle(DEFAULT_INSTANCE, {
+  messages: { ...jaMessages, _locale: LOCALE_JA },
+  type: 'locale'
+});
 
-    console.error(`Cannot find ${config.locale}, defaulting to en`);
-  }
-
-  return base;
-}
-
-export const nls = new Localization(
-  loadMessageBundle(
-    process.env.VSCODE_NLS_CONFIG
-      ? JSON.parse(process.env.VSCODE_NLS_CONFIG!)
-      : undefined
-  )
-);
+export const nls = {
+  localize: <K extends MessageKey>(key: K, ...args: MessageArgs<K, typeof enMessages>): string =>
+    localizationService.localize(key, ...args)
+};

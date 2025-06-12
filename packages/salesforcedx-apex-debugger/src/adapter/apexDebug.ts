@@ -32,8 +32,8 @@ import {
   logger
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import * as os from 'os';
-import { basename } from 'path';
+import * as os from 'node:os';
+import { basename } from 'node:path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import { LineBreakpointInfo, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {
@@ -67,7 +67,6 @@ import {
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';
 import {
-  ApexDebuggerEventType,
   BreakpointService,
   DebuggerMessage,
   SessionService,
@@ -91,7 +90,7 @@ const TRACE_CATEGORY_STREAMINGAPI = 'streaming';
 
 const CONNECT_TYPE_ISV_DEBUGGER = 'ISV_DEBUGGER';
 
-export type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol' | 'breakpoints' | 'streaming';
+type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol' | 'breakpoints' | 'streaming';
 
 export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   // comma separated list of trace selectors (see TraceCategory)
@@ -144,8 +143,8 @@ export class ApexVariable extends Variable {
     this.kind = kind;
     this.type = value.nameForMessages;
     this.evaluateName = this.value;
-    if ((value as LocalValue).slot !== undefined) {
-      this.slot = (value as LocalValue).slot;
+    if ('slot' in value && typeof value.slot === 'number') {
+      this.slot = value.slot;
     } else {
       this.slot = Number.MAX_SAFE_INTEGER;
     }
@@ -217,7 +216,7 @@ export class ApexVariable extends Variable {
   }
 }
 
-export type FilterType = 'named' | 'indexed' | 'all';
+type FilterType = 'named' | 'indexed' | 'all';
 
 export type VariableContainer = {
   expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]>;
@@ -225,7 +224,7 @@ export type VariableContainer = {
   getNumberOfChildren(): number | undefined;
 };
 
-export type ScopeType = 'local' | 'static' | 'global';
+type ScopeType = 'local' | 'static' | 'global';
 
 export class ScopeContainer implements VariableContainer {
   private type: ScopeType;
@@ -772,8 +771,7 @@ export class ApexDebug extends LoggingDebugSession {
           );
           return Promise.resolve(knownBps);
         });
-        // tslint:disable-next-line:no-empty
-      } catch (error) {}
+      } catch {}
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
         const lineNumber = this.convertDebuggerLineToClient(verifiedBreakpoint);
         response.body.breakpoints.push({
@@ -980,13 +978,13 @@ export class ApexDebug extends LoggingDebugSession {
         const requestArgs: SetExceptionBreakpointsArguments = args;
         if (requestArgs && requestArgs.exceptionInfo) {
           try {
-            await this.lock.acquire('exception-breakpoint', async () => {
-              return this.myBreakpointService.reconcileExceptionBreakpoints(
+            await this.lock.acquire('exception-breakpoint', async () =>
+              this.myBreakpointService.reconcileExceptionBreakpoints(
                 this.salesforceProject,
                 this.mySessionService.getSessionId(),
                 requestArgs.exceptionInfo
-              );
-            });
+              )
+            );
             if (requestArgs.exceptionInfo.breakMode === EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS) {
               this.printToDebugConsole(
                 nls.localize('created_exception_breakpoint_text', requestArgs.exceptionInfo.label)
@@ -1297,8 +1295,8 @@ export class ApexDebug extends LoggingDebugSession {
         .withErrorHandler((reason: string) => {
           this.errorToDebugConsole(reason);
         })
-        .withMsgHandler((message: any) => {
-          const data = message as DebuggerMessage;
+        .withMsgHandler((message: DebuggerMessage) => {
+          const data = message;
           if (data && data.sobject && data.event) {
             this.handleEvent(data);
           }
@@ -1313,65 +1311,64 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   public handleEvent(message: DebuggerMessage): void {
-    const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[message.sobject.Type];
     this.log(TRACE_CATEGORY_STREAMINGAPI, `handleEvent: received ${JSON.stringify(message)}`);
     if (
       !this.mySessionService.isConnected() ||
       this.mySessionService.getSessionId() !== message.sobject.SessionId ||
-      this.myStreamingService.hasProcessedEvent(type, message.event.replayId)
+      this.myStreamingService.hasProcessedEvent(message.sobject.Type, message.event.replayId)
     ) {
       this.log(TRACE_CATEGORY_STREAMINGAPI, 'handleEvent: event ignored');
       return;
     }
-    switch (type) {
-      case ApexDebuggerEventType.ApexException: {
+    switch (message.sobject.Type) {
+      case 'ApexException': {
         this.handleApexException(message);
         break;
       }
-      case ApexDebuggerEventType.Debug: {
+      case 'Debug': {
         this.handleDebug(message);
         break;
       }
-      case ApexDebuggerEventType.RequestFinished: {
+      case 'RequestFinished': {
         this.handleRequestFinished(message);
         break;
       }
-      case ApexDebuggerEventType.RequestStarted: {
+      case 'RequestStarted': {
         this.handleRequestStarted(message);
         break;
       }
-      case ApexDebuggerEventType.Resumed: {
+      case 'Resumed': {
         this.handleResumed(message);
         break;
       }
-      case ApexDebuggerEventType.SessionTerminated: {
+      case 'SessionTerminated': {
         this.handleSessionTerminated(message);
         break;
       }
-      case ApexDebuggerEventType.Stopped: {
+      case 'Stopped': {
         this.handleStopped(message);
         break;
       }
-      case ApexDebuggerEventType.SystemGack: {
+      case 'SystemGack': {
         this.handleSystemGack(message);
         break;
       }
-      case ApexDebuggerEventType.SystemInfo: {
+      case 'SystemInfo': {
         this.handleSystemInfo(message);
         break;
       }
-      case ApexDebuggerEventType.SystemWarning: {
+      case 'SystemWarning': {
         this.handleSystemWarning(message);
         break;
       }
-      case ApexDebuggerEventType.LogLine:
-      case ApexDebuggerEventType.OrgChange:
-      case ApexDebuggerEventType.Ready:
+      case 'LogLine':
+      case 'OrgChange':
+      case 'Ready':
       default: {
         break;
       }
     }
-    this.myStreamingService.markEventProcessed(type, message.event.replayId);
+    this.myStreamingService.markEventProcessed(message.sobject.Type, message.event.replayId);
   }
 
   public logEvent(message: DebuggerMessage): void {
@@ -1466,7 +1463,7 @@ export class ApexDebug extends LoggingDebugSession {
         new Event(SHOW_MESSAGE_EVENT, {
           type: VscodeDebuggerMessageType.Error,
           message: message.sobject.Description
-        } as VscodeDebuggerMessage)
+        } satisfies VscodeDebuggerMessage)
       );
     }
     this.mySessionService.forceStop();
@@ -1518,7 +1515,7 @@ export class ApexDebug extends LoggingDebugSession {
         new Event(SHOW_MESSAGE_EVENT, {
           type: VscodeDebuggerMessageType.Error,
           message: message.sobject.Description
-        } as VscodeDebuggerMessage)
+        } satisfies VscodeDebuggerMessage)
       );
     }
   }
@@ -1534,7 +1531,7 @@ export class ApexDebug extends LoggingDebugSession {
         new Event(SHOW_MESSAGE_EVENT, {
           type: VscodeDebuggerMessageType.Warning,
           message: message.sobject.Description
-        } as VscodeDebuggerMessage)
+        } satisfies VscodeDebuggerMessage)
       );
     }
   }

@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { MessageKey } from './i18n';
+
 /**
  * Conventions:
  * _message: is for unformatted text that will be shown as-is to
@@ -15,14 +17,14 @@
  *
  * If omitted, we will assume _message.
  */
-export const messages = {
+export const messages: Partial<Record<MessageKey, string>> = {
   config_name_text: 'Apex Replay Debugger を起動',
   session_language_server_error_text: 'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
   up_to_five_checkpoints:
-    '最大 5 つのうち、%s つのチェックポイントを設定しています。5 つ以下になるようチェックポイントを削除または無効化してください。',
+    '最大 5 つのうち、%d つのチェックポイントを設定しています。5 つ以下になるようチェックポイントを削除または無効化してください。',
   no_enabled_checkpoints: 'チェックポイントが 1 つも設定されていません。チェックポイントを設定し、再実行してください。',
   checkpoints_can_only_be_on_valid_apex_source:
-    'チェックポイントApex ソースの有効な行に設定できます。無効なチェックポイントの位置 : URI=%s, 行=%s',
+    'チェックポイントApex ソースの有効な行に設定できます。無効なチェックポイントの位置 : URI=%s, 行=%d',
   local_source_is_out_of_sync_with_the_server:
     'ローカルソースはサーバーと同期していません。ローカルで行った変更を組織にプッシュし、組織で行った変更をローカルプロジェクトにプルしてください。',
   long_command_start: '開始しています',

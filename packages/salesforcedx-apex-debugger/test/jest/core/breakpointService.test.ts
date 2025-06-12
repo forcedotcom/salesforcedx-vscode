@@ -25,30 +25,33 @@ describe('breakpointService Unit Tests.', () => {
     } as any;
 
     executeMock = jest.fn().mockReturnValue(undefined);
-    jest.spyOn(sfUtils, 'CliCommandExecutor').mockImplementation(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return {
-        execute: executeMock
-      } as any;
-    });
+    jest.spyOn(sfUtils, 'CliCommandExecutor').mockImplementation(
+      () =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ({
+          execute: executeMock
+        }) as any
+    );
 
-    jest.spyOn(sfUtils, 'SfCommandBuilder').mockImplementation(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return {
-        withArg: jest.fn().mockReturnThis(),
-        withFlag: jest.fn().mockReturnThis(),
-        withJson: jest.fn().mockReturnThis(),
-        build: jest.fn()
-      } as any;
-    });
+    jest.spyOn(sfUtils, 'SfCommandBuilder').mockImplementation(
+      () =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ({
+          withArg: jest.fn().mockReturnThis(),
+          withFlag: jest.fn().mockReturnThis(),
+          withJson: jest.fn().mockReturnThis(),
+          build: jest.fn()
+        }) as any
+    );
 
     getCmdResultMock = jest.fn();
-    jest.spyOn(sfUtils, 'CommandOutput').mockImplementation(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return {
-        getCmdResult: getCmdResultMock
-      } as any;
-    });
+    jest.spyOn(sfUtils, 'CommandOutput').mockImplementation(
+      () =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ({
+          getCmdResult: getCmdResultMock
+        }) as any
+    );
 
     breakpointService = new BreakpointService(fakeRequestService as any);
   });
@@ -414,21 +417,6 @@ describe('breakpointService Unit Tests.', () => {
       );
       expect((breakpointService as any).exceptionBreakpointCache.delete).not.toHaveBeenCalled();
       expect((breakpointService as any).exceptionBreakpointCache.set).toHaveBeenCalledWith('test', bpId);
-    });
-  });
-
-  describe('clearSavedBreakpoints()', () => {
-    it('Should clear saved breakpoints.', () => {
-      const fakeMapOne = new Map<string, string>();
-      fakeMapOne.set('test', 'test');
-      (breakpointService as any).lineBreakpointCache = fakeMapOne;
-      const fakeMapTwo = new Map<string, string>();
-      fakeMapOne.set('test2', 'test2');
-      (breakpointService as any).exceptionBreakpointCache = fakeMapTwo;
-
-      breakpointService.clearSavedBreakpoints();
-      expect((breakpointService as any).lineBreakpointCache.size).toEqual(0);
-      expect((breakpointService as any).exceptionBreakpointCache.size).toEqual(0);
     });
   });
 });

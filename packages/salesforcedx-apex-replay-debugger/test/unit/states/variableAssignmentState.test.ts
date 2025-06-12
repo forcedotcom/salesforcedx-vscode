@@ -5,6 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -17,7 +26,6 @@ import {
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('Variable assignment event', () => {
   let getUriFromSignatureStub: sinon.SinonStub;
   let context: LogContext;

@@ -29,9 +29,9 @@
  * npm run aggregateJUnit -- -t integration vscode-integration
  */
 
-const fs = require('fs-extra');
-const path = require('path');
-const shell = require('shelljs');
+const fs = require('node:fs');
+const path = require('node:path');
+const { execSync } = require('node:child_process');
 
 const TEST_TYPE_ARG = '-t';
 
@@ -63,18 +63,21 @@ function getTestCategories() {
 
 function createAggregateDirectory() {
   const aggregateDir = path.join(process.cwd(), 'junit-aggregate');
-  if (!fs.existsSync(aggregateDir)) {
-    shell.mkdir(aggregateDir);
-  }
+  fs.mkdirSync(aggregateDir, { recursive: true });
 }
 
 function getTestDirectory(packagePath) {
-  if (fs.statSync(packagePath).isDirectory()) {
-    // scan test directory for each package that has one
-    const testDir = path.join(packagePath, 'test');
-    if (fs.existsSync(testDir) && fs.statSync(testDir).isDirectory()) {
-      return testDir;
+  try {
+    if (fs.statSync(packagePath).isDirectory()) {
+      // scan test directory for each package that has one
+      const testDir = path.join(packagePath, 'test');
+      if (fs.statSync(testDir).isDirectory()) {
+        return testDir;
+      }
     }
+  } catch (error) {
+    // Path doesn't exist or isn't accessible
+    return '';
   }
   return '';
 }
@@ -108,11 +111,15 @@ function getMissingResults(flags) {
  */
 function copyJunitTestResult(packagePath, packageName, testEntry) {
   const junitFilePath = path.join(packagePath, categoryToFile[testEntry]);
-  if (fs.existsSync(junitFilePath)) {
-    shell.cp(junitFilePath, path.join(process.cwd(), 'junit-aggregate', `${packageName}-${categoryToFile[testEntry]}`));
+  try {
+    fs.copyFileSync(
+      junitFilePath,
+      path.join(process.cwd(), 'junit-aggregate', `${packageName}-${categoryToFile[testEntry]}`)
+    );
     return true;
+  } catch (error) {
+    return false;
   }
-  return false;
 }
 
 /*
@@ -122,7 +129,7 @@ function copyJunitTestResult(packagePath, packageName, testEntry) {
 function rerunCrashedVSCodeIntegrationTests(packagePath, packageName, testEntry) {
   console.assert(testEntry === 'vscode-integration');
   console.log(`\nRerunning vscode integration test suite ${packageName} due to crash.`);
-  shell.exec(`npm run --prefix ${packagePath} test:vscode-integration`);
+  execSync(`npm run --prefix ${packagePath} test:vscode-integration`, { stdio: 'inherit' });
 
   if (!copyJunitTestResult(packagePath, packageName, testEntry)) {
     missingResults[testEntry].push(packageName);

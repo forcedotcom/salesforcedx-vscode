@@ -6,7 +6,7 @@
  */
 
 import { getMessageFromError, notificationService, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { nls } from '../../messages';
 import { ContinueOrCancel, getComponentName, getComponentPath, isContinue, OneOrMany } from '../../util';
 import { isComponentName, isDirFileNameSelection } from '../../util/types';
@@ -61,7 +61,6 @@ export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionC
  * Checks for existing component name between LWC and Aura during create
  */
 export class LwcAuraDuplicateComponentCheckerForCreate implements PostconditionChecker<OneOrMany> {
-  constructor() {}
   async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (!isContinue(inputs)) {
       return Promise.resolve(inputs);

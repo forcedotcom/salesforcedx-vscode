@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
+import * as path from 'node:path';
 import { ExtensionContext, TreeView, window } from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -67,22 +67,16 @@ export class ConflictView {
   }
 
   public createConflictEntries(diffResults: DirectoryDiffResults, remoteLabel: string): ConflictFile[] {
-    const conflicts: ConflictFile[] = [];
-
-    diffResults.different.forEach(p => {
-      conflicts.push({
-        remoteLabel,
-        localRelPath: p.localRelPath,
-        remoteRelPath: p.remoteRelPath,
-        fileName: path.basename(p.localRelPath),
-        localPath: diffResults.localRoot,
-        remotePath: diffResults.remoteRoot,
-        localLastModifiedDate: p.localLastModifiedDate,
-        remoteLastModifiedDate: p.remoteLastModifiedDate
-      } as ConflictFile);
-    });
-
-    return conflicts;
+    return Array.from(diffResults.different).map(p => ({
+      remoteLabel,
+      localRelPath: p.localRelPath,
+      remoteRelPath: p.remoteRelPath,
+      fileName: path.basename(p.localRelPath),
+      localPath: diffResults.localRoot,
+      remotePath: diffResults.remoteRoot,
+      localLastModifiedDate: p.localLastModifiedDate,
+      remoteLastModifiedDate: p.remoteLastModifiedDate
+    }));
   }
 
   public async init(extensionContext: ExtensionContext) {

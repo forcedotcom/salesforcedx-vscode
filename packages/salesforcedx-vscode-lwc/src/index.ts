@@ -7,7 +7,7 @@
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import * as path from 'node:path';
 import { commands, ConfigurationTarget, Disposable, ExtensionContext, workspace, WorkspaceConfiguration } from 'vscode';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
 import { ESLINT_NODEPATH_CONFIG, log } from './constants';
@@ -69,7 +69,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
   const client = createLanguageClient(serverModule);
 
-  extensionContext.subscriptions.push(client.start());
+  // Start the client and add it to subscriptions
+  await client.start();
+  extensionContext.subscriptions.push(client);
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
@@ -114,11 +116,10 @@ const getActivationMode = (): string => {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 };
 
-const registerCommands = (_extensionContext: ExtensionContext): Disposable => {
-  return Disposable.from(
+const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
+  Disposable.from(
     commands.registerCommand('sf.lightning.lwc.start', lightningLwcStart),
     commands.registerCommand('sf.lightning.lwc.stop', lightningLwcStop),
     commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
     commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
-};

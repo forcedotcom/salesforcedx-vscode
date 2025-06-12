@@ -64,6 +64,9 @@ jspm_packages/
 # Optional eslint cache
 .eslintcache
 
+# nx cache
+.nx
+
 # Optional REPL history
 .node_repl_history
 
@@ -92,13 +95,7 @@ jspm_packages/
 .sfdx/
 
 # Project test data
-packages/system-tests/project_*
-packages/system-tests/assets/sfdx-simple/.vscode/
-packages/system-tests/assets/sfdx-simple/force-app/main/default/lwc/.eslintrc.json
-packages/system-tests/assets/sfdx-simple/force-app/main/default/lwc/jsconfig.json
-packages/system-tests/assets/lwc-recipes/.vscode/
-packages/system-tests/assets/lwc-recipes/force-app/main/default/lwc/.eslintrc.json
-packages/system-tests/assets/lwc-recipes/force-app/main/default/lwc/jsconfig.json
+test-assets/
 
 # Node lock files (actually causes issues with the symlinking that lerna does, so ignore)
 # package-lock.json
@@ -122,3 +119,6 @@ tsconfig.tsbuildinfo
 #Extensions folder for local E2E Testing
 extensions/
 /test-results
+/.codegenie
+
+.nx/cache

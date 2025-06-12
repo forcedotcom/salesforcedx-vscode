@@ -26,7 +26,7 @@ export const messages = {
   lightning_lwc_inactive_scratch_org:
     'The local development server can\'t start because your scratch org is not active. Run "SFDX: Create a Default Scratch Org" to create a scratch org, or run "SFDX: Set a Default Org" to select an active scratch org.',
   lightning_lwc_start_failed: 'The local development server was not able to start.',
-  lightning_lwc_start_exited: 'The local development server exited unexpectedly with code %s.',
+  lightning_lwc_start_exited: 'The local development server exited unexpectedly with code %d.',
   lightning_lwc_start_already_running: 'The local development server is already running.',
   lightning_lwc_stop_text: 'SFDX: Stop Local Development Server',
   lightning_lwc_stop_not_running: 'The local development server is not running.',
@@ -85,4 +85,6 @@ export const messages = {
   lightning_lwc_redhat_extension_regression:
     'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
   lightning_lwc_fail_redhat_extension: 'Failed to setup Red Hat XML extension'
-};
+} as const;
+
+export type MessageKey = keyof typeof messages;

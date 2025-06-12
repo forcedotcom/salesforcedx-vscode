@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecution,
   CliCommandExecutor,
-  Command,
   ContinueResponse,
+  EmptyParametersGatherer,
   ProjectDeployStartResultParser,
   ProjectDeployStartResult,
-  Row,
-  SfCommandBuilder,
   Table,
   TelemetryBuilder,
   workspaceUtils
@@ -23,25 +22,18 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { handlePushDiagnosticErrors } from '../diagnostics';
-import { nls } from '../messages';
+import { coerceMessageKey,nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
-import {
-  CommandParams,
-  EmptyParametersGatherer,
-  FlagParameter,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './util';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 export enum DeployType {
   Deploy = 'deploy',
   Push = 'push'
 }
 
-export const pushCommand: CommandParams = {
+const pushCommand: CommandParams = {
   command: 'project:deploy:start',
   description: {
     default: 'project_deploy_start_default_org_text',
@@ -68,13 +60,13 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
 
   public build(data: {}): Command {
     const builder = new SfCommandBuilder()
-      .withDescription(nls.localize(this.params.description.default))
+      .withDescription(nls.localize(coerceMessageKey(this.params.description.default)))
       .withArg(this.params.command)
       .withJson()
       .withLogName(this.params.logName.default);
     if (this.flag === '--ignore-conflicts') {
       builder.withArg(this.flag);
-      builder.withDescription(nls.localize(this.params.description.ignoreConflicts));
+      builder.withDescription(nls.localize(coerceMessageKey(this.params.description.ignoreConflicts)));
     }
     return builder.build();
   }
@@ -215,7 +207,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     outputTableTitle: string | undefined
   ) {
     const outputTable = table.createTable(
-      rows as unknown as Row[],
+      rows ?? [],
       [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -227,9 +219,9 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     return outputTable;
   }
 
-  protected getErrorTable(table: Table, result: unknown, titleType: string) {
+  protected getErrorTable(table: Table, result: ProjectDeployStartResult[], titleType: string) {
     const outputTable = table.createTable(
-      result as Row[],
+      result,
       [
         {
           key: 'filePath',
@@ -237,7 +229,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
         },
         { key: 'error', label: nls.localize('table_header_errors') }
       ],
-      nls.localize(`table_title_${titleType}_errors`)
+      nls.localize(coerceMessageKey(`table_title_${titleType}_errors`))
     );
     return outputTable;
   }

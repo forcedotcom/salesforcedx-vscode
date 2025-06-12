@@ -5,16 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { LibraryCommandletExecutor, workspaceUtils, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'fs';
-import { join, parse } from 'path';
-import { format } from 'util';
+import * as fs from 'node:fs';
+import { join, parse } from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { workspaceUtils } from '../util';
 import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
 
 const GENERATE_MANIFEST_EXECUTOR = 'project_generate_manifest';
@@ -22,7 +20,7 @@ const DEFAULT_MANIFEST = 'package.xml';
 const MANIFEST_SAVE_PLACEHOLDER = 'manifest_input_save_placeholder';
 const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 
-export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
+class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
   private responseText: string | undefined;
   constructor(sourcePaths: string[], responseText: string | undefined) {
@@ -53,16 +51,16 @@ export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> 
   }
 }
 
-export const projectGenerateManifest = async (sourceUri: vscode.Uri, uris: vscode.Uri[] | undefined): Promise<void> => {
+export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | undefined): Promise<void> => {
   if (!uris || uris.length < 1) {
     uris = [];
     uris.push(sourceUri);
   }
   const sourcePaths = uris.map(uri => uri.fsPath);
-  const inputOptions = {
+  const inputOptions: vscode.InputBoxOptions = {
     placeHolder: nls.localize(MANIFEST_SAVE_PLACEHOLDER),
     prompt: nls.localize(MANIFEST_SAVE_PROMPT)
-  } as vscode.InputBoxOptions;
+  };
   const responseText = await vscode.window.showInputBox(inputOptions);
   if (sourcePaths) {
     const commandlet = new SfCommandlet(
@@ -101,8 +99,8 @@ const saveDocument = async (response: string, packageXML: string): Promise<void>
 
 const checkForDuplicateManifest = (saveLocation: string, fileName: string): void => {
   if (fs.existsSync(saveLocation)) {
-    void vscode.window.showErrorMessage(format(nls.localize('manifest_input_dupe_error'), fileName));
-    throw new Error(format(nls.localize('manifest_input_dupe_error'), fileName));
+    void vscode.window.showErrorMessage(nls.localize('manifest_input_dupe_error', fileName));
+    throw new Error(nls.localize('manifest_input_dupe_error', fileName));
   }
 };
 

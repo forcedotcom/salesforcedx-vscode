@@ -5,13 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CompositeParametersGatherer,
+  DirFileNameSelection,
+  LocalComponent
+} from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import {
-  CompositeParametersGatherer,
   CompositePostconditionChecker,
   MetadataTypeGatherer,
   SelectFileName,
@@ -26,7 +29,7 @@ import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './interna
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
-export class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryLightningGenerateLwcExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_lwc_text');
   public telemetryName = 'lightning_generate_lwc';
   public metadataTypeName = LWC_TYPE;

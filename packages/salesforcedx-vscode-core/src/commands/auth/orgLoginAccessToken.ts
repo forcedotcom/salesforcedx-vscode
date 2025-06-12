@@ -6,15 +6,14 @@
  */
 
 import { AuthInfo, AuthSideEffects } from '@salesforce/core-bundle';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { LibraryCommandletExecutor, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
 import { nls } from '../../messages';
 import { SfCommandlet, SfWorkspaceChecker } from '../util';
 import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
 
-export class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
+class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
   constructor() {
     super(nls.localize('org_login_access_token_text'), 'org_login_access_token', OUTPUT_CHANNEL);
   }

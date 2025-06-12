@@ -11,26 +11,7 @@
     "**/out": true
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
-  "eslint.workingDirectories": [
-    "./packages/salesforcedx-apex-replay-debugger",
-    "./packages/salesforcedx-vscode-visualforce",
-    "./packages/salesforcedx-vscode-apex-replay-debugger",
-    "./packages/salesforcedx-vscode-core",
-    "./packages/salesforcedx-vscode-apex",
-    "./packages/salesforcedx-utils-vscode",
-    "./packages/salesforcedx-visualforce-markup-language-server",
-    "./packages/salesforcedx-visualforce-language-server",
-    "./@typescript-eslint/no-unsafe-return",
-    "./packages/salesforcedx-test-utils-vscode",
-    "./packages/system-tests",
-    "./packages/salesforcedx-vscode-apex-debugger",
-    "./packages/salesforcedx-vscode-lwc",
-    "./packages/salesforcedx-apex-debugger",
-    "./packages/salesforcedx-vscode-soql",
-    "./packages/salesforcedx-utils",
-    "./packages/salesforcedx-vscode-lightning",
-    "./packages/salesforcedx-sobjects-faux-generator"
-  ],
+  "eslint.workingDirectories": ["."],
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": true,
@@ -38,8 +19,11 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "eslint.enable": true,
   "eslint.run": "onSave",
+  "eslint.experimental.useFlatConfig": true,
+  "eslint.validate": ["typescript", "javascript"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always"
   },
@@ -49,7 +33,5 @@
   "prettier.useTabs": false,
   "prettier.printWidth": 120,
   "prettier.arrowParens": "avoid",
-  "editor.rulers": [
-    120
-  ]
+  "editor.rulers": [120]
 }

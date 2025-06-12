@@ -5,22 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
-import { TemplateType, VisualforceComponentOptions } from '@salesforce/templates';
-import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  MetadataTypeGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SfCommandlet,
-  SfWorkspaceChecker
-} from '../util';
+  DirFileNameSelection,
+  LocalComponent
+} from '@salesforce/salesforcedx-utils-vscode';
+import { TemplateType, VisualforceComponentOptions } from '@salesforce/templates';
+import { nls } from '../../messages';
+import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet, SfWorkspaceChecker } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { VISUALFORCE_COMPONENT_DIRECTORY, VISUALFORCE_COMPONENT_TYPE } from './metadataTypeConstants';
 
-export class LibraryVisualforceGenerateComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryVisualforceGenerateComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('visualforce_generate_component_text');
   public telemetryName = 'visualforce_generate_component';
   public metadataTypeName = VISUALFORCE_COMPONENT_TYPE;

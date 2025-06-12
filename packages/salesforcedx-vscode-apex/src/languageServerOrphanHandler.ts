@@ -8,30 +8,29 @@ import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { APEX_LSP_ORPHAN } from './constants';
-import { languageServerUtils as lsu, ProcessDetail } from './languageUtils';
+import { findAndCheckOrphanedProcesses, terminateProcess } from './languageUtils';
+import { ProcessDetail } from './languageUtils/languageClientManager';
 import { nls } from './messages';
 import { getTelemetryService } from './telemetry/telemetry';
 
-export const ADVICE = nls.localize('orphan_process_advice');
-export const YES = nls.localize('yes');
-export const CANCEL = nls.localize('cancel');
-export const SHOW_PROCESSES = nls.localize('terminate_show_processes');
-export const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes');
-export const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
-export const DISMISSED_DEFAULT = 'dismissed';
-export const PROCESS_ID = nls.localize('process_id');
-export const PROCESS_PARENT_ID = nls.localize('parent_process_id');
-export const COMMAND = nls.localize('process_command');
+const ADVICE = nls.localize('orphan_process_advice');
+const YES = nls.localize('yes');
+const CANCEL = nls.localize('cancel');
+const TERMINATE_PROCESSES_BTN = nls.localize('terminate_processes');
+const SHOW_PROCESSES_BTN = nls.localize('terminate_show_processes');
+const DISMISSED_DEFAULT = 'dismissed';
+const PROCESS_ID = nls.localize('process_id');
+const PROCESS_PARENT_ID = nls.localize('parent_process_id');
+const COMMAND = nls.localize('process_command');
 
 // these messages contain replaceable parameters, cannot localize yet
-export const CONFIRM = 'terminate_processes_confirm';
-export const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_instances';
-export const TERMINATED_PROCESS = 'terminated_orphaned_process';
-export const TERMINATE_FAILED = 'terminate_failed';
+const CONFIRM = 'terminate_processes_confirm';
+const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_instances';
+const TERMINATED_PROCESS = 'terminated_orphaned_process';
 
 const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
   const telemetryService = await getTelemetryService();
-  const orphanedProcesses = await lsu.findAndCheckOrphanedProcesses();
+  const orphanedProcesses = await findAndCheckOrphanedProcesses();
   if (orphanedProcesses.length > 0) {
     if (await getResolutionForOrphanProcesses(orphanedProcesses)) {
       telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, {
@@ -40,7 +39,7 @@ const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
       });
       for (const processInfo of orphanedProcesses) {
         try {
-          lsu.terminateProcess(processInfo.pid);
+          terminateProcess(processInfo.pid);
           telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, {
             terminateSuccessful: 1
           });
@@ -99,17 +98,13 @@ const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {
     { key: 'command', label: COMMAND }
   ];
 
-  const rows: Row[] = orphanedProcesses.map(processInfo => {
-    return {
-      pid: processInfo.pid.toString(),
-      ppid: processInfo.ppid.toString(),
-      // split command into equal chunks no more than 70 characters long
-      command:
-        processInfo.command.length <= 70
-          ? processInfo.command
-          : (processInfo.command.match(/.{1,70}/g)?.join('\n') ?? '')
-    };
-  });
+  const rows: Row[] = orphanedProcesses.map(processInfo => ({
+    pid: processInfo.pid.toString(),
+    ppid: processInfo.ppid.toString(),
+    // split command into equal chunks no more than 70 characters long
+    command:
+      processInfo.command.length <= 70 ? processInfo.command : (processInfo.command.match(/.{1,70}/g)?.join('\n') ?? '')
+  }));
 
   const table: Table = new Table();
   const tableString = table.createTable(rows, columns);
@@ -125,20 +120,16 @@ const terminationConfirmation = async (orphanedCount: number): Promise<boolean> 
   return choice === YES;
 };
 
-const requestsTermination = (choice: string | undefined): boolean => {
-  return choice === TERMINATE_PROCESSES_BTN;
-};
+const requestsTermination = (choice: string | undefined): boolean => choice === TERMINATE_PROCESSES_BTN;
 
-const showProcesses = (choice: string): boolean => {
-  return choice === SHOW_PROCESSES_BTN;
-};
+const showProcesses = (choice: string): boolean => choice === SHOW_PROCESSES_BTN;
 
 const showProcessTerminated = (processDetail: ProcessDetail): void => {
   channelService.appendLine(nls.localize(TERMINATED_PROCESS, processDetail.pid));
 };
 
 const showTerminationFailed = (processInfo: ProcessDetail, err: any): void => {
-  channelService.appendLine(nls.localize(TERMINATE_FAILED, processInfo.pid, err.message));
+  channelService.appendLine(nls.localize('terminate_failed', processInfo.pid, err.message));
 };
 
 export const languageServerOrphanHandler = {

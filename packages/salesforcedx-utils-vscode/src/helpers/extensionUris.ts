@@ -6,8 +6,9 @@
  */
 
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 
-const extensionUri = (extensionName: string) => {
+const extensionUri = (extensionName: string): URI => {
   const extensionRef = vscode.extensions.getExtension(extensionName);
 
   if (extensionRef) {
@@ -16,11 +17,6 @@ const extensionUri = (extensionName: string) => {
   throw new Error(`Unable to find extension ${extensionName}`);
 };
 
-const join = (baseUri: vscode.Uri, relativePath: string) => {
-  return vscode.Uri.joinPath(baseUri, relativePath);
-};
-
 export const extensionUris = {
-  extensionUri,
-  join
+  extensionUri
 };

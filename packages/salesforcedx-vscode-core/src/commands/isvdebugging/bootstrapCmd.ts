@@ -4,28 +4,27 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { CommandOutput, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   CliCommandExecutor,
-  Command,
   CommandExecution,
-  CommandOutput,
+  CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
   projectPaths,
-  SfCommandBuilder
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SpawnOptions } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import { SpawnOptions } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { URL } from 'node:url';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
-import * as shell from 'shelljs';
-import { URL } from 'url';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
+import { notificationService } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import {
   PathExistsChecker,
@@ -33,12 +32,9 @@ import {
   SelectProjectFolder,
   SelectProjectName
 } from '../projectGenerate';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
-// below uses require due to bundling restrictions
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const AdmZip = require('adm-zip');
+import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
 
-export type InstalledPackageInfo = {
+type InstalledPackageInfo = {
   id: string;
   name: string;
   namespace: string;
@@ -141,16 +137,18 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
   public parsePackageInstalledListJson(packagesJson: string): InstalledPackageInfo[] {
     const packagesData = JSON.parse(packagesJson);
-    return packagesData.result.map((entry: any) => {
-      return {
-        id: entry.SubscriberPackageId,
-        name: entry.SubscriberPackageName,
-        namespace: entry.SubscriberPackageNamespace,
-        versionId: entry.SubscriberPackageVersionId,
-        versionName: entry.SubscriberPackageVersionName,
-        versionNumber: entry.SubscriberPackageVersionNumber
-      } as InstalledPackageInfo;
-    });
+    return packagesData.result.map(
+      (entry: any) =>
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        ({
+          id: entry.SubscriberPackageId,
+          name: entry.SubscriberPackageName,
+          namespace: entry.SubscriberPackageNamespace,
+          versionId: entry.SubscriberPackageVersionId,
+          versionName: entry.SubscriberPackageVersionName,
+          versionNumber: entry.SubscriberPackageVersionNumber
+        }) as InstalledPackageInfo
+    );
   }
 
   public async execute(response: ContinueResponse<IsvDebugBootstrapConfig>): Promise<void> {
@@ -164,8 +162,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     const projectInstalledPackagesPath = path.join(projectPath, this.relativeInstalledPackagesPath);
 
     // remove any previous project at this path location
-    shell.rm('-rf', projectPath);
-
+    await fs.promises.rm(projectPath, { recursive: true, force: true });
     // 1: create project
     await this.executeCommand(
       this.buildCreateProjectCommand(response.data),
@@ -191,9 +188,11 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     );
     try {
       const salesforceProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
-      const salesforceProjectConfig = JSON.parse(fs.readFileSync(salesforceProjectJsonFile, { encoding: 'utf-8' }));
+      const salesforceProjectConfig = JSON.parse(
+        await fs.promises.readFile(salesforceProjectJsonFile, { encoding: 'utf-8' })
+      );
       salesforceProjectConfig.namespace = this.parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson);
-      fs.writeFileSync(salesforceProjectJsonFile, JSON.stringify(salesforceProjectConfig, null, 2), {
+      await fs.promises.writeFile(salesforceProjectJsonFile, JSON.stringify(salesforceProjectConfig, null, 2), {
         encoding: 'utf-8'
       });
     } catch (error) {
@@ -205,8 +204,8 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
     // 3a: create package.xml for downloading org apex
     try {
-      shell.mkdir('-p', projectMetadataTempPath);
-      fs.writeFileSync(
+      await fs.promises.mkdir(projectMetadataTempPath, { recursive: true });
+      await fs.promises.writeFile(
         apexRetrievePackageXmlPath,
         `<?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
@@ -246,7 +245,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     const packageInfos = this.parsePackageInstalledListJson(packagesJson);
 
     // 5a: create directory where packages are to be retrieved
-    shell.mkdir('-p', projectInstalledPackagesPath); // .sfdx/tools/installed-packages
+    await fs.promises.mkdir(projectInstalledPackagesPath, { recursive: true }); // .sfdx/tools/installed-packages
     const packageNames = packageInfos.map(entry => entry.name);
 
     // 5b: retrieve packages
@@ -265,7 +264,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
       // generate installed-package.json file
       try {
-        fs.writeFileSync(
+        await fs.promises.writeFile(
           path.join(projectInstalledPackagesPath, packageInfo.name.replaceAll('.', '-'), 'installed-package.json'),
           JSON.stringify(packageInfo, null, 2),
           { encoding: 'utf-8' }
@@ -280,7 +279,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
     // 5c: cleanup temp files
     try {
-      shell.rm('-rf', projectMetadataTempPath);
+      await fs.promises.rm(projectMetadataTempPath, { recursive: true, force: true });
     } catch (error) {
       console.error(error);
       channelService.appendLine(nls.localize('error_cleanup_temp_files', error.toString()));
@@ -292,8 +291,8 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     channelService.appendLine(nls.localize('isv_debug_bootstrap_generate_launchjson'));
     try {
       const projectVsCodeFolder = path.join(projectPath, '.vscode');
-      shell.mkdir('-p', projectVsCodeFolder);
-      fs.writeFileSync(
+      await fs.promises.mkdir(projectVsCodeFolder, { recursive: true });
+      await fs.promises.writeFile(
         path.join(projectVsCodeFolder, 'launch.json'),
         // mostly duplicated from ApexDebuggerConfigurationProvider to avoid hard dependency from core to debugger module
         JSON.stringify(
@@ -326,7 +325,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
     // last step: open the folder in VS Code
     channelService.appendLine(nls.localize('isv_debug_bootstrap_open_project'));
-    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(projectPath));
+    await vscode.commands.executeCommand('vscode.openFolder', URI.file(projectPath));
   }
 
   public async executeCommand(
@@ -361,15 +360,15 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
+type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
 
-export type ForceIdeUri = {
+type ForceIdeUri = {
   loginUrl: string;
   sessionId: string;
   orgName: string;
 };
 
-export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
+class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   public static readonly uriValidator = (value: string) => {
     try {
       const url = new URL(value);

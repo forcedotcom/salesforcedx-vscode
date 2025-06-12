@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// not going to change anything since this is going away
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
@@ -20,7 +23,7 @@ import {
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
-} from '@salesforce/salesforcedx-apex-debugger/out/src';
+} from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
@@ -179,9 +182,7 @@ export const updateExceptionBreakpointCache = (selectedException: ExceptionBreak
   }
 };
 
-export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointItem> => {
-  return cachedExceptionBreakpoints;
-};
+export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointItem> => cachedExceptionBreakpoints;
 
 const registerFileWatchers = (): vscode.Disposable => {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');

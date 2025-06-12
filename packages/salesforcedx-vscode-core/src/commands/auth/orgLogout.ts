@@ -6,26 +6,20 @@
  */
 
 import { AuthRemover } from '@salesforce/core-bundle';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
-  Command,
   ConfigUtil,
   ContinueResponse,
+  EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  notificationService,
-  SfCommandBuilder
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import {
-  EmptyParametersGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker,
-  SimpleGatherer
-} from '../util';
+import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker, SimpleGatherer } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 
 export class OrgLogoutAll extends SfCommandletExecutor<{}> {
@@ -55,7 +49,7 @@ export const orgLogoutAll = async () => {
   await commandlet.run();
 };
 
-export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
+class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   constructor() {
     super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
   }
@@ -118,7 +112,7 @@ const resolveTargetOrg = async (): Promise<{
     try {
       isScratch = await OrgAuthInfo.isAScratchOrg(username);
     } catch (err) {
-      return { error: err as Error, isScratch: false };
+      return { error: err, isScratch: false };
     }
     return { username, isScratch, alias };
   }

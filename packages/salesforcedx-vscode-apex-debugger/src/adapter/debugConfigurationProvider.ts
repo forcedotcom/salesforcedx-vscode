@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger/out/src';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   private salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
 
-  public static getConfig(folder: vscode.WorkspaceFolder | undefined) {
+  public static getConfig(folder: vscode.WorkspaceFolder | undefined): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
@@ -21,7 +21,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       requestTypeFilter: [],
       entryPointFilter: '',
       salesforceProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
-    } as vscode.DebugConfiguration;
+    };
   }
 
   public provideDebugConfigurations(
@@ -38,9 +38,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    return this.asyncDebugConfig(folder, config).catch(async err => {
-      return vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined);
-    });
+    return this.asyncDebugConfig(folder, config).catch(async err =>
+      vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined)
+    );
   }
 
   private async asyncDebugConfig(
@@ -64,11 +64,11 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();
       config.workspaceSettings = {
-        proxyUrl: workspaceConfig.get('http.proxy', '') as string,
-        proxyStrictSSL: workspaceConfig.get('http.proxyStrictSSL', false) as boolean,
-        proxyAuth: workspaceConfig.get('http.proxyAuthorization', '') as string,
-        connectionTimeoutMs: workspaceConfig.get('salesforcedx-vscode-apex-debugger.connectionTimeoutMs')
-      } as WorkspaceSettings;
+        proxyUrl: workspaceConfig.get('http.proxy', ''),
+        proxyStrictSSL: workspaceConfig.get('http.proxyStrictSSL', false),
+        proxyAuth: workspaceConfig.get('http.proxyAuthorization', ''),
+        connectionTimeoutMs: workspaceConfig.get('salesforcedx-vscode-apex-debugger.connectionTimeoutMs', 20000) // should match pjson default
+      } satisfies WorkspaceSettings;
     }
 
     if (this.salesforceApexExtension && this.salesforceApexExtension.exports) {
@@ -84,11 +84,11 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     while (
       this.salesforceApexExtension &&
       this.salesforceApexExtension.exports &&
-      !this.salesforceApexExtension.exports.languageClientUtils.getStatus().isReady() &&
+      !this.salesforceApexExtension.exports.languageClientManager.getStatus().isReady() &&
       !expired
     ) {
-      if (this.salesforceApexExtension.exports.languageClientUtils.getStatus().failedToInitialize()) {
-        throw Error(this.salesforceApexExtension.exports.languageClientUtils.getStatus().getStatusMessage());
+      if (this.salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
+        throw Error(this.salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
       }
 
       await new Promise(r => setTimeout(r, 100));

@@ -7,40 +7,36 @@
 
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ProjectOptions, TemplateType } from '@salesforce/templates';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
+import { URI } from 'vscode-uri';
+import { coerceMessageKey, nls } from '../messages';
 import { notificationService } from '../notifications';
 import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
-import { CompositeParametersGatherer, EmptyPreChecker, SfCommandlet } from './util';
-
-export enum projectTemplateEnum {
-  standard = 'standard',
-  empty = 'empty',
-  analytics = 'analytics'
-}
+import { EmptyPreChecker, SfCommandlet } from './util';
 
 type projectGenerateOptions = {
   isProjectWithManifest: boolean;
 };
 
-export class ProjectTemplateItem implements vscode.QuickPickItem {
+class ProjectTemplateItem implements vscode.QuickPickItem {
   public label: string;
   public description: string;
   constructor(name: string, description: string) {
-    this.label = nls.localize(name);
-    this.description = nls.localize(description);
+    this.label = nls.localize(coerceMessageKey(name));
+    this.description = nls.localize(coerceMessageKey(description));
   }
 }
 
-export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
+class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
   private readonly options: projectGenerateOptions;
 
   public constructor(options = { isProjectWithManifest: false }) {
@@ -55,13 +51,13 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
     return data.projectName;
   }
   protected async openCreatedTemplateInVSCode(outputdir: string, fileName: string) {
-    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(path.join(outputdir, fileName)));
+    await vscode.commands.executeCommand('vscode.openFolder', URI.file(path.join(outputdir, fileName)));
   }
 
   public constructTemplateOptions(data: ProjectNameAndPathAndTemplate) {
     const templateOptions: ProjectOptions = {
       projectname: data.projectName,
-      template: data.projectTemplate as ProjectOptions['template'],
+      template: data.projectTemplate,
       outputdir: data.projectUri,
       ns: '',
       loginurl: 'https://login.salesforce.com',
@@ -73,28 +69,20 @@ export class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<P
   }
 }
 
-export type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & ProjectTemplate;
+export type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & { projectTemplate: ProjectTemplate };
 
-export type ProjectURI = {
+type ProjectURI = {
   projectUri: string;
 };
 
-export type ProjectName = {
+type ProjectName = {
   projectName: string;
 };
 
-export type ProjectTemplate = {
-  projectTemplate: string;
-};
+type ProjectTemplate = 'standard' | 'empty' | 'analytics';
 
-export class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate> {
-  private readonly prefillValueProvider?: () => string;
-
-  constructor(prefillValueProvider?: () => string) {
-    this.prefillValueProvider = prefillValueProvider;
-  }
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<ProjectTemplate>> {
+class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: ProjectTemplate }> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{ projectTemplate: ProjectTemplate }>> {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem('project_generate_standard_template_display_text', 'project_generate_standard_template'),
       new ProjectTemplateItem('project_generate_empty_template_display_text', 'project_generate_empty_template'),
@@ -102,16 +90,16 @@ export class SelectProjectTemplate implements ParametersGatherer<ProjectTemplate
     ];
 
     const selection = await vscode.window.showQuickPick(items);
-    let projectTemplate: string | undefined;
-    switch (selection && selection.label) {
+    let projectTemplate: ProjectTemplate | undefined;
+    switch (selection?.label) {
       case nls.localize('project_generate_standard_template_display_text'):
-        projectTemplate = projectTemplateEnum.standard;
+        projectTemplate = 'standard';
         break;
       case nls.localize('project_generate_empty_template_display_text'):
-        projectTemplate = projectTemplateEnum.empty;
+        projectTemplate = 'empty';
         break;
       case nls.localize('project_generate_analytics_template_display_text'):
-        projectTemplate = projectTemplateEnum.analytics;
+        projectTemplate = 'analytics';
         break;
       default:
         break;
@@ -141,7 +129,7 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
       canSelectFolders: true,
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
-    } as vscode.OpenDialogOptions);
+    });
     return projectUri && projectUri.length === 1
       ? { type: 'CONTINUE', data: { projectUri: projectUri[0].fsPath } }
       : { type: 'CANCEL' };

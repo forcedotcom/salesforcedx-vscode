@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DescribeSObjectResult } from '@jsforce/jsforce-node';
+import type { DescribeSObjectResult } from './types';
 import { Connection } from '@salesforce/core-bundle';
 import { ChannelService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -13,6 +13,7 @@ import { nls } from './messages';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const debounce = require('debounce');
+
 export const channelService = ChannelService.getInstance(nls.localize('soql_channel_name'));
 
 export const workspaceContext = WorkspaceContextUtil.getInstance();
@@ -23,12 +24,13 @@ const showChannelAndErrorMessage = (e: string) => {
   void vscode.window.showErrorMessage(message);
 };
 
+/** exported for test spy */
 export const debouncedShowChannelAndErrorMessage = debounce(showChannelAndErrorMessage, 1000);
 
 export const withSFConnection = async (f: (conn: Connection) => void, showErrorMessage = true): Promise<void> => {
   try {
     const conn = await workspaceContext.getConnection();
-    return f(conn as unknown as Connection);
+    return f(conn);
   } catch (e) {
     if (showErrorMessage) {
       debouncedShowChannelAndErrorMessage(e);

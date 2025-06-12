@@ -3,11 +3,9 @@
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
 
-'use strict';
-
 import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as appInsights from 'applicationinsights';
-import * as os from 'os';
+import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
@@ -48,7 +46,6 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
-        // tslint:disable-next-line:no-floating-promises
         this.dispose();
       }
     }
@@ -139,9 +136,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
 
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        // tslint:disable-next-line:object-literal-shorthand
         properties: props,
-        // tslint:disable-next-line:object-literal-shorthand
         measurements
       });
     }

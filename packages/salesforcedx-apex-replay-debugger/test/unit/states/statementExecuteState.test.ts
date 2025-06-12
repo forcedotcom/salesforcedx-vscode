@@ -5,6 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
 import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
@@ -12,7 +21,6 @@ import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { StatementExecuteState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('Statement execute event', () => {
   let context: LogContext;
   const logFileName = 'foo.log';

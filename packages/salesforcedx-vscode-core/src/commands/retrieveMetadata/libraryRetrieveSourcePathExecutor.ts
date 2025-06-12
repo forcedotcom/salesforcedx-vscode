@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ContinueResponse, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, LocalComponent, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve-bundle/lib/src/resolve/types';
-import * as path from 'path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
-import { workspaceUtils } from '../../util';
 import { RetrieveExecutor } from '../baseDeployRetrieve';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<LocalComponent[]> {

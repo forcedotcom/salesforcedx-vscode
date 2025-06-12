@@ -5,16 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
+import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
-import { retrieveEnableApexLSErrorToTelemetry, retrieveEnableSyncInitJobs } from './settings';
+import {
+  retrieveEnableApexLSErrorToTelemetry,
+  retrieveEnableSyncInitJobs,
+  retrieveAAClassDefModifiers,
+  retrieveAAClassAccessModifiers,
+  retrieveAAMethodDefModifiers,
+  retrieveAAMethodAccessModifiers,
+  retrieveAAPropDefModifiers,
+  retrieveAAPropAccessModifiers,
+  retrieveAAClassRestAnnotations,
+  retrieveAAMethodRestAnnotations,
+  retrieveAAMethodAnnotations,
+  retrieveGeneralClassAccessModifiers,
+  retrieveGeneralMethodAccessModifiers,
+  retrieveGeneralPropAccessModifiers
+} from './settings';
 import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 2739;
@@ -24,8 +41,10 @@ const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERRO
 // eslint-disable-next-line no-var
 declare var v8debug: any;
 
+type ApexLanguageClientOptions = LanguageClientOptions & { errorHandler?: ApexErrorHandler };
+
 const startedInDebugMode = (): boolean => {
-  const args = (process as any).execArgv;
+  const args = process.execArgv;
   if (args) {
     return args.some(
       (arg: any) =>
@@ -75,9 +94,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
       args.push(
         '-Dtrace.protocol=false',
         `-Dapex.lsp.root.log.level=${LANGUAGE_SERVER_LOG_LEVEL}`,
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${
-          SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'
-        },address=*:${JDWP_DEBUG_PORT},quiet=y`
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND_LANGUAGE_SERVER_STARTUP ? 'y' : 'n'},address=*:${JDWP_DEBUG_PORT},quiet=y`
       );
       if (process.env.YOURKIT_PROFILER_AGENT) {
         if (SUSPEND_LANGUAGE_SERVER_STARTUP) {
@@ -103,20 +120,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
   }
 };
 
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export const code2ProtocolConverter = (value: vscode.Uri) => {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
-  }
-};
-
-const protocol2CodeConverter = (value: string) => {
-  return vscode.Uri.parse(value);
-};
+const protocol2CodeConverter = (value: string) => URI.parse(value);
 
 export const createLanguageServer = async (extensionContext: vscode.ExtensionContext): Promise<ApexLanguageClient> => {
   const telemetryService = await getTelemetryService();
@@ -128,8 +132,7 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
   return client;
 };
 
-// exported only for testing
-export const buildClientOptions = (): LanguageClientOptions => {
+const buildClientOptions = (): ApexLanguageClientOptions => {
   const soqlExtensionInstalled = isSOQLExtensionInstalled();
 
   return {
@@ -153,8 +156,20 @@ export const buildClientOptions = (): LanguageClientOptions => {
     },
     initializationOptions: {
       enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
+      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
       enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
-      enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry()
+      apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
+      apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
+      apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
+      apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
+      apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
+      apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
+      apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
+      apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
+      apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
+      apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
+      apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
+      apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
     errorHandler: new ApexErrorHandler()

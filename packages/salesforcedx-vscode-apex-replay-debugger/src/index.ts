@@ -4,10 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { MetricError, MetricGeneral, MetricLaunch } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
+  MetricError,
+  MetricGeneral,
+  MetricLaunch,
   DEBUGGER_TYPE,
   LAST_OPENED_LOG_FOLDER_KEY,
   LAST_OPENED_LOG_KEY,
@@ -15,10 +17,12 @@ import {
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT
-} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import * as path from 'path';
+  SEND_METRIC_LAUNCH_EVENT,
+  breakpointUtil
+} from '@salesforce/salesforcedx-apex-replay-debugger';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
@@ -47,7 +51,7 @@ const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.sales
 const registerCommands = (): vscode.Disposable => {
   const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
-    const fileUris: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
+    const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
       canSelectFiles: true,
       canSelectFolders: false,
       canSelectMany: false,
@@ -60,7 +64,7 @@ const registerCommands = (): vscode.Disposable => {
   });
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile',
-    (editorUri: vscode.Uri) => {
+    (editorUri: URI) => {
       let logFile: string | undefined;
       if (!editorUri) {
         const editor = vscode.window.activeTextEditor;
@@ -201,9 +205,9 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   if (salesforceApexExtension && salesforceApexExtension.exports) {
     let expired = false;
     let i = 0;
-    while (!salesforceApexExtension.exports.languageClientUtils.getStatus().isReady() && !expired) {
-      if (salesforceApexExtension.exports.languageClientUtils.getStatus().failedToInitialize()) {
-        throw Error(salesforceApexExtension.exports.languageClientUtils.getStatus().getStatusMessage());
+    while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
+      if (salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
+        throw Error(salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
       }
 
       await imposeSlightDelay(100);
@@ -235,9 +239,7 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   }
 };
 
-const imposeSlightDelay = (ms = 0) => {
-  return new Promise(r => setTimeout(r, ms));
-};
+const imposeSlightDelay = (ms = 0) => new Promise(r => setTimeout(r, ms));
 
 export const writeToDebuggerOutputWindow = (
   output: string,

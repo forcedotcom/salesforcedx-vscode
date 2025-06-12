@@ -14,6 +14,7 @@ import {
   ENV_SF_ORG_INSTANCE_URL
 } from '../../../src/constants';
 import { BaseCommand, RequestService, RestHttpMethodEnum } from '../../../src/requestService';
+
 jest.mock('request-light');
 
 // This ensures that typscript understands the mocked module

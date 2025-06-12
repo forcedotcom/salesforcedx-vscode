@@ -5,20 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
-  Command,
   notificationService,
   ProgressNotification,
-  SfCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
   EmptyParametersGatherer,
   SfCommandlet,
   SfCommandletExecutor,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { channelService } from '../channel';
@@ -33,13 +30,13 @@ const commandName = nls.localize('lightning_lwc_start_text');
  * Hints for providing a user-friendly error message / action.
  * Hints come from the stderr output of lwc-dev-server. (We should move this to lwc-dev-server later)
  */
-export const enum errorHints {
-  SERVER_STARTUP_FALIED = 'Server start up failed',
+const enum errorHints {
+  SERVER_STARTUP_FAILED = 'Server start up failed',
   ADDRESS_IN_USE = 'EADDRINUSE',
   INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
 }
 
-export type LightningLwcStartOptions = {
+type LightningLwcStartOptions = {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
   /** component name to preview in the browser */
@@ -79,9 +76,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     const executionName = execution.command.toString();
 
     const serverHandler: ServerHandler = {
-      stop: async () => {
-        return execution.killExecution('SIGTERM');
-      }
+      stop: async () => execution.killExecution('SIGTERM')
     };
     DevServerService.instance.registerServerHandler(serverHandler);
 
@@ -123,7 +118,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     execution.stderrSubject.subscribe(async data => {
       if (!printedError && data) {
         let errorCode = -1;
-        if (data.toString().includes(errorHints.SERVER_STARTUP_FALIED)) {
+        if (data.toString().includes(errorHints.SERVER_STARTUP_FAILED)) {
           errorCode = 1;
         }
         if (data.toString().includes(errorHints.ADDRESS_IN_USE)) {

@@ -5,18 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer,
+  notificationService,
+  LibraryCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode';
 import { CreateUtil } from '@salesforce/templates';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { ComponentName, getComponentName, getComponentPath, isLwcComponent, TEST_FOLDER } from '../util';
-import { SfCommandlet, SfWorkspaceChecker } from './util';
-import { LwcAuraDuplicateComponentCheckerForRename } from './util';
+import { SfCommandlet, SfWorkspaceChecker, LwcAuraDuplicateComponentCheckerForRename } from './util';
 import {
   isNameMatch,
   RENAME_ERROR,
@@ -26,7 +30,7 @@ import {
   RENAME_WARNING
 } from './util/lwcAuraDuplicateDetectionUtils';
 
-export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
+class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {
     super(nls.localize(RENAME_LIGHTNING_COMPONENT_EXECUTOR), RENAME_LIGHTNING_COMPONENT_EXECUTOR, OUTPUT_CHANNEL);
@@ -50,7 +54,7 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
   }
 }
 
-export const renameLightningComponent = (sourceUri: vscode.Uri): void => {
+export const renameLightningComponent = (sourceUri: URI): void => {
   const sourceFsPath = sourceUri.fsPath;
   if (sourceFsPath) {
     const commandlet = new SfCommandlet(
@@ -63,23 +67,23 @@ export const renameLightningComponent = (sourceUri: vscode.Uri): void => {
   }
 };
 
-export class GetComponentName implements ParametersGatherer<ComponentName> {
+class GetComponentName implements ParametersGatherer<ComponentName> {
   private sourceFsPath: string;
   constructor(sourceFsPath: string) {
     this.sourceFsPath = sourceFsPath;
   }
   public async gather(): Promise<CancelResponse | ContinueResponse<ComponentName>> {
-    const inputOptions = {
+    const inputOptions: vscode.InputBoxOptions = {
       value: getComponentName(await getComponentPath(this.sourceFsPath)),
       placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
-      promopt: nls.localize(RENAME_INPUT_PROMPT)
-    } as vscode.InputBoxOptions;
+      prompt: nls.localize(RENAME_INPUT_PROMPT)
+    };
     const inputResult = await vscode.window.showInputBox(inputOptions);
     return inputResult ? { type: 'CONTINUE', data: { name: inputResult } } : { type: 'CANCEL' };
   }
 }
 
-export const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
+const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
   const componentPath = await getComponentPath(sourceFsPath);
   if (isLwcComponent(componentPath)) {
     newName = newName.charAt(0).toLowerCase() + newName.slice(1);

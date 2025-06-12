@@ -28,12 +28,12 @@ type ApexDebugLogItem = vscode.QuickPickItem & {
   startTime: string;
 };
 
-export type ApexDebugLogIdStartTime = {
+type ApexDebugLogIdStartTime = {
   id: string;
   startTime: string;
 };
 
-export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
+class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await this.getLogRecords();
@@ -50,7 +50,7 @@ export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTi
           startTime: localDateFormatted,
           detail: localDateFormatted + ' - ' + logInfo.Status.substring(0, 150),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
-        } as ApexDebugLogItem;
+        } satisfies ApexDebugLogItem;
       });
       const logItem = await vscode.window.showQuickPick(
         logItems,
@@ -67,7 +67,7 @@ export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTi
       return {
         type: 'CANCEL',
         msg: nls.localize('apex_log_get_no_logs_text')
-      } as CancelResponse;
+      };
     }
     return { type: 'CANCEL' };
   }
@@ -85,18 +85,7 @@ export class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTi
   }
 }
 
-export type ApexDebugLogObject = {
-  Id: string;
-  StartTime: string;
-  LogLength: number;
-  Operation: string;
-  Request: string;
-  Status: string;
-  LogUser: {
-    Name: string;
-  };
-};
-export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
+class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   id: string;
 }> {
   constructor() {

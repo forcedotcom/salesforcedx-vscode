@@ -5,21 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TestResult } from '@salesforce/apex-node-bundle';
-import { readFileSync } from 'fs';
-import * as path from 'path';
+import { readFileSync } from 'node:fs';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
-import { getApexTests, languageClientUtils } from '../languageUtils';
+import { getApexTests, languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
-import { IconsEnum, iconHelpers } from './icons';
+import { iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
-const safeLocalize = (val: string) => nls.localize(val);
+/**
+ * the way this file is written, I'm not sure how to tell between the descendants of TestNode
+ * leaving the assertions as is
+ */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 // Message
-const LOADING_MESSAGE = safeLocalize('test_view_loading_message');
-const NO_TESTS_MESSAGE = safeLocalize('test_view_no_tests_message');
-const NO_TESTS_DESCRIPTION = safeLocalize('test_view_no_tests_description');
+const LOADING_MESSAGE = nls.localize('test_view_loading_message');
+const NO_TESTS_MESSAGE = nls.localize('test_view_no_tests_message');
+const NO_TESTS_DESCRIPTION = nls.localize('test_view_no_tests_description');
 
 const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
@@ -45,11 +50,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   }
 
   public getHead(): TestNode {
-    if (this.rootNode === null) {
-      return this.getAllApexTests();
-    } else {
-      return this.rootNode;
-    }
+    return this.rootNode === null ? this.getAllApexTests() : this.rootNode;
   }
 
   public getId(): string {
@@ -65,7 +66,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
       } else {
         let message = NO_TESTS_MESSAGE;
         let description = NO_TESTS_DESCRIPTION;
-        const languageClientStatus = languageClientUtils.getStatus();
+        const languageClientStatus = languageClientManager.getStatus();
         if (!languageClientStatus.isReady()) {
           if (languageClientStatus.failedToInitialize()) {
             void vscode.window.showInformationMessage(languageClientStatus.getStatusMessage());
@@ -90,7 +91,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
       this.getAllApexTests();
       let message = NO_TESTS_MESSAGE;
       let description = NO_TESTS_DESCRIPTION;
-      if (!languageClientUtils.getStatus().isReady()) {
+      if (!languageClientManager.getStatus().isReady()) {
         message = LOADING_MESSAGE;
         description = '';
       }
@@ -132,7 +133,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     }
   }
 
-  public getTestClassName(uri: vscode.Uri): string | undefined {
+  public getTestClassName(uri: URI): string | undefined {
     return this.testIndex.get(uri.toString());
   }
 
@@ -228,14 +229,14 @@ export abstract class TestNode extends vscode.TreeItem {
     this.name = label;
     this.command = {
       command: `${BASE_ID}.showError`,
-      title: safeLocalize('test_view_show_error_title'),
+      title: nls.localize('test_view_show_error_title'),
       arguments: [this]
     };
   }
 
   public iconPath = {
-    light: iconHelpers.getIconPath(IconsEnum.LIGHT_BLUE_BUTTON),
-    dark: iconHelpers.getIconPath(IconsEnum.DARK_BLUE_BUTTON)
+    light: iconHelpers.getIconPath('LIGHT_BLUE_BUTTON'),
+    dark: iconHelpers.getIconPath('DARK_BLUE_BUTTON')
   };
 
   // TODO: create a ticket to address this particular issue.
@@ -249,20 +250,20 @@ export abstract class TestNode extends vscode.TreeItem {
     if (outcome === PASS_RESULT) {
       // Passed Test
       this.iconPath = {
-        light: iconHelpers.getIconPath(IconsEnum.LIGHT_GREEN_BUTTON),
-        dark: iconHelpers.getIconPath(IconsEnum.DARK_GREEN_BUTTON)
+        light: iconHelpers.getIconPath('LIGHT_GREEN_BUTTON'),
+        dark: iconHelpers.getIconPath('DARK_GREEN_BUTTON')
       };
     } else if (outcome === FAIL_RESULT) {
       // Failed test
       this.iconPath = {
-        light: iconHelpers.getIconPath(IconsEnum.LIGHT_RED_BUTTON),
-        dark: iconHelpers.getIconPath(IconsEnum.DARK_RED_BUTTON)
+        light: iconHelpers.getIconPath('LIGHT_RED_BUTTON'),
+        dark: iconHelpers.getIconPath('DARK_RED_BUTTON')
       };
     } else if (outcome === SKIP_RESULT) {
       // Skipped test
       this.iconPath = {
-        light: iconHelpers.getIconPath(IconsEnum.LIGHT_ORANGE_BUTTON),
-        dark: iconHelpers.getIconPath(IconsEnum.DARK_ORANGE_BUTTON)
+        light: iconHelpers.getIconPath('LIGHT_ORANGE_BUTTON'),
+        dark: iconHelpers.getIconPath('DARK_ORANGE_BUTTON')
       };
     }
 

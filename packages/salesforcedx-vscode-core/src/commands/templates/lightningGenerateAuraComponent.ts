@@ -5,13 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DirFileNameSelection, LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CompositeParametersGatherer,
+  DirFileNameSelection,
+  LocalComponent
+} from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
 import {
-  CompositeParametersGatherer,
   CompositePostconditionChecker,
   LwcAuraDuplicateComponentCheckerForCreate,
   MetadataTypeGatherer,
@@ -25,7 +28,7 @@ import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './interna
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { AURA_COMPONENT_EXTENSION, AURA_DIRECTORY, AURA_TYPE } from './metadataTypeConstants';
 
-export class LibraryLightningGenerateAuraComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
+class LibraryLightningGenerateAuraComponentExecutor extends LibraryBaseTemplateCommand<DirFileNameSelection> {
   public executionName = nls.localize('lightning_generate_aura_component_text');
   public telemetryName = 'lightning_generate_aura_component';
   public metadataTypeName = AURA_TYPE;

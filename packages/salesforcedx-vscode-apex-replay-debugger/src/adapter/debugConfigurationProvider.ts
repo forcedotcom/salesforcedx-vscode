@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   private salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
-  public static getConfig(logFile?: string, stopOnEntry: boolean = true) {
+  public static getConfig(logFile?: string, stopOnEntry: boolean = true): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
@@ -19,7 +19,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       logFile: logFile ? logFile : '${command:AskForLogFileName}',
       stopOnEntry,
       trace: true
-    } as vscode.DebugConfiguration;
+    };
   }
 
   public provideDebugConfigurations(
@@ -34,9 +34,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    return this.asyncDebugConfig(config).catch(async err => {
-      return vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined);
-    });
+    return this.asyncDebugConfig(config).catch(async err =>
+      vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined)
+    );
   }
 
   private async asyncDebugConfig(config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration | undefined> {
@@ -68,11 +68,11 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     while (
       this.salesforceApexExtension &&
       this.salesforceApexExtension.exports &&
-      !this.salesforceApexExtension.exports.languageClientUtils.getStatus().isReady() &&
+      !this.salesforceApexExtension.exports.languageClientManager.getStatus().isReady() &&
       !expired
     ) {
-      if (this.salesforceApexExtension.exports.languageClientUtils.getStatus().failedToInitialize()) {
-        throw Error(this.salesforceApexExtension.exports.languageClientUtils.getStatus().getStatusMessage());
+      if (this.salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
+        throw Error(this.salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
       }
 
       await new Promise(r => setTimeout(r, 100));

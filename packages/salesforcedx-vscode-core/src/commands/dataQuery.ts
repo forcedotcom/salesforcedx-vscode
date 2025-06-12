@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -25,23 +24,23 @@ class DataQueryExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
+class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
     const editor = await vscode.window.activeTextEditor;
 
     let query;
 
     if (!editor) {
-      const userInputOptions = {
+      const userInputOptions: vscode.InputBoxOptions = {
         prompt: nls.localize('parameter_gatherer_enter_soql_query')
-      } as vscode.InputBoxOptions;
+      };
       query = await vscode.window.showInputBox(userInputOptions);
     } else {
       const document = editor.document;
       if (editor.selection.isEmpty) {
-        const userInputOptions = {
+        const userInputOptions: vscode.InputBoxOptions = {
           prompt: nls.localize('parameter_gatherer_enter_soql_query')
-        } as vscode.InputBoxOptions;
+        };
         query = await vscode.window.showInputBox(userInputOptions);
       } else {
         query = document.getText(editor.selection);
@@ -75,12 +74,12 @@ export class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInput
   }
 }
 
-export type QueryAndApiInputs = {
+type QueryAndApiInputs = {
   query: string;
   api: ApiType;
 };
 
-export enum ApiType {
+enum ApiType {
   REST,
   Tooling
 }

@@ -31,7 +31,7 @@ export class OrgOpenContainerResultParser {
     try {
       const sanitized = stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
       this.response = JSON.parse(sanitized);
-    } catch (e) {
+    } catch {
       const err = new Error('Error parsing org open result');
       err.name = 'OrgOpenContainerParserFail';
       throw err;
@@ -44,8 +44,10 @@ export class OrgOpenContainerResultParser {
 
   public getResult(): OrgOpenSuccessResult | OrgOpenErrorResult {
     if (this.openIsSuccessful()) {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return this.response as OrgOpenSuccessResult;
     }
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return this.response as OrgOpenErrorResult;
   }
 }

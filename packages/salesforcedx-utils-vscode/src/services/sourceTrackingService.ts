@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core-bundle';
-import { RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
-import { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking-bundle';
+import type { Connection } from '@salesforce/core-bundle';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
+import type { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking-bundle';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
-import { Row, Table } from '../output';
+import { Table } from '../output';
 import { SourceTrackingProvider } from '../providers';
 import { getRootWorkspacePath } from '../workspaces';
 
@@ -73,7 +73,7 @@ type FormattedStatusResult = {
   ignored?: string;
 };
 
-export class SourceStatusSummary {
+class SourceStatusSummary {
   constructor(private statusOutputRows: StatusOutputRow[]) {}
 
   public format(): string {
@@ -151,7 +151,7 @@ class StatusResultsTable {
   public value(): string {
     this.statusResults.forEach(statusResult => this.convertToTableRow(statusResult));
 
-    const table: string = new Table().createTable(this.statusResults as unknown as Row[], this.columns);
+    const table: string = new Table().createTable(this.statusResults, this.columns);
 
     return table;
   }

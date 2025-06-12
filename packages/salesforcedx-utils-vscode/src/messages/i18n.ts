@@ -16,7 +16,6 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  sfdx_cli_not_found: 'Salesforce CLI is not installed. Install it from [%s](%s)',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
@@ -50,4 +49,6 @@ export const messages = {
   type: 'TYPE',
   project_path: 'PROJECT PATH',
   ignored: 'IGNORED'
-};
+} as const;
+
+export type MessageKey = keyof typeof messages;

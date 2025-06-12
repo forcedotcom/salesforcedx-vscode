@@ -4,6 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+/**
+ * the types on this are pretty messed up (e.g. ProtocolCompletionItem is not the same as CompletionItem)
+ * one options would be to skip the CompletionItem that are not ProtocolCompletionItem (ie have a type guard)
+ * but I'm not sure how it's actually supposed to work and how the framework handles undefined values that as might allow through
+ */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import { commands, CompletionItem, CompletionList, EndOfLine, Position, TextDocument, Uri, workspace } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
@@ -43,9 +51,7 @@ const getSOQLVirtualContent = (
   const blankedContent = document
     .getText()
     .split(eol)
-    .map(line => {
-      return ' '.repeat(line.length);
-    })
+    .map(line => ' '.repeat(line.length))
     .join(eol);
 
   const content =

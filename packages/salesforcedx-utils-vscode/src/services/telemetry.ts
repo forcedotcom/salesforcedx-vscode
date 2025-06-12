@@ -12,8 +12,9 @@ import {
   TelemetryReporter,
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
-import * as util from 'util';
+import * as util from 'node:util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { z } from 'zod';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -21,7 +22,7 @@ import {
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
-import { determineReporters } from '../telemetry/reporters/determineReporters';
+import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 import { UserService } from './userService';
@@ -102,21 +103,13 @@ export class TelemetryService implements TelemetryServiceInterface {
    * @param extensionContext extension context
    */
   public async initializeService(extensionContext: ExtensionContext): Promise<void> {
-    const { name, version, aiKey } = extensionContext.extension.packageJSON as {
-      name: string;
-      version: string;
-      aiKey: string;
-    };
-    if (!name) {
-      console.log('Extension name is not defined in package.json');
-    }
-    if (!version) {
-      console.log('Extension version is not defined in package.json');
-    }
+    const { name, version, aiKey, o11yUploadEndpoint, enableO11y } = extensionPackageJsonSchema.parse(
+      extensionContext.extension.packageJSON
+    );
     this.extensionContext = extensionContext;
     this.extensionName = name;
-    this.version = version ?? '';
-    this.aiKey = aiKey || this.aiKey;
+    this.version = version;
+    this.aiKey ??= aiKey ?? DEFAULT_AIKEY;
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
@@ -138,6 +131,17 @@ export class TelemetryService implements TelemetryServiceInterface {
         reporterName: this.getTelemetryReporterName(),
         isDevMode: this.isDevMode
       };
+
+      const isO11yEnabled = typeof enableO11y === 'boolean' ? enableO11y : enableO11y?.toLowerCase() === 'true';
+
+      if (isO11yEnabled) {
+        if (!o11yUploadEndpoint) {
+          console.log('o11yUploadEndpoint is not defined. Skipping O11y initialization.');
+          return;
+        }
+
+        await initializeO11yReporter(reporterConfig.extName, o11yUploadEndpoint, userId, version);
+      }
 
       const reporters = determineReporters(reporterConfig);
       this.reporters.push(...reporters);
@@ -260,7 +264,7 @@ export class TelemetryService implements TelemetryServiceInterface {
       this.reporters.forEach(reporter => {
         try {
           reporter.sendExceptionEvent(name, message);
-        } catch (error) {
+        } catch {
           console.log(
             'There was an error sending an exception report to: ' +
               typeof reporter +
@@ -316,3 +320,11 @@ export class TelemetryService implements TelemetryServiceInterface {
     }
   }
 }
+
+const extensionPackageJsonSchema = z.object({
+  name: z.string({ message: 'Extension name is not defined in package.json' }),
+  version: z.string({ message: 'Extension version is not defined in package.json' }),
+  aiKey: z.string().optional(),
+  o11yUploadEndpoint: z.string().optional(),
+  enableO11y: z.string().optional()
+});

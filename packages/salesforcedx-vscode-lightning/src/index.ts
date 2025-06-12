@@ -6,26 +6,13 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
+import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import * as path from 'node:path';
 import { ExtensionContext, ProgressLocation, Uri, window, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { nls } from './messages';
 
-// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export const code2ProtocolConverter = (value: Uri): string => {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  } else {
-    return value.toString();
-  }
-};
-
-const protocol2CodeConverter = (value: string): Uri => {
-  return Uri.parse(value);
-};
+const protocol2CodeConverter = (value: string): Uri => Uri.parse(value);
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
@@ -136,20 +123,15 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Create the language client and start the client.
   const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
 
-  client
-    .onReady()
-    .then(() => {
-      client.onNotification('salesforce/indexingStarted', startIndexing);
-      client.onNotification('salesforce/indexingEnded', endIndexing);
-    })
-    .catch();
-
+  // Set up notifications
+  client.onNotification('salesforce/indexingStarted', startIndexing);
+  client.onNotification('salesforce/indexingEnded', endIndexing);
   // Start the language server
-  const disp = client.start();
+  await client.start();
 
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
-  extensionContext.subscriptions.push(disp);
+  extensionContext.subscriptions.push(client);
 
   // Notify telemetry that our extension is now active
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);
@@ -174,9 +156,7 @@ const reportIndexing = async (indexingPromise: Promise<void>) => {
       title: nls.localize('index_components_text'),
       cancellable: true
     },
-    () => {
-      return indexingPromise;
-    }
+    () => indexingPromise
   );
 };
 

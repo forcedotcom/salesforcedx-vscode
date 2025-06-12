@@ -78,7 +78,11 @@ const getMockVSCode = () => {
       createDiagnosticCollection: jest.fn(),
       createLanguageStatusItem: mockCreateLanguageStatusItem
     },
-    Uri,
+    Uri: {
+      file: jest.fn(),
+      joinPath: jest.fn(),
+      parse: jest.fn()
+    },
     Position: jest.fn(),
     ProgressLocation: {
       SourceControl: 1,
@@ -90,13 +94,16 @@ const getMockVSCode = () => {
       Left: 1,
       Right: 2
     },
+    ThemeColor: jest.fn(),
     window: {
       activeTextEditor: jest.fn(),
       showInformationMessage: jest.fn(),
       showWarningMessage: jest.fn(),
       showErrorMessage: jest.fn(),
+      showQuickPick: jest.fn(),
       showInputBox: jest.fn(),
       setStatusBarMessage: jest.fn(),
+      showWarningModal: jest.fn(),
       withProgress: jest.fn(),
       createOutputChannel: jest.fn(),
       showSaveDialog: jest.fn(),
@@ -121,9 +128,15 @@ const getMockVSCode = () => {
       }),
       workspaceFolders: [],
       fs: {
-        writeFile: jest.fn()
+        writeFile: jest.fn(),
+        stat: jest.fn(),
+        createDirectory: jest.fn(),
+        delete: jest.fn(),
+        readFile: jest.fn(),
+        readDirectory: jest.fn()
       },
-      registerTextDocumentContentProvider: jest.fn()
+      registerTextDocumentContentProvider: jest.fn(),
+      registerFileSystemProvider: jest.fn()
     },
     CompletionItem: class {
       public constructor(label: string) {}
@@ -140,34 +153,18 @@ const getMockVSCode = () => {
     Diagnostic: class {
       public constructor(range: Range, message: string, severity?: any) {}
     },
+    FileType: {
+      File: 1,
+      Directory: 2
+    },
     CallHierarchyItem: class {
-      public constructor(
-        kind: any,
-        name: string,
-        detail: string,
-        uri: Uri,
-        range: Range,
-        selectionRange: Range
-      ) {}
+      public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
     },
     TypeHierarchyItem: class {
-      public constructor(
-        kind: any,
-        name: string,
-        detail: string,
-        uri: Uri,
-        range: Range,
-        selectionRange: Range
-      ) {}
+      public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
     },
     SymbolInformation: class {
-      public constructor(
-        name: string,
-        kind: any,
-        range: Range,
-        uri?: Uri,
-        containerName?: string
-      ) {}
+      public constructor(name: string, kind: any, range: Range, uri?: Uri, containerName?: string) {}
     },
     InlayHint: class {
       public constructor(position: any, label: any, kind?: any) {}

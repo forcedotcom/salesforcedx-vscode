@@ -5,16 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { Source, StackFrame } from '@vscode/debugadapter';
 import { expect } from 'chai';
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import * as sinon from 'sinon';
 import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { UserDebugState } from '../../../src/states';
 
-// tslint:disable:no-unused-expression
 describe('User debug event', () => {
   let warnToDebugConsoleStub: sinon.SinonStub;
   let getLogLinesStub: sinon.SinonStub;

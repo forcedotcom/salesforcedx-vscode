@@ -5,27 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, DEFAULT_LOCALE, LOCALE_JA, Localization, Message } from '@salesforce/salesforcedx-utils';
-import { messages as enMessages } from './i18n';
+import { LOCALE_JA, LocalizationService, MessageArgs } from '@salesforce/salesforcedx-utils';
+import { messages as enMessages, MessageKey } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
-const supportedLocales = [DEFAULT_LOCALE, LOCALE_JA];
 
-const loadMessageBundle = (config?: Config): Message => {
-  const base = new Message(enMessages);
+// Default instance name for backward compatibility
+const DEFAULT_INSTANCE = 'salesforcedx-vscode-apex-debugger';
 
-  const localeConfig = config ? config.locale : DEFAULT_LOCALE;
+// Register default Apex extension messages
+const localizationService = LocalizationService.getInstance(DEFAULT_INSTANCE);
 
-  if (localeConfig === LOCALE_JA) {
-    return new Message(jaMessages, base);
-  }
+localizationService.messageBundleManager.registerMessageBundle(DEFAULT_INSTANCE, {
+  messages: enMessages,
+  type: 'base'
+});
+localizationService.messageBundleManager.registerMessageBundle(DEFAULT_INSTANCE, {
+  messages: { ...jaMessages, _locale: LOCALE_JA },
+  type: 'locale'
+});
 
-  if (supportedLocales.indexOf(localeConfig) === -1) {
-    console.error(`Cannot find ${localeConfig}, defaulting to en`);
-  }
-
-  return base;
+export const nls = {
+  localize: <K extends MessageKey>(key: K, ...args: MessageArgs<K, typeof enMessages>): string =>
+    localizationService.localize(key, ...args)
 };
-
-export const nls = new Localization(
-  loadMessageBundle(process.env.VSCODE_NLS_CONFIG ? JSON.parse(process.env.VSCODE_NLS_CONFIG!) : undefined)
-);
