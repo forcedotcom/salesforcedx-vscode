@@ -36,7 +36,6 @@
   "devDependencies": {
     "@types/async-lock": "1.4.2",
     "@types/node": "^20.0.0",
-    "@types/vscode": "^1.90.0",
     "cross-env": "5.2.0",
     "esbuild": "0.25.4",
     "esbuild-plugin-pino": "^2.2.2"

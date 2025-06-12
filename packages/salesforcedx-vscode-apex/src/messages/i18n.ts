@@ -15,6 +15,7 @@
  *
  * If omitted, we will assume _message.
  */
+
 export const messages = {
   active_text_editor_not_apex: 'The active text editor is not an Apex Class file',
   anon_apex_execute_document_text: 'SFDX: Execute Anonymous Apex with Editor Contents',
@@ -79,7 +80,7 @@ export const messages = {
   error_parsing_nc: 'Error parsing named credentials result',
   error_parsing_yaml: 'Error parsing YAML',
   error_retrieving_org_version: 'Failed to retrieve org version',
-  failed_to_combine_oas: 'Failed to combine yaml docs',
+  failed_to_combine_oas: 'Failed to combine yaml docs: %s',
   failed_to_parse_yaml: 'Failed to parse the document as YAML: %s',
   file_exists: 'The file already exists. How do you want to proceed?',
   full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
@@ -107,6 +108,8 @@ export const messages = {
   java_version_check_command_failed: 'Running java command %s failed with error: %s',
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
+  launch_apex_replay_debugger_with_selected_file:
+    'Launch Apex Replay Debugger with Selected File',
   merge: 'Manually merge with existing ESR',
   method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
   mixed_frameworks_not_allowed:
@@ -166,4 +169,6 @@ export const messages = {
   wrong_java_version_text:
     'We detected an unsupported Java version. Java versions 11 or higher are supported. We recommend [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](%s).',
   yes: 'Yes'
-};
+} as const;
+
+export type MessageKey = keyof typeof messages;
