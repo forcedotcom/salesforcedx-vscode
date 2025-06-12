@@ -500,20 +500,24 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
 
-  // Delete expired TraceFlags for the current user
-  const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+  try {
+    // Delete expired TraceFlags for the current user
+    const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
 
-  const userId = await traceFlags.getUserIdOrThrow();
+    const userId = await traceFlags.getUserIdOrThrow();
 
-  const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
-  if (expiredTraceFlagExists) {
-    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
-  }
+    const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
+    if (expiredTraceFlagExists) {
+      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+    }
 
-  // Apex Replay Debugger Expiration Status Bar Entry
-  const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
-  if (expirationDate) {
-    showTraceFlagExpiration(new Date(expirationDate));
+    // Apex Replay Debugger Expiration Status Bar Entry
+    const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
+    if (expirationDate) {
+      showTraceFlagExpiration(new Date(expirationDate));
+    }
+  } catch {
+    console.log('No default org found, skipping trace flag expiration check');
   }
 
   console.log('SF CLI Extension Activated');
