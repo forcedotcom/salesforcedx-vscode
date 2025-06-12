@@ -9,6 +9,7 @@
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
+import { JSONPath } from 'jsonpath-plus';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
@@ -149,7 +150,7 @@ export class ExternalServiceRegistrationManager {
    * @param existingContent - The existing XML content, if any.
    * @param namedCredential - The named credential to be used.
    */
-  public async buildESRXml(existingContent: string | undefined): Promise<string> {
+  public buildESRXml(existingContent: string | undefined): Promise<string> {
     const baseName = path.basename(this.newPath).split('.')[0];
     const className = this.newPath.includes('esr_files_for_merge')
       ? // The class name is the part before the second to last underscore
@@ -159,11 +160,15 @@ export class ExternalServiceRegistrationManager {
     const { description } = this.extractInfoProperties();
     const operations = this.getOperationsFromYaml();
 
-    // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
-    const replaceElement = this.isESRDecomposed ? "'" : '&apos;';
-    const safeOasSpec = stringify(this.oasSpec ?? {})
-      .replaceAll('"', replaceElement)
-      .replaceAll('type: Id', 'type: string');
+    // Clean the OpenAPI document before stringifying
+    const cleanedOasSpec = this.oasSpec ? this.cleanOasDocument(this.oasSpec) : {};
+
+    const safeOasSpec = stringify(cleanedOasSpec, null, {
+      singleQuote: false, // Disable single quotes entirely
+      doubleQuotedAsJSON: false, // Use JSON-safe escaping for double quotes
+      lineWidth: 80, // Wrap at 80 characters
+    });
+
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
 
@@ -366,6 +371,55 @@ export class ExternalServiceRegistrationManager {
 
     return folderUri ? path.resolve(folderUri) : undefined;
   };
+
+  /**
+   * Cleans the OpenAPI document by processing description fields and other string values.
+   * @param doc The OpenAPI document to clean
+   * @returns A cleaned copy of the document
+   */
+  private cleanOasDocument(doc: OpenAPIV3.Document): OpenAPIV3.Document {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const cleaned = JSON.parse(JSON.stringify(doc)); // Deep clone the document
+
+    // Clean all description fields in the document
+    const descriptionPaths = [
+      '$.info.description',
+      '$.paths[*][*].description',
+      '$.paths[*].description',
+      '$.paths[*][*].responses[*].description',
+      '$.paths[*][*].parameters[*].description',
+      '$.paths[*][*].requestBody.description',
+      '$.components.schemas[*].description'
+    ];
+
+    descriptionPaths.forEach(jsonPath => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const items = JSONPath<{ description: string }[]>({ path: jsonPath, json: cleaned });
+      items.forEach(item => {
+        if (item && typeof item === 'object' && item.description) {
+          item.description = this.cleanDescription(item.description);
+        }
+      });
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return cleaned;
+  }
+
+  /**
+   * Cleans a description string by normalizing newlines and whitespace.
+   * @param description The description to clean
+   * @returns A cleaned description string
+   */
+  private cleanDescription(description: string): string {
+    // First normalize newlines to \n and clean up excessive whitespace
+    return description
+      .replace(/\r\n/g, '\n') // Normalize Windows line endings
+      .replace(/\r/g, '\n') // Normalize Mac line endings
+      .replace(/\n\s*\n/g, '\n') // Replace multiple newlines with single newline
+      .replace(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space
+      .trim();
+  }
 }
 
 /**
