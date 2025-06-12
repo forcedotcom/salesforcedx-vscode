@@ -10,23 +10,27 @@ import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL } from '../constants';
 import { nls } from '../messages';
 
-let statusBarItem: StatusBarItem | undefined;
+let statusBarItem: StatusBarItem;
 
 export const showTraceFlagExpiration = (expirationDate: Date): void => {
-  statusBarItem ??= window.createStatusBarItem(StatusBarAlignment.Left, 40);
-  const expirationHHmm = expirationDate.toLocaleTimeString(undefined, optionHHmm);
-  statusBarItem.text = nls.localize('apex_debug_log_status_bar_text', expirationHHmm);
+  if (!statusBarItem) {
+    statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 40);
+  }
+
+  statusBarItem.text = nls.localize(
+    'apex_debug_log_status_bar_text',
+    expirationDate.toLocaleTimeString(undefined, optionHHmm)
+  );
 
   statusBarItem.tooltip = nls.localize(
     'apex_debug_log_status_bar_hover_text',
     APEX_CODE_DEBUG_LEVEL,
-    expirationHHmm,
+    expirationDate.toLocaleTimeString(undefined, optionHHmm),
     expirationDate.toLocaleDateString(undefined, optionMMddYYYY)
   );
   statusBarItem.show();
 };
 
 export const disposeTraceFlagExpiration = (): void => {
-  statusBarItem?.dispose();
-  statusBarItem = undefined; // Resetting to undefined to allow re-creation
+  statusBarItem.dispose();
 };
