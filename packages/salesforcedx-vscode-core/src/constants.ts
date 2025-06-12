@@ -57,5 +57,3 @@ export const FUNCTIONS_PATH = '/functions/';
 export const ORG_OPEN_COMMAND = 'sf.org.open';
 export const PROJECT_RETRIEVE_START_LOG_NAME = 'project_retrieve_start_default_scratch_org';
 export const PROJECT_DEPLOY_START_LOG_NAME = 'project_deploy_start_default_scratch_org';
-
-export const TRACE_FLAG_EXPIRATION_KEY = 'apexReplayDebugger.traceFlagExpiration';
