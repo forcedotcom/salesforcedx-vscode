@@ -162,6 +162,7 @@ export const messages = {
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unknown: 'Unknown',
   unknown_error: 'Unknown error',
+  unknown_bid_rule: 'Unknown bid rule "%s"',
   validate_eligibility: 'Validating eligibility.',
   validation_failed: 'Failed to validate eligibility.',
   write_openapi_document: 'Writing OpenAPI Document.',

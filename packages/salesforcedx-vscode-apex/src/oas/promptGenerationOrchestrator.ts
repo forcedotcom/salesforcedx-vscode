@@ -99,38 +99,36 @@ export class PromptGenerationOrchestrator {
   private getLeastCallsStrategy(
     bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
   ): GenerationStrategyType | undefined {
-    const result = this.getStrategyByCallCount(bids, () => true);
-    return result ? result[0] : undefined;
+    const validBids = Array.from(bids.entries()).map(([strategy, bid]) => ({
+      strategy,
+      bid,
+      callCount: bid.result.callCounts
+    }));
+
+    if (validBids.length === 0) {
+      return undefined;
+    }
+
+    const bestBid = validBids.reduce((best, current) => (current.callCount < best.callCount ? current : best));
+    return bestBid.strategy;
   }
 
   private getMostCallsStrategy(
     bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
   ): GenerationStrategyType | undefined {
-    const result = this.getStrategyByCallCount(bids, bid => bid.result.callCounts > 0);
-    return result ? result[0] : undefined;
-  }
-
-  private getStrategyByCallCount(
-    bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>,
-    predicate: (bid: PromptGenerationStrategyBid) => boolean
-  ): [GenerationStrategyType, PromptGenerationStrategyBid] | undefined {
-    // First, collect all bids that satisfy the predicate and have call count > 0
     const validBids = Array.from(bids.entries())
-      .filter(([_, bid]) => predicate(bid) && bid.result.callCounts > 0)
+      .filter(([_, bid]) => bid.result.callCounts > 0)
       .map(([strategy, bid]) => ({
         strategy,
         bid,
         callCount: bid.result.callCounts
       }));
 
-    // If no valid bids, return undefined
     if (validBids.length === 0) {
       return undefined;
     }
 
-    // Find the bid with the minimum call count
-    const bestBid = validBids.reduce((best, current) => (current.callCount < best.callCount ? current : best));
-
-    return [bestBid.strategy, bestBid.bid];
+    const bestBid = validBids.reduce((best, current) => (current.callCount > best.callCount ? current : best));
+    return bestBid.strategy;
   }
 }
