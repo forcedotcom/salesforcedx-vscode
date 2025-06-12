@@ -7,7 +7,8 @@
 
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { soqlBuilderToggle, soqlOpenNew } from './commands';
+import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
+import { soqlOpenNew } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
@@ -16,18 +17,21 @@ import { telemetryService } from './telemetry';
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<any> => {
   await telemetryService.initializeService(extensionContext);
+  channelService.appendLine(`SOQL Extension Initializing in mode ${extensionContext.extensionMode}`);
   const activationTracker = new ActivationTracker(extensionContext, telemetryService);
 
   extensionContext.subscriptions.push(SOQLEditorProvider.register(extensionContext));
   QueryDataViewService.register(extensionContext);
   await workspaceContext.initialize(extensionContext);
 
-  extensionContext.subscriptions.push(vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew));
-  extensionContext.subscriptions.push(vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle));
+  extensionContext.subscriptions.push(
+    vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew),
+    vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle)
+  );
 
   await startLanguageClient(extensionContext);
   void activationTracker.markActivationStop();
-  console.log('SOQL Extension Activated');
+  channelService.appendLine('SOQL Extension Activated');
   return { workspaceContext, channelService };
 };
 
