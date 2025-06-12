@@ -54,7 +54,6 @@ const pinoSupport = [
     }
   })
 ];
-import { SOQL_BUILDER_UI_PATH } from './src/constants';
 
 await build({
   ...commonConfig,
@@ -64,7 +63,7 @@ await build({
   plugins: [
     copy({
       assets: {
-        from: [`../../node_modules/@salesforce/${SOQL_BUILDER_UI_PATH}/**`],
+        from: [`../../node_modules/@salesforce/soql-builder-ui/dist/**`],
         to: ['./soql-builder-ui']
       }
     }),
