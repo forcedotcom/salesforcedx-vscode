@@ -109,6 +109,8 @@ export const messages = {
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
   merge: 'Manually merge with existing ESR',
   method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
+  mixed_frameworks_not_allowed:
+    'The Apex Class %s mixes Apex Rest and AuraEnabled frameworks, which is not allowed for OpenAPI document generation.',
   no_eligible_method: 'No eligible methods found in the class',
   no_folder_selected: 'Operation canceled: No folder selected.',
   no_oas_doc_in_file: 'No OAS doc detected in the file',

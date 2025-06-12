@@ -6,7 +6,7 @@
  */
 
 import { ApexOASClassDetail, ApexOASMethodDetail, ApexClassOASGatherContextResponse } from '../../../src/oas/schemas';
-import { hasValidRestAnnotations, hasAuraEnabledMethods } from '../../../src/oasUtils';
+import { hasValidRestAnnotations, hasAuraFrameworkCapability } from '../../../src/oasUtils';
 
 describe('hasValidRestAnnotations', () => {
   it('should return true when class has RestResource annotation and methods have HTTP REST annotations', () => {
@@ -306,7 +306,7 @@ describe('hasAuraEnabledMethods', () => {
       ]
     };
 
-    const result = hasAuraEnabledMethods(context as ApexClassOASGatherContextResponse);
+    const result = hasAuraFrameworkCapability(context as ApexClassOASGatherContextResponse);
     expect(result).toBe(true);
   });
 
@@ -344,7 +344,7 @@ describe('hasAuraEnabledMethods', () => {
       ]
     };
 
-    const result = hasAuraEnabledMethods(context as ApexClassOASGatherContextResponse);
+    const result = hasAuraFrameworkCapability(context as ApexClassOASGatherContextResponse);
     expect(result).toBe(false);
   });
 
@@ -377,7 +377,7 @@ describe('hasAuraEnabledMethods', () => {
       ]
     };
 
-    const result = hasAuraEnabledMethods(context as ApexClassOASGatherContextResponse);
+    const result = hasAuraFrameworkCapability(context as ApexClassOASGatherContextResponse);
     expect(result).toBe(false);
   });
 
@@ -423,7 +423,7 @@ describe('hasAuraEnabledMethods', () => {
       ]
     };
 
-    const result = hasAuraEnabledMethods(context as ApexClassOASGatherContextResponse);
+    const result = hasAuraFrameworkCapability(context as ApexClassOASGatherContextResponse);
     expect(result).toBe(true);
   });
 
@@ -442,7 +442,7 @@ describe('hasAuraEnabledMethods', () => {
       methods: []
     };
 
-    const result = hasAuraEnabledMethods(context as ApexClassOASGatherContextResponse);
+    const result = hasAuraFrameworkCapability(context as ApexClassOASGatherContextResponse);
     expect(result).toBe(false);
   });
 });

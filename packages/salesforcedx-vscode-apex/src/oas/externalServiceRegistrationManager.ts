@@ -20,7 +20,7 @@ import {
   createProblemTabEntriesForOasDocument,
   getCurrentTimestamp,
   hasValidRestAnnotations,
-  hasAuraEnabledMethods
+  hasAuraFrameworkCapability
 } from '../oasUtils';
 import { ProcessorInputOutput } from './documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './generationInteractionLogger';
@@ -73,7 +73,7 @@ export class ExternalServiceRegistrationManager {
     }
 
     // AuraEnabled: no class annotation AND at least one AuraEnabled method annotation
-    if (hasAuraEnabledMethods(context)) {
+    if (hasAuraFrameworkCapability(context)) {
       return 'AuraEnabled';
     }
 

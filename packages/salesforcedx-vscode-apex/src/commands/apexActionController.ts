@@ -18,7 +18,7 @@ import {
   BID_RULES
 } from '../oas/promptGenerationOrchestrator';
 import { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
-import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics } from '../oasUtils';
+import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics, hasMixedFrameworks } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 
@@ -92,6 +92,12 @@ export class ApexActionController {
           context = await this.metadataOrchestrator.gatherContext(sourceUri);
           if (!context) {
             throw new Error(nls.localize('cannot_gather_context'));
+          }
+
+          // Step 2.5: Check for mixed frameworks (Apex Rest + AuraEnabled)
+          if (hasMixedFrameworks(context)) {
+            const className = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
+            throw new Error(nls.localize('mixed_frameworks_not_allowed', className));
           }
 
           // Step 3: Initialize the strategy orchestrator

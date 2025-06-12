@@ -259,36 +259,67 @@ export const getCurrentTimestamp = (): string => {
 };
 
 /**
- * Checks if a class has valid REST annotations.
- * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
- * @returns {boolean} - True if the class has valid REST annotations.
+ * Checks if a class has RestResource annotation.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
+ * @returns {boolean} - True if the class has RestResource annotation.
  */
-export const hasValidRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
+export const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean => {
   const validClassAnnotations = retrieveAAClassRestAnnotations();
+  return context.classDetail.annotations.some(a => validClassAnnotations.includes(a.name));
+};
+
+/**
+ * Checks if any method has HTTP REST annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
+ * @returns {boolean} - True if any method has HTTP REST annotations.
+ */
+export const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
   const validMethodAnnotations = retrieveAAMethodRestAnnotations();
-
-  // Check for class-level RestResource annotation
-  const hasRestResourceAnnotation = context.classDetail.annotations.some(a => validClassAnnotations.includes(a.name));
-
-  if (!hasRestResourceAnnotation) {
-    return false;
-  }
-
-  // Check for at least one method with HTTP REST annotation
   return context.methods.some(method =>
     method.annotations.some(annotation => validMethodAnnotations.includes(annotation.name))
   );
 };
 
 /**
+ * Checks if a class has valid REST annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class has valid REST annotations.
+ */
+export const hasValidRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
+  // Check for class-level RestResource annotation
+  if (!hasRestResourceAnnotation(context)) {
+    return false;
+  }
+
+  // Check for at least one method with HTTP REST annotation
+  return hasHttpRestAnnotations(context);
+};
+
+/**
+ * Checks if a class has no annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
+ * @returns {boolean} - True if the class has no annotations.
+ */
+export const hasNoClassAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.classDetail.annotations.length === 0;
+
+/**
+ * Checks if any method has AuraEnabled annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
+ * @returns {boolean} - True if any method has AuraEnabled annotation.
+ */
+export const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.methods.some(method => method.annotations.some(annotation => annotation.name === 'AuraEnabled'));
+
+/**
  * Checks if any method has AuraEnabled annotations and the class has no annotations.
  * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
  * @returns {boolean} - True if the class has no annotations and any method has AuraEnabled annotation.
  */
-export const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): boolean =>
+export const hasAuraFrameworkCapability = (context: ApexClassOASGatherContextResponse): boolean =>
   // Check for no class annotations AND at least one method with AuraEnabled annotation
-  context.classDetail.annotations.length === 0 &&
-  context.methods.some(method => method.annotations.some(annotation => annotation.name === 'AuraEnabled'));
+  hasNoClassAnnotations(context) && hasAuraEnabledMethods(context);
+
 /**
  * Validates if a registration provider type is one of the allowed values.
  * @param {string | undefined} providerType - The provider type to validate.
@@ -297,4 +328,18 @@ export const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse
 export const isValidRegistrationProviderType = (providerType: string | undefined): boolean => {
   const validProviderTypes = ['Custom', 'ApexRest', 'AuraEnabled'];
   return providerType !== undefined && validProviderTypes.includes(providerType);
+};
+
+/**
+ * Checks if a class mixes Apex Rest and AuraEnabled frameworks (which is invalid).
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class mixes both frameworks (invalid case).
+ */
+export const hasMixedFrameworks = (context: ApexClassOASGatherContextResponse): boolean => {
+  const hasRestResource = hasRestResourceAnnotation(context);
+  const hasHttpAnnotations = hasHttpRestAnnotations(context);
+  const hasAuraMethods = hasAuraEnabledMethods(context);
+
+  // Invalid case: (RestResource OR Http annotations) AND AuraEnabled methods
+  return (hasRestResource || hasHttpAnnotations) && hasAuraMethods;
 };
