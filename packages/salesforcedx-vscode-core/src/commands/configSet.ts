@@ -10,8 +10,10 @@ import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   Row,
-  Table
+  Table,
+  TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   CONFIG_SET_EXECUTOR,
@@ -19,8 +21,11 @@ import {
   TABLE_NAME_COL,
   TABLE_SUCCESS_COL,
   TABLE_VAL_COL,
-  TARGET_ORG_KEY
+  TARGET_ORG_KEY,
+  TRACE_FLAG_EXPIRATION_KEY
 } from '../constants';
+import { WorkspaceContext } from '../context';
+import { disposeTraceFlagExpiration, showTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
 import { SfCommandlet, SfWorkspaceChecker } from './util';
 
@@ -28,10 +33,12 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
   protected showChannelOutput = false;
   private outputTableRow: Row = {};
+  private extensionContext: vscode.ExtensionContext;
 
-  constructor(usernameOrAlias: string) {
+  constructor(usernameOrAlias: string, extensionContext: vscode.ExtensionContext) {
     super(nls.localize(CONFIG_SET_EXECUTOR), CONFIG_SET_EXECUTOR, OUTPUT_CHANNEL);
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
+    this.extensionContext = extensionContext;
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
@@ -55,6 +62,36 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       channelService.appendLine(`Error: ${message}`);
       channelService.showChannelOutput();
     }
+
+    // Change the status bar message to reflect the trace flag expiration date for the new target org
+
+    // If there is a non-expired TraceFlag for the current user, update the status bar message
+    const oldTraceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+    await oldTraceFlags.getUserIdOrThrow(); // This line switches the connection to the new target org
+    const newTraceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection()); // Get the new connection after switching
+    const newUserId = await newTraceFlags.getUserIdOrThrow();
+    const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
+    if (!myTraceFlag) {
+      disposeTraceFlagExpiration();
+      return result;
+    }
+
+    const currentTime = new Date();
+    if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
+      this.extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, myTraceFlag.ExpirationDate);
+    } else {
+      this.extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+    }
+
+    // Delete expired TraceFlags for the current user
+    await newTraceFlags.deleteExpiredTraceFlags(newUserId);
+
+    // Apex Replay Debugger Expiration Status Bar Entry
+    const expirationDate = this.extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
+    if (expirationDate) {
+      showTraceFlagExpiration(new Date(expirationDate));
+    }
+
     return result;
   }
 
@@ -77,7 +114,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export const configSet = async (usernameOrAlias: string): Promise<void> => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ConfigSetExecutor(usernameOrAlias));
+export const configSet = async (usernameOrAlias: string, extensionContext: vscode.ExtensionContext): Promise<void> => {
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ConfigSetExecutor(usernameOrAlias, extensionContext));
   await commandlet.run();
 };

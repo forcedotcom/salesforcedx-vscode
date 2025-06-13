@@ -227,7 +227,9 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
-  const configSetCmd = vscode.commands.registerCommand('sf.config.set', configSet);
+  const configSetCmd = vscode.commands.registerCommand('sf.config.set', (usernameOrAlias: string) =>
+    configSet(usernameOrAlias, extensionContext)
+  );
 
   const diffFile = vscode.commands.registerCommand('sf.diff', sourceDiff);
 
