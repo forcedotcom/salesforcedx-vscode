@@ -7,7 +7,8 @@
 
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
-import { ApexClassOASEligibleResponse } from '../schemas';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
+import { BetaInfoInjectionStep } from './betaInfoInjectionStep';
 import { MethodValidationStep } from './methodValidationStep';
 import { OasReorderStep } from './oasReorderStep';
 import { OasValidationStep } from './oasValidationStep';
@@ -16,19 +17,27 @@ import { ProcessorInputOutput } from './processorStep';
 import { PropertyCorrectionStep } from './propertyCorrectionStep';
 import { ReconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
+export type ProcessOasDocumentOptions = {
+  context?: ApexClassOASGatherContextResponse;
+  eligibleResult?: ApexClassOASEligibleResponse;
+  isRevalidation?: boolean;
+  betaInfo?: string;
+};
+
 export class OasProcessor {
   private document: OpenAPIV3.Document;
-  private eligibilityResult?: ApexClassOASEligibleResponse;
+  private options?: ProcessOasDocumentOptions;
   static diagnosticCollection: vscode.DiagnosticCollection =
     vscode.languages.createDiagnosticCollection('OAS Validations');
-  constructor(document: OpenAPIV3.Document, eligibilityResult?: ApexClassOASEligibleResponse) {
+  constructor(document: OpenAPIV3.Document, options?: ProcessOasDocumentOptions) {
     this.document = document;
-    this.eligibilityResult = eligibilityResult;
+    this.options = options;
   }
 
-  async process(doCorrections = false): Promise<ProcessorInputOutput> {
-    const pipeline = doCorrections
+  async process(): Promise<ProcessorInputOutput> {
+    const pipeline = !this.options?.isRevalidation
       ? new Pipeline(new PropertyCorrectionStep())
+          .addStep(new BetaInfoInjectionStep(this.options?.betaInfo))
           .addStep(new ReconcileDuplicateSemanticPathsStep())
           .addStep(new MethodValidationStep())
           .addStep(new OasValidationStep())
@@ -43,7 +52,8 @@ export class OasProcessor {
     const output = await pipeline.execute({
       openAPIDoc: this.document,
       errors: [],
-      eligibilityResult: this.eligibilityResult
+      eligibilityResult: this.options?.eligibleResult,
+      context: this.options?.context
     });
     console.log('Pipeline output:', output);
     return output;

@@ -112,6 +112,8 @@ export const messages = {
     'Launch Apex Replay Debugger with Selected File',
   merge: 'Manually merge with existing ESR',
   method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
+  mixed_frameworks_not_allowed:
+    'The Apex Class %s mixes Apex Rest and AuraEnabled frameworks, which is not allowed for OpenAPI document generation.',
   no_eligible_method: 'No eligible methods found in the class',
   no_folder_selected: 'Operation canceled: No folder selected.',
   no_oas_doc_in_file: 'No OAS doc detected in the file',
@@ -160,6 +162,7 @@ export const messages = {
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unknown: 'Unknown',
   unknown_error: 'Unknown error',
+  unknown_bid_rule: 'Unknown bid rule "%s"',
   validate_eligibility: 'Validating eligibility.',
   validation_failed: 'Failed to validate eligibility.',
   write_openapi_document: 'Writing OpenAPI Document.',

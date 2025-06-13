@@ -11,7 +11,12 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { checkIfESRIsDecomposed, createProblemTabEntriesForOasDocument, processOasDocumentFromYaml } from '../oasUtils';
+import {
+  checkIfESRIsDecomposed,
+  createProblemTabEntriesForOasDocument,
+  isValidRegistrationProviderType,
+  processOasDocumentFromYaml
+} from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 // This class runs the validation and correction logic on Oas Documents
 class OasDocumentChecker {
@@ -67,7 +72,11 @@ class OasDocumentChecker {
             openApiDocument = fs.readFileSync(fullPath, 'utf8');
           }
           // Step 3: Process the OAS document
-          const processedOasResult = await processOasDocumentFromYaml(openApiDocument, undefined, undefined, true);
+          const processedOasResult = await processOasDocumentFromYaml(openApiDocument, {
+            context: undefined,
+            eligibleResult: undefined,
+            isRevalidation: true
+          });
 
           // Step 4: Report/Refresh problems found
           createProblemTabEntriesForOasDocument(fullPath, processedOasResult, this.isESRDecomposed);
@@ -103,34 +112,34 @@ class OasDocumentChecker {
       return false;
     }
 
-    // if xml, check registrationProviderType to be ApexRest
-    if (fullPath.endsWith('.xml')) {
-      const xmlContent = fs.readFileSync(fullPath, 'utf8');
-      const parser = new XMLParser();
-      const jsonObj = parser.parse(xmlContent);
-      const registrationProviderType = jsonObj.ExternalServiceRegistration?.registrationProviderType;
-      if (registrationProviderType === 'Custom' || registrationProviderType === 'ApexRest') {
-        return true;
-      }
-    }
+    let xmlFilePath: string;
 
-    // if yaml, find the associated xml and look for registrationProviderType to be ApexRest
-    if (fullPath.endsWith('.yaml')) {
-      // check folder in which the file is present
+    if (fullPath.endsWith('.xml')) {
+      xmlFilePath = fullPath;
+    } else if (fullPath.endsWith('.yaml')) {
+      // find the associated xml file
       const className = path.basename(fullPath).split('.')[0];
       const dirName = path.dirname(fullPath);
-      const associatedXmlFileName = `${className}.externalServiceRegistration-meta.xml`;
+      xmlFilePath = path.join(dirName, `${className}.externalServiceRegistration-meta.xml`);
+    } else {
+      return false;
+    }
 
-      const xmlContent = fs.readFileSync(path.join(dirName, associatedXmlFileName), 'utf8');
+    return this.hasValidRegistrationProviderType(xmlFilePath);
+  };
+
+  private hasValidRegistrationProviderType = (xmlFilePath: string): boolean => {
+    try {
+      const xmlContent = fs.readFileSync(xmlFilePath, 'utf8');
       const parser = new XMLParser();
       const jsonObj = parser.parse(xmlContent);
       const registrationProviderType = jsonObj.ExternalServiceRegistration?.registrationProviderType;
-      if (registrationProviderType === 'Custom' || registrationProviderType === 'ApexRest') {
-        return true;
-      }
+      return isValidRegistrationProviderType(
+        typeof registrationProviderType === 'string' ? registrationProviderType : undefined
+      );
+    } catch (error) {
+      return false;
     }
-
-    return false;
   };
 }
 
