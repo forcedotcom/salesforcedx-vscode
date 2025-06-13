@@ -81,21 +81,21 @@ jobs:
             SF_CLI_VERSION=$(sf version)
 
             # Use shell-specific commands for OS check
-            case "${{ matrix.os }}" in
-              "windows-latest")
-                powershell -Command "
-                  if ($env:SF_CLI_VERSION -match '@salesforce/cli/') {
-                    Write-Host '@salesforce/cli installed -' $env:SF_CLI_VERSION
-                  } else {
-                    Write-Error 'The @salesforce/cli installation could not be verified'
-                    exit 1
-                  }
-                  $env:THROTTLE_FACTOR=5
-                  Add-Content -Path $env:GITHUB_ENV -Value 'THROTTLE_FACTOR=5'
-                "
-                ;;
-              *)
-                bash -c '
+            bash -c '
+              case "${{ matrix.os }}" in
+                "windows-latest")
+                  powershell -Command "
+                    if ($env:SF_CLI_VERSION -match '\''@salesforce/cli/'\'') {
+                      Write-Host '\''@salesforce/cli installed -'\'' $env:SF_CLI_VERSION
+                    } else {
+                      Write-Error '\''The @salesforce/cli installation could not be verified'\''
+                      exit 1
+                    }
+                    $env:THROTTLE_FACTOR=5
+                    Add-Content -Path $env:GITHUB_ENV -Value '\''THROTTLE_FACTOR=5'\''
+                  "
+                  ;;
+                *)
                   if [ "$(echo $SF_CLI_VERSION | grep -c "@salesforce/cli/")" -gt 0 ]; then
                     echo "@salesforce/cli installed -" $SF_CLI_VERSION
                   else
@@ -103,9 +103,9 @@ jobs:
                     exit 1
                   fi
                   echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
-                '
-                ;;
-            esac
+                  ;;
+              esac
+            '
 
             # Compile packages
             npm run compile
