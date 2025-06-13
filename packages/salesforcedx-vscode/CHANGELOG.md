@@ -9,7 +9,7 @@
 
 #### salesforcedx-vscode-core
 
-- We made some changes under the hood. ([PR #6348](https://github.com/forcedotcom/salesforcedx-vscode/pull/6348))
+- The org browser can now handle the `ContentTypeBundle` metadata type. You can now deploy and retrieve this metadata type in the Org Browser. You no longer need to use CLI commands to handle this type. ([PR #6348](https://github.com/forcedotcom/salesforcedx-vscode/pull/6348))
 
 # 63.16.3 - June 6, 2025
 
