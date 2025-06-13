@@ -38,7 +38,7 @@ const CURRENT_DIR = process.cwd();
 let JORJE_DEV_DIR = '';
 let SFDC_KEYSTORE = '';
 let SFDC_KEYPASS = '';
-const JORJE_DEST_DIR = `${CURRENT_DIR}/packages/salesforcedx-vscode-apex/out`;
+const JORJE_DEST_DIR = `${CURRENT_DIR}/packages/salesforcedx-vscode-apex/jars`;
 const JORJE_DEST_PATH = `${JORJE_DEST_DIR}/apex-jorje-lsp.jar`;
 
 function verifyPaths() {
@@ -46,6 +46,10 @@ function verifyPaths() {
   JORJE_DEV_DIR = checkJorjeDirectory();
   if (needSigning === 'true') {
     ({ SFDC_KEYSTORE, SFDC_KEYPASS } = checkSigningAbility());
+  }
+  // Ensure the jars directory exists
+  if (!fs.existsSync(JORJE_DEST_DIR)) {
+    fs.mkdirSync(JORJE_DEST_DIR, { recursive: true });
   }
 }
 
