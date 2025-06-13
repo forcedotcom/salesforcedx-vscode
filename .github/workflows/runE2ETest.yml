@@ -57,10 +57,24 @@ jobs:
             cd salesforcedx-vscode
 
             # clean project
-            rm -rf ./extensions
+            case "${{ matrix.os }}" in
+              "windows-latest")
+                powershell -Command "Remove-Item -Path ./extensions -Recurse -Force -ErrorAction SilentlyContinue"
+                ;;
+              *)
+                rm -rf ./extensions
+                ;;
+            esac
 
             # clean e2e-temp
-            rm -rf ./e2e-temp
+            case "${{ matrix.os }}" in
+              "windows-latest")
+                powershell -Command "Remove-Item -Path ./e2e-temp -Recurse -Force -ErrorAction SilentlyContinue"
+                ;;
+              *)
+                rm -rf ./e2e-temp
+                ;;
+            esac
 
             # Download extension vsixes
             mkdir ./extensions
