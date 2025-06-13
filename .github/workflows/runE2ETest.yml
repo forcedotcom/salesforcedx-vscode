@@ -80,7 +80,7 @@ jobs:
             sf version
             SF_CLI_VERSION=$(sf version)
 
-            if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            if [ "${{ matrix.os }}" = "windows-latest" ]; then
               powershell -Command "if ($SF_CLI_VERSION -match '@salesforce/cli/') { Write-Host '@salesforce/cli installed -' $SF_CLI_VERSION } else { Write-Error 'The @salesforce/cli installation could not be verified'; exit 1 }"
             else
               if [ "$(echo $SF_CLI_VERSION | grep -c "@salesforce/cli/")" -gt 0 ]; then
@@ -92,7 +92,7 @@ jobs:
             fi
 
             # Set THROTTLE_FACTOR
-            if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            if [ "${{ matrix.os }}" = "windows-latest" ]; then
               echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
             else
               echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
