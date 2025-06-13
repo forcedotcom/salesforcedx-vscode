@@ -4,7 +4,8 @@
 
 #### salesforcedx-vscode-apex
 
-- We made some changes under the hood. ([PR #6351](https://github.com/forcedotcom/salesforcedx-vscode/pull/6351))
+- We fixed an issue so that the "Rename Symbol (F2)" function in Visual Studio Code now correctly renames symbols in an Apex file. Thank you [Pawel Wozniak](https://github.com/PawelWozniak) for creating the issue.
+ ([Issue #5613](https://github.com/forcedotcom/salesforcedx-vscode/issues/5613)) ([PR #6351](https://github.com/forcedotcom/salesforcedx-vscode/pull/6351))
 
 #### salesforcedx-vscode-core
 
