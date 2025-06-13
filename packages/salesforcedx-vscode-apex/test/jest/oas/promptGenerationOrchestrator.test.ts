@@ -41,14 +41,14 @@ describe('PromptGenerationOrchestrator', () => {
   });
 
   describe('getLeastCallsStrategy', () => {
-    it('should return strategy with minimum calls including zero', () => {
+    it('should return strategy with minimum calls excluding zero', () => {
       const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
         ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
       const result = orchestrator['getLeastCallsStrategy'](bids);
-      expect(result).toBe('AuraEnabled');
+      expect(result).toBe('ApexRest');
     });
 
     it('should return first strategy when multiple have same minimum calls', () => {
@@ -107,14 +107,14 @@ describe('PromptGenerationOrchestrator', () => {
   });
 
   describe('applyRule', () => {
-    it('should apply LEAST_CALLS rule correctly', () => {
+    it('should apply LEAST_CALLS rule correctly excluding zero calls', () => {
       const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
         ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
       const result = orchestrator['applyRule'](BID_RULES.LEAST_CALLS, bids);
-      expect(result).toBe('AuraEnabled');
+      expect(result).toBe('ApexRest');
     });
 
     it('should apply MOST_CALLS rule correctly', () => {

@@ -109,7 +109,9 @@ export class PromptGenerationOrchestrator {
       return undefined;
     }
 
-    const bestBid = validBids.reduce((best, current) => (current.callCount < best.callCount ? current : best));
+    const bestBid = validBids
+      .filter(bid => bid.callCount > 0)
+      .reduce((best, current) => (current.callCount < best.callCount ? current : best));
     return bestBid.strategy;
   }
 
@@ -128,7 +130,9 @@ export class PromptGenerationOrchestrator {
       return undefined;
     }
 
-    const bestBid = validBids.reduce((best, current) => (current.callCount > best.callCount ? current : best));
+    const bestBid = validBids
+      .filter(bid => bid.callCount > 0)
+      .reduce((best, current) => (current.callCount > best.callCount ? current : best));
     return bestBid.strategy;
   }
 }
