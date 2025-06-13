@@ -1,3 +1,15 @@
+# 64.0.1 - June 15, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Update jar with rename symbol ficx ([PR #6351](https://github.com/forcedotcom/salesforcedx-vscode/pull/6351))
+
+#### salesforcedx-vscode-core
+
+- [W-17522423]  retrieve ContentTypeBundle in org browser ([PR #6348](https://github.com/forcedotcom/salesforcedx-vscode/pull/6348))
+
 # 63.16.3 - June 6, 2025
 
 ## Fixed
