@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.0.1",
+  "version": "64.0.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,8 +24,8 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "64.0.1",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.0.1",
+    "@salesforce/salesforcedx-visualforce-language-server": "64.0.2",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.0.2",
     "vscode-extension-telemetry": "^0.0.17",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
