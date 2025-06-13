@@ -48,21 +48,17 @@
     "@salesforce/core": "^8.12.0",
     "@salesforce/salesforcedx-utils": "64.0.0",
     "@salesforce/ts-types": "2.0.12",
-    "@types/debounce": "^1.2.0",
     "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
-    "@types/vscode": "^1.90.0",
-    "applicationinsights": "1.0.7",
     "cross-env": "5.2.0",
     "esbuild": "0.25.4",
-    "esbuild-plugin-pino": "^2.2.2",
-    "typescript": "^5.6.2"
+    "esbuild-plugin-pino": "^2.2.2"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.js",
+    "bundle:extension": "node ./esbuild.config.mjs",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
@@ -73,65 +69,11 @@
     "test:unit": "jest --coverage",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
-  "main": "out/src",
-  "serverPath": [
-    "..",
-    "..",
-    "node_modules",
-    "@salesforce",
-    "soql-language-server",
-    "lib",
-    "server.js"
-  ],
-  "soqlBuilderWebAssetsPath": [
-    "..",
-    "..",
-    "node_modules",
-    "@salesforce",
-    "soql-builder-ui"
-  ],
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "grammars",
-      "images",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "serverPath": [
-        "node_modules",
-        "@salesforce",
-        "soql-language-server",
-        "lib",
-        "server.js"
-      ],
-      "soqlBuilderWebAssetsPath": [
-        "node_modules",
-        "@salesforce",
-        "soql-builder-ui"
-      ],
-      "dependencies": {
-        "applicationinsights": "1.0.7",
-        "@salesforce/soql-builder-ui": "1.0.0",
-        "@salesforce/soql-data-view": "0.1.0",
-        "@salesforce/soql-language-server": "0.7.1",
-        "@salesforce/soql-model": "1.0.0"
-      },
-      "devDependencies": {}
-    }
-  },
+  "main": "dist/index.js",
   "contributes": {
     "customEditors": [
       {

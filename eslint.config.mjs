@@ -18,6 +18,12 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
+import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
+
+const localRules = {
+  'no-duplicate-i18n-values': noDuplicateI18nValues
+};
+
 export default [
   {
     ignores: [
@@ -46,7 +52,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        projectService: true,
         sourceType: 'module',
         ecmaVersion: 2020,
         globals: {
@@ -62,9 +68,11 @@ export default [
       'jest-formatting': eslintPluginJestFormatting,
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
-      unicorn: eslintPluginUnicorn
+      unicorn: eslintPluginUnicorn,
+      local: { rules: localRules }
     },
     rules: {
+      'local/no-duplicate-i18n-values': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/filename-case': [
         'error',
@@ -122,7 +130,7 @@ export default [
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/prefer-for-of': 'warn',
-      '@typescript-eslint/unbound-method': 'warn',
+      '@typescript-eslint/unbound-method': ['warn', { ignoreStatic: true }],
       'prefer-arrow/prefer-arrow-functions': ['error', {}],
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/dot-notation': 'off',

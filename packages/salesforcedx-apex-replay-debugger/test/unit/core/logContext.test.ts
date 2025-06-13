@@ -5,8 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
@@ -87,17 +95,17 @@ describe('LogContext', () => {
   it('Should return array of log lines', () => {
     const logLines = context.getLogLines();
 
-    expect(logLines.length).to.equal(3);
-    expect(logLines[1]).to.equal('line1');
-    expect(logLines[2]).to.equal('line2');
+    expect(logLines.length).toBe(3);
+    expect(logLines[1]).toBe('line1');
+    expect(logLines[2]).toBe('line2');
   });
 
   it('Should return log size', () => {
-    expect(context.getLogSize()).to.equal(123);
+    expect(context.getLogSize()).toBe(123);
   });
 
   it('Should have log lines', () => {
-    expect(context.hasLogLines()).to.be.true;
+    expect(context.hasLogLines()).toBe(true);
   });
 
   it('Should not have log lines', () => {
@@ -105,11 +113,11 @@ describe('LogContext', () => {
     readLogFileStub = sinon.stub(LogContextUtil.prototype, 'readLogFile').returns([]);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
-    expect(context.hasLogLines()).to.be.false;
+    expect(context.hasLogLines()).toBe(false);
   });
 
   it('Should detect log level requirements', () => {
-    expect(context.meetsLogLevelRequirements()).to.be.true;
+    expect(context.meetsLogLevelRequirements()).toBe(true);
 
     readLogFileStub.restore();
     readLogFileStub = sinon
@@ -117,29 +125,29 @@ describe('LogContext', () => {
       .returns(['43.0 APEX_CODE,DEBUG;...;VISUALFORCE,DEBUG;..', 'line1', 'line2']);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
-    expect(context.meetsLogLevelRequirements()).to.be.false;
+    expect(context.meetsLogLevelRequirements()).toBe(false);
   });
 
   it('Should return log file name', () => {
-    expect(context.getLogFileName()).to.equal('foo.log');
+    expect(context.getLogFileName()).toBe('foo.log');
   });
 
   it('Should return log file path', () => {
-    expect(context.getLogFilePath()).to.equal('/path/foo.log');
+    expect(context.getLogFilePath()).toBe('/path/foo.log');
   });
 
   it('Should have starting log line position', () => {
-    expect(context.getLogLinePosition()).to.equal(-1);
+    expect(context.getLogLinePosition()).toBe(-1);
   });
 
   it('Should start with empty array of stackframes', () => {
-    expect(context.getFrames()).to.be.empty;
-    expect(context.getNumOfFrames()).to.equal(0);
-    expect(context.getTopFrame()).to.be.undefined;
+    expect(context.getFrames()).toHaveLength(0);
+    expect(context.getNumOfFrames()).toBe(0);
+    expect(context.getTopFrame()).toBeUndefined();
   });
 
   it('Should start with no state', () => {
-    expect(context.hasState()).to.be.false;
+    expect(context.hasState()).toBe(false);
   });
 
   it('Should handle undefined log event', () => {
@@ -147,7 +155,7 @@ describe('LogContext', () => {
 
     context.updateFrames();
 
-    expect(context.getLogLinePosition()).to.equal(3);
+    expect(context.getLogLinePosition()).toBe(3);
   });
 
   it('Should continue handling until the end of log file', () => {
@@ -156,8 +164,8 @@ describe('LogContext', () => {
 
     context.updateFrames();
 
-    expect(context.getLogLinePosition()).to.equal(3);
-    expect(context.hasState()).to.be.true;
+    expect(context.getLogLinePosition()).toBe(3);
+    expect(context.hasState()).toBe(true);
   });
 
   it('Should pause parsing the log', () => {
@@ -173,10 +181,10 @@ describe('LogContext', () => {
 
     context.updateFrames();
 
-    expect(context.getLogLinePosition()).to.equal(1);
-    expect(context.hasState()).to.be.true;
-    expect(context.getFrames()).to.be.empty;
-    expect(printToDebugConsoleStub.calledTwice).to.be.true;
+    expect(context.getLogLinePosition()).toBe(1);
+    expect(context.hasState()).toBe(true);
+    expect(context.getFrames()).toHaveLength(0);
+    expect(printToDebugConsoleStub.callCount).toBe(2);
   });
 
   it('Should revert state if there is a heapdump', () => {
@@ -185,7 +193,7 @@ describe('LogContext', () => {
 
     context.updateFrames();
 
-    expect(revertStateAfterHeapDumpSpy.calledOnce).to.be.true;
+    expect(revertStateAfterHeapDumpSpy.callCount).toBe(1);
   });
 
   it('Should not revert state if there is no heapdump', () => {
@@ -194,7 +202,7 @@ describe('LogContext', () => {
 
     context.updateFrames();
 
-    expect(revertStateAfterHeapDumpSpy.called).to.be.false;
+    expect(revertStateAfterHeapDumpSpy.callCount).toBe(0);
   });
 
   it('Should detect and parse HEAP_DUMP log entries', () => {
@@ -207,18 +215,18 @@ describe('LogContext', () => {
         '<TimeInfo>|HEAP_DUMP|[22]|<HeapDumpId2>|<ClassName2>|<Namespace2>|22'
       ]);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
-    expect(context.scanLogForHeapDumpLines()).to.be.true;
-    expect(context.hasHeapDump()).to.be.true;
+    expect(context.scanLogForHeapDumpLines()).toBe(true);
+    expect(context.hasHeapDump()).toBe(true);
     const apexHeapDumps = context.getHeapDumps();
-    expect(apexHeapDumps.length).to.equal(2);
-    expect(apexHeapDumps[0].getHeapDumpId()).to.equal('<HeapDumpId1>');
-    expect(apexHeapDumps[1].getHeapDumpId()).to.equal('<HeapDumpId2>');
-    expect(apexHeapDumps[0].getClassName()).to.equal('<ClassName1>');
-    expect(apexHeapDumps[1].getClassName()).to.equal('<ClassName2>');
-    expect(apexHeapDumps[0].getNamespace()).to.equal('<Namespace1>');
-    expect(apexHeapDumps[1].getNamespace()).to.equal('<Namespace2>');
-    expect(apexHeapDumps[0].getLine()).to.equal(11);
-    expect(apexHeapDumps[1].getLine()).to.equal(22);
+    expect(apexHeapDumps.length).toBe(2);
+    expect(apexHeapDumps[0].getHeapDumpId()).toBe('<HeapDumpId1>');
+    expect(apexHeapDumps[1].getHeapDumpId()).toBe('<HeapDumpId2>');
+    expect(apexHeapDumps[0].getClassName()).toBe('<ClassName1>');
+    expect(apexHeapDumps[1].getClassName()).toBe('<ClassName2>');
+    expect(apexHeapDumps[0].getNamespace()).toBe('<Namespace1>');
+    expect(apexHeapDumps[1].getNamespace()).toBe('<Namespace2>');
+    expect(apexHeapDumps[0].getLine()).toBe(11);
+    expect(apexHeapDumps[1].getLine()).toBe(22);
   });
 
   it('Should not find heapdump with incorrect line', () => {
@@ -232,9 +240,9 @@ describe('LogContext', () => {
 
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
-    expect(context.scanLogForHeapDumpLines()).to.be.true;
+    expect(context.scanLogForHeapDumpLines()).toBe(true);
     const heapdump = context.getHeapDumpForThisLocation('ClassName1', 22);
-    expect(heapdump).to.be.undefined;
+    expect(heapdump).toBeUndefined();
   });
 
   it('Should not find heapdump with incorrect class name', () => {
@@ -248,9 +256,9 @@ describe('LogContext', () => {
 
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
-    expect(context.scanLogForHeapDumpLines()).to.be.true;
+    expect(context.scanLogForHeapDumpLines()).toBe(true);
     const heapdump = context.getHeapDumpForThisLocation('ClassName2', 11);
-    expect(heapdump).to.be.undefined;
+    expect(heapdump).toBeUndefined();
   });
 
   it('Should have heapdump for top frame', () => {
@@ -270,8 +278,8 @@ describe('LogContext', () => {
     context.setState(new LogEntryState());
     context.parseLogEvent(`<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`);
 
-    expect(context.scanLogForHeapDumpLines()).to.be.true;
-    expect(context.hasHeapDumpForTopFrame()).to.equal('<HeapDumpId1>');
+    expect(context.scanLogForHeapDumpLines()).toBe(true);
+    expect(context.hasHeapDumpForTopFrame()).toBe('<HeapDumpId1>');
   });
 
   it('Should not have heapdump for top frame', () => {
@@ -291,8 +299,8 @@ describe('LogContext', () => {
     context.setState(new LogEntryState());
     context.parseLogEvent(`<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`);
 
-    expect(context.scanLogForHeapDumpLines()).to.be.true;
-    expect(context.hasHeapDumpForTopFrame()).to.be.undefined;
+    expect(context.scanLogForHeapDumpLines()).toBe(true);
+    expect(context.hasHeapDumpForTopFrame()).toBeUndefined();
   });
 
   describe('Log event parser', () => {
@@ -301,90 +309,90 @@ describe('LogContext', () => {
     });
 
     it('Should detect LogEntry as the first state', () => {
-      expect(context.parseLogEvent('')).to.be.an.instanceof(LogEntryState);
+      expect(context.parseLogEvent('')).toBeInstanceOf(LogEntryState);
     });
 
     it('Should detect NoOp with empty log line', () => {
       context.setState(new LogEntryState());
-      expect(context.parseLogEvent('')).to.be.an.instanceof(NoOpState);
+      expect(context.parseLogEvent('')).toBeInstanceOf(NoOpState);
     });
 
     it('Should detect NoOp with unexpected number of fields', () => {
       context.setState(new LogEntryState());
-      expect(context.parseLogEvent('timestamp|foo')).to.be.an.instanceof(NoOpState);
+      expect(context.parseLogEvent('timestamp|foo')).toBeInstanceOf(NoOpState);
     });
 
     it('Should detect NoOp with unknown event', () => {
       context.setState(new LogEntryState());
-      expect(context.parseLogEvent('timestamp|foo|bar')).to.be.an.instanceof(NoOpState);
+      expect(context.parseLogEvent('timestamp|foo|bar')).toBeInstanceOf(NoOpState);
     });
 
     it('Should detect execute anonymous script line', () => {
       context.setState(new LogEntryState());
       context.parseLogEvent(`${EVENT_EXECUTE_ANONYMOUS}: foo`);
 
-      expect(context.getExecAnonScriptMapping().size).to.equal(1);
-      expect(context.getExecAnonScriptMapping().get(1)).to.equal(0);
+      expect(context.getExecAnonScriptMapping().size).toBe(1);
+      expect(context.getExecAnonScriptMapping().get(1)).toBe(0);
     });
 
     it('Should detect FrameEntry with CODE_UNIT_STARTED', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_CODE_UNIT_STARTED}|`)).to.be.an.instanceof(FrameEntryState);
+      expect(context.parseLogEvent(`|${EVENT_CODE_UNIT_STARTED}|`)).toBeInstanceOf(FrameEntryState);
     });
 
     it('Should detect FrameEntry with CONSTRUCTOR_ENTRY', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_CONSTRUCTOR_ENTRY}|`)).to.be.an.instanceof(FrameEntryState);
+      expect(context.parseLogEvent(`|${EVENT_CONSTRUCTOR_ENTRY}|`)).toBeInstanceOf(FrameEntryState);
     });
 
     it('Should detect FrameEntry with METHOD_ENTRY', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_METHOD_ENTRY}|`)).to.be.an.instanceof(FrameEntryState);
+      expect(context.parseLogEvent(`|${EVENT_METHOD_ENTRY}|`)).toBeInstanceOf(FrameEntryState);
     });
 
     it('Should detect FrameEntry with VF_APEX_CALL_START', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_VF_APEX_CALL_START}|`)).to.be.an.instanceof(FrameEntryState);
+      expect(context.parseLogEvent(`|${EVENT_VF_APEX_CALL_START}|`)).toBeInstanceOf(FrameEntryState);
     });
 
     it('Should detect FrameExit with CODE_UNIT_FINISHED', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_CODE_UNIT_FINISHED}|`)).to.be.an.instanceof(FrameExitState);
+      expect(context.parseLogEvent(`|${EVENT_CODE_UNIT_FINISHED}|`)).toBeInstanceOf(FrameExitState);
     });
 
     it('Should detect FrameExit with CONSTRUCTOR_EXIT', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_CONSTRUCTOR_EXIT}|`)).to.be.an.instanceof(FrameExitState);
+      expect(context.parseLogEvent(`|${EVENT_CONSTRUCTOR_EXIT}|`)).toBeInstanceOf(FrameExitState);
     });
 
     it('Should detect FrameExit with METHOD_EXIT', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_METHOD_EXIT}|`)).to.be.an.instanceof(FrameExitState);
+      expect(context.parseLogEvent(`|${EVENT_METHOD_EXIT}|`)).toBeInstanceOf(FrameExitState);
     });
 
     it('Should detect FrameExit with VF_APEX_CALL_END', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_VF_APEX_CALL_END}|`)).to.be.an.instanceof(FrameExitState);
+      expect(context.parseLogEvent(`|${EVENT_VF_APEX_CALL_END}|`)).toBeInstanceOf(FrameExitState);
     });
 
     it('Should detect StatementExecute with STATEMENT_EXECUTE', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_STATEMENT_EXECUTE}|[1]`)).to.be.an.instanceof(StatementExecuteState);
+      expect(context.parseLogEvent(`|${EVENT_STATEMENT_EXECUTE}|[1]`)).toBeInstanceOf(StatementExecuteState);
     });
 
     it('Should detect UserDebug with USER_DEBUG', () => {
       context.setState(new LogEntryState());
 
-      expect(context.parseLogEvent(`|${EVENT_USER_DEBUG}|[1]|DEBUG|Hello`)).to.be.an.instanceof(UserDebugState);
+      expect(context.parseLogEvent(`|${EVENT_USER_DEBUG}|[1]|DEBUG|Hello`)).toBeInstanceOf(UserDebugState);
     });
   });
 
@@ -404,17 +412,19 @@ describe('LogContext', () => {
     });
 
     it('Should return debug log fs path for execute anonymous signature', () => {
-      expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).to.equal(context.getLogFilePath());
+      expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).toBe(context.getLogFilePath());
     });
 
     it('Should return URI for inner class', () => {
       expect(
         context.getUriFromSignature('namespace.Foo.Bar(namespace.Foo.Bar, String, Map<String,String>, List<String>)')
-      ).to.equal('/path/foo.cls');
+      ).toBe('/path/foo.cls');
     });
 
     it('Should return URI for trigger', () => {
-      expect(context.getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')).to.be.equal('/path/MyTrigger.trigger');
+      expect(context.getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')).toStrictEqual(
+        '/path/MyTrigger.trigger'
+      );
     });
   });
 });

@@ -94,3 +94,5 @@ export type LocalComponent = DirFileNameSelection & {
    */
   suffix?: string;
 };
+
+export { MessageArgs } from '@salesforce/salesforcedx-utils';

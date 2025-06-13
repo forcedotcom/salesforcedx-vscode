@@ -16,7 +16,7 @@ import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { nls } from '../../messages';
+import { coerceMessageKey, nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { RetrieveDescriber } from '../retrieveMetadata';
 
@@ -274,7 +274,7 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
 
   public async showMenu(options: string[], message: string): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize(message)
+      placeHolder: nls.localize(coerceMessageKey(message))
     } satisfies vscode.QuickPickOptions);
   }
 }

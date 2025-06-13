@@ -5,8 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { Source, StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
 import { EOL } from 'node:os';
 import * as sinon from 'sinon';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
@@ -43,9 +51,9 @@ describe('User debug event', () => {
   it('Should not print without any frames', () => {
     const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(context.getFrames()).to.be.empty;
-    expect(warnToDebugConsoleStub.called).to.be.false;
+    expect(state.handle(context)).toBe(false);
+    expect(context.getFrames()).toHaveLength(0);
+    expect(warnToDebugConsoleStub.called).toBe(false);
   });
 
   it('Should link to anonymous specific frame', () => {
@@ -57,9 +65,9 @@ describe('User debug event', () => {
     context.getExecAnonScriptMapping().set(2, 5);
     const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(warnToDebugConsoleStub.calledOnce).to.be.true;
-    expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([`Hello${EOL}foo${EOL}bar`, frame.source, 5]);
+    expect(state.handle(context)).toBe(false);
+    expect(warnToDebugConsoleStub.calledOnce).toBe(true);
+    expect(warnToDebugConsoleStub.getCall(0).args).toEqual([`Hello${EOL}foo${EOL}bar`, frame.source, 5]);
   });
 
   it('Should use line number in log line', () => {
@@ -70,8 +78,8 @@ describe('User debug event', () => {
     context.getFrames().push(frame);
     const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(warnToDebugConsoleStub.calledOnce).to.be.true;
-    expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([`Hello${EOL}foo${EOL}bar`, frame.source, 2]);
+    expect(state.handle(context)).toBe(false);
+    expect(warnToDebugConsoleStub.calledOnce).toBe(true);
+    expect(warnToDebugConsoleStub.getCall(0).args).toEqual([`Hello${EOL}foo${EOL}bar`, frame.source, 2]);
   });
 });

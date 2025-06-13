@@ -5,8 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
@@ -37,7 +45,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).to.be.false;
+      expect(state.handle(context)).toBe(false);
 
       // add begin states for a local and static variable
       let beginState = new VariableBeginState(STATIC_PRIMITIVE_VARIABLE_SCOPE_BEGIN.split('|'));
@@ -54,15 +62,15 @@ describe('Variable assignment event', () => {
     it('Should assign static variable for class', () => {
       const state = new VariableAssignmentState(STATIC_PRIMITIVE_VARIABLE_ASSIGNMENT.split('|'));
       // expect unassigned beforehand
-      expect(context.getStaticVariablesClassMap().get('signature')).to.have.key('staticInteger');
-      expect(context.getStaticVariablesClassMap().get('signature')!.get('staticInteger')).to.include({
+      expect(context.getStaticVariablesClassMap().get('signature')?.has('staticInteger')).toBe(true);
+      expect(context.getStaticVariablesClassMap().get('signature')?.get('staticInteger')).toMatchObject({
         name: 'staticInteger',
         value: 'null'
       });
       state.handle(context);
 
-      expect(context.getStaticVariablesClassMap().get('signature')).to.have.key('staticInteger');
-      expect(context.getStaticVariablesClassMap().get('signature')!.get('staticInteger')).to.include({
+      expect(context.getStaticVariablesClassMap().get('signature')?.has('staticInteger')).toBe(true);
+      expect(context.getStaticVariablesClassMap().get('signature')?.get('staticInteger')).toMatchObject({
         name: 'staticInteger',
         value: '5'
       });
@@ -72,14 +80,14 @@ describe('Variable assignment event', () => {
       const state = new VariableAssignmentState(LOCAL_PRIMITIVE_VARIABLE_ASSIGNMENT.split('|'));
       // locals of frame should one entry
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
-      expect(frameInfo.locals).to.have.key('localInteger');
-      expect(frameInfo.locals.get('localInteger')).to.include({
+      expect(frameInfo.locals.has('localInteger')).toBe(true);
+      expect(frameInfo.locals.get('localInteger')).toMatchObject({
         name: 'localInteger',
         value: 'null'
       });
       state.handle(context);
 
-      expect(frameInfo.locals.get('localInteger')).to.include({
+      expect(frameInfo.locals.get('localInteger')).toMatchObject({
         name: 'localInteger',
         value: '0'
       });
@@ -98,7 +106,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).to.be.false;
+      expect(state.handle(context)).toBe(false);
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(LOCAL_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
@@ -112,15 +120,15 @@ describe('Variable assignment event', () => {
     it('Should create a nested variable for an empty object', () => {
       const state = new VariableAssignmentState(LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
-      expect(frameInfo.locals).to.have.key('this');
+      expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['this']));
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
-      expect(container.variablesRef).to.equal(0);
-      expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('null');
+      expect(container.variablesRef).toBe(0);
+      expect(Array.from(container.variables.keys())).toHaveLength(0);
+      expect(container.value).toBe('null');
       state.handle(context);
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('');
+      expect(container.variablesRef).not.toBe(0);
+      expect(Array.from(container.variables.keys())).toHaveLength(0);
+      expect(container.value).toBe('');
     });
 
     it('Should update variable to a nested variable if assigning to inner value', () => {
@@ -130,20 +138,20 @@ describe('Variable assignment event', () => {
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       state = new VariableAssignmentState(LOCAL_NESTED_INNER_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
-      expect(container.value).to.equal('');
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.have.key('s');
+      expect(container.value).toBe('');
+      expect(container.variablesRef).not.toBe(0);
+      expect(container.variables.has('s')).toBe(true);
       const variables = container.getAllVariables();
-      expect(variables.length).to.equal(1);
-      expect(variables[0]).to.include({
+      expect(variables.length).toBe(1);
+      expect(variables[0]).toMatchObject({
         name: 's',
         value: "'MyObject.s'",
         evaluateName: "'MyObject.s'"
       });
       const innerContainer = container.variables.get('s') as ApexVariableContainer;
-      expect(innerContainer.value).to.equal("'MyObject.s'");
-      expect(innerContainer.variables).to.be.empty;
-      expect(innerContainer.variablesRef).to.equal(0);
+      expect(innerContainer.value).toBe("'MyObject.s'");
+      expect(Array.from(innerContainer.variables.keys())).toHaveLength(0);
+      expect(innerContainer.variablesRef).toBe(0);
     });
 
     it('Should update variable to a nested variable if json assignment', () => {
@@ -153,15 +161,15 @@ describe('Variable assignment event', () => {
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       state = new VariableAssignmentState(LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
-      expect(container.value).to.equal('');
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.have.keys(['a', 'b1', 'b2', 'd', 'm', 's']);
+      expect(container.value).toBe('');
+      expect(container.variablesRef).not.toBe(0);
+      expect(Array.from(container.variables.keys())).toEqual(expect.arrayContaining(['a', 'b1', 'b2', 'd', 'm', 's']));
       const VAR_VALUES = ["'0x37e2e22e'", 'BLOB(5 bytes)', 'BLOB(50 bytes)', '3.14', "'0xff6e2ff'", "'MyObject.s'"];
       ['a', 'b1', 'b2', 'd', 'm', 's'].forEach((element, index) => {
         const innerContainer = container.variables.get(element) as ApexVariableContainer;
-        expect(innerContainer.value).to.equal(`${VAR_VALUES[index]}`);
-        expect(innerContainer.variables).to.be.empty;
-        expect(innerContainer.variablesRef).to.equal(0);
+        expect(innerContainer.value).toBe(VAR_VALUES[index]);
+        expect(Array.from(innerContainer.variables.keys())).toHaveLength(0);
+        expect(innerContainer.variablesRef).toBe(0);
       });
     });
 
@@ -172,30 +180,30 @@ describe('Variable assignment event', () => {
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       state = new VariableAssignmentState(LOCAL_NESTED_JSON_INNER_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
-      expect(container.value).to.equal('');
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.have.key('a');
+      expect(container.value).toBe('');
+      expect(container.variablesRef).not.toBe(0);
+      expect(container.variables.has('a')).toBe(true);
       const innerContainer = container.variables.get('a') as ApexVariableContainer;
       const variables = innerContainer.getAllVariables();
-      expect(variables.length).to.equal(1);
-      expect(variables[0]).to.include({
+      expect(variables.length).toBe(1);
+      expect(variables[0]).toMatchObject({
         name: 'Name',
         value: "'MyObjectAccount'",
         evaluateName: "'MyObjectAccount'"
       });
-      expect(innerContainer.value).to.equal('');
-      expect(innerContainer.variables).to.have.key('Name');
-      expect(innerContainer.variablesRef).to.not.equal(0);
+      expect(innerContainer.value).toBe('');
+      expect(innerContainer.variables.has('Name')).toBe(true);
+      expect(innerContainer.variablesRef).not.toBe(0);
       const innerContainerVariable = innerContainer.variables.get('Name') as ApexVariableContainer;
-      expect(innerContainerVariable.value).to.equal("'MyObjectAccount'");
-      expect(innerContainerVariable.variablesRef).to.equal(0);
+      expect(innerContainerVariable.value).toBe("'MyObjectAccount'");
+      expect(innerContainerVariable.variablesRef).toBe(0);
     });
 
     it('Should not overwrite the this variable once assigned', () => {
       const state = new VariableAssignmentState(LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
-      expect(frameInfo.locals).to.include.keys('this');
+      expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['this']));
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       const originalVariablesRef = container.variablesRef;
       const originalRef = container.ref;
@@ -204,9 +212,9 @@ describe('Variable assignment event', () => {
         '09:43:08.67 (106051501)|VARIABLE_ASSIGNMENT|[EXTERNAL]|this|{"a1":"0x40dd809d","m2":"0x71c42b4c","s1":"MyObject.s2"}|0x1e2aeb71';
       const assign = new VariableAssignmentState(thisReassign.split('|'));
       assign.handle(context);
-      expect(container.variables).to.equal(originalVariables);
-      expect(container.ref).to.equal(originalRef);
-      expect(container.variablesRef).to.equal(originalVariablesRef);
+      expect(container.variables).toBe(originalVariables);
+      expect(container.ref).toBe(originalRef);
+      expect(container.variablesRef).toBe(originalVariablesRef);
     });
   });
 
@@ -231,7 +239,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).to.be.false;
+      expect(state.handle(context)).toBe(false);
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(STATIC_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
@@ -245,59 +253,59 @@ describe('Variable assignment event', () => {
     it('Should create a nested variable for an empty object', () => {
       const state = new VariableAssignmentState(STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       const staticMapping = context.getStaticVariablesClassMap();
-      expect(staticMapping).to.include.keys('NestedClass');
+      expect(Array.from(staticMapping.keys())).toEqual(expect.arrayContaining(['NestedClass']));
       const classMap = staticMapping.get('NestedClass') as Map<string, VariableContainer>;
-      expect(classMap).to.have.key('sa');
+      expect(classMap.has('sa')).toBe(true);
       const container = classMap.get('sa')! as ApexVariableContainer;
-      expect(container.variablesRef).to.equal(0);
-      expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('null');
+      expect(container.variablesRef).toBe(0);
+      expect(Array.from(container.variables.keys())).toHaveLength(0);
+      expect(container.value).toBe('null');
       state.handle(context);
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('');
+      expect(container.variablesRef).not.toBe(0);
+      expect(Array.from(container.variables.keys())).toHaveLength(0);
+      expect(container.value).toBe('');
     });
 
     it('Should update variable to a nested variable if json assignment', () => {
       let state = new VariableAssignmentState(STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap();
-      expect(staticMapping).to.include.keys('NestedClass');
+      expect(Array.from(staticMapping.keys())).toEqual(expect.arrayContaining(['NestedClass']));
       const classMap = staticMapping.get('NestedClass') as Map<string, VariableContainer>;
-      expect(classMap).to.have.key('sa');
+      expect(classMap.has('sa')).toBe(true);
       const container = classMap.get('sa')! as ApexVariableContainer;
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('');
+      expect(container.variablesRef).not.toBe(0);
+      expect(Array.from(container.variables.keys())).toHaveLength(0);
+      expect(container.value).toBe('');
 
       state = new VariableAssignmentState(STATIC_NESTED_JSON_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
-      expect(container.value).to.equal('');
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.have.key('Name');
+      expect(container.value).toBe('');
+      expect(container.variablesRef).not.toBe(0);
+      expect(container.variables.has('Name')).toBe(true);
       const innerContainer = container.variables.get('Name') as ApexVariableContainer;
-      expect(innerContainer.value).to.equal("'testName'");
+      expect(innerContainer.value).toBe("'testName'");
     });
 
     it('Should update variable if inner variable assigned', () => {
       let state = new VariableAssignmentState(STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap();
-      expect(staticMapping).to.include.keys('NestedClass');
+      expect(Array.from(staticMapping.keys())).toEqual(expect.arrayContaining(['NestedClass']));
       const classMap = staticMapping.get('NestedClass') as Map<string, VariableContainer>;
-      expect(classMap).to.have.key('sa');
+      expect(classMap.has('sa')).toBe(true);
       const container = classMap.get('sa')! as ApexVariableContainer;
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('');
+      expect(container.variablesRef).not.toBe(0);
+      expect(Array.from(container.variables.keys())).toHaveLength(0);
+      expect(container.value).toBe('');
 
       state = new VariableAssignmentState(STATIC_NESTED_INNER_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
-      expect(container.variablesRef).to.not.equal(0);
-      expect(container.value).to.equal('');
-      expect(container.variables).to.have.key('Name');
+      expect(container.variablesRef).not.toBe(0);
+      expect(container.value).toBe('');
+      expect(container.variables.has('Name')).toBe(true);
       const innerContainer = container.variables.get('Name') as ApexVariableContainer;
-      expect(innerContainer.value).to.equal("'testName2'");
+      expect(innerContainer.value).toBe("'testName2'");
     });
 
     it('Should update variable if reassigned to newly created reference', () => {
@@ -310,17 +318,17 @@ describe('Variable assignment event', () => {
       state = new VariableAssignmentState(STATIC_NESTED_REASSIGNMENT2.split('|'));
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap();
-      expect(staticMapping).to.include.keys('NestedClass');
+      expect(Array.from(staticMapping.keys())).toEqual(expect.arrayContaining(['NestedClass']));
       const classMap = staticMapping.get('NestedClass') as Map<string, VariableContainer>;
-      expect(classMap).to.include.keys('staticAcc1', 'staticAcc2');
+      expect(Array.from(classMap.keys())).toEqual(expect.arrayContaining(['staticAcc1', 'staticAcc2']));
       let acc1Container = classMap.get('staticAcc1')! as ApexVariableContainer;
       let acc2Container = classMap.get('staticAcc2')! as ApexVariableContainer;
-      expect(acc1Container.variables).to.equal(acc2Container.variables);
+      expect(acc1Container.variables).toBe(acc2Container.variables);
       state = new VariableAssignmentState(STATIC_NESTED_REASSIGNMENT3.split('|'));
       state.handle(context);
       acc1Container = classMap.get('staticAcc1')! as ApexVariableContainer;
       acc2Container = classMap.get('staticAcc2')! as ApexVariableContainer;
-      expect(acc1Container.variables).to.not.equal(acc2Container.variables);
+      expect(acc1Container.variables).not.toBe(acc2Container.variables);
     });
   });
 
@@ -338,7 +346,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).to.be.false;
+      expect(state.handle(context)).toBe(false);
       // add begin states for a local and static variable
       let assignState = new VariableAssignmentState(CHILD_VARIABLE_ASSIGNMENT.split('|'));
       assignState.handle(context);
@@ -358,41 +366,41 @@ describe('Variable assignment event', () => {
     });
 
     it('Should be able to pull reference values from json in assignments', () => {
-      expect(context.getRefsMap()).to.have.keys(PARENT_REF, CHILD_REF);
+      expect(Array.from(context.getRefsMap().keys())).toEqual(expect.arrayContaining([PARENT_REF, CHILD_REF]));
       const container = context.getRefsMap().get(PARENT_REF) as ApexVariableContainer;
       const childRefContainer = context.getRefsMap().get(CHILD_REF) as ApexVariableContainer;
-      expect(container.variables).to.include.keys('a');
+      expect(Array.from(container.variables.keys())).toEqual(expect.arrayContaining(['a']));
       const childParentContainer = container.variables.get('a')!;
-      expect(childParentContainer.variables).to.equal(childRefContainer.variables);
+      expect(childParentContainer.variables).toBe(childRefContainer.variables);
     });
 
     it('Should be able to pull reference from assignment value', () => {
-      expect(context.getRefsMap()).to.have.keys(PARENT_REF, CHILD_REF);
+      expect(Array.from(context.getRefsMap().keys())).toEqual(expect.arrayContaining([PARENT_REF, CHILD_REF]));
       const container = context.getRefsMap().get(PARENT_REF) as ApexVariableContainer;
       const childRefContainer = context.getRefsMap().get(CHILD_REF) as ApexVariableContainer;
-      expect(container.variables).to.include.keys('m');
+      expect(Array.from(container.variables.keys())).toEqual(expect.arrayContaining(['m']));
       const childParentContainer = container.variables.get('m')!;
-      expect(childParentContainer.variables).to.equal(childRefContainer.variables);
+      expect(childParentContainer.variables).toBe(childRefContainer.variables);
     });
 
     it('Should change both variable containers if they share a common reference', () => {
-      expect(context.getRefsMap()).to.have.keys(PARENT_REF, CHILD_REF);
+      expect(Array.from(context.getRefsMap().keys())).toEqual(expect.arrayContaining([PARENT_REF, CHILD_REF]));
       const container = context.getRefsMap().get(PARENT_REF) as ApexVariableContainer;
-      expect(container.variables).to.include.keys('m');
+      expect(Array.from(container.variables.keys())).toEqual(expect.arrayContaining(['m']));
       const mContainer = container.variables.get('m')! as ApexVariableContainer;
-      expect(container.variables).to.include.keys('n');
+      expect(Array.from(container.variables.keys())).toEqual(expect.arrayContaining(['n']));
       const nContainer = container.variables.get('n')! as ApexVariableContainer;
-      expect(mContainer.variables).to.equal(nContainer.variables);
-      expect(mContainer.ref).to.equal(nContainer.ref);
+      expect(mContainer.variables).toBe(nContainer.variables);
+      expect(mContainer.ref).toBe(nContainer.ref);
       const REF_ASSIGNMENT = `17:39:36.83 (150355500)|VARIABLE_ASSIGNMENT|[11]|this.Name|"both are updated"|${CHILD_REF}`;
       const state = new VariableAssignmentState(REF_ASSIGNMENT.split('|'));
       state.handle(context);
-      expect(mContainer.variables).to.include.keys('Name');
-      expect(nContainer.variables).to.include.keys('Name');
+      expect(Array.from(mContainer.variables.keys())).toEqual(expect.arrayContaining(['Name']));
+      expect(Array.from(nContainer.variables.keys())).toEqual(expect.arrayContaining(['Name']));
       const nSubContainer = nContainer.variables.get('Name') as ApexVariableContainer;
       const mSubContainer = mContainer.variables.get('Name') as ApexVariableContainer;
-      expect(mSubContainer.value).to.equal("'both are updated'");
-      expect(nSubContainer.value).to.equal("'both are updated'");
+      expect(mSubContainer.value).toBe("'both are updated'");
+      expect(nSubContainer.value).toBe("'both are updated'");
     });
   });
 
@@ -418,7 +426,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).to.be.false;
+      expect(state.handle(context)).toBe(false);
       getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
     });
 
@@ -432,11 +440,11 @@ describe('Variable assignment event', () => {
       const assign = new VariableAssignmentState(MAP_ASSIGNMENT.split('|'));
       assign.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
-      expect(frameInfo.locals).to.include.keys('amap');
+      expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['amap']));
       const container = frameInfo.locals.get('amap') as ApexVariableContainer;
-      expect(container.value).to.equal(MAP_VALUE);
-      expect(container.ref).to.be.undefined;
-      expect(container.variablesRef).to.equal(0);
+      expect(container.value).toBe(MAP_VALUE);
+      expect(container.ref).toBeUndefined();
+      expect(container.variablesRef).toBe(0);
     });
 
     it('Should not created a nested ref for lists', () => {
@@ -445,11 +453,11 @@ describe('Variable assignment event', () => {
       const assign = new VariableAssignmentState(LIST_ASSIGNMENT.split('|'));
       assign.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
-      expect(frameInfo.locals).to.include.keys('alist');
+      expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['alist']));
       const container = frameInfo.locals.get('alist') as ApexVariableContainer;
-      expect(container.value).to.equal(LIST_VALUE);
-      expect(container.ref).to.be.undefined;
-      expect(container.variablesRef).to.equal(0);
+      expect(container.value).toBe(LIST_VALUE);
+      expect(container.ref).toBeUndefined();
+      expect(container.variablesRef).toBe(0);
     });
 
     it('Should not created a nested ref for sets', () => {
@@ -458,11 +466,11 @@ describe('Variable assignment event', () => {
       const assign = new VariableAssignmentState(SET_ASSIGNMENT.split('|'));
       assign.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
-      expect(frameInfo.locals).to.include.keys('aset');
+      expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['aset']));
       const container = frameInfo.locals.get('aset') as ApexVariableContainer;
-      expect(container.value).to.equal(SET_VALUE);
-      expect(container.ref).to.be.undefined;
-      expect(container.variablesRef).to.equal(0);
+      expect(container.value).toBe(SET_VALUE);
+      expect(container.ref).toBeUndefined();
+      expect(container.variablesRef).toBe(0);
     });
   });
 });

@@ -5,8 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
@@ -47,10 +55,10 @@ describe('Variable begin scope event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(entryState.handle(context)).to.be.false;
-    expect(context.getStaticVariablesClassMap().has('fakeClass')).to.be.true;
-    expect(context.getStaticVariablesClassMap().get('fakeClass')!.size).to.equal(1);
-    expect(context.getStaticVariablesClassMap().get('fakeClass')).to.have.key('staticInteger');
+    expect(entryState.handle(context)).toBe(false);
+    expect(context.getStaticVariablesClassMap().has('fakeClass')).toBe(true);
+    expect(context.getStaticVariablesClassMap().get('fakeClass')!.size).toBe(1);
+    expect(context.getStaticVariablesClassMap().get('fakeClass')?.has('staticInteger')).toBe(true);
   });
 
   it('Should add local variable to frame', () => {
@@ -58,11 +66,11 @@ describe('Variable begin scope event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(state.handle(context)).to.be.false;
+    expect(state.handle(context)).toBe(false);
 
     const frames = context.getFrames();
-    expect(context.getNumOfFrames()).to.equal(2);
-    expect(frames[1]).to.deep.equal({
+    expect(context.getNumOfFrames()).toBe(2);
+    expect(frames[1]).toEqual({
       id: 1000,
       line: 0,
       column: 0,
@@ -74,12 +82,12 @@ describe('Variable begin scope event', () => {
       }
     } as StackFrame);
     const entryState = new VariableBeginState(LOCAL_VARIABLE_LOG_LINE.split('|'));
-    expect(entryState.handle(context)).to.be.false;
+    expect(entryState.handle(context)).toBe(false);
     const id = context.getTopFrame()!.id;
     const frameInfo = context.getFrameHandler().get(id);
-    expect(frameInfo.locals.size).to.equal(1);
-    expect(frameInfo.locals.has('localInteger')).to.be.true;
-    expect(frameInfo.locals.get('localInteger')).to.include({
+    expect(frameInfo.locals.size).toBe(1);
+    expect(frameInfo.locals.has('localInteger')).toBe(true);
+    expect(frameInfo.locals.get('localInteger')).toMatchObject({
       name: 'localInteger',
       type: 'Integer'
     });
@@ -90,9 +98,9 @@ describe('Variable begin scope event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(entryState.handle(context)).to.be.false;
-    expect(context.getStaticVariablesClassMap().has('fakeClass')).to.be.true;
-    expect(context.getStaticVariablesClassMap().get('fakeClass')!.size).to.equal(1);
-    expect(context.getStaticVariablesClassMap().get('fakeClass')).to.have.key('staticInteger');
+    expect(entryState.handle(context)).toBe(false);
+    expect(context.getStaticVariablesClassMap().has('fakeClass')).toBe(true);
+    expect(context.getStaticVariablesClassMap().get('fakeClass')!.size).toBe(1);
+    expect(context.getStaticVariablesClassMap().get('fakeClass')?.has('staticInteger')).toBe(true);
   });
 });

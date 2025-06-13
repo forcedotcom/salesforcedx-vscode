@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
+import * as path from 'node:path';
 import { LogContextUtil } from '../../../src/core/logContextUtil';
 
 describe('Log context utilities', () => {
@@ -17,21 +17,21 @@ describe('Log context utilities', () => {
     });
 
     it('Should return empty array with bad log file', () => {
-      expect(util.readLogFile('foo.log')).to.be.empty;
+      expect(util.readLogFile('foo.log')).toHaveLength(0);
     });
 
     it('Should return array of log lines', () => {
-      const logFilePath = `${process.cwd()}/test/integration/config/logs/recursive.log`;
-      expect(util.readLogFile(logFilePath)).to.not.be.empty;
+      const logFilePath = path.join(__dirname, '..', '..', 'integration', 'config', 'logs', 'recursive.log');
+      expect(util.readLogFile(logFilePath)).not.toHaveLength(0);
     });
 
     it('Should get file size', () => {
-      const logFilePath = `${process.cwd()}/test/integration/config/logs/recursive.log`;
-      expect(util.getFileSize(logFilePath)).to.be.greaterThan(0);
+      const logFilePath = path.join(__dirname, '..', '..', 'integration', 'config', 'logs', 'recursive.log');
+      expect(util.getFileSize(logFilePath)).toBeGreaterThan(0);
     });
 
     it('Should strip brackets', () => {
-      expect(util.stripBrackets('[20]')).to.equal('20');
+      expect(util.stripBrackets('[20]')).toBe('20');
     });
   });
 });

@@ -5,9 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { Source } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
@@ -38,9 +46,9 @@ describe('Debug console', () => {
 
       adapter.setupLogger(args);
 
-      expect(adapter.getTraceConfig()).to.be.eql(['all']);
-      expect(adapter.getTraceAllConfig()).to.be.true;
-      expect(adapter.shouldTraceLogFile()).to.be.true;
+      expect(adapter.getTraceConfig()).toEqual(['all']);
+      expect(adapter.getTraceAllConfig()).toBe(true);
+      expect(adapter.shouldTraceLogFile()).toBe(true);
     });
 
     it('Should accept boolean false', () => {
@@ -48,9 +56,9 @@ describe('Debug console', () => {
 
       adapter.setupLogger(args);
 
-      expect(adapter.getTraceConfig()).to.be.empty;
-      expect(adapter.getTraceAllConfig()).to.be.false;
-      expect(adapter.shouldTraceLogFile()).to.be.false;
+      expect(adapter.getTraceConfig()).toEqual([]);
+      expect(adapter.getTraceAllConfig()).toBe(false);
+      expect(adapter.shouldTraceLogFile()).toBe(false);
     });
 
     it('Should accept multiple trace categories', () => {
@@ -58,8 +66,8 @@ describe('Debug console', () => {
 
       adapter.setupLogger(args);
 
-      expect(adapter.getTraceConfig()).to.be.eql(['all', 'launch', 'breakpoints']);
-      expect(adapter.getTraceAllConfig()).to.be.true;
+      expect(adapter.getTraceConfig()).toEqual(['all', 'launch', 'breakpoints']);
+      expect(adapter.getTraceAllConfig()).toBe(true);
     });
 
     it('Should accept logfile category', () => {
@@ -67,9 +75,9 @@ describe('Debug console', () => {
 
       adapter.setupLogger(args);
 
-      expect(adapter.getTraceConfig()).to.be.eql(['logfile']);
-      expect(adapter.getTraceAllConfig()).to.be.false;
-      expect(adapter.shouldTraceLogFile()).to.be.true;
+      expect(adapter.getTraceConfig()).toEqual(['logfile']);
+      expect(adapter.getTraceAllConfig()).toBe(false);
+      expect(adapter.shouldTraceLogFile()).toBe(true);
     });
   });
 
@@ -86,20 +94,20 @@ describe('Debug console', () => {
     it('Should not print is message is empty', () => {
       adapter.printToDebugConsole('');
 
-      expect(sendEventSpy.notCalled).to.be.true;
+      expect(sendEventSpy.notCalled).toBe(true);
     });
 
     it('Should send Output event', () => {
       const source = new Source(logFileName, encodeURI(`file://${logFilePath}`));
       adapter.printToDebugConsole('test', source, 5, 'stdout');
 
-      expect(sendEventSpy.calledOnce).to.be.true;
+      expect(sendEventSpy.calledOnce).toBe(true);
       const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
-      expect(outputEvent.body.output).to.have.string('test');
-      expect(outputEvent.body.category).to.equal('stdout');
-      expect(outputEvent.body.line).to.equal(5);
-      expect(outputEvent.body.column).to.equal(0);
-      expect(outputEvent.body.source).to.equal(source);
+      expect(outputEvent.body.output).toContain('test');
+      expect(outputEvent.body.category).toBe('stdout');
+      expect(outputEvent.body.line).toBe(5);
+      expect(outputEvent.body.column).toBe(0);
+      expect(outputEvent.body.source).toEqual(source);
     });
   });
 
@@ -116,16 +124,16 @@ describe('Debug console', () => {
     it('Should not warn is message is empty', () => {
       adapter.warnToDebugConsole('');
 
-      expect(sendEventSpy.notCalled).to.be.true;
+      expect(sendEventSpy.notCalled).toBe(true);
     });
 
     it('Should send Output event', () => {
       adapter.warnToDebugConsole('test');
 
-      expect(sendEventSpy.calledOnce).to.be.true;
+      expect(sendEventSpy.calledOnce).toBe(true);
       const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
-      expect(outputEvent.body.output).to.have.string('test');
-      expect(outputEvent.body.category).to.equal('console');
+      expect(outputEvent.body.output).toContain('test');
+      expect(outputEvent.body.category).toBe('console');
     });
   });
 
@@ -142,16 +150,16 @@ describe('Debug console', () => {
     it('Should not error is message is empty', () => {
       adapter.errorToDebugConsole('');
 
-      expect(sendEventSpy.notCalled).to.be.true;
+      expect(sendEventSpy.notCalled).toBe(true);
     });
 
     it('Should send Output event', () => {
       adapter.errorToDebugConsole('test');
 
-      expect(sendEventSpy.calledOnce).to.be.true;
+      expect(sendEventSpy.calledOnce).toBe(true);
       const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
-      expect(outputEvent.body.output).to.have.string('test');
-      expect(outputEvent.body.category).to.equal('stderr');
+      expect(outputEvent.body.output).toContain('test');
+      expect(outputEvent.body.category).toBe('stderr');
     });
   });
 });

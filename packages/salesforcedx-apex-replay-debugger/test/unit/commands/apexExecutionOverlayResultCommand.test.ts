@@ -10,7 +10,6 @@ import {
   RequestService,
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils';
-import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import { ActionScriptEnum } from '../../../src/commands';
@@ -32,8 +31,8 @@ describe('ApexExecutionOverlayResult basic class tests', () => {
 
   it('Should have an undefined requestString', () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
-    expect(overlayResultCommand.getCommandUrl()).to.equal(expectedGetUrl);
-    expect(overlayResultCommand.getRequest()).to.equal(requestString);
+    expect(overlayResultCommand.getCommandUrl()).toEqual(expectedGetUrl);
+    expect(overlayResultCommand.getRequest()).toEqual(requestString);
   });
 });
 
@@ -85,68 +84,68 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy.calledOnce).toEqual(true);
+    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
     // Verify the basic information has been parsed.
-    expect(response.ActionScript).to.equal(null);
-    expect(response.ActionScriptType).to.equal('None');
-    expect(response.ApexResult).to.equal(null);
-    expect(response.ClassName).to.equal('TriggerTest');
-    expect(response.CreatedById).to.equal(fakeUserId);
-    expect(response.CreatedDate).to.equal('2018-06-14T20:41:35.000+0000');
-    expect(response.ExpirationDate).to.equal('2018-06-14T21:05:57.000+0000');
-    expect(response.Id).to.equal(heapdumpKey);
-    expect(response.IsDeleted).to.equal(false);
-    expect(response.IsDumpingHeap).to.equal(true);
-    expect(response.Iteration).to.equal(1);
-    expect(response.LastModifiedById).to.equal(fakeUserId);
-    expect(response.LastModifiedDate).to.equal('2018-06-14T20:41:35.000+0000');
-    expect(response.Line).to.equal(23);
-    expect(response.Namespace).to.equal('none');
-    expect(response.OverlayResultLength).to.equal(3499);
-    expect(response.RequestedById).to.equal(fakeUserId);
-    expect(response.SOQLResult).to.equal(null);
-    expect(response.SystemModstamp).to.equal('2018-06-14T20:41:35.000+0000');
-    expect(response.UserId).to.equal(fakeUserId);
+    expect(response.ActionScript).toEqual(null);
+    expect(response.ActionScriptType).toEqual('None');
+    expect(response.ApexResult).toEqual(null);
+    expect(response.ClassName).toEqual('TriggerTest');
+    expect(response.CreatedById).toEqual(fakeUserId);
+    expect(response.CreatedDate).toEqual('2018-06-14T20:41:35.000+0000');
+    expect(response.ExpirationDate).toEqual('2018-06-14T21:05:57.000+0000');
+    expect(response.Id).toEqual(heapdumpKey);
+    expect(response.IsDeleted).toEqual(false);
+    expect(response.IsDumpingHeap).toEqual(true);
+    expect(response.Iteration).toEqual(1);
+    expect(response.LastModifiedById).toEqual(fakeUserId);
+    expect(response.LastModifiedDate).toEqual('2018-06-14T20:41:35.000+0000');
+    expect(response.Line).toEqual(23);
+    expect(response.Namespace).toEqual('none');
+    expect(response.OverlayResultLength).toEqual(3499);
+    expect(response.RequestedById).toEqual(fakeUserId);
+    expect(response.SOQLResult).toEqual(null);
+    expect(response.SystemModstamp).toEqual('2018-06-14T20:41:35.000+0000');
+    expect(response.UserId).toEqual(fakeUserId);
 
     // Verify the response.attributes
-    expect(response.attributes.type).to.equal(apexExecutionOverlayResult);
-    expect(response.attributes.url).to.equal(expectedGettUrl);
+    expect(response.attributes.type).toEqual(apexExecutionOverlayResult);
+    expect(response.attributes.url).toEqual(expectedGettUrl);
 
     // Verity the response.heapdump top level information
-    expect(response.HeapDump.className).to.equal('TriggerTest');
-    expect(response.HeapDump.heapDumpDate).to.equal('2018-06-14T20:41:34.377+0000');
-    expect(response.HeapDump.namespace).to.equal('none');
+    expect(response.HeapDump.className).toEqual('TriggerTest');
+    expect(response.HeapDump.heapDumpDate).toEqual('2018-06-14T20:41:34.377+0000');
+    expect(response.HeapDump.namespace).toEqual('none');
 
     // There should be 4 extents
-    expect(response.HeapDump.extents.length).to.equal(4);
+    expect(response.HeapDump.extents.length).toEqual(4);
     // The first extent should contain 7 Account items, no collection type with a total size of 112
-    expect(response.HeapDump.extents[0].collectionType).to.equal(null);
-    expect(response.HeapDump.extents[0].count).to.equal(7);
-    expect(response.HeapDump.extents[0].definition.length).to.equal(0);
-    expect(response.HeapDump.extents[0].totalSize).to.equal(112);
-    expect(response.HeapDump.extents[0].typeName).to.equal('Account');
+    expect(response.HeapDump.extents[0].collectionType).toEqual(null);
+    expect(response.HeapDump.extents[0].count).toEqual(7);
+    expect(response.HeapDump.extents[0].definition.length).toEqual(0);
+    expect(response.HeapDump.extents[0].totalSize).toEqual(112);
+    expect(response.HeapDump.extents[0].typeName).toEqual('Account');
     // For the Account items in the extent, verify that they have keyDisplayValues for Name, AccountNumber and Id
     let extent = response.HeapDump.extents[0].extent;
     let symbolFoo = false;
     let symbolA = false;
     for (let i = 0; i < response.HeapDump.extents[0].count; i++) {
-      expect(isHex(extent[i].address)).to.equal(true);
-      expect(extent[i].size).to.equal(16);
+      expect(isHex(extent[i].address)).toEqual(true);
+      expect(extent[i].size).toEqual(16);
 
       // Verify the Name keyDisplayValue and that the value starts with okToDelete
-      expect(extent[i].value.entry![0].keyDisplayValue).to.equal('Name');
-      expect(extent[i].value.entry![0].value.value.startsWith('okToDelete')).to.equal(true);
+      expect(extent[i].value.entry![0].keyDisplayValue).toEqual('Name');
+      expect(extent[i].value.entry![0].value.value.startsWith('okToDelete')).toEqual(true);
 
       // Verity the AccountNumber keyDisplayValue
-      expect(extent[i].value.entry![1].keyDisplayValue).to.equal('AccountNumber');
+      expect(extent[i].value.entry![1].keyDisplayValue).toEqual('AccountNumber');
 
       // Verify the Id keyDisplayValue and the value starts with 001xx000003Dt1
-      expect(extent[i].value.entry![2].keyDisplayValue).to.equal('Id');
-      expect(extent[i].value.entry![2].value.value.startsWith('001xx000003Dt1')).to.equal(true);
+      expect(extent[i].value.entry![2].keyDisplayValue).toEqual('Id');
+      expect(extent[i].value.entry![2].value.value.startsWith('001xx000003Dt1')).toEqual(true);
 
       // Symbols are only there for 2 local variables, 'a' and 'foo', verify we got them
       if (extent[i].symbols) {
@@ -158,55 +157,55 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
       }
     }
     // verify that both symbols were found
-    expect(symbolA).to.equal(true);
-    expect(symbolFoo).to.equal(true);
+    expect(symbolA).toEqual(true);
+    expect(symbolFoo).toEqual(true);
 
     // extent 1 should have a collectionType of Account, count of 2, total size of 32 a typeName of List<Account>
-    expect(response.HeapDump.extents[1].collectionType).to.equal('Account');
-    expect(response.HeapDump.extents[1].count).to.equal(2);
-    expect(response.HeapDump.extents[1].definition.length).to.equal(0);
-    expect(response.HeapDump.extents[1].totalSize).to.equal(32);
-    expect(response.HeapDump.extents[1].typeName).to.equal('List<Account>');
+    expect(response.HeapDump.extents[1].collectionType).toEqual('Account');
+    expect(response.HeapDump.extents[1].count).toEqual(2);
+    expect(response.HeapDump.extents[1].definition.length).toEqual(0);
+    expect(response.HeapDump.extents[1].totalSize).toEqual(32);
+    expect(response.HeapDump.extents[1].typeName).toEqual('List<Account>');
     extent = response.HeapDump.extents[1].extent;
     for (let i = 0; i < response.HeapDump.extents[1].count; i++) {
-      expect(isHex(extent[i].address)).to.equal(true);
-      expect(extent[i].size).to.equal(16);
-      expect(extent[i].symbols![0].startsWith('accts')).to.equal(true);
+      expect(isHex(extent[i].address)).toEqual(true);
+      expect(extent[i].size).toEqual(16);
+      expect(extent[i].symbols![0].startsWith('accts')).toEqual(true);
       // The collection type is account, each account list should contain a list of addresses
       for (let j = 0; j < (extent[i].value.value ?? []).length; j++) {
-        expect(isHex(extent[i].value.value[j].value)).to.equal(true);
+        expect(isHex(extent[i].value.value[j].value)).toEqual(true);
       }
     }
 
     // extent 2 should have a tyepName of Integer, count 1, size/total
-    expect(response.HeapDump.extents[2].collectionType).to.equal(null);
-    expect(response.HeapDump.extents[2].count).to.equal(1);
-    expect(response.HeapDump.extents[2].definition.length).to.equal(1);
-    expect(response.HeapDump.extents[2].definition[0].name).to.equal('value');
-    expect(response.HeapDump.extents[2].definition[0].type).to.equal('Double');
-    expect(response.HeapDump.extents[2].totalSize).to.equal(8);
-    expect(response.HeapDump.extents[2].typeName).to.equal('Integer');
+    expect(response.HeapDump.extents[2].collectionType).toEqual(null);
+    expect(response.HeapDump.extents[2].count).toEqual(1);
+    expect(response.HeapDump.extents[2].definition.length).toEqual(1);
+    expect(response.HeapDump.extents[2].definition[0].name).toEqual('value');
+    expect(response.HeapDump.extents[2].definition[0].type).toEqual('Double');
+    expect(response.HeapDump.extents[2].totalSize).toEqual(8);
+    expect(response.HeapDump.extents[2].typeName).toEqual('Integer');
     // There's only one value in the extent
     extent = response.HeapDump.extents[2].extent;
-    expect(isHex(extent[0].address)).to.equal(true);
+    expect(isHex(extent[0].address)).toEqual(true);
 
     // extent 3 contains all the the strings. It should have a typeName of String, count of
     // 23 and a total size of 250. Rather than look at every random string in the heapdump
     // just verify that each string has an address, size > 0 and a value.value that isn't null
-    expect(response.HeapDump.extents[3].collectionType).to.equal(null);
-    expect(response.HeapDump.extents[3].count).to.equal(23);
-    expect(response.HeapDump.extents[3].totalSize).to.equal(250);
-    expect(response.HeapDump.extents[3].typeName).to.equal('String');
+    expect(response.HeapDump.extents[3].collectionType).toEqual(null);
+    expect(response.HeapDump.extents[3].count).toEqual(23);
+    expect(response.HeapDump.extents[3].totalSize).toEqual(250);
+    expect(response.HeapDump.extents[3].typeName).toEqual('String');
     extent = response.HeapDump.extents[3].extent;
     for (let i = 0; i < response.HeapDump.extents[3].count; i++) {
       // the address is in hex
-      expect(isHex(extent[i].address)).to.equal(true);
+      expect(isHex(extent[i].address)).toEqual(true);
       // size will be greater than 0
-      expect(extent[i].size).to.greaterThan(0);
+      expect(extent[i].size).toBeGreaterThan(0);
       // symbols will be null
-      expect(extent[i].symbols).to.equal(null);
+      expect(extent[i].symbols).toEqual(null);
       // verify that the value isn't null
-      expect(extent[i].value.value).to.not.equal(null);
+      expect(extent[i].value.value).not.toEqual(null);
     }
   });
 
@@ -227,14 +226,14 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy.calledOnce).toEqual(true);
+    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandFailure[];
 
-    expect(response.length).to.equal(1);
-    expect(response[0].message).to.equal(responseFailureMessage);
-    expect(response[0].errorCode).to.equal(responseFailureErrorCode);
+    expect(response.length).toEqual(1);
+    expect(response[0].message).toEqual(responseFailureMessage);
+    expect(response[0].errorCode).toEqual(responseFailureErrorCode);
   });
 });
 
@@ -295,90 +294,90 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy.calledOnce).toEqual(true);
+    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
     // Parsing the SOQL first requires reading the metadata returned with the result
     // There will only ever be one type of result as a checkpoint cannot have both Apex and SOQL results
-    expect(response.ApexResult).to.equal(null);
-    expect(response.ActionScript).to.equal(expectedActionScript);
-    expect(response.ActionScriptType).to.equal(ActionScriptEnum.SOQL);
-    expect(response.SOQLResult!.queryError).to.equal(null);
-    expect(response.SOQLResult!.queryMetadata!.entityName).to.equal(accountType);
-    expect(response.SOQLResult!.queryMetadata!.groupBy).to.equal(false);
-    expect(response.SOQLResult!.queryMetadata!.idSelected).to.equal(true);
-    expect(response.SOQLResult!.queryMetadata!.keyPrefix).to.equal(expectedKeyPrefix);
+    expect(response.ApexResult).toEqual(null);
+    expect(response.ActionScript).toEqual(expectedActionScript);
+    expect(response.ActionScriptType).toEqual(ActionScriptEnum.SOQL);
+    expect(response.SOQLResult!.queryError).toEqual(null);
+    expect(response.SOQLResult!.queryMetadata!.entityName).toEqual(accountType);
+    expect(response.SOQLResult!.queryMetadata!.groupBy).toEqual(false);
+    expect(response.SOQLResult!.queryMetadata!.idSelected).toEqual(true);
+    expect(response.SOQLResult!.queryMetadata!.keyPrefix).toEqual(expectedKeyPrefix);
 
     // There are 3 pieces of metdata, Id, Name and AccountNumber in that order.
     // Verify the Id metadata
     let columnMetadata = response.SOQLResult!.queryMetadata!.columnMetadata[metadataId];
-    expect(columnMetadata.aggregate).to.equal(false);
-    expect(columnMetadata.apexType).to.equal(apexTypeId);
-    expect(columnMetadata.booleanType).to.equal(false);
-    expect(columnMetadata.columnName).to.equal('Id');
-    expect(columnMetadata.custom).to.equal(false);
-    expect(columnMetadata.displayName).to.equal('Id');
-    expect(columnMetadata.foreignKeyName).to.equal(null);
-    expect(columnMetadata.insertable).to.equal(false);
-    expect(columnMetadata.joinColumns.length).to.equal(0); // expect join columns to be empty
-    expect(columnMetadata.numberType).to.equal(false);
-    expect(columnMetadata.textType).to.equal(false);
-    expect(columnMetadata.updatable).to.equal(false);
+    expect(columnMetadata.aggregate).toEqual(false);
+    expect(columnMetadata.apexType).toEqual(apexTypeId);
+    expect(columnMetadata.booleanType).toEqual(false);
+    expect(columnMetadata.columnName).toEqual('Id');
+    expect(columnMetadata.custom).toEqual(false);
+    expect(columnMetadata.displayName).toEqual('Id');
+    expect(columnMetadata.foreignKeyName).toEqual(null);
+    expect(columnMetadata.insertable).toEqual(false);
+    expect(columnMetadata.joinColumns.length).toEqual(0); // expect join columns to be empty
+    expect(columnMetadata.numberType).toEqual(false);
+    expect(columnMetadata.textType).toEqual(false);
+    expect(columnMetadata.updatable).toEqual(false);
 
     // very the Name metadata
     columnMetadata = response.SOQLResult!.queryMetadata!.columnMetadata[metadataName];
-    expect(columnMetadata.aggregate).to.equal(false);
-    expect(columnMetadata.apexType).to.equal(apexTypeString);
-    expect(columnMetadata.booleanType).to.equal(false);
-    expect(columnMetadata.columnName).to.equal('Name');
-    expect(columnMetadata.custom).to.equal(false);
-    expect(columnMetadata.displayName).to.equal('Name');
-    expect(columnMetadata.foreignKeyName).to.equal(null);
-    expect(columnMetadata.insertable).to.equal(true);
-    expect(columnMetadata.joinColumns.length).to.equal(0); // expect join columns to be empty
-    expect(columnMetadata.numberType).to.equal(false);
-    expect(columnMetadata.textType).to.equal(true);
-    expect(columnMetadata.updatable).to.equal(true);
+    expect(columnMetadata.aggregate).toEqual(false);
+    expect(columnMetadata.apexType).toEqual(apexTypeString);
+    expect(columnMetadata.booleanType).toEqual(false);
+    expect(columnMetadata.columnName).toEqual('Name');
+    expect(columnMetadata.custom).toEqual(false);
+    expect(columnMetadata.displayName).toEqual('Name');
+    expect(columnMetadata.foreignKeyName).toEqual(null);
+    expect(columnMetadata.insertable).toEqual(true);
+    expect(columnMetadata.joinColumns.length).toEqual(0); // expect join columns to be empty
+    expect(columnMetadata.numberType).toEqual(false);
+    expect(columnMetadata.textType).toEqual(true);
+    expect(columnMetadata.updatable).toEqual(true);
 
     // Verify the AccountNumber metadata
     columnMetadata = response.SOQLResult!.queryMetadata!.columnMetadata[metadataAccountNumber];
-    expect(columnMetadata.aggregate).to.equal(false);
-    expect(columnMetadata.apexType).to.equal(apexTypeString);
-    expect(columnMetadata.booleanType).to.equal(false);
-    expect(columnMetadata.columnName).to.equal('AccountNumber');
-    expect(columnMetadata.custom).to.equal(false);
-    expect(columnMetadata.displayName).to.equal('AccountNumber');
-    expect(columnMetadata.foreignKeyName).to.equal(null);
-    expect(columnMetadata.insertable).to.equal(true);
-    expect(columnMetadata.joinColumns.length).to.equal(0); // expect join columns to be empty
-    expect(columnMetadata.numberType).to.equal(false);
-    expect(columnMetadata.textType).to.equal(true);
-    expect(columnMetadata.updatable).to.equal(true);
+    expect(columnMetadata.aggregate).toEqual(false);
+    expect(columnMetadata.apexType).toEqual(apexTypeString);
+    expect(columnMetadata.booleanType).toEqual(false);
+    expect(columnMetadata.columnName).toEqual('AccountNumber');
+    expect(columnMetadata.custom).toEqual(false);
+    expect(columnMetadata.displayName).toEqual('AccountNumber');
+    expect(columnMetadata.foreignKeyName).toEqual(null);
+    expect(columnMetadata.insertable).toEqual(true);
+    expect(columnMetadata.joinColumns.length).toEqual(0); // expect join columns to be empty
+    expect(columnMetadata.numberType).toEqual(false);
+    expect(columnMetadata.textType).toEqual(true);
+    expect(columnMetadata.updatable).toEqual(true);
 
     // Loop through and verify all of the results. The HeapDumpSOQLResultQueryResult contains the index
     // that the metadata's columnName will be used to access.
     // In this example the query pulls back the Id, Name and AccountNumber which means that the columnNames
     // in the metadata would be used to field data from the result. For example:
     // response.SOQLResult!.queryResult[]['Name'] would be used to get the Name field from the returned data.
-    expect(response.SOQLResult!.queryResult!.length).to.equal(6);
+    expect(response.SOQLResult!.queryResult!.length).toEqual(6);
     for (const singleEntry of response.SOQLResult!.queryResult!) {
-      expect(singleEntry.attributes.type).to.equal(accountType);
+      expect(singleEntry.attributes.type).toEqual(accountType);
       // The accountId is needed to verify the url in the attributes
       const accountId = singleEntry[
         response.SOQLResult!.queryMetadata!.columnMetadata[metadataId].columnName
       ] as string;
-      expect(accountId.startsWith('001xx000003Dt')).to.equal(true);
-      expect(singleEntry.attributes.url).to.equal(`${urlBase}${accountId}`);
+      expect(accountId.startsWith('001xx000003Dt')).toEqual(true);
+      expect(singleEntry.attributes.url).toEqual(`${urlBase}${accountId}`);
       expect(
         (singleEntry[response.SOQLResult!.queryMetadata!.columnMetadata[metadataName].columnName] as string).startsWith(
           'okToDelete'
         )
-      ).to.equal(true);
+      ).toEqual(true);
       expect(
         singleEntry[response.SOQLResult!.queryMetadata!.columnMetadata[metadataAccountNumber].columnName] as string
-      ).to.equal('yyy');
+      ).toEqual('yyy');
     }
   });
 
@@ -402,16 +401,16 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy.calledOnce).toEqual(true);
+    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
-    expect(response.ActionScript).to.equal(expectedErrorActionScript);
-    expect(response.ActionScriptType).to.equal(ActionScriptEnum.SOQL);
-    expect(response.SOQLResult!.queryError).to.equal(expectedQueryError);
-    expect(response.SOQLResult!.queryMetadata).to.equal(null);
-    expect(response.SOQLResult!.queryResult).to.equal(null);
+    expect(response.ActionScript).toEqual(expectedErrorActionScript);
+    expect(response.ActionScriptType).toEqual(ActionScriptEnum.SOQL);
+    expect(response.SOQLResult!.queryError).toEqual(expectedQueryError);
+    expect(response.SOQLResult!.queryMetadata).toEqual(null);
+    expect(response.SOQLResult!.queryResult).toEqual(null);
   });
 });
 
@@ -468,24 +467,24 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy.calledOnce).toEqual(true);
+    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
-    expect(response.ActionScript).to.equal(expectedSuccessActionScript);
-    expect(response.ActionScriptType).to.equal(ActionScriptEnum.Apex);
-    expect(response.ApexResult!.apexError).to.equal(null);
-    expect(response.ApexResult!.apexExecutionResult).to.not.equal(undefined);
+    expect(response.ActionScript).toEqual(expectedSuccessActionScript);
+    expect(response.ActionScriptType).toEqual(ActionScriptEnum.Apex);
+    expect(response.ApexResult!.apexError).toEqual(null);
+    expect(response.ApexResult!.apexExecutionResult).toEqual(expect.any(Object));
     const apexExecutionResult = response.ApexResult!.apexExecutionResult;
     if (apexExecutionResult) {
-      expect(apexExecutionResult.column).to.equal(-1);
-      expect(apexExecutionResult.compiled).to.equal(true);
-      expect(apexExecutionResult.compileProblem).to.equal(null);
-      expect(apexExecutionResult.exceptionMessage).to.equal(null);
-      expect(apexExecutionResult.exceptionStackTrace).to.equal(null);
-      expect(apexExecutionResult.line).to.equal(-1);
-      expect(apexExecutionResult.success).to.equal(true);
+      expect(apexExecutionResult.column).toEqual(-1);
+      expect(apexExecutionResult.compiled).toEqual(true);
+      expect(apexExecutionResult.compileProblem).toEqual(null);
+      expect(apexExecutionResult.exceptionMessage).toEqual(null);
+      expect(apexExecutionResult.exceptionStackTrace).toEqual(null);
+      expect(apexExecutionResult.line).toEqual(-1);
+      expect(apexExecutionResult.success).toEqual(true);
     }
   });
 
@@ -509,24 +508,24 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy.calledOnce).toEqual(true);
+    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
-    expect(response.ActionScript).to.equal(expectedFailureRuntimeExceptionActionScript);
-    expect(response.ActionScriptType).to.equal(ActionScriptEnum.Apex);
-    expect(response.ApexResult!.apexError).to.equal(null);
-    expect(response.ApexResult!.apexExecutionResult).to.not.equal(undefined);
+    expect(response.ActionScript).toEqual(expectedFailureRuntimeExceptionActionScript);
+    expect(response.ActionScriptType).toEqual(ActionScriptEnum.Apex);
+    expect(response.ApexResult!.apexError).toEqual(null);
+    expect(response.ApexResult!.apexExecutionResult).toEqual(expect.any(Object));
     const apexExecutionResult = response.ApexResult!.apexExecutionResult;
     if (apexExecutionResult) {
-      expect(apexExecutionResult.column).to.equal(1);
-      expect(apexExecutionResult.compiled).to.equal(true);
-      expect(apexExecutionResult.compileProblem).to.equal(null);
-      expect(apexExecutionResult.exceptionMessage).to.equal(expectedFailureRuntimeExceptionMessage);
-      expect(apexExecutionResult.exceptionStackTrace).to.equal(expectedFailureRuntimeExceptionStackTrace);
-      expect(apexExecutionResult.line).to.equal(1);
-      expect(apexExecutionResult.success).to.equal(false);
+      expect(apexExecutionResult.column).toEqual(1);
+      expect(apexExecutionResult.compiled).toEqual(true);
+      expect(apexExecutionResult.compileProblem).toEqual(null);
+      expect(apexExecutionResult.exceptionMessage).toEqual(expectedFailureRuntimeExceptionMessage);
+      expect(apexExecutionResult.exceptionStackTrace).toEqual(expectedFailureRuntimeExceptionStackTrace);
+      expect(apexExecutionResult.line).toEqual(1);
+      expect(apexExecutionResult.success).toEqual(false);
     }
   });
 
@@ -550,24 +549,24 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).to.equal(true);
-    expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
+    expect(sendRequestSpy.calledOnce).toEqual(true);
+    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
-    expect(response.ActionScript).to.equal(expectedFailureCompilationErrorActionScript);
-    expect(response.ActionScriptType).to.equal(ActionScriptEnum.Apex);
-    expect(response.ApexResult!.apexError).to.equal(null);
-    expect(response.ApexResult!.apexExecutionResult).to.not.equal(undefined);
+    expect(response.ActionScript).toEqual(expectedFailureCompilationErrorActionScript);
+    expect(response.ActionScriptType).toEqual(ActionScriptEnum.Apex);
+    expect(response.ApexResult!.apexError).toEqual(null);
+    expect(response.ApexResult!.apexExecutionResult).toEqual(expect.any(Object));
     const apexExecutionResult = response.ApexResult!.apexExecutionResult;
     if (apexExecutionResult) {
-      expect(apexExecutionResult.column).to.equal(1);
-      expect(apexExecutionResult.compiled).to.equal(false);
-      expect(apexExecutionResult.compileProblem).to.equal(expectedFailureCompilationErrorCompileProblem);
-      expect(apexExecutionResult.exceptionMessage).to.equal(null);
-      expect(apexExecutionResult.exceptionStackTrace).to.equal(null);
-      expect(apexExecutionResult.line).to.equal(1);
-      expect(apexExecutionResult.success).to.equal(false);
+      expect(apexExecutionResult.column).toEqual(1);
+      expect(apexExecutionResult.compiled).toEqual(false);
+      expect(apexExecutionResult.compileProblem).toEqual(expectedFailureCompilationErrorCompileProblem);
+      expect(apexExecutionResult.exceptionMessage).toEqual(null);
+      expect(apexExecutionResult.exceptionStackTrace).toEqual(null);
+      expect(apexExecutionResult.line).toEqual(1);
+      expect(apexExecutionResult.success).toEqual(false);
     }
   });
 });

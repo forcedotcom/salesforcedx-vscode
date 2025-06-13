@@ -5,7 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import * as sinon from 'sinon';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
@@ -36,14 +44,14 @@ describe('LogEntry event', () => {
 
     const isStopped = logEntry.handle(context);
 
-    expect(isStopped).to.be.true;
+    expect(isStopped).toBe(true);
     const stackFrames = context.getFrames();
-    expect(context.getNumOfFrames()).to.equal(1);
+    expect(context.getNumOfFrames()).toBe(1);
     const stackFrame = stackFrames[0];
-    expect(stackFrame.id).to.equal(0);
-    expect(stackFrame.name).to.equal('');
-    expect(stackFrame.line).to.equal(context.getLogLinePosition() + 1);
-    expect(stackFrame.source?.name).to.equal(context.getLogFileName());
-    expect(stackFrame.source?.path).to.equal(context.getLogFilePath());
+    expect(stackFrame.id).toBe(0);
+    expect(stackFrame.name).toBe('');
+    expect(stackFrame.line).toBe(context.getLogLinePosition() + 1);
+    expect(stackFrame.source?.name).toBe(context.getLogFileName());
+    expect(stackFrame.source?.path).toBe(context.getLogFilePath());
   });
 });

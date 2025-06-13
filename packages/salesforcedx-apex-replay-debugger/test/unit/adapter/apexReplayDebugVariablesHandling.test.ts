@@ -5,9 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { Source, StackFrame } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { EXTENT_TRIGGER_PREFIX } from '../../../src';
 import { ApexDebugStackFrameInfo } from '../../../src/adapter/ApexDebugStackFrameInfo';
@@ -84,10 +92,10 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       await adapter.scopesRequest(response, args);
 
-      expect(sendResponseSpy.calledOnce).to.be.true;
+      expect(sendResponseSpy.calledOnce).toBe(true);
       const actualResponse: DebugProtocol.ScopesResponse = sendResponseSpy.getCall(0).args[0];
-      expect(actualResponse.success).to.be.true;
-      expect(actualResponse.body.scopes.length).to.equal(0);
+      expect(actualResponse.success).toBe(true);
+      expect(actualResponse.body.scopes.length).toBe(0);
     });
 
     it('Should return local, static, and global scopes', async () => {
@@ -98,11 +106,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
       await adapter.scopesRequest(response, args);
 
       const actualResponse: DebugProtocol.ScopesResponse = sendResponseSpy.getCall(0).args[0];
-      expect(actualResponse.success).to.be.true;
-      expect(actualResponse.body.scopes.length).to.equal(3);
-      expect(actualResponse.body.scopes[0].name).to.equal('Local');
-      expect(actualResponse.body.scopes[1].name).to.equal('Static');
-      expect(actualResponse.body.scopes[2].name).to.equal('Global');
+      expect(actualResponse.success).toBe(true);
+      expect(actualResponse.body.scopes.length).toBe(3);
+      expect(actualResponse.body.scopes[0].name).toBe('Local');
+      expect(actualResponse.body.scopes[1].name).toBe('Static');
+      expect(actualResponse.body.scopes[2].name).toBe('Global');
     });
 
     it('Should replace with heapdump variables', async () => {
@@ -113,9 +121,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       await adapter.scopesRequest(response, args);
 
-      expect(copyStateForHeapDumpStub.calledOnce).to.be.true;
-      expect(replaceVariablesWithHeapDumpStub.calledOnce).to.be.true;
-      expect(resetLastSeenHeapDumpLogLineStub.calledOnce).to.be.true;
+      expect(copyStateForHeapDumpStub.calledOnce).toBe(true);
+      expect(replaceVariablesWithHeapDumpStub.calledOnce).toBe(true);
+      expect(resetLastSeenHeapDumpLogLineStub.calledOnce).toBe(true);
     });
   });
 
@@ -153,8 +161,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
       await adapter.variablesRequest(response, args);
 
       const actualResponse: DebugProtocol.VariablesResponse = sendResponseSpy.getCall(0).args[0];
-      expect(actualResponse.success).to.be.true;
-      expect(actualResponse.body.variables.length).to.equal(0);
+      expect(actualResponse.success).toBe(true);
+      expect(actualResponse.body.variables.length).toBe(0);
     });
 
     it('Should collect variables from scope container', async () => {
@@ -168,13 +176,13 @@ describe('Replay debugger adapter variable handling - unit', () => {
       await adapter.variablesRequest(response, args);
 
       const actualResponse: DebugProtocol.VariablesResponse = sendResponseSpy.getCall(0).args[0];
-      expect(actualResponse.success).to.be.true;
-      expect(actualResponse.body.variables.length).to.equal(1);
+      expect(actualResponse.success).toBe(true);
+      expect(actualResponse.body.variables.length).toBe(1);
       const apexVariable = actualResponse.body.variables[0];
-      expect(apexVariable.name).to.equal('foo');
-      expect(apexVariable.value).to.equal('bar');
-      expect(apexVariable.evaluateName).to.equal(apexVariable.value);
-      expect(apexVariable.type).to.equal('String');
+      expect(apexVariable.name).toBe('foo');
+      expect(apexVariable.value).toBe('bar');
+      expect(apexVariable.evaluateName).toBe(apexVariable.value);
+      expect(apexVariable.type).toBe('String');
     });
   });
 
@@ -243,9 +251,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(createStringRefsFromHeapdumpSpy.called).to.be.false;
-        expect(updateLeafReferenceContainerSpy.called).to.be.false;
-        expect(createVariableFromReferenceSpy.called).to.be.false;
+        expect(createStringRefsFromHeapdumpSpy.called).toBe(false);
+        expect(updateLeafReferenceContainerSpy.called).toBe(false);
+        expect(createVariableFromReferenceSpy.called).toBe(false);
       });
 
       it('Should not switch variables without a successful heapdump for current location', () => {
@@ -256,33 +264,33 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(createStringRefsFromHeapdumpSpy.called).to.be.false;
-        expect(updateLeafReferenceContainerSpy.called).to.be.false;
-        expect(createVariableFromReferenceSpy.called).to.be.false;
+        expect(createStringRefsFromHeapdumpSpy.called).toBe(false);
+        expect(updateLeafReferenceContainerSpy.called).toBe(false);
+        expect(createVariableFromReferenceSpy.called).toBe(false);
       });
 
       it('Should not create string refs if there are not any in the heapdump', () => {
         const heapdump = createHeapDumpWithNoStringTypes();
         heapDumpService.createStringRefsFromHeapdump(heapdump.getOverlaySuccessResult()!);
-        expect(refsMap.size).to.be.eq(0);
+        expect(refsMap.size).toBe(0);
       });
 
       it('Should only create string refs if there are not any in the heapdump', () => {
         const heapdump = createHeapDumpWithNoStringTypes();
         heapDumpService.createStringRefsFromHeapdump(heapdump.getOverlaySuccessResult()!);
-        expect(refsMap.size).to.be.eq(0);
+        expect(refsMap.size).toBe(0);
       });
 
       it('Should create string refs if there are any in the heapdump', () => {
         const heapdump = createHeapDumpWithStrings();
         heapDumpService.createStringRefsFromHeapdump(heapdump.getOverlaySuccessResult()!);
-        expect(refsMap.size).to.be.eq(2);
+        expect(refsMap.size).toBe(2);
         let tempStringVar = refsMap.get('0x47a32f5b') as ApexVariableContainer;
-        expect(tempStringVar.value).to.be.eq(
+        expect(tempStringVar.value).toBe(
           "'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'"
         );
         tempStringVar = refsMap.get('0x6cda5efc') as ApexVariableContainer;
-        expect(tempStringVar.value).to.be.eq("'9/13/2018'");
+        expect(tempStringVar.value).toBe("'9/13/2018'");
       });
 
       it('Should not follow reference chain when creating leaf variables except strings', () => {
@@ -294,42 +302,42 @@ describe('Replay debugger adapter variable handling - unit', () => {
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
         heapDumpService.replaceVariablesWithHeapDump();
-        expect(createStringRefsFromHeapdumpSpy.called).to.be.true;
-        expect(updateLeafReferenceContainerSpy.called).to.be.true;
-        expect(createVariableFromReferenceSpy.called).to.be.false;
-        expect(refsMap.size).to.be.eq(4);
+        expect(createStringRefsFromHeapdumpSpy.called).toBe(true);
+        expect(updateLeafReferenceContainerSpy.called).toBe(true);
+        expect(createVariableFromReferenceSpy.called).toBe(false);
+        expect(refsMap.size).toBe(4);
 
         // NonStaticClassWithVariablesToInspect has an inner class of the same type.
         // Get the one that's the top level one and verify that it's innerVariable does not
         // have children and that all of the other values have been set including the string
         // value
         let tempApexVar = refsMap.get('0x3557adc7') as ApexVariableContainer;
-        expect(tempApexVar.variables.size).to.be.eq(7);
-        expect((tempApexVar.variables.get('MyBoolean') as ApexVariableContainer).value).to.be.eq('false');
-        expect((tempApexVar.variables.get('MyDate') as ApexVariableContainer).value).to.be.eq(
+        expect(tempApexVar.variables.size).toBe(7);
+        expect((tempApexVar.variables.get('MyBoolean') as ApexVariableContainer).value).toBe('false');
+        expect((tempApexVar.variables.get('MyDate') as ApexVariableContainer).value).toBe(
           'Thu Sep 13 00:00:00 GMT 2018'
         );
-        expect((tempApexVar.variables.get('MyDouble') as ApexVariableContainer).value).to.be.eq('4.37559');
-        expect((tempApexVar.variables.get('MyInteger') as ApexVariableContainer).value).to.be.eq('10');
-        expect((tempApexVar.variables.get('MyLong') as ApexVariableContainer).value).to.be.eq('4271993');
-        expect((tempApexVar.variables.get('MyString') as ApexVariableContainer).value).to.be.eq(
+        expect((tempApexVar.variables.get('MyDouble') as ApexVariableContainer).value).toBe('4.37559');
+        expect((tempApexVar.variables.get('MyInteger') as ApexVariableContainer).value).toBe('10');
+        expect((tempApexVar.variables.get('MyLong') as ApexVariableContainer).value).toBe('4271993');
+        expect((tempApexVar.variables.get('MyString') as ApexVariableContainer).value).toBe(
           "'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'"
         );
         const innerApexRefVar = tempApexVar.variables.get('innerVariable') as ApexVariableContainer;
-        expect(innerApexRefVar.ref).to.be.eq('0x55260a7a');
-        expect(innerApexRefVar.variables.size).to.be.eq(0);
+        expect(innerApexRefVar.ref).toBe('0x55260a7a');
+        expect(innerApexRefVar.variables.size).toBe(0);
 
         tempApexVar = refsMap.get('0x55260a7a') as ApexVariableContainer;
-        expect(tempApexVar.variables.size).to.be.eq(7);
-        expect((tempApexVar.variables.get('MyBoolean') as ApexVariableContainer).value).to.be.eq('true');
-        expect((tempApexVar.variables.get('MyDate') as ApexVariableContainer).value).to.be.eq(
+        expect(tempApexVar.variables.size).toBe(7);
+        expect((tempApexVar.variables.get('MyBoolean') as ApexVariableContainer).value).toBe('true');
+        expect((tempApexVar.variables.get('MyDate') as ApexVariableContainer).value).toBe(
           'Thu Sep 13 00:00:00 GMT 2018'
         );
-        expect((tempApexVar.variables.get('MyDouble') as ApexVariableContainer).value).to.be.eq('3.14159');
-        expect((tempApexVar.variables.get('MyInteger') as ApexVariableContainer).value).to.be.eq('5');
-        expect((tempApexVar.variables.get('MyLong') as ApexVariableContainer).value).to.be.eq('4271990');
-        expect((tempApexVar.variables.get('MyString') as ApexVariableContainer).value).to.be.eq("'9/13/2018'");
-        expect((tempApexVar.variables.get('innerVariable') as ApexVariableContainer).value).to.be.eq('null');
+        expect((tempApexVar.variables.get('MyDouble') as ApexVariableContainer).value).toBe('3.14159');
+        expect((tempApexVar.variables.get('MyInteger') as ApexVariableContainer).value).toBe('5');
+        expect((tempApexVar.variables.get('MyLong') as ApexVariableContainer).value).toBe('4271990');
+        expect((tempApexVar.variables.get('MyString') as ApexVariableContainer).value).toBe("'9/13/2018'");
+        expect((tempApexVar.variables.get('innerVariable') as ApexVariableContainer).value).toBe('null');
       });
 
       it('Should follow reference chain when creating instance variables from references', () => {
@@ -346,31 +354,31 @@ describe('Replay debugger adapter variable handling - unit', () => {
         heapDumpService.replaceVariablesWithHeapDump();
 
         const updatedLocRefVariable = frameInfo.locals.get(localRefVariable.name) as ApexVariableContainer;
-        expect(updatedLocRefVariable.variables.size).to.be.eq(7);
-        expect((updatedLocRefVariable.variables.get('MyBoolean') as ApexVariableContainer).value).to.be.eq('false');
-        expect((updatedLocRefVariable.variables.get('MyDate') as ApexVariableContainer).value).to.be.eq(
+        expect(updatedLocRefVariable.variables.size).toBe(7);
+        expect((updatedLocRefVariable.variables.get('MyBoolean') as ApexVariableContainer).value).toBe('false');
+        expect((updatedLocRefVariable.variables.get('MyDate') as ApexVariableContainer).value).toBe(
           'Thu Sep 13 00:00:00 GMT 2018'
         );
-        expect((updatedLocRefVariable.variables.get('MyDouble') as ApexVariableContainer).value).to.be.eq('4.37559');
-        expect((updatedLocRefVariable.variables.get('MyInteger') as ApexVariableContainer).value).to.be.eq('10');
-        expect((updatedLocRefVariable.variables.get('MyLong') as ApexVariableContainer).value).to.be.eq('4271993');
-        expect((updatedLocRefVariable.variables.get('MyString') as ApexVariableContainer).value).to.be.eq(
+        expect((updatedLocRefVariable.variables.get('MyDouble') as ApexVariableContainer).value).toBe('4.37559');
+        expect((updatedLocRefVariable.variables.get('MyInteger') as ApexVariableContainer).value).toBe('10');
+        expect((updatedLocRefVariable.variables.get('MyLong') as ApexVariableContainer).value).toBe('4271993');
+        expect((updatedLocRefVariable.variables.get('MyString') as ApexVariableContainer).value).toBe(
           "'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'"
         );
 
         const innerApexRefVar = updatedLocRefVariable.variables.get('innerVariable') as ApexVariableContainer;
-        expect(innerApexRefVar.ref).to.be.eq('0x55260a7a');
+        expect(innerApexRefVar.ref).toBe('0x55260a7a');
 
-        expect(innerApexRefVar.variables.size).to.be.eq(7);
-        expect((innerApexRefVar.variables.get('MyBoolean') as ApexVariableContainer).value).to.be.eq('true');
-        expect((innerApexRefVar.variables.get('MyDate') as ApexVariableContainer).value).to.be.eq(
+        expect(innerApexRefVar.variables.size).toBe(7);
+        expect((innerApexRefVar.variables.get('MyBoolean') as ApexVariableContainer).value).toBe('true');
+        expect((innerApexRefVar.variables.get('MyDate') as ApexVariableContainer).value).toBe(
           'Thu Sep 13 00:00:00 GMT 2018'
         );
-        expect((innerApexRefVar.variables.get('MyDouble') as ApexVariableContainer).value).to.be.eq('3.14159');
-        expect((innerApexRefVar.variables.get('MyInteger') as ApexVariableContainer).value).to.be.eq('5');
-        expect((innerApexRefVar.variables.get('MyLong') as ApexVariableContainer).value).to.be.eq('4271990');
-        expect((innerApexRefVar.variables.get('MyString') as ApexVariableContainer).value).to.be.eq("'9/13/2018'");
-        expect((innerApexRefVar.variables.get('innerVariable') as ApexVariableContainer).value).to.be.eq('null');
+        expect((innerApexRefVar.variables.get('MyDouble') as ApexVariableContainer).value).toBe('3.14159');
+        expect((innerApexRefVar.variables.get('MyInteger') as ApexVariableContainer).value).toBe('5');
+        expect((innerApexRefVar.variables.get('MyLong') as ApexVariableContainer).value).toBe('4271990');
+        expect((innerApexRefVar.variables.get('MyString') as ApexVariableContainer).value).toBe("'9/13/2018'");
+        expect((innerApexRefVar.variables.get('innerVariable') as ApexVariableContainer).value).toBe('null');
       });
 
       it('Should update a non-reference variable', () => {
@@ -411,11 +419,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameInfo.locals.set(nonRefVariable.name, nonRefVariable);
 
         heapDumpService.replaceVariablesWithHeapDump();
-        expect(createStringRefsFromHeapdumpSpy.calledOnce).to.be.true;
-        expect(updateLeafReferenceContainerSpy.calledOnce).to.be.false;
-        expect(createVariableFromReferenceSpy.calledOnce).to.be.false;
+        expect(createStringRefsFromHeapdumpSpy.calledOnce).toBe(true);
+        expect(updateLeafReferenceContainerSpy.calledOnce).toBe(false);
+        expect(createVariableFromReferenceSpy.calledOnce).toBe(false);
         const updatedNonRefVariable = frameInfo.locals.get(nonRefVariable.name) as ApexVariableContainer;
-        expect(updatedNonRefVariable.value).to.be.eq('5');
+        expect(updatedNonRefVariable.value).toBe('5');
       });
 
       it('Should update a non-reference static variable', () => {
@@ -457,11 +465,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameInfo.statics.set(nonRefVariable.name, nonRefVariable);
 
         heapDumpService.replaceVariablesWithHeapDump();
-        expect(createStringRefsFromHeapdumpSpy.calledOnce).to.be.true;
-        expect(updateLeafReferenceContainerSpy.calledOnce).to.be.false;
-        expect(createVariableFromReferenceSpy.calledOnce).to.be.false;
+        expect(createStringRefsFromHeapdumpSpy.calledOnce).toBe(true);
+        expect(updateLeafReferenceContainerSpy.calledOnce).toBe(false);
+        expect(createVariableFromReferenceSpy.calledOnce).toBe(false);
         const updatedNonRefVariable = frameInfo.statics.get(nonRefVariable.name) as ApexVariableContainer;
-        expect(updatedNonRefVariable.value).to.be.eq('5');
+        expect(updatedNonRefVariable.value).toBe('5');
       });
 
       it('Should correctly deal with circular references and variable values', () => {
@@ -485,18 +493,18 @@ describe('Replay debugger adapter variable handling - unit', () => {
         const expectedListVarValue = '(CircularReference:{already output, someInt=5})';
 
         const updatedLocRefVariable = frameInfo.locals.get(localRefVariable.name) as ApexVariableContainer;
-        expect(updatedLocRefVariable.value).to.be.eq(expectedVariableValue);
+        expect(updatedLocRefVariable.value).toBe(expectedVariableValue);
 
-        expect(updatedLocRefVariable.variables.size).to.be.eq(2);
-        expect((updatedLocRefVariable.variables.get('someInt') as ApexVariableContainer).value).to.be.eq('5');
+        expect(updatedLocRefVariable.variables.size).toBe(2);
+        expect((updatedLocRefVariable.variables.get('someInt') as ApexVariableContainer).value).toBe('5');
         const listChildVar = updatedLocRefVariable.variables.get('cfList') as ApexVariableContainer;
 
-        expect(listChildVar.value).to.be.eq(expectedListVarValue);
-        expect(listChildVar.variables.size).to.be.eq(1);
+        expect(listChildVar.value).toBe(expectedListVarValue);
+        expect(listChildVar.variables.size).toBe(1);
 
         const listElementVar = listChildVar.variables.get('0') as ApexVariableContainer;
-        expect(listElementVar.value).to.be.eq(expectedVariableValue);
-        expect((listElementVar.variables.get('cfList') as ApexVariableContainer).value).to.be.eq(expectedListVarValue);
+        expect(listElementVar.value).toBe(expectedVariableValue);
+        expect((listElementVar.variables.get('cfList') as ApexVariableContainer).value).toBe(expectedListVarValue);
       });
     }); // Describe replaceVariablesWithHeapDump
 
@@ -566,9 +574,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
 
-        expect(frameInfo.globals.size).to.eq(0);
+        expect(frameInfo.globals.size).toBe(0);
         heapDumpService.replaceVariablesWithHeapDump();
-        expect(frameInfo.globals.size).to.eq(0);
+        expect(frameInfo.globals.size).toBe(0);
       });
 
       it('Should create trigger variables if processing a trigger heapdump', () => {
@@ -586,66 +594,64 @@ describe('Replay debugger adapter variable handling - unit', () => {
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
 
-        expect(frameInfo.globals.size).to.eq(0);
+        expect(frameInfo.globals.size).toBe(0);
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(frameInfo.globals.size).to.eq(8);
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isbefore') as ApexVariableContainer).value).to.eq(
+        expect(frameInfo.globals.size).toBe(8);
+        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isbefore') as ApexVariableContainer).value).toBe(
           'false'
         );
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isdelete') as ApexVariableContainer).value).to.eq(
+        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isdelete') as ApexVariableContainer).value).toBe(
           'false'
         );
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isundelete') as ApexVariableContainer).value).to.eq(
+        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isundelete') as ApexVariableContainer).value).toBe(
           'false'
         );
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isupdate') as ApexVariableContainer).value).to.eq(
+        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isupdate') as ApexVariableContainer).value).toBe(
           'false'
         );
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isafter') as ApexVariableContainer).value).to.eq('true');
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isinsert') as ApexVariableContainer).value).to.eq(
-          'true'
-        );
+        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isafter') as ApexVariableContainer).value).toBe('true');
+        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isinsert') as ApexVariableContainer).value).toBe('true');
 
         const triggerNew = frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'new') as ApexVariableContainer;
-        expect(triggerNew.type).to.be.eq('List<Account>');
-        expect(triggerNew.variablesRef).to.be.greaterThan(0);
-        expect(triggerNew.variables.size).to.be.eq(3);
-        expect((triggerNew.variables.get('0') as ApexVariableContainer).ref).to.eq('0x5f163c72');
-        expect((triggerNew.variables.get('1') as ApexVariableContainer).ref).to.eq('0xf1fabe');
-        expect((triggerNew.variables.get('2') as ApexVariableContainer).ref).to.eq('0x76e9852b');
+        expect(triggerNew.type).toBe('List<Account>');
+        expect(triggerNew.variablesRef).toBeGreaterThan(0);
+        expect(triggerNew.variables.size).toBe(3);
+        expect((triggerNew.variables.get('0') as ApexVariableContainer).ref).toBe('0x5f163c72');
+        expect((triggerNew.variables.get('1') as ApexVariableContainer).ref).toBe('0xf1fabe');
+        expect((triggerNew.variables.get('2') as ApexVariableContainer).ref).toBe('0x76e9852b');
 
         const triggerNewmap = frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'newmap') as ApexVariableContainer;
-        expect(triggerNewmap.type).to.be.eq('Map<Id,Account>');
-        expect(triggerNewmap.variablesRef).to.be.greaterThan(0);
-        expect(triggerNewmap.variables.size).to.be.eq(3);
+        expect(triggerNewmap.type).toBe('Map<Id,Account>');
+        expect(triggerNewmap.variablesRef).toBeGreaterThan(0);
+        expect(triggerNewmap.variables.size).toBe(3);
 
         let tempKeyValPairApexVar = triggerNewmap.variables.get('key0_value0') as ApexVariableContainer;
-        expect(tempKeyValPairApexVar.name).to.be.eq("'001xx000003Dv3YAAS'");
+        expect(tempKeyValPairApexVar.name).toBe("'001xx000003Dv3YAAS'");
         let keyApexVar = tempKeyValPairApexVar.variables.get('key') as ApexVariableContainer;
-        expect(keyApexVar.type).to.eq('Id');
-        expect(keyApexVar.value).to.eq(tempKeyValPairApexVar.name);
+        expect(keyApexVar.type).toBe('Id');
+        expect(keyApexVar.value).toBe(tempKeyValPairApexVar.name);
         let valueApexVar = tempKeyValPairApexVar.variables.get('value') as ApexVariableContainer;
-        expect(valueApexVar.type).to.be.eq('Account');
-        expect(valueApexVar.ref).to.be.eq('0x5f163c72');
+        expect(valueApexVar.type).toBe('Account');
+        expect(valueApexVar.ref).toBe('0x5f163c72');
 
         tempKeyValPairApexVar = triggerNewmap.variables.get('key1_value1') as ApexVariableContainer;
-        expect(tempKeyValPairApexVar.name).to.be.eq("'001xx000003Dv3ZAAS'");
+        expect(tempKeyValPairApexVar.name).toBe("'001xx000003Dv3ZAAS'");
         keyApexVar = tempKeyValPairApexVar.variables.get('key') as ApexVariableContainer;
-        expect(keyApexVar.type).to.eq('Id');
-        expect(keyApexVar.value).to.eq(tempKeyValPairApexVar.name);
+        expect(keyApexVar.type).toBe('Id');
+        expect(keyApexVar.value).toBe(tempKeyValPairApexVar.name);
         valueApexVar = tempKeyValPairApexVar.variables.get('value') as ApexVariableContainer;
-        expect(valueApexVar.type).to.be.eq('Account');
-        expect(valueApexVar.ref).to.be.eq('0xf1fabe');
+        expect(valueApexVar.type).toBe('Account');
+        expect(valueApexVar.ref).toBe('0xf1fabe');
 
         tempKeyValPairApexVar = triggerNewmap.variables.get('key2_value2') as ApexVariableContainer;
-        expect(tempKeyValPairApexVar.name).to.be.eq("'001xx000003Dv3aAAC'");
+        expect(tempKeyValPairApexVar.name).toBe("'001xx000003Dv3aAAC'");
         keyApexVar = tempKeyValPairApexVar.variables.get('key') as ApexVariableContainer;
-        expect(keyApexVar.type).to.eq('Id');
-        expect(keyApexVar.value).to.eq(tempKeyValPairApexVar.name);
+        expect(keyApexVar.type).toBe('Id');
+        expect(keyApexVar.value).toBe(tempKeyValPairApexVar.name);
         valueApexVar = tempKeyValPairApexVar.variables.get('value') as ApexVariableContainer;
-        expect(valueApexVar.type).to.be.eq('Account');
-        expect(valueApexVar.ref).to.be.eq('0x76e9852b');
+        expect(valueApexVar.type).toBe('Account');
+        expect(valueApexVar.ref).toBe('0x76e9852b');
       });
     });
   });

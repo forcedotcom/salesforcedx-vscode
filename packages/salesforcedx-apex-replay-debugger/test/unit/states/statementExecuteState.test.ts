@@ -5,8 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock DebugSession.run to prevent it from executing during tests
+jest.mock('@vscode/debugadapter', () => ({
+  ...jest.requireActual('@vscode/debugadapter'),
+  DebugSession: {
+    ...jest.requireActual('@vscode/debugadapter').DebugSession,
+    run: jest.fn()
+  }
+}));
+
 import { StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
@@ -30,16 +38,16 @@ describe('Statement execute event', () => {
   it('Should not update frame without any frames', () => {
     const state = new StatementExecuteState(['1']);
 
-    expect(state.handle(context)).to.be.true;
-    expect(context.getFrames()).to.be.empty;
+    expect(state.handle(context)).toBe(true);
+    expect(context.getFrames()).toHaveLength(0);
   });
 
   it('Should update top frame', () => {
     context.getFrames().push({ name: 'foo' } as StackFrame);
     const state = new StatementExecuteState(['2']);
 
-    expect(state.handle(context)).to.be.true;
-    expect(context.getFrames()[0].line).to.equal(2);
+    expect(state.handle(context)).toBe(true);
+    expect(context.getFrames()[0].line).toBe(2);
   });
 
   it('Should update execute anonymous specific frame', () => {
@@ -47,7 +55,7 @@ describe('Statement execute event', () => {
     context.getExecAnonScriptMapping().set(2, 5);
     const state = new StatementExecuteState(['2']);
 
-    expect(state.handle(context)).to.be.true;
-    expect(context.getFrames()[0].line).to.equal(5);
+    expect(state.handle(context)).toBe(true);
+    expect(context.getFrames()[0].line).toBe(5);
   });
 });
