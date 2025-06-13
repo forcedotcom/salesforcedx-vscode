@@ -2,30 +2,25 @@
   "targetDefaults": {
     "compile": {
       "cache": true,
-      "dependsOn": [
-        "^compile"
-      ],
-      "outputs": [
-        "{projectRoot}/out"
+      "dependsOn": ["^compile"],
+      "outputs": ["{projectRoot}/out"],
+      "inputs": [
+        "default",
+        "^default",
+        "{projectRoot}/tsconfig.json",
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*"
       ]
     },
     "lint": {
       "cache": true,
-      "dependsOn": [
-        "^lint"
-      ],
-      "inputs": [
-        "{workspaceRoot}/eslint.config.mjs"
-      ]
+      "dependsOn": ["^lint"],
+      "inputs": ["{workspaceRoot}/eslint.config.mjs"]
     },
     "test:unit": {
       "cache": true,
-      "dependsOn": [
-        "^test:unit"
-      ],
-      "outputs": [
-        "{projectRoot}/coverage"
-      ]
+      "dependsOn": ["^test:unit"],
+      "outputs": ["{projectRoot}/coverage"]
     }
   }
 }
