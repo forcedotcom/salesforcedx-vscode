@@ -369,6 +369,7 @@ export const messages = {
   CompactLayout: 'Compact Layouts',
   ConnectedApp: 'Connected Apps',
   ContentAsset: 'Content Assets',
+  ContentTypeBundle: 'Content Type Bundles',
   ConvIntelligenceSignalRule: 'Conv Intelligence Signal Rules',
   ConversationChannelDefinition: 'Conversation Channel Definitions',
   ConversationMessageDefinition: 'Conversation Message Definitions',
