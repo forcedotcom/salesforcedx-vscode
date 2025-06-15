@@ -169,11 +169,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await prompt.confirm();
 
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /OpenAPI Document created for class: CaseManager\./,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
+      await verifyNotificationWithRetry(/OpenAPI Document created for class: CaseManager\./);
 
       // Verify the generated OAS doc is open in the Editor View
       await executeQuickPick('View: Open Last Editor in Group');
@@ -203,11 +199,9 @@ describe('Create OpenAPI v3 Specifications', () => {
     it('Revalidate the OAS doc', async () => {
       log(`${testSetup.testSuiteSuffixName} - Revalidate the OAS doc`);
       await executeQuickPick('SFDX: Validate OpenAPI Document (Beta)');
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Validated OpenAPI Document CaseManager.externalServiceRegistration-meta.xml successfully/,
-        Duration.TEN_MINUTES
+      await verifyNotificationWithRetry(
+        /Validated OpenAPI Document CaseManager.externalServiceRegistration-meta.xml successfully/
       );
-      expect(successNotificationWasFound).to.equal(true);
 
       const problems = await countProblemsInProblemsTab(2);
       expect(await problems[0].getLabel()).to.equal('CaseManager.externalServiceRegistration-meta.xml');
@@ -238,11 +232,9 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Click the Manual Merge button on the popup
       await clickButtonOnModalDialog('Manually merge with existing ESR');
 
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /A new OpenAPI Document class CaseManager_\d{8}_\d{6} is created for CaseManager\. Manually merge the two files using the diff editor\./,
-        Duration.TEN_MINUTES
+      await verifyNotificationWithRetry(
+        /A new OpenAPI Document class CaseManager_\d{8}_\d{6} is created for CaseManager\. Manually merge the two files using the diff editor\./
       );
-      expect(successNotificationWasFound).to.equal(true);
 
       // Verify the generated OAS doc and the diff editor are both open in the Editor View
       await executeQuickPick('View: Open First Editor in Group');
@@ -296,11 +288,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await prompt.confirm();
 
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /OpenAPI Document created for class: SimpleAccountResource\./,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
+      await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await executeQuickPick('View: Open Last Editor in Group');
@@ -348,11 +336,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       } else {
         await executeQuickPick('SFDX: Validate OpenAPI Document (Beta)');
       }
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /Validated OpenAPI Document SimpleAccountResource.yaml successfully/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
+      await verifyNotificationWithRetry(/Validated OpenAPI Document SimpleAccountResource.yaml successfully/);
 
       await countProblemsInProblemsTab(0);
     });
@@ -407,11 +391,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Click the Overwrite button on the popup
       await clickButtonOnModalDialog('Overwrite');
 
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /OpenAPI Document created for class: SimpleAccountResource\./,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
+      await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await executeQuickPick('View: Open Last Editor in Group');
@@ -476,11 +456,9 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Click the Manual Merge button on the popup
       await clickButtonOnModalDialog('Manually merge with existing ESR');
 
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
-        /A new OpenAPI Document class SimpleAccountResource_\d{8}_\d{6} is created for SimpleAccountResource\. Manually merge the two files using the diff editor\./,
-        Duration.TEN_MINUTES
+      await verifyNotificationWithRetry(
+        /A new OpenAPI Document class SimpleAccountResource_\d{8}_\d{6} is created for SimpleAccountResource\. Manually merge the two files using the diff editor\./
       );
-      expect(successNotificationWasFound).to.equal(true);
 
       // Verify the generated OAS doc and the diff editor are both open in the Editor View
       await executeQuickPick('View: Open First Editor in Group');
