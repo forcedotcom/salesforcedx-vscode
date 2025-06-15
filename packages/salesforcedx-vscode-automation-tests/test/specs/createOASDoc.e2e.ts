@@ -27,7 +27,6 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   executeQuickPick,
   reloadWindow,
-  notificationIsPresentWithTimeout,
   getWorkbench,
   getStatusBarItemWhichIncludes,
   getTextEditor,
