@@ -10,7 +10,6 @@ import * as cp from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
@@ -30,30 +29,29 @@ const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
 const runtimePath = path.join(os.homedir(), 'java_home', 'real', 'jdk', jdk);
 
 describe('Java Requirements Test', () => {
-  let sandbox: SinonSandbox;
-  let settingStub: SinonStub;
-  let execFileStub: SinonStub;
+  let getConfigMock: jest.Mock;
+  let execFileSpy: jest.SpyInstance;
+  let existsSyncSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    sandbox = createSandbox();
-    settingStub = sandbox.stub();
-    sandbox.stub(vscode.workspace, 'getConfiguration').withArgs().returns({
-      get: settingStub
-    });
-    sandbox.stub(fs, 'existsSync').resolves(true);
-    execFileStub = sandbox.stub(cp, 'execFile');
+    getConfigMock = jest.fn();
+    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+      get: getConfigMock,
+      update: jest.fn()
+    } as any);
+    execFileSpy = jest.spyOn(cp, 'execFile');
   });
 
   afterEach(() => {
-    sandbox.restore();
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
+    if (existsSyncSpy) existsSyncSpy.mockRestore();
   });
 
   // Unix-specific tests
   (process.platform !== 'win32' ? describe : describe.skip)('Unix-specific tests', () => {
     it('Should prevent local java runtime path', async () => {
       const localRuntime = path.join('.', 'java_home', 'dontackmebro');
-      settingStub.withArgs(JAVA_HOME_KEY).returns(localRuntime);
+      getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? localRuntime : undefined));
       let exceptionThrown = false;
       try {
         await resolveRequirements();
@@ -65,8 +63,9 @@ describe('Java Requirements Test', () => {
     });
 
     it('Should reject when Java binary is not executable', async () => {
-      settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-      sandbox.stub(fs.promises, 'access').rejects(new Error('Permission denied'));
+      getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
+      existsSyncSpy = jest.spyOn(fs, 'existsSync').mockImplementation((_path: fs.PathLike) => true);
+      jest.spyOn(fs.promises, 'access').mockRejectedValue(new Error('Permission denied'));
       try {
         await resolveRequirements();
         fail('Should have thrown when Java binary is not executable');
@@ -80,15 +79,22 @@ describe('Java Requirements Test', () => {
   // Cross-platform tests
   describe('Cross-platform tests', () => {
     it('Should allow valid java runtime path outside the project', async () => {
-      settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-      execFileStub.yields('', '', 'java.version = 11.0.0');
-      sandbox.stub(fs.promises, 'access').resolves();
+      getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
+      existsSyncSpy = jest.spyOn(fs, 'existsSync').mockImplementation((_path: fs.PathLike) => true);
+      execFileSpy.mockImplementation((...args) => {
+        const cb = args[args.length - 1];
+        cb('', '', 'java.version = 11.0.0');
+      });
+      jest.spyOn(fs.promises, 'access').mockResolvedValue(undefined);
       const requirements = await resolveRequirements();
       expect(requirements.java_home).toContain(jdk);
     });
 
     it('Should not support Java 8', async () => {
-      execFileStub.yields('', '', 'java.version = 1.8.0');
+      execFileSpy.mockImplementation((...args) => {
+        const cb = args[args.length - 1];
+        cb('', '', 'java.version = 1.8.0');
+      });
       try {
         await checkJavaVersion(path.join(os.homedir(), 'java_home'));
         fail('Should have thrown when the Java version is not supported');
@@ -98,7 +104,10 @@ describe('Java Requirements Test', () => {
     });
 
     it('Should support Java 11', async () => {
-      execFileStub.yields('', '', 'java.version = 11.0.0');
+      execFileSpy.mockImplementation((...args) => {
+        const cb = args[args.length - 1];
+        cb('', '', 'java.version = 11.0.0');
+      });
       try {
         const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
         expect(result).toBe(true);
@@ -108,7 +117,10 @@ describe('Java Requirements Test', () => {
     });
 
     it('Should support Java 17', async () => {
-      execFileStub.yields('', '', 'java.version = 17.2.3');
+      execFileSpy.mockImplementation((...args) => {
+        const cb = args[args.length - 1];
+        cb('', '', 'java.version = 17.2.3');
+      });
       try {
         const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
         expect(result).toBe(true);
@@ -118,7 +130,10 @@ describe('Java Requirements Test', () => {
     });
 
     it('Should support Java 21', async () => {
-      execFileStub.yields('', '', 'java.version = 21.0.0');
+      execFileSpy.mockImplementation((...args) => {
+        const cb = args[args.length - 1];
+        cb('', '', 'java.version = 21.0.0');
+      });
       try {
         const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
         expect(result).toBe(true);
@@ -128,7 +143,10 @@ describe('Java Requirements Test', () => {
     });
 
     it('Should support Java 23', async () => {
-      execFileStub.yields('', '', 'java.version = 23.0.0');
+      execFileSpy.mockImplementation((...args) => {
+        const cb = args[args.length - 1];
+        cb('', '', 'java.version = 23.0.0');
+      });
       try {
         const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
         expect(result).toBe(true);
@@ -138,7 +156,10 @@ describe('Java Requirements Test', () => {
     });
 
     it('Should reject java version check when execFile fails', async () => {
-      execFileStub.yields({ message: 'its broken' }, '', '');
+      execFileSpy.mockImplementation((...args) => {
+        const cb = args[args.length - 1];
+        cb({ message: 'its broken' }, '', '');
+      });
       try {
         await checkJavaVersion(path.join(os.homedir(), 'java_home'));
         fail('Should have thrown when the Java version is not supported');

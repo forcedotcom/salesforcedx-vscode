@@ -97,7 +97,7 @@ describe('Replay debugger adapter - integration', () => {
       addBreakpointsResponse = await dc.setBreakpointsRequest(createBreakpointsArgs(classBPath, classBValidLines));
       assertBreakpointsCreated(addBreakpointsResponse, 1, classBPath, classBValidLines);
 
-      dc.configurationDoneRequest({});
+      await dc.configurationDoneRequest({});
       // Verify stopped on the first line of debug log
       const stackTraceResponse = await dc.assertStoppedLocation('entry', {
         path: logFilePath,
@@ -160,7 +160,7 @@ describe('Replay debugger adapter - integration', () => {
       );
       assertBreakpointsCreated(addBreakpointsResponse, 1, classStaticVarsAPath, classStaticVarsAValidLines);
 
-      dc.configurationDoneRequest({});
+      await dc.configurationDoneRequest({});
 
       // Verify stopped on the first line of debug log
       const stackTraceResponse = await dc.assertStoppedLocation('entry', {

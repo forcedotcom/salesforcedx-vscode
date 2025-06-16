@@ -14,21 +14,20 @@ jest.mock('@vscode/debugadapter', () => ({
   }
 }));
 
-import * as sinon from 'sinon';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { LogEntryState } from '../../../src/states';
 
 describe('LogEntry event', () => {
-  let readLogFileStub: sinon.SinonStub;
+  let readLogFileStub: jest.SpyInstance;
 
   beforeEach(() => {
-    readLogFileStub = sinon.stub(LogContextUtil.prototype, 'readLogFile').returns(['line1', 'line2']);
+    readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
   });
 
   afterEach(() => {
-    readLogFileStub.restore();
+    readLogFileStub.mockRestore();
   });
 
   it('Should handle event', () => {

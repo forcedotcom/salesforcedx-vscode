@@ -16,13 +16,12 @@ jest.mock('@vscode/debugadapter', () => ({
 
 import { Source } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import * as sinon from 'sinon';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 
 describe('Debug console', () => {
-  let sendEventSpy: sinon.SinonSpy;
+  let sendEventSpy: jest.SpyInstance;
   let adapter: MockApexReplayDebug;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
@@ -84,25 +83,25 @@ describe('Debug console', () => {
   describe('Print', () => {
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
-      sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
+      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent');
     });
 
     afterEach(() => {
-      sendEventSpy.restore();
+      sendEventSpy.mockRestore();
     });
 
     it('Should not print is message is empty', () => {
       adapter.printToDebugConsole('');
 
-      expect(sendEventSpy.notCalled).toBe(true);
+      expect(sendEventSpy).not.toHaveBeenCalled();
     });
 
     it('Should send Output event', () => {
       const source = new Source(logFileName, encodeURI(`file://${logFilePath}`));
       adapter.printToDebugConsole('test', source, 5, 'stdout');
 
-      expect(sendEventSpy.calledOnce).toBe(true);
-      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
+      expect(sendEventSpy).toHaveBeenCalledTimes(1);
+      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.mock.calls[0][0];
       expect(outputEvent.body.output).toContain('test');
       expect(outputEvent.body.category).toBe('stdout');
       expect(outputEvent.body.line).toBe(5);
@@ -114,24 +113,24 @@ describe('Debug console', () => {
   describe('Warn', () => {
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
-      sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
+      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent');
     });
 
     afterEach(() => {
-      sendEventSpy.restore();
+      sendEventSpy.mockRestore();
     });
 
     it('Should not warn is message is empty', () => {
       adapter.warnToDebugConsole('');
 
-      expect(sendEventSpy.notCalled).toBe(true);
+      expect(sendEventSpy).not.toHaveBeenCalled();
     });
 
     it('Should send Output event', () => {
       adapter.warnToDebugConsole('test');
 
-      expect(sendEventSpy.calledOnce).toBe(true);
-      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
+      expect(sendEventSpy).toHaveBeenCalledTimes(1);
+      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.mock.calls[0][0];
       expect(outputEvent.body.output).toContain('test');
       expect(outputEvent.body.category).toBe('console');
     });
@@ -140,24 +139,24 @@ describe('Debug console', () => {
   describe('Error', () => {
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
-      sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
+      sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent');
     });
 
     afterEach(() => {
-      sendEventSpy.restore();
+      sendEventSpy.mockRestore();
     });
 
     it('Should not error is message is empty', () => {
       adapter.errorToDebugConsole('');
 
-      expect(sendEventSpy.notCalled).toBe(true);
+      expect(sendEventSpy).not.toHaveBeenCalled();
     });
 
     it('Should send Output event', () => {
       adapter.errorToDebugConsole('test');
 
-      expect(sendEventSpy.calledOnce).toBe(true);
-      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0).args[0];
+      expect(sendEventSpy).toHaveBeenCalledTimes(1);
+      const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.mock.calls[0][0];
       expect(outputEvent.body.output).toContain('test');
       expect(outputEvent.body.category).toBe('stderr');
     });

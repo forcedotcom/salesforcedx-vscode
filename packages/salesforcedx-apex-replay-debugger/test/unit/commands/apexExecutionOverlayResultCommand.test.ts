@@ -11,7 +11,6 @@ import {
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils';
 import { XHROptions, XHRResponse } from 'request-light';
-import * as sinon from 'sinon';
 import { ActionScriptEnum } from '../../../src/commands';
 import {
   ApexExecutionOverlayResultCommand,
@@ -37,7 +36,7 @@ describe('ApexExecutionOverlayResult basic class tests', () => {
 });
 
 describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionScript', () => {
-  let sendRequestSpy: sinon.SinonStub;
+  let sendRequestSpy: jest.SpyInstance;
   let overlayResultCommand: ApexExecutionOverlayResultCommand;
   const requestServiceInstanceUrl = 'https://www.salesforce.com';
   const heapdumpKey = '07nxx00000000BOAAY';
@@ -61,17 +60,15 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
   });
 
   afterEach(() => {
-    sendRequestSpy.restore();
+    sendRequestSpy.mockRestore();
   });
 
   it('ApexExecutionOverlayResultCommand GET REST call with parse-able heapdump success result', async () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
-    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
-      Promise.resolve({
-        status: 200,
-        responseText: responseSuccess
-      } as XHRResponse)
-    );
+    sendRequestSpy = jest.spyOn(RequestService.prototype, 'sendRequest').mockResolvedValue({
+      status: 200,
+      responseText: responseSuccess
+    } as XHRResponse);
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Get
     // The query string needs to be pulled from the overlayResultCommand since it contains the
@@ -84,8 +81,8 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).toEqual(true);
-    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
@@ -211,12 +208,10 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
 
   it('ApexExecutionOverlayResultCommand GET REST call with parse-able heapdump failure result', async () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
-    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
-      Promise.resolve({
-        status: 200,
-        responseText: responseFailure
-      } as XHRResponse)
-    );
+    sendRequestSpy = jest.spyOn(RequestService.prototype, 'sendRequest').mockResolvedValue({
+      status: 200,
+      responseText: responseFailure
+    } as XHRResponse);
 
     const expectedOptions: XHROptions = createExpectedXHROptions(
       undefined,
@@ -226,8 +221,8 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).toEqual(true);
-    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandFailure[];
 
@@ -238,7 +233,7 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
 });
 
 describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL results', () => {
-  let sendRequestSpy: sinon.SinonStub;
+  let sendRequestSpy: jest.SpyInstance;
   let overlayResultCommand: ApexExecutionOverlayResultCommand;
   const requestServiceInstanceUrl = 'https://www.salesforce.com';
   const heapdumpKey = '07nxx00000000BOAAY';
@@ -271,17 +266,15 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
   });
 
   afterEach(() => {
-    sendRequestSpy.restore();
+    sendRequestSpy.mockRestore();
   });
 
   it('ApexExecutionOverlayResultCommand GET REST call with SOQL ActionScript success result', async () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
-    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
-      Promise.resolve({
-        status: 200,
-        responseText: responseSuccessSOQL
-      } as XHRResponse)
-    );
+    sendRequestSpy = jest.spyOn(RequestService.prototype, 'sendRequest').mockResolvedValue({
+      status: 200,
+      responseText: responseSuccessSOQL
+    } as XHRResponse);
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Get
     // The query string needs to be pulled from the overlayResultCommand since it contains the
@@ -294,8 +287,8 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).toEqual(true);
-    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
@@ -383,12 +376,10 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
   it('ApexExecutionOverlayResultCommand GET REST call with SOQL ActionScript failure result', async () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
-    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
-      Promise.resolve({
-        status: 200,
-        responseText: reseponseErrorSOQL
-      } as XHRResponse)
-    );
+    sendRequestSpy = jest.spyOn(RequestService.prototype, 'sendRequest').mockResolvedValue({
+      status: 200,
+      responseText: reseponseErrorSOQL
+    } as XHRResponse);
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Get
     // The query string needs to be pulled from the overlayResultCommand since it contains the
@@ -401,8 +392,8 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).toEqual(true);
-    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
@@ -415,7 +406,7 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 });
 
 describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL results', () => {
-  let sendRequestSpy: sinon.SinonStub;
+  let sendRequestSpy: jest.SpyInstance;
   let overlayResultCommand: ApexExecutionOverlayResultCommand;
   const requestServiceInstanceUrl = 'https://www.salesforce.com';
   const heapdumpKey = '07nxx00000000BOAAY';
@@ -444,17 +435,15 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
   });
 
   afterEach(() => {
-    sendRequestSpy.restore();
+    sendRequestSpy.mockRestore();
   });
 
   it('ApexExecutionOverlayResultCommand GET REST call with Apex ActionScript success result', async () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
-    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
-      Promise.resolve({
-        status: 200,
-        responseText: responseSuccess
-      } as XHRResponse)
-    );
+    sendRequestSpy = jest.spyOn(RequestService.prototype, 'sendRequest').mockResolvedValue({
+      status: 200,
+      responseText: responseSuccess
+    } as XHRResponse);
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Get
     // The query string needs to be pulled from the overlayResultCommand since it contains the
@@ -467,8 +456,8 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).toEqual(true);
-    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
@@ -490,12 +479,10 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
   it('ApexExecutionOverlayResultCommand GET REST call with Apex ActionScript unhandled runtime exception', async () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
-    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
-      Promise.resolve({
-        status: 200,
-        responseText: reseponseFailureRuntimeException
-      } as XHRResponse)
-    );
+    sendRequestSpy = jest.spyOn(RequestService.prototype, 'sendRequest').mockResolvedValue({
+      status: 200,
+      responseText: reseponseFailureRuntimeException
+    } as XHRResponse);
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Get
     // The query string needs to be pulled from the overlayResultCommand since it contains the
@@ -508,8 +495,8 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).toEqual(true);
-    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 
@@ -531,12 +518,10 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
   it('ApexExecutionOverlayResultCommand GET REST call with Apex ActionScript compilation error', async () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
-    sendRequestSpy = sinon.stub(RequestService.prototype, 'sendRequest').returns(
-      Promise.resolve({
-        status: 200,
-        responseText: reseponseFailureCompilationError
-      } as XHRResponse)
-    );
+    sendRequestSpy = jest.spyOn(RequestService.prototype, 'sendRequest').mockResolvedValue({
+      status: 200,
+      responseText: reseponseFailureCompilationError
+    } as XHRResponse);
 
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Get
     // The query string needs to be pulled from the overlayResultCommand since it contains the
@@ -549,8 +534,8 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
 
     const returnString = await requestService.execute(overlayResultCommand, RestHttpMethodEnum.Get);
 
-    expect(sendRequestSpy.calledOnce).toEqual(true);
-    expect(sendRequestSpy.getCall(0).args[0]).toEqual(expectedOptions);
+    expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+    expect(sendRequestSpy).toHaveBeenCalledWith(expectedOptions);
 
     const response = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
 

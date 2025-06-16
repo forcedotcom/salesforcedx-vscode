@@ -16,10 +16,8 @@ jest.mock('@vscode/debugadapter', () => ({
 
 import { Source, StackFrame } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import * as sinon from 'sinon';
 import { EXTENT_TRIGGER_PREFIX } from '../../../src';
 import { ApexDebugStackFrameInfo } from '../../../src/adapter/ApexDebugStackFrameInfo';
-import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { ApexVariable } from '../../../src/adapter/ApexVariable';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer, VariableContainer } from '../../../src/adapter/VariableContainer';
@@ -38,7 +36,6 @@ import {
 
 describe('Replay debugger adapter variable handling - unit', () => {
   let adapter: MockApexReplayDebug;
-  let sendResponseSpy: sinon.SinonSpy;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const projectPath = undefined;
@@ -49,11 +46,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
   };
 
   describe('Scopes request', () => {
-    let hasHeapDumpForTopFrameStub: sinon.SinonStub;
-    let getFrameHandlerStub: sinon.SinonStub;
-    let copyStateForHeapDumpStub: sinon.SinonStub;
-    let replaceVariablesWithHeapDumpStub: sinon.SinonStub;
-    let resetLastSeenHeapDumpLogLineStub: sinon.SinonStub;
+    let hasHeapDumpForTopFrameStub: jest.SpyInstance;
+    let getFrameHandlerStub: jest.SpyInstance | undefined;
+    let copyStateForHeapDumpStub: jest.SpyInstance;
+    let replaceVariablesWithHeapDumpStub: jest.SpyInstance;
+    let resetLastSeenHeapDumpLogLineStub: jest.SpyInstance;
     let response: DebugProtocol.ScopesResponse;
     let args: DebugProtocol.ScopesArguments;
     let frameHandler: Handles<ApexDebugStackFrameInfo>;
@@ -68,44 +65,50 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameId: 0
       };
       frameHandler = new Handles<ApexDebugStackFrameInfo>();
-      sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
-      getFrameHandlerStub = sinon.stub(LogContext.prototype, 'getFrameHandler').returns(frameHandler);
     });
 
     afterEach(() => {
-      sendResponseSpy.restore();
-      hasHeapDumpForTopFrameStub.restore();
-      getFrameHandlerStub.restore();
+      if (hasHeapDumpForTopFrameStub) {
+        hasHeapDumpForTopFrameStub.mockRestore();
+      }
+      if (getFrameHandlerStub) {
+        getFrameHandlerStub.mockRestore();
+        getFrameHandlerStub = undefined;
+      }
       if (copyStateForHeapDumpStub) {
-        copyStateForHeapDumpStub.restore();
+        copyStateForHeapDumpStub.mockRestore();
       }
       if (replaceVariablesWithHeapDumpStub) {
-        replaceVariablesWithHeapDumpStub.restore();
+        replaceVariablesWithHeapDumpStub.mockRestore();
       }
       if (resetLastSeenHeapDumpLogLineStub) {
-        resetLastSeenHeapDumpLogLineStub.restore();
+        resetLastSeenHeapDumpLogLineStub.mockRestore();
       }
     });
 
     it('Should return no scopes for unknown frame', async () => {
-      hasHeapDumpForTopFrameStub = sinon.stub(LogContext.prototype, 'hasHeapDumpForTopFrame').returns(false);
+      hasHeapDumpForTopFrameStub = jest
+        .spyOn(LogContext.prototype, 'hasHeapDumpForTopFrame')
+        .mockReturnValue(undefined);
 
       await adapter.scopesRequest(response, args);
 
-      expect(sendResponseSpy.calledOnce).toBe(true);
-      const actualResponse: DebugProtocol.ScopesResponse = sendResponseSpy.getCall(0).args[0];
+      const actualResponse = response;
       expect(actualResponse.success).toBe(true);
       expect(actualResponse.body.scopes.length).toBe(0);
     });
 
     it('Should return local, static, and global scopes', async () => {
-      hasHeapDumpForTopFrameStub = sinon.stub(LogContext.prototype, 'hasHeapDumpForTopFrame').returns(false);
+      hasHeapDumpForTopFrameStub = jest
+        .spyOn(LogContext.prototype, 'hasHeapDumpForTopFrame')
+        .mockReturnValue(undefined);
       const id = frameHandler.create(new ApexDebugStackFrameInfo(0, 'foo'));
       args.frameId = id;
+      getFrameHandlerStub = jest.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
 
       await adapter.scopesRequest(response, args);
 
-      const actualResponse: DebugProtocol.ScopesResponse = sendResponseSpy.getCall(0).args[0];
+      const actualResponse = response;
       expect(actualResponse.success).toBe(true);
       expect(actualResponse.body.scopes.length).toBe(3);
       expect(actualResponse.body.scopes[0].name).toBe('Local');
@@ -114,22 +117,24 @@ describe('Replay debugger adapter variable handling - unit', () => {
     });
 
     it('Should replace with heapdump variables', async () => {
-      hasHeapDumpForTopFrameStub = sinon.stub(LogContext.prototype, 'hasHeapDumpForTopFrame').returns(true);
-      copyStateForHeapDumpStub = sinon.stub(LogContext.prototype, 'copyStateForHeapDump');
-      replaceVariablesWithHeapDumpStub = sinon.stub(HeapDumpService.prototype, 'replaceVariablesWithHeapDump');
-      resetLastSeenHeapDumpLogLineStub = sinon.stub(LogContext.prototype, 'resetLastSeenHeapDumpLogLine');
+      hasHeapDumpForTopFrameStub = jest
+        .spyOn(LogContext.prototype, 'hasHeapDumpForTopFrame')
+        .mockReturnValue('heapDumpId');
+      copyStateForHeapDumpStub = jest.spyOn(LogContext.prototype, 'copyStateForHeapDump');
+      replaceVariablesWithHeapDumpStub = jest.spyOn(HeapDumpService.prototype, 'replaceVariablesWithHeapDump');
+      resetLastSeenHeapDumpLogLineStub = jest.spyOn(LogContext.prototype, 'resetLastSeenHeapDumpLogLine');
 
       await adapter.scopesRequest(response, args);
 
-      expect(copyStateForHeapDumpStub.calledOnce).toBe(true);
-      expect(replaceVariablesWithHeapDumpStub.calledOnce).toBe(true);
-      expect(resetLastSeenHeapDumpLogLineStub.calledOnce).toBe(true);
+      expect(copyStateForHeapDumpStub).toHaveBeenCalledTimes(1);
+      expect(replaceVariablesWithHeapDumpStub).toHaveBeenCalledTimes(1);
+      expect(resetLastSeenHeapDumpLogLineStub).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Variables request', () => {
-    let getVariableHandlerStub: sinon.SinonStub;
-    let getAllVariablesStub: sinon.SinonStub;
+    let getVariableHandlerStub: jest.SpyInstance;
+    let getAllVariablesStub: jest.SpyInstance;
     let response: DebugProtocol.VariablesResponse;
     let args: DebugProtocol.VariablesArguments;
     let variableHandler: Handles<VariableContainer>;
@@ -144,38 +149,36 @@ describe('Replay debugger adapter variable handling - unit', () => {
         variablesReference: 0
       };
       variableHandler = new Handles<VariableContainer>();
-      sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
     });
 
     afterEach(() => {
-      sendResponseSpy.restore();
       if (getVariableHandlerStub) {
-        getVariableHandlerStub.restore();
+        getVariableHandlerStub.mockRestore();
       }
       if (getAllVariablesStub) {
-        getAllVariablesStub.restore();
+        getAllVariablesStub.mockRestore();
       }
     });
 
     it('Should return no variables for unknown scope', async () => {
       await adapter.variablesRequest(response, args);
 
-      const actualResponse: DebugProtocol.VariablesResponse = sendResponseSpy.getCall(0).args[0];
+      const actualResponse = response;
       expect(actualResponse.success).toBe(true);
       expect(actualResponse.body.variables.length).toBe(0);
     });
 
     it('Should collect variables from scope container', async () => {
-      getVariableHandlerStub = sinon.stub(LogContext.prototype, 'getVariableHandler').returns(variableHandler);
-      getAllVariablesStub = sinon
-        .stub(VariableContainer.prototype, 'getAllVariables')
-        .returns([new ApexVariable('foo', 'bar', 'String')]);
+      getVariableHandlerStub = jest.spyOn(LogContext.prototype, 'getVariableHandler').mockReturnValue(variableHandler);
+      getAllVariablesStub = jest
+        .spyOn(VariableContainer.prototype, 'getAllVariables')
+        .mockReturnValue([new ApexVariable('foo', 'bar', 'String')]);
       const id = variableHandler.create(new ApexVariableContainer('foo', 'bar', 'String'));
       args.variablesReference = id;
 
       await adapter.variablesRequest(response, args);
 
-      const actualResponse: DebugProtocol.VariablesResponse = sendResponseSpy.getCall(0).args[0];
+      const actualResponse = response;
       expect(actualResponse.success).toBe(true);
       expect(actualResponse.body.variables.length).toBe(1);
       const apexVariable = actualResponse.body.variables[0];
@@ -196,14 +199,14 @@ describe('Replay debugger adapter variable handling - unit', () => {
     });
 
     describe('replaceVariablesWithHeapDump', () => {
-      let getTopFrameStub: sinon.SinonStub;
-      let getHeapDumpForThisLocationStub: sinon.SinonStub;
-      let createStringRefsFromHeapdumpSpy: sinon.SinonSpy;
-      let updateLeafReferenceContainerSpy: sinon.SinonSpy;
-      let createVariableFromReferenceSpy: sinon.SinonSpy;
-      let getFrameHandlerStub: sinon.SinonStub;
-      let getRefsMapStub: sinon.SinonStub;
-      let getStaticVariablesClassMapStub: sinon.SinonStub;
+      let getTopFrameStub: jest.SpyInstance;
+      let getHeapDumpForThisLocationStub: jest.SpyInstance;
+      let createStringRefsFromHeapdumpSpy: jest.SpyInstance;
+      let updateLeafReferenceContainerSpy: jest.SpyInstance;
+      let createVariableFromReferenceSpy: jest.SpyInstance;
+      let getFrameHandlerStub: jest.SpyInstance;
+      let getRefsMapStub: jest.SpyInstance;
+      let getStaticVariablesClassMapStub: jest.SpyInstance;
       const topFrame: StackFrame = {
         id: 0,
         name: 'Foo.cls',
@@ -221,52 +224,52 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
         staticVariablesClassMap = new Map<string, Map<string, VariableContainer>>();
-        getTopFrameStub = sinon.stub(LogContext.prototype, 'getTopFrame').returns(topFrame);
+        getTopFrameStub = jest.spyOn(LogContext.prototype, 'getTopFrame').mockReturnValue(topFrame);
 
-        createStringRefsFromHeapdumpSpy = sinon.spy(HeapDumpService.prototype, 'createStringRefsFromHeapdump');
-        updateLeafReferenceContainerSpy = sinon.spy(HeapDumpService.prototype, 'updateLeafReferenceContainer');
-        createVariableFromReferenceSpy = sinon.spy(HeapDumpService.prototype, 'createVariableFromReference');
-        getFrameHandlerStub = sinon.stub(LogContext.prototype, 'getFrameHandler').returns(frameHandler);
-        getRefsMapStub = sinon.stub(LogContext.prototype, 'getRefsMap').returns(refsMap);
-        getStaticVariablesClassMapStub = sinon
-          .stub(LogContext.prototype, 'getStaticVariablesClassMap')
-          .returns(staticVariablesClassMap);
+        createStringRefsFromHeapdumpSpy = jest.spyOn(HeapDumpService.prototype, 'createStringRefsFromHeapdump');
+        updateLeafReferenceContainerSpy = jest.spyOn(HeapDumpService.prototype, 'updateLeafReferenceContainer');
+        createVariableFromReferenceSpy = jest.spyOn(HeapDumpService.prototype, 'createVariableFromReference');
+        getFrameHandlerStub = jest.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
+        getRefsMapStub = jest.spyOn(LogContext.prototype, 'getRefsMap').mockReturnValue(refsMap);
+        getStaticVariablesClassMapStub = jest
+          .spyOn(LogContext.prototype, 'getStaticVariablesClassMap')
+          .mockReturnValue(staticVariablesClassMap);
       });
 
       afterEach(() => {
-        getTopFrameStub.restore();
-        getHeapDumpForThisLocationStub.restore();
-        createStringRefsFromHeapdumpSpy.restore();
-        updateLeafReferenceContainerSpy.restore();
-        createVariableFromReferenceSpy.restore();
-        getFrameHandlerStub.restore();
-        getRefsMapStub.restore();
-        getStaticVariablesClassMapStub.restore();
+        getTopFrameStub.mockRestore();
+        getHeapDumpForThisLocationStub.mockRestore();
+        createStringRefsFromHeapdumpSpy.mockRestore();
+        updateLeafReferenceContainerSpy.mockRestore();
+        createVariableFromReferenceSpy.mockRestore();
+        getFrameHandlerStub.mockRestore();
+        getRefsMapStub.mockRestore();
+        getStaticVariablesClassMapStub.mockRestore();
       });
 
       it('Should not switch variables without a heapdump for current location', () => {
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(undefined);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(undefined);
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(createStringRefsFromHeapdumpSpy.called).toBe(false);
-        expect(updateLeafReferenceContainerSpy.called).toBe(false);
-        expect(createVariableFromReferenceSpy.called).toBe(false);
+        expect(createStringRefsFromHeapdumpSpy).toHaveBeenCalledTimes(0);
+        expect(updateLeafReferenceContainerSpy).toHaveBeenCalledTimes(0);
+        expect(createVariableFromReferenceSpy).toHaveBeenCalledTimes(0);
       });
 
       it('Should not switch variables without a successful heapdump for current location', () => {
         const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(heapdump);
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(createStringRefsFromHeapdumpSpy.called).toBe(false);
-        expect(updateLeafReferenceContainerSpy.called).toBe(false);
-        expect(createVariableFromReferenceSpy.called).toBe(false);
+        expect(createStringRefsFromHeapdumpSpy).toHaveBeenCalledTimes(0);
+        expect(updateLeafReferenceContainerSpy).toHaveBeenCalledTimes(0);
+        expect(createVariableFromReferenceSpy).toHaveBeenCalledTimes(0);
       });
 
       it('Should not create string refs if there are not any in the heapdump', () => {
@@ -295,16 +298,16 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       it('Should not follow reference chain when creating leaf variables except strings', () => {
         const heapdump = createHeapDumpWithNestedRefs();
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(heapdump);
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
         heapDumpService.replaceVariablesWithHeapDump();
-        expect(createStringRefsFromHeapdumpSpy.called).toBe(true);
-        expect(updateLeafReferenceContainerSpy.called).toBe(true);
-        expect(createVariableFromReferenceSpy.called).toBe(false);
+        expect(createStringRefsFromHeapdumpSpy).toHaveBeenCalledTimes(1);
+        expect(updateLeafReferenceContainerSpy).toHaveBeenCalledTimes(2);
+        expect(createVariableFromReferenceSpy).toHaveBeenCalledTimes(0);
         expect(refsMap.size).toBe(4);
 
         // NonStaticClassWithVariablesToInspect has an inner class of the same type.
@@ -342,9 +345,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       it('Should follow reference chain when creating instance variables from references', () => {
         const heapdump = createHeapDumpWithNestedRefs();
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(heapdump);
 
         const localRefVariable = new ApexVariableContainer('foo', '', 'NonStaticClassWithVariablesToInspect');
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
@@ -409,9 +412,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
             ]
           }
         } as ApexExecutionOverlayResultCommandSuccess);
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(heapdump);
         const nonRefVariable = new ApexVariableContainer('theInt', '2', 'Double');
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
         const id = frameHandler.create(frameInfo);
@@ -419,9 +422,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameInfo.locals.set(nonRefVariable.name, nonRefVariable);
 
         heapDumpService.replaceVariablesWithHeapDump();
-        expect(createStringRefsFromHeapdumpSpy.calledOnce).toBe(true);
-        expect(updateLeafReferenceContainerSpy.calledOnce).toBe(false);
-        expect(createVariableFromReferenceSpy.calledOnce).toBe(false);
+        expect(createStringRefsFromHeapdumpSpy).toHaveBeenCalledTimes(1);
+        expect(updateLeafReferenceContainerSpy).toHaveBeenCalledTimes(0);
+        expect(createVariableFromReferenceSpy).toHaveBeenCalledTimes(0);
         const updatedNonRefVariable = frameInfo.locals.get(nonRefVariable.name) as ApexVariableContainer;
         expect(updatedNonRefVariable.value).toBe('5');
       });
@@ -454,9 +457,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
             ]
           }
         } as ApexExecutionOverlayResultCommandSuccess);
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(heapdump);
         const nonRefVariable = new ApexVariableContainer('theInt', '2', 'Double');
         staticVariablesClassMap.set('Foo', new Map([['theInt', nonRefVariable]]));
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
@@ -465,18 +468,18 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameInfo.statics.set(nonRefVariable.name, nonRefVariable);
 
         heapDumpService.replaceVariablesWithHeapDump();
-        expect(createStringRefsFromHeapdumpSpy.calledOnce).toBe(true);
-        expect(updateLeafReferenceContainerSpy.calledOnce).toBe(false);
-        expect(createVariableFromReferenceSpy.calledOnce).toBe(false);
+        expect(createStringRefsFromHeapdumpSpy).toHaveBeenCalledTimes(1);
+        expect(updateLeafReferenceContainerSpy).toHaveBeenCalledTimes(0);
+        expect(createVariableFromReferenceSpy).toHaveBeenCalledTimes(0);
         const updatedNonRefVariable = frameInfo.statics.get(nonRefVariable.name) as ApexVariableContainer;
         expect(updatedNonRefVariable.value).toBe('5');
       });
 
       it('Should correctly deal with circular references and variable values', () => {
         const heapdump = createHeapDumpWithCircularRefs();
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(heapdump);
 
         const localRefVariable = new ApexVariableContainer('cf1', '', 'CircularReference', '0x717304ef');
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
@@ -509,13 +512,13 @@ describe('Replay debugger adapter variable handling - unit', () => {
     }); // Describe replaceVariablesWithHeapDump
 
     describe('heapDumpTriggerContextVariables', () => {
-      let getTopFrameStub: sinon.SinonStub;
-      let getHeapDumpForThisLocationStub: sinon.SinonStub;
-      let getFrameHandlerStub: sinon.SinonStub;
-      let getRefsMapStub: sinon.SinonStub;
-      let getStaticVariablesClassMapStub: sinon.SinonStub;
-      let isRunningApexTriggerStub: sinon.SinonStub;
-      let getVariableHandlerStub: sinon.SinonStub;
+      let getTopFrameStub: jest.SpyInstance;
+      let getHeapDumpForThisLocationStub: jest.SpyInstance;
+      let getFrameHandlerStub: jest.SpyInstance;
+      let getRefsMapStub: jest.SpyInstance;
+      let getStaticVariablesClassMapStub: jest.SpyInstance;
+      let isRunningApexTriggerStub: jest.SpyInstance;
+      let getVariableHandlerStub: jest.SpyInstance;
       let variableHandler: Handles<VariableContainer>;
 
       const topFrame: StackFrame = {
@@ -535,40 +538,42 @@ describe('Replay debugger adapter variable handling - unit', () => {
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
         staticVariablesClassMap = new Map<string, Map<string, VariableContainer>>();
-        getTopFrameStub = sinon.stub(LogContext.prototype, 'getTopFrame').returns(topFrame);
-        getFrameHandlerStub = sinon.stub(LogContext.prototype, 'getFrameHandler').returns(frameHandler);
-        getRefsMapStub = sinon.stub(LogContext.prototype, 'getRefsMap').returns(refsMap);
-        getStaticVariablesClassMapStub = sinon
-          .stub(LogContext.prototype, 'getStaticVariablesClassMap')
-          .returns(staticVariablesClassMap);
+        getTopFrameStub = jest.spyOn(LogContext.prototype, 'getTopFrame').mockReturnValue(topFrame);
+        getFrameHandlerStub = jest.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
+        getRefsMapStub = jest.spyOn(LogContext.prototype, 'getRefsMap').mockReturnValue(refsMap);
+        getStaticVariablesClassMapStub = jest
+          .spyOn(LogContext.prototype, 'getStaticVariablesClassMap')
+          .mockReturnValue(staticVariablesClassMap);
         variableHandler = new Handles<VariableContainer>();
-        isRunningApexTriggerStub = sinon.stub(LogContext.prototype, 'isRunningApexTrigger');
+        isRunningApexTriggerStub = jest.spyOn(LogContext.prototype, 'isRunningApexTrigger');
       });
 
       afterEach(() => {
-        getTopFrameStub.restore();
-        getHeapDumpForThisLocationStub.restore();
-        getFrameHandlerStub.restore();
-        getRefsMapStub.restore();
-        getStaticVariablesClassMapStub.restore();
+        getTopFrameStub.mockRestore();
+        getHeapDumpForThisLocationStub.mockRestore();
+        getFrameHandlerStub.mockRestore();
+        getRefsMapStub.mockRestore();
+        getStaticVariablesClassMapStub.mockRestore();
         if (isRunningApexTriggerStub) {
-          isRunningApexTriggerStub.restore();
+          isRunningApexTriggerStub.mockRestore();
         }
         if (getVariableHandlerStub) {
-          getVariableHandlerStub.restore();
+          getVariableHandlerStub.mockRestore();
         }
       });
 
       it('Should not create global trigger variables if not processing a trigger heapdump', () => {
         const heapdump = createHeapDumpResultForTriggers();
 
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(heapdump);
 
-        getVariableHandlerStub = sinon.stub(LogContext.prototype, 'getVariableHandler').returns(variableHandler);
+        getVariableHandlerStub = jest
+          .spyOn(LogContext.prototype, 'getVariableHandler')
+          .mockReturnValue(variableHandler);
 
-        isRunningApexTriggerStub.returns(false);
+        isRunningApexTriggerStub.mockReturnValue(false);
 
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
         const id = frameHandler.create(frameInfo);
@@ -582,13 +587,15 @@ describe('Replay debugger adapter variable handling - unit', () => {
       it('Should create trigger variables if processing a trigger heapdump', () => {
         const heapdump = createHeapDumpResultForTriggers();
 
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
+        getHeapDumpForThisLocationStub = jest
+          .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .mockReturnValue(heapdump);
 
-        getVariableHandlerStub = sinon.stub(LogContext.prototype, 'getVariableHandler').returns(variableHandler);
+        getVariableHandlerStub = jest
+          .spyOn(LogContext.prototype, 'getVariableHandler')
+          .mockReturnValue(variableHandler);
 
-        isRunningApexTriggerStub.returns(true);
+        isRunningApexTriggerStub.mockReturnValue(true);
 
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
         const id = frameHandler.create(frameInfo);

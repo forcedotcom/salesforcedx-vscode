@@ -15,17 +15,16 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { StackFrame } from '@vscode/debugadapter';
-import * as sinon from 'sinon';
 import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { ApexVariable } from '../../../src/adapter/ApexVariable';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { ApexVariableContainer } from '../../../src/adapter/VariableContainer';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState } from '../../../src/states';
 
 describe('Frame entry event', () => {
-  let getUriFromSignatureStub: sinon.SinonStub;
-  let getStaticMapStub: sinon.SinonStub;
+  let getUriFromSignatureStub: jest.SpyInstance;
+  let getStaticMapStub: jest.SpyInstance;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const uriFromSignature = 'file:///path/foo.cls';
@@ -34,19 +33,20 @@ describe('Frame entry event', () => {
     trace: true,
     projectPath: undefined
   };
-  let map: Map<string, Map<string, ApexVariable>>;
+  let map: Map<string, Map<string, ApexVariableContainer>>;
 
   beforeEach(() => {
-    map = new Map<string, Map<string, ApexVariable>>();
-    map.set('previousClass', new Map<string, ApexVariable>());
-    map.get('previousClass')!.set('var1', new ApexVariable('var1', '0', 'Integer'));
-    getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
-    getStaticMapStub = sinon.stub(LogContext.prototype, 'getStaticVariablesClassMap').returns(map);
+    const variableMap = new Map<string, ApexVariableContainer>();
+    variableMap.set('var1', new ApexVariableContainer('var1', '0', 'Integer'));
+    map = new Map<string, Map<string, ApexVariableContainer>>();
+    map.set('previousClass', variableMap);
+    getUriFromSignatureStub = jest.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
+    getStaticMapStub = jest.spyOn(LogContext.prototype, 'getStaticVariablesClassMap').mockReturnValue(map);
   });
 
   afterEach(() => {
-    getUriFromSignatureStub.restore();
-    getStaticMapStub.restore();
+    getUriFromSignatureStub.mockRestore();
+    getStaticMapStub.mockRestore();
   });
 
   it('Should add a frame', () => {

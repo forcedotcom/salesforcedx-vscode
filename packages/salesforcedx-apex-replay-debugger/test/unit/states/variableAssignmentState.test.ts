@@ -15,7 +15,6 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { StackFrame } from '@vscode/debugadapter';
-import * as sinon from 'sinon';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer, VariableContainer } from '../../../src/adapter/VariableContainer';
@@ -23,7 +22,7 @@ import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
 
 describe('Variable assignment event', () => {
-  let getUriFromSignatureStub: sinon.SinonStub;
+  let getUriFromSignatureStub: jest.SpyInstance;
   let context: LogContext;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
@@ -52,11 +51,13 @@ describe('Variable assignment event', () => {
       beginState.handle(context);
       beginState = new VariableBeginState(LOCAL_PRIMITIVE_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
-      getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
+      getUriFromSignatureStub = jest
+        .spyOn(LogContext.prototype, 'getUriFromSignature')
+        .mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
-      getUriFromSignatureStub.restore();
+      getUriFromSignatureStub.mockRestore();
     });
 
     it('Should assign static variable for class', () => {
@@ -110,11 +111,13 @@ describe('Variable assignment event', () => {
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(LOCAL_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
-      getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
+      getUriFromSignatureStub = jest
+        .spyOn(LogContext.prototype, 'getUriFromSignature')
+        .mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
-      getUriFromSignatureStub.restore();
+      getUriFromSignatureStub.mockRestore();
     });
 
     it('Should create a nested variable for an empty object', () => {
@@ -243,11 +246,13 @@ describe('Variable assignment event', () => {
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(STATIC_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
-      getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
+      getUriFromSignatureStub = jest
+        .spyOn(LogContext.prototype, 'getUriFromSignature')
+        .mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
-      getUriFromSignatureStub.restore();
+      getUriFromSignatureStub.mockRestore();
     });
 
     it('Should create a nested variable for an empty object', () => {
@@ -358,11 +363,13 @@ describe('Variable assignment event', () => {
       assignState.handle(context);
       assignState = new VariableAssignmentState(PARENT_VARIABLE_ASSIGNMENT2.split('|'));
       assignState.handle(context);
-      getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
+      getUriFromSignatureStub = jest
+        .spyOn(LogContext.prototype, 'getUriFromSignature')
+        .mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
-      getUriFromSignatureStub.restore();
+      getUriFromSignatureStub.mockRestore();
     });
 
     it('Should be able to pull reference values from json in assignments', () => {
@@ -427,11 +434,13 @@ describe('Variable assignment event', () => {
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
       expect(state.handle(context)).toBe(false);
-      getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
+      getUriFromSignatureStub = jest
+        .spyOn(LogContext.prototype, 'getUriFromSignature')
+        .mockReturnValue(uriFromSignature);
     });
 
     afterEach(() => {
-      getUriFromSignatureStub.restore();
+      getUriFromSignatureStub.mockRestore();
     });
 
     it('Should not created a nested ref for maps', () => {
