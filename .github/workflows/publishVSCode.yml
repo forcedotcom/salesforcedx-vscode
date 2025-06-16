@@ -63,7 +63,7 @@ jobs:
           token: ${{ secrets.IDEE_GH_TOKEN }}
       - uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - name: downloadExtensionsFromRelease
         run: |
           mkdir ./extensions

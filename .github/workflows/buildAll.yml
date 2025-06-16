@@ -19,7 +19,7 @@ jobs:
           ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
       - run: npm ci
       - run: npm --version
