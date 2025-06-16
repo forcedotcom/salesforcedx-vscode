@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DebugProtocol } from '@vscode/debugprotocol';
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { DebugProtocol } from '@vscode/debugprotocol';
 
 export class BreakpointUtil {
   private static instance: BreakpointUtil;

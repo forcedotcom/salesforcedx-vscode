@@ -15,9 +15,10 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { StackFrame } from '@vscode/debugadapter';
+import { strict as assert } from 'node:assert';
 import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { ApexVariable } from '../../../src/adapter/ApexVariable';
+import { ApexVariable } from '../../../src/adapter/apexVariable';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableBeginState } from '../../../src/states';
@@ -84,6 +85,7 @@ describe('Variable begin scope event', () => {
     expect(entryState.handle(context)).toBe(false);
     const id = context.getTopFrame()!.id;
     const frameInfo = context.getFrameHandler().get(id);
+    assert(frameInfo);
     expect(frameInfo.locals.size).toBe(1);
     expect(frameInfo.locals.has('localInteger')).toBe(true);
     expect(frameInfo.locals.get('localInteger')).toMatchObject({

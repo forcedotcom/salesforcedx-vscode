@@ -34,7 +34,7 @@ export default [
       '**/jest.config.js',
       '**/jest.integration.config.js',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
-      'packages/salesforcedx-apex-replay-debugger/src/**',
+      // 'packages/salesforcedx-apex-replay-debugger/src/**',
       'test-assets/**',
       'packages/salesforcedx-sobjects-faux-generator/scripts/**',
       'packages/salesforcedx-sobjects-faux-generator/coverage/**',

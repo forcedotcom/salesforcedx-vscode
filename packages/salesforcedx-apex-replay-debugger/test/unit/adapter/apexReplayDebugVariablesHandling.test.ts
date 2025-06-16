@@ -17,10 +17,10 @@ jest.mock('@vscode/debugadapter', () => ({
 import { Source, StackFrame } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { EXTENT_TRIGGER_PREFIX } from '../../../src';
-import { ApexDebugStackFrameInfo } from '../../../src/adapter/ApexDebugStackFrameInfo';
-import { ApexVariable } from '../../../src/adapter/ApexVariable';
+import { ApexDebugStackFrameInfo } from '../../../src/adapter/apexDebugStackFrameInfo';
+import { ApexVariable } from '../../../src/adapter/apexVariable';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { ApexVariableContainer, VariableContainer } from '../../../src/adapter/VariableContainer';
+import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
 import { ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
 import { ApexHeapDump, LogContext } from '../../../src/core';
 import { Handles } from '../../../src/core/handles';
@@ -137,7 +137,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
     let getAllVariablesStub: jest.SpyInstance;
     let response: DebugProtocol.VariablesResponse;
     let args: DebugProtocol.VariablesArguments;
-    let variableHandler: Handles<VariableContainer>;
+    let variableHandler: Handles<ApexVariableContainer>;
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
@@ -148,7 +148,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
       args = {
         variablesReference: 0
       };
-      variableHandler = new Handles<VariableContainer>();
+      variableHandler = new Handles<ApexVariableContainer>();
     });
 
     afterEach(() => {
@@ -171,7 +171,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
     it('Should collect variables from scope container', async () => {
       getVariableHandlerStub = jest.spyOn(LogContext.prototype, 'getVariableHandler').mockReturnValue(variableHandler);
       getAllVariablesStub = jest
-        .spyOn(VariableContainer.prototype, 'getAllVariables')
+        .spyOn(ApexVariableContainer.prototype, 'getAllVariables')
         .mockReturnValue([new ApexVariable('foo', 'bar', 'String')]);
       const id = variableHandler.create(new ApexVariableContainer('foo', 'bar', 'String'));
       args.variablesReference = id;
@@ -216,14 +216,14 @@ describe('Replay debugger adapter variable handling - unit', () => {
       };
       let frameHandler: Handles<ApexDebugStackFrameInfo>;
       let refsMap: Map<string, ApexVariableContainer>;
-      let staticVariablesClassMap: Map<string, Map<string, VariableContainer>>;
+      let staticVariablesClassMap: Map<string, Map<string, ApexVariableContainer>>;
 
       beforeEach(() => {
         adapter = new MockApexReplayDebug();
         adapter.setLogFile(launchRequestArgs);
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
-        staticVariablesClassMap = new Map<string, Map<string, VariableContainer>>();
+        staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
         getTopFrameStub = jest.spyOn(LogContext.prototype, 'getTopFrame').mockReturnValue(topFrame);
 
         createStringRefsFromHeapdumpSpy = jest.spyOn(HeapDumpService.prototype, 'createStringRefsFromHeapdump');
@@ -519,7 +519,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
       let getStaticVariablesClassMapStub: jest.SpyInstance;
       let isRunningApexTriggerStub: jest.SpyInstance;
       let getVariableHandlerStub: jest.SpyInstance;
-      let variableHandler: Handles<VariableContainer>;
+      let variableHandler: Handles<ApexVariableContainer>;
 
       const topFrame: StackFrame = {
         id: 0,
@@ -530,21 +530,21 @@ describe('Replay debugger adapter variable handling - unit', () => {
       };
       let frameHandler: Handles<ApexDebugStackFrameInfo>;
       let refsMap: Map<string, ApexVariableContainer>;
-      let staticVariablesClassMap: Map<string, Map<string, VariableContainer>>;
+      let staticVariablesClassMap: Map<string, Map<string, ApexVariableContainer>>;
 
       beforeEach(() => {
         adapter = new MockApexReplayDebug();
         adapter.setLogFile(launchRequestArgs);
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
-        staticVariablesClassMap = new Map<string, Map<string, VariableContainer>>();
+        staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
         getTopFrameStub = jest.spyOn(LogContext.prototype, 'getTopFrame').mockReturnValue(topFrame);
         getFrameHandlerStub = jest.spyOn(LogContext.prototype, 'getFrameHandler').mockReturnValue(frameHandler);
         getRefsMapStub = jest.spyOn(LogContext.prototype, 'getRefsMap').mockReturnValue(refsMap);
         getStaticVariablesClassMapStub = jest
           .spyOn(LogContext.prototype, 'getStaticVariablesClassMap')
           .mockReturnValue(staticVariablesClassMap);
-        variableHandler = new Handles<VariableContainer>();
+        variableHandler = new Handles<ApexVariableContainer>();
         isRunningApexTriggerStub = jest.spyOn(LogContext.prototype, 'isRunningApexTrigger');
       });
 

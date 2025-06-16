@@ -18,7 +18,7 @@ import { StackFrame } from '@vscode/debugadapter';
 import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { ApexVariableContainer } from '../../../src/adapter/VariableContainer';
+import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState } from '../../../src/states';
 

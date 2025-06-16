@@ -5,19 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename } from 'path';
 import { Source, StackFrame } from '@vscode/debugadapter';
+import { basename } from 'node:path';
 import { URI } from 'vscode-uri';
-import { ApexDebugStackFrameInfo } from '../adapter/ApexDebugStackFrameInfo';
+import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 import { FrameState } from './frameState';
 
 export class FrameEntryState extends FrameState implements DebugLogState {
-  constructor(fields: string[]) {
-    super(fields);
-  }
-
   public handle(logContext: LogContext): boolean {
     const sourceUri = logContext.getUriFromSignature(this._signature);
     const frame = new ApexDebugStackFrameInfo(logContext.getFrames().length, this._signature);

@@ -15,9 +15,10 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { StackFrame } from '@vscode/debugadapter';
+import { strict as assert } from 'node:assert';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { ApexVariableContainer, VariableContainer } from '../../../src/adapter/VariableContainer';
+import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
 
@@ -81,6 +82,7 @@ describe('Variable assignment event', () => {
       const state = new VariableAssignmentState(LOCAL_PRIMITIVE_VARIABLE_ASSIGNMENT.split('|'));
       // locals of frame should one entry
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       expect(frameInfo.locals.has('localInteger')).toBe(true);
       expect(frameInfo.locals.get('localInteger')).toMatchObject({
         name: 'localInteger',
@@ -123,6 +125,7 @@ describe('Variable assignment event', () => {
     it('Should create a nested variable for an empty object', () => {
       const state = new VariableAssignmentState(LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['this']));
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       expect(container.variablesRef).toBe(0);
@@ -138,6 +141,7 @@ describe('Variable assignment event', () => {
       let state = new VariableAssignmentState(LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       state = new VariableAssignmentState(LOCAL_NESTED_INNER_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
@@ -161,6 +165,7 @@ describe('Variable assignment event', () => {
       let state = new VariableAssignmentState(LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       state = new VariableAssignmentState(LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
@@ -180,6 +185,7 @@ describe('Variable assignment event', () => {
       let state = new VariableAssignmentState(LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       state = new VariableAssignmentState(LOCAL_NESTED_JSON_INNER_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
@@ -206,6 +212,7 @@ describe('Variable assignment event', () => {
       const state = new VariableAssignmentState(LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       state.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['this']));
       const container = frameInfo.locals.get('this') as ApexVariableContainer;
       const originalVariablesRef = container.variablesRef;
@@ -259,7 +266,7 @@ describe('Variable assignment event', () => {
       const state = new VariableAssignmentState(STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|'));
       const staticMapping = context.getStaticVariablesClassMap();
       expect(Array.from(staticMapping.keys())).toEqual(expect.arrayContaining(['NestedClass']));
-      const classMap = staticMapping.get('NestedClass') as Map<string, VariableContainer>;
+      const classMap = staticMapping.get('NestedClass') as Map<string, ApexVariableContainer>;
       expect(classMap.has('sa')).toBe(true);
       const container = classMap.get('sa')! as ApexVariableContainer;
       expect(container.variablesRef).toBe(0);
@@ -276,7 +283,7 @@ describe('Variable assignment event', () => {
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap();
       expect(Array.from(staticMapping.keys())).toEqual(expect.arrayContaining(['NestedClass']));
-      const classMap = staticMapping.get('NestedClass') as Map<string, VariableContainer>;
+      const classMap = staticMapping.get('NestedClass') as Map<string, ApexVariableContainer>;
       expect(classMap.has('sa')).toBe(true);
       const container = classMap.get('sa')! as ApexVariableContainer;
       expect(container.variablesRef).not.toBe(0);
@@ -297,7 +304,7 @@ describe('Variable assignment event', () => {
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap();
       expect(Array.from(staticMapping.keys())).toEqual(expect.arrayContaining(['NestedClass']));
-      const classMap = staticMapping.get('NestedClass') as Map<string, VariableContainer>;
+      const classMap = staticMapping.get('NestedClass') as Map<string, ApexVariableContainer>;
       expect(classMap.has('sa')).toBe(true);
       const container = classMap.get('sa')! as ApexVariableContainer;
       expect(container.variablesRef).not.toBe(0);
@@ -324,7 +331,7 @@ describe('Variable assignment event', () => {
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap();
       expect(Array.from(staticMapping.keys())).toEqual(expect.arrayContaining(['NestedClass']));
-      const classMap = staticMapping.get('NestedClass') as Map<string, VariableContainer>;
+      const classMap = staticMapping.get('NestedClass') as Map<string, ApexVariableContainer>;
       expect(Array.from(classMap.keys())).toEqual(expect.arrayContaining(['staticAcc1', 'staticAcc2']));
       let acc1Container = classMap.get('staticAcc1')! as ApexVariableContainer;
       let acc2Container = classMap.get('staticAcc2')! as ApexVariableContainer;
@@ -449,6 +456,7 @@ describe('Variable assignment event', () => {
       const assign = new VariableAssignmentState(MAP_ASSIGNMENT.split('|'));
       assign.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['amap']));
       const container = frameInfo.locals.get('amap') as ApexVariableContainer;
       expect(container.value).toBe(MAP_VALUE);
@@ -462,6 +470,7 @@ describe('Variable assignment event', () => {
       const assign = new VariableAssignmentState(LIST_ASSIGNMENT.split('|'));
       assign.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['alist']));
       const container = frameInfo.locals.get('alist') as ApexVariableContainer;
       expect(container.value).toBe(LIST_VALUE);
@@ -475,6 +484,7 @@ describe('Variable assignment event', () => {
       const assign = new VariableAssignmentState(SET_ASSIGNMENT.split('|'));
       assign.handle(context);
       const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
       expect(Array.from(frameInfo.locals.keys())).toEqual(expect.arrayContaining(['aset']));
       const container = frameInfo.locals.get('aset') as ApexVariableContainer;
       expect(container.value).toBe(SET_VALUE);

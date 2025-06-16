@@ -10,19 +10,12 @@ import { DebugLogState } from './debugLogState';
 import { FrameState } from './frameState';
 
 export class FrameExitState extends FrameState implements DebugLogState {
-  constructor(fields: string[]) {
-    super(fields);
-  }
-
   public handle(logContext: LogContext): boolean {
     while (logContext.hasFrames()) {
       const topFrame = logContext.getTopFrame();
       if (topFrame) {
         logContext.getFrames().pop();
-        if (
-          topFrame.name === this._frameName ||
-          topFrame.name.startsWith(this._frameName)
-        ) {
+        if (topFrame.name === this._frameName || topFrame.name.startsWith(this._frameName)) {
           break;
         }
       }

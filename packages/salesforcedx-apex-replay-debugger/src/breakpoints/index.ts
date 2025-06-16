@@ -7,4 +7,5 @@
 
 export { BreakpointUtil } from './breakpointUtil';
 import { BreakpointUtil } from './breakpointUtil';
+
 export const breakpointUtil = BreakpointUtil.getInstance();

@@ -6,11 +6,12 @@
  */
 
 import { OrgDisplay, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
-import * as path from 'path';
 import { StackFrame } from '@vscode/debugadapter';
+import * as path from 'node:path';
+import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
-import { ApexDebugStackFrameInfo } from '../adapter/ApexDebugStackFrameInfo';
 import { LaunchRequestArguments } from '../adapter/types';
+import { ApexVariableContainer } from '../adapter/variableContainer';
 import { breakpointUtil } from '../breakpoints';
 import {
   ApexExecutionOverlayResultCommand,
@@ -52,7 +53,6 @@ import {
 import { Handles } from './handles';
 import { ApexHeapDump } from './heapDump';
 import { LogContextUtil } from './logContextUtil';
-import { ApexVariableContainer, VariableContainer } from '../adapter/VariableContainer';
 
 export class LogContext {
   private readonly util = new LogContextUtil();
@@ -168,32 +168,33 @@ export class LogContext {
     this.backupRefsMap = new Map<string, ApexVariableContainer>();
     this.backupVariableHandles = new Handles<ApexVariableContainer>();
     this.cloneStaticVariablesClassMap();
-    for (const backupFrame of this.backupStackFrameInfos) {
-      const frameInfo = this.backupFrameHandles.get(backupFrame.id);
-      this.copyVariableContainers(frameInfo.locals);
-      this.copyVariableContainers(frameInfo.statics);
-    }
+    this.backupStackFrameInfos
+      .map(backup => this.backupFrameHandles.get(backup.id))
+      .filter(frameInfo => frameInfo !== undefined)
+      .map(frameInfo => {
+        this.copyVariableContainers(frameInfo.locals);
+        this.copyVariableContainers(frameInfo.statics);
+      });
   }
 
-  private copyVariableContainers(variables: Map<string, VariableContainer>) {
-    variables.forEach((value, key) => {
-      const variableContainer = value as ApexVariableContainer;
-      if (variableContainer.ref) {
+  private copyVariableContainers(variables: Map<string, ApexVariableContainer>) {
+    Array.from(variables.values())
+      .filter(apexContainerHasRef)
+      .map(variableContainer => {
         this.backupRefsMap.set(variableContainer.ref, variableContainer);
         const newRef = this.backupVariableHandles.create(variableContainer);
         variableContainer.variablesRef = newRef;
         this.copyVariableContainers(variableContainer.variables);
-      }
-    });
+      });
   }
 
   private cloneStaticVariablesClassMap() {
     this.backupStaticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
     this.staticVariablesClassMap.forEach((value, key) => {
-      const varMap = value as Map<string, ApexVariableContainer>;
+      const varMap = value;
       const newMap = new Map<string, ApexVariableContainer>();
       varMap.forEach((innerValue, innerKey) => {
-        const variable = innerValue as ApexVariableContainer;
+        const variable = innerValue;
         newMap.set(innerKey, variable.copy());
       });
       this.backupStaticVariablesClassMap.set(key, newMap);
@@ -253,10 +254,12 @@ export class LogContext {
           }
         );
         if (returnString) {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           heapDump.setOverlaySuccessResult(JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess);
         } else if (errorString) {
           try {
             success = false;
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
             const error = JSON.parse(errorString) as ApexExecutionOverlayResultCommandFailure[];
             const errorMessage = nls.localize(
               'heap_dump_error',
@@ -273,6 +276,7 @@ export class LogContext {
       }
     } catch (error) {
       success = false;
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const result = JSON.parse(error) as OrgInfoError;
       const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
       this.session.errorToDebugConsole(errorMessage);
@@ -314,7 +318,7 @@ export class LogContext {
     return this.refsMap;
   }
 
-  public getStaticVariablesClassMap(): Map<string, Map<string, VariableContainer>> {
+  public getStaticVariablesClassMap(): Map<string, Map<string, ApexVariableContainer>> {
     return this.staticVariablesClassMap;
   }
 
@@ -322,7 +326,7 @@ export class LogContext {
     return this.frameHandles;
   }
 
-  public getVariableHandler(): Handles<VariableContainer> {
+  public getVariableHandler(): Handles<ApexVariableContainer> {
     return this.variableHandles;
   }
 
@@ -453,3 +457,6 @@ export class LogContext {
     return new NoOpState();
   }
 }
+
+const apexContainerHasRef = (obj: ApexVariableContainer): obj is ApexVariableContainer & { ref: string } =>
+  obj instanceof ApexVariableContainer && typeof obj.ref === 'string';

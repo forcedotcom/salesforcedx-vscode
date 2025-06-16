@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'os';
 import {
   DebugSession,
   Event,
@@ -21,13 +20,14 @@ import {
   Thread
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
+import { EOL } from 'node:os';
 import { breakpointUtil } from '../breakpoints';
 import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
 import { TraceCategory, Step, LaunchRequestArguments } from './types';
-import { ScopeContainer } from './VariableContainer';
+import { ScopeContainer } from './variableContainer';
 
 const TRACE_ALL = 'all';
 const TRACE_CATEGORY_PROTOCOL = 'protocol';
@@ -180,6 +180,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
     } else {
       // Set breakpoints first, then try to continue to the next breakpoint
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       this.continueRequest({} as DebugProtocol.ContinueResponse, {
         threadId: ApexReplayDebug.THREAD_ID
       });

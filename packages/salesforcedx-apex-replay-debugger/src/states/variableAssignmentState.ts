@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexVariableContainer, VariableContainer } from '../adapter/VariableContainer';
+import { ApexVariableContainer } from '../adapter/variableContainer';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
@@ -32,19 +32,19 @@ export class VariableAssignmentState implements DebugLogState {
 
       const refMap = logContext.getRefsMap();
       let container: ApexVariableContainer | undefined;
-      let map: Map<string, VariableContainer> | undefined;
+      let map: Map<string, ApexVariableContainer> | undefined;
       let isNested = false;
 
       // Grab the a top level container from statics or locals if it exists
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
-        container = map.get(varName)! as ApexVariableContainer;
+        container = map.get(varName)!;
         // If the className is 'this' that means the variable being split was
         // this.<something>. We need to check the className for 'this' otherwise
         // a propery on 'this' would get incorrectly processed as a local variable.
-      } else if (className !== 'this' && frameInfo.locals.has(varName)) {
+      } else if (className !== 'this' && frameInfo?.locals.has(varName)) {
         map = frameInfo.locals;
-        container = map.get(varName) as ApexVariableContainer;
+        container = map.get(varName);
         // if the variable we're given is a child variable, then it will come in the format of this.varName
       } else if (name.indexOf('.') !== -1) {
         isNested = true;
@@ -69,12 +69,12 @@ export class VariableAssignmentState implements DebugLogState {
           } else {
             // if it's not nested then we check if the value is a reference
             if (refMap.has(value)) {
-              const pulledRef = refMap.get(value) as ApexVariableContainer;
+              const pulledRef = refMap.get(value)!;
               const tmpContainer = this.copyReferenceContainer(pulledRef, varName, logContext);
               refContainer.variables.set(varName, tmpContainer);
               // if not a reference, update the variable value, creating a container if needed
             } else if (refContainer.variables.has(varName)) {
-              const varContainer = refContainer.variables.get(varName) as ApexVariableContainer;
+              const varContainer = refContainer.variables.get(varName)!;
               varContainer.value = value;
             } else {
               refContainer.variables.set(varName, new ApexVariableContainer(varName, value, ''));
@@ -142,7 +142,7 @@ export class VariableAssignmentState implements DebugLogState {
           container.variables.set(key, new ApexVariableContainer(key, varValue, ''));
         }
       });
-    } catch (e) {
+    } catch {
       container.value = value;
       container.variablesRef = 0;
       container.variables.clear();
