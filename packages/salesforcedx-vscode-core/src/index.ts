@@ -10,7 +10,6 @@ import {
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
-  TraceFlags,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -66,6 +65,7 @@ import {
   sfProjectGenerate,
   sourceDiff,
   sourceFolderDiff,
+  startApexDebugLogging,
   taskStop,
   turnOffLogging,
   viewAllChanges,
@@ -76,7 +76,7 @@ import {
 } from './commands';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
-import { turnOnLogging } from './commands/startApexDebugLogging';
+import { getUserId } from './commands/startApexDebugLogging';
 import {
   FlagParameter,
   SelectFileName,
@@ -88,10 +88,10 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, TRACE_FLAG_EXPIRATION_KEY } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, showDemoMode, showTraceFlagExpiration } from './decorators';
+import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -217,13 +217,12 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger);
 
-  const startApexDebugLoggingCmd = vscode.commands.registerCommand('sf.start.apex.debug.logging', () =>
-    turnOnLogging(extensionContext)
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sf.start.apex.debug.logging',
+    startApexDebugLogging
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', () =>
-    turnOffLogging(extensionContext)
-  );
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
@@ -461,6 +460,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const api: any = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
+    getUserId,
     isCLIInstalled,
     notificationService,
     OrgAuthInfo,
@@ -499,23 +499,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
-
-  // Delete expired TraceFlags for the current user
-  const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-
-  const userId = await traceFlags.getUserIdOrThrow();
-
-  const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
-  if (expiredTraceFlagExists) {
-    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
-  }
-
-  // Apex Replay Debugger Expiration Status Bar Entry
-  const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
-  if (expirationDate) {
-    showTraceFlagExpiration(new Date(expirationDate));
-  }
-
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
   return api;
@@ -551,6 +534,9 @@ export const deactivate = async (): Promise<void> => {
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
+
+  disposeTraceFlagExpiration();
+  return turnOffLogging();
 };
 
 const handleTheUnhandled = (): void => {
