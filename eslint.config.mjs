@@ -36,12 +36,7 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       // 'packages/salesforcedx-apex-replay-debugger/src/**',
       'test-assets/**',
-      'packages/salesforcedx-sobjects-faux-generator/scripts/**',
-      'packages/salesforcedx-sobjects-faux-generator/coverage/**',
-      'packages/salesforcedx-vscode-soql/test/vscode-integration',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
-      'packages/salesforcedx-vscode-lwc/test/vscode-integration',
-      'packages/salesforcedx-vscode-core/test/vscode-integration/**',
       'scripts/installVSIXFromBranch.ts',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts'

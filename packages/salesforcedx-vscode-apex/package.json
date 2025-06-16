@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.0.0",
+  "version": "64.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,8 +28,8 @@
   "dependencies": {
     "@salesforce/apex-node-bundle": "^8.1.26",
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/salesforcedx-utils": "64.0.0",
-    "@salesforce/salesforcedx-utils-vscode": "64.0.0",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.20.0",
     "@stoplight/spectral-functions": "1.9.3",
@@ -45,7 +45,7 @@
     "yaml": "2.6.0"
   },
   "devDependencies": {
-    "salesforcedx-vscode-core": "64.0.0",
+    "salesforcedx-vscode-core": "*",
     "@salesforce/core": "^8.12.0",
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
@@ -67,7 +67,7 @@
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && shx mkdir -p out && shx cp jars/apex-jorje-lsp.jar out/",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
