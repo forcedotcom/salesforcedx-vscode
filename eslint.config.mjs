@@ -34,7 +34,6 @@ export default [
       '**/jest.config.js',
       '**/jest.integration.config.js',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
-      // 'packages/salesforcedx-apex-replay-debugger/src/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'scripts/installVSIXFromBranch.ts',
