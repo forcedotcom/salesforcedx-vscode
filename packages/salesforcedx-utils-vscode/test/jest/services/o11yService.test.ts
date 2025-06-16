@@ -44,11 +44,17 @@ describe('O11yService', () => {
     await o11yService.initialize('test-extension', 'http://test-endpoint');
 
     expect(o11yService.o11yUploadEndpoint).toBe('http://test-endpoint');
-    expect(mockModules.getInstrumentation).toHaveBeenCalledWith('test-extension-instrumentation');
+    expect(mockModules.getInstrumentation).toHaveBeenCalledWith('salesforce-vscode-extensions-instrumentation');
     expect(mockModules.registerInstrumentedApp).toHaveBeenCalled();
   });
 
   test('should handle initialization failure', async () => {
+    // Reset shared resources to ensure initialization actually happens
+    (O11yService as any).sharedInstrApp = null;
+    (O11yService as any).sharedO11yModules = null;
+    (O11yService as any).sharedInstrumentation = null;
+    (O11yService as any).sharedProtoEncoderFunc = null;
+
     (loadO11yModules as jest.Mock).mockRejectedValue(new Error('Failed to load modules'));
 
     await expect(o11yService.initialize('test-extension', 'http://test-endpoint')).rejects.toThrow(
@@ -56,14 +62,32 @@ describe('O11yService', () => {
     );
   });
 
-  test('should log events correctly', () => {
+  test('should log events correctly', async () => {
     const logMock = jest.fn();
+
+    // First initialize the service to set extension name and endpoint
+    const mockModules = {
+      o11yClientVersion: '1.0.0',
+      o11ySchemaVersion: '1.0.0',
+      getInstrumentation: jest.fn().mockReturnValue({ log: logMock }),
+      registerInstrumentedApp: jest
+        .fn()
+        .mockReturnValue({ registerLogCollector: jest.fn(), registerMetricsCollector: jest.fn() }),
+      ConsoleCollector: jest.fn(),
+      a4d_instrumentation: {},
+      simpleCollectorModule: { default: { SimpleCollector: jest.fn() } },
+      collectorsModule: { default: { encodeCoreEnvelopeContentsRaw: jest.fn() } }
+    };
+
+    (loadO11yModules as jest.Mock).mockResolvedValue(mockModules);
+    await o11yService.initialize('test-extension', 'http://test-endpoint');
+
     o11yService.instrumentation = { log: logMock } as any;
     o11yService.a4dO11ySchema = {};
 
     o11yService.logEvent({ key: 'value' });
 
-    expect(logMock).toHaveBeenCalledWith({}, { message: '{"key":"value"}' });
+    expect(logMock).toHaveBeenCalledWith({}, { message: '{"key":"value","extensionName":"test-extension","extensionEndpoint":"http://test-endpoint"}' });
   });
 
   test('should not log event if instrumentation is not initialized', () => {
@@ -83,8 +107,8 @@ describe('O11yService', () => {
       getRawContentsOfCoreEnvelope: jest.fn().mockReturnValue({})
     };
 
-    o11yService.protoEncoderFunc = mockProtoEncoder;
-    o11yService._instrApp = { simpleCollector: mockSimpleCollector } as any;
+    (O11yService as any).sharedProtoEncoderFunc = mockProtoEncoder;
+    (O11yService as any).sharedInstrApp = { simpleCollector: mockSimpleCollector };
     jest.spyOn(o11yService, 'uploadToFalconAsync').mockResolvedValue({} as Response);
 
     await o11yService.upload();
@@ -96,7 +120,7 @@ describe('O11yService', () => {
   test('should not upload if simpleCollector has no data', async () => {
     const mockSimpleCollector = { hasData: false };
 
-    o11yService._instrApp = { simpleCollector: mockSimpleCollector } as any;
+    (O11yService as any).sharedInstrApp = { simpleCollector: mockSimpleCollector };
 
     await o11yService.upload();
 
@@ -106,8 +130,8 @@ describe('O11yService', () => {
   test('should handle missing protoEncoderFunc during upload', async () => {
     o11yService = O11yService.getInstance('test-extension');
 
-    // Simulating a missing protoEncoderFunc
-    o11yService.protoEncoderFunc = null;
+    // Simulating a missing sharedProtoEncoderFunc
+    (O11yService as any).sharedProtoEncoderFunc = null;
 
     // Call upload but expect no rejection (since we now handle missing protoEncoderFunc safely)
     await expect(o11yService.upload()).resolves.toBeUndefined();
