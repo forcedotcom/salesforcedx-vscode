@@ -101,7 +101,7 @@ jobs:
             echo "SF_CLI_VERSION: $SF_CLI_VERSION"
 
             # Use shell-specific commands for OS check
-            bash -c '
+            SF_CLI_VERSION="$SF_CLI_VERSION" bash -c '
               case "${{ matrix.os }}" in
                 "windows-latest")
                   powershell -Command "
