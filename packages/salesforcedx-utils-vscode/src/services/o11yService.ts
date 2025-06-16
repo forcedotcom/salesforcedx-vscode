@@ -37,16 +37,16 @@ export class O11yService {
   a4dO11ySchema: unknown;
   readonly environment: Record<string, string> = {};
   private o11yModules: Awaited<ReturnType<typeof loadO11yModules>> | null = null;
-  private static instance: O11yService | null = null;
+  private static instances: Map<string, O11yService> = new Map();
 
   private constructor() {}
 
-  public static getInstance(): O11yService {
-    if (!O11yService.instance) {
+  public static getInstance(extensionId: string): O11yService {
+    if (!O11yService.instances.has(extensionId)) {
       const instance = new O11yService();
-      O11yService.instance = instance;
+      O11yService.instances.set(extensionId, instance);
     }
-    return O11yService.instance;
+    return O11yService.instances.get(extensionId)!;
   }
 
   async initialize(extensionName: string, o11yUploadEndpoint: string) {

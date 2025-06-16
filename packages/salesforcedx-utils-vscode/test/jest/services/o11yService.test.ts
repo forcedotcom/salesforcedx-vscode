@@ -15,13 +15,13 @@ describe('O11yService', () => {
   let o11yService: O11yService;
 
   beforeEach(() => {
-    o11yService = O11yService.getInstance();
+    o11yService = O11yService.getInstance('test-extension');
     jest.clearAllMocks();
   });
 
   test('should return the same instance when getInstance is called multiple times', () => {
-    const instance1 = O11yService.getInstance();
-    const instance2 = O11yService.getInstance();
+    const instance1 = O11yService.getInstance('test-extension');
+    const instance2 = O11yService.getInstance('test-extension');
     expect(instance1).toBe(instance2);
   });
 
@@ -104,7 +104,7 @@ describe('O11yService', () => {
   });
 
   test('should handle missing protoEncoderFunc during upload', async () => {
-    o11yService = O11yService.getInstance();
+    o11yService = O11yService.getInstance('test-extension');
 
     // Simulating a missing protoEncoderFunc
     o11yService.protoEncoderFunc = null;
