@@ -97,11 +97,13 @@ jobs:
             set -e
             sf version
             SF_CLI_VERSION=$(sf version)
+            export SF_CLI_VERSION
 
             echo "SF_CLI_VERSION: $SF_CLI_VERSION"
 
             # Use shell-specific commands for OS check
-            SF_CLI_VERSION="$SF_CLI_VERSION" bash -c '
+            bash -c '
+              echo "Inside bash -c, SF_CLI_VERSION: $SF_CLI_VERSION"
               case "${{ matrix.os }}" in
                 "windows-latest")
                   powershell -Command "
@@ -116,7 +118,10 @@ jobs:
                   "
                   ;;
                 *)
-                  if [ "$(echo $SF_CLI_VERSION | grep -c "@salesforce/cli/")" -gt 0 ]; then
+                  echo "Checking CLI version: $SF_CLI_VERSION"
+                  grep_result=$(echo "$SF_CLI_VERSION" | grep -c "@salesforce/cli/" || echo "0")
+                  echo "Grep result: $grep_result"
+                  if [ "$grep_result" -gt 0 ]; then
                     echo "@salesforce/cli installed -" $SF_CLI_VERSION
                   else
                     echo "The @salesforce/cli installation cannot be verified"
