@@ -40,6 +40,13 @@ describe('SObjects Definitions', () => {
     projectName = testSetup.tempProjectName;
 
     log(`${testSetup.testSuiteSuffixName} - calling createCustomObjects()`);
+
+    // update testSetup.testDataFolderPath to be the path to the salesforcedx-vscode-automation-tests package
+    testSetup.testDataFolderPath = testSetup.tempFolderPath.replace(
+      'e2e-temp',
+      'packages/salesforcedx-vscode-automation-tests/test/testData/CustomSObjects'
+    );
+    log(`testSetup.testDataFolderPath: ${String(testSetup.testDataFolderPath || 'undefined')}`);
     await createCustomObjects(testSetup);
   });
 

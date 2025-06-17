@@ -120,5 +120,5 @@ tsconfig.tsbuildinfo
 extensions/
 /test-results
 /.codegenie
-
+e2e-temp/
 .nx/cache

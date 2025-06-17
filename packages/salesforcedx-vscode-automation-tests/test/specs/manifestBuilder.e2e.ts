@@ -43,6 +43,13 @@ describe('Manifest Builder', () => {
     // accessible via a context menu, and wdio-vscode-service isn't able to interact with
     // context menus, so instead the manifest file is manually created:
 
+    // update testSetup.testDataFolderPath to be the path to the salesforcedx-vscode-automation-tests package
+    testSetup.testDataFolderPath = testSetup.tempFolderPath.replace(
+      'e2e-temp',
+      'packages/salesforcedx-vscode-automation-tests/test/testData/CustomSObjects'
+    );
+    log(`testSetup.testDataFolderPath: ${String(testSetup.testDataFolderPath || 'undefined')}`);
+
     log(`${testSetup.testSuiteSuffixName} - calling createCustomObjects()`);
     await createCustomObjects(testSetup);
 
