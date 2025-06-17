@@ -7,7 +7,7 @@
 
 import type { QueryResult, DescribeSObjectResult } from '../types';
 import type { JsonMap } from '@salesforce/ts-types';
-import { debounce } from 'debounce';
+import * as debounce from 'debounce';
 import * as vscode from 'vscode';
 import { trackErrorWithTelemetry } from '../commonUtils';
 import { nls } from '../messages';
@@ -21,7 +21,7 @@ import {
   workspaceContext
 } from '../sf';
 import { TelemetryModelJson } from '../telemetry';
-import { QueryRunner } from './queryRunner';
+import { runQuery } from './queryRunner';
 
 // TODO: This should be exported from soql-builder-ui
 type SoqlEditorEvent =
@@ -243,7 +243,8 @@ export class SOQLEditorInstance {
 
     const queryText = this.document.getText();
     const conn = await workspaceContext.getConnection();
-    const queryData = await new QueryRunner(conn).runQuery(queryText);
+    // @ts-expect-error - mismatch in Logger between core and core-bundle
+    const queryData = await runQuery(conn)(queryText);
     this.openQueryDataView(queryData);
     this.runQueryDone();
   }

@@ -9,7 +9,7 @@ import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { BUILDER_VIEW_TYPE, DIST_FOLDER, HTML_FILE } from '../constants';
+import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants';
 import { nls } from '../messages';
 import { channelService, isDefaultOrgSet } from '../sf';
 import { HtmlUtils } from './htmlUtils';
@@ -31,10 +31,10 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
-    const soqlBuilderWebAssetsPathParam: string[] =
-      this.extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath;
-    const soqlBuilderWebAssetsModule = this.extensionContext.asAbsolutePath(
-      path.join(...soqlBuilderWebAssetsPathParam)
+    const soqlBuilderWebAssetsModule = getSoqlBuilderLocation(this.extensionContext);
+
+    channelService.appendLine(
+      `SOQLEditorProvider: resolveCustomTextEditor will try to load ${soqlBuilderWebAssetsModule}`
     );
     webviewPanel.webview.options = {
       enableScripts: true,
@@ -54,14 +54,12 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   }
 
   private async getWebViewContent(webview: vscode.Webview): Promise<string> {
-    const soqlBuilderWebAssetsPathParam: string[] =
-      this.extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath;
-    const soqlBuilderUIModule = this.extensionContext.asAbsolutePath(
-      path.join(...soqlBuilderWebAssetsPathParam, DIST_FOLDER)
-    );
-    const pathToHtml = path.join(soqlBuilderUIModule, HTML_FILE);
+    const soqlBuilderWebAssetsModule = getSoqlBuilderLocation(this.extensionContext);
+
+    const pathToHtml = path.join(soqlBuilderWebAssetsModule, HTML_FILE);
+    channelService.appendLine(`SOQLEditorProvider: getWebViewContent will try to read ${pathToHtml}`);
     const htmlContent = await readFile(pathToHtml);
-    return HtmlUtils.transformHtml(htmlContent, soqlBuilderUIModule, webview);
+    return HtmlUtils.transformHtml(htmlContent, soqlBuilderWebAssetsModule, webview);
   }
 
   private disposeInstance(instance: SOQLEditorInstance) {
@@ -71,3 +69,6 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     }
   }
 }
+
+const getSoqlBuilderLocation = (extensionContext: vscode.ExtensionContext): string =>
+  path.join(extensionContext.extensionPath, SOQL_BUILDER_UI_PATH);

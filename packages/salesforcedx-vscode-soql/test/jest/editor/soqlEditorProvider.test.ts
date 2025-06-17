@@ -6,7 +6,7 @@
  */
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { BUILDER_VIEW_TYPE } from '../../../src/constants';
+import { BUILDER_VIEW_TYPE, SOQL_BUILDER_UI_PATH } from '../../../src/constants';
 import { HtmlUtils } from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
@@ -108,10 +108,7 @@ describe('SOQLEditorProvider', () => {
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
-      const expectedPath = path.join(
-        extensionContext.extensionPath,
-        ...extensionContext.extension.packageJSON.soqlBuilderWebAssetsPath
-      );
+      const expectedPath = path.join(extensionContext.extensionPath, SOQL_BUILDER_UI_PATH);
 
       expect(mockWebviewPanel.webview.options.enableScripts).toBe(true);
       expect(mockWebviewPanel.webview.options.localResourceRoots).toHaveLength(1);

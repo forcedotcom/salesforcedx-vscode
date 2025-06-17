@@ -77,7 +77,6 @@ export class HtmlUtils {
       style-src 'unsafe-inline' ${webview.cspSource};"
     />`;
 
-    html = html.replace('<!-- CSP TAG -->', cspMetaTag);
-    return html;
+    return html.replace('<!-- CSP TAG -->', cspMetaTag);
   }
 }
