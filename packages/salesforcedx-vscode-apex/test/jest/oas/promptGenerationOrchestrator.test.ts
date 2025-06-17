@@ -61,18 +61,18 @@ describe('PromptGenerationOrchestrator', () => {
       expect(result).toBe('ApexRest');
     });
 
-    it('should return undefined for empty bids map', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>();
-      const result = orchestrator['getLeastCallsStrategy'](bids);
-      expect(result).toBeUndefined();
-    });
-
-    it.only('should return undefined when all strategies have zero calls', () => {
+    it('should return undefined when all strategies have zero calls', () => {
       const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
         ['ApexRest', { result: { callCounts: 0, maxBudget: 100 } }],
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
+      const result = orchestrator['getLeastCallsStrategy'](bids);
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for empty bids map', () => {
+      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>();
       const result = orchestrator['getLeastCallsStrategy'](bids);
       expect(result).toBeUndefined();
     });
