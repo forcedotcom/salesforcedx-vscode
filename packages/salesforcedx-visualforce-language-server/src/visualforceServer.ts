@@ -241,7 +241,7 @@ const validateTextDocument = async (textDocument: TextDocument) => {
 connection.onCompletion(async (textDocumentPosition: CompletionParams): Promise<CompletionList | CompletionItem[]> => {
   const document = documents.get(textDocumentPosition.textDocument.uri);
   const mode = languageModes.getModeAtPosition(document, textDocumentPosition.position);
-  if (mode && mode.doComplete) {
+  if (mode?.doComplete) {
     if (mode.getId() !== 'html') {
       connection.telemetry.logEvent({
         key: 'html.embbedded.complete',
@@ -269,7 +269,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 connection.onHover(textDocumentPosition => {
   const document = documents.get(textDocumentPosition.textDocument.uri);
   const mode = languageModes.getModeAtPosition(document, textDocumentPosition.position);
-  if (mode && mode.doHover) {
+  if (mode?.doHover) {
     return mode.doHover(document, textDocumentPosition.position);
   }
   return null;
@@ -278,7 +278,7 @@ connection.onHover(textDocumentPosition => {
 connection.onDocumentHighlight(documentHighlightParams => {
   const document = documents.get(documentHighlightParams.textDocument.uri);
   const mode = languageModes.getModeAtPosition(document, documentHighlightParams.position);
-  if (mode && mode.findDocumentHighlight) {
+  if (mode?.findDocumentHighlight) {
     return mode.findDocumentHighlight(document, documentHighlightParams.position);
   }
   return [];
@@ -287,7 +287,7 @@ connection.onDocumentHighlight(documentHighlightParams => {
 connection.onDefinition(definitionParams => {
   const document = documents.get(definitionParams.textDocument.uri);
   const mode = languageModes.getModeAtPosition(document, definitionParams.position);
-  if (mode && mode.findDefinition) {
+  if (mode?.findDefinition) {
     return mode.findDefinition(document, definitionParams.position);
   }
   return [];
@@ -296,7 +296,7 @@ connection.onDefinition(definitionParams => {
 connection.onReferences(referenceParams => {
   const document = documents.get(referenceParams.textDocument.uri);
   const mode = languageModes.getModeAtPosition(document, referenceParams.position);
-  if (mode && mode.findReferences) {
+  if (mode?.findReferences) {
     return mode.findReferences(document, referenceParams.position);
   }
   return [];
@@ -382,7 +382,7 @@ connection.onRequest(ColorPresentationRequest.type, (params: ColorPresentationPa
     throw new Error('Document not found');
   }
   const mode = languageModes.getModeAtPosition(document, params.range.start);
-  if (mode && mode.getColorPresentations) {
+  if (mode?.getColorPresentations) {
     return mode.getColorPresentations(document, params);
   }
   return [];
@@ -394,7 +394,7 @@ connection.onRequest(TagCloseRequest.type, params => {
     const pos = params.position;
     if (pos.character > 0) {
       const mode = languageModes.getModeAtPosition(document, Position.create(pos.line, pos.character - 1));
-      if (mode && mode.doAutoClose) {
+      if (mode?.doAutoClose) {
         return mode.doAutoClose(document, pos);
       }
     }

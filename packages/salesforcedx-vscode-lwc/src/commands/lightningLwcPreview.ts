@@ -116,13 +116,7 @@ export const lightningLwcPreview = async (sourceUri: URI) => {
   preview(sourceUri);
 };
 
-export const getPreview = () => {
-  if (isSFContainerMode()) {
-    return lwcPreviewContainerMode;
-  } else {
-    return lwcPreview;
-  }
-};
+export const getPreview = () => (isSFContainerMode() ? lwcPreviewContainerMode : lwcPreview);
 
 const lwcPreviewContainerMode = () => {
   const message = nls.localize('lightning_lwc_preview_container_mode');
@@ -531,7 +525,7 @@ const executeMobilePreview = async (
   // listen for Android Emulator finished
   if (isAndroid) {
     previewExecution.stdoutSubject.subscribe(async data => {
-      if (data && data.toString().includes(androidSuccessString)) {
+      if (data?.toString().includes(androidSuccessString)) {
         notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
         vscode.window.showInformationMessage(nls.localize('lightning_lwc_android_start', targetDevice));
       }

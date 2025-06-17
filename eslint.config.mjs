@@ -68,6 +68,7 @@ export default [
     rules: {
       'local/no-duplicate-i18n-values': 'error',
       'unicorn/prefer-node-protocol': 'error',
+      'unicorn/prefer-ternary': 'error',
       'unicorn/filename-case': [
         'error',
         {
@@ -123,6 +124,7 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/prefer-optional-chain': 'error',
       '@typescript-eslint/prefer-for-of': 'warn',
       '@typescript-eslint/unbound-method': ['warn', { ignoreStatic: true }],
       'prefer-arrow/prefer-arrow-functions': ['error', {}],

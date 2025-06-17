@@ -81,7 +81,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
     // which points at our LWC extension node_modules path
     const config: WorkspaceConfiguration = workspace.getConfiguration('');
     const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
-    if (currentNodePath && currentNodePath.includes(SFDX_LWC_EXTENSION_NAME)) {
+    if (currentNodePath?.includes(SFDX_LWC_EXTENSION_NAME)) {
       try {
         log('Removing eslint.nodePath setting as the LWC Extension no longer manages this value');
         await config.update(ESLINT_NODEPATH_CONFIG, undefined, ConfigurationTarget.Workspace);

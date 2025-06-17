@@ -312,7 +312,7 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
       currentTextDocument = documentRegions.get(document).getEmbeddedDocument('javascript', true);
       scriptFileVersion++;
 
-      const formatterSettings = settings && settings.javascript && settings.javascript.format;
+      const formatterSettings = settings?.javascript?.format;
 
       const initialIndentLevel = computeInitialIndent(document, range, formatParams);
       const formatSettings = convertOptions(formatParams, formatterSettings, initialIndentLevel + 1);
@@ -448,21 +448,19 @@ const convertOptions = (
     !formatSettings || formatSettings.insertSpaceAfterFunctionKeywordForAnonymousFunctions
   ),
   InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: Boolean(
-    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis
+    formatSettings?.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis
   ),
   InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: Boolean(
-    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets
+    formatSettings?.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets
   ),
   InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: Boolean(
-    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces
+    formatSettings?.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces
   ),
   InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces: Boolean(
-    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces
+    formatSettings?.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces
   ),
-  PlaceOpenBraceOnNewLineForControlBlocks: Boolean(
-    formatSettings && formatSettings.placeOpenBraceOnNewLineForFunctions
-  ),
-  PlaceOpenBraceOnNewLineForFunctions: Boolean(formatSettings && formatSettings.placeOpenBraceOnNewLineForControlBlocks)
+  PlaceOpenBraceOnNewLineForControlBlocks: Boolean(formatSettings?.placeOpenBraceOnNewLineForControlBlocks),
+  PlaceOpenBraceOnNewLineForFunctions: Boolean(formatSettings?.placeOpenBraceOnNewLineForFunctions)
 });
 
 const computeInitialIndent = (document: TextDocument, range: Range, options: FormattingOptions) => {
@@ -471,7 +469,7 @@ const computeInitialIndent = (document: TextDocument, range: Range, options: For
 
   let i = lineStart;
   let nChars = 0;
-  const tabSize = options.tabSize || 4;
+  const tabSize = options.tabSize ?? 4;
   while (i < content.length) {
     const ch = content.charAt(i);
     if (ch === ' ') {
@@ -486,10 +484,5 @@ const computeInitialIndent = (document: TextDocument, range: Range, options: For
   return Math.floor(nChars / tabSize);
 };
 
-const generateIndent = (level: number, options: FormattingOptions) => {
-  if (options.insertSpaces) {
-    return repeat(' ', level * options.tabSize);
-  } else {
-    return repeat('\t', level);
-  }
-};
+const generateIndent = (level: number, options: FormattingOptions) =>
+  options.insertSpaces ? repeat(' ', level * options.tabSize) : repeat('\t', level);

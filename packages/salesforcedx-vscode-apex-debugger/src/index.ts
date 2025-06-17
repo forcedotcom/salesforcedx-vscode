@@ -45,7 +45,7 @@ export const getDebuggerType = async (session: vscode.DebugSession): Promise<str
 
 const registerCommands = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
-    if (event && event.session) {
+    if (event?.session) {
       const type = await getDebuggerType(event.session);
       if (type === DEBUGGER_TYPE && event.event === SHOW_MESSAGE_EVENT) {
         const eventBody = event.body as VscodeDebuggerMessage;
@@ -117,7 +117,7 @@ const configureExceptionBreakpoint = async (): Promise<void> => {
     let enabledExceptionBreakpointTyperefs: string[] = [];
     if (vscode.debug.activeDebugSession) {
       const responseBody = await vscode.debug.activeDebugSession.customRequest(LIST_EXCEPTION_BREAKPOINTS_REQUEST);
-      if (responseBody && responseBody.typerefs) {
+      if (responseBody?.typerefs) {
         enabledExceptionBreakpointTyperefs = responseBody.typerefs;
       }
     } else {
@@ -235,7 +235,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
   );
 
-  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+  if (salesforceCoreExtension?.exports) {
     if (salesforceCoreExtension.exports.isCLIInstalled()) {
       console.log('Setting up ISV Debugger environment variables');
       // register watcher for ISV authentication and setup default user for CLI

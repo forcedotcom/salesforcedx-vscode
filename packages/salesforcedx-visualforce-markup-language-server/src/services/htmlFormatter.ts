@@ -100,7 +100,7 @@ export function format(document: TextDocument, range: Range, options: HTMLFormat
 }
 
 function getFormatOption(options: HTMLFormatConfiguration, key: string, dflt: any): any {
-  if (options && options.hasOwnProperty(key)) {
+  if (options?.hasOwnProperty(key)) {
     const value = options[key];
     if (value !== null) {
       return value;

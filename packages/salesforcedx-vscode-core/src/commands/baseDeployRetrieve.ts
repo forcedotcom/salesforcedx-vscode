@@ -154,35 +154,32 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
       return response;
     });
 
-    let output: string;
-
-    if (result.response.status === RequestStatus.Succeeded) {
-      output = table.createTable(
-        rowsWithRelativePaths,
-        [
-          { key: 'state', label: nls.localize('table_header_state') },
-          { key: 'fullName', label: nls.localize('table_header_full_name') },
-          { key: 'type', label: nls.localize('table_header_type') },
-          {
-            key: 'filePath',
-            label: nls.localize('table_header_project_path')
-          }
-        ],
-        nls.localize('table_title_deployed_source')
-      );
-    } else {
-      output = table.createTable(
-        rowsWithRelativePaths.filter(isSdrFailure),
-        [
-          {
-            key: 'filePath',
-            label: nls.localize('table_header_project_path')
-          },
-          { key: 'error', label: nls.localize('table_header_errors') }
-        ],
-        nls.localize('table_title_deploy_errors')
-      );
-    }
+    const output =
+      result.response.status === RequestStatus.Succeeded
+        ? table.createTable(
+            rowsWithRelativePaths,
+            [
+              { key: 'state', label: nls.localize('table_header_state') },
+              { key: 'fullName', label: nls.localize('table_header_full_name') },
+              { key: 'type', label: nls.localize('table_header_type') },
+              {
+                key: 'filePath',
+                label: nls.localize('table_header_project_path')
+              }
+            ],
+            nls.localize('table_title_deployed_source')
+          )
+        : table.createTable(
+            rowsWithRelativePaths.filter(isSdrFailure),
+            [
+              {
+                key: 'filePath',
+                label: nls.localize('table_header_project_path')
+              },
+              { key: 'error', label: nls.localize('table_header_errors') }
+            ],
+            nls.localize('table_title_deploy_errors')
+          );
 
     return output;
   }

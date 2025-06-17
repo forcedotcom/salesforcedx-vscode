@@ -193,7 +193,7 @@ export const activate = async (context: ExtensionContext) => {
   // Telemetry
   const salesforceCoreExtension = extensions.getExtension('salesforce.salesforcedx-vscode-core');
 
-  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+  if (salesforceCoreExtension?.exports) {
     telemetryService.initializeService(
       salesforceCoreExtension.exports.telemetryService.getReporters(),
       salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()

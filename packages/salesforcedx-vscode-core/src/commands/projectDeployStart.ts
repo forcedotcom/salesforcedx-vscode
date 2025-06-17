@@ -22,7 +22,7 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { handlePushDiagnosticErrors } from '../diagnostics';
-import { coerceMessageKey,nls } from '../messages';
+import { coerceMessageKey, nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
@@ -175,7 +175,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource || (errors && errors.files);
+      const rows = pushedSource || errors?.files;
       const title = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, title);
       if (parser.hasConflicts()) {

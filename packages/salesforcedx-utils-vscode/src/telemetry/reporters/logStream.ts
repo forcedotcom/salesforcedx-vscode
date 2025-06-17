@@ -22,7 +22,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
     private extensionId: string,
     logFilePath: string
   ) {
-    super(() => this.toDispose.forEach(d => d && d.dispose()));
+    super(() => this.toDispose.forEach(d => d?.dispose()));
     this.logUri = Uri.file(path.join(logFilePath, `${this.extensionId}.txt`));
     this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
     console.log(

@@ -71,11 +71,9 @@ export const getDocumentRegions = (languageService: LanguageService, document: T
           }
           importedScripts.push(value);
         } else if (lastAttributeName === 'type' && lastTagName.toLowerCase() === 'script') {
-          if (/["'](module|(text|application)\/(java|ecma)script)["']/.test(scanner.getTokenText())) {
-            languageIdFromType = 'javascript';
-          } else {
-            languageIdFromType = void 0;
-          }
+          languageIdFromType = /["'](module|(text|application)\/(java|ecma)script)["']/.test(scanner.getTokenText())
+            ? 'javascript'
+            : void 0;
         } else {
           const attributeLanguageId = getAttributeLanguage(lastAttributeName);
           if (attributeLanguageId) {

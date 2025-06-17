@@ -49,7 +49,7 @@ export const activateTagClosing = (
     if (!isEnabled) {
       return;
     }
-    const activeDocument = window.activeTextEditor && window.activeTextEditor.document;
+    const activeDocument = window.activeTextEditor?.document;
     if (document !== activeDocument || changes.length === 0) {
       return;
     }
@@ -68,7 +68,7 @@ export const activateTagClosing = (
       tagProvider(document, position).then(text => {
         if (text && isEnabled) {
           const activeEditor = window.activeTextEditor!;
-          const currentDocument = activeEditor && activeEditor.document;
+          const currentDocument = activeEditor?.document;
           if (document === currentDocument && currentDocument.version === version) {
             const selections = activeEditor.selections;
             if (selections.length && selections.some(s => s.active.isEqual(position))) {

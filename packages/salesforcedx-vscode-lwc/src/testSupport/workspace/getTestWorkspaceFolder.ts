@@ -15,12 +15,9 @@ import { telemetryService } from '../../telemetry';
  * @param testUri optional testUri
  */
 export const getTestWorkspaceFolder = (testUri?: URI) => {
-  let workspaceFolder;
-  if (testUri) {
-    workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
-  } else {
-    workspaceFolder = vscode.workspace.workspaceFolders![0];
-  }
+  const workspaceFolder = testUri
+    ? vscode.workspace.getWorkspaceFolder(testUri)
+    : vscode.workspace.workspaceFolders![0];
   if (workspaceFolder) {
     return workspaceFolder;
   } else {

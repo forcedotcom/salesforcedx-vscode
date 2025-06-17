@@ -23,11 +23,7 @@ export class FrameStateUtil {
     switch (fields[1]) {
       case EVENT_CODE_UNIT_STARTED:
       case EVENT_CODE_UNIT_FINISHED:
-        if (sig.startsWith(SFDC_TRIGGER)) {
-          frameName = sig.substring(SFDC_TRIGGER.length);
-        } else {
-          frameName = sig;
-        }
+        frameName = sig.startsWith(SFDC_TRIGGER) ? sig.substring(SFDC_TRIGGER.length) : sig;
         break;
       case EVENT_CONSTRUCTOR_ENTRY:
       case EVENT_CONSTRUCTOR_EXIT:

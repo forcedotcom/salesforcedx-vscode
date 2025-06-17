@@ -29,8 +29,8 @@ export class Table {
       const width = maxColWidths.get(col.key);
       if (width) {
         const isLastCol = index === arr.length - 1;
-        columnHeader += this.fillColumn(col.label || col.key, width, COLUMN_FILLER, isLastCol);
-        headerSeparator += this.fillColumn('', width, HEADER_FILLER, isLastCol);
+        columnHeader += fillColumn(col.label || col.key, width, COLUMN_FILLER, isLastCol);
+        headerSeparator += fillColumn('', width, HEADER_FILLER, isLastCol);
       }
     });
 
@@ -44,19 +44,17 @@ export class Table {
         const cell = String(row[col.key]);
         const isLastCol = colIndex === colArr.length - 1;
         const rowWidth = outputRow.length;
+        const cellWidth = maxColWidths.get(col.key);
         cell.split('\n').forEach((line, lineIndex) => {
-          const cellWidth = maxColWidths.get(col.key);
           if (cellWidth) {
-            if (lineIndex === 0) {
-              outputRow += this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol);
-            } else {
-              // If the cell is multiline, add an additional line to the table
-              // and pad it to the beginning of the current column
-              outputRow +=
-                '\n' +
-                this.fillColumn('', rowWidth, COLUMN_FILLER, isLastCol) +
-                this.fillColumn(line, rowWidth, COLUMN_FILLER, isLastCol);
-            }
+            outputRow +=
+              lineIndex === 0
+                ? fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol)
+                : // If the cell is multiline, add an additional line to the table
+                  // and pad it to the beginning of the current column
+                  '\n' +
+                  fillColumn('', rowWidth, COLUMN_FILLER, isLastCol) +
+                  fillColumn(line, rowWidth, COLUMN_FILLER, isLastCol);
           }
         });
       });
@@ -92,15 +90,13 @@ export class Table {
     });
     return maxColWidths;
   }
-
-  private fillColumn(label: string, width: number, filler: string, isLastCol: boolean): string {
-    let filled = label;
-    for (let i = 0; i < width - label.length; i++) {
-      filled += filler;
-    }
-    if (!isLastCol) {
-      filled += COLUMN_SEPARATOR;
-    }
-    return filled;
-  }
 }
+
+const fillColumn = (label: string, width: number, filler: string, isLastCol: boolean): string => {
+  const filled =
+    label +
+    Array(width - label.length)
+      .fill(filler)
+      .join('');
+  return isLastCol ? filled : filled + COLUMN_SEPARATOR;
+};

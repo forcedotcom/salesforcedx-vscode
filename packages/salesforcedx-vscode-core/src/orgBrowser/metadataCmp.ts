@@ -131,19 +131,11 @@ export class ComponentUtils {
     const freshFetch = forceRefresh || !fs.existsSync(componentsPath);
     const connection = await WorkspaceContext.getInstance().getConnection();
     if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
-      if (freshFetch) {
-        componentsList = await this.fetchCustomObjectsFields(connection, componentsPath, folderName);
-      } else {
-        componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
-      }
+      componentsList = freshFetch ? (await this.fetchCustomObjectsFields(connection, componentsPath, folderName)) : this.fetchExistingCustomObjectsFields(componentsPath);
     } else if (metadataType === STANDARDVALUESET_FULLNAME) {
       componentsList = standardValueSet.fullnames;
     } else {
-      if (freshFetch) {
-        componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName);
-      } else {
-        componentsList = this.fetchExistingMetadataComponents(metadataType, componentsPath);
-      }
+      componentsList = freshFetch ? (await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName)) : this.fetchExistingMetadataComponents(metadataType, componentsPath);
     }
     return componentsList;
   }

@@ -169,8 +169,6 @@ export const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): Apex
   else {
     const request = payload[0];
     if (!request.includeAllMethods && !request.includeAllProperties) return ApexOASResource.singleMethodOrProp;
-    if (!request.resourceUri?.fsPath.endsWith('.cls')) {
-      return ApexOASResource.folder;
-    } else return ApexOASResource.class;
+    return !request.resourceUri?.fsPath.endsWith('.cls') ? ApexOASResource.folder : ApexOASResource.class;
   }
 };

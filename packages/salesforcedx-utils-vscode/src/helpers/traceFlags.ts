@@ -117,11 +117,7 @@ export class TraceFlags {
 
     const result = await this.connection.tooling.create('TraceFlag', traceFlag);
 
-    if (result.success && result.id) {
-      return result.id;
-    } else {
-      return undefined;
-    }
+    return result.success && result.id ? result.id : undefined;
   }
 
   private isValidDateLength(expirationDate: Date) {

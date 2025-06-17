@@ -56,12 +56,9 @@ export const isNameMatch = (item: string, componentName: string, componentPath: 
  * @returns
  */
 export const checkForExistingComponentInAltLocation = (componentPath: string, name: string): Promise<boolean> => {
-  let pathToCheck;
-  if (isLwcComponentPath(componentPath)) {
-    pathToCheck = path.join(path.dirname(componentPath), AURA);
-  } else {
-    pathToCheck = path.join(path.dirname(componentPath), LWC);
-  }
+  const pathToCheck = isLwcComponentPath(componentPath)
+    ? path.join(path.dirname(componentPath), AURA)
+    : path.join(path.dirname(componentPath), LWC);
 
   if (pathToCheck) {
     return fs

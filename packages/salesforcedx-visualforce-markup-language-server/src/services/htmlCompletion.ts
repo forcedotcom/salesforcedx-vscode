@@ -141,7 +141,7 @@ export function doComplete(
   }
 
   function collectAutoCloseTagSuggestion(tagCloseEnd: number, tag: string): CompletionList {
-    if (settings && settings.hideAutoCompleteProposals) {
+    if (settings?.hideAutoCompleteProposals) {
       return result;
     }
     if (!isEmptyElement(tag)) {
@@ -351,7 +351,7 @@ export function doTagComplete(document: TextDocument, position: Position, htmlDo
     while (node && node.closed) {
       node = node.parent;
     }
-    if (node && node.tag) {
+    if (node?.tag) {
       const scanner = createScanner(document.getText(), node.start);
       let token = scanner.scan();
       while (token !== TokenType.EOS && scanner.getTokenEnd() <= offset) {
