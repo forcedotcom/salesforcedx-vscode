@@ -66,13 +66,23 @@ describe('PromptGenerationOrchestrator', () => {
       const result = orchestrator['getLeastCallsStrategy'](bids);
       expect(result).toBeUndefined();
     });
+
+    it.only('should return undefined when all strategies have zero calls', () => {
+      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
+        ['ApexRest', { result: { callCounts: 0, maxBudget: 100 } }],
+        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
+      ]);
+
+      const result = orchestrator['getLeastCallsStrategy'](bids);
+      expect(result).toBeUndefined();
+    });
   });
 
   describe('getMostCallsStrategy', () => {
     it('should return strategy with highest calls among those with at least one call', () => {
       const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
         ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
+        ['AuraEnabled', { result: { callCounts: 1, maxBudget: 100 } }]
       ]);
 
       const result = orchestrator['getMostCallsStrategy'](bids);

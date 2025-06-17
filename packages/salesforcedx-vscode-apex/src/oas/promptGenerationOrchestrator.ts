@@ -105,13 +105,11 @@ export class PromptGenerationOrchestrator {
       callCount: bid.result.callCounts
     }));
 
-    if (validBids.length === 0) {
+    const validBidsWithCalls = validBids.filter(bid => bid.callCount > 0);
+    if (validBidsWithCalls.length === 0) {
       return undefined;
     }
-
-    const bestBid = validBids
-      .filter(bid => bid.callCount > 0)
-      .reduce((best, current) => (current.callCount < best.callCount ? current : best));
+    const bestBid = validBidsWithCalls.reduce((best, current) => (current.callCount < best.callCount ? current : best));
     return bestBid.strategy;
   }
 
@@ -130,9 +128,11 @@ export class PromptGenerationOrchestrator {
       return undefined;
     }
 
-    const bestBid = validBids
-      .filter(bid => bid.callCount > 0)
-      .reduce((best, current) => (current.callCount > best.callCount ? current : best));
+    const validBidsWithCalls = validBids.filter(bid => bid.callCount > 0);
+    if (validBidsWithCalls.length === 0) {
+      return undefined;
+    }
+    const bestBid = validBidsWithCalls.reduce((best, current) => (current.callCount > best.callCount ? current : best));
     return bestBid.strategy;
   }
 }

@@ -165,7 +165,7 @@ export class ExternalServiceRegistrationManager {
 
     const safeOasSpec = stringify(cleanedOasSpec, null, {
       singleQuote: false, // Disable single quotes entirely
-      doubleQuotedAsJSON: false, // Use JSON-safe escaping for double quotes
+      doubleQuotedAsJSON: false,
       lineWidth: 80, // Wrap at 80 characters
     });
 

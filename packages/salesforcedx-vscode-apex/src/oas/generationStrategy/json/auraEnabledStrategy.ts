@@ -74,7 +74,7 @@ export class AuraEnabledStrategy extends GenerationStrategy {
     // Check if any method has @AuraEnabled annotation
     const hasAuraEnabled = hasAuraFrameworkCapability(this.context);
 
-    // Only bid if we have Aura-enabled methods AND we're in the default org AND the org version is compatible AND the class exists in org
+    // Only bid if we have Aura-enabled methods AND we're in the default org AND the org version is compatible
     const shouldBid = hasAuraEnabled && this.isDefaultOrg && this.isOrgVersionCompatible;
 
     return {

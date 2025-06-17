@@ -285,15 +285,9 @@ export const hasHttpRestAnnotations = (context: ApexClassOASGatherContextRespons
  * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
  * @returns {boolean} - True if the class has valid REST annotations.
  */
-export const hasValidRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
-  // Check for class-level RestResource annotation
-  if (!hasRestResourceAnnotation(context)) {
-    return false;
-  }
-
-  // Check for at least one method with HTTP REST annotation
-  return hasHttpRestAnnotations(context);
-};
+export const hasValidRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  // Check for class-level RestResource annotation and at least one method with HTTP REST annotation
+  hasRestResourceAnnotation(context) && hasHttpRestAnnotations(context);
 
 /**
  * Checks if a class has no annotations.
