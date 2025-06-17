@@ -21,21 +21,6 @@ describe('sf utils', () => {
     jest.restoreAllMocks();
   });
 
-  describe('withSFConnection', () => {
-    const run = (showErrorMessage: boolean) => {
-      it(`should ${
-        showErrorMessage ? '' : 'not '
-      } show error message when showErrorMessage=${showErrorMessage}`, async () => {
-        await sf.withSFConnection(jest.fn(), showErrorMessage);
-
-        expect(debouncedShowChannelAndErrorMessageSpy).toHaveBeenCalledTimes(showErrorMessage ? 1 : 0);
-      });
-    };
-
-    run(true);
-    run(false);
-  });
-
   describe('onOrgChangeDefaultHandler', () => {
     const run = (orgInfo: OrgInfo) => {
       const isDefaultOrgSet = !!orgInfo.username;

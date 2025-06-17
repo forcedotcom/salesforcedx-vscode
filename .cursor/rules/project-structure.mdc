@@ -1,0 +1,7 @@
+---
+description: understand project structure
+globs:
+alwaysApply: false
+---
+This is a monorepo with packages in the /packages folder.
+It uses npm workspaces and lerna/nx.  docs: https://nx.dev/recipes/running-tasks
