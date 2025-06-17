@@ -1,36 +1,24 @@
-import copy from 'esbuild-plugin-copy';
+import { build } from 'esbuild';
+import { commonConfigNode } from './node.mjs';
+import esbuildPluginPino from 'esbuild-plugin-pino';
 
-// this is temporarily grabbing from the core-bundle but we'll elimintate that once everything bundles at real-time.
-// as other packages move to the new bundling process, this probably needs to move to a shared location
-export const pinoSupport = [
-  copy({
-    assets: {
-      from: ['../../node_modules/@salesforce/core-bundle/lib/transformStream.js'],
-      to: ['./transformStream.js']
-    }
-  }),
-  copy({
-    assets: {
-      from: ['../../node_modules/@salesforce/core-bundle/lib/thread-stream-worker.js'],
-      to: ['./thread-stream-worker.js']
-    }
-  }),
-  copy({
-    assets: {
-      from: ['../../node_modules/@salesforce/core-bundle/lib/pino-pretty.js'],
-      to: ['./pino-pretty.js']
-    }
-  }),
-  copy({
-    assets: {
-      from: ['../../node_modules/@salesforce/core-bundle/lib/pino-worker.js'],
-      to: ['./pino-worker.js']
-    }
-  }),
-  copy({
-    assets: {
-      from: ['../../node_modules/@salesforce/core-bundle/lib/pino-file.js'],
-      to: ['./pino-file.js']
-    }
-  })
-];
+export const pinoSupport = [esbuildPluginPino({ transports: ['pino-pretty'] })];
+
+export const bundleTransformStream = () =>
+  build({
+    ...commonConfigNode,
+    entryPoints: ['../../node_modules/@salesforce/core/lib/logger/transformStream.js'],
+    outfile: './dist/transformStream.js'
+  });
+
+// TODO: maybe we need this stuff from sfdx-core's original bundle code
+// // There is a wrong reference after bundling due to a bug from esbuild-plugin-pino. We will replace it with the correct one.
+// const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}tmp-lib/g;
+// const replacementString = `\${__dirname}\${require("path").sep}`;
+
+// if (!searchString.test(bundledEntryPoint)) {
+//   console.error('Error: the reference to be modified is not detected - Please reach out to IDEx Foundations team.');
+//   process.exit(1); // Exit with an error code
+// }
+// bundledEntryPoint = bundledEntryPoint.replace(searchString, replacementString);
+// fs.writeFileSync(filePath, bundledEntryPoint, 'utf8');
