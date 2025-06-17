@@ -82,7 +82,8 @@ jobs:
       testToRun: 'visualforceLsp.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-      os: '["macos-latest", "ubuntu-latest"]'
+      os: '["macos-latest"]'
+      # os: '["macos-latest", "ubuntu-latest"]'
 
   slack_success_notification:
     if: ${{ success() }}
