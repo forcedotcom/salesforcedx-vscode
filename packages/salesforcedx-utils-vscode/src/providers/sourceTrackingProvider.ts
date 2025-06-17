@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection, Org, SfProject } from '@salesforce/core-bundle';
-import { SourceTracking, SourceTrackingOptions } from '@salesforce/source-tracking-bundle';
+import { type Connection, Org, SfProject } from '@salesforce/core';
+import { SourceTracking, type SourceTrackingOptions } from '@salesforce/source-tracking';
 
 /*
  * The SourceTrackingProvider class is used to instantiate

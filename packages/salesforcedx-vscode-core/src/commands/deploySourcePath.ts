@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import type { URI } from 'vscode-uri';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';

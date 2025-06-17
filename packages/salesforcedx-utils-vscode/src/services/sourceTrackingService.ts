@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Connection } from '@salesforce/core-bundle';
-import type { RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
-import type { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking-bundle';
+import type { Connection } from '@salesforce/core';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
 import { Table } from '../output';

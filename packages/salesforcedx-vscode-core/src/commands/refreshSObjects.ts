@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core-bundle';
+import { AuthInfo, Connection } from '@salesforce/core';
 import {
   type SObjectCategory,
   type SObjectRefreshSource,
@@ -139,7 +139,6 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
       : await WorkspaceContextUtil.getInstance().getConnection();
 
     try {
-      // @ts-expect-error - TODO: remove when core-bundle is no longer used (conn types differ)
       const result = await writeSobjectFiles({
         emitter: execution.cmdEmitter,
         cancellationToken,

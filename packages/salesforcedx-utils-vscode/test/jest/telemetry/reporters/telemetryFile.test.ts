@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import * as workspaceUtils from '../../../../src';
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
+import * as workspaceUtils from '../../../../src/workspaces/workspaceUtils';
 
 jest.mock('vscode');
 const vscodeMocked = jest.mocked(vscode);

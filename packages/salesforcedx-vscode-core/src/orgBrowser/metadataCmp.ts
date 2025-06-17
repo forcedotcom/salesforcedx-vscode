@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core-bundle';
+import { Connection } from '@salesforce/core';
 import { isNullOrUndefined, projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { standardValueSet } from '@salesforce/source-deploy-retrieve-bundle/lib/src/registry';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { WorkspaceContext } from '../context';
@@ -131,11 +131,15 @@ export class ComponentUtils {
     const freshFetch = forceRefresh || !fs.existsSync(componentsPath);
     const connection = await WorkspaceContext.getInstance().getConnection();
     if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
-      componentsList = freshFetch ? (await this.fetchCustomObjectsFields(connection, componentsPath, folderName)) : this.fetchExistingCustomObjectsFields(componentsPath);
+      componentsList = freshFetch
+        ? await this.fetchCustomObjectsFields(connection, componentsPath, folderName)
+        : this.fetchExistingCustomObjectsFields(componentsPath);
     } else if (metadataType === STANDARDVALUESET_FULLNAME) {
       componentsList = standardValueSet.fullnames;
     } else {
-      componentsList = freshFetch ? (await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName)) : this.fetchExistingMetadataComponents(metadataType, componentsPath);
+      componentsList = freshFetch
+        ? await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName)
+        : this.fetchExistingMetadataComponents(metadataType, componentsPath);
     }
     return componentsList;
   }

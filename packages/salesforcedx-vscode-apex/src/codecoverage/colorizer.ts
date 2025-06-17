@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CodeCoverageResult } from '@salesforce/apex-node-bundle';
+import { CodeCoverageResult } from '@salesforce/apex-node';
 import { SFDX_FOLDER, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, extname, basename } from 'node:path';

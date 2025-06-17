@@ -12,7 +12,7 @@ import {
   TestLevel,
   TestResult,
   TestService
-} from '@salesforce/apex-node-bundle';
+} from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import {
   ContinueResponse,
@@ -80,7 +80,6 @@ class QuickLaunch {
   }
 
   private async runTests(connection: Connection, testClass: string, testMethod?: string): Promise<TestRunResult> {
-    // @ts-expect-error - mismatch between core and core-bundle
     const testService = new TestService(connection);
     try {
       const payload = await testService.buildSyncPayload(
@@ -120,7 +119,6 @@ class QuickLaunch {
   }
 
   private async retrieveLogFile(connection: Connection, logId: string): Promise<LogFileRetrieveResult> {
-    // @ts-expect-error - mismatch between core and core-bundle
     const logService = new LogService(connection);
     const outputDir = projectPaths.debugLogsFolder();
 

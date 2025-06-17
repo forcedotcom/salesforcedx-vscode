@@ -24,12 +24,12 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core-bundle": "^8.12.0",
+    "@salesforce/core": "^8.14.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/schemas": "1.9.0",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
+    "@salesforce/source-deploy-retrieve": "^12.20.0",
     "@salesforce/templates": "^64.1.0",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-service-provider": "^1.4.0",
@@ -52,34 +52,9 @@
     "nyc": "^15",
     "ts-jest": "^29.1.1"
   },
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "OSSREADME.json",
-      "resources",
-      "syntaxes",
-      "images",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/src/index.js",
-      "dependencies": {
-        "applicationinsights": "1.0.7",
-        "o11y": "250.12.0",
-        "o11y_schema": "254.77.0",
-        "@salesforce/schemas": "1.9.0"
-      },
-      "devDependencies": {}
-    }
-  },
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.js",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -101,7 +76,8 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
+  "main": "./dist/index.js",
+  "types": "./out/src/index.d.ts",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
