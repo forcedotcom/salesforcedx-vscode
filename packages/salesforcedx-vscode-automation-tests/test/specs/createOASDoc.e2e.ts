@@ -33,7 +33,8 @@ import {
   countProblemsInProblemsTab,
   clearOutputView,
   clickButtonOnModalDialog,
-  isCommandAvailable
+  isCommandAvailable,
+  overrideTextInFile
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
@@ -190,9 +191,8 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       const workbench = getWorkbench();
       const textEditor = await getTextEditor(workbench, 'CaseManager.externalServiceRegistration-meta.xml');
-      await textEditor.setText(getIdealCaseManagerOASDoc());
-      await textEditor.save();
-      await pause(Duration.seconds(1));
+      const xmlText = getIdealCaseManagerOASDoc();
+      await overrideTextInFile(textEditor, xmlText);
     });
 
     it('Revalidate the OAS doc', async () => {
@@ -269,8 +269,8 @@ describe('Create OpenAPI v3 Specifications', () => {
       const workbench = getWorkbench();
       await openFile(path.join(testSetup.projectFolderPath!, 'sfdx-project.json'));
       const textEditor = await getTextEditor(workbench, 'sfdx-project.json');
-      await textEditor.setText(getSfdxProjectJson());
-      await textEditor.save();
+      const sfdxProjectJson = getSfdxProjectJson();
+      await overrideTextInFile(textEditor, sfdxProjectJson);
       await executeQuickPick('View: Close All Editors');
       await reloadWindow();
     });
@@ -314,13 +314,12 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       const workbench = getWorkbench();
       let textEditor = await getTextEditor(workbench, 'SimpleAccountResource.yaml');
-      await textEditor.setText(getIdealSimpleAccountResourceYaml());
-      await textEditor.save();
+      const yamlText = getIdealSimpleAccountResourceYaml();
+      await overrideTextInFile(textEditor, yamlText);
 
       textEditor = await getTextEditor(workbench, 'SimpleAccountResource.externalServiceRegistration-meta.xml');
-      await textEditor.setText(getIdealSimpleAccountResourceXml());
-      await textEditor.save();
-      await pause(Duration.seconds(1));
+      const xmlText = getIdealSimpleAccountResourceXml();
+      await overrideTextInFile(textEditor, xmlText);
     });
 
     it('Revalidate the OAS doc', async () => {
