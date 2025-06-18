@@ -29,7 +29,7 @@ const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_instanc
 const TERMINATED_PROCESS = 'terminated_orphaned_process';
 
 const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
-  const telemetryService = await getTelemetryService();
+  const telemetryService = getTelemetryService();
   const orphanedProcesses = await findAndCheckOrphanedProcesses();
   if (orphanedProcesses.length > 0) {
     if (await getResolutionForOrphanProcesses(orphanedProcesses)) {

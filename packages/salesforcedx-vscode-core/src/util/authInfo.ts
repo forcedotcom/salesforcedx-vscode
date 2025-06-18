@@ -151,6 +151,12 @@ export class OrgAuthInfo {
     const apiVersion = connection.getApiVersion();
     return apiVersion ? String(apiVersion) : undefined;
   }
+
+  public static async getUserId(): Promise<string | undefined> {
+    const connection = await WorkspaceContext.getInstance().getConnection();
+    const userId = connection.getAuthInfoFields().userId ?? (await connection.identity()).user_id;
+    return userId;
+  }
 }
 
 enum VSCodeWindowTypeEnum {

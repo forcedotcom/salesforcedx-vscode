@@ -11,7 +11,8 @@ import {
   RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL,
-  extractJsonObject
+  extractJsonObject,
+  LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
@@ -35,7 +36,7 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import * as os from 'node:os';
 import { basename } from 'node:path';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
-import { LineBreakpointInfo, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
+import { LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {
   DebuggerResponse,
   FrameCommand,
@@ -143,11 +144,7 @@ export class ApexVariable extends Variable {
     this.kind = kind;
     this.type = value.nameForMessages;
     this.evaluateName = this.value;
-    if ('slot' in value && typeof value.slot === 'number') {
-      this.slot = value.slot;
-    } else {
-      this.slot = Number.MAX_SAFE_INTEGER;
-    }
+    this.slot = 'slot' in value && typeof value.slot === 'number' ? value.slot : Number.MAX_SAFE_INTEGER;
   }
 
   public static valueAsString(value: Value): string {
@@ -1275,7 +1272,7 @@ export class ApexDebug extends LoggingDebugSession {
         response.message = nls.localize('unexpected_error_help_text');
         this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
       }
-    } catch (e) {
+    } catch {
       response.message = response.message || nls.localize('unexpected_error_help_text');
       this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
     }

@@ -37,9 +37,7 @@ export class ApexHeapDump {
     this.overlaySuccessResut = overlaySuccessResult;
   }
 
-  public toString = (): string => {
-    return `HeapDumpId: ${this.heapDumpId}, ClassName: ${
+  public toString = (): string => `HeapDumpId: ${this.heapDumpId}, ClassName: ${
       this.className
     }, Namespace: ${this.namespace}, Line: ${this.line}`;
-  };
 }

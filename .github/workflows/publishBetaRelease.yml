@@ -14,7 +14,7 @@ jobs:
           ref: ${{ github.event.ref }}
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - run: npm install -g lerna
       - run: npm install
       - run: npm run compile

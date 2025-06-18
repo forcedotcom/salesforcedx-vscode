@@ -5,17 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { LineBreakpointInfo } from '.';
+
 export class BreakpointUtil {
   private static instance: BreakpointUtil;
   private lineNumberMapping: Map<string, number[]> = new Map();
   private typerefMapping: Map<string, string> = new Map();
 
-  public setValidLines(
-    lineNumberMapping: Map<string, number[]>,
-    typerefMapping: Map<string, string>
-  ): void {
+  public setValidLines(lineNumberMapping: Map<string, number[]>, typerefMapping: Map<string, string>): void {
     this.lineNumberMapping = lineNumberMapping;
     this.typerefMapping = typerefMapping;
   }
@@ -27,14 +25,6 @@ export class BreakpointUtil {
     return BreakpointUtil.instance;
   }
 
-  public static setInstance(inputInstance: BreakpointUtil): void {
-    BreakpointUtil.instance = inputInstance;
-  }
-
-  public hasLineNumberMapping(): boolean {
-    return this.lineNumberMapping && this.lineNumberMapping.size > 0;
-  }
-
   public getLineNumberMapping(): Map<string, number[]> {
     return this.lineNumberMapping;
   }
@@ -44,15 +34,10 @@ export class BreakpointUtil {
   }
 
   public canSetLineBreakpoint(uri: string, line: number): boolean {
-    return (
-      this.lineNumberMapping.has(uri) &&
-      this.lineNumberMapping.get(uri)!.indexOf(line) !== -1
-    );
+    return this.lineNumberMapping.has(uri) && this.lineNumberMapping.get(uri)!.indexOf(line) !== -1;
   }
 
-  public createMappingsFromLineBreakpointInfo(
-    lineBpInfo: LineBreakpointInfo[]
-  ): void {
+  public createMappingsFromLineBreakpointInfo(lineBpInfo: LineBreakpointInfo[]): void {
     // clear out any existing mapping
     this.lineNumberMapping.clear();
     this.typerefMapping.clear();
@@ -62,17 +47,12 @@ export class BreakpointUtil {
       if (!this.lineNumberMapping.has(info.uri)) {
         this.lineNumberMapping.set(info.uri, []);
       }
-      this.lineNumberMapping.set(
-        info.uri,
-        this.lineNumberMapping.get(info.uri)!.concat(info.lines)
-      );
+      this.lineNumberMapping.set(info.uri, this.lineNumberMapping.get(info.uri)!.concat(info.lines));
       this.typerefMapping.set(info.typeref, info.uri);
     }
   }
 
-  public returnLinesForLoggingFromBreakpointArgs(
-    bpArr: DebugProtocol.SourceBreakpoint[]
-  ): string {
+  public returnLinesForLoggingFromBreakpointArgs(bpArr: DebugProtocol.SourceBreakpoint[]): string {
     return bpArr.map(bp => bp.line).join(',');
   }
 

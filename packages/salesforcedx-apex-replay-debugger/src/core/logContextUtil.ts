@@ -5,25 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 
 export class LogContextUtil {
   public getFileSize(filePath: string): number {
     try {
       const stats = fs.statSync(filePath);
       return stats.size;
-    } catch (e) {
+    } catch {
       return 0;
     }
   }
 
   public readLogFile(logFilePath: string): string[] {
     try {
-      return fs
-        .readFileSync(logFilePath, 'utf-8')
-        .trim()
-        .split(/\r?\n/);
-    } catch (e) {
+      return fs.readFileSync(logFilePath, 'utf-8').trim().split(/\r?\n/);
+    } catch {
       return [];
     }
   }

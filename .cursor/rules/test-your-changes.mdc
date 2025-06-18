@@ -1,0 +1,8 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+when you changes a file, you should run relevant compile, linters then unit tests so that you cna propose valid changes.
+
+don't change both /src and /test unless it's to refactor imports or rename.  "real changes" should be one or the other.
