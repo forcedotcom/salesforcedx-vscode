@@ -78,7 +78,6 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     if (this.isDebugging) {
-      // @ts-expect-error - mismatch between core and core-bundle because of Logger
       if (!(await this.setUpTraceFlags(connection))) {
         return false;
       }

@@ -21,8 +21,6 @@ import {
   breakpointUtil
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as path from 'node:path';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
@@ -38,6 +36,7 @@ import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
+import { getApexExtension, getVscodeCoreExtension } from './utils/externalExtensionUtils';
 
 let extContext: vscode.ExtensionContext;
 
@@ -45,13 +44,6 @@ export enum VSCodeWindowTypeEnum {
   Error = 1,
   Informational = 2,
   Warning = 3
-}
-
-const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-  'salesforce.salesforcedx-vscode-core'
-);
-if (!salesforceCoreExtension) {
-  throw new Error('Salesforce Core Extension not initialized');
 }
 
 const registerCommands = (): vscode.Disposable => {
@@ -170,11 +162,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
   const checkpointsView = vscode.window.registerTreeDataProvider('sf.view.checkpoint', checkpointService);
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
-  if (!salesforceCoreExtension.isActive) {
-    await salesforceCoreExtension.activate();
-  }
+  const vscodeCoreExtension = await getVscodeCoreExtension();
   // Workspace Context
-  await salesforceCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext);
+  await vscodeCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async test => {
@@ -198,10 +188,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
 
   // Telemetry
-  if (salesforceCoreExtension) {
+  if (vscodeCoreExtension) {
     telemetryService.initializeService(
-      salesforceCoreExtension.exports.telemetryService.getReporters(),
-      await salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
+      vscodeCoreExtension.exports.telemetryService.getReporters(),
+      await vscodeCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
 
@@ -209,11 +199,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 };
 
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
-  const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
+  const salesforceApexExtension = await getApexExtension();
   if (salesforceApexExtension) {
-    if (!salesforceApexExtension.isActive) {
-      await salesforceApexExtension.activate();
-    }
     let expired = false;
     let i = 0;
     while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {

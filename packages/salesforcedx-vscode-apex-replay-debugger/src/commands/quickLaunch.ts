@@ -23,8 +23,7 @@ import {
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
-import * as vscode from 'vscode';
+import { getVscodeCoreExtension } from 'salesforcedx-vscode-apex/src/coreExtensionUtils';
 import { checkpointService, CheckpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
@@ -44,12 +43,9 @@ type LogFileRetrieveResult = {
 
 class QuickLaunch {
   public async debugTest(testClass: string, testName?: string): Promise<boolean> {
-    const connection = await vscode.extensions
-      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-      ?.exports.services.WorkspaceContext.getInstance()
-      .getConnection();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
 
-    // @ts-expect-error - mismatch between core and core-bundle
     const traceFlags = new TraceFlags(connection);
     if (!(await traceFlags.ensureTraceFlags())) {
       return false;
@@ -62,11 +58,9 @@ class QuickLaunch {
         return false;
       }
     }
-    // @ts-expect-error - mismatch between core and core-bundle
     const testResult = await this.runTests(connection, testClass, testName);
 
     if (testResult.success && testResult.logFileId) {
-      // @ts-expect-error - mismatch between core and core-bundle
       const logFileRetrieve = await this.retrieveLogFile(connection, testResult.logFileId);
 
       if (logFileRetrieve.success && logFileRetrieve.filePath) {
