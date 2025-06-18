@@ -20,10 +20,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL, channelService } from '../channels';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { getZeroBasedRange } from './range';
 
@@ -75,10 +75,8 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
   }
 
   public async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
-    const connection = await vscode.extensions
-      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-      ?.exports.WorkspaceContext.getInstance()
-      .getConnection();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     if (this.isDebugging) {
       // @ts-expect-error - mismatch between core and core-bundle because of Logger
       if (!(await this.setUpTraceFlags(connection))) {
@@ -86,7 +84,6 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
       }
     }
 
-    // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const executeService = new ExecuteService(connection);
     const { apexCode, fileName: apexFilePath, selection } = response.data;
 

@@ -10,6 +10,7 @@ import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { getVscodeCoreExtension } from '../../../src/coreExtensionUtils';
 import { nls } from '../../../src/messages';
 import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
 import {
@@ -21,6 +22,7 @@ import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
 jest.mock('node:fs');
+jest.mock('../../../src/coreExtensionUtils');
 
 class MockRegistryAccess {
   getTypeByName() {
@@ -83,15 +85,15 @@ describe('ExternalServiceRegistrationManager', () => {
 
     esrHandler = new ExternalServiceRegistrationManager();
 
-    // Mock the salesforceCoreExtension property on the esrHandler instance
-    (esrHandler as any).salesforceCoreExtension = {
+    // Mock getVscodeCoreExtension to return the expected extension shape
+    (getVscodeCoreExtension as jest.Mock).mockResolvedValue({
       isActive: true,
       exports: {
         services: {
           RegistryAccess: MockRegistryAccess
         }
       }
-    };
+    });
   });
   describe('initialize', () => {
     it('should initialize with right values', () => {

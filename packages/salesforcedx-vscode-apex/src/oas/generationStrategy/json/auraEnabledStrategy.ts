@@ -7,9 +7,8 @@
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
-import * as vscode from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '..';
+import { getVscodeCoreExtension } from '../../../coreExtensionUtils';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
 import {
   ApexClassOASEligibleResponse,
@@ -55,18 +54,9 @@ export class AuraEnabledStrategy extends GenerationStrategy {
       this.isDefaultOrg = targetOrg !== undefined;
 
       if (this.isDefaultOrg) {
-        const coreExt = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
-        if (!coreExt?.isActive) {
-          await coreExt?.activate();
-        }
-        if (!coreExt) {
-          throw new Error('the extension salesforce.salesforcedx-vscode-core is not available');
-        }
-        const apiVersion = (
-          await coreExt.exports.services.WorkspaceContext.getInstance().getConnection()
-        ).getApiVersion();
-        // Convert API version to number by handling decimal format (e.g. "58.0")
-        const numericVersion = parseFloat(apiVersion);
+        const vscodeCoreExtension = await getVscodeCoreExtension();
+        const apiVersion = await vscodeCoreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
+        const numericVersion = parseFloat(apiVersion.getApiVersion());
         this.isOrgVersionCompatible = numericVersion >= MIN_ORG_VERSION;
       }
     } catch (err) {
@@ -96,12 +86,12 @@ export class AuraEnabledStrategy extends GenerationStrategy {
 
   public async generateOAS(): Promise<string> {
     const responses: string[] = [];
+    const coreExtension = await getVscodeCoreExtension();
 
     // Get the connection and make the API call
-    const connection = await workspaceContext.getConnection();
-    const className = this.context.classDetail.name;
+    const connection = await coreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
     const apiVersion = connection.getApiVersion();
-    const endpoint = `${connection.instanceUrl}/services/data/v${apiVersion}/specifications/oas3/apex/${className}`;
+    const endpoint = `${connection.instanceUrl}/services/data/v${apiVersion}/specifications/oas3/apex/${this.context.classDetail.name}`;
 
     try {
       const result = await connection.request({

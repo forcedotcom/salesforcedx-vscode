@@ -7,7 +7,6 @@
 
 import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
@@ -31,6 +30,7 @@ import {
   ApexActionController
 } from './commands';
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
+import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
   configureApexLanguage,
@@ -48,20 +48,12 @@ import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 const metadataOrchestrator = new MetadataOrchestrator();
-const vscodeCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-  'salesforce.salesforcedx-vscode-core'
-);
-if (!vscodeCoreExtension) {
-  throw new Error('Could not fetch a SalesforceVSCodeCoreApi instance');
-}
 
 // Apex Action Controller
 export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (context: vscode.ExtensionContext) => {
-  if (!vscodeCoreExtension.isActive) {
-    await vscodeCoreExtension.activate();
-  }
+  const vscodeCoreExtension = await getVscodeCoreExtension();
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
 
   // Telemetry

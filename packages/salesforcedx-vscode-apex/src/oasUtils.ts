@@ -10,11 +10,11 @@ import { extensionUris, getJsonCandidate, identifyJsonTypeInString } from '@sale
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
+import { getVscodeCoreExtension } from './coreExtensionUtils';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
@@ -115,9 +115,8 @@ export const createProblemTabEntriesForOasDocument = (
  * @returns {Promise<boolean>} - True if sfdx-project.json contains decomposeExternalServiceRegistrationBeta.
  */
 export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
-  const sfdxProjectJson = await vscode.extensions
-    .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-    ?.exports.services.SalesforceProjectConfig.getInstance();
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const sfdxProjectJson = await vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance();
 
   if (sfdxProjectJson?.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
     return true;

@@ -12,10 +12,10 @@ import { JSONPath } from 'jsonpath-plus';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import {
   createProblemTabEntriesForOasDocument,
@@ -41,9 +41,7 @@ export class ExternalServiceRegistrationManager {
   private overwrite = false;
   private originalPath: string = '';
   private newPath: string = '';
-  private salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-    'salesforce.salesforcedx-vscode-core'
-  );
+
   providerType: string | undefined;
 
   private initialize(
@@ -345,14 +343,9 @@ export class ExternalServiceRegistrationManager {
     )) ?? 'cancel';
 
   getFolderForArtifact = async (): Promise<string | undefined> => {
-    if (!this.salesforceCoreExtension?.isActive) {
-      await this.salesforceCoreExtension?.activate();
-    }
-    if (!this.salesforceCoreExtension?.exports) {
-      throw new Error(nls.localize('registry_access_failed'));
-    }
-    const registryAccess = new this.salesforceCoreExtension.exports.services.RegistryAccess();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
     try {
+      const registryAccess = new vscodeCoreExtension.exports.services.RegistryAccess();
       const esrDefaultDirectoryName = registryAccess.getTypeByName('ExternalServiceRegistration').directoryName;
       if (esrDefaultDirectoryName) {
         const defaultESRFolder = path.join(

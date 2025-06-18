@@ -16,9 +16,9 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 
 const LOG_DIRECTORY = projectPaths.debugLogsFolder();
@@ -71,11 +71,8 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
   }
 
   public async getLogRecords(): Promise<LogRecord[]> {
-    const connection = await vscode.extensions
-      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-      ?.exports.WorkspaceContext.getInstance()
-      .getConnection();
-    // @ts-expect-error - mismatch between core and core-bundle because of Logger
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const logService = new LogService(connection);
     return vscode.window.withProgress(
       {
@@ -95,11 +92,8 @@ class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   }
 
   public async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
-    const connection = await vscode.extensions
-      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-      ?.exports.WorkspaceContext.getInstance()
-      .getConnection();
-    // @ts-expect-error - mismatch between core and core-bundle because of Logger
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 

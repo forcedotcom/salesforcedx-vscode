@@ -26,10 +26,10 @@ import {
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
@@ -58,11 +58,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    const connection = await vscode.extensions
-      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-      ?.exports.WorkspaceContext.getInstance()
-      .getConnection();
-    // @ts-expect-error - mismatch between core and core-bundle because of Logger
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
     const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, this.tests.join());
 
@@ -107,11 +104,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       return;
     }
 
-    const coreExtAPI = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
-    if (!coreExtAPI?.isActive) {
-      await coreExtAPI?.activate();
-    }
-    const project = await coreExtAPI?.exports.services.SalesforceProjectConfig.getInstance();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const project = await vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance();
 
     if (!project) {
       return;

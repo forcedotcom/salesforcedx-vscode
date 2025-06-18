@@ -17,10 +17,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 
@@ -40,11 +40,8 @@ const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> =>
     .sort((a, b) => a.label.localeCompare(b.label));
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const connection = await vscode.extensions
-    .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-    ?.exports.WorkspaceContext.getInstance()
-    .getConnection();
-  // @ts-expect-error - mismatch between core and core-bundle because of Logger
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
   const testService = new TestService(connection);
 
   return (await testService.retrieveAllSuites()).map(testSuite => ({
@@ -125,11 +122,8 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
   }
 
   public async run(response: ContinueResponse<ApexTestSuiteOptions>): Promise<boolean> {
-    const connection = await vscode.extensions
-      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-      ?.exports.WorkspaceContext.getInstance()
-      .getConnection();
-    // @ts-expect-error - mismatch between core and core-bundle because of Logger
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
     await testService.buildSuite(response.data.suitename, response.data.tests);
     return true;
