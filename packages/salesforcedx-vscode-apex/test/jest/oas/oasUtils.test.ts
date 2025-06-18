@@ -12,9 +12,6 @@ import {
   hasMixedFrameworks,
   isValidRegistrationProviderType,
   hasNoClassAnnotations,
-  hasAuraEnabledMethods,
-  hasRestResourceAnnotation,
-  hasHttpRestAnnotations,
   summarizeDiagnostics,
   getCurrentTimestamp,
   cleanupGeneratedDoc,
@@ -290,7 +287,7 @@ describe('hasValidRestAnnotations', () => {
   });
 });
 
-describe('hasAuraEnabledMethods', () => {
+describe('hasAuraFrameworkCapability', () => {
   it('should return true when class has no annotations and methods have AuraEnabled annotations', () => {
     const context: Partial<ApexClassOASGatherContextResponse> = {
       classDetail: {
@@ -609,200 +606,6 @@ describe('hasNoClassAnnotations', () => {
       relationships: new Map()
     };
     expect(hasNoClassAnnotations(context)).toBe(false);
-  });
-});
-
-describe('hasAuraEnabledMethods', () => {
-  it('should return true when methods have AuraEnabled annotations', () => {
-    const context: ApexClassOASGatherContextResponse = {
-      classDetail: {
-        name: 'TestClass',
-        annotations: [],
-        interfaces: [],
-        extendedClass: null,
-        definitionModifiers: [],
-        accessModifiers: [],
-        innerClasses: [],
-        comment: ''
-      },
-      methods: [
-        {
-          name: 'testMethod',
-          returnType: 'String',
-          parameterTypes: [],
-          modifiers: [],
-          annotations: [{ name: 'AuraEnabled', parameters: {} }],
-          comment: ''
-        }
-      ],
-      properties: [],
-      relationships: new Map()
-    };
-    expect(hasAuraEnabledMethods(context)).toBe(true);
-  });
-
-  it('should return false when methods have no AuraEnabled annotations', () => {
-    const context: ApexClassOASGatherContextResponse = {
-      classDetail: {
-        name: 'TestClass',
-        annotations: [],
-        interfaces: [],
-        extendedClass: null,
-        definitionModifiers: [],
-        accessModifiers: [],
-        innerClasses: [],
-        comment: ''
-      },
-      methods: [
-        {
-          name: 'testMethod',
-          returnType: 'String',
-          parameterTypes: [],
-          modifiers: [],
-          annotations: [{ name: 'HttpGet', parameters: {} }],
-          comment: ''
-        }
-      ],
-      properties: [],
-      relationships: new Map()
-    };
-    expect(hasAuraEnabledMethods(context)).toBe(false);
-  });
-
-  it('should return false when methods array is empty', () => {
-    const context: ApexClassOASGatherContextResponse = {
-      classDetail: {
-        name: 'TestClass',
-        annotations: [],
-        interfaces: [],
-        extendedClass: null,
-        definitionModifiers: [],
-        accessModifiers: [],
-        innerClasses: [],
-        comment: ''
-      },
-      methods: [],
-      properties: [],
-      relationships: new Map()
-    };
-    expect(hasAuraEnabledMethods(context)).toBe(false);
-  });
-});
-
-describe('hasRestResourceAnnotation', () => {
-  it('should return true when class has RestResource annotation', () => {
-    const context: ApexClassOASGatherContextResponse = {
-      classDetail: {
-        name: 'TestClass',
-        annotations: [{ name: 'RestResource', parameters: { urlMapping: '/test' } }],
-        interfaces: [],
-        extendedClass: null,
-        definitionModifiers: [],
-        accessModifiers: [],
-        innerClasses: [],
-        comment: ''
-      },
-      methods: [],
-      properties: [],
-      relationships: new Map()
-    };
-    expect(hasRestResourceAnnotation(context)).toBe(true);
-  });
-
-  it('should return false when class has no RestResource annotation', () => {
-    const context: ApexClassOASGatherContextResponse = {
-      classDetail: {
-        name: 'TestClass',
-        annotations: [{ name: 'AuraEnabled', parameters: {} }],
-        interfaces: [],
-        extendedClass: null,
-        definitionModifiers: [],
-        accessModifiers: [],
-        innerClasses: [],
-        comment: ''
-      },
-      methods: [],
-      properties: [],
-      relationships: new Map()
-    };
-    expect(hasRestResourceAnnotation(context)).toBe(false);
-  });
-});
-
-describe('hasHttpRestAnnotations', () => {
-  it('should return true when methods have HTTP REST annotations', () => {
-    const context: ApexClassOASGatherContextResponse = {
-      classDetail: {
-        name: 'TestClass',
-        annotations: [],
-        interfaces: [],
-        extendedClass: null,
-        definitionModifiers: [],
-        accessModifiers: [],
-        innerClasses: [],
-        comment: ''
-      },
-      methods: [
-        {
-          name: 'testMethod',
-          returnType: 'String',
-          parameterTypes: [],
-          modifiers: [],
-          annotations: [{ name: 'HttpGet', parameters: {} }],
-          comment: ''
-        }
-      ],
-      properties: [],
-      relationships: new Map()
-    };
-    expect(hasHttpRestAnnotations(context)).toBe(true);
-  });
-
-  it('should return false when methods have no HTTP REST annotations', () => {
-    const context: ApexClassOASGatherContextResponse = {
-      classDetail: {
-        name: 'TestClass',
-        annotations: [],
-        interfaces: [],
-        extendedClass: null,
-        definitionModifiers: [],
-        accessModifiers: [],
-        innerClasses: [],
-        comment: ''
-      },
-      methods: [
-        {
-          name: 'testMethod',
-          returnType: 'String',
-          parameterTypes: [],
-          modifiers: [],
-          annotations: [{ name: 'AuraEnabled', parameters: {} }],
-          comment: ''
-        }
-      ],
-      properties: [],
-      relationships: new Map()
-    };
-    expect(hasHttpRestAnnotations(context)).toBe(false);
-  });
-
-  it('should return false when methods array is empty', () => {
-    const context: ApexClassOASGatherContextResponse = {
-      classDetail: {
-        name: 'TestClass',
-        annotations: [],
-        interfaces: [],
-        extendedClass: null,
-        definitionModifiers: [],
-        accessModifiers: [],
-        innerClasses: [],
-        comment: ''
-      },
-      methods: [],
-      properties: [],
-      relationships: new Map()
-    };
-    expect(hasHttpRestAnnotations(context)).toBe(false);
   });
 });
 
