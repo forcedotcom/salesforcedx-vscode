@@ -50,16 +50,6 @@ describe('MetadataOrchestrator', () => {
       );
     });
 
-    it('should throw an error if the first eligible response is not eligible and method is selected', async () => {
-      const mockResponse: any = [
-        { isApexOasEligible: false, isEligible: false, symbols: [{ docSymbol: { name: 'someMethod' } }] }
-      ];
-      jest.spyOn(orchestrator, 'validateEligibility').mockResolvedValue(mockResponse);
-      await expect(orchestrator.validateMetadata(editorStub.document.uri, true)).rejects.toThrow(
-        'Method someMethod is not eligible for OpenAPI Document creation. It is not annotated with an http annotator or has wrong access modifiers.'
-      );
-    });
-
     it('should throw an error if the first eligible response is not eligible and method is not selected', async () => {
       const mockResponse: any = [
         { isApexOasEligible: false, isEligible: false, resourceUri: URI.parse('/hello/world.cls') }

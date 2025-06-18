@@ -29,10 +29,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
-import { languages, workspace, window, CancellationToken, QuickPickItem, Uri, extensions } from 'vscode';
+import { languages, workspace, window, CancellationToken, QuickPickItem, Uri } from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT, IS_TEST_REG_EXP } from '../constants';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 
@@ -121,11 +121,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     }>,
     token?: CancellationToken
   ): Promise<boolean> {
-    const connection = await extensions
-      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
-      ?.exports.WorkspaceContext.getInstance()
-      .getConnection();
-    // @ts-expect-error - mismatch between core and core-bundle because of Logger
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
     const codeCoverage = settings.retrieveTestCodeCoverage();
 
