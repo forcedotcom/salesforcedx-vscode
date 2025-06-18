@@ -30,7 +30,6 @@
   "apex_generation_output_token_limit": "The maximum number of tokens to generate in the output.",
   "configuration_title": "Salesforce Apex Configuration",
   "collapse_tests_title": "SFDX: Collapse All Apex Tests",
-  "create_openapi_doc_method": "SFDX: Create OpenAPI Document from Selected Method",
   "create_openapi_doc_class": "SFDX: Create OpenAPI Document from This Class (Beta)",
   "validate_oas_document": "SFDX: Validate OpenAPI Document (Beta)",
   "enable-apex-ls-error-to-telemetry": "Allow the Apex Language Server to collect telemetry of errors",
