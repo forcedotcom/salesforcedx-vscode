@@ -1,8 +1,20 @@
 import { build } from 'esbuild';
 import { commonConfigNode } from './node.mjs';
 import esbuildPluginPino from 'esbuild-plugin-pino';
+import { pluginReplace } from '@espcom/esbuild-plugin-replace';
 
-export const pinoSupport = [esbuildPluginPino({ transports: ['pino-pretty'] })];
+export const pinoSupport = [
+  esbuildPluginPino({ transports: ['pino-pretty'] }),
+  pluginReplace([
+    {
+      filter: /\.js$/,
+      includeNodeModules: true,
+      // this should match exactly what's in the node_modules/@salesforce/core/lib/logger/logger.js file, not what gets into the bundle
+      replace: `'..', '..', 'lib', 'logger', 'transformStream'`,
+      replacer: () => `'./transformStream'`
+    }
+  ])
+];
 
 export const bundleTransformStream = () =>
   build({

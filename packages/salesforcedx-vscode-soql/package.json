@@ -48,7 +48,6 @@
     "@salesforce/core": "^8.12.0",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
-    "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",

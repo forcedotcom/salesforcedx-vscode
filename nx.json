@@ -44,7 +44,8 @@
         "{projectRoot}/esbuild.config.mjs",
         "{projectRoot}/esbuild.config.js",
         "{projectRoot}/out/**",
-        "{projectRoot}/src/**"
+        "{projectRoot}/src/**",
+        "{workspaceRoot}/scripts/bundling/**"
       ],
       "outputs": [
         "{projectRoot}/dist"

@@ -50,16 +50,16 @@ export const activate = async (context: ExtensionContext) => {
   const toDispose = context.subscriptions;
 
   // The server is implemented in node
-  const serverModule = context.asAbsolutePath(path.join(...context.extension.packageJSON.serverPath));
+  const module = context.asAbsolutePath(path.join('dist', 'server.js'));
   // The debug options for the server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6004'] };
 
   // If the extension is launch in debug mode the debug server options are use
   // Otherwise the run options are used
   const serverOptions: ServerOptions = {
-    run: { module: serverModule, transport: TransportKind.ipc },
+    run: { module, transport: TransportKind.ipc },
     debug: {
-      module: serverModule,
+      module,
       transport: TransportKind.ipc,
       options: debugOptions
     }

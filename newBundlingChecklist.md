@@ -4,16 +4,17 @@
 
 - main should point to dist/index.js
 - types should point to out/src/index.js (if an only if the extension exports its API to be consumed by other extensions like Core and Apex ext do).
-- vscode:package should just run vse.
+- vscode:package should just run `vsce package`.
 - update the bundle script for the new .mjs esbuild file
 - remove any `packaging` content
 - remove the prepublish script
+- are the bundle:copy scripts? let's do that in the esbuild file
 
 ## esbuild.config
 
 - use mjs, not cjs
 - use modern esm syntax (import, not require)
-- include the pino stuff if it involves Core
+- include the pino stuff only if it includes sfdx-core somewhere
 
 ## .vscodeignore
 
