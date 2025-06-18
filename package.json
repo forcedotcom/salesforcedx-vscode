@@ -13,7 +13,7 @@
     "@actions/github": "^6.0.0",
     "node": "^20.17.0",
     "npm": "^10",
-    "semver": "^7.5.4",
+    "semver": "^7.7.2",
     "ts-node": "10.9.2"
   },
   "devDependencies": {
@@ -28,7 +28,7 @@
     "@tsconfig/node20": "20.1.4",
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^29.5.5",
-    "@types/semver": "7.5.8",
+    "@types/semver": "7.7.0",
     "@types/vscode": "1.90.0",
     "@typescript-eslint/eslint-plugin": "8.33.0",
     "@typescript-eslint/parser": "8.33.0",
