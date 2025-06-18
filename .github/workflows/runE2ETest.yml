@@ -53,7 +53,7 @@ jobs:
       - name: Run all steps with retries
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
-          max_attempts: 4
+          max_attempts: 1
           command: |
             cd salesforcedx-vscode
 
