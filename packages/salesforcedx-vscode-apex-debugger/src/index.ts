@@ -25,13 +25,12 @@ import {
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
+import { getApexExtension, getVscodeCoreExtension } from './utils/externalExtensionUtils';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
 
@@ -108,10 +107,7 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 ];
 
 const configureExceptionBreakpoint = async (): Promise<void> => {
-  const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
-  if (!salesforceApexExtension?.isActive) {
-    await salesforceApexExtension?.activate();
-  }
+  const salesforceApexExtension = await getApexExtension();
   if (salesforceApexExtension?.exports) {
     // @ts-expect-error - typing ExceptionBreakpointItem exists only in the debugger, but the breakpoints are coming from core ext which doesn't have the types
     const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
@@ -237,12 +233,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
-  const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-    'salesforce.salesforcedx-vscode-core'
-  );
-  if (!salesforceCoreExtension?.isActive) {
-    await salesforceCoreExtension?.activate();
-  }
+  const salesforceCoreExtension = await getVscodeCoreExtension();
   const extensionHRStart = process.hrtime();
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
@@ -252,27 +243,25 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
   );
 
-  if (salesforceCoreExtension?.exports) {
-    if (salesforceCoreExtension.exports.isCLIInstalled()) {
-      console.log('Setting up ISV Debugger environment variables');
-      // register watcher for ISV authentication and setup default user for CLI
-      // this is done in core because it shares access to GlobalCliEnvironment with the commands
-      // (VS Code does not seem to allow sharing npm modules between extensions)
-      try {
-        registerIsvAuthWatcher(extensionContext);
-        await setupGlobalDefaultUserIsvAuth();
-      } catch (e) {
-        console.error(e);
-        vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error'));
-      }
+  if (salesforceCoreExtension.exports.isCLIInstalled()) {
+    console.log('Setting up ISV Debugger environment variables');
+    // register watcher for ISV authentication and setup default user for CLI
+    // this is done in core because it shares access to GlobalCliEnvironment with the commands
+    // (VS Code does not seem to allow sharing npm modules between extensions)
+    try {
+      registerIsvAuthWatcher(extensionContext);
+      await setupGlobalDefaultUserIsvAuth();
+    } catch (e) {
+      console.error(e);
+      vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error'));
     }
-
-    // Telemetry
-    telemetryService.initializeService(
-      salesforceCoreExtension.exports.telemetryService.getReporters(),
-      await salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
   }
+
+  // Telemetry
+  telemetryService.initializeService(
+    salesforceCoreExtension.exports.telemetryService.getReporters(),
+    await salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
+  );
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
 };
