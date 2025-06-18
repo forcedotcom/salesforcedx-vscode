@@ -6,12 +6,13 @@
  */
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
-import { ApexClassOASEligibleResponse } from '../schemas';
+import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 
 export interface ProcessorInputOutput {
   openAPIDoc: OpenAPIV3.Document;
   errors: vscode.Diagnostic[];
   readonly eligibilityResult?: ApexClassOASEligibleResponse;
+  context?: ApexClassOASGatherContextResponse;
 }
 
 export interface ProcessorStep {

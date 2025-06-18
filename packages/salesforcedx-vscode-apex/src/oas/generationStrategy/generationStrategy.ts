@@ -10,7 +10,6 @@ import { APEX_OAS_INCLUDE_GUIDED_JSON, APEX_OAS_OUTPUT_TOKEN_LIMIT, SF_LOG_LEVEL
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
-  PromptGenerationResult,
   PromptGenerationStrategyBid
 } from '../schemas';
 
@@ -19,29 +18,47 @@ import {
 const AsyncLock = require('async-lock');
 
 export abstract class GenerationStrategy {
-  abstract metadata: ApexClassOASEligibleResponse;
-  abstract context: ApexClassOASGatherContextResponse;
-  abstract strategyName: string;
-  abstract biddedCallCount: number;
-  abstract maxBudget: number;
-  abstract bid(): PromptGenerationStrategyBid;
-  abstract generate(): PromptGenerationResult; // generate the prompt(s) to be sent to the LLM
-  abstract callLLMWithPrompts(): Promise<string[]>;
-  abstract generateOAS(): Promise<string>; // generate OAS with the generated prompt(s)
+  metadata: ApexClassOASEligibleResponse;
+  context: ApexClassOASGatherContextResponse;
+  strategyName: string;
+  biddedCallCount: number;
+  maxBudget: number;
+  serviceRequests: Map<string, Promise<string>> = new Map();
+  serviceResponses: Map<string, string> = new Map();
+  servicePrompts: Map<string, string> = new Map();
+  sourceText: string = '';
+  classPrompt: string = '';
+  oasSchema: string = '';
+  abstract bid(): Promise<PromptGenerationStrategyBid>;
+  abstract generateOAS(): Promise<string>; // generate OAS with the resolved content
   abstract openAPISchema: string | undefined;
   includeOASSchema: boolean | undefined;
   logLevel: string;
   outputTokenLimit: number;
-  llmCallCount: number;
+  resolutionAttempts: number;
+  beta: string | undefined;
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   private lock = new AsyncLock();
 
-  constructor() {
+  constructor(
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse,
+    strategyName: string,
+    biddedCallCount: number,
+    maxBudget: number,
+    betaInfo?: string
+  ) {
+    this.metadata = metadata;
+    this.context = context;
+    this.strategyName = strategyName;
+    this.biddedCallCount = biddedCallCount;
+    this.maxBudget = maxBudget;
     this.includeOASSchema = undefined;
     this.logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
     this.outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
-    this.llmCallCount = 0;
+    this.resolutionAttempts = 0;
+    this.beta = betaInfo;
   }
 
   getPromptTokenCount(prompt: string): number {
@@ -51,13 +68,17 @@ export abstract class GenerationStrategy {
   getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
     ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 
-  async incrementCallCount(): Promise<void> {
+  async incrementResolutionAttempts(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    await this.lock.acquire(this.strategyName, () => this.llmCallCount++);
+    await this.lock.acquire(this.strategyName, () => this.resolutionAttempts++);
   }
 
   protected includesOASSchema(): boolean {
     this.includeOASSchema = vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, true);
     return this.includeOASSchema;
+  }
+
+  get betaInfo(): string | undefined {
+    return this.beta;
   }
 }

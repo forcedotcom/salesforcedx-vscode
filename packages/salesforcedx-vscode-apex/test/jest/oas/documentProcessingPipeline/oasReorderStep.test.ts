@@ -25,7 +25,8 @@ describe('OasReorderStep', () => {
           description: 'An example API'
         },
         paths: {}
-      }
+      },
+      context: undefined
     };
 
     const output = await processor.process(input);
@@ -58,7 +59,8 @@ describe('OasReorderStep', () => {
             }
           }
         }
-      }
+      },
+      context: undefined
     };
 
     const output = await processor.process(input);
@@ -102,7 +104,8 @@ describe('OasReorderStep', () => {
             }
           }
         }
-      }
+      },
+      context: undefined
     };
 
     const output = await processor.process(input);
@@ -128,7 +131,8 @@ describe('OasReorderStep', () => {
             }
           }
         }
-      }
+      },
+      context: undefined
     };
 
     const output = await processor.process(input);
@@ -146,7 +150,8 @@ describe('OasReorderStep', () => {
           version: '1.0.0'
         },
         paths: {}
-      }
+      },
+      context: undefined
     };
 
     const output = await processor.process(input);
