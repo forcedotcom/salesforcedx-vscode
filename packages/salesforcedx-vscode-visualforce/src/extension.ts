@@ -5,6 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'node:path';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 
 import {
   Color,
@@ -191,9 +192,14 @@ export const activate = async (context: ExtensionContext) => {
   });
 
   // Telemetry
-  const salesforceCoreExtension = extensions.getExtension('salesforce.salesforcedx-vscode-core');
+  const salesforceCoreExtension = extensions.getExtension<SalesforceVSCodeCoreApi>(
+    'salesforce.salesforcedx-vscode-core'
+  );
+  if (!salesforceCoreExtension?.isActive) {
+    await salesforceCoreExtension?.activate();
+  }
 
-  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+  if (salesforceCoreExtension?.exports) {
     telemetryService.initializeService(
       salesforceCoreExtension.exports.telemetryService.getReporters(),
       salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()

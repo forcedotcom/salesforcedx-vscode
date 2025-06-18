@@ -58,7 +58,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
 
-    if (this.salesforceApexExtension && this.salesforceApexExtension.exports) {
+    if (!this.salesforceApexExtension?.isActive) {
+      await this.salesforceApexExtension?.activate();
+    }
+    if (this.salesforceApexExtension?.exports) {
       await this.isLanguageClientReady();
       config.lineBreakpointInfo = await this.salesforceApexExtension.exports.getLineBreakpointInfo();
     }

@@ -26,6 +26,7 @@ import {
 } from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
@@ -33,7 +34,9 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
-const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
+const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
+  'salesforce.salesforcedx-vscode-core'
+);
 
 export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> => {
   let type = session.type;
@@ -109,6 +112,9 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 
 const configureExceptionBreakpoint = async (): Promise<void> => {
   const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
+  if (!salesforceApexExtension?.isActive) {
+    await salesforceApexExtension?.activate();
+  }
   if (salesforceApexExtension?.exports) {
     // @ts-expect-error - typing ExceptionBreakpointItem exists only in the debugger, but the breakpoints are coming from core ext which doesn't have the types
     const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
@@ -235,7 +241,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
   );
 
-  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+  if (salesforceCoreExtension?.exports) {
+    if (!salesforceCoreExtension.isActive) {
+      await salesforceCoreExtension.activate();
+    }
     if (salesforceCoreExtension.exports.isCLIInstalled()) {
       console.log('Setting up ISV Debugger environment variables');
       // register watcher for ISV authentication and setup default user for CLI

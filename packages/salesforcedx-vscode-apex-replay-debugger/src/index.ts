@@ -170,7 +170,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
   const checkpointsView = vscode.window.registerTreeDataProvider('sf.view.checkpoint', checkpointService);
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
-
+  if (!salesforceCoreExtension.isActive) {
+    await salesforceCoreExtension.activate();
+  }
   // Workspace Context
   await salesforceCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext);
 
@@ -209,6 +211,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
   if (salesforceApexExtension) {
+    if (!salesforceApexExtension.isActive) {
+      await salesforceApexExtension.activate();
+    }
     let expired = false;
     let i = 0;
     while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
