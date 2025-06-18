@@ -4,31 +4,32 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'node:fs';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { ensurePromptsExist, PROMPTS_DIR, PROMPTS_FILE } from '../../../../src/oas/generationStrategy/promptsHandler';
-
-jest.mock('node:fs');
 
 describe('ensurePromptsExist', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should create the prompts directory and file if they do not exist', () => {
-    (fs.existsSync as jest.Mock).mockReturnValueOnce(false).mockReturnValueOnce(false);
+  it('should create the prompts directory and file if they do not exist', async () => {
+    jest
+      .spyOn(vscode.workspace.fs, 'stat')
+      .mockRejectedValueOnce(new Error('Directory not found'))
+      .mockRejectedValueOnce(new Error('File not found'));
 
-    ensurePromptsExist();
+    await ensurePromptsExist();
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith(PROMPTS_DIR, { recursive: true });
-    expect(fs.writeFileSync).toHaveBeenCalledWith(PROMPTS_FILE, expect.any(String), 'utf8');
+    expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith(URI.file(PROMPTS_DIR));
+    expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(URI.file(PROMPTS_FILE), expect.any(Uint8Array));
   });
 
-  it('should not create the prompts directory or file if they already exist', () => {
-    (fs.existsSync as jest.Mock).mockReturnValue(true);
+  it('should not create the prompts directory or file if they already exist', async () => {
+    jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ type: vscode.FileType.Directory } as vscode.FileStat);
 
-    ensurePromptsExist();
+    await ensurePromptsExist();
 
-    expect(fs.mkdirSync).not.toHaveBeenCalled();
-    expect(fs.writeFileSync).not.toHaveBeenCalled();
+    expect(vscode.workspace.fs.writeFile).not.toHaveBeenCalled();
   });
 });

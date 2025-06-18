@@ -15,12 +15,14 @@ export enum GenerationStrategy {
 export type Strategy = JsonMethodByMethodStrategy;
 
 export class GenerationStrategyFactory {
-  public static initializeAllStrategies(
+  public static async initializeAllStrategies(
     metadata: ApexClassOASEligibleResponse,
     context: ApexClassOASGatherContextResponse
-  ): Map<GenerationStrategy, Strategy> {
+  ): Promise<Map<GenerationStrategy, Strategy>> {
     const strategies = new Map<GenerationStrategy, Strategy>();
-    strategies.set(GenerationStrategy.JSON_METHOD_BY_METHOD, new JsonMethodByMethodStrategy(metadata, context));
+    const strategy = new JsonMethodByMethodStrategy(metadata, context);
+    await strategy.initialize();
+    strategies.set(GenerationStrategy.JSON_METHOD_BY_METHOD, strategy);
     return strategies;
   }
 }

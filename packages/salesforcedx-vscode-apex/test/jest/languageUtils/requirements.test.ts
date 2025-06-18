@@ -7,7 +7,6 @@
 
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
-import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -40,7 +39,6 @@ describe('Java Requirements Test', () => {
     sandbox.stub(vscode.workspace, 'getConfiguration').withArgs().returns({
       get: settingStub
     });
-    sandbox.stub(fs, 'existsSync').resolves(true);
     execFileStub = sandbox.stub(cp, 'execFile');
   });
 
@@ -66,7 +64,14 @@ describe('Java Requirements Test', () => {
 
     it('Should reject when Java binary is not executable', async () => {
       settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-      sandbox.stub(fs.promises, 'access').rejects(new Error('Permission denied'));
+      // Mock stat to return a file that exists but is not executable
+      sandbox.stub(vscode.workspace.fs, 'stat').resolves({
+        type: vscode.FileType.File,
+        permissions: 0o444, // Read-only permissions (no execute bit)
+        ctime: Date.now(),
+        mtime: Date.now(),
+        size: 0
+      } as unknown as vscode.FileStat);
       try {
         await resolveRequirements();
         fail('Should have thrown when Java binary is not executable');
@@ -82,7 +87,14 @@ describe('Java Requirements Test', () => {
     it('Should allow valid java runtime path outside the project', async () => {
       settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
       execFileStub.yields('', '', 'java.version = 11.0.0');
-      sandbox.stub(fs.promises, 'access').resolves();
+      // Mock stat to return a file that exists and is executable
+      sandbox.stub(vscode.workspace.fs, 'stat').resolves({
+        type: vscode.FileType.File,
+        permissions: 0o755, // Read and execute permissions
+        ctime: Date.now(),
+        mtime: Date.now(),
+        size: 0
+      } as unknown as vscode.FileStat);
       const requirements = await resolveRequirements();
       expect(requirements.java_home).toContain(jdk);
     });

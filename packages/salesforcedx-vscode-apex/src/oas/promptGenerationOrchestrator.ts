@@ -33,21 +33,20 @@ export class PromptGenerationOrchestrator {
     this.metadata = metadata;
     this.context = context;
     this.strategies = new Map<GenerationStrategy, Strategy>();
-    this.initializeStrategyBidder();
   }
 
   // Initialize all available strategies with the provided metadata and context.
-  initializeStrategyBidder() {
-    this.strategies = GenerationStrategyFactory.initializeAllStrategies(this.metadata, this.context);
+  async initializeStrategyBidder() {
+    this.strategies = await GenerationStrategyFactory.initializeAllStrategies(this.metadata, this.context);
   }
 
   // Make each strategy bid on the given class information and return a list of bids.
-  public bid(): Map<GenerationStrategy, PromptGenerationStrategyBid> {
+  public async bid(): Promise<Map<GenerationStrategy, PromptGenerationStrategyBid>> {
     const bids = new Map<GenerationStrategy, PromptGenerationStrategyBid>();
     for (const strategyName of this.strategies.keys()) {
       const strategy = this.strategies.get(strategyName);
       if (strategy) {
-        bids.set(strategyName, strategy.bid());
+        bids.set(strategyName, await strategy.bid());
       }
     }
     return bids;
@@ -55,7 +54,8 @@ export class PromptGenerationOrchestrator {
 
   // after best strategy is determined, call the LLM with the selected strategy and return the result.
   public async generateOASWithStrategySelectedByBidRule(rule: BidRule): Promise<string> {
-    const bids = this.bid();
+    await this.initializeStrategyBidder();
+    const bids = await this.bid();
     const bestStrategy = this.applyRule(rule, bids);
     this.strategy = this.strategies.get(bestStrategy);
     if (!this.strategy) {

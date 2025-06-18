@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
+import { createDirectory, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
@@ -147,7 +147,7 @@ export default class GenerationInteractionLogger {
     };
   }
 
-  public writeLogs(): void {
+  public async writeLogs(): Promise<void> {
     if (this.okToLog()) {
       // create a file path based on current date time
       const logPath = join(process.cwd(), 'llm-logs');
@@ -155,9 +155,9 @@ export default class GenerationInteractionLogger {
       const fileName = `oas-gen-logs-${dateTime}.json`;
       const filePath = join(logPath, fileName);
 
-      fs.mkdirSync(logPath, { recursive: true });
+      await createDirectory(logPath);
       // write to the file
-      fs.writeFileSync(filePath, JSON.stringify(this.gatherAllFields(), undefined, 2), 'utf8');
+      await writeFile(filePath, JSON.stringify(this.gatherAllFields(), undefined, 2));
     }
   }
 

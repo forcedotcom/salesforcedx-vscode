@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
+import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { DocumentSymbol } from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
@@ -63,11 +63,15 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
     this.methodsDocSymbolMap = new Map();
     this.methodsContextMap = new Map();
     this.llmRequests = new Map();
-    this.documentText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     const restResourceAnnotation = this.context.classDetail.annotations.find(a => a.name === 'RestResource');
     this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
     this.openAPISchema = JSON.stringify(openAPISchema_v3_0_guided);
+    this.documentText = '';
+  }
+
+  async initialize(): Promise<void> {
+    this.documentText = await readFile(this.metadata.resourceUri.fsPath);
   }
 
   async resolveLLMResponses(llmRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
@@ -201,14 +205,14 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
     }
   }
 
-  public bid(): PromptGenerationStrategyBid {
-    const generationResult = this.generate();
+  public async bid(): Promise<PromptGenerationStrategyBid> {
+    const generationResult = await this.generate();
     return {
       result: generationResult
     };
   }
 
-  public generate(): PromptGenerationResult {
+  public async generate(): Promise<PromptGenerationResult> {
     const list = (this.metadata.symbols ?? []).filter(s => s.isApexOasEligible);
     for (const symbol of list) {
       const methodName = symbol.docSymbol.name;
@@ -218,7 +222,7 @@ export class JsonMethodByMethodStrategy extends GenerationStrategy {
         this.methodsContextMap.set(methodName, methodDetail);
       }
 
-      const input = generatePromptForMethod(
+      const input = await generatePromptForMethod(
         methodName,
         this.documentText,
         this.methodsDocSymbolMap,

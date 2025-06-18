@@ -24,8 +24,8 @@ export abstract class GenerationStrategy {
   abstract strategyName: string;
   abstract biddedCallCount: number;
   abstract maxBudget: number;
-  abstract bid(): PromptGenerationStrategyBid;
-  abstract generate(): PromptGenerationResult; // generate the prompt(s) to be sent to the LLM
+  abstract bid(): Promise<PromptGenerationStrategyBid>;
+  abstract generate(): Promise<PromptGenerationResult>; // generate the prompt(s) to be sent to the LLM
   abstract callLLMWithPrompts(): Promise<string[]>;
   abstract generateOAS(): Promise<string>; // generate OAS with the generated prompt(s)
   abstract openAPISchema: string | undefined;
