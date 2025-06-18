@@ -212,7 +212,15 @@ const notifyDebuggerSessionFileChanged = (): void => {
   }
 };
 
-// NOTE: The below function is created for salesforcedx-apex-debugger to use the debugger extension as a middleman to send info to outside sources. The info is sent via events, which the debugger extension, as an event handler, is subscribed to and continuously listens for. One use case for this event handling mechanism that is currently implemented is sending telemetry to AppInsights, which is the `event.event === SEND_METRIC_EVENT` if statement block. In the future, this registerDebugHandlers() function might be used for other purposes, such as sending `console.log()` messages - salesforcedx-apex-debugger does not have access to the console in Toggle Developer Tools, and thus debug logging is currently limited to sending to the Debug Console in the bottom panel.
+/**
+ * NOTE: The below function is created for salesforcedx-apex-debugger to use the debugger extension as a middleman to send info to outside sources.
+ * The info is sent via events, which the debugger extension, as an event handler, is subscribed to and continuously listens for.
+ *
+ * One use case for this event handling mechanism that is currently implemented is sending telemetry to AppInsights, which is the `event.event === SEND_METRIC_EVENT` if statement block.
+ *
+ * In the future, this registerDebugHandlers() function might be used for other purposes,
+ * such as sending `console.log()` messages - salesforcedx-apex-debugger does not have access to the console in Toggle Developer Tools,
+ * and thus debug logging is currently limited to sending to the Debug Console in the bottom panel. */
 const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
     if (event?.session) {
@@ -262,7 +270,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     // Telemetry
     telemetryService.initializeService(
       salesforceCoreExtension.exports.telemetryService.getReporters(),
-      salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
+      await salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
 
