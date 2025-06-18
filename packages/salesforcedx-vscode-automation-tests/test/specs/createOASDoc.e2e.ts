@@ -154,7 +154,9 @@ describe('Create OpenAPI v3 Specifications', () => {
         const result = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
         if (result) {
           await result.confirm();
+          return true;
         }
+        return false;
       }
     );
   });
