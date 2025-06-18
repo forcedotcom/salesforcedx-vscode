@@ -59,6 +59,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     if (this.salesforceApexExtension?.exports) {
+      if (!this.salesforceApexExtension?.isActive) {
+        await this.salesforceApexExtension?.activate();
+      }
       await this.isLanguageClientReady();
       config.lineBreakpointInfo = await this.salesforceApexExtension.exports.getLineBreakpointInfo();
     }

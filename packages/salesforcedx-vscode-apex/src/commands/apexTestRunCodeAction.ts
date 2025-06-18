@@ -108,6 +108,9 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }
 
     const coreExtAPI = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
+    if (!coreExtAPI?.isActive) {
+      await coreExtAPI?.activate();
+    }
     const project = await coreExtAPI?.exports.services.SalesforceProjectConfig.getInstance();
 
     if (!project) {

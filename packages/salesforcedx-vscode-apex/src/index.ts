@@ -60,6 +60,9 @@ if (!vscodeCoreExtension) {
 export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (context: vscode.ExtensionContext) => {
+  if (!vscodeCoreExtension.isActive) {
+    await vscodeCoreExtension.activate();
+  }
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
 
   // Telemetry

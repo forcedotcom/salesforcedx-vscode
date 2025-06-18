@@ -26,6 +26,7 @@ import {
 } from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
@@ -33,7 +34,6 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
-const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
 
 export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> => {
   let type = session.type;
@@ -109,6 +109,9 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 
 const configureExceptionBreakpoint = async (): Promise<void> => {
   const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
+  if (!salesforceApexExtension?.isActive) {
+    await salesforceApexExtension?.activate();
+  }
   if (salesforceApexExtension?.exports) {
     // @ts-expect-error - typing ExceptionBreakpointItem exists only in the debugger, but the breakpoints are coming from core ext which doesn't have the types
     const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
@@ -206,7 +209,15 @@ const notifyDebuggerSessionFileChanged = (): void => {
   }
 };
 
-// NOTE: The below function is created for salesforcedx-apex-debugger to use the debugger extension as a middleman to send info to outside sources. The info is sent via events, which the debugger extension, as an event handler, is subscribed to and continuously listens for. One use case for this event handling mechanism that is currently implemented is sending telemetry to AppInsights, which is the `event.event === SEND_METRIC_EVENT` if statement block. In the future, this registerDebugHandlers() function might be used for other purposes, such as sending `console.log()` messages - salesforcedx-apex-debugger does not have access to the console in Toggle Developer Tools, and thus debug logging is currently limited to sending to the Debug Console in the bottom panel.
+/**
+ * NOTE: The below function is created for salesforcedx-apex-debugger to use the debugger extension as a middleman to send info to outside sources.
+ * The info is sent via events, which the debugger extension, as an event handler, is subscribed to and continuously listens for.
+ *
+ * One use case for this event handling mechanism that is currently implemented is sending telemetry to AppInsights, which is the `event.event === SEND_METRIC_EVENT` if statement block.
+ *
+ * In the future, this registerDebugHandlers() function might be used for other purposes,
+ * such as sending `console.log()` messages - salesforcedx-apex-debugger does not have access to the console in Toggle Developer Tools,
+ * and thus debug logging is currently limited to sending to the Debug Console in the bottom panel. */
 const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
     if (event?.session) {
@@ -226,6 +237,12 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
+  const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
+    'salesforce.salesforcedx-vscode-core'
+  );
+  if (!salesforceCoreExtension?.isActive) {
+    await salesforceCoreExtension?.activate();
+  }
   const extensionHRStart = process.hrtime();
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
@@ -253,7 +270,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     // Telemetry
     telemetryService.initializeService(
       salesforceCoreExtension.exports.telemetryService.getReporters(),
-      salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
+      await salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
     );
   }
 

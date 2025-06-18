@@ -19,6 +19,7 @@ import {
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
@@ -231,9 +232,14 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   // Make VS Code the source of truth for checkpoints
   public async clearExistingCheckpoints(): Promise<boolean> {
-    const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
+    const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
+      'salesforce.salesforcedx-vscode-core'
+    );
+    if (!salesforceCoreExtension?.isActive) {
+      await salesforceCoreExtension?.activate();
+    }
     if (salesforceCoreExtension?.exports) {
-      const userId = await salesforceCoreExtension.exports.getUserId(this.salesforceProject);
+      const userId = await salesforceCoreExtension.exports.getUserId();
       if (userId) {
         const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
         let errorString;

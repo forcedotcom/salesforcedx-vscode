@@ -24,6 +24,7 @@
     "Programming Languages"
   ],
   "dependencies": {
+    "salesforcedx-vscode-core": "*",
     "@salesforce/salesforcedx-visualforce-language-server": "*",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
     "vscode-extension-telemetry": "^0.0.17",
