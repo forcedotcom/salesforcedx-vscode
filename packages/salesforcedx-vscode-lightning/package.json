@@ -25,7 +25,6 @@
   ],
   "dependencies": {
     "@salesforce/aura-language-server": "4.12.3",
-    "@salesforce/core-bundle": "^8.12.0",
     "@salesforce/lightning-lsp-common": "4.12.3",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "applicationinsights": "1.0.7",
