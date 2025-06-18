@@ -7,14 +7,15 @@
 
 import {
   Duration,
-  log,
   pause,
   ProjectShapeOption,
-  TestReqConfig,
-  transformedUserName
+  TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
-import { authorizeDevHub } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import {
+  authorizeDevHub,
+  createDefaultScratchOrg
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   attemptToFindOutputPanelText,
@@ -128,76 +129,14 @@ describe('Authentication', () => {
   });
 
   it('Run SFDX: Create a Default Scratch Org', async () => {
-    const prompt = await executeQuickPick('SFDX: Create a Default Scratch Org...', Duration.seconds(1));
-
-    // Select a project scratch definition file (config/project-scratch-def.json)
-    await prompt.confirm();
-
-    // Enter an org alias - yyyy-mm-dd-username-ticks
-    const currentDate = new Date();
-    const ticks = currentDate.getTime();
-    const day = ('0' + currentDate.getDate()).slice(-2);
-    const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
-    const year = currentDate.getFullYear();
-    const currentOsUserName = transformedUserName();
-    scratchOrgAliasName = `TempScratchOrg_${year}_${month}_${day}_${currentOsUserName}_${ticks}_OrgAuth`;
-
-    await prompt.setText(scratchOrgAliasName);
-    await pause(Duration.seconds(1));
-
-    // Press Enter/Return.
-    await prompt.confirm();
-
-    // Enter the number of days.
-    await prompt.setText('1');
-    await pause(Duration.seconds(1));
-
-    // Press Enter/Return.
-    await prompt.confirm();
-
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Create a Default Scratch Org\.\.\. successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    if (successNotificationWasFound !== true) {
-      const failureNotificationWasFound = await notificationIsPresentWithTimeout(
-        /SFDX: Create a Default Scratch Org\.\.\. failed to run/,
-        Duration.TEN_MINUTES
-      );
-      if (failureNotificationWasFound === true) {
-        if (
-          await attemptToFindOutputPanelText(
-            'Salesforce CLI',
-            'organization has reached its daily scratch org signup limit',
-            5
-          )
-        ) {
-          // This is a known issue...
-          log('Warning - creating the scratch org failed, but the failure was due to the daily signup limit');
-        } else if (await attemptToFindOutputPanelText('Salesforce CLI', 'is enabled as a Dev Hub', 5)) {
-          // This is a known issue...
-          log('Warning - Make sure that the org is enabled as a Dev Hub.');
-          log(
-            'Warning - To enable it, open the org in your browser, navigate to the Dev Hub page in Setup, and click Enable.'
-          );
-          log(
-            'Warning - If you still see this error after enabling the Dev Hub feature, then re-authenticate to the org.'
-          );
-        } else {
-          // The failure notification is showing, but it's not due to maxing out the daily limit.  What to do...?
-          log('Warning - creating the scratch org failed... not sure why...');
-        }
-      } else {
-        log(
-          'Warning - creating the scratch org failed... neither the success notification or the failure notification was found.'
-        );
-      }
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+      const orgAlias = await createDefaultScratchOrg();
+      expect(orgAlias).to.be.a('string');
+      scratchOrgAliasName = orgAlias as string;
+    } catch (error) {
+      throw new Error(`Failed to create scratch org: ${String(error)}`);
     }
-    expect(successNotificationWasFound).to.equal(true);
-
-    // Look for the org's alias name in the list of status bar items.
-    const scratchOrgStatusBarItem = await getStatusBarItemWhichIncludes(scratchOrgAliasName);
-    expect(scratchOrgStatusBarItem).to.not.be.undefined;
   });
 
   it('Run SFDX: Set the Scratch Org As the Default Org', async () => {

@@ -11,6 +11,10 @@ import {
   Duration
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import {
   continueDebugging,
@@ -27,7 +31,6 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { TreeItem, after } from 'vscode-extension-tester';
-import { verifyNotificationWithRetry, retryOperation } from '../utils/retryUtils';
 
 describe('Debug Apex Tests', () => {
   let testSetup: TestSetup;

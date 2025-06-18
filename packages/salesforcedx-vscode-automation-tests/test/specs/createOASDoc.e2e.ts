@@ -15,6 +15,10 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
 import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
   createApexClass,
   runAndValidateCommand
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
@@ -55,7 +59,6 @@ import {
   getIdealSimpleAccountResourceXml
 } from '../testData/oasDocs';
 import { caseManagerClassText, simpleAccountResourceClassText } from '../testData/sampleClassData';
-import { verifyNotificationWithRetry, retryOperation } from '../utils/retryUtils';
 
 describe('Create OpenAPI v3 Specifications', () => {
   let prompt: QuickOpenBox | InputBox;

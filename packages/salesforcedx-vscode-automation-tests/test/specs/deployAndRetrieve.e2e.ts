@@ -13,6 +13,7 @@ import {
   TestReqConfig,
   WORKSPACE_SETTING_KEYS as WSK
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
   createApexClass,
   runAndValidateCommand,
@@ -43,7 +44,6 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
-import { verifyNotificationWithRetry } from '../utils/retryUtils';
 
 describe('Deploy and Retrieve', () => {
   const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'MyClass');

@@ -13,6 +13,10 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
 import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
   createApexClassWithBugs,
   createApexClassWithTest
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
@@ -38,7 +42,6 @@ import {
 import { expect } from 'chai';
 import semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
-import { retryOperation, verifyNotificationWithRetry } from '../utils/retryUtils';
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;

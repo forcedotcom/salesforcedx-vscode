@@ -46,7 +46,7 @@ describe('Customize sfdx-project.json', () => {
   });
 });
 
-async function createSfdxProjectJsonWithAllFields(testSetup: TestSetup): Promise<void> {
+const createSfdxProjectJsonWithAllFields = async (testSetup: TestSetup): Promise<void> => {
   const workbench = getWorkbench();
   const sfdxConfig = [
     '{',
@@ -66,4 +66,4 @@ async function createSfdxProjectJsonWithAllFields(testSetup: TestSetup): Promise
   await textEditor.setText(sfdxConfig);
   await textEditor.save();
   await pause();
-}
+};

@@ -11,6 +11,7 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createApexClassWithBugs } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { continueDebugging } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
@@ -26,7 +27,6 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, InputBox, QuickOpenBox, TextEditor, after } from 'vscode-extension-tester';
-import { verifyNotificationWithRetry } from '../utils/retryUtils';
 /**
  * This test suite walks through the same steps performed in the "Find and Fix Bugs with Apex Replay Debugger" Trailhead Module;
  * which can be found with the following link:

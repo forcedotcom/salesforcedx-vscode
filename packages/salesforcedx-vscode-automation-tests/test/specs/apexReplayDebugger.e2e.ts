@@ -11,6 +11,7 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
   createApexClassWithTest,
   createAnonymousApexFile
@@ -30,7 +31,6 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
-import { verifyNotificationWithRetry } from '../utils/retryUtils';
 
 describe('Apex Replay Debugger', () => {
   let prompt: QuickOpenBox | InputBox;
