@@ -77,13 +77,15 @@ describe('ExternalServiceRegistrationManager', () => {
     } as OpenAPIV3.Document;
     processedOasResult = {
       openAPIDoc: oasSpec,
-      errors: []
+      errors: [],
+      context: undefined
     } as ProcessorInputOutput;
 
     esrHandler = new ExternalServiceRegistrationManager();
 
     // Mock the salesforceCoreExtension property on the esrHandler instance
     (esrHandler as any).salesforceCoreExtension = {
+      isActive: true,
       exports: {
         services: {
           RegistryAccess: MockRegistryAccess

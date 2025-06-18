@@ -25,7 +25,6 @@ import {
   apexTestSuiteAdd,
   apexTestSuiteCreate,
   apexTestSuiteRun,
-  createApexActionFromMethod,
   createApexActionFromClass,
   validateOpenApiDocument,
   launchApexReplayDebuggerWithCurrentFile,
@@ -177,10 +176,6 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     'sf.anon.apex.execute.selection',
     anonApexExecute
   );
-  const createApexActionFromMethodCmd = vscode.commands.registerCommand(
-    'sf.create.apex.action.method',
-    createApexActionFromMethod
-  );
   const createApexActionFromClassCmd = vscode.commands.registerCommand(
     'sf.create.apex.action.class',
     createApexActionFromClass
@@ -220,7 +215,6 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd,
-    createApexActionFromMethodCmd,
     createApexActionFromClassCmd,
     validateOpenApiDocumentCmd,
     launchApexReplayDebuggerWithCurrentFileCmd,

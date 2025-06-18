@@ -7,10 +7,14 @@
 
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
+import { hasAuraFrameworkCapability } from '../../oasUtils';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class PropertyCorrectionStep implements ProcessorStep {
+  private input: ProcessorInputOutput | undefined;
+
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+    this.input = input;
     let fixedOASDoc = this.ensureServersIsPresent(input.openAPIDoc);
     fixedOASDoc = this.ensureInfoVersionIsPresent(fixedOASDoc);
     fixedOASDoc = this.ensurePathDescriptionIsPresent(fixedOASDoc);
@@ -31,7 +35,9 @@ export class PropertyCorrectionStep implements ProcessorStep {
   }
 
   private ensureServersIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    return { ...oasDoc, ...{ servers: [{ url: '/services/apexrest' }] } };
+    return this.input?.context && hasAuraFrameworkCapability(this.input.context)
+      ? oasDoc
+      : { ...oasDoc, ...{ servers: [{ url: '/services/apexrest' }] } };
   }
 
   private ensureOperationDescriptionIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
