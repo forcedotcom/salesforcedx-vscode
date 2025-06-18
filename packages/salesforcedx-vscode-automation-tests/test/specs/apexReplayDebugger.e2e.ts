@@ -11,7 +11,10 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
   createApexClassWithTest,
   createAnonymousApexFile
@@ -73,7 +76,7 @@ describe('Apex Replay Debugger', () => {
     log('ApexReplayDebugger - Verify LSP finished indexing');
 
     // Get Apex LSP Status Bar
-    const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+    const statusBar = await retryOperation(async () => await getStatusBarItemWhichIncludes('Editor Language Status'));
     await statusBar.click();
     expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
