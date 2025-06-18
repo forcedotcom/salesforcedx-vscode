@@ -191,17 +191,17 @@ describe('Debug LWC Tests', () => {
 
     // Verify test results are listed on the terminal
     // Also verify that all tests pass
-    const terminalText = await getTerminalViewText(workbench, 10);
+    const terminalText = await getTerminalViewText(workbench, 15);
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
-      'Ran all test suites within paths',
+      'Ran all test suites matching',
       `${path.join('force-app', 'main', 'default', 'lwc', 'lwc1', '__tests__', 'lwc1.test.js')}`
     ];
     expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    await verifyOutputPanelText(terminalText, expectedTexts);
   });
 
   it('Debug Single Test via Code Lens action', async () => {
