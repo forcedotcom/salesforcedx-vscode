@@ -87,9 +87,6 @@ jobs:
             gh run download ${{ inputs.runId }} -D ./extensions
             mv ./extensions/*/* ./extensions/
 
-            # Display downloaded vsix files
-            ls -R ./extensions
-
             # Install dependencies
             npm install
             npm install -g @salesforce/cli
@@ -152,9 +149,9 @@ jobs:
         if: failure()
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./test-resources/screenshots
+          path: ../test-resources/screenshots
       - uses: actions/upload-artifact@v4
         if: ${{ inputs.testToRun == 'createOasDoc.e2e.js' }}
         with:
           name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./e2e-temp/TempProject-CreateOASDoc/llm-logs
+          path: ../e2e-temp/TempProject-CreateOASDoc/llm-logs
