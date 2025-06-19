@@ -7,3 +7,8 @@ src/**
 .gitignore
 tsconfig.json
 
+node_modules
+
+# do not reach outside the package
+../../**
+../**

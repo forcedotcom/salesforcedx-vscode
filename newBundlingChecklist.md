@@ -14,7 +14,6 @@
 
 - use mjs, not cjs
 - use modern esm syntax (import, not require)
-- include the pino stuff only if it includes sfdx-core somewhere
 
 ## .vscodeignore
 

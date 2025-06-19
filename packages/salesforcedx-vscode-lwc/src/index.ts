@@ -65,8 +65,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   log('WorkspaceType detected: ' + workspaceType);
 
   // Start the LWC Language Server
-  const serverPath = extensionContext.extension.packageJSON.serverPath;
-  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
+  const serverModule = extensionContext.asAbsolutePath(path.join('./dist/server.js'));
   const client = createLanguageClient(serverModule);
 
   // Start the client and add it to subscriptions

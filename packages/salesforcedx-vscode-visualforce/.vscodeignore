@@ -9,3 +9,9 @@ tsconfig.json
 images/**
 !images/VSCodeVisualforce.png
 typings/**
+
+node_modules
+
+# do not reach outside the package
+../../**
+../**

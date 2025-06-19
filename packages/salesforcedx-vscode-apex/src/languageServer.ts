@@ -60,11 +60,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
   const telemetryService = getTelemetryService();
   try {
     const requirementsData = await requirements.resolveRequirements();
-    const uberJar = path.resolve(
-      extensionContext.extensionPath,
-      extensionContext.extension.packageJSON.languageServerDir,
-      UBER_JAR_NAME
-    );
+    const uberJar = path.resolve(extensionContext.extensionPath, 'dist', UBER_JAR_NAME);
     const javaExecutable = path.resolve(`${requirementsData.java_home}/bin/java`);
     const jvmMaxHeap = requirementsData.java_memory;
     const enableSemanticErrors: boolean = vscode.workspace

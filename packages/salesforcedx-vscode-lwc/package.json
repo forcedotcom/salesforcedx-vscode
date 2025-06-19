@@ -24,12 +24,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.12.0",
+    "@salesforce/core": "^8.14.0",
     "@salesforce/lightning-lsp-common": "4.12.3",
     "@salesforce/lwc-language-server": "4.12.3",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "applicationinsights": "1.0.7",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
     "rxjs": "^5.4.1",
@@ -42,18 +41,15 @@
   "devDependencies": {
     "@types/uuid": "^3.4.8",
     "@types/which": "^1.3.1",
-    "cross-env": "5.2.0",
     "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2",
     "nyc": "^15"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.js",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -61,55 +57,14 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:unit && npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
-    "test:vscode-integration": "node ../../scripts/download-vscode && node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-tests-with-recipes",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test": "npm run test:unit",
+    "test:unit": "jest --coverage"
   },
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "images",
-      "resources",
-      "snippets",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "serverPath": [
-        "node_modules",
-        "@salesforce",
-        "lwc-language-server",
-        "lib",
-        "server.js"
-      ],
-      "dependencies": {
-        "@salesforce/lightning-lsp-common": "4.12.3",
-        "@salesforce/lwc-language-server": "4.12.3",
-        "applicationinsights": "1.0.7",
-        "jest-editor-support": "31.1.2"
-      },
-      "devDependencies": {}
-    }
-  },
+  "main": "dist/index.js",
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "workspaceContains:../workspace-user.xml",
     "workspaceContains:**/workspace-user.xml"
-  ],
-  "main": "./out/src",
-  "serverPath": [
-    "..",
-    "..",
-    "node_modules",
-    "@salesforce",
-    "lwc-language-server",
-    "lib",
-    "server.js"
   ],
   "contributes": {
     "snippets": [

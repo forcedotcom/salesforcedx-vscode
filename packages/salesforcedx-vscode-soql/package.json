@@ -45,13 +45,11 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.12.0",
+    "@salesforce/core": "^8.14.0",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
     "@types/papaparse": "^5.2.3",
-    "cross-env": "5.2.0",
-    "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2"
+    "esbuild": "0.25.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -64,10 +62,8 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
-    "test": "npm run test:vscode-integration",
+    "test": "npm run test:unit",
     "test:unit": "jest --coverage",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"

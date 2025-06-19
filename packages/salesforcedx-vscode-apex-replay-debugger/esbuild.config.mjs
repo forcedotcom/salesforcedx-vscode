@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2024, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -7,16 +7,16 @@
 import { build } from 'esbuild';
 import { commonConfigNode } from '../../scripts/bundling/node.mjs';
 
+// bundle the debugger
 await build({
   ...commonConfigNode,
-  // the soql extension
-  entryPoints: ['./out/src/index.js'],
-  outfile: './dist/index.js'
+  entryPoints: ['../salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js'],
+  outfile: './dist/apexReplayDebug.js'
 });
 
-// the language server is a monorepo sibling
+// and the actual extension
 await build({
   ...commonConfigNode,
-  entryPoints: ['../salesforcedx-visualforce-language-server/out/src/visualforceServer.js'],
-  outfile: './dist/visualforceServer.js'
+  entryPoints: ['./out/src/index.js'],
+  outdir: './dist'
 });

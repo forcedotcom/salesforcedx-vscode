@@ -27,13 +27,9 @@
     "salesforcedx-vscode-core": "*",
     "@salesforce/salesforcedx-visualforce-language-server": "*",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
-    "vscode-extension-telemetry": "^0.0.17",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-types": "^3.17.5"
-  },
-  "devDependencies": {
-    "cross-env": "5.2.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -44,10 +40,9 @@
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "test": "npm run test:vscode-integration",
-    "test:jest": "jest --coverage",
+    "test": "npm run test:unit",
+    "test:unit": "jest --coverage",
     "vscode:package": "vsce package",
-    "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."

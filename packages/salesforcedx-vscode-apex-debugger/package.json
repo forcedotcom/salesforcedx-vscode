@@ -27,26 +27,20 @@
     "@salesforce/salesforcedx-apex-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@vscode/debugprotocol": "1.68.0",
-    "vscode-extension-telemetry": "^0.0.17"
+    "@vscode/debugprotocol": "1.68.0"
   },
   "devDependencies": {
     "salesforcedx-vscode-apex": "*",
     "@types/node": "^20.0.0",
-    "cross-env": "5.2.0",
-    "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2"
+    "esbuild": "0.25.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:copy": "cp ../salesforcedx-apex-debugger/dist/apexdebug.js ./dist/",
-    "bundle:extension:build": "node ./esbuild.config.js",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -54,37 +48,14 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:vscode-integration",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
+    "test": "npm run test:unit",
     "test:unit": "jest --coverage"
   },
   "activationEvents": [
     "onDebugResolve:apex",
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "images",
-      "dist"
-    ],
-    "debuggers": [
-      "./dist/apexdebug.js"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "dependencies": {
-        "applicationinsights": "1.0.7"
-      },
-      "devDependencies": {}
-    }
-  },
+  "main": "./dist/index.js",
   "contributes": {
     "breakpoints": [
       {
@@ -108,7 +79,7 @@
       {
         "type": "apex",
         "label": "Apex Debugger",
-        "program": "./node_modules/@salesforce/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
+        "program": "./dist/apexDebug.js",
         "runtime": "node",
         "languages": [
           "apex"

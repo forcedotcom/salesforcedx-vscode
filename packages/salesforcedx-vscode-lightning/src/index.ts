@@ -63,8 +63,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Start the Aura Language Server
 
   // Setup the language server
-  const serverPath = extensionContext.extension.packageJSON.serverPath;
-  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
+  const serverModule = extensionContext.asAbsolutePath(path.join('./dist/server.js'));
 
   // The debug options for the server
   const debugOptions = {

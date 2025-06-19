@@ -14,6 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
+  "main": "./dist/index.js",
   "version": "64.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
@@ -32,25 +33,19 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.12.0",
+    "@salesforce/core": "^8.14.0",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*",
     "@types/async-lock": "1.4.2",
-    "cross-env": "5.2.0",
-    "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2",
-    "vscode-extension-telemetry": "^0.0.17"
+    "esbuild": "0.25.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
-    "bundle:extension:build": "node ./esbuild.config.js",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -58,41 +53,13 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test": "npm run test:unit",
+    "test:unit": "jest --coverage"
   },
   "activationEvents": [
     "onDebugResolve:apex",
-    "onCommand:extension.replay-debugger.getLogFileName",
-    "workspaceContains:sfdx-project.json"
+    "onCommand:extension.replay-debugger.getLogFileName"
   ],
-  "main": "./out/src",
-  "packaging": {
-    "assets": [
-      "OSSREADME.json",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "images",
-      "resources",
-      "syntaxes",
-      "dist"
-    ],
-    "debuggers": [
-      "./dist/apexreplaydebug.js"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "dependencies": {
-        "applicationinsights": "1.0.7",
-        "jsonpath": "1.1.1"
-      },
-      "devDependencies": {}
-    }
-  },
   "contributes": {
     "breakpoints": [
       {
@@ -210,7 +177,7 @@
       {
         "type": "apex-replay",
         "label": "Apex Replay Debugger",
-        "program": "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+        "program": "dist/apexReplayDebug.js",
         "runtime": "node",
         "languages": [
           "apex"

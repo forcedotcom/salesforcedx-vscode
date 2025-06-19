@@ -46,12 +46,10 @@
   },
   "devDependencies": {
     "salesforcedx-vscode-core": "*",
-    "@salesforce/core": "^8.12.0",
+    "@salesforce/core": "^8.14.0",
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
-    "cross-env": "5.2.0",
     "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2",
     "openapi-types": "12.1.3"
   },
   "extensionDependencies": [
@@ -60,8 +58,8 @@
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
-    "bundle:extension:build": "node ./esbuild.config.js",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "bundle:extension:build": "node ./esbuild.config.mjs",
+    "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./ && shx mkdir -p out && shx cp jars/apex-jorje-lsp.jar out/",
@@ -70,42 +68,14 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
-    "test": "npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
-  },
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "OSSREADME.json",
-      "grammars",
-      "resources",
-      "snippets",
-      "syntaxes",
-      "images",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "languageServerDir": "dist",
-      "dependencies": {
-        "applicationinsights": "1.0.7",
-        "jsonpath": "1.1.1",
-        "jsonc-parser": "2.2.1"
-      },
-      "devDependencies": {}
-    }
+    "test": "npm run test:unit",
+    "test:unit": "jest --coverage"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
-  "languageServerDir": "out",
+  "main": "./dist/index.js",
+  "types": "./out/src/index.d.ts",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
