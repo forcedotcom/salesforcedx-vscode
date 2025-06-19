@@ -152,7 +152,7 @@ jobs:
         if: failure()
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./salesforcedx-vscode/extensions/screenshots
+          path: ./salesforcedx-vscode/test-resource/screenshots
       - uses: actions/upload-artifact@v4
         if: ${{ inputs.testToRun }} == 'createOasDoc'
         with:
