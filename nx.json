@@ -67,12 +67,5 @@
         "{projectRoot}/src/**"
       ]
     }
-  },
-  "copy:files": {
-    "cache": false,
-    "executor": "nx:run-commands",
-    "options": {
-      "command": "lerna run copy:files"
-    }
   }
 }

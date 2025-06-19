@@ -6,12 +6,31 @@
  */
 import { build } from 'esbuild';
 import { commonConfigNode } from '../../scripts/bundling/node.mjs';
+import { copy } from 'esbuild-plugin-copy';
 
 await build({
   ...commonConfigNode,
   // the soql extension
   entryPoints: ['./out/src/index.js'],
-  outdir: './dist'
+  outdir: './dist',
+  plugins: [
+    copy({
+      assets: [
+        {
+          from: [`../../node_modules/@salesforce/soql-builder-ui/dist/**`],
+          to: ['./soql-builder-ui']
+        },
+        {
+          from: ['../../node_modules/@salesforce/soql-data-view/web/**'],
+          to: ['./soql-data-view']
+        },
+        {
+          from: ['../../node_modules/@salesforce/apex-tmlanguage/grammars'],
+          to: ['./grammars']
+        }
+      ]
+    })
+  ]
 });
 
 // the language server is a whole other package and we'll need to bundle that separately

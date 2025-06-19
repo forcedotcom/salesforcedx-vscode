@@ -55,13 +55,12 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "vscode:bundle": "node ./esbuild.config.mjs && npm run copy:files",
+    "vscode:bundle": "node ./esbuild.config.mjs",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
     "test": "npm run test:unit",
     "test:unit": "jest --coverage",
     "vscode:package": "vsce package",

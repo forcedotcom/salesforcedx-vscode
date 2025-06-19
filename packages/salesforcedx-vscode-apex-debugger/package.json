@@ -30,6 +30,8 @@
     "@vscode/debugprotocol": "1.68.0"
   },
   "devDependencies": {
+    "@salesforce/vscode-service-provider": "^1.4.0",
+    "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-apex": "*",
     "@types/node": "^20.0.0",
     "esbuild": "0.25.0"
