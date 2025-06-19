@@ -61,21 +61,24 @@ const ruleset = {
       }
     },
     'openapi-version': {
-      description: 'openapi version must be 3.0.0',
+      description: 'openapi version must be 3.0.x',
       given: '$',
-      message: 'openapi version must be 3.0.0',
+      message: 'openapi version must be 3.0.x',
       then: {
         field: 'openapi',
-        function: enumeration,
+        function: schema,
         functionOptions: {
-          values: ['3.0.0']
+          schema: {
+            type: 'string',
+            pattern: '^3\\.0\\.[0-9]+$'
+          }
         }
       }
     },
     'oas3-api-servers': {
-      description: 'servers should always be a single ‘/services/apexrest’ URL',
+      description: 'servers should always be a single URL',
       given: '$',
-      message: 'servers should always be a single ‘/services/apexrest’ URL',
+      message: 'servers should always be a single URL',
       then: {
         field: 'servers',
         function: schema,
@@ -87,7 +90,7 @@ const ruleset = {
               patternProperties: {
                 url: {
                   type: 'string',
-                  pattern: '/services/apexrest'
+                  pattern: '(/services/apexrest|/aura-controllers/custom)'
                 }
               }
             },

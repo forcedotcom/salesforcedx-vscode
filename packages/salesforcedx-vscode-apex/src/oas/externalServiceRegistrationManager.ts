@@ -15,13 +15,19 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
+import { JSONPath } from 'jsonpath-plus';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
 import { nls } from '../messages';
-import { createProblemTabEntriesForOasDocument, getCurrentTimestamp } from '../oasUtils';
+import {
+  createProblemTabEntriesForOasDocument,
+  getCurrentTimestamp,
+  hasValidRestAnnotations,
+  hasAuraFrameworkCapability
+} from '../oasUtils';
 import { ProcessorInputOutput } from './documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './generationInteractionLogger';
 import { ApexOASInfo, ExternalServiceOperation } from './schemas';
@@ -40,8 +46,9 @@ export class ExternalServiceRegistrationManager {
   private overwrite = false;
   private originalPath: string = '';
   private newPath: string = '';
+  providerType: string | undefined;
 
-  private async initialize(
+  private initialize(
     isESRDecomposed: boolean,
     processedOasResult: ProcessorInputOutput,
     fullPath: [originalPath: string, newPath: string]
@@ -51,6 +58,32 @@ export class ExternalServiceRegistrationManager {
     this.overwrite = fullPath[0] === fullPath[1];
     this.originalPath = fullPath[0];
     this.newPath = fullPath[1];
+  }
+
+  /**
+   * Determines the provider type based on the annotations in the context.
+   * @param context - The context containing class and method details with annotations
+   * @returns
+   * "ApexRest" if class has RestResource annotation and methods have Http* annotations,
+   * "AuraEnabled" if no class annotation and methods have AuraEnabled annotations,
+   * or undefined if neither pattern matches
+   */
+  private determineProviderType(context?: ProcessorInputOutput['context']): string | undefined {
+    if (!context) {
+      return undefined;
+    }
+
+    // ApexRest: has class RestResource annotation AND at least one Http* method annotation
+    if (hasValidRestAnnotations(context)) {
+      return 'ApexRest';
+    }
+
+    // AuraEnabled: no class annotation AND at least one AuraEnabled method annotation
+    if (hasAuraFrameworkCapability(context)) {
+      return 'AuraEnabled';
+    }
+
+    return undefined;
   }
 
   /**
@@ -70,7 +103,8 @@ export class ExternalServiceRegistrationManager {
     processedOasResult: ProcessorInputOutput,
     fullPath: FullPath
   ): Promise<void> {
-    await this.initialize(isESRDecomposed, processedOasResult, fullPath);
+    this.initialize(isESRDecomposed, processedOasResult, fullPath);
+    this.providerType = this.determineProviderType(processedOasResult.context);
 
     const existingContent = (await fileOrFolderExists(this.newPath)) ? await readFile(this.newPath) : undefined;
 
@@ -131,11 +165,15 @@ export class ExternalServiceRegistrationManager {
     const { description } = this.extractInfoProperties();
     const operations = this.getOperationsFromYaml();
 
-    // OAS doc inside XML needs &apos; and OAS doc inside YAML needs ' in order to be valid
-    const replaceElement = this.isESRDecomposed ? "'" : '&apos;';
-    const safeOasSpec = stringify(this.oasSpec ?? {})
-      .replaceAll('"', replaceElement)
-      .replaceAll('type: Id', 'type: string');
+    // Clean the OpenAPI document before stringifying
+    const cleanedOasSpec = this.oasSpec ? this.cleanOasDocument(this.oasSpec) : {};
+
+    const safeOasSpec = stringify(cleanedOasSpec, null, {
+      singleQuote: false, // Disable single quotes entirely
+      doubleQuotedAsJSON: false,
+      lineWidth: 80 // Wrap at 80 characters
+    });
+
     const parser = new XMLParser({ ignoreAttributes: false });
     let jsonObj;
 
@@ -188,7 +226,7 @@ export class ExternalServiceRegistrationManager {
         systemVersion: '3',
         operations,
         registrationProvider: className,
-        registrationProviderType: 'ApexRest',
+        registrationProviderType: this.providerType,
         namedCredential: 'null'
       }
     };
@@ -334,6 +372,55 @@ export class ExternalServiceRegistrationManager {
 
     return folderUri ? path.resolve(folderUri) : undefined;
   };
+
+  /**
+   * Cleans the OpenAPI document by processing description fields and other string values.
+   * @param doc The OpenAPI document to clean
+   * @returns A cleaned copy of the document
+   */
+  private cleanOasDocument(doc: OpenAPIV3.Document): OpenAPIV3.Document {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const cleaned = JSON.parse(JSON.stringify(doc)); // Deep clone the document
+
+    // Clean all description fields in the document
+    const descriptionPaths = [
+      '$.info.description',
+      '$.paths[*][*].description',
+      '$.paths[*].description',
+      '$.paths[*][*].responses[*].description',
+      '$.paths[*][*].parameters[*].description',
+      '$.paths[*][*].requestBody.description',
+      '$.components.schemas[*].description'
+    ];
+
+    descriptionPaths.forEach(jsonPath => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const items = JSONPath<{ description: string }[]>({ path: jsonPath, json: cleaned });
+      items.forEach(item => {
+        if (item && typeof item === 'object' && item.description) {
+          item.description = this.cleanDescription(item.description);
+        }
+      });
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return cleaned;
+  }
+
+  /**
+   * Cleans a description string by normalizing newlines and whitespace.
+   * @param description The description to clean
+   * @returns A cleaned description string
+   */
+  private cleanDescription(description: string): string {
+    // First normalize newlines to \n and clean up excessive whitespace
+    return description
+      .replace(/\r\n/g, '\n') // Normalize Windows line endings
+      .replace(/\r/g, '\n') // Normalize Mac line endings
+      .replace(/\n\s*\n/g, '\n') // Replace multiple newlines with single newline
+      .replace(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space
+      .trim();
+  }
 }
 
 /**

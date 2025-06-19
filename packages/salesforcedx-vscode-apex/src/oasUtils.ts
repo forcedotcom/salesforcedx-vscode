@@ -24,11 +24,11 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import * as yaml from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
-import { nls } from './messages';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
+import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
 
 const DOT_SFDX = '.sfdx';
 const TEMPLATES_DIR = path.join(DOT_SFDX, 'resources', 'templates');
@@ -38,44 +38,50 @@ const gil = GenerationInteractionLogger.getInstance();
 /**
  * Processes an OAS document from a YAML string.
  * @param {string} oasDoc - The OAS document as a YAML string.
- * @param {ApexClassOASGatherContextResponse} [context] - The context for the OAS document.
- * @param {ApexClassOASEligibleResponse} [eligibleResult] - The eligible result for the OAS document.
- * @param {boolean} [isRevalidation] - Whether the document is being revalidated.
+ * @param {object} [options] - Options for processing the OAS document.
+ * @param {ApexClassOASGatherContextResponse} [options.context] - The context for the OAS document.
+ * @param {ApexClassOASEligibleResponse} [options.eligibleResult] - The eligible result for the OAS document.
+ * @param {boolean} [options.isRevalidation] - Whether the document is being revalidated.
+ * @param {string} [options.betaInfo] - Beta information for the document.
  * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
  */
 export const processOasDocumentFromYaml = async (
   oasDoc: string,
-  context?: ApexClassOASGatherContextResponse,
-  eligibleResult?: ApexClassOASEligibleResponse,
-  isRevalidation?: boolean
-): Promise<ProcessorInputOutput> =>
-  processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), context, eligibleResult, isRevalidation);
+  options?: {
+    context?: ApexClassOASGatherContextResponse;
+    eligibleResult?: ApexClassOASEligibleResponse;
+    isRevalidation?: boolean;
+    betaInfo?: string;
+  }
+): Promise<ProcessorInputOutput> => processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), options);
 
 /**
  * Processes an OAS document.
  * @param {string} oasDoc - The OAS document as a string.
- * @param {ApexClassOASGatherContextResponse} [context] - The context for the OAS document.
- * @param {ApexClassOASEligibleResponse} [eligibleResult] - The eligible result for the OAS document.
- * @param {boolean} [isRevalidation] - Whether the document is being revalidated.
+ * @param {object} [options] - Options for processing the OAS document.
+ * @param {ApexClassOASGatherContextResponse} [options.context] - The context for the OAS document.
+ * @param {ApexClassOASEligibleResponse} [options.eligibleResult] - The eligible result for the OAS document.
+ * @param {boolean} [options.isRevalidation] - Whether the document is being revalidated.
+ * @param {string} [options.betaInfo] - Beta information for the document.
  * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
  * @throws Will throw an error if the document is invalid for processing.
  */
 export const processOasDocument = async (
   oasDoc: string,
-  context?: ApexClassOASGatherContextResponse,
-  eligibleResult?: ApexClassOASEligibleResponse,
-  isRevalidation?: boolean
-): Promise<ProcessorInputOutput> => {
-  if (isRevalidation || context?.classDetail.annotations.find(a => a.name === 'RestResource')) {
-    const parsed = parseOASDocFromJson(oasDoc);
-
-    const oasProcessor = new OasProcessor(parsed, eligibleResult);
-
-    const processResult = await oasProcessor.process(!isRevalidation);
-
-    return processResult;
+  options?: {
+    context?: ApexClassOASGatherContextResponse;
+    eligibleResult?: ApexClassOASEligibleResponse;
+    isRevalidation?: boolean;
+    betaInfo?: string;
   }
-  throw nls.localize('invalid_file_for_processing_oas_doc');
+): Promise<ProcessorInputOutput> => {
+  const parsed = parseOASDocFromJson(oasDoc);
+
+  const oasProcessor = new OasProcessor(parsed, options);
+
+  const processResult = await oasProcessor.process();
+
+  return processResult;
 };
 
 /**
@@ -251,4 +257,84 @@ export const getCurrentTimestamp = (): string => {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
   return formattedDate;
+};
+
+/**
+ * Checks if a class has RestResource annotation.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
+ * @returns {boolean} - True if the class has RestResource annotation.
+ */
+export const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean => {
+  const validClassAnnotations = retrieveAAClassRestAnnotations();
+  return context.classDetail.annotations.some(a => validClassAnnotations.includes(a.name));
+};
+
+/**
+ * Checks if any method has HTTP REST annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
+ * @returns {boolean} - True if any method has HTTP REST annotations.
+ */
+export const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
+  const validMethodAnnotations = retrieveAAMethodRestAnnotations();
+  return context.methods.some(method =>
+    method.annotations.some(annotation => validMethodAnnotations.includes(annotation.name))
+  );
+};
+
+/**
+ * Checks if a class has valid REST annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class has valid REST annotations.
+ */
+export const hasValidRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  // Check for class-level RestResource annotation and at least one method with HTTP REST annotation
+  hasRestResourceAnnotation(context) && hasHttpRestAnnotations(context);
+
+/**
+ * Checks if a class has no annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
+ * @returns {boolean} - True if the class has no annotations.
+ */
+export const hasNoClassAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.classDetail.annotations.length === 0;
+
+/**
+ * Checks if any method has AuraEnabled annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
+ * @returns {boolean} - True if any method has AuraEnabled annotation.
+ */
+export const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.methods.some(method => method.annotations.some(annotation => annotation.name === 'AuraEnabled'));
+
+/**
+ * Checks if any method has AuraEnabled annotations and the class has no annotations.
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class has no annotations and any method has AuraEnabled annotation.
+ */
+export const hasAuraFrameworkCapability = (context: ApexClassOASGatherContextResponse): boolean =>
+  // Check for no class annotations AND at least one method with AuraEnabled annotation
+  hasNoClassAnnotations(context) && hasAuraEnabledMethods(context);
+
+/**
+ * Validates if a registration provider type is one of the allowed values.
+ * @param {string | undefined} providerType - The provider type to validate.
+ * @returns {boolean} - True if the provider type is valid, false otherwise.
+ */
+export const isValidRegistrationProviderType = (providerType: string | undefined): boolean => {
+  const validProviderTypes = ['Custom', 'ApexRest', 'AuraEnabled'];
+  return providerType !== undefined && validProviderTypes.includes(providerType);
+};
+
+/**
+ * Checks if a class mixes Apex Rest and AuraEnabled frameworks (which is invalid).
+ * @param {ApexClassOASGatherContextResponse} context - The context containing class and method details.
+ * @returns {boolean} - True if the class mixes both frameworks (invalid case).
+ */
+export const hasMixedFrameworks = (context: ApexClassOASGatherContextResponse): boolean => {
+  const hasRestResource = hasRestResourceAnnotation(context);
+  const hasHttpAnnotations = hasHttpRestAnnotations(context);
+  const hasAuraMethods = hasAuraEnabledMethods(context);
+
+  // Invalid case: (RestResource OR Http annotations) AND AuraEnabled methods
+  return (hasRestResource || hasHttpAnnotations) && hasAuraMethods;
 };
