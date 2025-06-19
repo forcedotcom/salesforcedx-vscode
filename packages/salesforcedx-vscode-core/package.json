@@ -1000,7 +1000,8 @@
           "forcesourcemanifest"
         ],
         "filenamePatterns": [
-          "**/manifest/**/*.xml"
+          "**/manifest/**/*.xml",
+          "**/*/*-meta.xml"
         ]
       }
     ],
