@@ -5,15 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { build } from 'esbuild';
-import { bundleTransformStream, pinoSupport } from '../../scripts/bundling/pinoSupport.mjs';
 import { commonConfigNode } from '../../scripts/bundling/node.mjs';
 
 await build({
   ...commonConfigNode,
-  // the soql extension
   entryPoints: ['./out/src/index.js'],
-  outdir: './dist',
-  plugins: [...pinoSupport]
+  outdir: './dist'
 });
-
-await bundleTransformStream();

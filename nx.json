@@ -38,6 +38,7 @@
       "cache": true,
       "dependsOn": [
         "compile",
+        "^compile",
         "^bundle:extension"
       ],
       "inputs": [
