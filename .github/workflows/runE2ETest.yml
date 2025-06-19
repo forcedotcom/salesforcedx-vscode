@@ -145,6 +145,15 @@ jobs:
           VSIX_TO_INSTALL: ./extensions
           DEV_HUB_ALIAS_NAME: vscodeOrg
           DEV_HUB_USER_NAME: svcideebot@salesforce.com
+      - name: Show current working directory
+        if: always()
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Parent directory contents:"
+          ls -la ..
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
