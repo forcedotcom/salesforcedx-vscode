@@ -10,7 +10,8 @@ import {
   CliCommandExecutor,
   ContinueResponse,
   isSFContainerMode,
-  ProgressNotification
+  ProgressNotification,
+  TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import { Observable } from 'rxjs/Observable';
@@ -18,7 +19,9 @@ import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../../channels/index';
-import { CLI } from '../../constants';
+import { CLI, TRACE_FLAG_EXPIRATION_KEY } from '../../constants';
+import { WorkspaceContext } from '../../context';
+import { disposeTraceFlagExpiration, showTraceFlagExpiration } from '../../decorators';
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demoMode';
 import { notificationService } from '../../notifications/index';
@@ -35,10 +38,59 @@ type DeviceCodeResponse = {
   verification_uri: string;
 };
 
+const handleTraceFlagCleanupAfterLogin = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+
+  // Change the status bar message to reflect the trace flag expiration date for the new target org
+
+  // If there is a non-expired TraceFlag for the current user, update the status bar message
+  const oldTraceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+  await oldTraceFlags.getUserIdOrThrow(); // This line switches the connection to the new target org
+  const newTraceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection()); // Get the new connection after switching
+  const newUserId = await newTraceFlags.getUserIdOrThrow();
+  const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
+  if (!myTraceFlag) {
+    disposeTraceFlagExpiration();
+    return;
+  }
+
+  const currentTime = new Date();
+  if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
+    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, myTraceFlag.ExpirationDate);
+  } else {
+    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+  }
+
+  try {
+    // Delete expired TraceFlags for the current user
+    const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+
+    const userId = await traceFlags.getUserIdOrThrow();
+
+    const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
+    if (expiredTraceFlagExists) {
+      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+    }
+
+    // Apex Replay Debugger Expiration Status Bar Entry
+    const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
+    if (expirationDate) {
+      showTraceFlagExpiration(new Date(expirationDate));
+    }
+  } catch {
+    console.log('No default org found, skipping trace flag expiration check after login');
+  }
+};
+
 export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
   protected deviceCodeReceived = false;
   protected stdOut = '';
+  private extensionContext?: vscode.ExtensionContext;
+
+  constructor(extensionContext?: vscode.ExtensionContext) {
+    super();
+    this.extensionContext = extensionContext;
+  }
 
   public build(data: AuthParams): Command {
     const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_org_text'));
@@ -70,8 +122,13 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
       this.handleCliResponse(responseStr);
     });
 
-    execution.processExitSubject.subscribe(() => {
+    execution.processExitSubject.subscribe(async (exitCode) => {
       this.logMetric(execution.command.logName, startTime);
+
+      // If the command completed successfully, clean up trace flags
+      if (exitCode === 0 && this.extensionContext) {
+        await handleTraceFlagCleanupAfterLogin(this.extensionContext);
+      }
     });
 
     notificationService.reportCommandExecutionStatus(execution, cancellationToken);
@@ -128,6 +185,12 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
 
 class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
+  private extensionContext?: vscode.ExtensionContext;
+
+  constructor(extensionContext?: vscode.ExtensionContext) {
+    super();
+    this.extensionContext = extensionContext;
+  }
 
   public build(data: AuthParams): Command {
     const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_org_text'));
@@ -141,9 +204,49 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
     return command.build();
   }
+
+  public execute(response: ContinueResponse<AuthParams>): void {
+    const startTime = process.hrtime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: this.executionCwd,
+      env: { SF_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    let output = '';
+    execution.stdoutSubject.subscribe(realData => {
+      output += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(exitCode => {
+      const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
+      let properties;
+      let measurements;
+      if (telemetryData) {
+        properties = telemetryData.properties;
+        measurements = telemetryData.measurements;
+      }
+      this.logMetric(execution.command.logName, startTime, properties, measurements);
+      this.onDidFinishExecutionEventEmitter.fire(startTime);
+
+      // If the command completed successfully, clean up trace flags
+      if (exitCode === 0 && this.extensionContext) {
+        void handleTraceFlagCleanupAfterLogin(this.extensionContext);
+      }
+    });
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+  }
 }
 
 export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
+  protected extensionContext?: vscode.ExtensionContext;
+
+  constructor(extensionContext?: vscode.ExtensionContext) {
+    super();
+    this.extensionContext = extensionContext;
+  }
+
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new CancellationTokenSource();
@@ -175,6 +278,12 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
       } else {
         await notificationService.showSuccessfulExecution(execution.command.toString());
       }
+
+      // Clean up trace flags after successful login
+      if (this.extensionContext) {
+        await handleTraceFlagCleanupAfterLogin(this.extensionContext);
+      }
+
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
@@ -208,18 +317,19 @@ const promptLogOutForProdOrg = async () => {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
+const createOrgLoginWebExecutor = (extensionContext?: vscode.ExtensionContext): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
-      return new OrgLoginWebContainerExecutor();
+      return new OrgLoginWebContainerExecutor(extensionContext);
     case isDemoMode():
-      return new OrgLoginWebDemoModeExecutor();
+      return new OrgLoginWebDemoModeExecutor(extensionContext);
     default:
-      return new OrgLoginWebExecutor();
+      return new OrgLoginWebExecutor(extensionContext);
   }
 };
 
-export const orgLoginWeb = async (): Promise<void> => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, createOrgLoginWebExecutor());
+export const orgLoginWeb = async (extensionContext?: vscode.ExtensionContext): Promise<void> => {
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, createOrgLoginWebExecutor(extensionContext));
   await commandlet.run();
+  console.log('orgLoginWeb command executed');
 };
