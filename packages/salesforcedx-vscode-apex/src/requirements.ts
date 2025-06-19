@@ -13,7 +13,6 @@ import * as cp from 'node:child_process';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
 import { workspace } from 'vscode';
-import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 
@@ -67,19 +66,8 @@ const validateJavaInstallation = async (javaHome: string): Promise<boolean> => {
       throw new Error(nls.localize('java_binary_missing_text', platformBinary, javaHome));
     }
 
-    // On Windows, we don't check for X_OK permission
-    if (process.platform !== 'win32') {
-      try {
-        const uri = vscode.Uri.file(binaryPath);
-        const stat = await vscode.workspace.fs.stat(uri);
-        // Check if file is executable (has execute permission)
-        if (stat.permissions === undefined || !(stat.permissions & 0o111)) {
-          throw new Error(nls.localize('java_binary_not_executable_text', platformBinary, javaHome));
-        }
-      } catch {
-        throw new Error(nls.localize('java_binary_not_executable_text', platformBinary, javaHome));
-      }
-    }
+    // Note: Permission checking is skipped because the actual validation
+    // happens when we run the Java binary in checkJavaVersion.
   }
 
   return true;

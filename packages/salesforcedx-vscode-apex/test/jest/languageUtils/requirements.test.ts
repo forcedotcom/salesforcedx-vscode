@@ -61,25 +61,6 @@ describe('Java Requirements Test', () => {
       }
       expect(exceptionThrown).toEqual(true);
     });
-
-    it('Should reject when Java binary is not executable', async () => {
-      settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
-      // Mock stat to return a file that exists but is not executable
-      sandbox.stub(vscode.workspace.fs, 'stat').resolves({
-        type: vscode.FileType.File,
-        permissions: 0o444, // Read-only permissions (no execute bit)
-        ctime: Date.now(),
-        mtime: Date.now(),
-        size: 0
-      } as unknown as vscode.FileStat);
-      try {
-        await resolveRequirements();
-        fail('Should have thrown when Java binary is not executable');
-      } catch (err) {
-        expect(err).toContain('Java binary java at');
-        expect(err).toContain('is not executable');
-      }
-    });
   });
 
   // Cross-platform tests
@@ -87,14 +68,6 @@ describe('Java Requirements Test', () => {
     it('Should allow valid java runtime path outside the project', async () => {
       settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
       execFileStub.yields('', '', 'java.version = 11.0.0');
-      // Mock stat to return a file that exists and is executable
-      sandbox.stub(vscode.workspace.fs, 'stat').resolves({
-        type: vscode.FileType.File,
-        permissions: 0o755, // Read and execute permissions
-        ctime: Date.now(),
-        mtime: Date.now(),
-        size: 0
-      } as unknown as vscode.FileStat);
       const requirements = await resolveRequirements();
       expect(requirements.java_home).toContain(jdk);
     });
