@@ -152,9 +152,9 @@ jobs:
         if: failure()
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./salesforcedx-vscode/test-resource/screenshots
+          path: ./test-resources/screenshots
       - uses: actions/upload-artifact@v4
         if: ${{ inputs.testToRun }} == 'createOasDoc'
         with:
           name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./salesforcedx-vscode/e2e-temp/TempProject-CreateOASDoc/llm-logs
+          path: ./e2e-temp/TempProject-CreateOASDoc/llm-logs
