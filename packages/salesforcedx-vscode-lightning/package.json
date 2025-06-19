@@ -38,7 +38,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:bundle": "node ./esbuild.config.mjs",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "eslint .",

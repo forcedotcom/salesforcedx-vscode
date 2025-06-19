@@ -55,7 +55,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:bundle": "node ./esbuild.config.mjs && npm run copy:files",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",

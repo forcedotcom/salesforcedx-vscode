@@ -34,14 +34,16 @@
         "{projectRoot}/coverage"
       ]
     },
-    "bundle:extension": {
+    "vscode:bundle": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "vscode:bundle"
+      },
       "cache": true,
-      "dependsOn": [
-        "compile",
-        "^compile",
-        "^bundle:extension"
-      ],
       "inputs": [
+        "default",
+        "^default",
+        "{projectRoot}/out/**/*",
         "{projectRoot}/esbuild.config.mjs",
         "{projectRoot}/esbuild.config.js",
         "{projectRoot}/out/**",
@@ -54,10 +56,6 @@
     },
     "vscode:package": {
       "cache": true,
-      "dependsOn": [
-        "^vscode:package",
-        "vscode:bundle"
-      ],
       "inputs": [
         "{projectRoot}/esbuild.config.mjs",
         "{projectRoot}/esbuild.config.js",
@@ -68,6 +66,13 @@
         "{projectRoot}/.vscodeignore",
         "{projectRoot}/src/**"
       ]
+    }
+  },
+  "copy:files": {
+    "cache": false,
+    "executor": "nx:run-commands",
+    "options": {
+      "command": "lerna run copy:files"
     }
   }
 }

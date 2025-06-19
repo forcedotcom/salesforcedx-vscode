@@ -48,7 +48,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:bundle": "node ./esbuild.config.mjs",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",

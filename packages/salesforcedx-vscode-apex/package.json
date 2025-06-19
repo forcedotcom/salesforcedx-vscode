@@ -56,9 +56,9 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
+    "vscode:bundle": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:build": "node ./esbuild.config.mjs",
+    "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
