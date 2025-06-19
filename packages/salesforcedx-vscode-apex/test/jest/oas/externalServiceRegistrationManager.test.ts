@@ -75,7 +75,8 @@ describe('ExternalServiceRegistrationManager', () => {
     getTypeByNameMock = jest.spyOn(registryAccess, 'getTypeByName');
     processedOasResult = {
       openAPIDoc: oasSpec,
-      errors: []
+      errors: [],
+      context: undefined
     } as ProcessorInputOutput;
 
     esrHandler = new ExternalServiceRegistrationManager();

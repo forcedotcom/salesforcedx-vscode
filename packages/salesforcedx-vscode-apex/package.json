@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.0.0",
+  "version": "64.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -29,8 +29,8 @@
     "@salesforce/apex-node-bundle": "^8.1.26",
     "@salesforce/apex-tmlanguage": "1.8.1",
     "@salesforce/core-bundle": "^8.12.0",
-    "@salesforce/salesforcedx-utils": "64.0.0",
-    "@salesforce/salesforcedx-utils-vscode": "64.0.0",
+    "@salesforce/salesforcedx-utils": "64.1.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.1.0",
     "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.20.0",
@@ -52,7 +52,6 @@
     "@types/ejs": "3.1.5",
     "@types/node": "^20.0.0",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "^1.100.0",
     "cross-env": "5.2.0",
     "esbuild": "0.25.4",
     "esbuild-plugin-pino": "^2.2.2",
@@ -68,7 +67,7 @@
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && shx mkdir -p out && shx cp jars/apex-jorje-lsp.jar out/",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
@@ -131,10 +130,6 @@
     },
     "menus": {
       "editor/context": [
-        {
-          "command": "sf.create.apex.action.method",
-          "when": "false"
-        },
         {
           "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && salesforcedx-einstein-gpt.isEnabled"
@@ -269,10 +264,6 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.create.apex.action.method",
-          "when": "false"
-        },
-        {
           "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
         },
@@ -388,10 +379,6 @@
         "title": "%apex_test_last_method_run_text%"
       },
       {
-        "command": "sf.create.apex.action.method",
-        "title": "%create_openapi_doc_method%"
-      },
-      {
         "command": "sf.create.apex.action.class",
         "title": "%create_openapi_doc_class%"
       },
@@ -502,10 +489,9 @@
           "type": "string",
           "enum": [
             "LEAST_CALLS",
-            "MOST_CALLS",
-            "JSON_METHOD_BY_METHOD"
+            "MOST_CALLS"
           ],
-          "default": "JSON_METHOD_BY_METHOD",
+          "default": "LEAST_CALLS",
           "description": "%apex_oas_generation_strategy%"
         },
         "salesforcedx-vscode-apex.oas_generation_include_schema": {
