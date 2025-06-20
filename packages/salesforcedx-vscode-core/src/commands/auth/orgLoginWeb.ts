@@ -19,9 +19,9 @@ import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../../channels/index';
-import { CLI, TRACE_FLAG_EXPIRATION_KEY } from '../../constants';
+import { CLI, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL } from '../../constants';
 import { WorkspaceContext } from '../../context';
-import { disposeTraceFlagExpiration, showTraceFlagExpiration } from '../../decorators';
+
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demoMode';
 import { notificationService } from '../../notifications/index';
@@ -36,49 +36,6 @@ type DeviceCodeResponse = {
   device_code: string;
   interval: number;
   verification_uri: string;
-};
-
-const handleTraceFlagCleanupAfterLogin = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
-
-  // Change the status bar message to reflect the trace flag expiration date for the new target org
-
-  // If there is a non-expired TraceFlag for the current user, update the status bar message
-  const oldTraceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-  await oldTraceFlags.getUserIdOrThrow(); // This line switches the connection to the new target org
-  const newTraceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection()); // Get the new connection after switching
-  const newUserId = await newTraceFlags.getUserIdOrThrow();
-  const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
-  if (!myTraceFlag) {
-    disposeTraceFlagExpiration();
-    return;
-  }
-
-  const currentTime = new Date();
-  if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
-    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, myTraceFlag.ExpirationDate);
-  } else {
-    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
-  }
-
-  try {
-    // Delete expired TraceFlags for the current user
-    const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-
-    const userId = await traceFlags.getUserIdOrThrow();
-
-    const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
-    if (expiredTraceFlagExists) {
-      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
-    }
-
-    // Apex Replay Debugger Expiration Status Bar Entry
-    const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
-    if (expirationDate) {
-      showTraceFlagExpiration(new Date(expirationDate));
-    }
-  } catch {
-    console.log('No default org found, skipping trace flag expiration check after login');
-  }
 };
 
 export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParams> {
@@ -127,7 +84,8 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
 
       // If the command completed successfully, clean up trace flags
       if (exitCode === 0 && this.extensionContext) {
-        await handleTraceFlagCleanupAfterLogin(this.extensionContext);
+        const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+        await traceFlags.handleTraceFlagCleanupAfterLogin(this.extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
       }
     });
 
@@ -232,7 +190,10 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
       // If the command completed successfully, clean up trace flags
       if (exitCode === 0 && this.extensionContext) {
-        void handleTraceFlagCleanupAfterLogin(this.extensionContext);
+        void (async () => {
+          const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+          await traceFlags.handleTraceFlagCleanupAfterLogin(this.extensionContext!, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
+        })();
       }
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
@@ -281,7 +242,8 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
 
       // Clean up trace flags after successful login
       if (this.extensionContext) {
-        await handleTraceFlagCleanupAfterLogin(this.extensionContext);
+        const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+        await traceFlags.handleTraceFlagCleanupAfterLogin(this.extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
       }
 
       return Promise.resolve();

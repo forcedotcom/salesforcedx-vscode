@@ -11,11 +11,14 @@ import {
   LibraryCommandletExecutor,
   Row,
   Table,
-  TraceFlags
+  TraceFlags,
+  disposeTraceFlagExpiration,
+  showTraceFlagExpiration
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
+  APEX_CODE_DEBUG_LEVEL,
   CONFIG_SET_EXECUTOR,
   CONFIG_SET_NAME,
   TABLE_NAME_COL,
@@ -25,7 +28,6 @@ import {
   TRACE_FLAG_EXPIRATION_KEY
 } from '../constants';
 import { WorkspaceContext } from '../context';
-import { disposeTraceFlagExpiration, showTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
 import { SfCommandlet, SfWorkspaceChecker } from './util';
 
@@ -89,7 +91,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     // Apex Replay Debugger Expiration Status Bar Entry
     const expirationDate = this.extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
     if (expirationDate) {
-      showTraceFlagExpiration(new Date(expirationDate));
+      showTraceFlagExpiration(new Date(expirationDate), APEX_CODE_DEBUG_LEVEL);
     }
 
     return result;

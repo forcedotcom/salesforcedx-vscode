@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core-bundle';
+import * as vscode from 'vscode';
+import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
+import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
+import { optionHHmm, optionMMddYYYY } from '../date';
 import { nls } from '../messages';
 
 type DebugLevelRecord = {
@@ -170,4 +174,75 @@ export class TraceFlags {
     }
     return false;
   }
+
+  public async handleTraceFlagCleanupAfterLogin(
+    extensionContext: vscode.ExtensionContext,
+    traceTagExpirationKey: string,
+    apexCodeDebugLevel: string
+  ): Promise<void> {
+
+    // Change the status bar message to reflect the trace flag expiration date for the new target org
+
+    // If there is a non-expired TraceFlag for the current user, update the status bar message
+    const oldTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection());
+    await oldTraceFlags.getUserIdOrThrow(); // This line switches the connection to the new target org
+    const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection()); // Get the new connection after switching
+    const newUserId = await newTraceFlags.getUserIdOrThrow();
+    const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
+    if (!myTraceFlag) {
+      disposeTraceFlagExpiration();
+      return;
+    }
+
+    const currentTime = new Date();
+    if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
+      extensionContext.workspaceState.update(traceTagExpirationKey, myTraceFlag.ExpirationDate);
+    } else {
+      extensionContext.workspaceState.update(traceTagExpirationKey, undefined);
+    }
+
+    try {
+      // Delete expired TraceFlags for the current user
+      const traceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection());
+
+      const userId = await traceFlags.getUserIdOrThrow();
+
+      const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
+      if (expiredTraceFlagExists) {
+        extensionContext.workspaceState.update(traceTagExpirationKey, undefined);
+      }
+
+      // Apex Replay Debugger Expiration Status Bar Entry
+      const expirationDate = extensionContext.workspaceState.get<string>(traceTagExpirationKey);
+      if (expirationDate) {
+        showTraceFlagExpiration(new Date(expirationDate), apexCodeDebugLevel);
+      }
+    } catch {
+      console.log('No default org found, skipping trace flag expiration check after login');
+    }
+  }
 }
+
+let statusBarItem: StatusBarItem | undefined;
+
+export const showTraceFlagExpiration = (
+  expirationDate: Date,
+  apexCodeDebugLevel: string
+): void => {
+  statusBarItem ??= window.createStatusBarItem(StatusBarAlignment.Left, 40);
+  const expirationHHmm = expirationDate.toLocaleTimeString(undefined, optionHHmm);
+  statusBarItem.text = nls.localize('apex_debug_log_status_bar_text', expirationHHmm);
+
+  statusBarItem.tooltip = nls.localize(
+    'apex_debug_log_status_bar_hover_text',
+    apexCodeDebugLevel,
+    expirationHHmm,
+    expirationDate.toLocaleDateString(undefined, optionMMddYYYY)
+  );
+  statusBarItem.show();
+};
+
+export const disposeTraceFlagExpiration = (): void => {
+  statusBarItem?.dispose();
+  statusBarItem = undefined; // Resetting to undefined to allow re-creation
+};

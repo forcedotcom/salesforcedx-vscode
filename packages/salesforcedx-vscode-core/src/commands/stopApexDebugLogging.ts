@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, TraceFlags, disposeTraceFlagExpiration } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { WorkspaceContext } from '../context';
-import { disposeTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 
 const command = 'stop_apex_debug_logging';

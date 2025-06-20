@@ -12,7 +12,8 @@ import {
   TelemetryService,
   TraceFlags,
   ensureCurrentWorkingDirIsProjectPath,
-  getRootWorkspacePath
+  getRootWorkspacePath,
+  showTraceFlagExpiration
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -88,10 +89,10 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, TRACE_FLAG_EXPIRATION_KEY } from './constants';
+import { APEX_CODE_DEBUG_LEVEL, ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, TRACE_FLAG_EXPIRATION_KEY } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, showDemoMode, showTraceFlagExpiration } from './decorators';
+import { decorators, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -511,7 +512,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     // Apex Replay Debugger Expiration Status Bar Entry
     const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
     if (expirationDate) {
-      showTraceFlagExpiration(new Date(expirationDate));
+      showTraceFlagExpiration(new Date(expirationDate), APEX_CODE_DEBUG_LEVEL);
     }
   } catch {
     console.log('No default org found, skipping trace flag expiration check');

@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, TraceFlags, showTraceFlagExpiration } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
+import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { WorkspaceContext } from '../context';
-import { showTraceFlagExpiration } from '../decorators/traceflagTimeDecorator';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 
 const command = 'start_apex_debug_logging';
@@ -30,7 +29,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
     await traceFlags.createTraceFlag(userId, debugLevelResultId, expirationDate);
 
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, expirationDate);
-    showTraceFlagExpiration(expirationDate);
+    showTraceFlagExpiration(expirationDate, APEX_CODE_DEBUG_LEVEL);
 
     await handleFinishCommand(command, true);
   } catch {
