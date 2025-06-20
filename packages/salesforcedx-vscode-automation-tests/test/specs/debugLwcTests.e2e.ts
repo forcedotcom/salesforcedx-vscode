@@ -11,6 +11,7 @@ import {
   log,
   pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
@@ -179,15 +180,22 @@ describe('Debug LWC Tests', () => {
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
     // Click the "Debug" code lens at the top of the class
-    const debugAllTestsOption = await textEditor.getCodeLens('Debug');
-    if (!debugAllTestsOption) {
-      fail('Could not find debug all tests action button');
-    }
+    const debugAllTestsOption = await retryOperation(
+      async () => {
+        const codeLens = await textEditor.getCodeLens('Debug');
+        if (!codeLens) {
+          throw new Error('Could not find debug all tests action button');
+        }
+        return codeLens;
+      },
+      3,
+      'Failed to find Debug code lens'
+    );
     await debugAllTestsOption.click();
     await pause(Duration.seconds(15));
 
     // Continue with the debug session
-    await continueDebugging(2);
+    await continueDebugging(2, 30);
 
     // Verify test results are listed on the terminal
     // Also verify that all tests pass
