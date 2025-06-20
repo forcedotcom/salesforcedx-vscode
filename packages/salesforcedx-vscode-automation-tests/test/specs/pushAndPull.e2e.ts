@@ -14,6 +14,7 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createUser } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
@@ -350,17 +351,9 @@ describe('Push and Pull', () => {
 });
 
 const verifyPushSuccess = async (wait = Duration.TEN_MINUTES) => {
-  const successNotificationWasFound = await notificationIsPresentWithTimeout(
-    /SFDX: Push Source to Default Org successfully ran/,
-    wait
-  );
-  expect(successNotificationWasFound).to.equal(true);
+  await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, wait);
 };
 
 const verifyPullSuccess = async (wait = Duration.TEN_MINUTES) => {
-  const successNotificationWasFound = await notificationIsPresentWithTimeout(
-    /SFDX: Pull Source from Default Org successfully ran/,
-    wait
-  );
-  expect(successNotificationWasFound).to.equal(true);
+  await verifyNotificationWithRetry(/SFDX: Pull Source from Default Org successfully ran/, wait);
 };
