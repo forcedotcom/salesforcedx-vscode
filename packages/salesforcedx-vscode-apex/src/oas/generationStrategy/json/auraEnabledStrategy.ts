@@ -6,7 +6,6 @@
  */
 
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '..';
 import { workspaceContext } from '../../../context';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
@@ -37,13 +36,11 @@ export class AuraEnabledStrategy extends GenerationStrategy {
     this.servicePrompts = new Map();
     this.serviceResponses = new Map();
     this.serviceRequests = new Map();
-    this.sourceText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
     this.isDefaultOrg = false;
     this.isOrgVersionCompatible = false;
   }
-
   get openAPISchema(): string {
     return this.oasSchema;
   }

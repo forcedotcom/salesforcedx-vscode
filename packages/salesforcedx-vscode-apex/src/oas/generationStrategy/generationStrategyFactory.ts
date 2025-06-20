@@ -26,8 +26,13 @@ export const initializeAndBid = async (
 }> => {
   // Initialize strategies
   const strategies = new Map<GenerationStrategyType, StrategyTypes>();
-  strategies.set('ApexRest', new ApexRestStrategy(metadata, context));
-  strategies.set('AuraEnabled', new AuraEnabledStrategy(metadata, context));
+  const apexRestStrategy = new ApexRestStrategy(metadata, context);
+  await apexRestStrategy.initialize();
+  const auraEnabledStrategy = new AuraEnabledStrategy(metadata, context);
+  await auraEnabledStrategy.initialize();
+
+  strategies.set('ApexRest', apexRestStrategy);
+  strategies.set('AuraEnabled', auraEnabledStrategy);
 
   // Get bids from all strategies
   const bidPromises = Array.from(strategies.entries())

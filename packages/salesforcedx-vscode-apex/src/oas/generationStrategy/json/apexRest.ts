@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { DocumentSymbol } from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
@@ -42,7 +41,6 @@ export class ApexRestStrategy extends GenerationStrategy {
   servicePrompts: Map<string, string>;
   serviceResponses: Map<string, string>;
   serviceRequests: Map<string, Promise<string>>;
-  sourceText: string;
   classPrompt: string; // The prompt for the entire class
   oasSchema: string;
 
@@ -67,11 +65,6 @@ export class ApexRestStrategy extends GenerationStrategy {
     );
     this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
     this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
-    this.sourceText = '';
-  }
-
-  async initialize(): Promise<void> {
-    this.sourceText = await readFile(this.metadata.resourceUri.fsPath);
   }
 
   async resolveLLMResponses(serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
