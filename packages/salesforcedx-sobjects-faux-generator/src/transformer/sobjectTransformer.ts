@@ -29,14 +29,15 @@ type WriteSobjectFilesArgs = {
   | {
       source: Exclude<SObjectRefreshSource, 'startupmin'>;
       category: SObjectCategory;
-      conn: Connection;
+      conn?: Connection;
     }
 );
 
 export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SObjectRefreshResult> => {
   try {
     const { sobjectNames, sobjects } =
-      args.source === 'startupmin'
+      // if you have no connection, we can ONLY do the startup min
+      args.source === 'startupmin' || !args.conn
         ? { sobjectNames: getMinNames(), sobjects: getMinObjects() }
         : await getNamesAndTypes(args.conn, args.category, args.source);
 
