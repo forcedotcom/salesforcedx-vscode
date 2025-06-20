@@ -6,9 +6,16 @@
  */
 import { build } from 'esbuild';
 import { commonConfigNode } from '../../scripts/bundling/node.mjs';
+import { copy } from 'esbuild-plugin-copy';
 
 await build({
   ...commonConfigNode,
   entryPoints: ['./out/src/index.js'],
-  outdir: './dist'
+  outdir: './dist',
+  plugins: [
+    ...(commonConfigNode.plugins ?? []),
+    copy({
+      assets: [{ from: '../../node_modules/@salesforce/templates/lib/templates/**', to: ['../templates'] }]
+    })
+  ]
 });

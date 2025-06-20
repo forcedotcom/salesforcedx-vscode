@@ -6,7 +6,7 @@ Bundling here means (over-simplified): use a tool (ex: esbuild) to smash all the
 
 ## Prior work
 
-The original round of bundling bundled most of the DXFoundation libraries (sfdx-core, SDR, STL, apex-node) and publishing them as separate packages (`core-bundle` instead of `core`) for use in the extensions.
+The original round of bundling bundled most of the DXFoundation libraries (sfdx-core, SDR, STL, apex-node) and published them as separate packages (`core-bundle` instead of `core`) for use in the extensions.
 
 ## Current design
 

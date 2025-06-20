@@ -19,20 +19,21 @@ await build({
 await build({
   ...commonConfigNode,
   entryPoints: ['./out/src/index.js'],
-  alias: {
-    // use the tern package from node_modules instead of the copy-pasted one with dynamic requires in the aura-language-server
-    '../tern': 'tern'
-  },
   external: [...(commonConfigNode.external ?? []), '@salesforce/lightning-lsp-common'],
   outdir: './dist',
   plugins: [
     ...(commonConfigNode.plugins ?? []),
     copy({
+      // used by the server, but can be copies into dist from either
       assets: [
-        // {
-        //   from: ['../../node_modules/@salesforce/aura-language-server/lib/tern/**'],
-        //   to: ['../tern']
-        // }
+        {
+          from: ['../../node_modules/@salesforce/aura-language-server/resources/**'],
+          to: ['./resources']
+        },
+        {
+          from: ['../../node_modules/@salesforce/aura-language-server/lib/resources/**'],
+          to: ['./resources']
+        }
       ]
     })
   ]
