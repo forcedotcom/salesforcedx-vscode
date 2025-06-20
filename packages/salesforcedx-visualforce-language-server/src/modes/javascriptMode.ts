@@ -21,6 +21,7 @@ import {
   HighlightSpanKind,
   ScriptElementKind
 } from 'typescript';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CompletionItem,
   CompletionItemKind,
@@ -41,7 +42,6 @@ import {
   SignatureInformation,
   SymbolInformation,
   SymbolKind,
-  TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
 import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';

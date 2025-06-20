@@ -60,7 +60,7 @@ export const activate = async (context: ExtensionContext) => {
   const toDispose = context.subscriptions;
 
   // The server is implemented in node
-  const module = context.asAbsolutePath(path.join('dist', 'server.js'));
+  const module = context.asAbsolutePath(path.join('dist', 'visualforceServer.js'));
   // The debug options for the server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6004'] };
 

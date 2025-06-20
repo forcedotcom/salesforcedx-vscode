@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { FormattingOptions, Position, Range, TextDocument, TextEdit } from 'vscode-languageserver-types';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { FormattingOptions, Position, Range, TextEdit } from 'vscode-languageserver-types';
 import { pushAll } from '../utils/arrays';
 import { applyEdits } from '../utils/edits';
 import { isEOL } from '../utils/strings';

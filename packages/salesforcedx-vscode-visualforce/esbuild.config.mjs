@@ -18,5 +18,8 @@ await build({
 await build({
   ...commonConfigNode,
   entryPoints: ['../salesforcedx-visualforce-language-server/out/src/visualforceServer.js'],
-  outfile: './dist/visualforceServer.js'
+  outfile: './dist/visualforceServer.js',
+  // Prefer ESM modules over UMD to avoid runtime require() issues
+  mainFields: ['module', 'main'],
+  format: 'cjs'
 });
