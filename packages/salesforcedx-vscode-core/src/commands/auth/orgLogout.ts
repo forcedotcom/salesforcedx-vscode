@@ -10,6 +10,7 @@ import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
   ContinueResponse,
+  disposeTraceFlagExpiration,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   notificationService
@@ -86,6 +87,7 @@ export const orgLogoutDefault = async () => {
       new OrgLogoutDefault()
     );
     await logoutCommandlet.run();
+    disposeTraceFlagExpiration();
   } else {
     void notificationService.showInformationMessage(nls.localize('org_logout_no_default_org'));
   }
