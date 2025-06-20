@@ -48,6 +48,7 @@ const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executo
 
 export const orgLogoutAll = async () => {
   await commandlet.run();
+  disposeTraceFlagExpiration();
 };
 
 class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
