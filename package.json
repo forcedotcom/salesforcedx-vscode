@@ -40,6 +40,7 @@
     "cz-conventional-changelog": "3.3.0",
     "depcheck": "1.4.3",
     "esbuild": "0.25.4",
+    "esbuild-plugin-copy": "2.1.1",
     "eslint": "^9.25.0",
     "eslint-config-prettier": "10.1.5",
     "eslint-plugin-import": "2.31.0",
@@ -67,7 +68,7 @@
     "yaml": "2.6.0"
   },
   "scripts": {
-    "postinstall": "npm run reformat && npm run check:peer-deps && npm run check:typescript-project-references",
+    "postinstall": "npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "npm install",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
@@ -97,13 +98,12 @@
     "vscode:bundle": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
     "vscode:bundle:debugger": "lerna run bundle:debugger",
     "vscode:bundle:extension": "lerna run bundle:extension",
-    "vscode:package": "node ./scripts/capture-esbuild-warnings.js && lerna run vscode:package --concurrency 1 && npm run reformat",
+    "vscode:package": "node ./scripts/capture-esbuild-warnings.js && lerna run vscode:package --concurrency 1",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} \\;",
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
-    "reformat": "node scripts/reformat-with-prettier.js",
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js",
     "link-lsp": "yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
     "unlink-lsp": "yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
@@ -113,7 +113,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npm run reformat && npx lerna run compile,lint",
+      "pre-commit": "npx lerna run compile,lint",
       "pre-push": "npx lerna run compile,lint,test:unit"
     }
   },

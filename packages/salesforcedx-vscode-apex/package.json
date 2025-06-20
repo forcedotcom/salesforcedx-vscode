@@ -131,10 +131,6 @@
     "menus": {
       "editor/context": [
         {
-          "command": "sf.create.apex.action.method",
-          "when": "false"
-        },
-        {
           "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && salesforcedx-einstein-gpt.isEnabled"
         },
@@ -268,10 +264,6 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.create.apex.action.method",
-          "when": "false"
-        },
-        {
           "command": "sf.create.apex.action.class",
           "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
         },
@@ -387,10 +379,6 @@
         "title": "%apex_test_last_method_run_text%"
       },
       {
-        "command": "sf.create.apex.action.method",
-        "title": "%create_openapi_doc_method%"
-      },
-      {
         "command": "sf.create.apex.action.class",
         "title": "%create_openapi_doc_class%"
       },
@@ -501,10 +489,9 @@
           "type": "string",
           "enum": [
             "LEAST_CALLS",
-            "MOST_CALLS",
-            "JSON_METHOD_BY_METHOD"
+            "MOST_CALLS"
           ],
-          "default": "JSON_METHOD_BY_METHOD",
+          "default": "LEAST_CALLS",
           "description": "%apex_oas_generation_strategy%"
         },
         "salesforcedx-vscode-apex.oas_generation_include_schema": {

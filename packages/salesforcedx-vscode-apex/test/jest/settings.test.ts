@@ -47,7 +47,7 @@ describe('settings Unit Tests.', () => {
     } as any);
 
     const result = retrieveAAMethodAnnotations();
-    expect(result).toEqual(['UserDefinedModifier']);
+    expect(result).toEqual(['AuraEnabled', 'UserDefinedModifier']);
     expect(getConfigurationMock).toHaveBeenCalledWith();
     expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.apexoas.aa.method.annotations', []);
   });
