@@ -147,17 +147,12 @@ describe('Create OpenAPI v3 Specifications', () => {
     } else {
       await pause(Duration.seconds(5));
     }
+
+    await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+
     await verifyNotificationWithRetry(
       /Failed to create OpenAPI Document: The Apex Class IneligibleApexClass is not valid for OpenAPI document generation\./,
-      Duration.TEN_MINUTES,
-      async () => {
-        const result = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-        if (result) {
-          await result.confirm();
-          return true;
-        }
-        return false;
-      }
+      Duration.TEN_MINUTES
     );
   });
 
