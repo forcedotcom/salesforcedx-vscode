@@ -16,7 +16,9 @@ export const PROMPTS_FILE = path.join(PROMPTS_DIR, 'prompts.yaml');
 const getPromptsFromSource = (): Record<string, any> => sourcePrompts;
 
 export const ensurePromptsExist = async (): Promise<void> => {
-  await createDirectory(PROMPTS_DIR);
+  if (!(await fileOrFolderExists(PROMPTS_DIR))) {
+    await createDirectory(PROMPTS_DIR);
+  }
 
   if (!(await fileOrFolderExists(PROMPTS_FILE))) {
     const extractedPrompts = getPromptsFromSource();
