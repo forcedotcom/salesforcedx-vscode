@@ -20,7 +20,7 @@ jest.mock('@salesforce/core', () => ({
   },
 
   Messages: jest.fn().mockImplementation((arg1: string, arg2: string, arg3: Map<string, string>) => ({
-    loadMessages: jest.fn((arg4, arg5) => `Mocked message for arg4: ${arg4} and arg5: ${arg5}`)
+    loadMessages: jest.fn((arg4: string, arg5: string) => `Mocked message for arg4: ${arg4} and arg5: ${arg5}`)
   })),
 
   SfError: class {},
