@@ -51,6 +51,9 @@ if everything goes well, only `vscode` is `external` (that library is types-only
 
 `vscode-lwc` has some **extra** `external` stuff because it has some dependencies that use dynamic imports/`require` that can't be statically known at bundle-time. Marking them "external" preserves those.
 
+- `tern` used by the Aura-LS. That's some ancient code
+- jsonpath, jsonc-parser [used in a lot ext]
+
 ## pino bundling
 
 much of the complexity of the previous bundling solution was caused by the sfdx-core library's use of Pino for logging. For perf reasons, pino runs in a worker thread, with a path relative to the Logger (that path gets changed during bundling).

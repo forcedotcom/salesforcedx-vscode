@@ -13,8 +13,9 @@ await build({
   ...commonConfigNode,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
+  external: [...(commonConfigNode.external ?? []), 'jsonpath', 'jsonc-parser'],
   plugins: [
-    ...commonConfigNode.plugins,
+    ...(commonConfigNode.plugins ?? []),
     copy({
       assets: [
         {

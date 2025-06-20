@@ -7,8 +7,7 @@ src/**
 .gitignore
 tsconfig.json
 
-# ignore unused jsforce code
-node_modules
+# node_modules
 
 # do not reach outside the package
 ../../**
