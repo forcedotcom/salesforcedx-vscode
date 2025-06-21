@@ -41,6 +41,7 @@ export class PromptGenerationOrchestrator {
     this.strategies = new Map<GenerationStrategyType, StrategyTypes>();
   }
 
+
   // Initialize strategies and get their bids in one step
   private async initializeAndBid(): Promise<Map<GenerationStrategyType, PromptGenerationStrategyBid>> {
     const { strategies, bids } = await initializeAndBid(this.metadata, this.context);

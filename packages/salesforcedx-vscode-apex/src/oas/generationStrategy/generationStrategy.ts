@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { APEX_OAS_INCLUDE_GUIDED_JSON, APEX_OAS_OUTPUT_TOKEN_LIMIT, SF_LOG_LEVEL_SETTING } from '../../constants';
@@ -61,6 +62,9 @@ export abstract class GenerationStrategy {
     this.beta = betaInfo;
   }
 
+  async initialize(): Promise<void> {
+    this.sourceText = await readFile(this.metadata.resourceUri.fsPath);
+  }
   getPromptTokenCount(prompt: string): number {
     return Math.floor(prompt.length / 4);
   }

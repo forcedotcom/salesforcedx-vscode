@@ -25,9 +25,9 @@ import {
   getTestResultsFolder,
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
+  ParametersGatherer,
+  readFile
 } from '@salesforce/salesforcedx-utils-vscode';
-import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import { languages, workspace, window, CancellationToken, QuickPickItem, Uri } from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -83,16 +83,18 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
     });
 
     fileItems.push(
-      ...apexClasses
-        .filter(apexClass => {
-          const fileContent = readFileSync(apexClass.fsPath, 'utf-8');
-          return IS_TEST_REG_EXP.test(fileContent);
-        })
-        .map(apexClass => ({
-          label: basename(apexClass.toString(), APEX_CLASS_EXT),
-          description: apexClass.fsPath,
-          type: TestType.Class
-        }))
+      ...(await Promise.all(
+        apexClasses
+          .filter(async apexClass => {
+            const fileContent = await readFile(apexClass.fsPath);
+            return IS_TEST_REG_EXP.test(fileContent);
+          })
+          .map(apexClass => ({
+            label: basename(apexClass.toString(), APEX_CLASS_EXT),
+            description: apexClass.fsPath,
+            type: TestType.Class
+          }))
+      ))
     );
 
     const selection = await window.showQuickPick<ApexTestQuickPickItem>(fileItems);

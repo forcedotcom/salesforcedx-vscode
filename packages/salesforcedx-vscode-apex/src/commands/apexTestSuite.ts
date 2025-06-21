@@ -13,9 +13,9 @@ import {
   ParametersGatherer,
   SFDX_FOLDER,
   SfCommandlet,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  readFile
 } from '@salesforce/salesforcedx-utils-vscode';
-import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -28,19 +28,20 @@ type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
-  const apexClassItems = apexClasses
-    .filter(apexClass => {
-      const fileContent = readFileSync(apexClass.fsPath).toString();
-      return IS_TEST_REG_EXP.test(fileContent);
-    })
-    .map(apexClass => ({
-      label: basename(apexClass.toString(), APEX_CLASS_EXT),
-      description: apexClass.fsPath,
-      type: TestType.Class
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+  const apexClassItems = await Promise.all(
+    apexClasses
+      .filter(async apexClass => {
+        const fileContent = await readFile(apexClass.fsPath);
+        return IS_TEST_REG_EXP.test(fileContent);
+      })
+      .map(apexClass => ({
+        label: basename(apexClass.toString(), APEX_CLASS_EXT),
+        description: apexClass.fsPath,
+        type: TestType.Class
+      }))
+  );
 
-  return apexClassItems;
+  return apexClassItems.sort((a, b) => a.label.localeCompare(b.label));
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
 import { DocumentSymbol } from 'vscode';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
@@ -42,7 +41,6 @@ export class ApexRestStrategy extends GenerationStrategy {
   servicePrompts: Map<string, string>;
   serviceResponses: Map<string, string>;
   serviceRequests: Map<string, Promise<string>>;
-  sourceText: string;
   classPrompt: string; // The prompt for the entire class
   oasSchema: string;
 
@@ -61,7 +59,6 @@ export class ApexRestStrategy extends GenerationStrategy {
     this.methodsDocSymbolMap = new Map();
     this.methodsContextMap = new Map();
     this.serviceRequests = new Map();
-    this.sourceText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     const restResourceAnnotation = this.context.classDetail.annotations.find(a =>
       retrieveAAClassRestAnnotations().includes(a.name)
@@ -212,13 +209,13 @@ export class ApexRestStrategy extends GenerationStrategy {
       };
     }
 
-    const generationResult = this.generate();
+    const generationResult = await this.generate();
     return Promise.resolve({
       result: generationResult
     });
   }
 
-  private generate(): PromptGenerationResult {
+  private async generate(): Promise<PromptGenerationResult> {
     const list = (this.metadata.symbols ?? []).filter(s => s.isApexOasEligible);
     for (const symbol of list) {
       const methodName = symbol.docSymbol.name;
@@ -228,7 +225,7 @@ export class ApexRestStrategy extends GenerationStrategy {
         this.methodsContextMap.set(methodName, methodDetail);
       }
 
-      const input = generatePromptForMethod(
+      const input = await generatePromptForMethod(
         methodName,
         this.sourceText,
         this.methodsDocSymbolMap,
