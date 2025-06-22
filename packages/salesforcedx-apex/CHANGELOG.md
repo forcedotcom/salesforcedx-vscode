@@ -1,3 +1,12 @@
+## [8.1.33](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.32...8.1.33) (2025-06-22)
+
+
+### Bug Fixes
+
+* **deps:** bump faye from 1.4.0 to 1.4.1 ([0fcccfd](https://github.com/forcedotcom/salesforcedx-apex/commit/0fcccfd0079e458b6bcb991be2341ca246a4ada8))
+
+
+
 ## [8.1.32](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.31...8.1.32) (2025-06-15)
 
 
