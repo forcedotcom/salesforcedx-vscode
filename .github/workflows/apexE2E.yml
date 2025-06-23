@@ -91,7 +91,7 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      testToRun: 'createOasDoc.e2e.js'
+      testToRun: 'createOASDoc.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
