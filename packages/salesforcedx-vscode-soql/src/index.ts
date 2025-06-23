@@ -11,11 +11,15 @@ import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
 import { soqlOpenNew } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
+import { nls } from './messages';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
-import { workspaceContext, channelService } from './sf';
+import { workspaceContext, getActiveCoreExtension } from './sf';
 import { telemetryService } from './telemetry';
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<any> => {
+  const ext = await getActiveCoreExtension();
+  const channelService = ext.exports.services.ChannelService.getInstance(nls.localize('soql_channel_name'));
+
   await telemetryService.initializeService(extensionContext);
   channelService.appendLine(`SOQL Extension Initializing in mode ${extensionContext.extensionMode}`);
   const activationTracker = new ActivationTracker(extensionContext, telemetryService);
