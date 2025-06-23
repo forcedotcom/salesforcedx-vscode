@@ -184,9 +184,7 @@ export class TraceFlags {
     // Change the status bar message to reflect the trace flag expiration date for the new target org
 
     // If there is a non-expired TraceFlag for the current user, update the status bar message
-    const oldTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection());
-    await oldTraceFlags.getUserIdOrThrow(); // This line switches the connection to the new target org
-    const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection()); // Get the new connection after switching
+    const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.createFreshConnectionForTargetOrg()); // Get the new connection after switching
     const newUserId = await newTraceFlags.getUserIdOrThrow();
     const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
     if (!myTraceFlag) {
@@ -201,24 +199,16 @@ export class TraceFlags {
       extensionContext.workspaceState.update(traceTagExpirationKey, undefined);
     }
 
-    try {
-      // Delete expired TraceFlags for the current user
-      const traceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection());
+    // Delete expired TraceFlags for the current user
+    const expiredTraceFlagExists = await newTraceFlags.deleteExpiredTraceFlags(newUserId);
+    if (expiredTraceFlagExists) {
+      extensionContext.workspaceState.update(traceTagExpirationKey, undefined);
+    }
 
-      const userId = await traceFlags.getUserIdOrThrow();
-
-      const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
-      if (expiredTraceFlagExists) {
-        extensionContext.workspaceState.update(traceTagExpirationKey, undefined);
-      }
-
-      // Apex Replay Debugger Expiration Status Bar Entry
-      const expirationDate = extensionContext.workspaceState.get<string>(traceTagExpirationKey);
-      if (expirationDate) {
-        showTraceFlagExpiration(new Date(expirationDate), apexCodeDebugLevel);
-      }
-    } catch {
-      console.log('No default org found, skipping trace flag expiration check after login');
+    // Apex Replay Debugger Expiration Status Bar Entry
+    const expirationDate = extensionContext.workspaceState.get<string>(traceTagExpirationKey);
+    if (expirationDate) {
+      showTraceFlagExpiration(new Date(expirationDate), apexCodeDebugLevel);
     }
   }
 }
