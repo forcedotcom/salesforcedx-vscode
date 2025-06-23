@@ -12,8 +12,7 @@ import {
   Row,
   Table,
   TraceFlags,
-  disposeTraceFlagExpiration,
-  showTraceFlagExpiration
+  WorkspaceContextUtil,
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -27,7 +26,6 @@ import {
   TARGET_ORG_KEY,
   TRACE_FLAG_EXPIRATION_KEY
 } from '../constants';
-import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { SfCommandlet, SfWorkspaceChecker } from './util';
 
@@ -65,34 +63,13 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       channelService.showChannelOutput();
     }
 
-    // Change the status bar message to reflect the trace flag expiration date for the new target org
-
-    // If there is a non-expired TraceFlag for the current user, update the status bar message
-    const oldTraceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-    await oldTraceFlags.getUserIdOrThrow(); // This line switches the connection to the new target org
-    const newTraceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection()); // Get the new connection after switching
-    const newUserId = await newTraceFlags.getUserIdOrThrow();
-    const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
-    if (!myTraceFlag) {
-      disposeTraceFlagExpiration();
-      return result;
-    }
-
-    const currentTime = new Date();
-    if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
-      this.extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, myTraceFlag.ExpirationDate);
-    } else {
-      this.extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
-    }
-
-    // Delete expired TraceFlags for the current user
-    await newTraceFlags.deleteExpiredTraceFlags(newUserId);
-
-    // Apex Replay Debugger Expiration Status Bar Entry
-    const expirationDate = this.extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
-    if (expirationDate) {
-      showTraceFlagExpiration(new Date(expirationDate), APEX_CODE_DEBUG_LEVEL);
-    }
+    const connection = await WorkspaceContextUtil.getInstance().getConnection();
+    const traceFlags = new TraceFlags(connection);
+    await traceFlags.handleTraceFlagCleanupAfterLogin(
+      this.extensionContext,
+      TRACE_FLAG_EXPIRATION_KEY,
+      APEX_CODE_DEBUG_LEVEL
+    );
 
     return result;
   }
