@@ -132,6 +132,10 @@ jobs:
             # Compile packages
             npm run compile
 
+            # List available test spec files
+            echo "Available test spec files:"
+            ls -la packages/salesforcedx-vscode-automation-tests/lib/test/specs/
+
             # Run headless test
             npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
         env:
