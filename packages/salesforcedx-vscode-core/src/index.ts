@@ -490,12 +490,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
-    initSObjectDefinitions(vscode.workspace.workspaceFolders[0].uri.fsPath, sobjectRefreshStartup).catch(e =>
-      telemetryService.sendException(
-        'initSObjectDefinitionsError',
-        `Error: name = ${e.name} message = ${e.message} with sobjectRefreshStartup = ${sobjectRefreshStartup}`
-      )
-    );
+    await initSObjectDefinitions(vscode.workspace.workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
   }
 
   void activateTracker.markActivationStop();
