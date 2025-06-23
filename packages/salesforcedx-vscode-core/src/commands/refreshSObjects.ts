@@ -117,26 +117,10 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
       notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     }
 
-    let progressLocation = vscode.ProgressLocation.Notification;
-    if (response.data.source !== 'manual') {
-      progressLocation = vscode.ProgressLocation.Window;
-    }
+    const progressLocation =
+      response.data.source === 'manual' ? vscode.ProgressLocation.Notification : vscode.ProgressLocation.Window;
+
     ProgressNotification.show(execution, cancellationTokenSource, progressLocation);
-
-    const commandName = execution.command.logName;
-
-    // precedence user override > project config > connection default
-    const apiVersionOverride =
-      (await ConfigUtil.getUserConfiguredApiVersion()) ?? (await SalesforceProjectConfig.getValue('sourceApiVersion'));
-
-    const versionedConn = apiVersionOverride
-      ? await Connection.create({
-          authInfo: await AuthInfo.create({
-            username: (await WorkspaceContextUtil.getInstance().getConnection()).getUsername()
-          }),
-          connectionOptions: { version: apiVersionOverride }
-        })
-      : await WorkspaceContextUtil.getInstance().getConnection();
 
     try {
       const result = await writeSobjectFiles({
@@ -150,14 +134,13 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
           : {
               category: response.data.category,
               source: response.data.source,
-              // TODO: make the consumer pass in the properly versioned connection
-              conn: versionedConn
+              conn: await getVersionedConnection()
             })
       });
 
       console.log('Generate success ' + JSON.stringify(result.data));
       this.logMetric(
-        commandName,
+        execution.command.logName,
         startTime,
         {
           category: response.data.category,
@@ -179,6 +162,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
         `Error: name = ${error.name} message = ${error.error}`
       );
       RefreshSObjectsExecutor.isActive = false;
+      await vscode.window.showErrorMessage(error.error);
 
       throw error;
     }
@@ -206,10 +190,32 @@ export const initSObjectDefinitions = async (projectPath: string, isSettingEnabl
       try {
         await refreshSObjects(refreshSource);
       } catch (e) {
-        telemetryService.sendException('initSObjectDefinitions', e.message);
+        telemetryService.sendException(
+          'initSObjectDefinitionsError',
+          `Error: name = ${e.name} message = ${e.message} with sobjectRefreshStartup = ${isSettingEnabled}`
+        );
         throw e;
       }
     }
+  }
+};
+
+const getVersionedConnection = async () => {
+  // precedence user override > project config > connection default
+  const apiVersionOverride =
+    (await ConfigUtil.getUserConfiguredApiVersion()) ?? (await SalesforceProjectConfig.getValue('sourceApiVersion'));
+
+  try {
+    return apiVersionOverride
+      ? await Connection.create({
+          authInfo: await AuthInfo.create({
+            username: (await WorkspaceContextUtil.getInstance().getConnection()).getUsername()
+          }),
+          connectionOptions: { version: apiVersionOverride }
+        })
+      : await WorkspaceContextUtil.getInstance().getConnection();
+  } catch (e) {
+    return undefined;
   }
 };
 

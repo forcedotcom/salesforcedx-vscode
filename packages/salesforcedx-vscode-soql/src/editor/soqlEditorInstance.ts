@@ -233,7 +233,7 @@ export class SOQLEditorInstance {
 
   protected async handleRunQuery(): Promise<void> {
     // Check to see if a default org is set.
-    if (!isDefaultOrgSet()) {
+    if (!(await isDefaultOrgSet())) {
       const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);

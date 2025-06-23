@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "64.1.0",
+  "version": "64.2.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -45,6 +45,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "salesforcedx-vscode-core": "*",
     "@salesforce/core": "^8.14.0",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",

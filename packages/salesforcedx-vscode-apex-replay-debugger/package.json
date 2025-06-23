@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "main": "./dist/index.js",
-  "version": "64.1.0",
+  "version": "64.2.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {

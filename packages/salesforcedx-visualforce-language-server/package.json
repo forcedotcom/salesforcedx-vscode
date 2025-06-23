@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-language-server",
   "description": "Visualforce language server",
-  "version": "64.1.0",
+  "version": "64.2.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {

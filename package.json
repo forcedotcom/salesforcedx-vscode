@@ -107,7 +107,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npx lerna run compile,lint",
+      "pre-commit": "npx lerna run compile,lint && npm run check:peer-deps && npm run check:typescript-project-references",
       "pre-push": "npx lerna run compile,lint,test:unit"
     }
   },
