@@ -31,7 +31,7 @@ import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 
 import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
 
 const DOT_SFDX = '.sfdx';
-const TEMPLATES_DIR = path.join(DOT_SFDX, 'resources', 'templates');
+const TEMPLATES_DIR = path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX, 'resources', 'templates');
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -209,10 +209,9 @@ const resolveTemplateDir = async (): Promise<URI> => {
   const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
   const extensionDir = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
   if (logLevel !== 'fatal') {
-    await createDirectory(TEMPLATES_DIR);
     // copy contents of extensionDir to TEMPLATES_DIR
     await copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
-    return URI.file(path.join(process.cwd(), DOT_SFDX));
+    return URI.file(path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX));
   }
   return extensionDir;
 };
