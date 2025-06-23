@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core-bundle';
+
 import {
   ConfigUtil,
   ContinueResponse,
@@ -12,7 +12,8 @@ import {
   LibraryCommandletExecutor,
   Row,
   Table,
-  TraceFlags
+  TraceFlags,
+  WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -91,24 +92,7 @@ export const configSet = async (usernameOrAlias: string, extensionContext: vscod
 
   // Verify that the config was actually set before attempting trace flag cleanup
   try {
-    // Check if the target org was successfully set by reading it back
-    const actualTargetOrg = await ConfigUtil.getTargetOrgOrAlias();
-    if (!actualTargetOrg) {
-      console.log('Config set operation did not complete successfully - no target org found');
-      return;
-    }
-
-    console.log('Config set successful, target org is:', actualTargetOrg);
-
-    // Get the actual username for the target org (in case actualTargetOrg is an alias)
-    const username = await ConfigUtil.getUsernameFor(actualTargetOrg);
-    console.log('Using username for connection:', username);
-
-    // Create a connection directly using the actual username
-    // This bypasses the WorkspaceContextUtil's caching which might not be updated yet
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username })
-    });
+    const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
 
     const traceFlags = new TraceFlags(connection);
     await traceFlags.handleTraceFlagCleanupAfterLogin(

@@ -78,6 +78,34 @@ export class WorkspaceContextUtil {
     return connection;
   }
 
+  /**
+   * Creates a connection for the current target org, bypassing any caching.
+   * This is useful when you need a fresh connection after setting a new target org.
+   * @returns Promise<Connection> - A new connection to the target org
+   * @throws Error if no target org is set or connection cannot be created
+   */
+  public static async createFreshConnectionForTargetOrg(): Promise<Connection> {
+    // Check if the target org was successfully set by reading it back
+    const actualTargetOrg = await ConfigUtil.getTargetOrgOrAlias();
+    if (!actualTargetOrg) {
+      throw new Error('Config set operation did not complete successfully - no target org found');
+    }
+
+    console.log('Config set successful, target org is:', actualTargetOrg);
+
+    // Get the actual username for the target org (in case actualTargetOrg is an alias)
+    const username = await ConfigUtil.getUsernameFor(actualTargetOrg);
+    console.log('Using username for connection:', username);
+
+    // Create a connection directly using the actual username
+    // This bypasses the WorkspaceContextUtil's caching which might not be updated yet
+    const connection = await Connection.create({
+      authInfo: await AuthInfo.create({ username })
+    });
+
+    return connection;
+  }
+
   protected async handleCliConfigChange() {
     // Core's types can return stale cached data when
     // this handler is called right after modifying the config file.
