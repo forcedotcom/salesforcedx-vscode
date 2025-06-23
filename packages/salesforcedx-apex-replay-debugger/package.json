@@ -34,7 +34,7 @@
     "nyc": "^15",
     "request-light": "^0.8.0",
     "sinon": "^13.0.1",
-    "ts-jest": "^29.1.1"
+    "ts-jest": "^29.4.0"
   },
   "scripts": {
     "bundle:debugger": "esbuild ./src/adapter/apexReplayDebug.ts  --bundle --outfile=dist/apexreplaydebug.js --format=cjs --platform=node --minify",
