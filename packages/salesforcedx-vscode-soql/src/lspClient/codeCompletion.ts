@@ -225,7 +225,7 @@ const expandFunctions: {
 async function safeRetrieveSObject(dataSource: OrgDataSource, sobjectName?: string): Promise<SObject | undefined> {
   if (!sobjectName) {
     telemetryService.sendException('SOQLanguageServerException', 'Missing `sobjectName` from SOQL completion context!');
-    return Promise.resolve(undefined);
+    return undefined;
   }
   return await dataSource.retrieveSObject(sobjectName);
 }

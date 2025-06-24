@@ -118,12 +118,8 @@ export const getUserId = async (projectPath: string): Promise<string> => {
   telemetryService.sendCommandEvent(execution.command.logName);
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  try {
-    const orgInfo = JSON.parse(result).result.records[0].Id;
-    return Promise.resolve(orgInfo);
-  } catch {
-    return Promise.reject(result);
-  }
+  const orgInfo = JSON.parse(result).result.records[0].Id;
+  return orgInfo;
 };
 
 class QueryUser extends SfCommandletExecutor<{}> {

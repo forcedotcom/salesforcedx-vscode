@@ -37,10 +37,10 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
   const javaHome = await checkJavaRuntime();
   const javaMemory: number | null = workspace.getConfiguration().get<number | null>(JAVA_MEMORY_KEY, null);
   await checkJavaVersion(javaHome);
-  return Promise.resolve({
+  return {
     java_home: javaHome,
     java_memory: javaMemory
-  });
+  };
 };
 
 const getPlatformSpecificBinary = (binary: string): string => (process.platform === 'win32' ? `${binary}.exe` : binary);

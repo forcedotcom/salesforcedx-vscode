@@ -153,7 +153,7 @@ export class O11yService {
     const b64 = Buffer.from(binary).toString('base64');
 
     if (!this.o11yUploadEndpoint) {
-      return Promise.reject(new Error('o11yUploadEndpoint is not defined'));
+      throw new Error('o11yUploadEndpoint is not defined');
     }
 
     return this.postRequest(this.o11yUploadEndpoint, { base64Env: b64 });

@@ -822,7 +822,6 @@ export const sfToggleCheckpoint = async () => {
     bpAdd.push(newBreakpoint);
     await vscode.debug.addBreakpoints(bpAdd);
   }
-  return;
 };
 
 // This methods was broken out of sfToggleCheckpoint for testing purposes.

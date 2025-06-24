@@ -238,7 +238,7 @@ export class SOQLEditorInstance {
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);
       this.runQueryDone();
-      return Promise.resolve();
+      return;
     }
 
     const queryText = this.document.getText();

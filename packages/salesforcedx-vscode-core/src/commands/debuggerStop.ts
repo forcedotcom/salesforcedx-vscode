@@ -111,8 +111,6 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
         void notificationService.showInformationMessage(nls.localize('debugger_stop_none_found_text'));
       }
     } catch {}
-
-    return Promise.resolve();
   }
 }
 

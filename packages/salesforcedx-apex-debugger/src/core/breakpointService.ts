@@ -116,12 +116,12 @@ export class BreakpointService {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const breakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(breakpointId)) {
-        return Promise.resolve(breakpointId);
+        return breakpointId;
       } else {
-        return Promise.reject(result);
+        throw result;
       }
     } catch {
-      return Promise.reject(result);
+      throw result;
     }
   }
 
@@ -142,12 +142,12 @@ export class BreakpointService {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const deletedBreakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(deletedBreakpointId)) {
-        return Promise.resolve(deletedBreakpointId);
+        return deletedBreakpointId;
       } else {
-        return Promise.reject(result);
+        throw result;
       }
     } catch {
-      return Promise.reject(result);
+      throw result;
     }
   }
 
@@ -184,7 +184,7 @@ export class BreakpointService {
         }
       }
     }
-    return Promise.resolve(this.getBreakpointsFor(uri));
+    return this.getBreakpointsFor(uri);
   }
 
   public async createExceptionBreakpoint(
@@ -209,12 +209,12 @@ export class BreakpointService {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const breakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(breakpointId)) {
-        return Promise.resolve(breakpointId);
+        return breakpointId;
       } else {
-        return Promise.reject(result);
+        throw result;
       }
     } catch {
-      return Promise.reject(result);
+      throw result;
     }
   }
 

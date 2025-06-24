@@ -37,7 +37,7 @@ export default class SalesforcePackageDirectories {
         error.name = 'NoPackageDirectoryPathsFound';
         throw error;
       }
-      return Promise.resolve(packageDirectoryPaths);
+      return packageDirectoryPaths;
     } else {
       const error = new Error();
       error.name = 'NoPackageDirectoriesFound';

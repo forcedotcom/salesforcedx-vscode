@@ -18,10 +18,10 @@ export class CompositePreconditionChecker implements PreconditionChecker {
     for (const output of this.checks) {
       const input = await output.check();
       if (input === false) {
-        return Promise.resolve(false);
+        return false;
       }
     }
 
-    return Promise.resolve(true);
+    return true;
   }
 }

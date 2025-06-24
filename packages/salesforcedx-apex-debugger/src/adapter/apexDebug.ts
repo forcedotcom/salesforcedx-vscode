@@ -749,7 +749,7 @@ export class ApexDebug extends LoggingDebugSession {
             this.mySessionService.getSessionId(),
             args.lines!.map(line => this.convertClientLineToDebugger(line))
           );
-          return Promise.resolve(knownBps);
+          return knownBps;
         });
       } catch {}
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
@@ -876,7 +876,7 @@ export class ApexDebug extends LoggingDebugSession {
           `stackTraceRequest: args threadId=${args.threadId} startFrame=${args.startFrame} levels=${args.levels}`
         );
         const responseString = await this.myRequestService.execute(new StateCommand(requestId));
-        return Promise.resolve(responseString);
+        return responseString;
       });
       const stateRespObj: DebuggerResponse = JSON.parse(stateResponse);
       const clientFrames: StackFrame[] = [];

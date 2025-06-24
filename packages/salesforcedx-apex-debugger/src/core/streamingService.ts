@@ -75,7 +75,7 @@ export class StreamingService {
 
     await this.systemEventClient.subscribe();
     await this.userEventClient.subscribe();
-    return Promise.resolve(this.isReady());
+    return this.isReady();
   }
 
   private removeTrailingSlashURL(instanceUrl?: string) {

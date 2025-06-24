@@ -127,7 +127,6 @@ export const getPreview = () => {
 const lwcPreviewContainerMode = () => {
   const message = nls.localize('lightning_lwc_preview_container_mode');
   vscode.window.showErrorMessage(message);
-  return;
 };
 
 const lwcPreview = async (sourceUri: URI) => {
@@ -165,7 +164,6 @@ const lwcPreview = async (sourceUri: URI) => {
   } catch {
     const message = nls.localize('lightning_lwc_preview_file_nonexist', resourcePath);
     showError(new Error(message), logName, commandName);
-    return;
   }
 };
 

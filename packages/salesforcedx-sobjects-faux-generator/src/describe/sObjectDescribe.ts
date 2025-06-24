@@ -70,7 +70,7 @@ class SObjectDescribe {
 
       const fetchedObjects: SObject[] = [];
       if (batchResponse && batchResponse.results === undefined) {
-        return Promise.resolve(fetchedObjects);
+        return fetchedObjects;
       }
 
       batchResponse.results.forEach((sr, i) => {
@@ -82,10 +82,10 @@ class SObjectDescribe {
         } else fetchedObjects.push(toMinimalSObject(sr.result));
       });
 
-      return Promise.resolve(fetchedObjects);
+      return fetchedObjects;
     } catch (error) {
       const errorMsg = Reflect.has(error, 'body') ? error.body : error.message;
-      return Promise.reject(errorMsg);
+      throw errorMsg;
     }
   }
 

@@ -205,9 +205,9 @@ export class ApexRestStrategy extends GenerationStrategy {
     }
 
     const generationResult = this.generate();
-    return Promise.resolve({
+    return {
       result: generationResult
-    });
+    };
   }
 
   private generate(): PromptGenerationResult {

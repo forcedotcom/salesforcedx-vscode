@@ -132,10 +132,10 @@ export class RequestService {
 
     try {
       const response = await this.sendRequest(options);
-      return Promise.resolve(response.responseText);
+      return response.responseText;
     } catch (error) {
       const xhrResponse: XHRResponse = error;
-      return Promise.reject(xhrResponse.responseText);
+      throw xhrResponse.responseText;
     }
   }
 

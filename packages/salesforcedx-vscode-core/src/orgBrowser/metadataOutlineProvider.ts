@@ -53,12 +53,12 @@ export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserN
   public async getChildren(element?: BrowserNode): Promise<BrowserNode[]> {
     if (isNullOrUndefined(this.defaultOrg)) {
       const emptyDefault = new BrowserNode(nls.localize('missing_default_org'), NodeType.EmptyNode);
-      return Promise.resolve([emptyDefault]);
+      return [emptyDefault];
     }
 
     if (isNullOrUndefined(element)) {
       const org = new BrowserNode(this.defaultOrg, NodeType.Org);
-      return Promise.resolve([org]);
+      return [org];
     }
 
     switch (element.type) {
@@ -79,7 +79,7 @@ export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserN
         element.toRefresh = false;
         break;
     }
-    return Promise.resolve(element.children!);
+    return element.children!;
   }
 
   public async getTypes(): Promise<MetadataObject[]> {

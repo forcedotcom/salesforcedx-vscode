@@ -169,7 +169,6 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     }
 
     RefreshSObjectsExecutor.isActive = false;
-    return;
   }
 }
 
