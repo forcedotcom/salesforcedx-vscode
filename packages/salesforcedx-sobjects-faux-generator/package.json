@@ -10,8 +10,8 @@
   },
   "main": "out/src",
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "64.2.1",
-    "@salesforce/salesforcedx-utils-vscode": "64.2.1"
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*"
   },
   "devDependencies": {
     "@salesforce/core": "^8.12.0",

@@ -11,11 +11,11 @@ import { ProcessDetail, languageClientManager } from './languageClientManager';
 
 export { languageClientManager };
 
-export const getLineBreakpointInfo = async (): Promise<{}> => languageClientManager.getLineBreakpointInfo();
+export const getLineBreakpointInfo = async () => languageClientManager.getLineBreakpointInfo();
 
 export const getApexTests = async () => languageClientManager.getApexTests();
 
-export const getExceptionBreakpointInfo = async (): Promise<{}> => languageClientManager.getExceptionBreakpointInfo();
+export const getExceptionBreakpointInfo = async () => languageClientManager.getExceptionBreakpointInfo();
 
 export const restartLanguageServerAndClient = async (
   extensionContext: vscode.ExtensionContext,

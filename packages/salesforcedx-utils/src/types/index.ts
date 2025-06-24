@@ -10,3 +10,4 @@ export { CommandExecution } from './commandExecution';
 export { Command } from './command';
 export { OrgInfo } from './orgInfo';
 export * from './localization';
+export { LineBreakpointInfo } from './debugger';

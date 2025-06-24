@@ -46,7 +46,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     instance.onDispose(this.disposeInstance.bind(this));
     this.extensionContext.subscriptions.push(...instance.subscriptions);
 
-    if (!isDefaultOrgSet()) {
+    if (!(await isDefaultOrgSet())) {
       const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);

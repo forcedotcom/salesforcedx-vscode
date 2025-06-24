@@ -6,7 +6,10 @@ module.exports = {
   setupFilesAfterEnv: ['../../scripts/setup-jest.ts'],
   reporters: ['default', ['jest-junit', { outputName: 'junit-custom-unitTests.xml' }]],
   coverageReporters: ['lcov', 'text', 'json'],
-  resetMocks: true
+  resetMocks: true,
+  moduleNameMapper: {
+    '^vscode$': '<rootDir>/../../scripts/setup-jest.ts'
+  }
   // This collectCoverageFrom will show coverage for all files in a projects, but slows down calculating coverage results.
   // Can be a good tool for measuring coverage of the project as a whole locally, but shouldn't be committed at this time.
   // Off:
