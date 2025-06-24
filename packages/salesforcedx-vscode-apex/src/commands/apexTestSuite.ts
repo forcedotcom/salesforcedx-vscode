@@ -18,7 +18,7 @@ import {
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT } from '../constants';
-import { workspaceContext } from '../context';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 import { getTestInfo } from './readTestFile';
@@ -33,11 +33,10 @@ const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const connection = await workspaceContext.getConnection();
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
   const testService = new TestService(connection);
-  const testSuites = await testService.retrieveAllSuites();
-
-  return testSuites.map(testSuite => ({
+  return (await testService.retrieveAllSuites()).map(testSuite => ({
     label: testSuite.TestSuiteName,
     description: testSuite.id,
     type: TestType.Suite
@@ -115,7 +114,8 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
   }
 
   public async run(response: ContinueResponse<ApexTestSuiteOptions>): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
     await testService.buildSuite(response.data.suitename, response.data.tests);
     return true;

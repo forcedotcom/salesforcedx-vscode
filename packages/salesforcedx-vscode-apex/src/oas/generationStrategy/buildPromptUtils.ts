@@ -21,48 +21,42 @@ export const getMethodImplementation = (
     const startLine = methodSymbol.range.start.line;
     const endLine = methodSymbol.range.end.line;
     const lines = doc.split('\n').map(line => line.trim());
-    const method = lines.slice(startLine - 1, endLine + 1).join('\n');
-    return method;
+    return lines.slice(startLine - 1, endLine + 1).join('\n');
   } else {
     throw new Error(nls.localize('method_not_found_in_doc_symbols', methodName));
   }
 };
 
-export const getAnnotationsWithParameters = (annotations: ApexAnnotationDetail[]): string => {
-  const annotationsStr = annotations
+export const getAnnotationsWithParameters = (annotations: ApexAnnotationDetail[]): string =>
+  annotations
     .map(annotation => {
       const paramsEntries = Object.entries(annotation.parameters);
       const paramsAsStr =
-        paramsEntries.length > 0
-          ? paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ') + '\n'
-          : undefined;
+        paramsEntries.length > 0 ? paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ') : undefined;
       return paramsAsStr
         ? `Annotation name: ${annotation.name} , Parameters: ${paramsAsStr}`
-        : `Annotation name: ${annotation.name}.\n`;
+        : `Annotation name: ${annotation.name}.`;
     })
-    .join(', ');
-  return annotationsStr;
-};
+    .join('\n, ');
 
-export const buildClassPrompt = (classDetail: ApexOASClassDetail): string => {
-  let prompt = '';
-  prompt += `The class name of the given method is ${classDetail.name}.\n`;
-  if (classDetail.annotations.length > 0) {
-    prompt += `The class is annotated with ${getAnnotationsWithParameters(classDetail.annotations)}`;
-  }
-
-  if (classDetail.comment !== undefined) {
-    const comment = classDetail.comment
-      .replace(/\/\*\*|\*\//g, '') // Remove opening and closing comment markers
-      .split('\n') // Split into lines
-      .map(line => line.trim().replace(/^\* ?/, '')) // Remove leading '*'
-      .filter(line => line.length > 0) // Remove empty lines
-      .join(' '); // Join into a single line
-    prompt += `The documentation of the class is ${comment}.\n`;
-  }
-
-  return prompt;
-};
+export const buildClassPrompt = (classDetail: ApexOASClassDetail): string =>
+  [
+    `The class name of the given method is ${classDetail.name}.`,
+    ...(classDetail.annotations.length > 0
+      ? [`The class is annotated with ${getAnnotationsWithParameters(classDetail.annotations)}`]
+      : []),
+    ...(classDetail.comment !== undefined
+      ? [
+          `The documentation of the class is ${classDetail.comment
+            .replace(/\/\*\*|\*\//g, '') // remove opening and closing comment markers
+            .split('\n')
+            .map(line => line.trim().replace(/^\* ?/, '')) // remove leading '*'
+            .filter(line => line.length > 0)
+            .join(' ')}.`
+        ]
+      : []),
+    '' // for an extra newline at the end
+  ].join('\n');
 
 export const getPromptForMethodContext = (methodContext: ApexOASMethodDetail | undefined): string => {
   if (!methodContext) return '';
@@ -98,10 +92,9 @@ export const generatePromptForMethod = async (
 ): Promise<string> => {
   const templatePath = await ejsTemplateHelpers.getTemplatePath(EjsTemplatesEnum.METHOD_BY_METHOD);
 
-  let additionalUserPrompts = '';
   const methodImplementation = getMethodImplementation(methodName, docText, methodsDocSymbolMap);
   const methodContext = methodsContextMap.get(methodName);
-  additionalUserPrompts += getPromptForMethodContext(methodContext);
+  const additionalUserPrompts = getPromptForMethodContext(methodContext);
   try {
     const templateContent = await readFile(templatePath.fsPath);
     const renderedTemplate = ejs.render(templateContent, {

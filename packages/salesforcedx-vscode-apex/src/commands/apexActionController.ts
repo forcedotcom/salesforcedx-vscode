@@ -51,12 +51,13 @@ export class ApexActionController {
     let generationHrStart: [number, number] = [-1, -1];
     let generationHrDuration: [number, number] = [-1, -1];
     let overwrite = true;
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     this.gil.clear();
     const hrStart = process.hrtime();
     let props: OASGenerationCommandProperties = {
       isClass: `${isClass}`,
-      overwrite: 'false'
+      overwrite: 'false',
+      strategy: 'unknown'
     };
 
     let measures: OASGenerationCommandMeasure = {
@@ -146,13 +147,14 @@ export class ApexActionController {
           // Step 10: Gather metrics
           props = {
             isClass: `${isClass}`,
-            overwrite: `${overwrite}`
+            overwrite: `${overwrite}`,
+            strategy: generationOrchestrator.strategy?.strategyName ?? 'unknown'
           };
 
           const [errors, warnings, infos, hints, total] = summarizeDiagnostics(processedOasResult.errors);
 
           measures = {
-            generationDuration: (await getTelemetryService()).hrTimeToMilliseconds(generationHrDuration),
+            generationDuration: getTelemetryService().hrTimeToMilliseconds(generationHrDuration),
             biddedCallCount: generationOrchestrator.strategy?.biddedCallCount,
             llmCallCount: generationOrchestrator.strategy?.resolutionAttempts,
             generationSize: generationOrchestrator.strategy?.maxBudget,
@@ -193,7 +195,7 @@ export class ApexActionController {
    * @param telemetryEvent - The telemetry event name.
    */
   private handleError = async (error: any, telemetryEvent: string): Promise<void> => {
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     const errorMessage = error instanceof Error ? error.message : String(error);
     notificationService.showErrorMessage(`${nls.localize('create_openapi_doc_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);

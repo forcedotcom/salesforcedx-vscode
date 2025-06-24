@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExecuteAnonymousResponse, ExecuteService } from '@salesforce/apex-node-bundle';
-import { Connection } from '@salesforce/core-bundle';
+import type { Connection } from '@salesforce/core';
 import {
   CancelResponse,
   ContinueResponse,
@@ -24,7 +24,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL, channelService } from '../channels';
-import { workspaceContext } from '../context';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { getZeroBasedRange } from './range';
 
@@ -76,8 +76,10 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
   }
 
   public async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     if (this.isDebugging) {
+      // @ts-expect-error - mismatch between core and core-bundle because of Logger
       if (!(await this.setUpTraceFlags(connection))) {
         return false;
       }
@@ -101,6 +103,7 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
   }
 
   private async setUpTraceFlags(connection: Connection): Promise<boolean> {
+    // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const traceFlags = new TraceFlags(connection);
     if (!(await traceFlags.ensureTraceFlags())) {
       return false;
@@ -109,7 +112,11 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
     return true;
   }
 
-  private processResult(result: ExecuteAnonymousResponse, apexFilePath: string | undefined, selection: any) {
+  private processResult(
+    result: ExecuteAnonymousResponse,
+    apexFilePath: string | undefined,
+    selection: vscode.Range | undefined
+  ) {
     this.outputResult(result);
 
     const editor = vscode.window.activeTextEditor;

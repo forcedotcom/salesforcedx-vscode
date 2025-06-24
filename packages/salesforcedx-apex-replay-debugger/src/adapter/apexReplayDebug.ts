@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'os';
 import {
   DebugSession,
   Event,
@@ -18,154 +17,23 @@ import {
   Source,
   StoppedEvent,
   TerminatedEvent,
-  Thread,
-  Variable
+  Thread
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import { breakpointUtil, LineBreakpointInfo } from '../breakpoints';
+import { EOL } from 'node:os';
+import { breakpointUtil } from '../breakpoints';
 import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
+import { TraceCategory, Step, LaunchRequestArguments } from './types';
+import { ScopeContainer } from './variableContainer';
 
 const TRACE_ALL = 'all';
 const TRACE_CATEGORY_PROTOCOL = 'protocol';
 const TRACE_CATEGORY_LOGFILE = 'logfile';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
-
-type TraceCategory = 'all' | 'protocol' | 'logfile' | 'launch' | 'breakpoints';
-
-enum Step {
-  Over,
-  In,
-  Out,
-  Run
-}
-
-export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
-  logFile: string;
-  stopOnEntry?: boolean | true;
-  trace?: boolean | string;
-  lineBreakpointInfo?: LineBreakpointInfo[];
-  projectPath: string | undefined;
-};
-
-export class ApexVariable extends Variable {
-  public readonly type: string;
-  public readonly apexRef: string | undefined;
-  public readonly evaluateName: string;
-
-  public constructor(name: string, value: string, type: string, ref = 0, apexRef?: string) {
-    super(name, value, ref);
-    this.type = type;
-    this.apexRef = apexRef;
-    this.evaluateName = value;
-  }
-}
-
-export class ApexDebugStackFrameInfo {
-  public readonly frameNumber: number;
-  public readonly signature: string;
-  public statics: Map<string, VariableContainer>;
-  public locals: Map<string, VariableContainer>;
-  public globals: Map<string, VariableContainer>;
-
-  public constructor(frameNumber: number, signature: string) {
-    this.frameNumber = frameNumber;
-    this.signature = signature;
-    this.statics = new Map<string, VariableContainer>();
-    this.locals = new Map<string, VariableContainer>();
-    this.globals = new Map<string, VariableContainer>();
-  }
-
-  public copy(): ApexDebugStackFrameInfo {
-    const me = new ApexDebugStackFrameInfo(this.frameNumber, this.signature);
-    this.statics.forEach((value, key) => {
-      me.statics.set(key, value.copy());
-    });
-    this.locals.forEach((value, key) => {
-      me.locals.set(key, value.copy());
-    });
-    return me;
-  }
-}
-
-enum SCOPE_TYPES {
-  LOCAL = 'local',
-  STATIC = 'static',
-  GLOBAL = 'global'
-}
-
-export abstract class VariableContainer {
-  public variables: Map<string, VariableContainer>;
-
-  public constructor(variables: Map<string, VariableContainer> = new Map<string, VariableContainer>()) {
-    this.variables = variables;
-  }
-
-  public getAllVariables(): ApexVariable[] {
-    const result: ApexVariable[] = [];
-    this.variables.forEach(container => {
-      const avc = container as ApexVariableContainer;
-      result.push(new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef));
-    });
-    return result;
-  }
-
-  public copy(): VariableContainer {
-    const me = Object.assign(Object.create(Object.getPrototypeOf(this)));
-    me.variables = new Map<string, VariableContainer>();
-    this.variables.forEach((value, key) => {
-      me.variables.set(key, value.copy());
-    });
-    return me;
-  }
-}
-
-export class ApexVariableContainer extends VariableContainer {
-  public name: string;
-  public value: string;
-  public type: string;
-  public ref: string | undefined;
-  public variablesRef: number;
-  public constructor(name: string, value: string, type: string, ref?: string, variablesRef: number = 0) {
-    super();
-    this.name = name;
-    this.value = value;
-    this.type = type;
-    this.ref = ref;
-    this.variablesRef = variablesRef;
-  }
-
-  public copy(): ApexVariableContainer {
-    const me = super.copy() as ApexVariableContainer;
-    me.name = this.name;
-    me.value = this.value;
-    me.type = this.type;
-    me.ref = this.ref;
-    me.variablesRef = this.variablesRef;
-    return me;
-  }
-}
-
-class ScopeContainer extends VariableContainer {
-  public readonly type: SCOPE_TYPES;
-
-  public constructor(type: SCOPE_TYPES, variables: Map<string, VariableContainer>) {
-    super(variables);
-    this.type = type;
-  }
-
-  public getAllVariables(): ApexVariable[] {
-    const apexVariables: ApexVariable[] = [];
-    this.variables.forEach(entry => {
-      const avc = entry as ApexVariableContainer;
-      apexVariables.push(new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef));
-    });
-    return apexVariables;
-  }
-}
 
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
@@ -312,6 +180,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
     } else {
       // Set breakpoints first, then try to continue to the next breakpoint
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       this.continueRequest({} as DebugProtocol.ContinueResponse, {
         threadId: ApexReplayDebug.THREAD_ID
       });
@@ -383,28 +252,23 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.sendResponse(response);
       return;
     }
-    const scopes = new Array<Scope>();
-    scopes.push(
+    const scopes = [
       new Scope(
         'Local',
-        this.logContext.getVariableHandler().create(new ScopeContainer(SCOPE_TYPES.LOCAL, frameInfo.locals)),
+        this.logContext.getVariableHandler().create(new ScopeContainer('local', frameInfo.locals)),
         false
-      )
-    );
-    scopes.push(
+      ),
       new Scope(
         'Static',
-        this.logContext.getVariableHandler().create(new ScopeContainer(SCOPE_TYPES.STATIC, frameInfo.statics)),
+        this.logContext.getVariableHandler().create(new ScopeContainer('static', frameInfo.statics)),
         false
-      )
-    );
-    scopes.push(
+      ),
       new Scope(
         'Global',
-        this.logContext.getVariableHandler().create(new ScopeContainer(SCOPE_TYPES.GLOBAL, frameInfo.globals)),
+        this.logContext.getVariableHandler().create(new ScopeContainer('global', frameInfo.globals)),
         false
       )
-    );
+    ];
     response.body = { scopes };
     this.sendResponse(response);
     this.sendEvent(
@@ -450,19 +314,19 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   public continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
-    this.executeStep(response, Step.Run);
+    this.executeStep(response, 'Run');
   }
 
   public nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
-    this.executeStep(response, Step.Over);
+    this.executeStep(response, 'Over');
   }
 
   public stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
-    this.executeStep(response, Step.In);
+    this.executeStep(response, 'In');
   }
 
   public stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
-    this.executeStep(response, Step.Out);
+    this.executeStep(response, 'Out');
   }
 
   protected executeStep(response: DebugProtocol.Response, stepType: Step): void {
@@ -474,9 +338,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
         this.logContext.updateFrames();
         const curNumOfFrames = this.logContext.getNumOfFrames();
         if (
-          (stepType === Step.Over && curNumOfFrames !== 0 && curNumOfFrames <= prevNumOfFrames) ||
-          (stepType === Step.In && curNumOfFrames >= prevNumOfFrames) ||
-          (stepType === Step.Out && curNumOfFrames !== 0 && curNumOfFrames < prevNumOfFrames)
+          (stepType === 'Over' && curNumOfFrames !== 0 && curNumOfFrames <= prevNumOfFrames) ||
+          (stepType === 'In' && curNumOfFrames >= prevNumOfFrames) ||
+          (stepType === 'Out' && curNumOfFrames !== 0 && curNumOfFrames < prevNumOfFrames)
         ) {
           return this.sendEvent(new StoppedEvent('step', ApexReplayDebug.THREAD_ID));
         }
