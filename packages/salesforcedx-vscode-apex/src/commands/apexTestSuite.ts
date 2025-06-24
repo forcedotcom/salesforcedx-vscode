@@ -13,36 +13,23 @@ import {
   ParametersGatherer,
   SFDX_FOLDER,
   SfCommandlet,
-  SfWorkspaceChecker,
-  readFile
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';
+import { APEX_CLASS_EXT } from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
+import { getTestInfo } from './readTestFile';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
-  const apexClassItems = await Promise.all(
-    apexClasses.map(async apexClass => {
-      const fileContent = await readFile(apexClass.fsPath);
-      if (IS_TEST_REG_EXP.test(fileContent)) {
-        return {
-          label: basename(apexClass.toString(), APEX_CLASS_EXT),
-          description: apexClass.fsPath,
-          type: TestType.Class
-        };
-      }
-      return undefined;
-    })
-  );
-
-  return apexClassItems.filter(item => item !== undefined).sort((a, b) => a.label.localeCompare(b.label));
+  return (await Promise.all(apexClasses.map(getTestInfo)))
+    .filter(item => item !== undefined)
+    .sort((a, b) => a.label.localeCompare(b.label));
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
@@ -50,12 +37,11 @@ const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const testService = new TestService(connection);
   const testSuites = await testService.retrieveAllSuites();
 
-  const quickPickItems = testSuites.map(testSuite => ({
+  return testSuites.map(testSuite => ({
     label: testSuite.TestSuiteName,
     description: testSuite.id,
     type: TestType.Suite
   }));
-  return quickPickItems;
 };
 
 class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
