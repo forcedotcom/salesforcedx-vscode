@@ -7,15 +7,15 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { JSONPath } from 'jsonpath-plus';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import {
   createProblemTabEntriesForOasDocument,
@@ -41,6 +41,7 @@ export class ExternalServiceRegistrationManager {
   private overwrite = false;
   private originalPath: string = '';
   private newPath: string = '';
+
   providerType: string | undefined;
 
   private initialize(
@@ -130,15 +131,11 @@ export class ExternalServiceRegistrationManager {
   public async writeAndOpenEsrFile(updatedContent: string) {
     try {
       fs.writeFileSync(this.newPath, updatedContent);
-      await vscode.workspace.openTextDocument(this.newPath).then((newDocument: vscode.TextDocument) => {
-        void vscode.window.showTextDocument(newDocument);
-      });
+      const newDocument = await vscode.workspace.openTextDocument(this.newPath);
+      await vscode.window.showTextDocument(newDocument);
       if (this.isESRDecomposed) {
-        await vscode.workspace
-          .openTextDocument(replaceXmlToYaml(this.newPath))
-          .then((newDocument: vscode.TextDocument) => {
-            void vscode.window.showTextDocument(newDocument);
-          });
+        const newDecomposedDocument = await vscode.workspace.openTextDocument(replaceXmlToYaml(this.newPath));
+        await vscode.window.showTextDocument(newDecomposedDocument);
       }
     } catch (error) {
       throw new Error(nls.localize('artifact_failed', error.message));
@@ -166,7 +163,7 @@ export class ExternalServiceRegistrationManager {
     const safeOasSpec = stringify(cleanedOasSpec, null, {
       singleQuote: false, // Disable single quotes entirely
       doubleQuotedAsJSON: false,
-      lineWidth: 80, // Wrap at 80 characters
+      lineWidth: 80 // Wrap at 80 characters
     });
 
     const parser = new XMLParser({ ignoreAttributes: false });
@@ -282,11 +279,11 @@ export class ExternalServiceRegistrationManager {
    */
   public async displayFileDifferences(): Promise<void> {
     if (!this.overwrite) {
-      void openDiffFile(this.originalPath, this.newPath, 'Manual Diff of ESR XML Files');
+      await openDiffFile(this.originalPath, this.newPath, 'Manual Diff of ESR XML Files');
 
       // If sfdx-project.json contains decomposeExternalServiceRegistrationBeta, also open a diff for the YAML OAS docs
       if (this.isESRDecomposed) {
-        void openDiffFile(
+        await openDiffFile(
           replaceXmlToYaml(this.originalPath),
           replaceXmlToYaml(this.newPath),
           'Manual Diff of ESR YAML Files'
@@ -346,30 +343,28 @@ export class ExternalServiceRegistrationManager {
     )) ?? 'cancel';
 
   getFolderForArtifact = async (): Promise<string | undefined> => {
-    const registryAccess = new RegistryAccess();
-    let esrDefaultDirectoryName;
-    let folderUri;
+    const vscodeCoreExtension = await getVscodeCoreExtension();
     try {
-      esrDefaultDirectoryName = registryAccess.getTypeByName('ExternalServiceRegistration').directoryName;
+      const registryAccess = new vscodeCoreExtension.exports.services.RegistryAccess();
+      const esrDefaultDirectoryName = registryAccess.getTypeByName('ExternalServiceRegistration').directoryName;
+      if (esrDefaultDirectoryName) {
+        const defaultESRFolder = path.join(
+          workspaceUtils.getRootWorkspacePath(),
+          'force-app',
+          'main',
+          'default',
+          esrDefaultDirectoryName
+        );
+        const folderUri = await vscode.window.showInputBox({
+          prompt: nls.localize('select_folder_for_oas'),
+          value: defaultESRFolder
+        });
+        return folderUri ? path.resolve(folderUri) : undefined;
+      }
+      return undefined;
     } catch {
       throw new Error(nls.localize('registry_access_failed'));
     }
-
-    if (esrDefaultDirectoryName) {
-      const defaultESRFolder = path.join(
-        workspaceUtils.getRootWorkspacePath(),
-        'force-app',
-        'main',
-        'default',
-        esrDefaultDirectoryName
-      );
-      folderUri = await vscode.window.showInputBox({
-        prompt: nls.localize('select_folder_for_oas'),
-        value: defaultESRFolder
-      });
-    }
-
-    return folderUri ? path.resolve(folderUri) : undefined;
   };
 
   /**

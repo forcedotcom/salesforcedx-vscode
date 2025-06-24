@@ -5,7 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ServiceProvider, ServiceType, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 
-export const getTelemetryService = async (): Promise<TelemetryServiceInterface> =>
-  ServiceProvider.getService(ServiceType.Telemetry, 'salesforcedx-vscode-apex');
+let telemetryService: TelemetryServiceInterface | undefined;
+
+export const setTelemetryService = (service: TelemetryServiceInterface) => {
+  telemetryService = service;
+};
+
+export const getTelemetryService = (): TelemetryServiceInterface => {
+  if (!telemetryService) {
+    throw new Error('Telemetry service not initialized');
+  }
+  return telemetryService;
+};

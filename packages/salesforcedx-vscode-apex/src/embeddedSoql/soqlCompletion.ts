@@ -12,7 +12,17 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { commands, CompletionItem, CompletionList, EndOfLine, Position, TextDocument, Uri, workspace } from 'vscode';
+import {
+  commands,
+  CompletionContext,
+  CompletionItem,
+  CompletionList,
+  EndOfLine,
+  Position,
+  TextDocument,
+  Uri,
+  workspace
+} from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
 import { Middleware } from 'vscode-languageclient/node';
@@ -27,6 +37,29 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
     return virtualDocumentContents.get(originalUri);
   }
 });
+
+export const soqlMiddleware: Middleware = {
+  // @ts-ignore
+  provideCompletionItem: async (document, position, context, token, next) => {
+    const apexCompletionItems = await next(document, position, context, token);
+    if (!apexCompletionItems) {
+      return;
+    }
+
+    const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
+      ? (apexCompletionItems as ProtocolCompletionItem[])
+      : (apexCompletionItems.items as ProtocolCompletionItem[]);
+
+    const soqlBlock = insideSOQLBlock(items);
+    if (soqlBlock) {
+      if (!insideApexBindingExpression(document, soqlBlock.queryText, position)) {
+        return await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock);
+      } else {
+        return items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
+      }
+    } else return apexCompletionItems;
+  }
+};
 
 const insideSOQLBlock = (apexItems: ProtocolCompletionItem[]): { queryText: string; location: any } | undefined => {
   const soqlItem = apexItems.find(i => i.label === SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
@@ -54,64 +87,26 @@ const getSOQLVirtualContent = (
     .map(line => ' '.repeat(line.length))
     .join(eol);
 
-  const content =
-    blankedContent.slice(0, soqlBlock.location.startIndex) +
-    ' ' +
-    soqlBlock.queryText +
-    ' ' +
-    blankedContent.slice(soqlBlock.location.startIndex + soqlBlock.queryText.length + 2);
-
-  return content;
-};
-
-export const soqlMiddleware: Middleware = {
-  // @ts-ignore
-  provideCompletionItem: async (document, position, context, token, next) => {
-    const apexCompletionItems = await next(document, position, context, token);
-    if (!apexCompletionItems) {
-      return;
-    }
-
-    const items: ProtocolCompletionItem[] = Array.isArray(apexCompletionItems)
-      ? (apexCompletionItems as ProtocolCompletionItem[])
-      : (apexCompletionItems.items as ProtocolCompletionItem[]);
-
-    const soqlBlock = insideSOQLBlock(items);
-    if (soqlBlock) {
-      if (!insideApexBindingExpression(document, soqlBlock.queryText, position)) {
-        return await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock);
-      } else {
-        return items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
-      }
-    } else return apexCompletionItems;
-  }
+  return `${blankedContent.slice(0, soqlBlock.location.startIndex)} ${soqlBlock.queryText} ${blankedContent.slice(soqlBlock.location.startIndex + soqlBlock.queryText.length + 2)}`;
 };
 
 const doSOQLCompletion = async (
   document: TextDocument,
   position: Position,
-  context: any,
-  soqlBlock: any
+  context: CompletionContext,
+  soqlBlock: { queryText: string; location: any }
 ): Promise<CompletionItem[] | CompletionList<CompletionItem>> => {
   const originalUri = document.uri.path;
   virtualDocumentContents.set(originalUri, getSOQLVirtualContent(document, position, soqlBlock));
 
-  const vdocUriString = `embedded-soql://soql/${originalUri}.soql`;
-  const vdocUri = Uri.parse(vdocUriString);
+  const vdocUri = Uri.parse(`embedded-soql://soql/${originalUri}.soql`);
   const soqlCompletions = await commands.executeCommand<CompletionList>(
     'vscode.executeCompletionItemProvider',
     vdocUri,
     position,
     context.triggerCharacter
   );
-  return soqlCompletions || [];
+  return soqlCompletions ?? [];
 };
 
-const eolForDocument = (doc: TextDocument) => {
-  switch (doc.eol) {
-    case EndOfLine.LF:
-      return '\n';
-    case EndOfLine.CRLF:
-      return '\r\n';
-  }
-};
+const eolForDocument = (doc: TextDocument) => (doc.eol === EndOfLine.LF ? '\n' : '\r\n');

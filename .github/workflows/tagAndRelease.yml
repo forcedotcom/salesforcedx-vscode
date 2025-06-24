@@ -7,10 +7,10 @@ on:
         type: string
         required: true
 
-jobs: 
-  updating-sha-for-release: 
+jobs:
+  updating-sha-for-release:
     runs-on: ubuntu-latest
-    env: 
+    env:
       RELEASE_VERSION: ${{ inputs.version }}
     steps:
       - name: Checkout
@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
@@ -36,17 +36,17 @@ jobs:
       - run: scripts/concatenate-sha256.js
       - run: rm ./SHA256
       - run: |
-              git add SHA256.md
-              git commit -m "chore: updated SHA256 v${{ env.RELEASE_VERSION }} [skip ci]"
+          git add SHA256.md
+          git commit -m "chore: updated SHA256 v${{ env.RELEASE_VERSION }} [skip ci]"
       - run: echo "SHA256.md successfully generated and committed."
       - run: git push origin main
 
-  gitTag: 
+  gitTag:
     needs: ['updating-sha-for-release']
     runs-on: ubuntu-latest
-    env: 
+    env:
       RELEASE_VERSION: ${{ inputs.version }}
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -56,15 +56,15 @@ jobs:
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
       - run: |
-            git tag v${{ env.RELEASE_VERSION }}
-            git push origin v${{ env.RELEASE_VERSION }}
-            
+          git tag v${{ env.RELEASE_VERSION }}
+          git push origin v${{ env.RELEASE_VERSION }}
+
   githubRelease:
     needs: ['gitTag']
     runs-on: ubuntu-latest
-    env: 
+    env:
       RELEASE_VERSION: ${{ inputs.version }}
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -86,9 +86,9 @@ jobs:
   mergeDevelop:
     needs: [githubRelease]
     runs-on: ubuntu-latest
-    outputs: 
+    outputs:
       status: ${{ steps.complete.outputs.status }}
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -105,8 +105,7 @@ jobs:
           git push origin develop
       - id: complete
         run: |
-         echo "status=complete" >> $GITHUB_OUTPUT
+          echo "status=complete" >> $GITHUB_OUTPUT
       - id: finish
         run: |
-         echo "VSCode Tag and Release Success"
-         
+          echo "VSCode Tag and Release Success"

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import { BreakpointUtil } from '../../../src/breakpoints';
 
 describe('Breakpoint utilities', () => {
@@ -14,7 +13,7 @@ describe('Breakpoint utilities', () => {
   it('Should not have line number mapping', () => {
     util = new BreakpointUtil();
 
-    expect(util.hasLineNumberMapping()).to.be.false;
+    expect(util.getLineNumberMapping().size).toBe(0);
   });
 
   it('Should return line number mapping', () => {
@@ -28,9 +27,8 @@ describe('Breakpoint utilities', () => {
 
     util.setValidLines(lineNumberMapping, typerefMapping);
 
-    expect(util.hasLineNumberMapping()).to.be.true;
-    expect(util.getLineNumberMapping()).to.deep.equal(lineNumberMapping);
-    expect(util.getTyperefMapping()).to.deep.equal(typerefMapping);
+    expect(util.getLineNumberMapping()).toStrictEqual(lineNumberMapping);
+    expect(util.getTyperefMapping()).toStrictEqual(typerefMapping);
   });
 
   it('Should verify line breakpoint', () => {
@@ -40,9 +38,9 @@ describe('Breakpoint utilities', () => {
 
     util.setValidLines(expectedMapping, new Map());
 
-    expect(util.canSetLineBreakpoint('file:///foo.cls', 1)).to.be.true;
-    expect(util.canSetLineBreakpoint('file:///foo.cls', 2)).to.be.false;
-    expect(util.canSetLineBreakpoint('file:///bar.cls', 1)).to.be.false;
+    expect(util.canSetLineBreakpoint('file:///foo.cls', 1)).toBe(true);
+    expect(util.canSetLineBreakpoint('file:///foo.cls', 2)).toBe(false);
+    expect(util.canSetLineBreakpoint('file:///bar.cls', 1)).toBe(false);
   });
 
   it('Should return top level typeRef for URI', () => {
@@ -75,12 +73,10 @@ describe('Breakpoint utilities', () => {
     util = new BreakpointUtil();
     util.setValidLines(lineNumberMapping, typerefMapping);
 
-    expect(util.getTopLevelTyperefForUri('file:///ClassWithNoNamespace.cls')).to.be.equal('YourClassName');
-    expect(util.getTopLevelTyperefForUri('file:///ClassWithNamespace.cls')).to.be.equal('YourNamespace/YourClassName');
-    expect(util.getTopLevelTyperefForUri('file:///triggerNoNamespace.trigger')).to.be.equal(
-      '__sfdc_trigger/YourTriggerName'
-    );
-    expect(util.getTopLevelTyperefForUri('file:///triggerWithNamespace.trigger')).to.be.equal(
+    expect(util.getTopLevelTyperefForUri('file:///ClassWithNoNamespace.cls')).toBe('YourClassName');
+    expect(util.getTopLevelTyperefForUri('file:///ClassWithNamespace.cls')).toBe('YourNamespace/YourClassName');
+    expect(util.getTopLevelTyperefForUri('file:///triggerNoNamespace.trigger')).toBe('__sfdc_trigger/YourTriggerName');
+    expect(util.getTopLevelTyperefForUri('file:///triggerWithNamespace.trigger')).toBe(
       '__sfdc_trigger/Namespace/YourTriggerName'
     );
   });

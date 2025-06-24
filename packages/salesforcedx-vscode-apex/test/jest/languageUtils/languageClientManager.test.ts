@@ -13,7 +13,7 @@ import { UBER_JAR_NAME } from '../../../src/constants';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
-import { getTelemetryService } from '../../../src/telemetry/telemetry';
+import { setTelemetryService } from '../../../src/telemetry/telemetry';
 import { MockTelemetryService } from '../telemetry/mockTelemetryService';
 
 // Mock ApexLSPStatusBarItem class
@@ -25,10 +25,6 @@ jest.mock('../../../src/apexLspStatusBarItem', () => ({
     error: jest.fn(),
     restarting: jest.fn()
   }))
-}));
-
-jest.mock('../../../src/telemetry/telemetry', () => ({
-  getTelemetryService: jest.fn()
 }));
 
 // Mock setTimeout and clearTimeout
@@ -129,7 +125,7 @@ describe('Language Client Manager', () => {
 
   describe('Orphaned Process Management', () => {
     beforeEach(() => {
-      (getTelemetryService as jest.Mock).mockResolvedValue(new MockTelemetryService());
+      setTelemetryService(new MockTelemetryService());
     });
 
     it('should return empty array if no processes found', async () => {
@@ -197,7 +193,7 @@ describe('Language Client Manager', () => {
 
       // Setup telemetry service mock
       mockTelemetryService = new MockTelemetryService();
-      (getTelemetryService as jest.Mock).mockResolvedValue(mockTelemetryService);
+      setTelemetryService(mockTelemetryService);
       mockTelemetryService.sendEventData = jest.fn();
 
       // Mock VSCode workspace configuration

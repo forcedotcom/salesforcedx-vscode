@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { MessageKey } from "./i18n";
+import { MessageKey } from './i18n';
 
 /**
  * Conventions:
@@ -18,13 +18,10 @@ import { MessageKey } from "./i18n";
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-  session_language_server_error_text:
-    'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
-  session_started_text:
-    'Apex Replay Debugger セッションをログファイル %s で開始しました。',
+  session_language_server_error_text: '言語サーバーの起動中にエラーが発生しました。',
+  session_started_text: 'Apex Replay Debugger セッションをログファイル %s で開始しました。',
   session_terminated_text: 'Apex Replay Debugger セッションを終了しました。',
-  no_log_file_text:
-    'ログファイルが見つからないか、ファイルにログの行が含まれていません。',
+  no_log_file_text: 'ログファイルが見つからないか、ファイルにログの行が含まれていません。',
   incorrect_log_levels_text:
     'ログは、ログカテゴリを Apex が FINEST レベルに、Visualforce が FINER レベルで生成する必要があります。',
   unable_to_retrieve_org_info: 'OrgInfo の取得ができませんでした',
@@ -32,8 +29,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'ヒープダンプ情報を取得する際に問題が発生しました。メッセージ=%s, エラーコード=%s, ヒープダンプ情報=%s',
   heap_dump_error_wrap_up_text:
     'ヒープダンプ情報を取得する際に問題が発生しました。詳細については、上記のメッセージを参照してください。指定された行について、詳細なヒープダンプ変数の情報が使用できません。',
-  fetching_heap_dump:
-    'サーバからヒープダンプ情報を取得しています。ヒープダンプ情報=%s',
+  fetching_heap_dump: 'サーバからヒープダンプ情報を取得しています。ヒープダンプ情報=%s',
   malformed_log_line:
     "不正な HEAP_DUMP のログの行が見つかりました。この行をスキップします。ログの行番号=%d、ログの行='%s'",
   reconcile_heapdump_error:

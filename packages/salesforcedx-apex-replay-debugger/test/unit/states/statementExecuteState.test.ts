@@ -15,8 +15,8 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
-import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { StatementExecuteState } from '../../../src/states';
@@ -38,16 +38,16 @@ describe('Statement execute event', () => {
   it('Should not update frame without any frames', () => {
     const state = new StatementExecuteState(['1']);
 
-    expect(state.handle(context)).to.be.true;
-    expect(context.getFrames()).to.be.empty;
+    expect(state.handle(context)).toBe(true);
+    expect(context.getFrames()).toHaveLength(0);
   });
 
   it('Should update top frame', () => {
     context.getFrames().push({ name: 'foo' } as StackFrame);
     const state = new StatementExecuteState(['2']);
 
-    expect(state.handle(context)).to.be.true;
-    expect(context.getFrames()[0].line).to.equal(2);
+    expect(state.handle(context)).toBe(true);
+    expect(context.getFrames()[0].line).toBe(2);
   });
 
   it('Should update execute anonymous specific frame', () => {
@@ -55,7 +55,7 @@ describe('Statement execute event', () => {
     context.getExecAnonScriptMapping().set(2, 5);
     const state = new StatementExecuteState(['2']);
 
-    expect(state.handle(context)).to.be.true;
-    expect(context.getFrames()[0].line).to.equal(5);
+    expect(state.handle(context)).toBe(true);
+    expect(context.getFrames()[0].line).toBe(5);
   });
 });

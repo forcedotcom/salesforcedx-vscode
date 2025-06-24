@@ -8,6 +8,7 @@
 import type { DescribeSObjectResult } from './types';
 import { ChannelService, OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as debounce from 'debounce';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { nls } from './messages';
 
@@ -60,4 +61,13 @@ export const onOrgChange = (f: (orgInfo: any) => Promise<void>): void => {
   workspaceContext.onOrgChange(f);
 };
 
-export const isDefaultOrgSet = (): boolean => !!workspaceContext.username;
+export const isDefaultOrgSet = async (): Promise<boolean> =>
+  Boolean((await getActiveCoreExtension()).exports.OrgAuthInfo.getTargetOrgOrAlias(false));
+
+export const getActiveCoreExtension = async () => {
+  const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
+  if (!coreExtension?.isActive) {
+    await coreExtension?.activate();
+  }
+  return coreExtension;
+};

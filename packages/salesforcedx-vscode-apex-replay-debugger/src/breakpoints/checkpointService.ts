@@ -232,6 +232,9 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   // Make VS Code the source of truth for checkpoints
   public async clearExistingCheckpoints(): Promise<boolean> {
     const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
+    if (!salesforceCoreExtension?.isActive) {
+      await salesforceCoreExtension?.activate();
+    }
     if (salesforceCoreExtension && salesforceCoreExtension.exports) {
       const userId = await salesforceCoreExtension.exports.getUserId(this.salesforceProject);
       if (userId) {

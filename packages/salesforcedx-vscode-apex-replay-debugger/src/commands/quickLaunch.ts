@@ -13,7 +13,7 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node-bundle';
-import { Connection } from '@salesforce/core-bundle';
+import type { Connection } from '@salesforce/core';
 import {
   ContinueResponse,
   LibraryCommandletExecutor,
@@ -23,9 +23,10 @@ import {
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
+import * as vscode from 'vscode';
 import { checkpointService, CheckpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
@@ -43,8 +44,12 @@ type LogFileRetrieveResult = {
 
 class QuickLaunch {
   public async debugTest(testClass: string, testName?: string): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await vscode.extensions
+      .getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core')
+      ?.exports.services.WorkspaceContext.getInstance()
+      .getConnection();
 
+    // @ts-expect-error - mismatch between core and core-bundle
     const traceFlags = new TraceFlags(connection);
     if (!(await traceFlags.ensureTraceFlags())) {
       return false;
@@ -57,10 +62,11 @@ class QuickLaunch {
         return false;
       }
     }
-
+    // @ts-expect-error - mismatch between core and core-bundle
     const testResult = await this.runTests(connection, testClass, testName);
 
     if (testResult.success && testResult.logFileId) {
+      // @ts-expect-error - mismatch between core and core-bundle
       const logFileRetrieve = await this.retrieveLogFile(connection, testResult.logFileId);
 
       if (logFileRetrieve.success && logFileRetrieve.filePath) {
@@ -74,6 +80,7 @@ class QuickLaunch {
   }
 
   private async runTests(connection: Connection, testClass: string, testMethod?: string): Promise<TestRunResult> {
+    // @ts-expect-error - mismatch between core and core-bundle
     const testService = new TestService(connection);
     try {
       const payload = await testService.buildSyncPayload(
@@ -113,6 +120,7 @@ class QuickLaunch {
   }
 
   private async retrieveLogFile(connection: Connection, logId: string): Promise<LogFileRetrieveResult> {
+    // @ts-expect-error - mismatch between core and core-bundle
     const logService = new LogService(connection);
     const outputDir = projectPaths.debugLogsFolder();
 

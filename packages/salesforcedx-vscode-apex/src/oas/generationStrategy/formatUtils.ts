@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { JSONPath } from 'jsonpath-plus';
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import { nls } from '../../messages';
 import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
 import { ApexOASMethodDetail, HttpRequestMethod, httpMethodMap, OpenAPIDoc } from '../schemas';

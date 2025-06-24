@@ -54,35 +54,23 @@ export default class GenerationInteractionLogger {
   }
 
   public addPrompt(prompt: string | string[]): void {
-    if (Array.isArray(prompt)) {
-      this.prompts.push(...prompt);
-    } else {
-      this.prompts.push(prompt);
-    }
+    Array.isArray(prompt) ? this.prompts.push(...prompt) : this.prompts.push(prompt);
   }
 
   public addRawResponse(rawResponse: string | string[]): void {
-    if (Array.isArray(rawResponse)) {
-      this.rawResponses.push(...rawResponse);
-    } else {
-      this.rawResponses.push(rawResponse);
-    }
+    Array.isArray(rawResponse) ? this.rawResponses.push(...rawResponse) : this.rawResponses.push(rawResponse);
   }
 
   public addCleanedResponse(cleanedResponse: string | string[]): void {
-    if (Array.isArray(cleanedResponse)) {
-      this.cleanedResponses.push(...cleanedResponse);
-    } else {
-      this.cleanedResponses.push(cleanedResponse);
-    }
+    Array.isArray(cleanedResponse)
+      ? this.cleanedResponses.push(...cleanedResponse)
+      : this.cleanedResponses.push(cleanedResponse);
   }
 
   public addYamlParseResult(yamlParseResult: string | string[]): void {
-    if (Array.isArray(yamlParseResult)) {
-      this.parseResults.push(...yamlParseResult);
-    } else {
-      this.parseResults.push(yamlParseResult);
-    }
+    Array.isArray(yamlParseResult)
+      ? this.parseResults.push(...yamlParseResult)
+      : this.parseResults.push(yamlParseResult);
   }
 
   public addPostGenDoc(postGenYaml: string): void {
@@ -94,11 +82,7 @@ export default class GenerationInteractionLogger {
   }
 
   public addDiagnostics(diagnostics: vscode.Diagnostic | vscode.Diagnostic[]): void {
-    if (Array.isArray(diagnostics)) {
-      this.diagnostics.push(...diagnostics);
-    } else {
-      this.diagnostics.push(diagnostics);
-    }
+    Array.isArray(diagnostics) ? this.diagnostics.push(...diagnostics) : this.diagnostics.push(diagnostics);
   }
 
   public async addSourceUnderStudy(uri: URI | URI[] | undefined): Promise<void> {

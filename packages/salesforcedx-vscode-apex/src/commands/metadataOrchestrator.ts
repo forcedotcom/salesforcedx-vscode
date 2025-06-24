@@ -64,7 +64,7 @@ export class MetadataOrchestrator {
     requests: ApexOASEligiblePayload
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
     gil.addApexClassOASEligibleRequest(requests.payload);
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     const languageClient = languageClientManager.getClientInstance();
     if (languageClient) {
       const classNumbers = requests.payload.length.toString();
@@ -87,7 +87,7 @@ export class MetadataOrchestrator {
   };
 
   public gatherContext = async (sourceUri: URI | URI[]): Promise<ApexClassOASGatherContextResponse | undefined> => {
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     let response: ApexClassOASGatherContextResponse | undefined;
     const languageClient = languageClientManager.getClientInstance();
     if (languageClient) {
@@ -112,7 +112,7 @@ export class MetadataOrchestrator {
     sourceUri: URI | URI[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
-    const telemetryService = await getTelemetryService();
+    const telemetryService = getTelemetryService();
     const requests = [];
     if (Array.isArray(sourceUri)) {
       await gil.addSourceUnderStudy(sourceUri);

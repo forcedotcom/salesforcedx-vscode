@@ -30,13 +30,8 @@ export class StatusBarToggle implements Disposable {
   }
 
   public toggle(active: boolean) {
-    if (active) {
-      this.statusBarItem.text = StatusBarToggle.hideIcon;
-      this.isEnabled = true;
-    } else {
-      this.statusBarItem.text = StatusBarToggle.showIcon;
-      this.isEnabled = false;
-    }
+    this.isEnabled = active;
+    this.statusBarItem.text = active ? StatusBarToggle.hideIcon : StatusBarToggle.showIcon;
   }
 
   public dispose() {

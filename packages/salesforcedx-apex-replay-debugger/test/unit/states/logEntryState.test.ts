@@ -14,21 +14,20 @@ jest.mock('@vscode/debugadapter', () => ({
   }
 }));
 
-import { expect } from 'chai';
-import * as sinon from 'sinon';
-import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { LogEntryState } from '../../../src/states';
 
 describe('LogEntry event', () => {
-  let readLogFileStub: sinon.SinonStub;
+  let readLogFileStub: jest.SpyInstance;
 
   beforeEach(() => {
-    readLogFileStub = sinon.stub(LogContextUtil.prototype, 'readLogFile').returns(['line1', 'line2']);
+    readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
   });
 
   afterEach(() => {
-    readLogFileStub.restore();
+    readLogFileStub.mockRestore();
   });
 
   it('Should handle event', () => {
@@ -44,14 +43,14 @@ describe('LogEntry event', () => {
 
     const isStopped = logEntry.handle(context);
 
-    expect(isStopped).to.be.true;
+    expect(isStopped).toBe(true);
     const stackFrames = context.getFrames();
-    expect(context.getNumOfFrames()).to.equal(1);
+    expect(context.getNumOfFrames()).toBe(1);
     const stackFrame = stackFrames[0];
-    expect(stackFrame.id).to.equal(0);
-    expect(stackFrame.name).to.equal('');
-    expect(stackFrame.line).to.equal(context.getLogLinePosition() + 1);
-    expect(stackFrame.source?.name).to.equal(context.getLogFileName());
-    expect(stackFrame.source?.path).to.equal(context.getLogFilePath());
+    expect(stackFrame.id).toBe(0);
+    expect(stackFrame.name).toBe('');
+    expect(stackFrame.line).toBe(context.getLogLinePosition() + 1);
+    expect(stackFrame.source?.name).toBe(context.getLogFileName());
+    expect(stackFrame.source?.path).toBe(context.getLogFilePath());
   });
 });

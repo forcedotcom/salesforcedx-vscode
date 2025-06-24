@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as util from 'node:util';
-import TelemetryReporter from 'vscode-extension-telemetry';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex-replay-debugger';
 
@@ -107,7 +107,7 @@ export class TelemetryService {
   }
 
   private getEndHRTime(hrstart: [number, number]): number {
-    const hrend = process.hrtime(hrstart);
-    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
+    const [seconds, nanoseconds] = process.hrtime(hrstart);
+    return Number(util.format('%d%d', seconds, nanoseconds / 1000000));
   }
 }

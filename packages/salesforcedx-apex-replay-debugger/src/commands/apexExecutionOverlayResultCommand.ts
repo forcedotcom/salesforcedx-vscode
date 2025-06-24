@@ -150,8 +150,7 @@ export class ApexExecutionOverlayResultCommand extends BaseCommand {
   }
 
   public getCommandUrl(): string {
-    const urlElements = [SOBJECTS_URL, this.commandName, this.heapdumpKey];
-    return urlElements.join('/');
+    return [SOBJECTS_URL, this.commandName, this.heapdumpKey].join('/');
   }
 
   public getRequest(): string | undefined {

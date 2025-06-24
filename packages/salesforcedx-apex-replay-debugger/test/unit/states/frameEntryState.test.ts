@@ -15,16 +15,16 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 import { URI } from 'vscode-uri';
-import { ApexReplayDebug, ApexVariable, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState } from '../../../src/states';
 
 describe('Frame entry event', () => {
-  let getUriFromSignatureStub: sinon.SinonStub;
-  let getStaticMapStub: sinon.SinonStub;
+  let getUriFromSignatureStub: jest.SpyInstance;
+  let getStaticMapStub: jest.SpyInstance;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const uriFromSignature = 'file:///path/foo.cls';
@@ -33,19 +33,20 @@ describe('Frame entry event', () => {
     trace: true,
     projectPath: undefined
   };
-  let map: Map<string, Map<string, ApexVariable>>;
+  let map: Map<string, Map<string, ApexVariableContainer>>;
 
   beforeEach(() => {
-    map = new Map<string, Map<string, ApexVariable>>();
-    map.set('previousClass', new Map<string, ApexVariable>());
-    map.get('previousClass')!.set('var1', new ApexVariable('var1', '0', 'Integer'));
-    getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
-    getStaticMapStub = sinon.stub(LogContext.prototype, 'getStaticVariablesClassMap').returns(map);
+    const variableMap = new Map<string, ApexVariableContainer>();
+    variableMap.set('var1', new ApexVariableContainer('var1', '0', 'Integer'));
+    map = new Map<string, Map<string, ApexVariableContainer>>();
+    map.set('previousClass', variableMap);
+    getUriFromSignatureStub = jest.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
+    getStaticMapStub = jest.spyOn(LogContext.prototype, 'getStaticVariablesClassMap').mockReturnValue(map);
   });
 
   afterEach(() => {
-    getUriFromSignatureStub.restore();
-    getStaticMapStub.restore();
+    getUriFromSignatureStub.mockRestore();
+    getStaticMapStub.mockRestore();
   });
 
   it('Should add a frame', () => {
@@ -53,11 +54,11 @@ describe('Frame entry event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(state.handle(context)).to.be.false;
+    expect(state.handle(context)).toBe(false);
 
     const frames = context.getFrames();
-    expect(context.getNumOfFrames()).to.equal(2);
-    expect(frames[1]).to.deep.equal({
+    expect(context.getNumOfFrames()).toBe(2);
+    expect(frames[1]).toEqual({
       id: 1000,
       line: 0,
       column: 0,
@@ -68,8 +69,8 @@ describe('Frame entry event', () => {
         sourceReference: 0
       }
     } as StackFrame);
-    expect(context.getStaticVariablesClassMap().has('signature')).to.be.true;
-    expect(context.getStaticVariablesClassMap().get('signature')!.size).to.equal(0);
+    expect(context.getStaticVariablesClassMap().has('signature')).toBe(true);
+    expect(context.getStaticVariablesClassMap().get('signature')!.size).toBe(0);
   });
 
   it('Should parse the class name from method signature and add it to static variable map', () => {
@@ -77,11 +78,11 @@ describe('Frame entry event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(state.handle(context)).to.be.false;
+    expect(state.handle(context)).toBe(false);
 
     const frames = context.getFrames();
-    expect(context.getNumOfFrames()).to.equal(2);
-    expect(frames[1]).to.deep.equal({
+    expect(context.getNumOfFrames()).toBe(2);
+    expect(frames[1]).toEqual({
       id: 1000,
       line: 0,
       column: 0,
@@ -92,8 +93,8 @@ describe('Frame entry event', () => {
         sourceReference: 0
       }
     } as StackFrame);
-    expect(context.getStaticVariablesClassMap()).to.include.keys('className');
-    expect(context.getStaticVariablesClassMap().get('className')!.size).to.equal(0);
+    expect(Array.from(context.getStaticVariablesClassMap().keys())).toContain('className');
+    expect(context.getStaticVariablesClassMap().get('className')!.size).toBe(0);
   });
 
   it('Should use existing static variables when the entry is for a class that was seen earlier', () => {
@@ -101,11 +102,11 @@ describe('Frame entry event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(state.handle(context)).to.be.false;
+    expect(state.handle(context)).toBe(false);
 
     const frames = context.getFrames();
-    expect(context.getNumOfFrames()).to.equal(2);
-    expect(frames[1]).to.deep.equal({
+    expect(context.getNumOfFrames()).toBe(2);
+    expect(frames[1]).toEqual({
       id: 1000,
       line: 0,
       column: 0,
@@ -116,7 +117,7 @@ describe('Frame entry event', () => {
         sourceReference: 0
       }
     } as StackFrame);
-    expect(context.getStaticVariablesClassMap()).to.include.keys('previousClass');
-    expect(context.getStaticVariablesClassMap().get('previousClass')).equals(map.get('previousClass'));
+    expect(Array.from(context.getStaticVariablesClassMap().keys())).toContain('previousClass');
+    expect(context.getStaticVariablesClassMap().get('previousClass')).toEqual(map.get('previousClass'));
   });
 });

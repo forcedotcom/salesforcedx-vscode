@@ -220,10 +220,6 @@ Similar to the above command, this finds VSIX packages built locally (using `npm
 
 The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8/using-npm/config) of the npm environment.
 
-### .nvmrc
-
-Our nvmrc specifies the minimum node version required to run the project.
-
 ### Development Mode Local Telemetry Logging
 
 During development and quality assurance testing, it can be helpful to validate telemetry events by logging to a local file when running the extension in Development Mode. Enable local dev mode telemetry logging using an advanced setting in your settings.json file:

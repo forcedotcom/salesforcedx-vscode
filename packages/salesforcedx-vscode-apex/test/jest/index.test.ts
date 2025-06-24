@@ -5,6 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+
+// Mock vscode.extensions.getExtension before any imports that trigger src/index.ts
+const mockWorkspaceContext = { initialize: jest.fn() };
+const mockTelemetryService = {
+  initializeService: jest.fn(),
+  sendExtensionDeactivationEvent: jest.fn()
+};
+const mockCoreExports = {
+  WorkspaceContext: { getInstance: () => mockWorkspaceContext },
+  services: { TelemetryService: { getInstance: () => mockTelemetryService } }
+};
+const mockExtension = { exports: mockCoreExports, isActive: true };
+(jest.spyOn(vscode.extensions, 'getExtension') as any).mockImplementation((id: string) => {
+  if (id === 'salesforce.salesforcedx-vscode-core') return mockExtension;
+  return { isActive: true, exports: {} };
+});
+
+jest.mock('./../../src/apexLspStatusBarItem');
+jest.mock('../../src/telemetry/telemetry', () => ({
+  getTelemetryService: jest.fn(),
+  setTelemetryService: jest.fn()
+}));
+
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
@@ -15,11 +38,6 @@ import { getTelemetryService } from '../../src/telemetry/telemetry';
 import * as testOutlineProvider from '../../src/views/testOutlineProvider';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 import { MockTelemetryService } from './telemetry/mockTelemetryService';
-
-jest.mock('./../../src/apexLspStatusBarItem');
-jest.mock('../../src/telemetry/telemetry', () => ({
-  getTelemetryService: jest.fn()
-}));
 
 describe('index tests', () => {
   describe('indexDoneHandler', () => {
@@ -89,8 +107,8 @@ describe('index tests', () => {
       // Store original extensions
       originalExtensions = vscode.extensions;
 
-      // Mock extension
-      const mockExtension = {
+      // Mock apex extension
+      const mockApexExtension = {
         id: 'salesforce.salesforcedx-vscode-apex',
         extensionUri: URI.file('/mock/extension/path'),
         packageJSON: {
@@ -99,10 +117,14 @@ describe('index tests', () => {
         }
       };
 
-      // Mock extensions API
+      // Mock extensions API for both core and apex extensions
       Object.defineProperty(vscode, 'extensions', {
         get: () => ({
-          getExtension: jest.fn().mockReturnValue(mockExtension)
+          getExtension: (id: string) => {
+            if (id === 'salesforce.salesforcedx-vscode-core') return mockExtension;
+            if (id === 'salesforce.salesforcedx-vscode-apex') return mockApexExtension;
+            return { isActive: true, exports: {} };
+          }
         }),
         configurable: true
       });
@@ -110,7 +132,7 @@ describe('index tests', () => {
       mockContext = {
         subscriptions: [],
         extensionPath: '/mock/extension/path',
-        extension: mockExtension,
+        extension: mockApexExtension,
         extensionUri: URI.file('/mock/extension/path'),
         extensionMode: vscode.ExtensionMode.Test
       } as unknown as vscode.ExtensionContext;
@@ -155,7 +177,9 @@ describe('index tests', () => {
     });
 
     it('should throw error if telemetry service fails to initialize', async () => {
-      (getTelemetryService as jest.Mock).mockResolvedValue(null);
+      mockTelemetryService.initializeService = jest
+        .fn()
+        .mockRejectedValue(new Error('Could not fetch a telemetry service instance'));
       await expect(index.activate(mockContext)).rejects.toThrow('Could not fetch a telemetry service instance');
     });
   });
@@ -167,7 +191,7 @@ describe('index tests', () => {
     beforeEach(() => {
       stopSpy = jest.fn();
       telemetryServiceMock = new MockTelemetryService();
-      (getTelemetryService as jest.Mock).mockResolvedValue(telemetryServiceMock);
+      (getTelemetryService as jest.Mock).mockReturnValue(telemetryServiceMock);
       jest
         .spyOn(languageClientManager, 'getClientInstance')
         .mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
@@ -191,7 +215,9 @@ describe('index tests', () => {
     });
 
     it('should handle telemetry service failure', async () => {
-      (getTelemetryService as jest.Mock).mockResolvedValue(null);
+      mockTelemetryService.initializeService = jest
+        .fn()
+        .mockRejectedValue(new Error('Could not fetch a telemetry service instance'));
       await index.deactivate(); // Should not throw
       expect(stopSpy).toHaveBeenCalled();
     });
