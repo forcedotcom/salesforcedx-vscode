@@ -29,19 +29,20 @@ type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
   const apexClassItems = await Promise.all(
-    apexClasses
-      .filter(async apexClass => {
-        const fileContent = await readFile(apexClass.fsPath);
-        return IS_TEST_REG_EXP.test(fileContent);
-      })
-      .map(apexClass => ({
-        label: basename(apexClass.toString(), APEX_CLASS_EXT),
-        description: apexClass.fsPath,
-        type: TestType.Class
-      }))
+    apexClasses.map(async apexClass => {
+      const fileContent = await readFile(apexClass.fsPath);
+      if (IS_TEST_REG_EXP.test(fileContent)) {
+        return {
+          label: basename(apexClass.toString(), APEX_CLASS_EXT),
+          description: apexClass.fsPath,
+          type: TestType.Class
+        };
+      }
+      return undefined;
+    })
   );
 
-  return apexClassItems.sort((a, b) => a.label.localeCompare(b.label));
+  return apexClassItems.filter(item => item !== undefined).sort((a, b) => a.label.localeCompare(b.label));
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {

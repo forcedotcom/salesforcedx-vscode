@@ -83,18 +83,21 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
     });
 
     fileItems.push(
-      ...(await Promise.all(
-        apexClasses
-          .filter(async apexClass => {
+      ...(
+        await Promise.all(
+          apexClasses.map(async apexClass => {
             const fileContent = await readFile(apexClass.fsPath);
-            return IS_TEST_REG_EXP.test(fileContent);
+            if (IS_TEST_REG_EXP.test(fileContent)) {
+              return {
+                label: basename(apexClass.toString(), APEX_CLASS_EXT),
+                description: apexClass.fsPath,
+                type: TestType.Class
+              };
+            }
+            return undefined;
           })
-          .map(apexClass => ({
-            label: basename(apexClass.toString(), APEX_CLASS_EXT),
-            description: apexClass.fsPath,
-            type: TestType.Class
-          }))
-      ))
+        )
+      ).filter(item => item !== undefined)
     );
 
     const selection = await window.showQuickPick<ApexTestQuickPickItem>(fileItems);

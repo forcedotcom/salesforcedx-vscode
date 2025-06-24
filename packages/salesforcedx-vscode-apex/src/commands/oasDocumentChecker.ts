@@ -128,7 +128,7 @@ class OasDocumentChecker {
       return false;
     }
 
-    return await this.hasValidRegistrationProviderType(xmlFilePath);
+    return this.hasValidRegistrationProviderType(xmlFilePath);
   }
 
   private hasValidRegistrationProviderType = async (xmlFilePath: string): Promise<boolean> => {

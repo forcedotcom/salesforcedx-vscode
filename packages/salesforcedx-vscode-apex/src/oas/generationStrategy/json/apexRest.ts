@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { DocumentSymbol } from 'vscode';
-import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
+import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
-import { cleanupGeneratedDoc, parseOASDocFromJson, hasValidRestAnnotations } from '../../../oasUtils';
+import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
 import { retrieveAAClassRestAnnotations } from '../../../settings';
 import { getTelemetryService } from '../../../telemetry/telemetry';
 import GenerationInteractionLogger from '../../generationInteractionLogger';
@@ -21,12 +21,12 @@ import {
 } from '../../schemas';
 import { buildClassPrompt, generatePromptForMethod } from '../buildPromptUtils';
 import {
-  formatUrlPath,
-  extractParametersInPath,
+  combineYamlByMethod,
   excludeNon2xxResponses,
   excludeUnrelatedMethods,
-  updateOperationIds,
-  combineYamlByMethod
+  extractParametersInPath,
+  formatUrlPath,
+  updateOperationIds
 } from '../formatUtils';
 import { GenerationStrategy } from '../generationStrategy';
 import { openAPISchema_v3_0_guided } from '../openapi3.schema';
@@ -44,7 +44,11 @@ export class ApexRestStrategy extends GenerationStrategy {
   classPrompt: string; // The prompt for the entire class
   oasSchema: string;
 
-  public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
+  private constructor(
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse,
+    sourceText: string
+  ) {
     super(
       metadata,
       context,
@@ -59,12 +63,22 @@ export class ApexRestStrategy extends GenerationStrategy {
     this.methodsDocSymbolMap = new Map();
     this.methodsContextMap = new Map();
     this.serviceRequests = new Map();
+    this.sourceText = sourceText;
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     const restResourceAnnotation = this.context.classDetail.annotations.find(a =>
       retrieveAAClassRestAnnotations().includes(a.name)
     );
     this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
     this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
+  }
+
+  public static async initialize(
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse
+  ): Promise<ApexRestStrategy> {
+    const sourceText = await readFile(metadata.resourceUri.fsPath);
+    const strategy = new ApexRestStrategy(metadata, context, sourceText);
+    return strategy;
   }
 
   async resolveLLMResponses(serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
