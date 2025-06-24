@@ -157,7 +157,7 @@ export const mergeExceptionBreakpointInfos = (
   const processedBreakpointInfos: ExceptionBreakpointItem[] = [];
   if (enabledBreakpointTyperefs.length > 0) {
     for (let i = breakpointInfos.length - 1; i >= 0; i--) {
-      if (enabledBreakpointTyperefs.indexOf(breakpointInfos[i].typeref) >= 0) {
+      if (enabledBreakpointTyperefs.includes(breakpointInfos[i].typeref)) {
         breakpointInfos[i].breakMode = EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS;
         breakpointInfos[i].description = `$(stop) ${nls.localize('always_break_text')}`;
         processedBreakpointInfos.unshift(breakpointInfos[i]);

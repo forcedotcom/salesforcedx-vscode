@@ -71,7 +71,7 @@ export const activateTagClosing = (
           const currentDocument = activeEditor && activeEditor.document;
           if (document === currentDocument && currentDocument.version === version) {
             const selections = activeEditor.selections;
-            if (selections.length && selections.some(s => s.active.isEqual(position))) {
+            if (selections.some(s => s.active.isEqual(position))) {
               activeEditor.insertSnippet(
                 new SnippetString(text),
                 selections.map(s => s.active)

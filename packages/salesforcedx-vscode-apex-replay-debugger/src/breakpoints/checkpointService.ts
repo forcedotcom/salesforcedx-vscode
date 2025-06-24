@@ -220,7 +220,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           const errorMessage = `${result[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
           writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
         }
-      } catch (error) {
+      } catch {
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         const errorMessage = `${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
         writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
@@ -661,7 +661,7 @@ export const processBreakpointChangedForCheckpoints = async (
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
 ): Promise<void> => {
   for (const bp of breakpointsChangedEvent.removed) {
-    if (bp.condition && bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0) {
+    if (bp.condition && bp.condition.toLowerCase().includes(CHECKPOINT)) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
         const breakpointId = bp.id;
         checkpointService.deleteCheckpointNodeIfExists(breakpointId);
@@ -671,7 +671,7 @@ export const processBreakpointChangedForCheckpoints = async (
 
   for (const bp of breakpointsChangedEvent.changed) {
     const breakpointId = bp.id;
-    if (bp.condition && bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0 && bp instanceof vscode.SourceBreakpoint) {
+    if (bp.condition && bp.condition.toLowerCase().includes(CHECKPOINT) && bp instanceof vscode.SourceBreakpoint) {
       const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
       const uri = code2ProtocolConverter(bp.location.uri);
       const filename = uri.substring(uri.lastIndexOf('/') + 1);
@@ -694,7 +694,7 @@ export const processBreakpointChangedForCheckpoints = async (
   }
 
   for (const bp of breakpointsChangedEvent.added) {
-    if (bp.condition && bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0 && bp instanceof vscode.SourceBreakpoint) {
+    if (bp.condition && bp.condition.toLowerCase().includes(CHECKPOINT) && bp instanceof vscode.SourceBreakpoint) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
         const breakpointId = bp.id;
         const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
@@ -802,7 +802,7 @@ export const sfToggleCheckpoint = async () => {
     // There's already a breakpoint at this line
     if (bp) {
       // If the breakpoint is a checkpoint then remove it and return
-      if (bp.condition && bp.condition.toLowerCase().indexOf(CHECKPOINT) >= 0) {
+      if (bp.condition && bp.condition.toLowerCase().includes(CHECKPOINT)) {
         bpRemove.push(bp);
         return await vscode.debug.removeBreakpoints(bpRemove);
       } else {

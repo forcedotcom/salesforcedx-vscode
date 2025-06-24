@@ -42,7 +42,7 @@ export class BreakpointService {
     const linesInTyperefs = this.lineNumberMapping.get(uri);
     if (linesInTyperefs) {
       for (const linesInTyperef of linesInTyperefs) {
-        if (linesInTyperef.lines.indexOf(line) >= 0) {
+        if (linesInTyperef.lines.includes(line)) {
           return linesInTyperef.typeref;
         }
       }
@@ -161,7 +161,7 @@ export class BreakpointService {
     if (knownBreakpoints) {
       for (let knownBpIdx = knownBreakpoints.length - 1; knownBpIdx >= 0; knownBpIdx--) {
         const knownBp = knownBreakpoints[knownBpIdx];
-        if (clientLines.indexOf(knownBp.line) === -1) {
+        if (!clientLines.includes(knownBp.line)) {
           try {
             const breakpointId = await this.deleteBreakpoint(projectPath, knownBp.breakpointId);
             if (breakpointId) {

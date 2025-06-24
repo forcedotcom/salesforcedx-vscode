@@ -23,7 +23,7 @@ export class Message implements LocalizationProvider {
     if (!possibleLabel) {
       console.warn(`Missing label for key: ${label}`);
       possibleLabel = `${MISSING_LABEL_MSG} ${label}`;
-      if (args.length >= 1) {
+      if (args.length > 0) {
         args.forEach(arg => {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           possibleLabel += ` (${arg})`;
@@ -33,7 +33,7 @@ export class Message implements LocalizationProvider {
     }
 
     let labelArgs = args;
-    if (args.length >= 1) {
+    if (args.length > 0) {
       // Count all printf-style format specifiers: %s, %d, %i, %f, %j, %%, etc.
       const formatSpecifiers = possibleLabel.match(/%[sdifj%]/g);
       const expectedNumArgs = formatSpecifiers ? formatSpecifiers.filter(spec => spec !== '%%').length : 0;

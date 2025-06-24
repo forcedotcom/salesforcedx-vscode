@@ -73,7 +73,11 @@ export default [
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
+      'unicorn/explicit-length-check': 'error',
+      'unicorn/no-useless-length-check': 'error',
+      'unicorn/prefer-includes': 'error',
       'unicorn/prefer-node-protocol': 'error',
+      'unicorn/prefer-object-from-entries': 'error',
       'unicorn/filename-case': [
         'error',
         {

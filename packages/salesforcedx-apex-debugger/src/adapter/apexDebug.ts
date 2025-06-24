@@ -712,9 +712,9 @@ export class ApexDebug extends LoggingDebugSession {
       this.traceAll = args.trace;
     } else if (typeof args.trace === 'string') {
       this.trace = args.trace.split(',').map(category => category.trim());
-      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
+      this.traceAll = this.trace.includes(TRACE_ALL);
     }
-    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
+    if (this.trace && this.trace.includes(TRACE_CATEGORY_PROTOCOL)) {
       // only log debug adapter protocol if 'protocol' tracing flag is set, ignore traceAll here
       logger.setup(Logger.LogLevel.Verbose, false);
     } else {
@@ -1227,7 +1227,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   protected printToDebugConsole(msg?: string, sourceFile?: Source, sourceLine?: number): void {
-    if (msg && msg.length !== 0) {
+    if (msg && msg?.length > 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stdout');
       event.body.source = sourceFile;
       event.body.line = sourceLine;
@@ -1237,19 +1237,19 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   protected warnToDebugConsole(msg?: string): void {
-    if (msg && msg.length !== 0) {
+    if (msg && msg.length > 0) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'console'));
     }
   }
 
   protected errorToDebugConsole(msg?: string): void {
-    if (msg && msg.length !== 0) {
+    if (msg && msg.length > 0) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stderr'));
     }
   }
 
   public log(traceCategory: TraceCategory, message: string) {
-    if (this.trace && (this.traceAll || this.trace.indexOf(traceCategory) >= 0)) {
+    if (this.trace && (this.traceAll || this.trace.includes(traceCategory))) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
@@ -1275,7 +1275,7 @@ export class ApexDebug extends LoggingDebugSession {
         response.message = nls.localize('unexpected_error_help_text');
         this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
       }
-    } catch (e) {
+    } catch {
       response.message = response.message || nls.localize('unexpected_error_help_text');
       this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
     }

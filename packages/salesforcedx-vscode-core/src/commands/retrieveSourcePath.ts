@@ -85,7 +85,7 @@ export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[
   //
   // When editing a file and "Retrieve This Source from Org" is executed,
   // sourceUri is passed, but uris is undefined.
-  if (!uris || uris.length < 1) {
+  if (!uris || uris.length === 0) {
     uris = [];
     uris.push(sourceUri);
   }

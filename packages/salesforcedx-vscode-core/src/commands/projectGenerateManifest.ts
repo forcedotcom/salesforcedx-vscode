@@ -52,7 +52,7 @@ class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
 }
 
 export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | undefined): Promise<void> => {
-  if (!uris || uris.length < 1) {
+  if (!uris || uris.length === 0) {
     uris = [];
     uris.push(sourceUri);
   }

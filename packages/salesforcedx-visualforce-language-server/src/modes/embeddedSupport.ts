@@ -152,7 +152,7 @@ const getLanguageRanges = (document: TextDocument, regions: EmbeddedRegion[], ra
 const getLanguagesInDocument = (document: TextDocument, regions: EmbeddedRegion[]): string[] => {
   const result: string[] = [];
   for (const region of regions) {
-    if (region.languageId && result.indexOf(region.languageId) === -1) {
+    if (region.languageId && !result.includes(region.languageId)) {
       result.push(region.languageId);
       if (result.length === 3) {
         return result;

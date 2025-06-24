@@ -72,6 +72,6 @@ export default class SalesforcePackageDirectories {
         throw e;
       }
     }
-    return packageDirs && packageDirs.length ? packageDirs[0] : undefined;
+    return packageDirs && packageDirs.length > 0 ? packageDirs[0] : undefined;
   }
 }

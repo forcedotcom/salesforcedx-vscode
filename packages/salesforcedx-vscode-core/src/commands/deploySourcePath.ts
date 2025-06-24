@@ -58,7 +58,7 @@ export const deploySourcePaths = async (
   //
   // When editing a file and "Deploy This Source from Org" is executed,
   // sourceUri is passed, but uris is undefined.
-  if (!uris || uris.length < 1) {
+  if (!uris || uris.length === 0) {
     if (Array.isArray(sourceUri)) {
       // When "Push-or-deploy-on-save" is enabled, the first parameter
       // passed in (sourceUri) is actually an array and not a single URI.

@@ -74,7 +74,7 @@ class TestResultsWatcher implements vscode.Disposable {
   }
 
   public dispose() {
-    while (this.disposables.length) {
+    while (this.disposables.length > 0) {
       const disposable = this.disposables.pop();
       if (disposable) {
         disposable.dispose();
