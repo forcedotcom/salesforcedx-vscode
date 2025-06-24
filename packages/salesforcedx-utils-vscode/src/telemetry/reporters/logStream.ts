@@ -51,7 +51,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
 
     void this.appendToFile(
       `telemetry/${eventName} ${JSON.stringify({
-        properties: { ...(properties ?? {}), ...(orgId ? { orgId } : {}) },
+        properties: { ...properties, ...(orgId ? { orgId } : {}) },
         measurements
       })}\n`
     );

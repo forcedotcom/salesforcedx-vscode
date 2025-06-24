@@ -77,6 +77,7 @@ export default [
       'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-instanceof-builtins': 'error',
+      'unicorn/no-useless-fallback-in-spread': 'error',
       'unicorn/no-useless-length-check': 'error',
       'unicorn/no-useless-spread': 'error',
       'unicorn/prefer-array-find': 'error',
