@@ -177,7 +177,7 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
       output += realData.toString();
     });
 
-    execution.processExitSubject.subscribe(exitCode => {
+    execution.processExitSubject.subscribe(async (exitCode) => {
       const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
       let properties;
       let measurements;
@@ -190,10 +190,8 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
       // If the command completed successfully, clean up trace flags
       if (exitCode === 0 && this.extensionContext) {
-        void (async () => {
-          const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-          await traceFlags.handleTraceFlagCleanupAfterLogin(this.extensionContext!, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
-        })();
+        const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+        await traceFlags.handleTraceFlagCleanupAfterLogin(this.extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
       }
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
