@@ -57,7 +57,7 @@ const startedInDebugMode = (): boolean => {
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 const createServer = async (extensionContext: vscode.ExtensionContext): Promise<Executable> => {
-  const telemetryService = await getTelemetryService();
+  const telemetryService = getTelemetryService();
   try {
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
@@ -123,7 +123,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
 const protocol2CodeConverter = (value: string) => URI.parse(value);
 
 export const createLanguageServer = async (extensionContext: vscode.ExtensionContext): Promise<ApexLanguageClient> => {
-  const telemetryService = await getTelemetryService();
+  const telemetryService = getTelemetryService();
   const server = await createServer(extensionContext);
   const client = new ApexLanguageClient('apex', nls.localize('client_name'), server, buildClientOptions());
 

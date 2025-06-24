@@ -1,0 +1,7 @@
+---
+description:
+globs: *.ts
+alwaysApply: false
+---
+preserve existing comments when refactoring.  If they are wrong or no longer applicable, let the user know.
+exported functions should have a single-line jsdoc style comment /** foo */ describe what it does if the name isn't descriptive enough.  It should not have params/return info since we use TS.
