@@ -6,7 +6,6 @@
  */
 import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { DocumentSymbol } from 'vscode';
-import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
 import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
 import { retrieveAAClassRestAnnotations } from '../../../settings';
@@ -20,6 +19,7 @@ import {
   PromptGenerationStrategyBid
 } from '../../schemas';
 import { buildClassPrompt, generatePromptForMethod } from '../buildPromptUtils';
+import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '../constants';
 import {
   combineYamlByMethod,
   excludeNon2xxResponses,
