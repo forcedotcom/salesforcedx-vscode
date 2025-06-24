@@ -76,8 +76,8 @@ export class TraceFlags {
       "SELECT Id FROM DebugLevel WHERE DeveloperName = 'ReplayDebuggerLevels' LIMIT 1"
     );
     const [firstReplayDebuggerLevel] = replayDebuggerLevels.records;
-    if (firstReplayDebuggerLevel.Id) {
-      return firstReplayDebuggerLevel.Id;
+    if (firstReplayDebuggerLevel?.Id) {
+      return firstReplayDebuggerLevel?.Id;
     }
 
     // Create a new DebugLevel
