@@ -71,7 +71,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       } satisfies WorkspaceSettings;
     }
 
-    if (this.salesforceApexExtension && this.salesforceApexExtension.exports) {
+    if (this.salesforceApexExtension?.exports) {
       await this.isLanguageClientReady();
       config.lineBreakpointInfo = await this.salesforceApexExtension.exports.getLineBreakpointInfo();
     }
@@ -82,8 +82,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     let expired = false;
     let i = 0;
     while (
-      this.salesforceApexExtension &&
-      this.salesforceApexExtension.exports &&
+      this.salesforceApexExtension?.exports &&
       !this.salesforceApexExtension.exports.languageClientManager.getStatus().isReady() &&
       !expired
     ) {

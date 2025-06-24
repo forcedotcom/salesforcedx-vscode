@@ -22,7 +22,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
     private extensionId: string,
     logFilePath: string
   ) {
-    super(() => this.toDispose.forEach(d => d && d.dispose()));
+    super(() => this.toDispose.forEach(d => d?.dispose()));
     this.logUri = Uri.file(path.join(logFilePath, `${this.extensionId}.txt`));
 
     // I'm not sure why this line does, but I'm not going to change it as part of a linter PR without understanding.

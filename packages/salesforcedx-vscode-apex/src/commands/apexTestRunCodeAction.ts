@@ -176,7 +176,7 @@ export const apexTestRunCodeAction = async (tests: string[]) => {
 };
 
 const getTempFolder = async (): Promise<string> => {
-  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+  if (vscode.workspace?.workspaceFolders) {
     const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
     return apexDir;
   } else {

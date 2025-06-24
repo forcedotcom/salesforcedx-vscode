@@ -88,7 +88,7 @@ export class OrgList implements vscode.Disposable {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      const isExpired = authFields && authFields.expirationDate ? today >= new Date(authFields.expirationDate) : false;
+      const isExpired = authFields?.expirationDate ? today >= new Date(authFields.expirationDate) : false;
 
       const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
       let authListItem =

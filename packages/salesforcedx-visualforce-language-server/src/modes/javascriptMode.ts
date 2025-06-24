@@ -313,7 +313,7 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
       currentTextDocument = documentRegions.get(document).getEmbeddedDocument('javascript', true);
       scriptFileVersion++;
 
-      const formatterSettings = settings && settings.javascript && settings.javascript.format;
+      const formatterSettings = settings?.javascript?.format;
 
       const initialIndentLevel = computeInitialIndent(document, range, formatParams);
       const formatSettings = convertOptions(formatParams, formatterSettings, initialIndentLevel + 1);
@@ -449,21 +449,19 @@ const convertOptions = (
     !formatSettings || formatSettings.insertSpaceAfterFunctionKeywordForAnonymousFunctions
   ),
   InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: Boolean(
-    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis
+    formatSettings?.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis
   ),
   InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: Boolean(
-    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets
+    formatSettings?.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets
   ),
   InsertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: Boolean(
-    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces
+    formatSettings?.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces
   ),
   InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces: Boolean(
-    formatSettings && formatSettings.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces
+    formatSettings?.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces
   ),
-  PlaceOpenBraceOnNewLineForControlBlocks: Boolean(
-    formatSettings && formatSettings.placeOpenBraceOnNewLineForFunctions
-  ),
-  PlaceOpenBraceOnNewLineForFunctions: Boolean(formatSettings && formatSettings.placeOpenBraceOnNewLineForControlBlocks)
+  PlaceOpenBraceOnNewLineForControlBlocks: Boolean(formatSettings?.placeOpenBraceOnNewLineForFunctions),
+  PlaceOpenBraceOnNewLineForFunctions: Boolean(formatSettings?.placeOpenBraceOnNewLineForControlBlocks)
 });
 
 const computeInitialIndent = (document: TextDocument, range: Range, options: FormattingOptions) => {

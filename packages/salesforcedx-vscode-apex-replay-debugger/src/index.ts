@@ -119,7 +119,7 @@ export const getDebuggerType = async (session: vscode.DebugSession): Promise<str
 
 const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
-    if (event && event.session) {
+    if (event?.session) {
       const type = await getDebuggerType(event.session);
       if (type !== DEBUGGER_TYPE) {
         return;
@@ -184,7 +184,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
 
   // Telemetry
-  if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+  if (salesforceCoreExtension?.exports) {
     telemetryService.initializeService(
       salesforceCoreExtension.exports.telemetryService.getReporters(),
       salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
@@ -196,7 +196,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
   const salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
-  if (salesforceApexExtension && salesforceApexExtension.exports) {
+  if (salesforceApexExtension?.exports) {
     let expired = false;
     let i = 0;
     while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {

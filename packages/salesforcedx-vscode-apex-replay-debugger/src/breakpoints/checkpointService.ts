@@ -79,7 +79,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   }
 
   public async retrieveOrgInfo(): Promise<boolean> {
-    if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+    if (vscode.workspace.workspaceFolders?.[0]) {
       this.salesforceProject = URI.file(vscode.workspace.workspaceFolders[0].uri.fsPath).fsPath;
       try {
         this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
@@ -232,7 +232,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   // Make VS Code the source of truth for checkpoints
   public async clearExistingCheckpoints(): Promise<boolean> {
     const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
-    if (salesforceCoreExtension && salesforceCoreExtension.exports) {
+    if (salesforceCoreExtension?.exports) {
       const userId = await salesforceCoreExtension.exports.getUserId(this.salesforceProject);
       if (userId) {
         const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
@@ -661,7 +661,7 @@ export const processBreakpointChangedForCheckpoints = async (
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
 ): Promise<void> => {
   for (const bp of breakpointsChangedEvent.removed) {
-    if (bp.condition && bp.condition.toLowerCase().includes(CHECKPOINT)) {
+    if (bp.condition?.toLowerCase().includes(CHECKPOINT)) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
         const breakpointId = bp.id;
         checkpointService.deleteCheckpointNodeIfExists(breakpointId);
@@ -802,7 +802,7 @@ export const sfToggleCheckpoint = async () => {
     // There's already a breakpoint at this line
     if (bp) {
       // If the breakpoint is a checkpoint then remove it and return
-      if (bp.condition && bp.condition.toLowerCase().includes(CHECKPOINT)) {
+      if (bp.condition?.toLowerCase().includes(CHECKPOINT)) {
         bpRemove.push(bp);
         return await vscode.debug.removeBreakpoints(bpRemove);
       } else {

@@ -527,7 +527,7 @@ const executeMobilePreview = async (
   // listen for Android Emulator finished
   if (isAndroid) {
     previewExecution.stdoutSubject.subscribe(async data => {
-      if (data && data.toString().includes(androidSuccessString)) {
+      if (data?.toString().includes(androidSuccessString)) {
         notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
         vscode.window.showInformationMessage(nls.localize('lightning_lwc_android_start', targetDevice));
       }

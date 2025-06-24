@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 
 export const setupGlobalDefaultUserIsvAuth = async () => {
   const isvUtil = new IsvContextUtil();
-  if (vscode.workspace && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+  if (vscode.workspace?.workspaceFolders?.[0]) {
     const isvDebugProject = await isvUtil.setIsvDebuggerContext(vscode.workspace.workspaceFolders[0].uri.fsPath);
 
     await vscode.commands.executeCommand('setContext', 'sf:isv_debug_project', isvDebugProject);

@@ -35,7 +35,7 @@ export class BreakpointService {
   }
 
   public isApexDebuggerBreakpointId(id: string): boolean {
-    return id != null && id.startsWith(DEBUGGER_BREAKPOINT_ID_PREFIX);
+    return id?.startsWith(DEBUGGER_BREAKPOINT_ID_PREFIX);
   }
 
   public getTyperefFor(uri: string, line: number): string | undefined {
@@ -172,7 +172,7 @@ export class BreakpointService {
       }
     }
     for (const clientLine of clientLines) {
-      if (!knownBreakpoints || !knownBreakpoints.find(knownBreakpoint => knownBreakpoint.line === clientLine)) {
+      if (!knownBreakpoints?.find(knownBreakpoint => knownBreakpoint.line === clientLine)) {
         const typeref = this.getTyperefFor(uri, clientLine);
         if (typeref) {
           try {

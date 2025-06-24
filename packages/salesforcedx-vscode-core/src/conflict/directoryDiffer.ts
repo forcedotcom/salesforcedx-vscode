@@ -95,7 +95,7 @@ class CommonDirDirectoryDiffer implements DirectoryDiffer {
       const stat = fs.statSync(fullPath);
       const relPath = path.join(subdir, filename);
 
-      if (stat && stat.isDirectory()) {
+      if (stat?.isDirectory()) {
         this.walkFiles(root, relPath, callback);
       } else {
         callback({ filename, subdir, relPath });

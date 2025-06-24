@@ -49,7 +49,7 @@ export class SessionService {
   }
 
   public isApexDebuggerSessionId(id: string): boolean {
-    return id != null && id.startsWith('07a');
+    return id?.startsWith('07a');
   }
 
   public async start(): Promise<string> {

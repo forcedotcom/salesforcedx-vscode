@@ -83,7 +83,7 @@ export const format = (
 
     for (const r of embeddedRanges) {
       const mode = r.mode;
-      if (mode && mode.format && enabledModes[mode.getId()] && !r.attributeValue) {
+      if (mode?.format && enabledModes[mode.getId()] && !r.attributeValue) {
         const edits = mode.format(newDocument, r, formattingOptions, settings);
         for (const edit of edits) {
           embeddedEdits.push(edit);

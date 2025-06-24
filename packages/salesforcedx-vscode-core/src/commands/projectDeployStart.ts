@@ -175,7 +175,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource || (errors && errors.files);
+      const rows = pushedSource || errors?.files;
       const title = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, title);
       if (parser.hasConflicts()) {

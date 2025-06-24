@@ -51,11 +51,11 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       config.trace = true;
     }
 
-    if (vscode.workspace && vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+    if (vscode.workspace?.workspaceFolders?.[0]) {
       config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
 
-    if (this.salesforceApexExtension && this.salesforceApexExtension.exports) {
+    if (this.salesforceApexExtension?.exports) {
       await this.isLanguageClientReady();
       config.lineBreakpointInfo = await this.salesforceApexExtension.exports.getLineBreakpointInfo();
     }
@@ -66,8 +66,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     let expired = false;
     let i = 0;
     while (
-      this.salesforceApexExtension &&
-      this.salesforceApexExtension.exports &&
+      this.salesforceApexExtension?.exports &&
       !this.salesforceApexExtension.exports.languageClientManager.getStatus().isReady() &&
       !expired
     ) {
