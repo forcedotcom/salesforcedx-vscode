@@ -74,6 +74,7 @@ export default [
     rules: {
       'local/no-duplicate-i18n-values': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
+      'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-useless-length-check': 'error',
       'unicorn/prefer-array-find': 'error',
@@ -342,6 +343,8 @@ export default [
     },
     rules: {
       'unicorn/filename-case': 'off',
+      'unicorn/consistent-function-scoping': 'off',
+
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',

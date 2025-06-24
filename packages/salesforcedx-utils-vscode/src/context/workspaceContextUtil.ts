@@ -42,12 +42,11 @@ export class WorkspaceContextUtil {
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
-    const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = projectPaths.salesforceProjectConfig();
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
-    this.cliConfigWatcher.onDidChange(bindedHandler);
-    this.cliConfigWatcher.onDidCreate(bindedHandler);
-    this.cliConfigWatcher.onDidDelete(bindedHandler);
+    this.cliConfigWatcher.onDidChange(() => this.handleCliConfigChange());
+    this.cliConfigWatcher.onDidCreate(() => this.handleCliConfigChange());
+    this.cliConfigWatcher.onDidDelete(() => this.handleCliConfigChange());
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
