@@ -9,7 +9,7 @@ import { CodeCoverageResult } from '@salesforce/apex-node-bundle';
 import { SFDX_FOLDER, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, extname, basename } from 'node:path';
-import { Range, TextDocument, TextEditor, TextLine, window, workspace } from 'vscode';
+import { Range, TextDocument, TextEditor, window, workspace } from 'vscode';
 import { channelService } from '../channels';
 import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
@@ -19,21 +19,18 @@ import { StatusBarToggle } from './statusBarToggle';
 const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
 const getLineRange = (document: TextDocument, lineNumber: number): Range => {
-  let adjustedLineNumber: number;
-  let firstLine: TextLine;
+  const adjustedLineNumber = lineNumber - 1;
   try {
-    adjustedLineNumber = lineNumber - 1;
-    firstLine = document.lineAt(adjustedLineNumber);
+    const firstLine = document.lineAt(adjustedLineNumber);
+    return new Range(
+      adjustedLineNumber,
+      firstLine.range.start.character,
+      adjustedLineNumber,
+      firstLine.range.end.character
+    );
   } catch {
     throw new Error(nls.localize('colorizer_out_of_sync_code_coverage_data'));
   }
-
-  return new Range(
-    adjustedLineNumber,
-    firstLine.range.start.character,
-    adjustedLineNumber,
-    firstLine.range.end.character
-  );
 };
 
 type CoverageItem = {
@@ -69,13 +66,8 @@ const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
 
 const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);
 
-const getApexMemberName = (filePath: string): string => {
-  if (isApexMetadata(filePath)) {
-    const extension = extname(filePath);
-    return basename(filePath, extension);
-  }
-  return '';
-};
+const getApexMemberName = (filePath: string): string =>
+  isApexMetadata(filePath) ? basename(filePath, extname(filePath)) : '';
 
 export class CodeCoverageHandler {
   public coveredLines: Range[] = [];

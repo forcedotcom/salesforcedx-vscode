@@ -32,7 +32,7 @@ describe('testOutlineProvider Unit Tests.', () => {
 
     void provider.collapseAll();
 
-    expect(commandMock.mock.calls.length).toBe(1);
+    expect(commandMock).toHaveBeenCalledTimes(1);
     expect(commandMock.mock.calls[0].length).toBe(1);
     expect(commandMock.mock.calls[0][0]).toBe(`workbench.actions.treeView.${provider.getId()}.collapseAll`);
   });

@@ -15,6 +15,7 @@ import {
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -375,7 +376,7 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
   vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest);
 };
 
-export const activate = async (extensionContext: vscode.ExtensionContext) => {
+export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
@@ -461,9 +462,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   extensionContext.subscriptions.push(registerConflictView());
   extensionContext.subscriptions.push(CommandEventDispatcher.getInstance());
 
-  const api: any = {
+  const api: SalesforceVSCodeCoreApi = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
+    getUserId: OrgAuthInfo.getUserId,
     isCLIInstalled,
     notificationService,
     OrgAuthInfo,
@@ -478,6 +480,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     taskViewService,
     telemetryService,
     services: {
+      RegistryAccess,
       ChannelService,
       SalesforceProjectConfig,
       TelemetryService,
@@ -588,4 +591,31 @@ const handleTheUnhandled = (): void => {
       }
     }
   });
+};
+
+export type SalesforceVSCodeCoreApi = {
+  channelService: typeof channelService;
+  getTargetOrgOrAlias: typeof workspaceContextUtils.getTargetOrgOrAlias;
+  getUserId: typeof OrgAuthInfo.getUserId;
+  isCLIInstalled: typeof isCLIInstalled;
+  notificationService: typeof notificationService;
+  OrgAuthInfo: typeof OrgAuthInfo;
+  ProgressNotification: typeof ProgressNotification;
+  SelectFileName: typeof SelectFileName;
+  SelectOutputDir: typeof SelectOutputDir;
+  SfCommandlet: typeof SfCommandlet;
+  SfCommandletExecutor: typeof SfCommandletExecutor;
+  salesforceCoreSettings: typeof salesforceCoreSettings;
+  SfWorkspaceChecker: typeof SfWorkspaceChecker;
+  WorkspaceContext: typeof WorkspaceContext;
+  taskViewService: typeof taskViewService;
+  telemetryService: typeof telemetryService;
+  services: {
+    RegistryAccess: typeof RegistryAccess;
+    ChannelService: typeof ChannelService;
+    SalesforceProjectConfig: typeof SalesforceProjectConfig;
+    TelemetryService: typeof TelemetryService;
+    WorkspaceContext: typeof WorkspaceContext;
+    CommandEventDispatcher: typeof CommandEventDispatcher;
+  };
 };

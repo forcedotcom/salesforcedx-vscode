@@ -15,8 +15,8 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
-import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext } from '../../../src/core';
 import { FrameExitState } from '../../../src/states';
 
@@ -37,7 +37,7 @@ describe('Frame exit event', () => {
   it('Should not remove anything if there are no frames', () => {
     const state = new FrameExitState(['signature']);
 
-    expect(state.handle(context)).to.be.false;
+    expect(state.handle(context)).toBe(false);
   });
 
   it('Should not remove if signature does not match top frame', () => {
@@ -45,8 +45,8 @@ describe('Frame exit event', () => {
 
     const state = new FrameExitState(['signatureFoo']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(context.getFrames()).to.be.empty;
+    expect(state.handle(context)).toBe(false);
+    expect(context.getFrames()).toHaveLength(0);
   });
 
   it('Should remove if signature matches top frame exactly', () => {
@@ -54,8 +54,8 @@ describe('Frame exit event', () => {
 
     const state = new FrameExitState(['signature']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(context.getFrames()).to.be.empty;
+    expect(state.handle(context)).toBe(false);
+    expect(context.getFrames()).toHaveLength(0);
   });
 
   it('Should remove if signature matches top frame partially', () => {
@@ -63,7 +63,7 @@ describe('Frame exit event', () => {
 
     const state = new FrameExitState(['sign']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(context.getFrames()).to.be.empty;
+    expect(state.handle(context)).toBe(false);
+    expect(context.getFrames()).toHaveLength(0);
   });
 });
