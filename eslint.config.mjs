@@ -78,6 +78,7 @@ export default [
       'unicorn/prefer-includes': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/prefer-object-from-entries': 'error',
+      'unicorn/prefer-optional-catch-binding': 'error',
       'unicorn/filename-case': [
         'error',
         {

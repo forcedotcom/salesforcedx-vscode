@@ -107,8 +107,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       try {
         await adapter.disconnectReq(disconnectResponse, disconnectArgs);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
+      } catch {
         // Ignore disconnect errors in tests
       }
 

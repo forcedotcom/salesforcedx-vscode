@@ -108,7 +108,7 @@ const expandFunctions: {
       });
 
       return sobjectItems;
-    } catch (metadataErrors) {
+    } catch {
       return [];
     }
   },

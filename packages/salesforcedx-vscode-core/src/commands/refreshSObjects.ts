@@ -215,7 +215,7 @@ const getVersionedConnection = async () => {
           connectionOptions: { version: apiVersionOverride }
         })
       : await WorkspaceContextUtil.getInstance().getConnection();
-  } catch (e) {
+  } catch {
     return undefined;
   }
 };

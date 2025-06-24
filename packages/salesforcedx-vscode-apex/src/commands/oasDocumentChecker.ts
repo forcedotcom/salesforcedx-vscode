@@ -137,7 +137,7 @@ class OasDocumentChecker {
       return isValidRegistrationProviderType(
         typeof registrationProviderType === 'string' ? registrationProviderType : undefined
       );
-    } catch (error) {
+    } catch {
       return false;
     }
   };

@@ -378,7 +378,7 @@ class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
       if (typeof loginUrl !== 'string' || typeof sessionId !== 'string') {
         return nls.localize('parameter_gatherer_invalid_forceide_url');
       }
-    } catch (e) {
+    } catch {
       return nls.localize('parameter_gatherer_invalid_forceide_url');
     }
 

@@ -64,7 +64,7 @@ export class QueryDataViewService {
         const errorType = 'data_view_post_message';
         const message = nls.localize('error_unknown_error', errorType);
         channelService.appendLine(message);
-        trackErrorWithTelemetry(errorType, err);
+        await trackErrorWithTelemetry(errorType, err);
       });
   }
 
@@ -126,7 +126,7 @@ export class QueryDataViewService {
     try {
       const fileService = new FileService(this.queryText, this.queryData, format, this.document);
       fileService.save();
-    } catch (err) {
+    } catch {
       const message = nls.localize('error_data_view_save');
       vscode.window.showErrorMessage(message);
       trackErrorWithTelemetry('data_view_save', message);

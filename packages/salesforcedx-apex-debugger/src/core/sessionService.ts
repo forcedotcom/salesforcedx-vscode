@@ -85,7 +85,7 @@ export class SessionService {
         this.connected = false;
         return Promise.reject(result);
       }
-    } catch (e) {
+    } catch {
       return Promise.reject(result);
     }
   }
@@ -116,7 +116,7 @@ export class SessionService {
         this.connected = true;
         return Promise.reject(result);
       }
-    } catch (e) {
+    } catch {
       return Promise.reject(result);
     }
   }

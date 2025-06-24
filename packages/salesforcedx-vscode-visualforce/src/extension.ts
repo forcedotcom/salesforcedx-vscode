@@ -137,7 +137,7 @@ export const activate = async (context: ExtensionContext) => {
     };
     disposable = activateTagClosing(tagRequestor, { visualforce: true }, 'visualforce.autoClosingTags');
     toDispose.push(disposable);
-  } catch (err: unknown) {
+  } catch {
     telemetryService.sendExtensionActivationEvent(extensionHRStart);
   }
   languages.setLanguageConfiguration('visualforce', {
