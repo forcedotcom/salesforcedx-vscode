@@ -33,7 +33,6 @@ import {
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { fail } from 'node:assert';
 import * as path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
 
