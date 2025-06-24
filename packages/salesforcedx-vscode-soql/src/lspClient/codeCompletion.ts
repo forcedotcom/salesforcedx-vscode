@@ -210,7 +210,7 @@ const expandFunctions: {
               newCompletionItem(
                 v.value,
 
-                "'" + v.value + "'",
+                `'${v.value}'`,
                 CompletionItemKind.Value
               )
             )
@@ -272,8 +272,8 @@ function newFieldCompletionItems(field: SObjectField, soqlContext: SoqlItemConte
           ? {
               preselect: true,
               // extra space prefix to make it appear first
-              sortText: ' ' + field.name,
-              filterText: ' ' + field.name
+              sortText: ` ${field.name}`,
+              filterText: ` ${field.name}`
             }
           : {}
       )
@@ -281,8 +281,8 @@ function newFieldCompletionItems(field: SObjectField, soqlContext: SoqlItemConte
   );
   if (field.relationshipName && !soqlContext.dontShowRelationshipField) {
     fieldItems.push(
-      newCompletionItem(`${field.relationshipName}`, field.relationshipName + '.', CompletionItemKind.Class, {
-        detail: 'Ref. to ' + field.referenceTo.join(',')
+      newCompletionItem(`${field.relationshipName}`, `${field.relationshipName}.`, CompletionItemKind.Class, {
+        detail: `Ref. to ${field.referenceTo.join(',')}`
       })
     );
   }

@@ -57,17 +57,17 @@ export class O11yService {
     const { o11yClientVersion, o11ySchemaVersion, getInstrumentation, registerInstrumentedApp, a4d_instrumentation } =
       this.o11yModules!;
 
-    this.instrumentation = getInstrumentation(extensionName + '-instrumentation');
+    this.instrumentation = getInstrumentation(`${extensionName}-instrumentation`);
     this.a4dO11ySchema = a4d_instrumentation;
 
     Object.assign(this.environment, {
-      appName: extensionName + '-extension',
+      appName: `${extensionName}-extension`,
       o11ySchemaVersion,
       sdkVersion: `${o11yClientVersion}:${o11ySchemaVersion}`
     });
 
     // STEP 1: Register the app
-    this._instrApp = registerInstrumentedApp(extensionName + '-extension', {
+    this._instrApp = registerInstrumentedApp(`${extensionName}-extension`, {
       isProduction: false,
       enableBuffering: true
     });

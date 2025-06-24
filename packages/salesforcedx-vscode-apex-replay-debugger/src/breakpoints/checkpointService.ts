@@ -482,7 +482,7 @@ export class CheckpointNode extends BaseNode {
     sourceFileInput: string,
     checkpointOverlayActionInput: ApexExecutionOverlayAction
   ) {
-    super(sourceFileInput + ':' + checkpointOverlayActionInput.Line, TreeItemCollapsibleState.Expanded);
+    super(`${sourceFileInput}:${checkpointOverlayActionInput.Line}`, TreeItemCollapsibleState.Expanded);
     this.uri = uriInput;
     this.breakpointId = breapointIdInput;
     this.enabled = enabledInput;
@@ -540,7 +540,7 @@ export class CheckpointNode extends BaseNode {
     this.updateActionScript(checkpointOverlayActionInput.ActionScript);
     this.updateActionScriptType(checkpointOverlayActionInput.ActionScriptType);
     this.updateIterations(checkpointOverlayActionInput.Iteration);
-    this.label = sourceFileInput + ':' + checkpointOverlayActionInput.Line;
+    this.label = `${sourceFileInput}:${checkpointOverlayActionInput.Line}`;
     CheckpointService.getInstance().fireTreeChangedEvent();
   }
 

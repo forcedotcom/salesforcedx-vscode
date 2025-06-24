@@ -65,7 +65,7 @@ export const format = (
   const htmlEdits = htmlMode.format(document, formatRange, formattingOptions, settings);
   const htmlFormattedContent = applyEdits(document, htmlEdits);
   const newDocument = TextDocument.create(
-    document.uri + '.tmp',
+    `${document.uri}.tmp`,
     document.languageId,
     document.version,
     htmlFormattedContent

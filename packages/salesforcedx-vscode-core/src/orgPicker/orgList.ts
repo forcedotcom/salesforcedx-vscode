@@ -114,11 +114,11 @@ export class OrgList implements vscode.Disposable {
 
   public async setDefaultOrg(): Promise<CancelResponse | ContinueResponse<{}>> {
     let quickPickList = [
-      '$(plus) ' + nls.localize('org_login_web_authorize_org_text'),
-      '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'),
-      '$(plus) ' + nls.localize('org_create_default_scratch_org_text'),
-      '$(plus) ' + nls.localize('org_login_access_token_text'),
-      '$(plus) ' + nls.localize('org_list_clean_text')
+      `$(plus) ${nls.localize('org_login_web_authorize_org_text')}`,
+      `$(plus) ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
+      `$(plus) ${nls.localize('org_create_default_scratch_org_text')}`,
+      `$(plus) ${nls.localize('org_login_access_token_text')}`,
+      `$(plus) ${nls.localize('org_list_clean_text')}`
     ];
 
     const authInfoList = await this.updateOrgList();
@@ -132,23 +132,23 @@ export class OrgList implements vscode.Disposable {
       return { type: 'CANCEL' };
     }
     switch (selection) {
-      case '$(plus) ' + nls.localize('org_login_web_authorize_org_text'): {
+      case `$(plus) ${nls.localize('org_login_web_authorize_org_text')}`: {
         vscode.commands.executeCommand('sf.org.login.web');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' + nls.localize('org_login_web_authorize_dev_hub_text'): {
+      case `$(plus) ${nls.localize('org_login_web_authorize_dev_hub_text')}`: {
         vscode.commands.executeCommand('sf.org.login.web.dev.hub');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' + nls.localize('org_create_default_scratch_org_text'): {
+      case `$(plus) ${nls.localize('org_create_default_scratch_org_text')}`: {
         vscode.commands.executeCommand('sf.org.create');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' + nls.localize('org_login_access_token_text'): {
+      case `$(plus) ${nls.localize('org_login_access_token_text')}`: {
         vscode.commands.executeCommand('sf.org.login.access.token');
         return { type: 'CONTINUE', data: {} };
       }
-      case '$(plus) ' + nls.localize('org_list_clean_text'): {
+      case `$(plus) ${nls.localize('org_list_clean_text')}`: {
         vscode.commands.executeCommand('sf.org.list.clean');
         return { type: 'CONTINUE', data: {} };
       }

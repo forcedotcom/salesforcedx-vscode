@@ -72,7 +72,7 @@ export class ChannelService {
   }
 
   public showCommandWithTimestamp(commandName: string) {
-    this.channel.appendLine(this.getExecutionTime() + ' ' + commandName);
+    this.channel.appendLine(`${this.getExecutionTime()} ${commandName}`);
   }
 
   private getExecutionTime() {

@@ -147,7 +147,7 @@ const parseErrors = (error: any): Error => {
         message = nls.localize('error_fetching_metadata');
         break;
     }
-    message += ' ' + nls.localize('error_org_browser_text');
+    message += ` ${nls.localize('error_org_browser_text')}`;
     return new Error(message);
   } catch (e) {
     return new Error(e);

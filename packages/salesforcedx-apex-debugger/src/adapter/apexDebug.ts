@@ -890,7 +890,7 @@ export class ApexDebug extends LoggingDebugSession {
             // populate first stack frame with info from state response (saves a server round trip)
             this.log(
               TRACE_CATEGORY_VARIABLES,
-              'stackTraceRequest: state=' + JSON.stringify(stateRespObj.stateResponse.state)
+              `stackTraceRequest: state=${JSON.stringify(stateRespObj.stateResponse.state)}`
             );
             if (stateRespObj.stateResponse.state.locals && stateRespObj.stateResponse.state.locals.local) {
               frameInfo.locals = stateRespObj.stateResponse.state.locals.local;
@@ -1064,7 +1064,7 @@ export class ApexDebug extends LoggingDebugSession {
     if (frameRespObj && frameRespObj.frameResponse && frameRespObj.frameResponse.frame) {
       this.log(
         TRACE_CATEGORY_VARIABLES,
-        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` + JSON.stringify(frameRespObj.frameResponse.frame)
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=${JSON.stringify(frameRespObj.frameResponse.frame)}`
       );
       if (frameRespObj.frameResponse.frame.locals && frameRespObj.frameResponse.frame.locals.local) {
         frameInfo.locals = frameRespObj.frameResponse.frame.locals.local;

@@ -321,7 +321,7 @@ export class ExternalServiceRegistrationManager {
       } else if (whatToDo === nls.localize('merge')) {
         const currentTimestamp = getCurrentTimestamp();
         const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
-        const newFileName = namePart + '_' + currentTimestamp + '.externalServiceRegistration-meta.xml';
+        const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
         const esr_files_for_merge_folder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
         if (!fs.existsSync(esr_files_for_merge_folder)) {
           fs.mkdirSync(esr_files_for_merge_folder);

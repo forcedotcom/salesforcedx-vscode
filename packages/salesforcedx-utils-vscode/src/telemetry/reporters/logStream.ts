@@ -64,7 +64,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
   ): void {
     const orgId = WorkspaceContextUtil.getInstance().orgId || '';
     const properties = { orgId };
-    console.log('LogStream.sendExceptionEvent - exceptionMessage: ' + exceptionMessage);
+    console.log(`LogStream.sendExceptionEvent - exceptionMessage: ${exceptionMessage}`);
 
     void this.appendToFile(
       `telemetry/${exceptionName} ${JSON.stringify({

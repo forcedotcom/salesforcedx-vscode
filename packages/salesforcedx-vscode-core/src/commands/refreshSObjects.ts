@@ -139,7 +139,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
             })
       });
 
-      console.log('Generate success ' + JSON.stringify(result.data));
+      console.log(`Generate success ${JSON.stringify(result.data)}`);
       this.logMetric(
         execution.command.logName,
         startTime,
@@ -157,7 +157,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
         exitCode: LocalCommandExecution.SUCCESS_CODE
       });
     } catch (error) {
-      console.log('Generate error ' + error.error);
+      console.log(`Generate error ${error.error}`);
       telemetryService.sendException(
         'generate_faux_classes_create',
         `Error: name = ${error.name} message = ${error.error}`

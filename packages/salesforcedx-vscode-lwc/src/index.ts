@@ -21,7 +21,7 @@ import { WorkspaceUtils } from './util/workspaceUtils';
 export const activate = async (extensionContext: ExtensionContext) => {
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
 
-  log('Activation Mode: ' + getActivationMode());
+  log(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
@@ -51,7 +51,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     log('LWC LSP - autodetect did not find a valid project structure, exiting....');
-    log('WorkspaceType detected: ' + workspaceType);
+    log(`WorkspaceType detected: ${workspaceType}`);
     return;
   }
   // If activationMode === always, ignore workspace type and continue activating
@@ -62,7 +62,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // If we get here, we either passed autodetect validation or activationMode == always
   log('Lightning Web Components Extension Activated');
-  log('WorkspaceType detected: ' + workspaceType);
+  log(`WorkspaceType detected: ${workspaceType}`);
 
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;

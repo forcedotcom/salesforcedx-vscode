@@ -179,11 +179,11 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
       const title = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, title);
       if (parser.hasConflicts()) {
-        channelService.appendLine(nls.localize('push_conflicts_error') + '\n');
+        channelService.appendLine(`${nls.localize('push_conflicts_error')}\n`);
       }
       channelService.appendLine(outputTable);
       if (pushedSource && pushedSource.length === 0) {
-        const noResults = nls.localize('table_no_results_found') + '\n';
+        const noResults = `${nls.localize('table_no_results_found')}\n`;
         channelService.appendLine(noResults);
       }
     }

@@ -53,7 +53,7 @@ export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageM
         formatSettings = {};
       }
       if (formatSettings.contentUnformatted) {
-        formatSettings.contentUnformatted = formatSettings.contentUnformatted + ',script';
+        formatSettings.contentUnformatted = `${formatSettings.contentUnformatted},script`;
       } else {
         formatSettings.contentUnformatted = 'script';
       }

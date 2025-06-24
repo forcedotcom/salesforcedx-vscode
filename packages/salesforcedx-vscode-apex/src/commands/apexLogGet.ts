@@ -46,9 +46,9 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
 
         return {
           id: logInfo.Id,
-          label: icon + logInfo.LogUser.Name + ' - ' + logInfo.Operation,
+          label: `${icon + logInfo.LogUser.Name} - ${logInfo.Operation}`,
           startTime: localDateFormatted,
-          detail: localDateFormatted + ' - ' + logInfo.Status.substring(0, 150),
+          detail: `${localDateFormatted} - ${logInfo.Status.substring(0, 150)}`,
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } satisfies ApexDebugLogItem;
       });

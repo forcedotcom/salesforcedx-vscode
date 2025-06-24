@@ -54,12 +54,9 @@ const getSOQLVirtualContent = (
     .map(line => ' '.repeat(line.length))
     .join(eol);
 
-  const content =
-    blankedContent.slice(0, soqlBlock.location.startIndex) +
-    ' ' +
-    soqlBlock.queryText +
-    ' ' +
-    blankedContent.slice(soqlBlock.location.startIndex + soqlBlock.queryText.length + 2);
+  const content = `${blankedContent.slice(0, soqlBlock.location.startIndex)} ${
+    soqlBlock.queryText
+  } ${blankedContent.slice(soqlBlock.location.startIndex + soqlBlock.queryText.length + 2)}`;
 
   return content;
 };

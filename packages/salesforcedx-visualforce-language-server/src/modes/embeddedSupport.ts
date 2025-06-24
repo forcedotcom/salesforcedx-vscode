@@ -205,7 +205,7 @@ const getPrefix = (c: EmbeddedRegion) => {
   if (c.attributeValue) {
     switch (c.languageId) {
       case 'css':
-        return CSS_STYLE_RULE + '{';
+        return `${CSS_STYLE_RULE}{`;
     }
   }
   return '';

@@ -105,7 +105,7 @@ export class ConflictView {
     if (node) {
       Promise.resolve(this.treeView.reveal(node, { expand: true })).catch(e => {
         const errorMessage = e.toString();
-        channelService.appendLine('Error during reveal: ' + errorMessage);
+        channelService.appendLine(`Error during reveal: ${errorMessage}`);
         telemetryService.sendException('ConflictDetectionException', errorMessage);
       });
     }
