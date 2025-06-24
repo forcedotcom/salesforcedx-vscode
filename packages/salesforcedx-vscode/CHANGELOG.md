@@ -4,33 +4,27 @@
 
 #### salesforcedx-sobjects-faux-generator
 
-- [@W-18572237@] implement aura enabled oas gen ([PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322))
+- We made some changes under the hood. ([PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322), [PR #6331](https://github.com/forcedotcom/salesforcedx-vscode/pull/6331))
 
-- @W-18520714  soql without core-bundle ([PR #6331](https://github.com/forcedotcom/salesforcedx-vscode/pull/6331))
 
 #### salesforcedx-utils-vscode
-
-- [@W-18572237@] implement aura enabled oas gen ([PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322))
-
 #### salesforcedx-vscode-apex
-
-- [@W-18572237@] implement aura enabled oas gen ([PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322))
-
 #### salesforcedx-vscode-soql
 
-- @W-18520714  soql without core-bundle ([PR #6331](https://github.com/forcedotcom/salesforcedx-vscode/pull/6331))
+- We made some changes under the hood. ([PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322), [PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322), [PR #6331](https://github.com/forcedotcom/salesforcedx-vscode/pull/6331))
+
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- Corrupt apex.db ([PR #6371](https://github.com/forcedotcom/salesforcedx-vscode/pull/6371))
+- We fixed an issue with the Apex Language Server that caused database corruption. ([PR #6371](https://github.com/forcedotcom/salesforcedx-vscode/pull/6371))
 
 #### salesforcedx-vscode-core
 
-- Sobject refresh infinite loops ([PR #6367](https://github.com/forcedotcom/salesforcedx-vscode/pull/6367))
+- We fixed an issue where refreshing of SObjects definition wouldn't stop when no default org was set. ([PR #6367](https://github.com/forcedotcom/salesforcedx-vscode/pull/6367))
 
-- Add 'No components retrieved' message in Output Tab if a manifest that contains no valid components is retrieved ([PR #6357](https://github.com/forcedotcom/salesforcedx-vscode/pull/6357))
+- We added a helpful 'No components retrieved' message in Output Tab when a manifest that contains no valid components is retrieved. You're welcome! ([PR #6357](https://github.com/forcedotcom/salesforcedx-vscode/pull/6357))
 
 # 64.1.0 - June 18, 2025
 
