@@ -184,7 +184,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
     }
   }
 
-  // get telemetryData(): TelemetryData {
-  //   return this.telemetry.build();
-  // }
+  public get telemetryData(): TelemetryData {
+    return this.telemetry.build();
+  }
 }

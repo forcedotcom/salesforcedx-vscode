@@ -25,9 +25,6 @@ export class LogStream extends Disposable implements TelemetryReporter {
     super(() => this.toDispose.forEach(d => d?.dispose()));
     this.logUri = Uri.file(path.join(logFilePath, `${this.extensionId}.txt`));
 
-    // I'm not sure why this line does, but I'm not going to change it as part of a linter PR without understanding.
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-    this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
     console.log(
       `VS Code telemetry event logging enabled for: ${this.extensionId}. Telemetry events will be written via write stream to a file at: ${this.logUri.fsPath}.`
     );

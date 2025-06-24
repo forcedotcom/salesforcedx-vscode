@@ -56,8 +56,9 @@ export const activateTagClosing = (
     if (typeof timeout !== 'undefined') {
       clearTimeout(timeout);
     }
-    const lastChange = changes[changes.length - 1];
-    const lastCharacter = lastChange.text[lastChange.text.length - 1];
+    // assertion: we previously checked that changes is not zero-length
+    const lastChange = changes.at(-1)!;
+    const lastCharacter = lastChange.text.at(-1);
     if (lastChange.rangeLength > 0 || (lastCharacter !== '>' && lastCharacter !== '/')) {
       return;
     }
