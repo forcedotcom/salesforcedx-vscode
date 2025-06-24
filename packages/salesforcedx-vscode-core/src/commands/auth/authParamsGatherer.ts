@@ -184,7 +184,7 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
     const prompt = nls.localize('org_logout_scratch_prompt', this.alias || this.username);
     const logoutResponse = nls.localize('org_logout_scratch_logout');
 
-    const confirm = await vscode.window.showInformationMessage(prompt, { modal: true }, ...[logoutResponse]);
+    const confirm = await vscode.window.showInformationMessage(prompt, { modal: true }, logoutResponse);
     if (confirm !== logoutResponse) {
       return { type: 'CANCEL' };
     }

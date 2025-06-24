@@ -35,7 +35,7 @@ export class RequestService {
   private _connectionTimeoutMs: number = DEFAULT_CONNECTION_TIMEOUT_MS;
 
   public getEnvVars(): NodeJS.ProcessEnv {
-    const envVars = Object.assign({}, process.env);
+    const envVars = { ...process.env };
     const proxyUrl = this.proxyUrl;
     if (proxyUrl) {
       envVars[ENV_HTTP_PROXY] = proxyUrl;

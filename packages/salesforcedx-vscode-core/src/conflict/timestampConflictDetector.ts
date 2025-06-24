@@ -20,7 +20,7 @@ export class TimestampConflictDetector {
   };
 
   constructor() {
-    this.diffs = Object.assign({}, TimestampConflictDetector.EMPTY_DIFFS);
+    this.diffs = { ...TimestampConflictDetector.EMPTY_DIFFS };
   }
 
   public createDiffs(result?: MetadataCacheResult): DirectoryDiffResults {

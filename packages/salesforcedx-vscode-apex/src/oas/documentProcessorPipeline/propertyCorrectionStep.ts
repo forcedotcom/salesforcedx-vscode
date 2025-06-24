@@ -31,13 +31,13 @@ export class PropertyCorrectionStep implements ProcessorStep {
   }
 
   private ensureInfoVersionIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    return { ...oasDoc, ...{ info: { ...oasDoc.info, ...{ version: '1.0.0' } } } };
+    return { ...oasDoc, info: { ...oasDoc.info, version: '1.0.0' } };
   }
 
   private ensureServersIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
     return this.input?.context && hasAuraFrameworkCapability(this.input.context)
       ? oasDoc
-      : { ...oasDoc, ...{ servers: [{ url: '/services/apexrest' }] } };
+      : { ...oasDoc, servers: [{ url: '/services/apexrest' }] };
   }
 
   private ensureOperationDescriptionIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {

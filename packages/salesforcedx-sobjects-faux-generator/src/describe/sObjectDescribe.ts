@@ -74,7 +74,7 @@ class SObjectDescribe {
       }
 
       batchResponse.results.forEach((sr, i) => {
-        if (sr.result instanceof Array) {
+        if (Array.isArray(sr.result)) {
           if (sr.result[0].errorCode && sr.result[0].message) {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.log(`Error: ${sr.result[0].message} - ${types[i]}`);

@@ -44,7 +44,7 @@ export class ComponentUtils {
 
       const components = [];
       if (!isNullOrUndefined(cmpArray)) {
-        cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
+        cmpArray = Array.isArray(cmpArray) ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
           const { fullName, manageableState, namespacePrefix } = cmp;
           if (!isNullOrUndefined(fullName) && validManageableStates.has(manageableState)) {

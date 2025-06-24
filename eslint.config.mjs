@@ -76,7 +76,9 @@ export default [
       'unicorn/consistent-empty-array-spread': 'error',
       'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',
+      'unicorn/no-instanceof-builtins': 'error',
       'unicorn/no-useless-length-check': 'error',
+      'unicorn/no-useless-spread': 'error',
       'unicorn/prefer-array-find': 'error',
       'unicorn/prefer-includes': 'error',
 
@@ -320,6 +322,7 @@ export default [
       'one-var': ['error', 'never'],
       'prefer-arrow/prefer-arrow-functions': ['warn', {}],
       'prefer-const': 'error',
+      'prefer-object-spread': 'error',
       'quote-props': ['error', 'as-needed'],
       quotes: 'off',
       radix: 'error',

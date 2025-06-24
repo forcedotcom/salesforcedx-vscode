@@ -247,7 +247,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
         let aggregatedMeasurements: Measurements | undefined;
         if (hrstart || measurements) {
-          aggregatedMeasurements = Object.assign({}, measurements);
+          aggregatedMeasurements = { ...measurements };
           if (hrstart) {
             aggregatedMeasurements.executionTime = this.getEndHRTime(hrstart);
           }
