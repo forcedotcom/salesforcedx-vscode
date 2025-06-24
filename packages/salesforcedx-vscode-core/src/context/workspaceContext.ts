@@ -66,15 +66,15 @@ export class WorkspaceContext {
     }
   }
 
-  get username(): string | undefined {
+  public get username(): string | undefined {
     return WorkspaceContextUtil.getInstance().username;
   }
 
-  get alias(): string | undefined {
+  public get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
   }
 
-  get orgId(): string | undefined {
+  public get orgId(): string | undefined {
     return WorkspaceContextUtil.getInstance().orgId;
   }
 }

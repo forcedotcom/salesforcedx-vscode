@@ -175,7 +175,7 @@ export class AccessTokenParamsGatherer implements ParametersGatherer<AccessToken
 }
 
 export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string> {
-  public constructor(
+  constructor(
     public readonly username: string,
     public readonly alias?: string
   ) {}

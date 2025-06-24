@@ -34,7 +34,7 @@ const pullCommand: CommandParams = {
 export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
-  public constructor(
+  constructor(
     flag?: string,
     public params: CommandParams = pullCommand
   ) {
@@ -50,7 +50,9 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
       .withLogName(this.params.logName.default);
 
     if (this.flag === '--ignore-conflicts') {
-      builder.withArg(this.flag).withDescription(nls.localize(coerceMessageKey(this.params.description.ignoreConflicts)));
+      builder
+        .withArg(this.flag)
+        .withDescription(nls.localize(coerceMessageKey(this.params.description.ignoreConflicts)));
     }
     return builder.build();
   }

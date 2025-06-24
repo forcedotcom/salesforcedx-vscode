@@ -69,7 +69,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   public readonly onDidChangeTreeData: Event<BaseNode | undefined> = this._onDidChangeTreeData.event;
 
-  public constructor() {
+  constructor() {
     this.checkpoints = [];
     this.myRequestService = new RequestService();
   }

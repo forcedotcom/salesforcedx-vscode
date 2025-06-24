@@ -41,7 +41,7 @@ export class ExternalServiceRegistrationManager {
   private overwrite = false;
   private originalPath: string = '';
   private newPath: string = '';
-  providerType: string | undefined;
+  private providerType: string | undefined;
 
   private initialize(
     isESRDecomposed: boolean,
@@ -166,7 +166,7 @@ export class ExternalServiceRegistrationManager {
     const safeOasSpec = stringify(cleanedOasSpec, null, {
       singleQuote: false, // Disable single quotes entirely
       doubleQuotedAsJSON: false,
-      lineWidth: 80, // Wrap at 80 characters
+      lineWidth: 80 // Wrap at 80 characters
     });
 
     const parser = new XMLParser({ ignoreAttributes: false });
@@ -300,7 +300,7 @@ export class ExternalServiceRegistrationManager {
    * @param filename
    * @returns Promise<[string, string, boolean]> - [className.externalServiceRegistration-meta.xml, the file name of the generated ESR, a boolean indicating if the file already exists]
    */
-  pathExists = async (filename: string): Promise<FullPath> => {
+  public pathExists = async (filename: string): Promise<FullPath> => {
     // Step 1: Prompt for Folder
     const folder = await this.getFolderForArtifact();
     if (!folder) {
@@ -337,7 +337,7 @@ export class ExternalServiceRegistrationManager {
    * Handles the scenario where an ESR file already exists.
    * @returns A string indicating the user's choice: 'overwrite', 'merge', or 'cancel'.
    */
-  handleExistingESR = async (): Promise<string> =>
+  private handleExistingESR = async (): Promise<string> =>
     (await vscode.window.showWarningMessage(
       nls.localize('file_exists'),
       { modal: true },
@@ -345,7 +345,7 @@ export class ExternalServiceRegistrationManager {
       nls.localize('merge')
     )) ?? 'cancel';
 
-  getFolderForArtifact = async (): Promise<string | undefined> => {
+  private getFolderForArtifact = async (): Promise<string | undefined> => {
     const registryAccess = new RegistryAccess();
     let esrDefaultDirectoryName;
     let folderUri;

@@ -29,7 +29,7 @@ export class DeleteSourceExecutor extends SfCommandletExecutor<{
 }> {
   private isSourceTracked: boolean;
 
-  public constructor(isSourceTracked: boolean) {
+  constructor(isSourceTracked: boolean) {
     super();
     this.isSourceTracked = isSourceTracked;
   }
@@ -50,7 +50,7 @@ export class DeleteSourceExecutor extends SfCommandletExecutor<{
 class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
-  public constructor(uri: URI) {
+  constructor(uri: URI) {
     this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
@@ -74,7 +74,7 @@ class ConfirmationAndSourcePathGatherer implements ParametersGatherer<{ filePath
   private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
-  public constructor(uri: URI) {
+  constructor(uri: URI) {
     this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 

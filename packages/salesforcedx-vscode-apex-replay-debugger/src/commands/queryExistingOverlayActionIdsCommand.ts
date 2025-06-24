@@ -29,7 +29,7 @@ type ApexExecutionOverlayActionRecordAttribute = {
 
 export class QueryExistingOverlayActionIdsCommand extends BaseCommand {
   private readonly userId: string;
-  public constructor(userId: string) {
+  constructor(userId: string) {
     super('q=SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId=');
     this.userId = userId;
   }

@@ -27,7 +27,7 @@ import {
  */
 export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionChecker<OneOrMany> {
   constructor(private readonly sourceFsPath: string) {}
-  async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
+  public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (!isContinue(inputs)) {
       return Promise.resolve(inputs);
     }
@@ -61,7 +61,7 @@ export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionC
  * Checks for existing component name between LWC and Aura during create
  */
 export class LwcAuraDuplicateComponentCheckerForCreate implements PostconditionChecker<OneOrMany> {
-  async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
+  public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (!isContinue(inputs)) {
       return Promise.resolve(inputs);
     }

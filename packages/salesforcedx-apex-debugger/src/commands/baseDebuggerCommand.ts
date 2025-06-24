@@ -14,7 +14,7 @@ export class BaseDebuggerCommand extends BaseCommand {
   private readonly debuggerApiPath = 'services/debug/v41.0';
   private readonly request: DebuggerRequest | undefined;
 
-  public constructor(commandName: string, debuggedRequestId: string, queryString?: string, request?: DebuggerRequest) {
+  constructor(commandName: string, debuggedRequestId: string, queryString?: string, request?: DebuggerRequest) {
     super(queryString);
     this.commandName = commandName;
     this.debuggedRequestId = debuggedRequestId;

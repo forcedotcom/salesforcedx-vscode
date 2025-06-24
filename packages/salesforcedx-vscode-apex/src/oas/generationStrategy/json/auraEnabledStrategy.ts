@@ -44,7 +44,7 @@ export class AuraEnabledStrategy extends GenerationStrategy {
     this.isOrgVersionCompatible = false;
   }
 
-  get openAPISchema(): string {
+  public get openAPISchema(): string {
     return this.oasSchema;
   }
 

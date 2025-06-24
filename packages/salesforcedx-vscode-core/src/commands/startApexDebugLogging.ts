@@ -128,7 +128,7 @@ export const getUserId = async (projectPath: string): Promise<string> => {
 
 class QueryUser extends SfCommandletExecutor<{}> {
   private username: string;
-  public constructor(username: string) {
+  constructor(username: string) {
     super();
     this.username = username;
   }
@@ -162,7 +162,7 @@ class CreateDebugLevel extends SfCommandletExecutor<{}> {
 class CreateTraceFlag extends SfCommandletExecutor<{}> {
   private userId: string;
 
-  public constructor(userId: string) {
+  constructor(userId: string) {
     super();
     this.userId = userId;
   }

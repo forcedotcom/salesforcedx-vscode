@@ -22,8 +22,6 @@ export class ConflictView {
   private _dataProvider?: ConflictOutlineProvider;
   private diffsOnly: boolean = false;
 
-  private constructor() {}
-
   public static getInstance(): ConflictView {
     if (!this.instance) {
       this.instance = new ConflictView();
@@ -31,14 +29,14 @@ export class ConflictView {
     return this.instance;
   }
 
-  get treeView() {
+  private get treeView() {
     if (this._treeView) {
       return this._treeView;
     }
     throw this.initError();
   }
 
-  get dataProvider() {
+  private get dataProvider() {
     if (this._dataProvider) {
       return this._dataProvider;
     }

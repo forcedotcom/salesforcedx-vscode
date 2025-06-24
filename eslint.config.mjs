@@ -145,6 +145,10 @@ export default [
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/dot-notation': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-member-accessibility': [
+        'error',
+        { accessibility: 'explicit', overrides: { constructors: 'no-public' } }
+      ],
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@stylistic/eslint-plugin-ts/member-delimiter-style': [
         'error',

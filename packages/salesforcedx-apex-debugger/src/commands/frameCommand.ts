@@ -8,7 +8,7 @@
 import { BaseDebuggerCommand } from './baseDebuggerCommand';
 
 export class FrameCommand extends BaseDebuggerCommand {
-  public constructor(debuggedRequestId: string, frameId: number) {
+  constructor(debuggedRequestId: string, frameId: number) {
     super('frame', debuggedRequestId, `stackFrame=${frameId}`);
   }
 }

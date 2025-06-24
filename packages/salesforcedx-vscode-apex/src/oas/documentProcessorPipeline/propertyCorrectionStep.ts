@@ -13,7 +13,7 @@ import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 export class PropertyCorrectionStep implements ProcessorStep {
   private input: ProcessorInputOutput | undefined;
 
-  process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+  public process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     this.input = input;
     let fixedOASDoc = this.ensureServersIsPresent(input.openAPIDoc);
     fixedOASDoc = this.ensureInfoVersionIsPresent(fixedOASDoc);

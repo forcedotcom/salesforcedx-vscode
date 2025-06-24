@@ -92,7 +92,7 @@ export class FileSystemOrgDataSource implements OrgDataSource {
 }
 
 export class JsforceOrgDataSource implements OrgDataSource {
-  async retrieveSObjectsList(): Promise<string[]> {
+  public async retrieveSObjectsList(): Promise<string[]> {
     try {
       return await retrieveSObjects();
     } catch {
@@ -102,7 +102,7 @@ export class JsforceOrgDataSource implements OrgDataSource {
     }
   }
 
-  async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
+  public async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
     try {
       return toMinimalSObject(await retrieveSObject(sobjectName));
     } catch {

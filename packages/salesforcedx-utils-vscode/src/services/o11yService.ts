@@ -28,14 +28,14 @@
 import { z } from 'zod';
 import { loadO11yModules } from '../telemetry/utils/o11yLoader';
 
+const O11Y_UPLOAD_THRESHOLD_BYTES = 50_000;
 export class O11yService {
-  O11Y_UPLOAD_THRESHOLD_BYTES = 50_000;
-  o11yUploadEndpoint: string | undefined;
-  instrumentation: Instrumentation;
-  _instrApp: InstrumentedAppMethods;
-  protoEncoderFunc: ProtoEncoderFuncType | null = null;
-  a4dO11ySchema: unknown;
-  readonly environment: Record<string, string> = {};
+  private o11yUploadEndpoint: string | undefined;
+  private instrumentation: Instrumentation;
+  private _instrApp: InstrumentedAppMethods;
+  private protoEncoderFunc: ProtoEncoderFuncType | null = null;
+  private a4dO11ySchema: unknown;
+  private readonly environment: Record<string, string> = {};
   private o11yModules: Awaited<ReturnType<typeof loadO11yModules>> | null = null;
   private static instance: O11yService | null = null;
 
@@ -49,7 +49,7 @@ export class O11yService {
     return O11yService.instance;
   }
 
-  async initialize(extensionName: string, o11yUploadEndpoint: string) {
+  public async initialize(extensionName: string, o11yUploadEndpoint: string) {
     this.o11yUploadEndpoint = o11yUploadEndpoint;
     // Ensure modules are loaded before using them
     this.o11yModules = await loadO11yModules();
@@ -93,7 +93,7 @@ export class O11yService {
     }
   }
 
-  async upload(): Promise<void> {
+  public async upload(): Promise<void> {
     try {
       // Log anything that was buffered
       await this.uploadAsNeededAsync(true);
@@ -103,7 +103,7 @@ export class O11yService {
     }
   }
 
-  initSimpleCollector(
+  private initSimpleCollector(
     o11yApp: InstrumentedAppMethods,
     environment: Environment,
     o11yModules: Awaited<ReturnType<typeof loadO11yModules>> | null
@@ -127,7 +127,7 @@ export class O11yService {
     return simpleCollector;
   }
 
-  uploadAsNeededAsync(ignoreThreshold = false): Promise<PromiseSettledResult<Response>[]> {
+  private uploadAsNeededAsync(ignoreThreshold = false): Promise<PromiseSettledResult<Response>[]> {
     const promises: Promise<Response>[] = [];
 
     if (!this.protoEncoderFunc) {
@@ -138,7 +138,7 @@ export class O11yService {
     const simpleCollector = this._instrApp.simpleCollector;
     if (
       simpleCollector?.hasData &&
-      (ignoreThreshold || simpleCollector.estimatedByteSize >= this.O11Y_UPLOAD_THRESHOLD_BYTES)
+      (ignoreThreshold || simpleCollector.estimatedByteSize >= O11Y_UPLOAD_THRESHOLD_BYTES)
     ) {
       const rawContents = simpleCollector.getRawContentsOfCoreEnvelope();
       const binary = this.protoEncoderFunc(rawContents);
@@ -148,7 +148,8 @@ export class O11yService {
     return Promise.allSettled(promises);
   }
 
-  async uploadToFalconAsync(binary: Uint8Array): Promise<Response> {
+  // public only for testing
+  public async uploadToFalconAsync(binary: Uint8Array): Promise<Response> {
     const b64 = Buffer.from(binary).toString('base64');
 
     if (!this.o11yUploadEndpoint) {
@@ -158,7 +159,8 @@ export class O11yService {
     return this.postRequest(this.o11yUploadEndpoint, { base64Env: b64 });
   }
 
-  postRequest = (endpoint: string, body: any): Promise<Response> =>
+  // public only for testing
+  public postRequest = (endpoint: string, body: any): Promise<Response> =>
     fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

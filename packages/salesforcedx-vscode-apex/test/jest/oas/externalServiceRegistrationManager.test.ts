@@ -168,7 +168,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
   it('should handle existing ESR file', async () => {
     (vscode.window.showWarningMessage as jest.Mock).mockResolvedValue('merge');
-    const result = await esrHandler.handleExistingESR();
+    const result = await esrHandler['handleExistingESR']();
 
     expect(result).toBe('merge');
   });
@@ -188,7 +188,7 @@ describe('ExternalServiceRegistrationManager', () => {
       getTypeByNameMock.mockReturnValue({ directoryName: mockDirectoryName } as any);
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(mockFolderPath);
 
-      const result = await esrHandler.getFolderForArtifact();
+      const result = await esrHandler['getFolderForArtifact']();
 
       expect(result).toBe(path.resolve(mockFolderPath));
       expect(vscode.window.showInputBox).toHaveBeenCalledWith({
@@ -210,7 +210,7 @@ describe('ExternalServiceRegistrationManager', () => {
       getTypeByNameMock.mockReturnValue({ directoryName: mockDirectoryName } as any);
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(undefined);
 
-      const result = await esrHandler.getFolderForArtifact();
+      const result = await esrHandler['getFolderForArtifact']();
 
       expect(result).toBeUndefined();
       expect(vscode.window.showInputBox).toHaveBeenCalledWith({

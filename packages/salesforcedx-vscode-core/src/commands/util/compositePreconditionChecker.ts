@@ -10,7 +10,7 @@ import { PreconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 export class CompositePreconditionChecker implements PreconditionChecker {
   public checks: PreconditionChecker[];
 
-  public constructor(...checks: PreconditionChecker[]) {
+  constructor(...checks: PreconditionChecker[]) {
     this.checks = checks;
   }
 

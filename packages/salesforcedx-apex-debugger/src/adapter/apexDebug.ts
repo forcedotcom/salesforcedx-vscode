@@ -230,7 +230,7 @@ export class ScopeContainer implements VariableContainer {
   private type: ScopeType;
   private frameInfo: ApexDebugStackFrameInfo;
 
-  public constructor(type: ScopeType, frameInfo: ApexDebugStackFrameInfo) {
+  constructor(type: ScopeType, frameInfo: ApexDebugStackFrameInfo) {
     this.type = type;
     this.frameInfo = frameInfo;
   }
@@ -277,7 +277,7 @@ export class ObjectReferenceContainer implements VariableContainer {
   protected requestId: string;
   public readonly size: number | undefined;
 
-  public constructor(reference: Reference, requestId: string) {
+  constructor(reference: Reference, requestId: string) {
     this.reference = reference;
     this.requestId = requestId;
     this.size = reference.size;
@@ -380,7 +380,7 @@ export class MapTupleContainer implements VariableContainer {
   private tuple: Tuple;
   private requestId: string;
 
-  public constructor(tuple: Tuple, requestId: string) {
+  constructor(tuple: Tuple, requestId: string) {
     this.tuple = tuple;
     this.requestId = requestId;
   }

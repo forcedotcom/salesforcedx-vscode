@@ -19,7 +19,7 @@ export class BetaInfoInjectionStep implements ProcessorStep {
     this.betaInfo = betaInfo;
   }
 
-  process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+  public process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     const modifiedOASDoc = this.injectBetaInfo(input.openAPIDoc);
 
     return new Promise(resolve => {

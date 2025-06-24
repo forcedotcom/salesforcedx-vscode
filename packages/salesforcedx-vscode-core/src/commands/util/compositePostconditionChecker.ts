@@ -9,7 +9,7 @@ import { CancelResponse, ContinueResponse, PostconditionChecker } from '@salesfo
 
 export class CompositePostconditionChecker<T> implements PostconditionChecker<T> {
   private readonly postCheckers: PostconditionChecker<any>[];
-  public constructor(...postCheckers: PostconditionChecker<any>[]) {
+  constructor(...postCheckers: PostconditionChecker<any>[]) {
     this.postCheckers = postCheckers;
   }
 

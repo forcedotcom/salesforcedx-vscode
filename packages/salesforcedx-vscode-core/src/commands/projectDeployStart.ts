@@ -22,7 +22,7 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { handlePushDiagnosticErrors } from '../diagnostics';
-import { coerceMessageKey,nls } from '../messages';
+import { coerceMessageKey, nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
@@ -44,7 +44,7 @@ const pushCommand: CommandParams = {
 
 export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
-  public constructor(
+  constructor(
     flag?: string,
     public params: CommandParams = pushCommand,
     showChannelOutput: boolean = true

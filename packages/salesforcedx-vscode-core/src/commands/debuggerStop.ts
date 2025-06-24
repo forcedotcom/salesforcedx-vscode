@@ -39,7 +39,7 @@ type IdSelection = { id: string };
 class IdGatherer implements ParametersGatherer<IdSelection> {
   private readonly sessionIdToUpdate: string;
 
-  public constructor(sessionIdToUpdate: string) {
+  constructor(sessionIdToUpdate: string) {
     this.sessionIdToUpdate = sessionIdToUpdate;
   }
 

@@ -9,7 +9,7 @@ import { OpenAPIV3 } from 'openapi-types';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class ReconcileDuplicateSemanticPathsStep implements ProcessorStep {
-  process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+  public process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     const fixedOASDoc = this.resolvePathsThatAreSemanticallyEqual(input.openAPIDoc);
 
     return new Promise(resolve => {

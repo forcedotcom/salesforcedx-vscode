@@ -12,7 +12,7 @@ export class Message implements LocalizationProvider {
   private readonly delegate?: Message;
   private readonly messages: MessageBundle;
 
-  public constructor(messages: MessageBundle, delegate?: Message) {
+  constructor(messages: MessageBundle, delegate?: Message) {
     this.messages = messages;
     this.delegate = delegate;
   }

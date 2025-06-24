@@ -24,7 +24,7 @@ const reorderKeys = (obj: Record<string, any>, keyOrder: string[]): Record<strin
 };
 
 export class OasReorderStep implements ProcessorStep {
-  async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+  public async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     const oas = input.openAPIDoc;
 
     // Reorder info section in top level

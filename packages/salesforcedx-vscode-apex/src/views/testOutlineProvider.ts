@@ -242,7 +242,7 @@ export abstract class TestNode extends vscode.TreeItem {
   // TODO: create a ticket to address this particular issue.
 
   // @ts-ignore
-  get tooltip(): string {
+  public get tooltip(): string {
     return this.description;
   }
 

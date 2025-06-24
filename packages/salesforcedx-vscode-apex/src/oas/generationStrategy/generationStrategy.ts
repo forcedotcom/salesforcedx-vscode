@@ -6,7 +6,7 @@
  */
 import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
-import { APEX_OAS_INCLUDE_GUIDED_JSON, APEX_OAS_OUTPUT_TOKEN_LIMIT, SF_LOG_LEVEL_SETTING } from '../../constants';
+import { APEX_OAS_INCLUDE_GUIDED_JSON, APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../constants';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -18,25 +18,26 @@ import {
 const AsyncLock = require('async-lock');
 
 export abstract class GenerationStrategy {
-  metadata: ApexClassOASEligibleResponse;
-  context: ApexClassOASGatherContextResponse;
-  strategyName: string;
-  biddedCallCount: number;
-  maxBudget: number;
-  serviceRequests: Map<string, Promise<string>> = new Map();
-  serviceResponses: Map<string, string> = new Map();
-  servicePrompts: Map<string, string> = new Map();
-  sourceText: string = '';
-  classPrompt: string = '';
-  oasSchema: string = '';
-  abstract bid(): Promise<PromptGenerationStrategyBid>;
-  abstract generateOAS(): Promise<string>; // generate OAS with the resolved content
-  abstract openAPISchema: string | undefined;
-  includeOASSchema: boolean | undefined;
-  logLevel: string;
-  outputTokenLimit: number;
-  resolutionAttempts: number;
-  beta: string | undefined;
+  public metadata: ApexClassOASEligibleResponse;
+  public context: ApexClassOASGatherContextResponse;
+  public biddedCallCount: number;
+  public maxBudget: number;
+  public includeOASSchema: boolean | undefined;
+  public outputTokenLimit: number;
+  public resolutionAttempts: number;
+  protected serviceRequests: Map<string, Promise<string>> = new Map();
+  protected serviceResponses: Map<string, string> = new Map();
+  protected servicePrompts: Map<string, string> = new Map();
+  protected sourceText: string = '';
+  protected classPrompt: string = '';
+  protected oasSchema: string = '';
+
+  private beta: string | undefined;
+  private strategyName: string;
+
+  public abstract bid(): Promise<PromptGenerationStrategyBid>;
+  public abstract generateOAS(): Promise<string>; // generate OAS with the resolved content
+  public abstract openAPISchema: string | undefined;
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   private lock = new AsyncLock();
@@ -55,20 +56,19 @@ export abstract class GenerationStrategy {
     this.biddedCallCount = biddedCallCount;
     this.maxBudget = maxBudget;
     this.includeOASSchema = undefined;
-    this.logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
     this.outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
     this.resolutionAttempts = 0;
     this.beta = betaInfo;
   }
 
-  getPromptTokenCount(prompt: string): number {
+  protected getPromptTokenCount(prompt: string): number {
     return Math.floor(prompt.length / 4);
   }
 
-  getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
+  public getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
     ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 
-  async incrementResolutionAttempts(): Promise<void> {
+  public async incrementResolutionAttempts(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     await this.lock.acquire(this.strategyName, () => this.resolutionAttempts++);
   }
@@ -78,7 +78,7 @@ export abstract class GenerationStrategy {
     return this.includeOASSchema;
   }
 
-  get betaInfo(): string | undefined {
+  public get betaInfo(): string | undefined {
     return this.beta;
   }
 }

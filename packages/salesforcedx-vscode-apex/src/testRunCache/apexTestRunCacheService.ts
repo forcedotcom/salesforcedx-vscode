@@ -24,7 +24,7 @@ class ApexTestRunCacheService {
     return ApexTestRunCacheService.instance;
   }
 
-  public constructor() {
+  constructor() {
     this.lastClassTestParam = '';
     this.lastMethodTestParam = '';
   }
