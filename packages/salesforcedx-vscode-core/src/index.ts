@@ -11,9 +11,9 @@ import {
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
   TraceFlags,
+  WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
-  getRootWorkspacePath,
-  showTraceFlagExpiration
+  getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -498,24 +498,18 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
 
+  // Handle trace flag cleanup after setting target org
   try {
-    // Delete expired TraceFlags for the current user
-    const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+    const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
 
-    const userId = await traceFlags.getUserIdOrThrow();
-
-    const expiredTraceFlagExists = await traceFlags.deleteExpiredTraceFlags(userId);
-    if (expiredTraceFlagExists) {
-      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
-    }
-
-    // Apex Replay Debugger Expiration Status Bar Entry
-    const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
-    if (expirationDate) {
-      showTraceFlagExpiration(new Date(expirationDate), APEX_CODE_DEBUG_LEVEL);
-    }
-  } catch {
-    console.log('No default org found, skipping trace flag expiration check');
+    const traceFlags = new TraceFlags(connection);
+    await traceFlags.handleTraceFlagCleanupAfterLogin(
+      extensionContext,
+      TRACE_FLAG_EXPIRATION_KEY,
+      APEX_CODE_DEBUG_LEVEL
+    );
+  } catch (error) {
+    console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);
   }
 
   console.log('SF CLI Extension Activated');
