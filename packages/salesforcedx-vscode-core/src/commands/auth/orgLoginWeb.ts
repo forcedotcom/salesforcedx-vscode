@@ -84,8 +84,12 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
 
       // If the command completed successfully, clean up trace flags
       if (exitCode === 0 && this.extensionContext) {
-        const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-        await traceFlags.handleTraceFlagCleanupAfterLogin(this.extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
+        // Add a small delay to allow workspace context to update with new org connection
+        const extensionContext = this.extensionContext;
+        setTimeout(async () => {
+          const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+          await traceFlags.handleTraceFlagCleanupAfterLogin(extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
+        }, 1000); // 1 second delay
       }
     });
 
@@ -190,8 +194,12 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
       // If the command completed successfully, clean up trace flags
       if (exitCode === 0 && this.extensionContext) {
-        const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-        await traceFlags.handleTraceFlagCleanupAfterLogin(this.extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
+        // Add a small delay to allow workspace context to update with new org connection
+        const extensionContext = this.extensionContext;
+        setTimeout(async () => {
+          const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+          await traceFlags.handleTraceFlagCleanupAfterLogin(extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
+        }, 1000); // 1 second delay
       }
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
@@ -240,8 +248,12 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
 
       // Clean up trace flags after successful login
       if (this.extensionContext) {
-        const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-        await traceFlags.handleTraceFlagCleanupAfterLogin(this.extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
+        // Add a small delay to allow workspace context to update with new org connection
+        const extensionContext = this.extensionContext;
+        setTimeout(async () => {
+          const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
+          await traceFlags.handleTraceFlagCleanupAfterLogin(extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
+        }, 1000); // 1 second delay
       }
 
       return Promise.resolve();
