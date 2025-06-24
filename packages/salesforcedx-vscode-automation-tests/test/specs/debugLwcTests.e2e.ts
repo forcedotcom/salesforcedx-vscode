@@ -175,6 +175,7 @@ describe('Debug LWC Tests', () => {
   });
 
   it('Debug All Tests via Code Lens action', async () => {
+    log(`${testSetup.testSuiteSuffixName} - Debug All Tests via Code Lens action`);
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
