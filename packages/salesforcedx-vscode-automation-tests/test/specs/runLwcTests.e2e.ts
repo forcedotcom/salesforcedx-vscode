@@ -29,7 +29,8 @@ import {
   getTextEditor,
   getWorkbench,
   reloadWindow,
-  verifyOutputPanelText
+  verifyOutputPanelText,
+  waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { fail } from 'node:assert';
@@ -246,11 +247,9 @@ describe('Run LWC Tests', () => {
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
     // Click the "Run" code lens at the top of the class
-    const runAllTestsOption = await textEditor.getCodeLens('Run');
-    if (!runAllTestsOption) {
-      fail('Could not find run all tests action button');
-    }
-    await runAllTestsOption.click();
+    const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run');
+    expect(runAllTestsOption).to.not.be.undefined;
+    await runAllTestsOption!.click();
 
     // Verify test results are listed on the terminal
     // Also verify that all tests pass
@@ -273,11 +272,9 @@ describe('Run LWC Tests', () => {
     // Click the "Run Test" code lens at the top of one of the test methods
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc2.test.js');
-    const runTestOption = await textEditor.getCodeLens('Run Test');
-    if (!runTestOption) {
-      fail('Could not find run test action button');
-    }
-    await runTestOption.click();
+    const runTestOption = await waitForAndGetCodeLens(textEditor, 'Run Test');
+    expect(runTestOption).to.not.be.undefined;
+    await runTestOption!.click();
 
     // Verify test results are listed on the terminal
     // Also verify that all tests pass

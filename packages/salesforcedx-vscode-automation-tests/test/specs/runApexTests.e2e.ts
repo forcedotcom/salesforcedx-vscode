@@ -37,7 +37,8 @@ import {
   getTextEditor,
   getWorkbench,
   notificationIsPresentWithTimeout,
-  verifyOutputPanelText
+  verifyOutputPanelText,
+  waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as semver from 'semver';
@@ -108,7 +109,8 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Click the "Run All Tests" code lens at the top of the class
-    const runAllTestsOption = await textEditor.getCodeLens('Run All Tests');
+    const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
+    expect(runAllTestsOption).to.not.be.undefined;
     await runAllTestsOption!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
@@ -140,7 +142,8 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Click the "Run Test" code lens at the top of one of the test methods
-    const runTestOption = await textEditor.getCodeLens('Run Test');
+    const runTestOption = await waitForAndGetCodeLens(textEditor, 'Run Test');
+    expect(runTestOption).to.not.be.undefined;
     await runTestOption!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);

@@ -27,7 +27,8 @@ import {
   getWorkbench,
   getStatusBarItemWhichIncludes,
   getTextEditor,
-  dismissAllNotifications
+  dismissAllNotifications,
+  waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { TreeItem, after } from 'vscode-extension-tester';
@@ -88,7 +89,8 @@ describe('Debug Apex Tests', () => {
     await dismissAllNotifications();
 
     // Click the "Debug All Tests" code lens at the top of the class
-    const debugAllTestsOption = await textEditor.getCodeLens('Debug All Tests');
+    const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug All Tests');
+    expect(debugAllTestsOption).to.not.be.undefined;
     await debugAllTestsOption!.click();
     await pause(Duration.seconds(20));
 
@@ -108,7 +110,8 @@ describe('Debug Apex Tests', () => {
     await dismissAllNotifications();
 
     // Click the "Debug Test" code lens at the top of one of the test methods
-    const debugTestOption = await textEditor.getCodeLens('Debug Test');
+    const debugTestOption = await waitForAndGetCodeLens(textEditor, 'Debug Test');
+    expect(debugTestOption).to.not.be.undefined;
     await debugTestOption!.click();
     await pause(Duration.seconds(20));
 

@@ -11,7 +11,6 @@ import {
   log,
   pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
@@ -29,10 +28,10 @@ import {
   getTerminalViewText,
   verifyOutputPanelText,
   runCommandFromCommandPrompt,
-  getTextEditor
+  getTextEditor,
+  waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { fail } from 'node:assert';
 import * as path from 'node:path';
 import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
 
@@ -114,7 +113,7 @@ describe('Debug LWC Tests', () => {
     const testingView = await workbench.getActivityBar().getViewControl('Testing');
     expect(testingView).to.not.be.undefined;
     // Open the Test Sidebar
-    const testingSideBarView = await testingView?.openView();
+    const testingSideBarView = await testingView!.openView();
     expect(testingSideBarView).to.be.instanceOf(SideBarView);
 
     // Hover a test name under one of the test lwc sections and click the debug button that is shown to the right of the test name on the Test sidebar
@@ -180,18 +179,9 @@ describe('Debug LWC Tests', () => {
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
     // Click the "Debug" code lens at the top of the class
-    const debugAllTestsOption = await retryOperation(
-      async () => {
-        const codeLens = await textEditor.getCodeLens('Debug');
-        if (!codeLens) {
-          throw new Error('Could not find debug all tests action button');
-        }
-        return codeLens;
-      },
-      3,
-      'Failed to find Debug code lens'
-    );
-    await debugAllTestsOption.click();
+    const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug');
+    expect(debugAllTestsOption).to.not.be.undefined;
+    await debugAllTestsOption!.click();
     await pause(Duration.seconds(15));
 
     // Continue with the debug session
@@ -218,11 +208,10 @@ describe('Debug LWC Tests', () => {
     // Click the "Debug Test" code lens at the top of one of the test methods
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc2.test.js');
-    const debugTestOption = await textEditor.getCodeLens('Debug Test');
-    if (!debugTestOption) {
-      fail('Could not find debug test action button');
-    }
-    await debugTestOption.click();
+    const debugTestOption = await waitForAndGetCodeLens(textEditor, 'Debug Test');
+
+    await debugTestOption!.click();
+
     await pause(Duration.seconds(15));
 
     // Continue with the debug session
@@ -251,7 +240,7 @@ describe('Debug LWC Tests', () => {
     const editorView = workbench.getEditorView();
     const debugTestButtonToolbar = await editorView.getAction('SFDX: Debug Current Lightning Web Component Test File');
     expect(debugTestButtonToolbar).to.not.be.undefined;
-    await debugTestButtonToolbar?.click();
+    await debugTestButtonToolbar!.click();
     await pause(Duration.seconds(15));
 
     // Continue with the debug session
