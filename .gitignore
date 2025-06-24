@@ -122,3 +122,5 @@ extensions/
 /.codegenie
 
 .nx/cache
+
+packages/salesforcedx-vscode-lightning/tern

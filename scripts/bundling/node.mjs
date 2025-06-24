@@ -4,7 +4,8 @@ export const commonConfigNode = {
   platform: 'node',
   external: ['vscode'],
   // TODO: we need a way to turn this off for debugging and local dev
-  minify: false,
+  minify: true,
+  sourcemap: true,
   keepNames: true,
   logOverride: {
     'unsupported-dynamic-import': 'error'

@@ -33,6 +33,11 @@ await build({
         {
           from: ['../../node_modules/@salesforce/aura-language-server/lib/resources/**'],
           to: ['./resources']
+        },
+        // tern is "vendored" in the aura language server, with resolution by paths, so this preserves the path relationship.
+        {
+          from: ['../../node_modules/@salesforce/aura-language-server/lib/tern/**'],
+          to: ['../tern']
         }
       ]
     })
