@@ -3,10 +3,6 @@
 ## Added
 
 #### salesforcedx-sobjects-faux-generator
-
-- We made some changes under the hood. ([PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322), [PR #6331](https://github.com/forcedotcom/salesforcedx-vscode/pull/6331))
-
-
 #### salesforcedx-utils-vscode
 #### salesforcedx-vscode-apex
 #### salesforcedx-vscode-soql
