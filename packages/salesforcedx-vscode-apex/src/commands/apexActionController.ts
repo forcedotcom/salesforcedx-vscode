@@ -56,7 +56,8 @@ export class ApexActionController {
     const hrStart = process.hrtime();
     let props: OASGenerationCommandProperties = {
       isClass: `${isClass}`,
-      overwrite: 'false'
+      overwrite: 'false',
+      strategy: 'unknown'
     };
 
     let measures: OASGenerationCommandMeasure = {
@@ -146,7 +147,8 @@ export class ApexActionController {
           // Step 10: Gather metrics
           props = {
             isClass: `${isClass}`,
-            overwrite: `${overwrite}`
+            overwrite: `${overwrite}`,
+            strategy: generationOrchestrator.strategy?.strategyName ?? 'unknown'
           };
 
           const [errors, warnings, infos, hints, total] = summarizeDiagnostics(processedOasResult.errors);

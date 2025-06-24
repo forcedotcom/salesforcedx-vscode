@@ -143,6 +143,7 @@ export const httpMethodMap: Record<string, HttpRequestMethod> = {
 export type OASGenerationCommandProperties = {
   isClass: string;
   overwrite: string;
+  strategy: string;
 };
 
 export type OASGenerationCommandMeasure = {
