@@ -48,15 +48,10 @@ export class LogStream extends Disposable implements TelemetryReporter {
     measurements?: { [key: string]: number }
   ): void {
     const orgId = WorkspaceContextUtil.getInstance().orgId;
-    if (orgId && properties) {
-      properties.orgId = orgId;
-    } else if (orgId) {
-      properties = { orgId };
-    }
 
     void this.appendToFile(
       `telemetry/${eventName} ${JSON.stringify({
-        properties,
+        properties: { ...(properties ?? {}), ...(orgId ? { orgId } : {}) },
         measurements
       })}\n`
     );

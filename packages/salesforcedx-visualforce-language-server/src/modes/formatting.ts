@@ -29,6 +29,7 @@ export const format = (
     while (isEOL(content, endOffset - 1) && endOffset > prevLineStart) {
       endOffset--;
     }
+    // eslint-disable-next-line no-param-reassign
     formatRange = Range.create(formatRange.start, document.positionAt(endOffset));
   }
 
@@ -56,6 +57,7 @@ export const format = (
     return result;
   }
   // modify the range
+  // eslint-disable-next-line no-param-reassign
   formatRange = Range.create(startPos, formatRange.end);
 
   // perform a html format and apply changes to a new document

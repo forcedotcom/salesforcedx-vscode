@@ -16,6 +16,8 @@ export class CompositePostconditionChecker<T> implements PostconditionChecker<T>
   public async check(inputs: CancelResponse | ContinueResponse<T>): Promise<CancelResponse | ContinueResponse<T>> {
     if (inputs.type === 'CONTINUE') {
       for (const postChecker of this.postCheckers) {
+        // can't tell if the mutation of inputs is intentional or side effect
+        // eslint-disable-next-line no-param-reassign
         inputs = await postChecker.check(inputs);
         if (inputs.type !== 'CONTINUE') {
           return {

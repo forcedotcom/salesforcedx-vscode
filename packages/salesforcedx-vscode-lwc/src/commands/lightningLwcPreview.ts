@@ -133,17 +133,15 @@ const lwcPreviewContainerMode = () => {
 const lwcPreview = async (sourceUri: URI) => {
   const startTime = process.hrtime();
 
-  if (!sourceUri) {
-    if (vscode.window.activeTextEditor) {
-      sourceUri = URI.from(vscode.window.activeTextEditor.document.uri);
-    } else {
-      const message = nls.localize('lightning_lwc_preview_file_undefined', sourceUri);
-      showError(new Error(message), logName, commandName);
-      return;
-    }
-  }
+  const resolved =
+    sourceUri ?? (vscode.window.activeTextEditor ? URI.from(vscode.window.activeTextEditor.document.uri) : undefined);
 
-  const resourcePath = sourceUri.fsPath;
+  if (!resolved) {
+    const message = nls.localize('lightning_lwc_preview_file_undefined', resolved);
+    showError(new Error(message), logName, commandName);
+    return;
+  }
+  const resourcePath = resolved.fsPath;
   if (!resourcePath) {
     const message = nls.localize('lightning_lwc_preview_file_undefined', resourcePath);
     showError(new Error(message), logName, commandName);

@@ -21,7 +21,7 @@ type input =
       exceptionKey: 'retrieve_with_sourcepath';
     };
 
-export const getUriFromActiveEditor = ({ message, exceptionKey }: input): URI | undefined => {
+export const getUriFromActiveEditor = async ({ message, exceptionKey }: input): Promise<URI | undefined> => {
   const editor = vscode.window.activeTextEditor;
   if (editor?.document.languageId !== 'forcesourcemanifest') {
     return editor?.document.uri;
@@ -29,7 +29,7 @@ export const getUriFromActiveEditor = ({ message, exceptionKey }: input): URI | 
 
   const errorMessage = nls.localize(message);
   telemetryService.sendException(exceptionKey, errorMessage);
-  notificationService.showErrorMessage(errorMessage);
+  await notificationService.showErrorMessage(errorMessage);
   channelService.appendLine(errorMessage);
   channelService.showChannelOutput();
 

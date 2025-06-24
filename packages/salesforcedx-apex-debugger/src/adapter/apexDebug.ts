@@ -308,33 +308,23 @@ export class ObjectReferenceContainer implements VariableContainer {
 }
 
 export class CollectionReferenceContainer extends ObjectReferenceContainer {
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  public async expand(session: ApexDebug, filter: FilterType, start = 0, count?: number): Promise<ApexVariable[]> {
     if (!this.reference.value) {
-      // this object is empty
       return [];
     }
-    if (start === undefined) {
-      start = 0;
-    }
-    if (count === undefined) {
-      count = this.reference.value.length;
-    }
-    const apexVariables: ApexVariable[] = [];
-    for (let i = start; i < start + count && i < this.reference.value.length; i++) {
-      const variableReference = await session.resolveApexIdToVariableReference(
-        this.requestId,
-        this.reference.value[i].ref
-      );
-      apexVariables.push(
-        new ApexVariable(
-          this.reference.value[i],
+    const resolvedCount = count ?? this.reference.value.length;
+
+    return Promise.all(
+      this.reference.value.slice(start, start + resolvedCount).map(async item => {
+        const variableReference = await session.resolveApexIdToVariableReference(this.requestId, item.ref);
+        return new ApexVariable(
+          item,
           ApexVariableKind.Collection,
           variableReference,
           session.getNumberOfChildren(variableReference)
-        )
-      );
-    }
-    return Promise.resolve(apexVariables);
+        );
+      })
+    );
   }
 }
 
@@ -345,18 +335,12 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
     this.tupleContainers.set(reference, tupleContainer);
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
-    if (start === undefined) {
-      start = 0;
-    }
-    if (count === undefined) {
-      count = this.tupleContainers.size;
-    }
-    const apexVariables: ApexVariable[] = [];
-    let offset = 0;
-    this.tupleContainers.forEach((container, reference) => {
-      if (offset >= start && offset < start + count) {
-        apexVariables.push(
+  public async expand(session: ApexDebug, filter: FilterType, start = 0, count?: number): Promise<ApexVariable[]> {
+    const resolvedCount = count ?? this.tupleContainers.size;
+    return Array.from(this.tupleContainers.entries())
+      .slice(start, start + resolvedCount)
+      .map(
+        ([reference, container]) =>
           new ApexVariable(
             {
               name: container.keyAsString(),
@@ -368,11 +352,7 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
             reference,
             session.getNumberOfChildren(reference)
           )
-        );
-      }
-      offset++;
-    });
-    return Promise.resolve(apexVariables);
+      );
   }
 }
 
@@ -1111,47 +1091,46 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   protected populateReferences(references: Reference[], requestId: string): void {
-    references.map(reference => {
-      if (this.variableContainerReferenceByApexId.has(reference.id)) {
-        return;
-      }
-      let variableReference: number;
-      if (reference.type === 'object') {
-        variableReference = this.variableHandles.create(new ObjectReferenceContainer(reference, requestId));
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
-        );
-      } else if (reference.type === 'list' || reference.type === 'set') {
-        variableReference = this.variableHandles.create(new CollectionReferenceContainer(reference, requestId));
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages} with size ${reference.size}`
-        );
-      } else if (reference.type === 'map') {
-        const mapContainer = new MapReferenceContainer(reference, requestId);
-        // explode all map entried so that we can drill down a map logically
-        if (reference.tuple) {
-          reference.tuple.forEach(tuple => {
-            const tupleContainer = new MapTupleContainer(tuple, requestId);
-            const tupleReference = this.variableHandles.create(tupleContainer);
-            mapContainer.addTupleContainer(tupleReference, tupleContainer);
-          });
+    references
+      .filter(reference => !this.variableContainerReferenceByApexId.has(reference.id))
+      .map(reference => {
+        let variableReference: number;
+        if (reference.type === 'object') {
+          variableReference = this.variableHandles.create(new ObjectReferenceContainer(reference, requestId));
+          this.log(
+            TRACE_CATEGORY_VARIABLES,
+            `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+          );
+        } else if (reference.type === 'list' || reference.type === 'set') {
+          variableReference = this.variableHandles.create(new CollectionReferenceContainer(reference, requestId));
+          this.log(
+            TRACE_CATEGORY_VARIABLES,
+            `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages} with size ${reference.size}`
+          );
+        } else if (reference.type === 'map') {
+          const mapContainer = new MapReferenceContainer(reference, requestId);
+          // explode all map entried so that we can drill down a map logically
+          if (reference.tuple) {
+            reference.tuple.forEach(tuple => {
+              const tupleContainer = new MapTupleContainer(tuple, requestId);
+              const tupleReference = this.variableHandles.create(tupleContainer);
+              mapContainer.addTupleContainer(tupleReference, tupleContainer);
+            });
+          }
+          variableReference = this.variableHandles.create(mapContainer);
+          this.log(
+            TRACE_CATEGORY_VARIABLES,
+            `populateReferences: new map reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+          );
+        } else {
+          const referenceInfo = JSON.stringify(reference);
+          this.log(TRACE_CATEGORY_VARIABLES, `populateReferences: unhandled reference: ${referenceInfo}`);
+          return;
         }
-        variableReference = this.variableHandles.create(mapContainer);
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new map reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
-        );
-      } else {
-        const referenceInfo = JSON.stringify(reference);
-        this.log(TRACE_CATEGORY_VARIABLES, `populateReferences: unhandled reference: ${referenceInfo}`);
-        return;
-      }
 
-      // map apex id to container reference
-      this.variableContainerReferenceByApexId.set(reference.id, variableReference);
-    });
+        // map apex id to container reference
+        this.variableContainerReferenceByApexId.set(reference.id, variableReference);
+      });
   }
 
   public getNumberOfChildren(variableReference: number | undefined): number | undefined {

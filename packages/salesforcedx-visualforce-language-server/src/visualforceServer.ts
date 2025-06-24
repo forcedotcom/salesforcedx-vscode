@@ -334,6 +334,7 @@ connection.onDocumentLinks(documentLinkParam => {
   const documentContext: DocumentContext = {
     resolveReference: (ref, base) => {
       if (base) {
+        // eslint-disable-next-line no-param-reassign
         ref = url.resolve(base, ref);
       }
       if (workspacePath && ref[0] === '/') {

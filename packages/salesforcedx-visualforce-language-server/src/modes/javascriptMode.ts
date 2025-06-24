@@ -262,6 +262,7 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
             };
             existing[sig] = true;
             result.push(symbol);
+            // eslint-disable-next-line no-param-reassign
             containerLabel = item.text;
           }
 

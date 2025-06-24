@@ -63,16 +63,17 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
 }
 
 export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[] | undefined) => {
-  if (!sourceUri) {
-    // When the source is retrieved via the command palette, both sourceUri and uris are
-    // each undefined, and sourceUri needs to be obtained from the active text editor.
-    sourceUri = getUriFromActiveEditor({
+  // When the source is retrieved via the command palette, both sourceUri and uris are
+  // each undefined, and sourceUri needs to be obtained from the active text editor.
+  const resolvedSourceUri =
+    sourceUri ??
+    (await getUriFromActiveEditor({
       message: 'retrieve_select_file_or_directory',
       exceptionKey: 'retrieve_with_sourcepath'
-    });
-    if (!sourceUri) {
-      return;
-    }
+    }));
+
+  if (!resolvedSourceUri) {
+    return;
   }
 
   // When a single file is selected and "Retrieve Source from Org" is executed,
@@ -85,14 +86,11 @@ export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[
   //
   // When editing a file and "Retrieve This Source from Org" is executed,
   // sourceUri is passed, but uris is undefined.
-  if (!uris || uris.length === 0) {
-    uris = [];
-    uris.push(sourceUri);
-  }
+  const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
 
   const commandlet = new SfCommandlet<string[]>(
     new SfWorkspaceChecker(),
-    new LibraryPathsGatherer(uris),
+    new LibraryPathsGatherer(resolvedUris),
     new LibraryRetrieveSourcePathExecutor(),
     new SourcePathChecker()
   );

@@ -112,6 +112,7 @@ export default [
         }
       ],
       '@typescript-eslint/adjacent-overload-signatures': 'error',
+      '@typescript-eslint/class-literal-property-style': 'error',
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-restricted-types': [
@@ -302,6 +303,7 @@ export default [
       'no-fallthrough': 'off',
       'no-invalid-this': 'off',
       'no-new-wrappers': 'error',
+      'no-param-reassign': 'error',
       'no-shadow': 'off',
       'no-throw-literal': 'error',
       'no-trailing-spaces': 'error',
@@ -369,7 +371,8 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
-      'no-useless-constructor': 'off'
+      'no-useless-constructor': 'off',
+      'no-param-reassign': 'off'
     }
   },
   {
