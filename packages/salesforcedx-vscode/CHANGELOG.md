@@ -11,7 +11,7 @@
 #### salesforcedx-vscode-apex
 #### salesforcedx-vscode-soql
 
-- We made some changes under the hood. ([PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322), [PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322), [PR #6331](https://github.com/forcedotcom/salesforcedx-vscode/pull/6331))
+- We made some changes under the hood. ([PR #6322](https://github.com/forcedotcom/salesforcedx-vscode/pull/6322), [PR #6331](https://github.com/forcedotcom/salesforcedx-vscode/pull/6331))
 
 
 ## Fixed
