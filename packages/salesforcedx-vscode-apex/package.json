@@ -28,10 +28,8 @@
   "dependencies": {
     "@salesforce/apex-node-bundle": "^8.1.26",
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/core-bundle": "^8.12.0",
-    "@salesforce/salesforcedx-utils": "64.2.1",
-    "@salesforce/salesforcedx-utils-vscode": "64.2.1",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.19.7",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.20.0",
     "@stoplight/spectral-functions": "1.9.3",
@@ -42,20 +40,20 @@
     "fast-xml-parser": "4.5.1",
     "find-java-home": "1.2.2",
     "jsonpath-plus": "10.3.0",
-    "openapi-types": "12.1.3",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
     "yaml": "2.6.0"
   },
   "devDependencies": {
+    "salesforcedx-vscode-core": "*",
+    "@salesforce/core": "^8.12.0",
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "@types/node": "^20.0.0",
-    "@types/sinon": "^2.3.7",
     "cross-env": "5.2.0",
-    "esbuild": "0.25.4",
+    "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "sinon": "^13.0.1"
+    "openapi-types": "12.1.3"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"

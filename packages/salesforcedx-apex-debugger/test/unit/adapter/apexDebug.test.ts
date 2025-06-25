@@ -4,22 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-// Mock DebugSession.run to prevent it from executing during tests
-jest.mock('@vscode/debugadapter', () => ({
-  ...jest.requireActual('@vscode/debugadapter'),
-  DebugSession: {
-    ...jest.requireActual('@vscode/debugadapter').DebugSession,
-    run: jest.fn()
-  }
-}));
+// This is only done in tests because we are mocking things
 
 import {
   ConfigGet,
   DEFAULT_CONNECTION_TIMEOUT_MS,
   OrgDisplay,
   OrgInfo,
-  RequestService
+  RequestService,
+  LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import { OutputEvent, Source, StackFrame, StoppedEvent, ThreadEvent } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
@@ -35,7 +28,7 @@ import {
   LaunchRequestArguments,
   SetExceptionBreakpointsArguments
 } from '../../../src/adapter/apexDebug';
-import { LineBreakpointInfo, LineBreakpointsInTyperef } from '../../../src/breakpoints/lineBreakpoint';
+import { LineBreakpointsInTyperef } from '../../../src/breakpoints/lineBreakpoint';
 import { RunCommand, StateCommand, StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands';
 import {
   DEFAULT_IDLE_TIMEOUT_MS,
@@ -93,31 +86,7 @@ describe('Interactive debugger adapter - unit', () => {
     adapter = new ApexDebugForTest(new RequestService());
   });
 
-  afterEach(async () => {
-    if (adapter) {
-      // Properly disconnect the debug session to clean up resources
-      const disconnectResponse = {
-        command: 'disconnect',
-        success: true,
-        request_seq: 0,
-        seq: 0,
-        type: 'response'
-      } as DebugProtocol.DisconnectResponse;
-      const disconnectArgs = {} as DebugProtocol.DisconnectArguments;
-
-      try {
-        await adapter.disconnectReq(disconnectResponse, disconnectArgs);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        // Ignore disconnect errors in tests
-      }
-
-      adapter.clearIdleTimers();
-    }
-  });
-
   afterAll(() => {
-    // Final cleanup
     if (adapter) {
       adapter.clearIdleTimers();
     }

@@ -15,16 +15,17 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { strict as assert } from 'node:assert';
 import { URI } from 'vscode-uri';
-import { ApexReplayDebug, ApexVariable, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { ApexVariable } from '../../../src/adapter/apexVariable';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableBeginState } from '../../../src/states';
 
 describe('Variable begin scope event', () => {
-  let getUriFromSignatureStub: sinon.SinonStub;
-  let getStaticMapStub: sinon.SinonStub;
+  let getUriFromSignatureStub: jest.SpyInstance;
+  let getStaticMapStub: jest.SpyInstance;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const uriFromSignature = 'file:///path/foo.cls';
@@ -40,13 +41,13 @@ describe('Variable begin scope event', () => {
   beforeEach(() => {
     map = new Map<string, Map<string, ApexVariable>>();
     map.set('fakeClass', new Map<string, ApexVariable>());
-    getUriFromSignatureStub = sinon.stub(LogContext.prototype, 'getUriFromSignature').returns(uriFromSignature);
-    getStaticMapStub = sinon.stub(LogContext.prototype, 'getStaticVariablesClassMap').returns(map);
+    getUriFromSignatureStub = jest.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
+    getStaticMapStub = jest.spyOn(LogContext.prototype, 'getStaticVariablesClassMap').mockReturnValue(map as any);
   });
 
   afterEach(() => {
-    getUriFromSignatureStub.restore();
-    getStaticMapStub.restore();
+    getUriFromSignatureStub.mockRestore();
+    getStaticMapStub.mockRestore();
   });
 
   it('Should add static variable to frame', () => {
@@ -54,10 +55,10 @@ describe('Variable begin scope event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(entryState.handle(context)).to.be.false;
-    expect(context.getStaticVariablesClassMap().has('fakeClass')).to.be.true;
-    expect(context.getStaticVariablesClassMap().get('fakeClass')!.size).to.equal(1);
-    expect(context.getStaticVariablesClassMap().get('fakeClass')).to.have.key('staticInteger');
+    expect(entryState.handle(context)).toBe(false);
+    expect(context.getStaticVariablesClassMap().has('fakeClass')).toBe(true);
+    expect(context.getStaticVariablesClassMap().get('fakeClass')!.size).toBe(1);
+    expect(context.getStaticVariablesClassMap().get('fakeClass')?.has('staticInteger')).toBe(true);
   });
 
   it('Should add local variable to frame', () => {
@@ -65,11 +66,11 @@ describe('Variable begin scope event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(state.handle(context)).to.be.false;
+    expect(state.handle(context)).toBe(false);
 
     const frames = context.getFrames();
-    expect(context.getNumOfFrames()).to.equal(2);
-    expect(frames[1]).to.deep.equal({
+    expect(context.getNumOfFrames()).toBe(2);
+    expect(frames[1]).toEqual({
       id: 1000,
       line: 0,
       column: 0,
@@ -81,12 +82,13 @@ describe('Variable begin scope event', () => {
       }
     } as StackFrame);
     const entryState = new VariableBeginState(LOCAL_VARIABLE_LOG_LINE.split('|'));
-    expect(entryState.handle(context)).to.be.false;
+    expect(entryState.handle(context)).toBe(false);
     const id = context.getTopFrame()!.id;
     const frameInfo = context.getFrameHandler().get(id);
-    expect(frameInfo.locals.size).to.equal(1);
-    expect(frameInfo.locals.has('localInteger')).to.be.true;
-    expect(frameInfo.locals.get('localInteger')).to.include({
+    assert(frameInfo);
+    expect(frameInfo.locals.size).toBe(1);
+    expect(frameInfo.locals.has('localInteger')).toBe(true);
+    expect(frameInfo.locals.get('localInteger')).toMatchObject({
       name: 'localInteger',
       type: 'Integer'
     });
@@ -97,9 +99,9 @@ describe('Variable begin scope event', () => {
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(entryState.handle(context)).to.be.false;
-    expect(context.getStaticVariablesClassMap().has('fakeClass')).to.be.true;
-    expect(context.getStaticVariablesClassMap().get('fakeClass')!.size).to.equal(1);
-    expect(context.getStaticVariablesClassMap().get('fakeClass')).to.have.key('staticInteger');
+    expect(entryState.handle(context)).toBe(false);
+    expect(context.getStaticVariablesClassMap().has('fakeClass')).toBe(true);
+    expect(context.getStaticVariablesClassMap().get('fakeClass')!.size).toBe(1);
+    expect(context.getStaticVariablesClassMap().get('fakeClass')?.has('staticInteger')).toBe(true);
   });
 });
