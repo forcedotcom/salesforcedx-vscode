@@ -37,9 +37,6 @@ export class AuraEnabledStrategy extends GenerationStrategy {
       SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR,
       'OpenAPI documents generated from Apex classes using @AuraEnabled annotations are in beta.'
     );
-    this.servicePrompts = new Map();
-    this.serviceResponses = new Map();
-    this.serviceRequests = new Map();
     this.sourceText = sourceText;
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);

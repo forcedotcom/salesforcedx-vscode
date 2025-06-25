@@ -47,11 +47,8 @@ export class ApexRestStrategy extends GenerationStrategy {
       SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR,
       'OpenAPI documents generated from Apex classes using Apex REST annotations are in beta.'
     );
-    this.servicePrompts = new Map();
-    this.serviceResponses = new Map();
     this.methodsDocSymbolMap = new Map();
     this.methodsContextMap = new Map();
-    this.serviceRequests = new Map();
     this.sourceText = sourceText;
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     const restResourceAnnotation = this.context.classDetail.annotations.find(a =>

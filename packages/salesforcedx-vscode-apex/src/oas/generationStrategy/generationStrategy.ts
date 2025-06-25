@@ -22,9 +22,9 @@ export abstract class GenerationStrategy {
   public context: ApexClassOASGatherContextResponse;
   public biddedCallCount: number;
   public maxBudget: number;
-  public includeOASSchema: boolean | undefined;
+  public includeOASSchema: boolean | undefined = undefined;
   public outputTokenLimit: number;
-  public resolutionAttempts: number;
+  public resolutionAttempts: number = 0;
   public strategyName: string;
 
   protected serviceRequests: Map<string, Promise<string>> = new Map();
@@ -56,9 +56,7 @@ export abstract class GenerationStrategy {
     this.strategyName = strategyName;
     this.biddedCallCount = biddedCallCount;
     this.maxBudget = maxBudget;
-    this.includeOASSchema = undefined;
     this.outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
-    this.resolutionAttempts = 0;
     this.beta = betaInfo;
   }
 
