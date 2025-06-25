@@ -79,7 +79,7 @@ export class O11yService {
   }
 
   private async initializeSharedResources() {
-    console.log('🔍 Initializing shared O11y resources');
+    console.log('Initializing shared O11y resources');
 
     // Ensure modules are loaded before using them
     O11yService.sharedO11yModules = await loadO11yModules();
@@ -89,12 +89,12 @@ export class O11yService {
 
     // Create a single shared instrumentation
     const sharedInstrumentationName = 'salesforce-vscode-extensions-instrumentation';
-    console.log('🔍 Creating shared instrumentation with name:', sharedInstrumentationName);
+    console.log('Creating shared instrumentation with name:', sharedInstrumentationName);
     O11yService.sharedInstrumentation = getInstrumentation(sharedInstrumentationName);
 
     // Create a single shared app
     const sharedAppName = 'salesforce-vscode-extensions';
-    console.log('🔍 Registering shared app with name:', sharedAppName);
+    console.log('Registering shared app with name:', sharedAppName);
 
     // STEP 1: Register the shared app
     O11yService.sharedInstrApp = registerInstrumentedApp(sharedAppName, {
@@ -123,15 +123,8 @@ export class O11yService {
 
   public logEvent(properties?: { [key: string]: any }): void {
     if (this.instrumentation) {
-      // Add extension-specific metadata to all log events
-      const eventData = {
-        ...properties,
-        extensionName: this.extensionName,
-        extensionEndpoint: this.o11yUploadEndpoint
-      };
-
       this.instrumentation.log(this.a4dO11ySchema, {
-        message: JSON.stringify(eventData)
+        message: JSON.stringify(properties)
       });
     } else {
       console.log('O11yService: Unable to log event - Instrumentation not initialized.');

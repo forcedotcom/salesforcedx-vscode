@@ -87,7 +87,7 @@ describe('O11yService', () => {
 
     o11yService.logEvent({ key: 'value' });
 
-    expect(logMock).toHaveBeenCalledWith({}, { message: '{"key":"value","extensionName":"test-extension","extensionEndpoint":"http://test-endpoint"}' });
+    expect(logMock).toHaveBeenCalledWith({}, { message: '{"key":"value"}' });
   });
 
   test('should not log event if instrumentation is not initialized', () => {
