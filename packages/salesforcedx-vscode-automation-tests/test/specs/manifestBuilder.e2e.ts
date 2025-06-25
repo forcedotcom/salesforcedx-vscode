@@ -124,44 +124,71 @@ describe('Manifest Builder', () => {
     await getTextEditor(workbench, 'manifest.xml');
 
     if (process.platform === 'linux') {
+      log('Deploy: Running on Linux platform - using context menu approach');
+
       // Dismiss all notifications using the button in the status bar
+      log('Deploy: Getting status bar to dismiss notifications');
       const statusBar = workbench.getStatusBar();
       const notificationsButton = await statusBar.getItem('Notifications');
       if (notificationsButton) {
+        log('Deploy: Found notifications button, clicking to dismiss');
         await notificationsButton.click();
         const notificationsCenter = await workbench.openNotificationsCenter();
         await notificationsCenter.clearAllNotifications();
+        log('Deploy: Notifications cleared');
+      } else {
+        log('Deploy: No notifications button found');
       }
 
       // Using the Context menu, run SFDX: Deploy Source in Manifest to Org
+      log('Deploy: Getting sidebar and content');
       const sidebar = await workbench.getSideBar().wait();
       const content = await sidebar.getContent().wait();
+      log(`Deploy: Looking for tree section: ${testSetup.tempProjectName}`);
       const treeViewSection = await content.getSection(testSetup.tempProjectName);
       if (!treeViewSection) {
         throw new Error(
           'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
         );
       }
+      log('Deploy: Found tree view section');
 
+      log('Deploy: Looking for manifest tree item');
       const manifestTreeItem = (await treeViewSection.findItem('manifest')) as DefaultTreeItem;
       if (!manifestTreeItem) {
         throw new Error(
           'In verifyProjectLoaded(), findItem() returned a forceAppTreeItem with a value of null (or undefined)'
         );
       }
+      log('Deploy: Found manifest tree item');
 
       expect(manifestTreeItem).to.not.be.undefined;
+      log('Deploy: Expanding manifest tree item');
       await (await manifestTreeItem.wait()).expand();
+      log('Deploy: Manifest tree item expanded, waiting for UI to settle');
+      await pause(Duration.seconds(1)); // Wait for expansion to complete
 
       // Locate the "manifest.xml" file within the expanded "manifest" folder
+      log('Deploy: Looking for manifest.xml file in expanded folder');
       const manifestXmlFile = (await treeViewSection.findItem('manifest.xml')) as DefaultTreeItem;
       if (!manifestXmlFile) {
+        log('Deploy: ERROR - manifest.xml file not found after expansion');
         throw new Error('No manifest.xml file found');
       }
+      log('Deploy: Found manifest.xml file');
       expect(manifestXmlFile).to.not.be.undefined;
 
+      // Ensure the file is visible and interactable
+      log('Deploy: Selecting manifest.xml file to ensure it is interactable');
+      await manifestXmlFile.select();
+      log('Deploy: File selected, waiting for UI to update');
+      await pause(Duration.milliseconds(500));
+
+      log('Deploy: Opening context menu on manifest.xml');
       const contextMenu = await manifestXmlFile.openContextMenu();
+      log('Deploy: Context menu opened, selecting deploy command');
       await contextMenu.select('SFDX: Deploy Source in Manifest to Org');
+      log('Deploy: Deploy command selected from context menu');
     } else {
       // Using the Command palette, run SFDX: Deploy Source in Manifest to Org
       await executeQuickPick('SFDX: Deploy Source in Manifest to Org', Duration.seconds(10));
@@ -179,44 +206,71 @@ describe('Manifest Builder', () => {
     await getTextEditor(workbench, 'manifest.xml');
 
     if (process.platform === 'linux') {
+      log('Retrieve: Running on Linux platform - using context menu approach');
+
       // Dismiss all notifications using the button in the status bar
+      log('Retrieve: Getting status bar to dismiss notifications');
       const statusBar = workbench.getStatusBar();
       const notificationsButton = await statusBar.getItem('Notifications');
       if (notificationsButton) {
+        log('Retrieve: Found notifications button, clicking to dismiss');
         await notificationsButton.click();
         const notificationsCenter = await workbench.openNotificationsCenter();
         await notificationsCenter.clearAllNotifications();
+        log('Retrieve: Notifications cleared');
+      } else {
+        log('Retrieve: No notifications button found');
       }
 
       // Using the Context menu, run SFDX: Retrieve Source in Manifest from Org
+      log('Retrieve: Getting sidebar and content');
       const sidebar = await workbench.getSideBar().wait();
       const content = await sidebar.getContent().wait();
+      log(`Retrieve: Looking for tree section: ${testSetup.tempProjectName}`);
       const treeViewSection = await content.getSection(testSetup.tempProjectName);
       if (!treeViewSection) {
         throw new Error(
           'In verifyProjectLoaded(), getSection() returned a treeViewSection with a value of null (or undefined)'
         );
       }
+      log('Retrieve: Found tree view section');
 
+      log('Retrieve: Looking for manifest tree item');
       const manifestTreeItem = (await treeViewSection.findItem('manifest')) as DefaultTreeItem;
       if (!manifestTreeItem) {
         throw new Error(
           'In verifyProjectLoaded(), findItem() returned a forceAppTreeItem with a value of null (or undefined)'
         );
       }
+      log('Retrieve: Found manifest tree item');
 
       expect(manifestTreeItem).to.not.be.undefined;
+      log('Retrieve: Expanding manifest tree item');
       await (await manifestTreeItem.wait()).expand();
+      log('Retrieve: Manifest tree item expanded, waiting for UI to settle');
+      await pause(Duration.seconds(1)); // Wait for expansion to complete
 
       // Locate the "manifest.xml" file within the expanded "manifest" folder
+      log('Retrieve: Looking for manifest.xml file in expanded folder');
       const manifestXmlFile = (await treeViewSection.findItem('manifest.xml')) as DefaultTreeItem;
       if (!manifestXmlFile) {
+        log('Retrieve: ERROR - manifest.xml file not found after expansion');
         throw new Error('No manifest.xml file found');
       }
+      log('Retrieve: Found manifest.xml file');
       expect(manifestXmlFile).to.not.be.undefined;
 
+      // Ensure the file is visible and interactable
+      log('Retrieve: Selecting manifest.xml file to ensure it is interactable');
+      await manifestXmlFile.select();
+      log('Retrieve: File selected, waiting for UI to update');
+      await pause(Duration.milliseconds(500));
+
+      log('Retrieve: Opening context menu on manifest.xml');
       const contextMenu = await manifestXmlFile.openContextMenu();
+      log('Retrieve: Context menu opened, selecting retrieve command');
       await contextMenu.select('SFDX: Retrieve Source in Manifest from Org');
+      log('Retrieve: Retrieve command selected from context menu');
     } else {
       // Using the Command palette, run SFDX: Retrieve Source in Manifest from Org
       await executeQuickPick('SFDX: Retrieve Source in Manifest from Org', Duration.seconds(10));
