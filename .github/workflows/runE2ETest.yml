@@ -32,7 +32,7 @@ on:
         type: string
 jobs:
   build:
-    name: ${{ inputs.testToRun }}
+    name: ${{ inputs.testToRun }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
