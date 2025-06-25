@@ -130,7 +130,6 @@ describe('Authentication', () => {
 
   it('Run SFDX: Create a Default Scratch Org', async () => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
       const orgAlias = await createDefaultScratchOrg();
       expect(orgAlias).to.be.a('string');
       scratchOrgAliasName = orgAlias as string;
