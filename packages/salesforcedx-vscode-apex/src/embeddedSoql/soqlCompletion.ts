@@ -52,7 +52,9 @@ export const soqlMiddleware: Middleware = {
 
     const soqlBlock = insideSOQLBlock(items);
     if (soqlBlock) {
-      return !insideApexBindingExpression(document, soqlBlock.queryText, position) ? (await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock)) : items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
+      return !insideApexBindingExpression(document, soqlBlock.queryText, position)
+        ? await doSOQLCompletion(document, position.with({ character: position.character }), context, soqlBlock)
+        : items.filter(i => i.label !== SOQL_SPECIAL_COMPLETION_ITEM_LABEL);
     } else return apexCompletionItems;
   }
 };

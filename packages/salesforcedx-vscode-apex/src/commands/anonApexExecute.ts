@@ -16,9 +16,10 @@ import {
   TraceFlags,
   getYYYYMMddHHmmssDateFormat,
   hasRootWorkspace,
-  projectPaths
+  projectPaths,
+  createDirectory,
+  writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -142,13 +143,13 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
     return logFilePath;
   }
 
-  private saveLogFile(logFilePath: string, logs?: string): boolean {
+  private async saveLogFile(logFilePath: string, logs?: string): Promise<boolean> {
     if (!logFilePath || !logs) {
       return false;
     }
 
-    fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
-    fs.writeFileSync(logFilePath, logs);
+    await createDirectory(path.dirname(logFilePath));
+    await writeFile(logFilePath, logs);
 
     return true;
   }
