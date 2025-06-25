@@ -17,7 +17,7 @@ import { ProcessorInputOutput } from './processorStep';
 import { PropertyCorrectionStep } from './propertyCorrectionStep';
 import { ReconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
-export type ProcessOasDocumentOptions = {
+type ProcessOasDocumentOptions = {
   context?: ApexClassOASGatherContextResponse;
   eligibleResult?: ApexClassOASEligibleResponse;
   isRevalidation?: boolean;
