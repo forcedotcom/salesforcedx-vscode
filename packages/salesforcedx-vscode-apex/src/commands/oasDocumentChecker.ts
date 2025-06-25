@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { notificationService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, readFile, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { XMLParser } from 'fast-xml-parser';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import type { URI } from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import {
   checkIfESRIsDecomposed,
@@ -18,6 +17,7 @@ import {
   processOasDocumentFromYaml
 } from '../oasUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
+
 // This class runs the validation and correction logic on Oas Documents
 class OasDocumentChecker {
   private isESRDecomposed: boolean = false;
@@ -55,13 +55,13 @@ class OasDocumentChecker {
           const fullPath = sourceUri ? sourceUri.fsPath : vscode.window.activeTextEditor?.document.uri.fsPath || '';
 
           // Step 1: Validate eligibility
-          if (!this.isFilePathEligible(fullPath)) {
+          if (!(await this.isFilePathEligible(fullPath))) {
             throw nls.localize('invalid_file_for_generating_oas_doc');
           }
           // Step 2: Extract openAPI document if embedded inside xml
           let openApiDocument: string;
           if (fullPath.endsWith('.xml')) {
-            const xmlContent = fs.readFileSync(fullPath, 'utf8');
+            const xmlContent = await readFile(fullPath);
             const parser = new XMLParser();
             const jsonObj = parser.parse(xmlContent);
             openApiDocument = jsonObj.ExternalServiceRegistration?.schema;
@@ -69,7 +69,7 @@ class OasDocumentChecker {
               throw nls.localize('no_oas_doc_in_file');
             }
           } else {
-            openApiDocument = fs.readFileSync(fullPath, 'utf8');
+            openApiDocument = await readFile(fullPath);
           }
           // Step 3: Process the OAS document
           const processedOasResult = await processOasDocumentFromYaml(openApiDocument, {
@@ -106,7 +106,10 @@ class OasDocumentChecker {
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 
-  private isFilePathEligible = (fullPath: string): boolean => {
+  /**
+   * Checks if the file path is eligible for OAS validation.
+   */
+  private async isFilePathEligible(fullPath: string): Promise<boolean> {
     // check if yaml or xml, else return false
     if (!(fullPath.endsWith('.yaml') || fullPath.endsWith('.externalServiceRegistration-meta.xml'))) {
       return false;
@@ -126,11 +129,11 @@ class OasDocumentChecker {
     }
 
     return this.hasValidRegistrationProviderType(xmlFilePath);
-  };
+  }
 
-  private hasValidRegistrationProviderType = (xmlFilePath: string): boolean => {
+  private hasValidRegistrationProviderType = async (xmlFilePath: string): Promise<boolean> => {
     try {
-      const xmlContent = fs.readFileSync(xmlFilePath, 'utf8');
+      const xmlContent = await readFile(xmlFilePath);
       const parser = new XMLParser();
       const jsonObj = parser.parse(xmlContent);
       const registrationProviderType = jsonObj.ExternalServiceRegistration?.registrationProviderType;

@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
-import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '..';
+import { ConfigUtil, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { getVscodeCoreExtension } from '../../../coreExtensionUtils';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
 import {
@@ -16,6 +14,7 @@ import {
   PromptGenerationStrategyBid
 } from '../../schemas';
 import { buildClassPrompt } from '../buildPromptUtils';
+import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '../constants';
 import { GenerationStrategy } from '../generationStrategy';
 import { openAPISchema_v3_0_guided } from '../openapi3.schema';
 
@@ -25,7 +24,11 @@ export class AuraEnabledStrategy extends GenerationStrategy {
   private isDefaultOrg: boolean;
   private isOrgVersionCompatible: boolean;
 
-  constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
+  private constructor(
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse,
+    sourceText: string
+  ) {
     super(
       metadata,
       context,
@@ -37,11 +40,20 @@ export class AuraEnabledStrategy extends GenerationStrategy {
     this.servicePrompts = new Map();
     this.serviceResponses = new Map();
     this.serviceRequests = new Map();
-    this.sourceText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
+    this.sourceText = sourceText;
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
     this.isDefaultOrg = false;
     this.isOrgVersionCompatible = false;
+  }
+
+  public static async initialize(
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse
+  ): Promise<AuraEnabledStrategy> {
+    const sourceText = await readFile(metadata.resourceUri.fsPath);
+    const strategy = new AuraEnabledStrategy(metadata, context, sourceText);
+    return strategy;
   }
 
   public get openAPISchema(): string {
