@@ -174,15 +174,17 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it.only('Debug All Tests via Code Lens action', async () => {
+  it('Debug All Tests via Code Lens action', async () => {
     log(`${testSetup.testSuiteSuffixName} - Debug All Tests via Code Lens action`);
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
     // Go to the top of the file
+    log('Go to the top of the file');
     const inputBox = await executeQuickPick('Go to Line/Column', Duration.seconds(3));
     await inputBox.setText(':1');
     await inputBox.confirm();
+    log('Go to the top of the file done');
 
     // Click the "Debug" code lens at the top of the class
     const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug');
