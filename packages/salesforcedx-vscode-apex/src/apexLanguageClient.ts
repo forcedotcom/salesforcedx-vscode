@@ -78,13 +78,10 @@ export class ApexLanguageClient extends LanguageClient {
    */
   public async isOpenAPIEligible(requests: ApexOASEligiblePayload): Promise<ApexClassOASEligibleResponses | undefined> {
     // given uris are embedded within a complex structure we must iterate over the collection and call code2ProtocolConverter for each uri
-    const payload = requests.payload.map(req => {
-      const requestUri = this.code2ProtocolConverter.asUri(req.resourceUri);
-      return {
-        ...req,
-        resourceUri: requestUri
-      };
-    });
+    const payload = requests.payload.map(req => ({
+      ...req,
+      resourceUri: this.code2ProtocolConverter.asUri(req.resourceUri)
+    }));
 
     const adjustedRequests: ApexOASEligiblePayloadForLSPProtocol = {
       payload

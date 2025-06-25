@@ -144,14 +144,13 @@ export class ApexExecutionOverlayResultCommand extends BaseCommand {
   private readonly commandName = 'ApexExecutionOverlayResult';
   private readonly heapdumpKey: string;
 
-  public constructor(heapdumpKey: string) {
+  constructor(heapdumpKey: string) {
     super(undefined);
     this.heapdumpKey = heapdumpKey;
   }
 
   public getCommandUrl(): string {
-    const urlElements = [SOBJECTS_URL, this.commandName, this.heapdumpKey];
-    return urlElements.join('/');
+    return [SOBJECTS_URL, this.commandName, this.heapdumpKey].join('/');
   }
 
   public getRequest(): string | undefined {

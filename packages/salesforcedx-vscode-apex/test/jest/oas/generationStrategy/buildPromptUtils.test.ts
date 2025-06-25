@@ -67,7 +67,7 @@ describe('getAnnotationsWithParameters', () => {
       }
     ];
     const result = getAnnotationsWithParameters(annotations as any);
-    expect(result).toBe('Annotation name: RestResource , Parameters: urlMapping: /test\n');
+    expect(result).toBe('Annotation name: RestResource , Parameters: urlMapping: /test');
   });
   it('should return the correct string with multiple annotations', () => {
     const annotations = [
@@ -84,7 +84,7 @@ describe('getAnnotationsWithParameters', () => {
     ];
     const result = getAnnotationsWithParameters(annotations as any);
     expect(result).toBe(
-      'Annotation name: RestResource , Parameters: urlMapping: /test\n, Annotation name: AuraEnabled.\n'
+      'Annotation name: RestResource , Parameters: urlMapping: /test\n, Annotation name: AuraEnabled.'
     );
   });
   it('should return the correct string with no annotations', () => {

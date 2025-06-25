@@ -30,7 +30,7 @@ import {
   ApexActionController
 } from './commands';
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
-import { workspaceContext } from './context';
+import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
   configureApexLanguage,
@@ -43,75 +43,67 @@ import {
 } from './languageUtils';
 import { nls } from './messages';
 import { checkIfESRIsDecomposed } from './oasUtils';
-import { getTelemetryService } from './telemetry/telemetry';
+import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 const metadataOrchestrator = new MetadataOrchestrator();
-let extensionContext: vscode.ExtensionContext;
 
 // Apex Action Controller
 export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (context: vscode.ExtensionContext) => {
-  extensionContext = context;
-  const telemetryService = await getTelemetryService();
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
+
+  // Telemetry
+  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance();
+  await telemetryService.initializeService(context);
   if (!telemetryService) {
     throw new Error('Could not fetch a telemetry service instance');
   }
+  setTelemetryService(telemetryService);
 
-  // Telemetry
-  await telemetryService.initializeService(extensionContext);
-
-  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
+  const activationTracker = new ActivationTracker(context, telemetryService);
 
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace?.workspaceFolders) {
     const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
-
-    const testResultOutput = path.join(apexDirPath, '*.json');
-    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(testResultOutput);
+    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(path.join(apexDirPath, '*.json'));
     testResultFileWatcher.onDidCreate(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
     testResultFileWatcher.onDidChange(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
 
-    extensionContext.subscriptions.push(testResultFileWatcher);
+    context.subscriptions.push(testResultFileWatcher);
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
 
   // Workspace Context
-  await workspaceContext.initialize(extensionContext);
+  await workspaceContext.initialize(context);
 
   // start the language server and client
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   languageClientManager.setStatusBarInstance(languageServerStatusBarItem);
-  await createLanguageClient(extensionContext, languageServerStatusBarItem);
+  await createLanguageClient(context, languageServerStatusBarItem);
 
   // Javadoc support
   configureApexLanguage();
 
   // Initialize the apexActionController
-  await apexActionController.initialize(extensionContext);
+  await apexActionController.initialize(context);
 
-  const isESRDecomposed = await checkIfESRIsDecomposed();
   // Initialize if ESR xml is decomposed
-  void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', isESRDecomposed);
-
-  const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
+  void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', await checkIfESRIsDecomposed());
 
   // Set context based on mulesoft extension
-  if (!muleDxApiExtension?.isActive) {
-    await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', true);
-  } else {
-    await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', false);
-  }
+  const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
+  await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', !muleDxApiExtension?.isActive);
+
   // Commands
-  const commands = registerCommands();
-  extensionContext.subscriptions.push(commands);
+  const commands = registerCommands(context);
+  context.subscriptions.push(commands, registerTestView());
 
-  extensionContext.subscriptions.push(registerTestView());
-
-  const exportedApi = {
+  const exportedApi: ApexVSCodeApi = {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
     getApexTests,
@@ -128,7 +120,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
   return exportedApi;
 };
 
-const registerCommands = (): vscode.Disposable => {
+const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable => {
   // Colorize code coverage
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
@@ -191,7 +183,7 @@ const registerCommands = (): vscode.Disposable => {
   const restartApexLanguageServerCmd = vscode.commands.registerCommand(
     'sf.apex.languageServer.restart',
     async (source?: 'commandPalette' | 'statusBar') => {
-      await restartLanguageServerAndClient(extensionContext, source ?? 'commandPalette');
+      await restartLanguageServerAndClient(context, source ?? 'commandPalette');
     }
   );
 
@@ -228,59 +220,49 @@ const registerTestView = (): vscode.Disposable => {
   const testRunner = new ApexTestRunner(testOutlineProvider);
 
   // Test View
-  const testViewItems = new Array<vscode.Disposable>();
-
-  const testProvider = vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider);
-  testViewItems.push(testProvider);
-
-  // Run Test Button on Test View command
-  testViewItems.push(
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests())
-  );
-  // Show Error Message command
-  testViewItems.push(
+  const testViewItems: vscode.Disposable[] = [
+    vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider),
+    // Run Test Button on Test View command
+    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests()),
+    // Show Error Message command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.showError`, (test: TestNode) =>
       testRunner.showErrorMessage(test)
-    )
-  );
-  // Show Definition command
-  testViewItems.push(
+    ),
+    // Show Definition command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.goToDefinition`, (test: TestNode) =>
       testRunner.showErrorMessage(test)
-    )
-  );
-  // Run Class Tests command
-  testViewItems.push(
+    ),
+    // Run Class Tests command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runClassTests`, (test: TestNode) =>
       testRunner.runApexTests([test.name], TestRunType.Class)
-    )
-  );
-  // Run Single Test command
-  testViewItems.push(
+    ),
+    // Run Single Test command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runSingleTest`, (test: TestNode) =>
       testRunner.runApexTests([test.name], TestRunType.Method)
-    )
-  );
-  // Refresh Test View command
-  testViewItems.push(
+    ),
+    // Refresh Test View command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, () => {
       if (languageClientManager.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
-    })
-  );
-  // Collapse All Apex Tests command
-  testViewItems.push(
+    }),
+    // Collapse All Apex Tests command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.collapseAll`, () =>
       testOutlineProvider.collapseAll()
     )
-  );
+  ];
 
   return vscode.Disposable.from(...testViewItems);
 };
 
 export const deactivate = async () => {
   await languageClientManager.getClientInstance()?.stop();
-  const telemetryService = await getTelemetryService();
-  telemetryService?.sendExtensionDeactivationEvent();
+  getTelemetryService().sendExtensionDeactivationEvent();
+};
+
+export type ApexVSCodeApi = {
+  getLineBreakpointInfo: typeof getLineBreakpointInfo;
+  getExceptionBreakpointInfo: typeof getExceptionBreakpointInfo;
+  getApexTests: typeof getApexTests;
+  languageClientManager: typeof languageClientManager;
 };

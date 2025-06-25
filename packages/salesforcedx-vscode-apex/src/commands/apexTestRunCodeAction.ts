@@ -15,11 +15,10 @@ import {
   TestService
 } from '@salesforce/apex-node-bundle';
 import { ApexDiagnostic } from '@salesforce/apex-node-bundle/lib/src/utils';
-import { NamedPackageDir, SfProject } from '@salesforce/core-bundle';
+import type { NamedPackageDir } from '@salesforce/core';
 import {
   ContinueResponse,
   EmptyParametersGatherer,
-  getRootWorkspacePath,
   getTestResultsFolder,
   LibraryCommandletExecutor,
   notificationService,
@@ -30,7 +29,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
@@ -59,7 +58,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
     const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, this.tests.join());
 
@@ -98,17 +98,21 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 
   private async handleDiagnostics(result: TestResult): Promise<void> {
     ApexLibraryTestRunExecutor.diagnostics.clear();
-    const projectPath = getRootWorkspacePath();
-    const project = await SfProject.resolve(projectPath);
 
     const testsWithDiagnostics = result.tests.filter(isTestWithDiagnostic);
     if (testsWithDiagnostics.length === 0) {
       return;
     }
 
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const project = await vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance();
+
+    if (!project) {
+      return;
+    }
     const correlatedArtifacts = await this.mapApexArtifactToFilesystem(
       testsWithDiagnostics,
-      project.getPackageDirectories()
+      await project.getUniquePackageDirectories()
     );
 
     testsWithDiagnostics.forEach(test => {
@@ -132,38 +136,34 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     tests: ApexTestResultData[],
     packageDirectories: NamedPackageDir[]
   ): Promise<Map<string, string>> {
-    const correlatedArtifacts: Map<string, string> = new Map();
+    const correlatedArtifacts: Map<string, string> = new Map(
+      tests.map(test => [test.apexClass.fullName ?? test.apexClass.name, 'unknown'])
+    );
 
-    for (const test of tests) {
-      const testName = test.apexClass.fullName ?? test.apexClass.name;
-      correlatedArtifacts.set(testName, 'unknown');
-    }
-
-    const workspaceFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0] : undefined;
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       return correlatedArtifacts;
     }
 
-    const patterns = packageDirectories.map(pkgDir => {
-      const relativePath = path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath);
-      return `${relativePath}/**/*.cls`;
-    });
+    Array.from(
+      new Set(
+        (
+          await Promise.all(
+            packageDirectories
+              .map(pkgDir => `${path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath)}/**/*.cls`)
+              .flatMap(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'))
+          )
+        ).map(file => file.toString())
+      )
+    )
+      .map(filePath => URI.parse(filePath))
+      .map(file => {
+        const fileName = path.basename(file.fsPath, '.cls');
+        if (correlatedArtifacts.has(fileName)) {
+          correlatedArtifacts.set(fileName, file.fsPath);
+        }
+      });
 
-    const findFilesPromises = patterns.map(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'));
-
-    const filesWithDuplicates = (await Promise.all(findFilesPromises)).flat();
-
-    const files = Array.from(new Set(filesWithDuplicates.map(file => file.toString()))).map(filePath =>
-      URI.parse(filePath)
-    );
-
-    for (const file of files) {
-      const fileName = path.basename(file.fsPath, '.cls');
-
-      if (correlatedArtifacts.has(fileName)) {
-        correlatedArtifacts.set(fileName, file.fsPath);
-      }
-    }
     return correlatedArtifacts;
   }
 }

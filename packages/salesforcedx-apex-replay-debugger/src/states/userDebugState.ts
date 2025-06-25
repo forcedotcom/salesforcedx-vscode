@@ -5,19 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'os';
+import { Source } from '@vscode/debugadapter';
+import { EOL } from 'node:os';
 import { EXEC_ANON_SIGNATURE } from '../constants';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
-import { Source } from '@vscode/debugadapter';
 
 export class UserDebugState implements DebugLogState {
   private readonly line: number;
   private message: string;
 
   constructor(fields: string[]) {
-    this.line = parseInt(fields[2], 10);
-    this.message = fields[fields.length - 1];
+    this.line = parseInt(fields.at(2) ?? '0', 10);
+    this.message = fields.at(-1) ?? '';
   }
 
   public getMessage(): string {
@@ -33,20 +33,14 @@ export class UserDebugState implements DebugLogState {
         .warnToDebugConsole(
           this.message,
           frame.source instanceof Source ? frame.source : undefined,
-          frame.name === EXEC_ANON_SIGNATURE
-            ? logContext.getExecAnonScriptLocationInDebugLog(this.line)
-            : this.line
+          frame.name === EXEC_ANON_SIGNATURE ? logContext.getExecAnonScriptLocationInDebugLog(this.line) : this.line
         );
     }
     return false;
   }
 
   public lookAheadAndAppend(logContext: LogContext): void {
-    for (
-      let i = logContext.getLogLinePosition() + 1;
-      i < logContext.getLogLines().length;
-      i++
-    ) {
+    for (let i = logContext.getLogLinePosition() + 1; i < logContext.getLogLines().length; i++) {
       // Get next log line as-is (no trimming)
       const nextLogLine = logContext.getLogLines()[i];
       // Check if this could be a debug log event

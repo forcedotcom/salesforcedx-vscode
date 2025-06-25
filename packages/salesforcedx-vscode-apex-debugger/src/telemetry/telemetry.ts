@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as util from 'node:util';
 import { DebugSessionCustomEvent } from 'vscode';
-import TelemetryReporter from 'vscode-extension-telemetry';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex-debugger';
 

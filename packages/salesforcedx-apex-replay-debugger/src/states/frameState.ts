@@ -11,7 +11,7 @@ export abstract class FrameState {
   protected readonly _frameName: string;
 
   constructor(fields: string[]) {
-    this._signature = fields[fields.length - 1];
+    this._signature = fields.at(-1)!;
     this._frameName = FrameStateUtil.computeFrameName(fields);
   }
 }

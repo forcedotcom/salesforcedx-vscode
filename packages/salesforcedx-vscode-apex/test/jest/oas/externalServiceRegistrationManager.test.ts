@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { getVscodeCoreExtension } from '../../../src/coreExtensionUtils';
 import { nls } from '../../../src/messages';
 import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
 import {
@@ -22,13 +22,19 @@ import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
 jest.mock('node:fs');
+jest.mock('../../../src/coreExtensionUtils');
+
+class MockRegistryAccess {
+  public getTypeByName() {
+    // will be mocked in tests
+  }
+}
+
 describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;
   let processedOasResult: ProcessorInputOutput;
   let fullPath: FullPath;
-  let registryAccess: RegistryAccess;
-  let getTypeByNameMock: jest.SpyInstance;
   const fakeWorkspace = path.join('test', 'workspace');
   const mockOperations = {
     operationId: 'getPets',
@@ -71,8 +77,6 @@ describe('ExternalServiceRegistrationManager', () => {
         }
       }
     } as OpenAPIV3.Document;
-    registryAccess = new RegistryAccess();
-    getTypeByNameMock = jest.spyOn(registryAccess, 'getTypeByName');
     processedOasResult = {
       openAPIDoc: oasSpec,
       errors: [],
@@ -80,6 +84,16 @@ describe('ExternalServiceRegistrationManager', () => {
     } as ProcessorInputOutput;
 
     esrHandler = new ExternalServiceRegistrationManager();
+
+    // Mock getVscodeCoreExtension to return the expected extension shape
+    (getVscodeCoreExtension as jest.Mock).mockResolvedValue({
+      isActive: true,
+      exports: {
+        services: {
+          RegistryAccess: MockRegistryAccess
+        }
+      }
+    });
   });
   describe('initialize', () => {
     it('should initialize with right values', () => {
@@ -92,17 +106,17 @@ describe('ExternalServiceRegistrationManager', () => {
       expect(esrHandler['newPath']).toBe(fullPath[1]);
     });
 
-    it('should initialize with overwrite set to true when paths are the same', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.xml']);
+    it('should initialize with overwrite set to true when paths are the same', () => {
+      esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.xml']);
       expect(esrHandler['overwrite']).toBe(true);
     });
-    it('should initialize with overwrite set to false when paths differ only by extension', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.pdf']);
+    it('should initialize with overwrite set to false when paths differ only by extension', () => {
+      esrHandler['initialize'](false, processedOasResult, ['/path/to/file.xml', '/path/to/file.pdf']);
       expect(esrHandler['overwrite']).toBe(false);
     });
 
-    it('should initialize with overwrite set to false when paths are different', async () => {
-      await esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.xml']);
+    it('should initialize with overwrite set to false when paths are different', () => {
+      esrHandler['initialize'](false, processedOasResult, ['/path/to/original.xml', '/path/to/new.xml']);
       expect(esrHandler['overwrite']).toBe(false);
     });
   });
@@ -185,7 +199,9 @@ describe('ExternalServiceRegistrationManager', () => {
         mockDirectoryName
       );
 
-      getTypeByNameMock.mockReturnValue({ directoryName: mockDirectoryName } as any);
+      jest
+        .spyOn(MockRegistryAccess.prototype, 'getTypeByName')
+        .mockImplementation(() => ({ directoryName: mockDirectoryName }));
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(mockFolderPath);
 
       const result = await esrHandler['getFolderForArtifact']();
@@ -198,25 +214,21 @@ describe('ExternalServiceRegistrationManager', () => {
     });
 
     it('should return undefined if no folder is selected', async () => {
-      const mockDirectoryName = 'externalServiceRegistrations';
-      const mockDefaultESRFolder = path.join(
-        workspaceUtils.getRootWorkspacePath(),
-        'force-app',
-        'main',
-        'default',
-        mockDirectoryName
-      );
-
-      getTypeByNameMock.mockReturnValue({ directoryName: mockDirectoryName } as any);
+      jest
+        .spyOn(MockRegistryAccess.prototype, 'getTypeByName')
+        .mockImplementation(() => ({ directoryName: 'externalServiceRegistrations' }));
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(undefined);
-
-      const result = await esrHandler['getFolderForArtifact']();
-
+      const result = await esrHandler.getFolderForArtifact();
       expect(result).toBeUndefined();
-      expect(vscode.window.showInputBox).toHaveBeenCalledWith({
-        prompt: nls.localize('select_folder_for_oas'),
-        value: mockDefaultESRFolder
+    });
+
+    it('should throw if registry access fails', async () => {
+      jest.spyOn(MockRegistryAccess.prototype, 'getTypeByName').mockImplementation(() => {
+        throw new Error('fail');
       });
+      await expect(esrHandler.getFolderForArtifact()).rejects.toThrow(
+        'Failed to retrieve ESR directory name from the registry.'
+      );
     });
   });
 
@@ -235,8 +247,8 @@ describe('ExternalServiceRegistrationManager', () => {
     expect(result.ExternalServiceRegistration).toHaveProperty('operations', operations);
   });
 
-  it('extractInfoProperties', () => {
-    esrHandler['initialize'](true, processedOasResult, fullPath);
+  it('extractInfoProperties', async () => {
+    await esrHandler['initialize'](true, processedOasResult, fullPath);
     const result = esrHandler.extractInfoProperties();
 
     expect(result).toEqual({
@@ -244,8 +256,8 @@ describe('ExternalServiceRegistrationManager', () => {
     });
   });
 
-  it('getOperationsFromYaml', () => {
-    esrHandler['initialize'](true, processedOasResult, fullPath);
+  it('getOperationsFromYaml', async () => {
+    await esrHandler['initialize'](true, processedOasResult, fullPath);
     const result = esrHandler.getOperationsFromYaml();
 
     expect(result).toEqual([{ active: true, name: 'getPets' }]);

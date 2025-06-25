@@ -15,17 +15,16 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { Source, StackFrame } from '@vscode/debugadapter';
-import { expect } from 'chai';
 import { EOL } from 'node:os';
-import * as sinon from 'sinon';
-import { ApexReplayDebug, LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
+import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { UserDebugState } from '../../../src/states';
 
 describe('User debug event', () => {
-  let warnToDebugConsoleStub: sinon.SinonStub;
-  let getLogLinesStub: sinon.SinonStub;
+  let warnToDebugConsoleStub: jest.SpyInstance;
+  let getLogLinesStub: jest.SpyInstance;
   let context: LogContext;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
@@ -37,23 +36,23 @@ describe('User debug event', () => {
 
   beforeEach(() => {
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
-    warnToDebugConsoleStub = sinon.stub(ApexReplayDebug.prototype, 'warnToDebugConsole');
-    getLogLinesStub = sinon
-      .stub(LogContext.prototype, 'getLogLines')
-      .returns(['foo', 'bar', 'timestamp|USER_DEBUG|[3]|DEBUG|Next message']);
+    warnToDebugConsoleStub = jest.spyOn(ApexReplayDebug.prototype, 'warnToDebugConsole');
+    getLogLinesStub = jest
+      .spyOn(LogContext.prototype, 'getLogLines')
+      .mockReturnValue(['foo', 'bar', 'timestamp|USER_DEBUG|[3]|DEBUG|Next message']);
   });
 
   afterEach(() => {
-    warnToDebugConsoleStub.restore();
-    getLogLinesStub.restore();
+    warnToDebugConsoleStub.mockRestore();
+    getLogLinesStub.mockRestore();
   });
 
   it('Should not print without any frames', () => {
     const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(context.getFrames()).to.be.empty;
-    expect(warnToDebugConsoleStub.called).to.be.false;
+    expect(state.handle(context)).toBe(false);
+    expect(context.getFrames()).toHaveLength(0);
+    expect(warnToDebugConsoleStub).toHaveBeenCalledTimes(0);
   });
 
   it('Should link to anonymous specific frame', () => {
@@ -65,9 +64,11 @@ describe('User debug event', () => {
     context.getExecAnonScriptMapping().set(2, 5);
     const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(warnToDebugConsoleStub.calledOnce).to.be.true;
-    expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([`Hello${EOL}foo${EOL}bar`, frame.source, 5]);
+    expect(state.handle(context)).toBe(false);
+    expect(warnToDebugConsoleStub).toHaveBeenCalledTimes(1);
+    expect(warnToDebugConsoleStub.mock.calls[0][0]).toEqual(`Hello${EOL}foo${EOL}bar`);
+    expect(warnToDebugConsoleStub.mock.calls[0][1]).toEqual(frame.source);
+    expect(warnToDebugConsoleStub.mock.calls[0][2]).toEqual(5);
   });
 
   it('Should use line number in log line', () => {
@@ -78,8 +79,10 @@ describe('User debug event', () => {
     context.getFrames().push(frame);
     const state = new UserDebugState(['timestamp', 'USER_DEBUG', '2', 'DEBUG', 'Hello']);
 
-    expect(state.handle(context)).to.be.false;
-    expect(warnToDebugConsoleStub.calledOnce).to.be.true;
-    expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([`Hello${EOL}foo${EOL}bar`, frame.source, 2]);
+    expect(state.handle(context)).toBe(false);
+    expect(warnToDebugConsoleStub).toHaveBeenCalledTimes(1);
+    expect(warnToDebugConsoleStub.mock.calls[0][0]).toEqual(`Hello${EOL}foo${EOL}bar`);
+    expect(warnToDebugConsoleStub.mock.calls[0][1]).toEqual(frame.source);
+    expect(warnToDebugConsoleStub.mock.calls[0][2]).toEqual(2);
   });
 });

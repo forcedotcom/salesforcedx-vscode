@@ -25,20 +25,22 @@
   ],
   "dependencies": {
     "@salesforce/apex-node-bundle": "^8.1.26",
-    "@salesforce/core-bundle": "^8.12.0",
-    "@salesforce/salesforcedx-apex-replay-debugger": "64.2.1",
-    "@salesforce/salesforcedx-utils": "64.2.1",
-    "@salesforce/salesforcedx-utils-vscode": "64.2.1",
+    "@salesforce/salesforcedx-apex-replay-debugger": "*",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
     "async-lock": "1.4.1",
-    "vscode-extension-telemetry": "^0.0.17",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/core": "^8.12.0",
+    "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-core": "*",
     "@types/async-lock": "1.4.2",
     "@types/node": "^20.0.0",
     "cross-env": "5.2.0",
-    "esbuild": "0.25.4",
-    "esbuild-plugin-pino": "^2.2.2"
+    "esbuild": "0.25.0",
+    "esbuild-plugin-pino": "^2.2.2",
+    "vscode-extension-telemetry": "^0.0.17"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",

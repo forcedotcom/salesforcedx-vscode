@@ -6,11 +6,14 @@
  */
 
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '@salesforce/salesforcedx-apex-replay-debugger';
+import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
-  private salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
+  private salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(
+    'salesforce.salesforcedx-vscode-apex'
+  );
   public static getConfig(logFile?: string, stopOnEntry: boolean = true): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
@@ -54,7 +57,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     if (vscode.workspace?.workspaceFolders?.[0]) {
       config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
-
+    if (!this.salesforceApexExtension?.isActive) {
+      await this.salesforceApexExtension?.activate();
+    }
     if (this.salesforceApexExtension?.exports) {
       await this.isLanguageClientReady();
       config.lineBreakpointInfo = await this.salesforceApexExtension.exports.getLineBreakpointInfo();

@@ -25,6 +25,8 @@ export abstract class GenerationStrategy {
   public includeOASSchema: boolean | undefined;
   public outputTokenLimit: number;
   public resolutionAttempts: number;
+  public strategyName: string;
+
   protected serviceRequests: Map<string, Promise<string>> = new Map();
   protected serviceResponses: Map<string, string> = new Map();
   protected servicePrompts: Map<string, string> = new Map();
@@ -33,7 +35,6 @@ export abstract class GenerationStrategy {
   protected oasSchema: string = '';
 
   private beta: string | undefined;
-  private strategyName: string;
 
   public abstract bid(): Promise<PromptGenerationStrategyBid>;
   public abstract generateOAS(): Promise<string>; // generate OAS with the resolved content

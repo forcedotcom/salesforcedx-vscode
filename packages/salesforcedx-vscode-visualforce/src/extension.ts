@@ -5,6 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'node:path';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 
 import {
   Color,
@@ -39,13 +40,22 @@ import {
 import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
 import { activateTagClosing } from './tagClosing';
 
-import { telemetryService } from './telemetry';
-
 namespace TagCloseRequest {
   export const type: RequestType<TextDocumentPositionParams, string, any> = new RequestType('html/tag');
 }
 
+// hoisted to module scope since it's used in deactivate
+let telemetryService: ReturnType<SalesforceVSCodeCoreApi['services']['TelemetryService']['getInstance']> | undefined;
+
 export const activate = async (context: ExtensionContext) => {
+  const salesforceCoreExtension = extensions.getExtension<SalesforceVSCodeCoreApi>(
+    'salesforce.salesforcedx-vscode-core'
+  );
+  if (!salesforceCoreExtension?.isActive) {
+    await salesforceCoreExtension?.activate();
+  }
+  telemetryService = salesforceCoreExtension?.exports?.services?.TelemetryService.getInstance();
+  await telemetryService?.initializeService(context);
   const extensionHRStart = process.hrtime();
   const toDispose = context.subscriptions;
 
@@ -138,7 +148,7 @@ export const activate = async (context: ExtensionContext) => {
     disposable = activateTagClosing(tagRequestor, { visualforce: true }, 'visualforce.autoClosingTags');
     toDispose.push(disposable);
   } catch {
-    telemetryService.sendExtensionActivationEvent(extensionHRStart);
+    telemetryService?.sendExtensionActivationEvent(extensionHRStart);
   }
   languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
@@ -190,20 +200,10 @@ export const activate = async (context: ExtensionContext) => {
     ]
   });
 
-  // Telemetry
-  const salesforceCoreExtension = extensions.getExtension('salesforce.salesforcedx-vscode-core');
-
-  if (salesforceCoreExtension?.exports) {
-    telemetryService.initializeService(
-      salesforceCoreExtension.exports.telemetryService.getReporters(),
-      salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
-  }
-
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  telemetryService?.sendExtensionActivationEvent(extensionHRStart);
 };
 
 export const deactivate = () => {
   console.log('Visualforce Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent();
+  telemetryService?.sendExtensionDeactivationEvent();
 };

@@ -8,10 +8,11 @@
 import { BaseCommand } from '@salesforce/salesforcedx-utils';
 import { DebuggerRequest } from './protocol';
 
+const DEBUGGER_API_PATH = 'services/debug/v41.0';
+
 export class BaseDebuggerCommand extends BaseCommand {
   private readonly commandName: string;
   private readonly debuggedRequestId: string;
-  private readonly debuggerApiPath = 'services/debug/v41.0';
   private readonly request: DebuggerRequest | undefined;
 
   constructor(commandName: string, debuggedRequestId: string, queryString?: string, request?: DebuggerRequest) {
@@ -22,8 +23,7 @@ export class BaseDebuggerCommand extends BaseCommand {
   }
 
   public getCommandUrl(): string {
-    const urlElements = [this.debuggerApiPath, this.commandName, this.debuggedRequestId];
-    return urlElements.join('/');
+    return [DEBUGGER_API_PATH, this.commandName, this.debuggedRequestId].join('/');
   }
 
   public getQueryString(): string | undefined {

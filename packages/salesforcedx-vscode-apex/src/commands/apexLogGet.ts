@@ -18,7 +18,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 
 const LOG_DIRECTORY = projectPaths.debugLogsFolder();
@@ -38,15 +38,13 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await this.getLogRecords();
 
-    if (logInfos && logInfos.length > 0) {
+    if (logInfos?.length) {
       const logItems = logInfos.map(logInfo => {
-        const icon = '$(file-text) ';
-        const localUTCDate = new Date(logInfo.StartTime);
-        const localDateFormatted = localUTCDate.toLocaleDateString(undefined, optionYYYYMMddHHmmss);
+        const localDateFormatted = new Date(logInfo.StartTime).toLocaleDateString(undefined, optionYYYYMMddHHmmss);
 
         return {
           id: logInfo.Id,
-          label: `${icon + logInfo.LogUser.Name} - ${logInfo.Operation}`,
+          label: `$(file-text) ${logInfo.LogUser.Name} - ${logInfo.Operation}`,
           startTime: localDateFormatted,
           detail: `${localDateFormatted} - ${logInfo.Status.substring(0, 150)}`,
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
@@ -73,7 +71,8 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
   }
 
   public async getLogRecords(): Promise<LogRecord[]> {
-    const connection = await workspaceContext.getConnection();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const logService = new LogService(connection);
     return vscode.window.withProgress(
       {
@@ -93,7 +92,8 @@ class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   }
 
   public async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 

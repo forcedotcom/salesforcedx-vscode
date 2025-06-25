@@ -6,20 +6,15 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { SfProject } from '@salesforce/core-bundle';
-import {
-  extensionUris,
-  getJsonCandidate,
-  identifyJsonTypeInString,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { extensionUris, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import * as yaml from 'yaml';
+import { parse as yamlParse } from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
+import { getVscodeCoreExtension } from './coreExtensionUtils';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
@@ -120,10 +115,10 @@ export const createProblemTabEntriesForOasDocument = (
  * @returns {Promise<boolean>} - True if sfdx-project.json contains decomposeExternalServiceRegistrationBeta.
  */
 export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
-  const projectPath = workspaceUtils.getRootWorkspacePath();
-  const sfProject = await SfProject.resolve(projectPath);
-  const sfdxProjectJson = sfProject.getSfProjectJson();
-  if (sfdxProjectJson.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const sfdxProjectJson = await vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance();
+
+  if (sfdxProjectJson?.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
     return true;
   }
 
@@ -158,7 +153,7 @@ export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => JSON.par
  * @param {string} doc - The YAML string representing the OAS document.
  * @returns {OpenAPIV3.Document} - The parsed OAS document.
  */
-export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => yaml.parse(doc) as OpenAPIV3.Document;
+export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => yamlParse(doc) as OpenAPIV3.Document;
 
 const PROMPT_TEMPLATES = {
   METHOD_BY_METHOD: path.join('resources', 'templates', 'methodByMethod.ejs')

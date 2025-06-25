@@ -6,7 +6,7 @@
  */
 
 import { StackFrame } from '@vscode/debugadapter';
-import { ApexVariableContainer } from '../adapter/apexReplayDebug';
+import { ApexVariableContainer } from '../adapter/variableContainer';
 import {
   ApexExecutionOverlayResultCommandSuccess,
   HeapDumpExtents,
@@ -36,7 +36,7 @@ import { LogContext } from './logContext';
 export class HeapDumpService {
   private logContext: LogContext;
 
-  public constructor(logContext: LogContext) {
+  constructor(logContext: LogContext) {
     this.logContext = logContext;
   }
 
@@ -48,9 +48,10 @@ export class HeapDumpService {
   }
 
   public replaceFrameVariablesWithHeapDump(frame: StackFrame): void {
-    const heapdump = this.logContext.getHeapDumpForThisLocation(frame.name, frame.line);
-    if (heapdump && heapdump.getOverlaySuccessResult()) {
-      const heapdumpResult = heapdump.getOverlaySuccessResult()!;
+    const heapdumpResult = this.logContext
+      .getHeapDumpForThisLocation(frame.name, frame.line)
+      ?.getOverlaySuccessResult();
+    if (heapdumpResult) {
       const frameInfo = this.logContext.getFrameHandler().get(frame.id);
 
       // There should be an order here for processing the heap dumps
@@ -94,8 +95,8 @@ export class HeapDumpService {
         for (const innerExtent of outerExtent.extent) {
           const symbolName = innerExtent.symbols && innerExtent.symbols.length > 0 ? innerExtent.symbols[0] : undefined;
           const className = symbolName ? this.logContext.getUtil().substringUpToLastPeriod(symbolName) : undefined;
-          if (symbolName && frameInfo.locals.has(symbolName)) {
-            const localVar = frameInfo.locals.get(symbolName) as ApexVariableContainer;
+          if (symbolName && frameInfo?.locals.has(symbolName)) {
+            const localVar = frameInfo.locals.get(symbolName)!;
 
             // Ensure the typename is set correctly.
             localVar.type = outerExtent.typeName;
@@ -127,8 +128,8 @@ export class HeapDumpService {
           } else if (symbolName && className && this.logContext.getStaticVariablesClassMap().has(className)) {
             const statics = this.logContext.getStaticVariablesClassMap().get(className);
             const staticVarName = this.logContext.getUtil().substringFromLastPeriod(symbolName);
-            if (statics && statics.has(staticVarName)) {
-              const staticVar = statics.get(staticVarName) as ApexVariableContainer;
+            if (statics?.has(staticVarName)) {
+              const staticVar = statics.get(staticVarName)!;
               staticVar.type = outerExtent.typeName;
 
               const refVar = this.logContext.getRefsMap().get(innerExtent.address);
@@ -167,7 +168,7 @@ export class HeapDumpService {
               // within the triggger will be under "this" and won't get picked up there.
               if (innerExtent.symbols && innerExtent.symbols.length > 0) {
                 for (const symName of innerExtent.symbols) {
-                  if (symName && symName.startsWith(EXTENT_TRIGGER_PREFIX)) {
+                  if (symName?.startsWith(EXTENT_TRIGGER_PREFIX)) {
                     const refVar = this.logContext.getRefsMap().get(innerExtent.address);
                     if (refVar) {
                       const updatedVariable = this.createVariableFromReference(
@@ -177,12 +178,12 @@ export class HeapDumpService {
                         new Array<ApexVariableContainer>()
                       );
                       if (updatedVariable) {
-                        frameInfo.globals.set(symName, updatedVariable);
+                        frameInfo?.globals.set(symName, updatedVariable);
                       }
                       // If the variable isn't a reference then it's just a single value, create
                       // the variable and add it to the globals list
                     } else {
-                      frameInfo.globals.set(
+                      frameInfo?.globals.set(
                         symName,
                         new ApexVariableContainer(
                           symName,
@@ -220,7 +221,7 @@ export class HeapDumpService {
             new ApexVariableContainer('', innerExtent.value.value, APEX_PRIMITIVE_STRING, innerExtent.address)
           );
         }
-        const refVar = refsMap.get(innerExtent.address) as ApexVariableContainer;
+        const refVar = refsMap.get(innerExtent.address)!; // either existed or we just set it
         refVar.type = APEX_PRIMITIVE_STRING;
         refVar.value = `'${innerExtent.value.value}'`;
       }
@@ -300,7 +301,7 @@ export class HeapDumpService {
       // Loop through each of the container's variables to get the name/value combinations, calling to create
       // the string if another collection is found.
       for (const entry of Array.from(varContainer.variables.entries())) {
-        const valueAsApexVar = entry[1] as ApexVariableContainer;
+        const valueAsApexVar = entry[1];
         if (!first) {
           returnString += ', ';
         }
@@ -425,7 +426,7 @@ export class HeapDumpService {
         // If the extentValue.value.entry doesn't exist then the collection is
         // an list/set
       } else {
-        const values = extentValue.value.value as any[];
+        const values = extentValue.value.value;
         for (let i = 0; i < values.length; i++) {
           // If the value is an address that means that this is a reference
           if (this.isAddress(values[i].value)) {
@@ -516,7 +517,7 @@ export class HeapDumpService {
     // a good chance that the variable is still being created
     // and we can't reset set the value now.
     if (visitedMap.has(refVariable.ref)) {
-      const visitedVar = visitedMap.get(refVariable.ref) as ApexVariableContainer;
+      const visitedVar = visitedMap.get(refVariable.ref)!;
       if (visitedVar !== null) {
         if (visitedVar.name !== varName) {
           const updatedNameVarContainer = this.copyReferenceContainer(visitedVar, varName, false);
@@ -539,7 +540,7 @@ export class HeapDumpService {
       // any child references on the variable with a recursive call
       for (const entry of Array.from(namedVarContainer.variables.entries())) {
         const childVarName = entry[0];
-        const childVarContainer = entry[1] as ApexVariableContainer;
+        const childVarContainer = entry[1];
 
         // If the type is KEY_VALUE_PAIR then the name/vavlue of the container are will
         // need to get updated if either of them are references. Further, the child container
@@ -548,9 +549,9 @@ export class HeapDumpService {
         // 'value'
         if (childVarContainer.type === KEY_VALUE_PAIR) {
           // process the key
-          const keyVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_KEY) as ApexVariableContainer;
+          const keyVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_KEY);
           let keyName = keyVarContainer!.value;
-          if (keyVarContainer && keyVarContainer.ref) {
+          if (keyVarContainer?.ref) {
             const keyRef = this.logContext.getRefsMap().get(keyVarContainer.ref);
             if (keyRef) {
               const updatedKeyVarContainer = this.createVariableFromReference(
@@ -571,9 +572,9 @@ export class HeapDumpService {
             }
           }
           // process the value
-          const valueVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_VALUE) as ApexVariableContainer;
+          const valueVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_VALUE);
           let valueVal = valueVarContainer!.value;
-          if (valueVarContainer && valueVarContainer.ref) {
+          if (valueVarContainer?.ref) {
             const valueRef = this.logContext.getRefsMap().get(valueVarContainer.ref);
             if (valueRef) {
               const updatedValueVarContainer = this.createVariableFromReference(
@@ -638,8 +639,7 @@ export class HeapDumpService {
       // If there are any items in the updateAfterVarCreation array then now is the
       // time to update them
       if (visitedMap.size === 0) {
-        updateAfterVarCreation.forEach(element => {
-          const varContainer = element as ApexVariableContainer;
+        updateAfterVarCreation.forEach(varContainer => {
           varContainer.value = this.createStringFromVarContainer(varContainer, new Set<string>());
         });
       }
@@ -653,7 +653,7 @@ export class HeapDumpService {
   //                 that when the type name is split that it's split correctly since, due to
   //                 potential nesting just splitting on the comma isn't good enough.
   private getKeyTypeForMap(typeName: string, collectionType: string): string {
-    const lastIndexOfValue = ',' + collectionType;
+    const lastIndexOfValue = `,${collectionType}`;
     const keyTypeName = typeName.substring(typeName.indexOf('<') + 1, typeName.lastIndexOf(lastIndexOfValue));
     return keyTypeName;
   }

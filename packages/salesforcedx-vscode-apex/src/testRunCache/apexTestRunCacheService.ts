@@ -13,8 +13,8 @@ const isNotEmpty = (value: string): boolean => !isEmpty(value);
 // cache last test class and test method values to
 // enable re-running w/o command context via built-in LRU
 class ApexTestRunCacheService {
-  private lastClassTestParam: string;
-  private lastMethodTestParam: string;
+  private lastClassTestParam = '';
+  private lastMethodTestParam = '';
   private static instance: ApexTestRunCacheService;
 
   public static getInstance() {
@@ -22,11 +22,6 @@ class ApexTestRunCacheService {
       ApexTestRunCacheService.instance = new ApexTestRunCacheService();
     }
     return ApexTestRunCacheService.instance;
-  }
-
-  constructor() {
-    this.lastClassTestParam = '';
-    this.lastMethodTestParam = '';
   }
 
   public getLastClassTestParam(): string {
