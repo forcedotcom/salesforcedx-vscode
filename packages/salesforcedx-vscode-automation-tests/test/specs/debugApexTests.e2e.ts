@@ -91,7 +91,15 @@ describe('Debug Apex Tests', () => {
     // Click the "Debug All Tests" code lens at the top of the class
     const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug All Tests');
     expect(debugAllTestsOption).to.not.be.undefined;
-    await debugAllTestsOption!.click();
+    log('DebugApexTests - Debug All Tests via Apex Class - clicking debug all tests option');
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await debugAllTestsOption!.click();
+      },
+      3,
+      'DebugApexTests - Error clicking debug all tests option'
+    );
     await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
@@ -112,7 +120,14 @@ describe('Debug Apex Tests', () => {
     // Click the "Debug Test" code lens at the top of one of the test methods
     const debugTestOption = await waitForAndGetCodeLens(textEditor, 'Debug Test');
     expect(debugTestOption).to.not.be.undefined;
-    await debugTestOption!.click();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await debugTestOption!.click();
+      },
+      3,
+      'DebugApexTests - Error clicking debug test option'
+    );
     await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
@@ -134,12 +149,26 @@ describe('Debug Apex Tests', () => {
     await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 4, 2);
 
     // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar
-    await apexTestsSection.click();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await apexTestsSection.click();
+      },
+      3,
+      'DebugApexTests - Error clicking apex tests section'
+    );
     const apexTestItem = (await apexTestsSection.findItem('ExampleApexClass1Test')) as TreeItem;
     await apexTestItem.select();
     const debugTestsAction = await apexTestItem.getActionButton('Debug Tests');
     expect(debugTestsAction).to.not.be.undefined;
-    await debugTestsAction?.click();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await debugTestsAction?.click();
+      },
+      3,
+      'DebugApexTests - Error clicking debug tests action'
+    );
     await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
@@ -160,10 +189,24 @@ describe('Debug Apex Tests', () => {
     // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
     await apexTestsSection.click();
     const apexTestItem = (await apexTestsSection.findItem('validateSayHello')) as TreeItem;
-    await apexTestItem.select();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await apexTestItem.select();
+      },
+      3,
+      'DebugApexTests - Error selecting apex test item'
+    );
     const debugTestAction = await apexTestItem.getActionButton('Debug Single Test');
     expect(debugTestAction).to.not.be.undefined;
-    await debugTestAction?.click();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await debugTestAction?.click();
+      },
+      3,
+      'DebugApexTests - Error clicking debug test action'
+    );
     await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
