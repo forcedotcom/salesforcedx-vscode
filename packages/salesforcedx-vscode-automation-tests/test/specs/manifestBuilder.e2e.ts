@@ -117,12 +117,18 @@ describe('Manifest Builder', () => {
 
   it('SFDX: Deploy Source in Manifest to Org', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Deploy Source in Manifest to Org`);
+    log(`Deploy: Current platform is: ${process.platform}`);
 
     // Clear output before running the command
+    log('Deploy: Clearing output view');
     await clearOutputView();
+    log('Deploy: Getting workbench');
     const workbench = getWorkbench();
+    log('Deploy: Opening manifest.xml file');
     await getTextEditor(workbench, 'manifest.xml');
+    log('Deploy: manifest.xml file opened');
 
+    log(`Deploy: Checking if platform is Linux (current: ${process.platform})`);
     if (process.platform === 'linux') {
       log('Deploy: Running on Linux platform - using context menu approach');
 
@@ -190,11 +196,15 @@ describe('Manifest Builder', () => {
       await contextMenu.select('SFDX: Deploy Source in Manifest to Org');
       log('Deploy: Deploy command selected from context menu');
     } else {
+      log(`Deploy: Not running on Linux (platform: ${process.platform}) - using command palette approach`);
       // Using the Command palette, run SFDX: Deploy Source in Manifest to Org
       await executeQuickPick('SFDX: Deploy Source in Manifest to Org', Duration.seconds(10));
+      log('Deploy: Command palette deploy command completed');
     }
 
+    log('Deploy: Starting command validation');
     await validateCommand('Deploy', 'to', 'ST', 'CustomObject', ['Customer__c', 'Product__c'], 'Created  ');
+    log('Deploy: Command validation completed');
   });
 
   it('SFDX: Retrieve Source in Manifest from Org', async () => {
