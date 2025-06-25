@@ -6,10 +6,15 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  workspaceUtils,
+  fileOrFolderExists,
+  readFile,
+  createDirectory,
+  writeFile
+} from '@salesforce/salesforcedx-utils-vscode';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { JSONPath } from 'jsonpath-plus';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
@@ -102,7 +107,7 @@ export class ExternalServiceRegistrationManager {
     this.initialize(isESRDecomposed, processedOasResult, fullPath);
     this.providerType = this.determineProviderType(processedOasResult.context);
 
-    const existingContent = fs.existsSync(this.newPath) ? fs.readFileSync(this.newPath, 'utf8') : undefined;
+    const existingContent = (await fileOrFolderExists(this.newPath)) ? await readFile(this.newPath) : undefined;
 
     //Step 1: Build the content of the ESR Xml file
     const updatedContent = await this.buildESRXml(existingContent);
@@ -130,7 +135,7 @@ export class ExternalServiceRegistrationManager {
    */
   public async writeAndOpenEsrFile(updatedContent: string) {
     try {
-      fs.writeFileSync(this.newPath, updatedContent);
+      await writeFile(this.newPath, updatedContent);
       const newDocument = await vscode.workspace.openTextDocument(this.newPath);
       await vscode.window.showTextDocument(newDocument);
       if (this.isESRDecomposed) {
@@ -147,7 +152,7 @@ export class ExternalServiceRegistrationManager {
    * @param existingContent - The existing XML content, if any.
    * @param namedCredential - The named credential to be used.
    */
-  public buildESRXml(existingContent: string | undefined): Promise<string> {
+  public async buildESRXml(existingContent: string | undefined): Promise<string> {
     const baseName = path.basename(this.newPath).split('.')[0];
     const className = this.newPath.includes('esr_files_for_merge')
       ? // The class name is the part before the second to last underscore
@@ -176,7 +181,7 @@ export class ExternalServiceRegistrationManager {
       jsonObj = parser.parse(existingContent);
       if (this.isESRDecomposed) {
         jsonObj = esrObject;
-        this.buildESRYaml(this.newPath, safeOasSpec);
+        await this.buildESRYaml(this.newPath, safeOasSpec);
       } else {
         if (jsonObj.ExternalServiceRegistration?.schema) {
           jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
@@ -187,7 +192,7 @@ export class ExternalServiceRegistrationManager {
       jsonObj.ExternalServiceRegistration.operations = operations;
     } else {
       jsonObj = esrObject;
-      if (this.isESRDecomposed) this.buildESRYaml(this.newPath, safeOasSpec);
+      if (this.isESRDecomposed) await this.buildESRYaml(this.newPath, safeOasSpec);
     }
 
     const builder = new XMLBuilder({ ignoreAttributes: false, format: true, processEntities: false });
@@ -260,11 +265,11 @@ export class ExternalServiceRegistrationManager {
    * @param esrXmlPath - The path to the ESR XML file.
    * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
    */
-  public buildESRYaml(esrXmlPath: string, safeOasSpec: string) {
+  public async buildESRYaml(esrXmlPath: string, safeOasSpec: string) {
     this.gil.addFinalDoc(safeOasSpec);
     const esrYamlPath = replaceXmlToYaml(esrXmlPath);
     try {
-      fs.writeFileSync(esrYamlPath, safeOasSpec, 'utf8');
+      await writeFile(esrYamlPath, safeOasSpec);
       console.log(`File created at ${esrYamlPath}`);
     } catch (err) {
       throw new Error('Error writing file:', err);
@@ -305,13 +310,11 @@ export class ExternalServiceRegistrationManager {
     }
 
     // Step 2: Verify folder exists and if not create it
-    if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder, { recursive: true });
-    }
+    await createDirectory(folder);
 
     // Step 3: Check if File Exists
     const fullPath = path.join(folder, filename);
-    if (fs.existsSync(fullPath)) {
+    if (await fileOrFolderExists(fullPath)) {
       const whatToDo = await this.handleExistingESR();
       if (whatToDo === 'cancel') {
         throw new Error(nls.localize('operation_cancelled'));
@@ -320,9 +323,7 @@ export class ExternalServiceRegistrationManager {
         const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
         const newFileName = namePart + '_' + currentTimestamp + '.externalServiceRegistration-meta.xml';
         const esr_files_for_merge_folder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
-        if (!fs.existsSync(esr_files_for_merge_folder)) {
-          fs.mkdirSync(esr_files_for_merge_folder);
-        }
+        await createDirectory(esr_files_for_merge_folder);
         const newFullPath = path.join(esr_files_for_merge_folder, newFileName);
         return [fullPath, newFullPath];
       }

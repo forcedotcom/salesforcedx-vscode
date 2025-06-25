@@ -6,8 +6,17 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { extensionUris, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
+import {
+  extensionUris,
+  getJsonCandidate,
+  identifyJsonTypeInString,
+  workspaceUtils,
+  createDirectory,
+  readDirectory,
+  readFile,
+  stat,
+  writeFile
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
@@ -22,7 +31,7 @@ import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 
 import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
 
 const DOT_SFDX = '.sfdx';
-const TEMPLATES_DIR = path.join(DOT_SFDX, 'resources', 'templates');
+const TEMPLATES_DIR = path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX, 'resources', 'templates');
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -174,39 +183,35 @@ export enum EjsTemplateKeys {
  * @param {string} src - The source directory.
  * @param {string} dest - The destination directory.
  */
-const copyDirectorySync = (src: string, dest: string) => {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
+const copyDirectorySync = async (src: string, dest: string) => {
+  await createDirectory(dest);
 
-  const entries = fs.readdirSync(src, { withFileTypes: true });
+  const entries = await readDirectory(src);
 
   for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
+    const srcPath = path.join(src, entry);
+    const destPath = path.join(dest, entry);
 
-    if (entry.isDirectory()) {
-      copyDirectorySync(srcPath, destPath);
+    if ((await stat(srcPath))?.type === vscode.FileType.Directory) {
+      await copyDirectorySync(srcPath, destPath);
     } else {
-      fs.copyFileSync(srcPath, destPath);
+      const content = await readFile(srcPath);
+      await writeFile(destPath, content);
     }
   }
 };
 
 /**
  * Resolves the template directory URI.
- * @returns {URI} - The URI of the template directory.
+ * @returns {Promise<URI>} - The URI of the template directory.
  */
-const resolveTemplateDir = (): URI => {
+const resolveTemplateDir = async (): Promise<URI> => {
   const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
   const extensionDir = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
   if (logLevel !== 'fatal') {
-    if (!fs.existsSync(TEMPLATES_DIR)) {
-      fs.mkdirSync(TEMPLATES_DIR, { recursive: true });
-      // copy contents of extensionDir to TEMPLATES_DIR
-      copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
-    }
-    return URI.file(path.join(process.cwd(), DOT_SFDX));
+    // copy contents of extensionDir to TEMPLATES_DIR
+    await copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
+    return URI.file(path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX));
   }
   return extensionDir;
 };
@@ -218,10 +223,10 @@ export const ejsTemplateHelpers = {
   /**
    * Gets the template path for a given key.
    * @param {ejsTemplateKey} key - The key for the template.
-   * @returns {URI} - The URI of the template path.
+   * @returns {Promise<URI>} - The URI of the template path.
    */
-  getTemplatePath: (key: ejsTemplateKey): URI => {
-    const baseExtensionPath = resolveTemplateDir();
+  getTemplatePath: async (key: ejsTemplateKey): Promise<URI> => {
+    const baseExtensionPath = await resolveTemplateDir();
     return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
   }
 };

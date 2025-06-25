@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
@@ -21,7 +20,6 @@ import {
 import * as oasUtils from '../../../src/oasUtils';
 import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 
-jest.mock('node:fs');
 jest.mock('../../../src/coreExtensionUtils');
 
 class MockRegistryAccess {
@@ -29,7 +27,6 @@ class MockRegistryAccess {
     // will be mocked in tests
   }
 }
-
 describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;
@@ -85,6 +82,11 @@ describe('ExternalServiceRegistrationManager', () => {
 
     esrHandler = new ExternalServiceRegistrationManager();
 
+    // Mock vscode.workspace.fs methods
+    jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ type: vscode.FileType.File } as vscode.FileStat);
+    jest.spyOn(vscode.workspace.fs, 'writeFile').mockResolvedValue();
+    jest.spyOn(vscode.workspace.fs, 'createDirectory').mockResolvedValue();
+
     // Mock getVscodeCoreExtension to return the expected extension shape
     (getVscodeCoreExtension as jest.Mock).mockResolvedValue({
       isActive: true,
@@ -124,7 +126,7 @@ describe('ExternalServiceRegistrationManager', () => {
   describe('generateEsrMD', () => {
     it('should call the necessary methods to generate ESR metadata', async () => {
       (vscode.window.showQuickPick as jest.Mock).mockResolvedValue('TestCredential');
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
+      jest.spyOn(vscode.workspace.fs, 'stat').mockRejectedValue(new Error('File not found'));
       jest.spyOn(esrHandler, 'initialize' as any);
       jest.spyOn(esrHandler, 'writeAndOpenEsrFile').mockResolvedValue();
       jest.spyOn(esrHandler, 'displayFileDifferences').mockResolvedValue();
@@ -278,13 +280,13 @@ describe('ExternalServiceRegistrationManager', () => {
     expect(result).toContain('<description>oas description</description>');
   });
 
-  it('buildESRYaml', () => {
+  it('buildESRYaml', async () => {
     const esrXmlPath = '/path/to/esr.externalServiceRegistration-meta.xml';
     const safeOasSpec = 'safeOasSpec';
 
-    esrHandler.buildESRYaml(esrXmlPath, safeOasSpec);
+    await esrHandler.buildESRYaml(esrXmlPath, safeOasSpec);
 
-    expect(fs.writeFileSync).toHaveBeenCalledWith('/path/to/esr.yaml', safeOasSpec, 'utf8');
+    expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(URI.file('/path/to/esr.yaml'), expect.any(Uint8Array));
   });
 
   it('replaceXmlToYaml', () => {

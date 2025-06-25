@@ -8,11 +8,10 @@
 // From https://github.com/redhat-developer/vscode-java
 // Original version licensed under the Eclipse Public License (EPL)
 
+import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import * as cp from 'node:child_process';
-import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
-import { join } from 'node:path';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
@@ -54,7 +53,7 @@ const validateJavaInstallation = async (javaHome: string): Promise<boolean> => {
   const binDir = path.join(javaHome, 'bin');
 
   // Check if bin directory exists and is accessible
-  if (!fs.existsSync(binDir)) {
+  if (!(await fileOrFolderExists(binDir))) {
     throw new Error(nls.localize('java_bin_missing_text', javaHome));
   }
 
@@ -63,25 +62,19 @@ const validateJavaInstallation = async (javaHome: string): Promise<boolean> => {
     const platformBinary = getPlatformSpecificBinary(binary);
     const binaryPath = path.join(binDir, platformBinary);
 
-    if (!fs.existsSync(binaryPath)) {
+    if (!(await fileOrFolderExists(binaryPath))) {
       throw new Error(nls.localize('java_binary_missing_text', platformBinary, javaHome));
     }
 
-    // On Windows, we don't check for X_OK permission
-    if (process.platform !== 'win32') {
-      try {
-        await fs.promises.access(binaryPath, fs.constants.X_OK);
-      } catch {
-        throw new Error(nls.localize('java_binary_not_executable_text', platformBinary, javaHome));
-      }
-    }
+    // Note: Permission checking is skipped because the actual validation
+    // happens when we run the Java binary in checkJavaVersion.
   }
 
   return true;
 };
 
 const checkJavaRuntime = async (): Promise<string> =>
-  new Promise((resolve, reject) => {
+  new Promise(async (resolve, reject) => {
     let source: string;
     let javaHome: string | undefined = readJavaConfig();
 
@@ -111,7 +104,7 @@ const checkJavaRuntime = async (): Promise<string> =>
         return;
       }
 
-      if (!fs.existsSync(expandedHome)) {
+      if (!(await fileOrFolderExists(expandedHome))) {
         reject(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
         return;
       }
@@ -152,7 +145,7 @@ const expandHomeDir = (p: string): string | undefined => {
   }
   if (p === '~') return homedir();
   if (!p.startsWith('~/')) return p;
-  return join(homedir(), p.slice(2));
+  return path.join(homedir(), p.slice(2));
 };
 
 const isLocal = (javaHome: string): boolean => {
