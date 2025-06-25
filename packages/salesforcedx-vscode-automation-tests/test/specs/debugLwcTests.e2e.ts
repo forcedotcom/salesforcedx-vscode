@@ -11,6 +11,7 @@ import {
   log,
   pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
@@ -189,7 +190,14 @@ describe('Debug LWC Tests', () => {
     // Click the "Debug" code lens at the top of the class
     const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug');
     expect(debugAllTestsOption).to.not.be.undefined;
-    await debugAllTestsOption!.click();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await debugAllTestsOption!.click();
+      },
+      3,
+      'DebugLwcTests - Error clicking debug all tests option'
+    );
     await pause(Duration.seconds(15));
 
     // Continue with the debug session
@@ -218,7 +226,14 @@ describe('Debug LWC Tests', () => {
     const textEditor = await getTextEditor(workbench, 'lwc2.test.js');
     const debugTestOption = await waitForAndGetCodeLens(textEditor, 'Debug Test');
 
-    await debugTestOption!.click();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await debugTestOption!.click();
+      },
+      3,
+      'DebugLwcTests - Error clicking debug test option'
+    );
 
     await pause(Duration.seconds(15));
 

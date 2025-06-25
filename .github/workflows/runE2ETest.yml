@@ -85,7 +85,26 @@ jobs:
             mkdir ./extensions
             pwd
             gh run download ${{ inputs.runId }} -D ./extensions
-            mv ./extensions/*/* ./extensions/
+
+            # Move downloaded files to extensions root (platform-specific)
+            bash -c '
+              case "${{ matrix.os }}" in
+                "windows-latest")
+                  powershell -Command "
+                    Get-ChildItem -Path ./extensions -Directory | ForEach-Object {
+                      Get-ChildItem -Path $_.FullName -File | ForEach-Object {
+                        Move-Item -Path $_.FullName -Destination ./extensions/ -Force
+                      }
+                    }
+                    Get-ChildItem -Path ./extensions -Directory | Remove-Item -Recurse -Force
+                  "
+                  ;;
+                *)
+                  find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \;
+                  find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+                  ;;
+              esac
+            '
 
             # Install dependencies
             npm install
@@ -132,10 +151,6 @@ jobs:
 
             # Compile packages
             npm run compile
-
-            # List available test spec files
-            echo "Available test spec files:"
-            ls -la packages/salesforcedx-vscode-automation-tests/lib/test/specs/
 
             # Run headless test
             npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
