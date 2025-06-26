@@ -14,5 +14,6 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
  * @param testDescription The description of the test being run
  */
 export const logTestStart = (testSetup: TestSetup, testDescription: string): void => {
-  log(`\nRunning test: ${testSetup.testSuiteSuffixName} - ${testDescription}`);
+  log('--------------------------------');
+  log(`Running test: ${testSetup.testSuiteSuffixName} - ${testDescription}`);
 };

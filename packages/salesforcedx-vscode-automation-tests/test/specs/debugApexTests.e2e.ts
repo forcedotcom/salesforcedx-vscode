@@ -103,7 +103,7 @@ describe('Debug Apex Tests', () => {
     );
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -130,7 +130,7 @@ describe('Debug Apex Tests', () => {
     );
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -170,7 +170,7 @@ describe('Debug Apex Tests', () => {
     );
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -207,7 +207,7 @@ describe('Debug Apex Tests', () => {
     );
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
 
     // Continue with the debug session
     await continueDebugging(2, 30);
