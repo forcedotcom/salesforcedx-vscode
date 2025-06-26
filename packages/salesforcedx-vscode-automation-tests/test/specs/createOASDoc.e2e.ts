@@ -175,11 +175,22 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       // Verify the generated OAS doc is open in the Editor View
       await executeQuickPick('View: Open Last Editor in Group');
+      await pause(Duration.seconds(2)); // Allow time for editor to switch
       const workbench = getWorkbench();
       const editorView = workbench.getEditorView();
-      const activeTab = await editorView.getActiveTab();
-      const title = await activeTab?.getTitle();
-      expect(title).to.equal('CaseManager.externalServiceRegistration-meta.xml');
+
+      await retryOperation(
+        async () => {
+          const activeTab = await editorView.getActiveTab();
+          if (!activeTab) {
+            throw new Error('No active tab found');
+          }
+          const title = await activeTab.getTitle();
+          expect(title).to.equal('CaseManager.externalServiceRegistration-meta.xml');
+        },
+        5,
+        'CreateOASDoc - Error waiting for CaseManager tab'
+      );
     });
 
     it('Check for warnings and errors in the Problems Tab', async () => {
@@ -293,28 +304,36 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await executeQuickPick('View: Open Last Editor in Group');
+      await pause(Duration.seconds(2)); // Allow time for editor to switch
       const workbench = getWorkbench();
       const editorView = workbench.getEditorView();
-      let activeTab = await editorView.getActiveTab();
+
       await retryOperation(
         async () => {
-          await activeTab?.wait(20_000);
-          const title = await activeTab?.getTitle();
+          const activeTab = await editorView.getActiveTab();
+          if (!activeTab) {
+            throw new Error('No active tab found');
+          }
+          const title = await activeTab.getTitle();
           expect(title).to.equal('SimpleAccountResource.yaml');
         },
-        3,
+        5,
         'CreateOASDoc - Error waiting for active tab'
       );
 
       await executeQuickPick('View: Open Previous Editor');
-      activeTab = await editorView.getActiveTab();
+      await pause(Duration.seconds(2)); // Allow time for editor to switch
+
       await retryOperation(
         async () => {
-          await activeTab?.wait(20_000);
-          const title = await activeTab?.getTitle();
+          const activeTab = await editorView.getActiveTab();
+          if (!activeTab) {
+            throw new Error('No active tab found');
+          }
+          const title = await activeTab.getTitle();
           expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
         },
-        3,
+        5,
         'CreateOASDoc - Error waiting for active tab'
       );
     });
@@ -410,16 +429,38 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await executeQuickPick('View: Open Last Editor in Group');
+      await pause(Duration.seconds(2)); // Allow time for editor to switch
       const workbench = getWorkbench();
       const editorView = workbench.getEditorView();
-      let activeTab = await editorView.getActiveTab();
-      let title = await activeTab?.getTitle();
-      expect(title).to.equal('SimpleAccountResource.yaml');
+
+      await retryOperation(
+        async () => {
+          const activeTab = await editorView.getActiveTab();
+          if (!activeTab) {
+            throw new Error('No active tab found');
+          }
+          const title = await activeTab.getTitle();
+          expect(title).to.equal('SimpleAccountResource.yaml');
+        },
+        5,
+        'CreateOASDoc - Error waiting for YAML tab'
+      );
 
       await executeQuickPick('View: Open Previous Editor');
-      activeTab = await editorView.getActiveTab();
-      title = await activeTab?.getTitle();
-      expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
+      await pause(Duration.seconds(2)); // Allow time for editor to switch
+
+      await retryOperation(
+        async () => {
+          const activeTab = await editorView.getActiveTab();
+          if (!activeTab) {
+            throw new Error('No active tab found');
+          }
+          const title = await activeTab.getTitle();
+          expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
+        },
+        5,
+        'CreateOASDoc - Error waiting for XML tab'
+      );
     });
 
     it('Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge', async () => {
