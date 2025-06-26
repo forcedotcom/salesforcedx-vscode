@@ -121,7 +121,7 @@ describe('Manifest Builder', () => {
 
     // Clear output before running the command
     log('Deploy: Clearing output view');
-    await clearOutputView();
+    await clearOutputView(Duration.seconds(2));
     log('Deploy: Getting workbench');
     const workbench = getWorkbench();
     log('Deploy: Opening manifest.xml file');

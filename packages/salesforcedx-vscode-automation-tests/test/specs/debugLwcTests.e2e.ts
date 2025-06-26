@@ -188,12 +188,16 @@ describe('Debug LWC Tests', () => {
     log('Go to the top of the file done');
 
     // Click the "Debug" code lens at the top of the class
-    const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug');
-    expect(debugAllTestsOption).to.not.be.undefined;
     await retryOperation(
       async () => {
+        log('Debug All Tests: Finding code lens');
+        const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug');
+        expect(debugAllTestsOption).to.not.be.undefined;
+        log('Debug All Tests: Code lens found, waiting before click');
         await pause(Duration.seconds(2));
+        log('Debug All Tests: Clicking code lens');
         await debugAllTestsOption!.click();
+        log('Debug All Tests: Code lens clicked successfully');
       },
       3,
       'DebugLwcTests - Error clicking debug all tests option'
@@ -224,12 +228,17 @@ describe('Debug LWC Tests', () => {
     // Click the "Debug Test" code lens at the top of one of the test methods
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc2.test.js');
-    const debugTestOption = await waitForAndGetCodeLens(textEditor, 'Debug Test');
 
     await retryOperation(
       async () => {
+        log('Debug Single Test: Finding code lens');
+        const debugTestOption = await waitForAndGetCodeLens(textEditor, 'Debug Test');
+        expect(debugTestOption).to.not.be.undefined;
+        log('Debug Single Test: Code lens found, waiting before click');
         await pause(Duration.seconds(2));
+        log('Debug Single Test: Clicking code lens');
         await debugTestOption!.click();
+        log('Debug Single Test: Code lens clicked successfully');
       },
       3,
       'DebugLwcTests - Error clicking debug test option'
