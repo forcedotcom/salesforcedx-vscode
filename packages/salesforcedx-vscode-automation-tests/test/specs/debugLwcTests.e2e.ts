@@ -175,7 +175,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it('Debug All Tests via Code Lens action', async () => {
+  it.skip('Debug All Tests via Code Lens action', async () => {
     log(`${testSetup.testSuiteSuffixName} - Debug All Tests via Code Lens action`);
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
@@ -264,7 +264,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it.skip('SFDX: Debug Current Lightning Web Component Test File from main toolbar', async () => {
+  it('SFDX: Debug Current Lightning Web Component Test File from main toolbar', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Debug Current Lightning Web Component Test File from main toolbar`);
 
     // Debug SFDX: Debug Current Lightning Web Component Test File
