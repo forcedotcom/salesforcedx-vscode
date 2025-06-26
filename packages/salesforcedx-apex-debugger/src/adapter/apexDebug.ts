@@ -932,7 +932,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private hasStackFrames(response: DebuggerResponse): boolean {
-    if (response.stateResponse?.state?.stack?.stackFrame && response.stateResponse.state.stack.stackFrame.length > 0) {
+    if (response.stateResponse?.state?.stack?.stackFrame?.length > 0) {
       return true;
     }
     return false;
@@ -1191,7 +1191,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   protected printToDebugConsole(msg?: string, sourceFile?: Source, sourceLine?: number): void {
-    if (msg && msg?.length > 0) {
+    if (msg && msg.length > 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stdout');
       event.body.source = sourceFile;
       event.body.line = sourceLine;
