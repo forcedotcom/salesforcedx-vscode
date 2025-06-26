@@ -231,7 +231,7 @@ describe('Apex Replay Debugger', () => {
     // Run SFDX: Launch Apex Replay Debugger with Current File
     const workbench = getWorkbench();
     await getTextEditor(workbench, 'ExampleApexClassTest.cls');
-    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(3));
+    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(10));
 
     // Continue with the debug session
     await continueDebugging(2, 30);

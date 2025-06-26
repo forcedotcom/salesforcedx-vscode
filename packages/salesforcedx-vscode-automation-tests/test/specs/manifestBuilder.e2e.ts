@@ -23,6 +23,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
+import { dismissAllNotifications } from '../utils/uiHelpers';
 
 describe('Manifest Builder', () => {
   let testSetup: TestSetup;
@@ -119,11 +120,14 @@ describe('Manifest Builder', () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Deploy Source in Manifest to Org`);
     log(`Deploy: Current platform is: ${process.platform}`);
 
-    // Clear output before running the command
-    log('Deploy: Clearing output view');
-    await clearOutputView(Duration.seconds(2));
     log('Deploy: Getting workbench');
     const workbench = getWorkbench();
+    await dismissAllNotifications(workbench, 'Deploy:');
+    // Clear output before running the command
+    log('Deploy: Clearing output view');
+
+    await pause(Duration.seconds(2));
+    await clearOutputView();
     log('Deploy: Opening manifest.xml file');
     await getTextEditor(workbench, 'manifest.xml');
     log('Deploy: manifest.xml file opened');
@@ -133,18 +137,7 @@ describe('Manifest Builder', () => {
       log('Deploy: Running on Linux platform - using context menu approach');
 
       // Dismiss all notifications using the button in the status bar
-      log('Deploy: Getting status bar to dismiss notifications');
-      const statusBar = workbench.getStatusBar();
-      const notificationsButton = await statusBar.getItem('Notifications');
-      if (notificationsButton) {
-        log('Deploy: Found notifications button, clicking to dismiss');
-        await notificationsButton.click();
-        const notificationsCenter = await workbench.openNotificationsCenter();
-        await notificationsCenter.clearAllNotifications();
-        log('Deploy: Notifications cleared');
-      } else {
-        log('Deploy: No notifications button found');
-      }
+      await dismissAllNotifications(workbench, 'Deploy:');
 
       // Using the Context menu, run SFDX: Deploy Source in Manifest to Org
       log('Deploy: Getting sidebar and content');
@@ -219,18 +212,7 @@ describe('Manifest Builder', () => {
       log('Retrieve: Running on Linux platform - using context menu approach');
 
       // Dismiss all notifications using the button in the status bar
-      log('Retrieve: Getting status bar to dismiss notifications');
-      const statusBar = workbench.getStatusBar();
-      const notificationsButton = await statusBar.getItem('Notifications');
-      if (notificationsButton) {
-        log('Retrieve: Found notifications button, clicking to dismiss');
-        await notificationsButton.click();
-        const notificationsCenter = await workbench.openNotificationsCenter();
-        await notificationsCenter.clearAllNotifications();
-        log('Retrieve: Notifications cleared');
-      } else {
-        log('Retrieve: No notifications button found');
-      }
+      await dismissAllNotifications(workbench, 'Retrieve:');
 
       // Using the Context menu, run SFDX: Retrieve Source in Manifest from Org
       log('Retrieve: Getting sidebar and content');
