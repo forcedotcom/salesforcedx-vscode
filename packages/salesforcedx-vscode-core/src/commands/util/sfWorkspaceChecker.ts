@@ -11,8 +11,8 @@ import { notificationService } from '../../notifications';
 import { isSalesforceProjectOpened } from '../../predicates';
 
 export class SfWorkspaceChecker implements PreconditionChecker {
-  public check(): boolean {
-    const result = isSalesforceProjectOpened.apply(workspace);
+  public async check(): Promise<boolean> {
+    const result = await isSalesforceProjectOpened.apply(workspace);
     if (!result.result) {
       notificationService.showErrorMessage(result.message);
       return false;

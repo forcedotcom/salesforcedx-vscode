@@ -5,9 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LibraryCommandletExecutor, workspaceUtils, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ContinueResponse,
+  LibraryCommandletExecutor,
+  createDirectory,
+  fileOrFolderExists,
+  workspaceUtils,
+  writeFile
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'node:fs';
 import { join, parse } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -85,20 +91,18 @@ const saveDocument = async (response: string, packageXML: string): Promise<void>
   const fileName = response ? appendExtension(response) : DEFAULT_MANIFEST;
 
   const manifestPath = join(workspaceUtils.getRootWorkspacePath(), 'manifest');
-  if (!fs.existsSync(manifestPath)) {
-    fs.mkdirSync(manifestPath);
-  }
+  await createDirectory(manifestPath);
   const saveLocation = join(manifestPath, fileName);
-  checkForDuplicateManifest(saveLocation, fileName);
+  await checkForDuplicateManifest(saveLocation, fileName);
 
-  fs.writeFileSync(saveLocation, packageXML);
+  await writeFile(saveLocation, packageXML);
   await vscode.workspace.openTextDocument(saveLocation).then((newManifest: any) => {
     void vscode.window.showTextDocument(newManifest);
   });
 };
 
-const checkForDuplicateManifest = (saveLocation: string, fileName: string): void => {
-  if (fs.existsSync(saveLocation)) {
+const checkForDuplicateManifest = async (saveLocation: string, fileName: string): Promise<void> => {
+  if (await fileOrFolderExists(saveLocation)) {
     void vscode.window.showErrorMessage(nls.localize('manifest_input_dupe_error', fileName));
     throw new Error(nls.localize('manifest_input_dupe_error', fileName));
   }
