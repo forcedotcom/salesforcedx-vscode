@@ -129,6 +129,8 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug test option'
     );
 
+    await pause(Duration.seconds(20));
+
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
 
@@ -139,10 +141,21 @@ describe('Debug Apex Tests', () => {
   it('Debug all Apex Methods on a Class via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Debug All Apex Methods on a Class via the Test Sidebar');
     const workbench = getWorkbench();
-    await executeQuickPick('Testing: Focus on Apex Tests View', Duration.seconds(1));
+
+    await retryOperation(
+      async () => {
+        await executeQuickPick('Testing: Focus on Apex Tests View');
+      },
+      3,
+      'DebugApexTests - Error focusing on apex tests view'
+    );
 
     // Open the Test Sidebar
-    const apexTestsSection = await getTestsSection(workbench, 'Apex Tests');
+    const apexTestsSection = await retryOperation(
+      async () => await getTestsSection(workbench, 'Apex Tests'),
+      3,
+      'DebugApexTests - Error getting apex tests section'
+    );
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
 
     await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 4, 2);
@@ -179,14 +192,26 @@ describe('Debug Apex Tests', () => {
   it('Debug a Single Apex Test Method via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Debug Single Apex Test Method via the Test Sidebar');
     const workbench = getWorkbench();
-    await executeQuickPick('Testing: Focus on Apex Tests View', Duration.seconds(1));
+
+    await retryOperation(
+      async () => {
+        await executeQuickPick('Testing: Focus on Apex Tests View');
+      },
+      3,
+      'DebugApexTests - Error focusing on apex tests view'
+    );
 
     // Open the Test Sidebar
-    const apexTestsSection = await getTestsSection(workbench, 'Apex Tests');
+    const apexTestsSection = await retryOperation(
+      async () => await getTestsSection(workbench, 'Apex Tests'),
+      3,
+      'DebugApexTests - Error getting apex tests section'
+    );
 
     // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
     await apexTestsSection.click();
     const apexTestItem = (await apexTestsSection.findItem('validateSayHello')) as TreeItem;
+    await apexTestItem.wait(20_000);
     await retryOperation(
       async () => {
         await pause(Duration.seconds(2));

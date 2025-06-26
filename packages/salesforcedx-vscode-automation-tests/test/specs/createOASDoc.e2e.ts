@@ -296,13 +296,27 @@ describe('Create OpenAPI v3 Specifications', () => {
       const workbench = getWorkbench();
       const editorView = workbench.getEditorView();
       let activeTab = await editorView.getActiveTab();
-      let title = await activeTab?.getTitle();
-      expect(title).to.equal('SimpleAccountResource.yaml');
+      await retryOperation(
+        async () => {
+          await activeTab?.wait(20_000);
+          const title = await activeTab?.getTitle();
+          expect(title).to.equal('SimpleAccountResource.yaml');
+        },
+        3,
+        'CreateOASDoc - Error waiting for active tab'
+      );
 
       await executeQuickPick('View: Open Previous Editor');
       activeTab = await editorView.getActiveTab();
-      title = await activeTab?.getTitle();
-      expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
+      await retryOperation(
+        async () => {
+          await activeTab?.wait(20_000);
+          const title = await activeTab?.getTitle();
+          expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
+        },
+        3,
+        'CreateOASDoc - Error waiting for active tab'
+      );
     });
 
     it('Check for warnings and errors in the Problems Tab', async () => {

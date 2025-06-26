@@ -174,6 +174,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
+  // TODO: This test is skipped because of W-15666391 https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00001qWb1IYAS/view
   it.skip('Debug All Tests via Code Lens action', async () => {
     logTestStart(testSetup, 'Debug All Tests via Code Lens action');
     const workbench = getWorkbench();
