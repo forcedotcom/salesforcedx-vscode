@@ -110,28 +110,24 @@ jobs:
             npm install
             npm install -g @salesforce/cli
 
-            # Verify CLI
-            set -e
-            sf version
-            SF_CLI_VERSION=$(sf version)
-            export SF_CLI_VERSION
-
-            echo "SF_CLI_VERSION: $SF_CLI_VERSION"
-
-            # Use shell-specific commands for OS check
+            # Verify CLI and set environment variables
             bash -c '
-              echo "Inside bash -c, SF_CLI_VERSION: $SF_CLI_VERSION"
+              set -e
+              sf version
+              SF_CLI_VERSION=$(sf version)
+              echo "SF_CLI_VERSION: $SF_CLI_VERSION"
+
               case "${{ matrix.os }}" in
                 "windows-latest")
+                  echo "SF_CLI_VERSION=$SF_CLI_VERSION" >> $GITHUB_ENV
                   powershell -Command "
-                    if ($env:SF_CLI_VERSION -match '\''@salesforce/cli/'\'') {
-                      Write-Host '\''@salesforce/cli installed -'\'' $env:SF_CLI_VERSION
+                    if ('"'"'$SF_CLI_VERSION'"'"' -match '"'"'@salesforce/cli/'"'"') {
+                      Write-Host '"'"'@salesforce/cli installed - $SF_CLI_VERSION'"'"'
                     } else {
-                      Write-Error '\''The @salesforce/cli installation cannot be verified'\''
+                      Write-Error '"'"'The @salesforce/cli installation cannot be verified'"'"'
                       exit 1
                     }
-                    $env:THROTTLE_FACTOR=5
-                    Add-Content -Path $env:GITHUB_ENV -Value '\''THROTTLE_FACTOR=5'\''
+                    Add-Content -Path $env:GITHUB_ENV -Value '"'"'THROTTLE_FACTOR=5'"'"'
                   "
                   ;;
                 *)
