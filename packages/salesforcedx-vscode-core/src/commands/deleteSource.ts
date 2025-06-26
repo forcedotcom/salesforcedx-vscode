@@ -19,9 +19,9 @@ import { URI } from 'vscode-uri';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 import { SfCommandlet } from './util/sfCommandlet';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
-import { getUriFromActiveEditor } from './utils';
 
 export class DeleteSourceExecutor extends SfCommandletExecutor<{
   filePath: string;

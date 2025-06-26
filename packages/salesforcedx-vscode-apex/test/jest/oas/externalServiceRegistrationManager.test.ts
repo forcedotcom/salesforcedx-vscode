@@ -206,7 +206,7 @@ describe('ExternalServiceRegistrationManager', () => {
         .mockImplementation(() => ({ directoryName: mockDirectoryName }));
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(mockFolderPath);
 
-      const result = await esrHandler['getFolderForArtifact']();
+      const result = await esrHandler.getFolderForArtifact();
 
       expect(result).toBe(path.resolve(mockFolderPath));
       expect(vscode.window.showInputBox).toHaveBeenCalledWith({

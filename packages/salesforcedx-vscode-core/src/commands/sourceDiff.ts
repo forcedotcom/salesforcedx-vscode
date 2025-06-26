@@ -12,7 +12,7 @@ import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
-import { getUriFromActiveEditor } from './utils';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 const workspaceChecker = new SfWorkspaceChecker();
 

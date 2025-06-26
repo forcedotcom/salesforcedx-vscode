@@ -674,7 +674,7 @@ export const processBreakpointChangedForCheckpoints = async (
 
   for (const bp of breakpointsChangedEvent.changed) {
     const breakpointId = bp.id;
-    if (bp.condition && bp.condition.toLowerCase().includes(CHECKPOINT) && bp instanceof vscode.SourceBreakpoint) {
+    if (bp.condition?.toLowerCase().includes(CHECKPOINT) && bp instanceof vscode.SourceBreakpoint) {
       const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
       const uri = code2ProtocolConverter(bp.location.uri);
       const filename = uri.substring(uri.lastIndexOf('/') + 1);
@@ -697,7 +697,7 @@ export const processBreakpointChangedForCheckpoints = async (
   }
 
   for (const bp of breakpointsChangedEvent.added) {
-    if (bp.condition && bp.condition.toLowerCase().includes(CHECKPOINT) && bp instanceof vscode.SourceBreakpoint) {
+    if (bp.condition?.toLowerCase().includes(CHECKPOINT) && bp instanceof vscode.SourceBreakpoint) {
       await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
         const breakpointId = bp.id;
         const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);

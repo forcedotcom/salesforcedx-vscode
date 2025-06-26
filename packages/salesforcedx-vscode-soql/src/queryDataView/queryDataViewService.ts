@@ -60,11 +60,11 @@ export class QueryDataViewService {
         data: extendQueryData(this.queryText, queryData),
         documentName: getDocumentName(this.document)
       })
-      .then(undefined, async (err: string) => {
+      .then(undefined, (err: string) => {
         const errorType = 'data_view_post_message';
         const message = nls.localize('error_unknown_error', errorType);
         channelService.appendLine(message);
-        await trackErrorWithTelemetry(errorType, err);
+        trackErrorWithTelemetry(errorType, err);
       });
   }
 
@@ -117,7 +117,7 @@ export class QueryDataViewService {
         break;
       default:
         channelService.appendLine(nls.localize('error_unknown_error', type));
-        trackErrorWithTelemetry('data_view_message_type', type).catch(console.error);
+        trackErrorWithTelemetry('data_view_message_type', type);
         break;
     }
   }

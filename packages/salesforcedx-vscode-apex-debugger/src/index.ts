@@ -25,11 +25,11 @@ import {
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
+import { getActiveApexExtension } from './context/isvContext';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
@@ -111,49 +111,44 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 ];
 
 const configureExceptionBreakpoint = async (): Promise<void> => {
-  const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
-  if (!salesforceApexExtension?.isActive) {
-    await salesforceApexExtension?.activate();
-  }
-  if (salesforceApexExtension?.exports) {
-    // @ts-expect-error - typing ExceptionBreakpointItem exists only in the debugger, but the breakpoints are coming from core ext which doesn't have the types
-    const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
-      await salesforceApexExtension.exports.getExceptionBreakpointInfo();
-    console.log('Retrieved exception breakpoint info from language server');
-    let enabledExceptionBreakpointTyperefs: string[] = [];
-    if (vscode.debug.activeDebugSession) {
-      const responseBody = await vscode.debug.activeDebugSession.customRequest(LIST_EXCEPTION_BREAKPOINTS_REQUEST);
-      if (responseBody?.typerefs) {
-        enabledExceptionBreakpointTyperefs = responseBody.typerefs;
-      }
-    } else {
-      enabledExceptionBreakpointTyperefs = Array.from(cachedExceptionBreakpoints.keys());
+  const salesforceApexExtension = await getActiveApexExtension();
+  // @ts-expect-error - typing ExceptionBreakpointItem exists only in the debugger, but the breakpoints are coming from core ext which doesn't have the types
+  const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
+    await salesforceApexExtension.exports.getExceptionBreakpointInfo();
+  console.log('Retrieved exception breakpoint info from language server');
+  let enabledExceptionBreakpointTyperefs: string[] = [];
+  if (vscode.debug.activeDebugSession) {
+    const responseBody = await vscode.debug.activeDebugSession.customRequest(LIST_EXCEPTION_BREAKPOINTS_REQUEST);
+    if (responseBody?.typerefs) {
+      enabledExceptionBreakpointTyperefs = responseBody.typerefs;
     }
-    const processedBreakpointInfos = mergeExceptionBreakpointInfos(
-      exceptionBreakpointInfos,
-      enabledExceptionBreakpointTyperefs
-    );
-    const selectExceptionOptions: vscode.QuickPickOptions = {
-      placeHolder: nls.localize('select_exception_text'),
+  } else {
+    enabledExceptionBreakpointTyperefs = Array.from(cachedExceptionBreakpoints.keys());
+  }
+  const processedBreakpointInfos = mergeExceptionBreakpointInfos(
+    exceptionBreakpointInfos,
+    enabledExceptionBreakpointTyperefs
+  );
+  const selectExceptionOptions: vscode.QuickPickOptions = {
+    placeHolder: nls.localize('select_exception_text'),
+    matchOnDescription: true
+  };
+  const selectedException = await vscode.window.showQuickPick(processedBreakpointInfos, selectExceptionOptions);
+  if (selectedException) {
+    const selectBreakModeOptions: vscode.QuickPickOptions = {
+      placeHolder: nls.localize('select_break_option_text'),
       matchOnDescription: true
     };
-    const selectedException = await vscode.window.showQuickPick(processedBreakpointInfos, selectExceptionOptions);
-    if (selectedException) {
-      const selectBreakModeOptions: vscode.QuickPickOptions = {
-        placeHolder: nls.localize('select_break_option_text'),
-        matchOnDescription: true
+    const selectedBreakMode = await vscode.window.showQuickPick(EXCEPTION_BREAK_MODES, selectBreakModeOptions);
+    if (selectedBreakMode) {
+      selectedException.breakMode = selectedBreakMode.breakMode;
+      const args: SetExceptionBreakpointsArguments = {
+        exceptionInfo: selectedException
       };
-      const selectedBreakMode = await vscode.window.showQuickPick(EXCEPTION_BREAK_MODES, selectBreakModeOptions);
-      if (selectedBreakMode) {
-        selectedException.breakMode = selectedBreakMode.breakMode;
-        const args: SetExceptionBreakpointsArguments = {
-          exceptionInfo: selectedException
-        };
-        if (vscode.debug.activeDebugSession) {
-          await vscode.debug.activeDebugSession.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
-        }
-        updateExceptionBreakpointCache(selectedException);
+      if (vscode.debug.activeDebugSession) {
+        await vscode.debug.activeDebugSession.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
       }
+      updateExceptionBreakpointCache(selectedException);
     }
   }
 };

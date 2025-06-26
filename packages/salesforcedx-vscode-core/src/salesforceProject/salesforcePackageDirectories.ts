@@ -64,14 +64,12 @@ export default class SalesforcePackageDirectories {
   }
 
   public static async getDefaultPackageDir(): Promise<string | undefined> {
-    let packageDirs: string[] = [];
     try {
-      packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
+      return (await SalesforcePackageDirectories.getPackageDirectoryPaths())[0];
     } catch (e) {
       if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
         throw e;
       }
     }
-    return packageDirs && packageDirs.length > 0 ? packageDirs[0] : undefined;
   }
 }

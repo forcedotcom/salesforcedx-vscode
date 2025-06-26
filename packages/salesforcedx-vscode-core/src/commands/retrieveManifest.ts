@@ -12,7 +12,7 @@ import { nls } from '../messages';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
-import { getUriFromActiveEditor } from './utils';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   constructor() {
