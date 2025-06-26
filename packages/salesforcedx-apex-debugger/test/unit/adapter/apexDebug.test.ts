@@ -108,12 +108,6 @@ describe('Interactive debugger adapter - unit', () => {
     }
   });
 
-  afterAll(() => {
-    if (adapter) {
-      adapter.clearIdleTimers();
-    }
-  });
-
   describe('Attach', () => {
     let response: DebugProtocol.AttachResponse;
     let args: DebugProtocol.AttachRequestArguments;
