@@ -1,3 +1,12 @@
+# [8.2.0](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.33...8.2.0) (2025-06-26)
+
+
+### Features
+
+* W-11791190 - ability to retry when connection timeouts are encountered ([#507](https://github.com/forcedotcom/salesforcedx-apex/issues/507)) ([c697c9d](https://github.com/forcedotcom/salesforcedx-apex/commit/c697c9d5f7d5d493a77120ec4408736aaa4877a4))
+
+
+
 ## [8.1.33](https://github.com/forcedotcom/salesforcedx-apex/compare/8.1.32...8.1.33) (2025-06-22)
 
 
