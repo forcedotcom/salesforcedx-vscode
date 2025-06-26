@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.14.0",
-    "@salesforce/lightning-lsp-common": "4.12.3",
-    "@salesforce/lwc-language-server": "4.12.3",
+    "@salesforce/lightning-lsp-common": "4.12.4",
+    "@salesforce/lwc-language-server": "4.12.4",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "jest-editor-support": "31.1.2",
