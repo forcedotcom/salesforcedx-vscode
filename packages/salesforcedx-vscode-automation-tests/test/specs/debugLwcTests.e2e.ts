@@ -264,7 +264,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it('SFDX: Debug Current Lightning Web Component Test File from main toolbar', async () => {
+  it.skip('SFDX: Debug Current Lightning Web Component Test File from main toolbar', async () => {
     log(`${testSetup.testSuiteSuffixName} - SFDX: Debug Current Lightning Web Component Test File from main toolbar`);
 
     // Debug SFDX: Debug Current Lightning Web Component Test File

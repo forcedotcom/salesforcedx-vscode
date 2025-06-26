@@ -82,7 +82,16 @@ jobs:
             '
 
             # Download extension vsixes
-            mkdir ./extensions
+            bash -c '
+              case "${{ matrix.os }}" in
+                "windows-latest")
+                  powershell -Command "if (-not (Test-Path ./extensions)) { New-Item -ItemType Directory -Path ./extensions }"
+                  ;;
+                *)
+                  mkdir -p ./extensions
+                  ;;
+              esac
+            '
             pwd
             gh run download ${{ inputs.runId }} -D ./extensions
 
