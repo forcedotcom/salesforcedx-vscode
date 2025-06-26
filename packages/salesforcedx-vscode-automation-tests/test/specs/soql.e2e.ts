@@ -20,6 +20,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('SOQL', () => {
   let testSetup: TestSetup;
@@ -36,7 +37,7 @@ describe('SOQL', () => {
   });
 
   it('SFDX: Create Query in SOQL Builder', async () => {
-    log(`${testSetup.testSuiteSuffixName} - SFDX: Create Query in SOQL Builder`);
+    logTestStart(testSetup, 'SFDX: Create Query in SOQL Builder');
     await pause(Duration.seconds(20));
     // Run SFDX: Create Query in SOQL Builder
     await executeQuickPick('SFDX: Create Query in SOQL Builder', Duration.seconds(3));
@@ -50,7 +51,7 @@ describe('SOQL', () => {
   });
 
   it('Switch Between SOQL Builder and Text Editor - from SOQL Builder', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Switch Between SOQL Builder and Text Editor - from SOQL Builder`);
+    logTestStart(testSetup, 'Switch Between SOQL Builder and Text Editor - from SOQL Builder');
 
     // Click Switch Between SOQL Builder and Text Editor
     const workbench = await getWorkbench();
@@ -70,7 +71,7 @@ describe('SOQL', () => {
   });
 
   it('Switch Between SOQL Builder and Text Editor - from file', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Switch Between SOQL Builder and Text Editor - from file`);
+    logTestStart(testSetup, 'Switch Between SOQL Builder and Text Editor - from file');
     await reloadWindow(Duration.seconds(5));
 
     // Click Switch Between SOQL Builder and Text Editor

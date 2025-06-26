@@ -21,6 +21,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Miscellaneous', () => {
   let testSetup: TestSetup;
@@ -37,7 +38,7 @@ describe('Miscellaneous', () => {
   });
 
   it.skip('Use out-of-the-box Apex Snippets', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Use Apex Snippets`);
+    logTestStart(testSetup, 'Use Apex Snippets');
     const workbench = await getWorkbench();
     const apexSnippet = 'String.isBlank(inputString)';
 
@@ -56,7 +57,7 @@ describe('Miscellaneous', () => {
   });
 
   it.skip('Use Custom Apex Snippets', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Use Apex Snippets`);
+    logTestStart(testSetup, 'Use Apex Snippets');
 
     // Using the Command palette, run Snippets: Configure Snippets
     const workbench = await getWorkbench();
@@ -81,7 +82,7 @@ describe('Miscellaneous', () => {
   });
 
   it.skip('Use out-of-the-box LWC Snippets - HTML', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Use out-of-the-box LWC Snippets - HTML`);
+    logTestStart(testSetup, 'Use out-of-the-box LWC Snippets - HTML');
     const workbench = await getWorkbench();
 
     const lwcSnippet = [
@@ -117,7 +118,7 @@ describe('Miscellaneous', () => {
   });
 
   it('Use out-of-the-box LWC Snippets - JS', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Use out-of-the-box LWC Snippets - JS`);
+    logTestStart(testSetup, 'Use out-of-the-box LWC Snippets - JS');
     const workbench = await getWorkbench();
 
     const lwcSnippet = 'this.dispatchEvent(new CustomEvent("event-name"));';

@@ -35,6 +35,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Debug LWC Tests', () => {
   let testSetup: TestSetup;
@@ -64,7 +65,7 @@ describe('Debug LWC Tests', () => {
   });
 
   it('Debug All Tests on a LWC via the Test Sidebar', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Debug All tests on a LWC via the Test Sidebar`);
+    logTestStart(testSetup, 'Debug All tests on a LWC via the Test Sidebar');
     const workbench = getWorkbench();
     await executeQuickPick('Testing: Focus on LWC Tests View', Duration.seconds(3));
 
@@ -109,7 +110,7 @@ describe('Debug LWC Tests', () => {
   });
 
   it('Debug Single Test via the Test Sidebar', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Debug Single Test via the Test Sidebar`);
+    logTestStart(testSetup, 'Debug Single Test via the Test Sidebar');
     const workbench = getWorkbench();
     const testingView = await workbench.getActivityBar().getViewControl('Testing');
     expect(testingView).to.not.be.undefined;
@@ -149,9 +150,7 @@ describe('Debug LWC Tests', () => {
   });
 
   it('SFDX: Debug Current Lightning Web Component Test File from Command Palette', async () => {
-    log(
-      `${testSetup.testSuiteSuffixName} - SFDX: Debug Current Lightning Web Component Test File from Command Palette`
-    );
+    logTestStart(testSetup, 'SFDX: Debug Current Lightning Web Component Test File from Command Palette');
 
     // Debug SFDX: Debug Current Lightning Web Component Test File
     const workbench = getWorkbench();
@@ -176,7 +175,7 @@ describe('Debug LWC Tests', () => {
   });
 
   it.skip('Debug All Tests via Code Lens action', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Debug All Tests via Code Lens action`);
+    logTestStart(testSetup, 'Debug All Tests via Code Lens action');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
@@ -223,7 +222,7 @@ describe('Debug LWC Tests', () => {
   });
 
   it('Debug Single Test via Code Lens action', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Debug Single Test via Code Lens action`);
+    logTestStart(testSetup, 'Debug Single Test via Code Lens action');
 
     // Click the "Debug Test" code lens at the top of one of the test methods
     const workbench = getWorkbench();
@@ -265,7 +264,7 @@ describe('Debug LWC Tests', () => {
   });
 
   it('SFDX: Debug Current Lightning Web Component Test File from main toolbar', async () => {
-    log(`${testSetup.testSuiteSuffixName} - SFDX: Debug Current Lightning Web Component Test File from main toolbar`);
+    logTestStart(testSetup, 'SFDX: Debug Current Lightning Web Component Test File from main toolbar');
 
     // Debug SFDX: Debug Current Lightning Web Component Test File
     const workbench = getWorkbench();

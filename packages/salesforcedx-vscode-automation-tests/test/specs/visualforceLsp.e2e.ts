@@ -28,6 +28,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Visualforce LSP', () => {
   let testSetup: TestSetup;
@@ -79,7 +80,7 @@ describe('Visualforce LSP', () => {
   });
 
   it.skip('Go to Definition', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
+    logTestStart(testSetup, 'Go to Definition');
     // Get open text editor
     const workbench = await getWorkbench();
     const textEditor = await getTextEditor(workbench, 'FooPage.page');
@@ -98,7 +99,7 @@ describe('Visualforce LSP', () => {
   });
 
   it('Autocompletion', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
+    logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
     const workbench = await getWorkbench();
     const textEditor = await getTextEditor(workbench, 'FooPage.page');

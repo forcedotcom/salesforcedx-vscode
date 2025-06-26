@@ -30,6 +30,7 @@ import { expect } from 'chai';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 // Types
 interface LspStatus {
@@ -111,7 +112,7 @@ const setupTestEnvironment = async (testSetup: TestSetup): Promise<void> => {
 };
 
 const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
-  log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
+  logTestStart(testSetup, 'Verify LSP finished indexing');
   const workbench = getWorkbench();
   await getTextEditor(workbench, 'ExampleClass.cls');
 
@@ -121,7 +122,7 @@ const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
 };
 
 const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
-  log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
+  logTestStart(testSetup, 'Go to Definition');
   const workbench = getWorkbench();
   const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
 
@@ -138,7 +139,7 @@ const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
 };
 
 const testAutocompletion = async (testSetup: TestSetup): Promise<void> => {
-  log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
+  logTestStart(testSetup, 'Autocompletion');
   const workbench = getWorkbench();
   const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
 
@@ -163,7 +164,7 @@ const testAutocompletion = async (testSetup: TestSetup): Promise<void> => {
 
 const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<void> => {
   const action = cleanDb ? 'with cleaned db' : 'alone';
-  log(`${testSetup.testSuiteSuffixName} - Cmd Palette: LSP Restart ${action}`);
+  logTestStart(testSetup, `Cmd Palette: LSP Restart ${action}`);
 
   if (cleanDb) {
     const releaseDir = findReleaseDir();
@@ -192,7 +193,7 @@ const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<v
 
 const testStatusBarRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<void> => {
   const action = cleanDb ? 'with cleaned db' : 'alone';
-  log(`${testSetup.testSuiteSuffixName} - Apex Status Bar: LSP Restart ${action}`);
+  logTestStart(testSetup, `Apex Status Bar: LSP Restart ${action}`);
 
   const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
   await statusBar.click();

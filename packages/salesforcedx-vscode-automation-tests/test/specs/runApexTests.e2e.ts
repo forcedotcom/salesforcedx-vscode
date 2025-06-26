@@ -43,6 +43,7 @@ import {
 import { expect } from 'chai';
 import * as semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
@@ -91,7 +92,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Verify LSP finished indexing', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
+    logTestStart(testSetup, 'Verify LSP finished indexing');
 
     // Get Apex LSP Status Bar
     const statusBar = await retryOperation(async () => await getStatusBarItemWhichIncludes('Editor Language Status'));
@@ -100,7 +101,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run All Tests via Apex Class', async () => {
-    log('RunApexTests - Run All Tests via Apex Class');
+    logTestStart(testSetup, 'Run All Tests via Apex Class');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass1Test.cls');
 
@@ -133,7 +134,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run Single Test via Apex Class', async () => {
-    log('RunApexTests - Run Single Test via Apex Class');
+    logTestStart(testSetup, 'Run Single Test via Apex Class');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass2Test.cls');
 
@@ -166,7 +167,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run All Tests via Command Palette', async () => {
-    log('RunApexTests - Run All Tests via Command Palette');
+    logTestStart(testSetup, 'Run All Tests via Command Palette');
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
@@ -199,7 +200,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run Single Class via Command Palette', async () => {
-    log('RunApexTests - Run Single Class via Command Palette');
+    logTestStart(testSetup, 'Run Single Class via Command Palette');
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
@@ -229,7 +230,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run All tests via Test Sidebar', async () => {
-    log('RunApexTests - Run All tests via Test Sidebar');
+    logTestStart(testSetup, 'Run All tests via Test Sidebar');
     const workbench = getWorkbench();
     const testingView = await workbench.getActivityBar().getViewControl('Testing');
     expect(testingView).to.not.be.undefined;
@@ -276,7 +277,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run All Tests on a Class via the Test Sidebar', async () => {
-    log('RunApexTests - Run All Tests on a Class via the Test Sidebar');
+    logTestStart(testSetup, 'Run All Tests on a Class via the Test Sidebar');
     const workbench = getWorkbench();
     // Clear the Output view.
     await dismissAllNotifications();
@@ -296,7 +297,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run Single Test via the Test Sidebar', async () => {
-    log("RunApexTests - 'Run Single Test via the Test Sidebar");
+    logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
     const workbench = getWorkbench();
     // Clear the Output view.
     await dismissAllNotifications();
@@ -321,7 +322,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run a test that fails and fix it', async () => {
-    log('RunApexTests - Run a test that fails and fix it');
+    logTestStart(testSetup, 'Run a test that fails and fix it');
     // Create Apex class AccountService
     await createApexClassWithBugs();
 
@@ -406,7 +407,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Create Apex Test Suite', async () => {
-    log('RunApexTests - Create Apex Test Suite');
+    logTestStart(testSetup, 'Create Apex Test Suite');
     // Run SFDX: Create Apex Test Suite.
     prompt = await executeQuickPick('SFDX: Create Apex Test Suite', Duration.seconds(2));
 
@@ -436,7 +437,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Add test to Apex Test Suite', async () => {
-    log('RunApexTests - Add test to Apex Test Suite');
+    logTestStart(testSetup, 'Add test to Apex Test Suite');
     // Run SFDX: Add Tests to Apex Test Suite.
     prompt = await executeQuickPick('SFDX: Add Tests to Apex Test Suite', Duration.seconds(1));
 
@@ -465,7 +466,7 @@ describe('Run Apex Tests', () => {
   });
 
   it('Run Apex Test Suite', async () => {
-    log('RunApexTests - Run Apex Test Suite');
+    logTestStart(testSetup, 'Run Apex Test Suite');
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));

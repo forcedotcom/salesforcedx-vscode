@@ -23,6 +23,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { DefaultTreeItem, TreeItem, Workbench, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('SObjects Definitions', () => {
   let testSetup: TestSetup;
@@ -51,9 +52,7 @@ describe('SObjects Definitions', () => {
   });
 
   it("Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder", async () => {
-    log(
-      `${testSetup.testSuiteSuffixName} - Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder`
-    );
+    logTestStart(testSetup, "Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder");
     const workbench = await getWorkbench();
     const sidebar = await workbench.getSideBar().wait();
     const content = await sidebar.getContent().wait();
@@ -85,7 +84,7 @@ describe('SObjects Definitions', () => {
   });
 
   it('Push Source to Org', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Push Source to Org`);
+    logTestStart(testSetup, 'Push Source to Org');
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
     await pause(Duration.seconds(1));
 
@@ -105,7 +104,7 @@ describe('SObjects Definitions', () => {
   });
 
   it('Refresh SObject Definitions for Custom SObjects', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for Custom SObjects`);
+    logTestStart(testSetup, 'Refresh SObject Definitions for Custom SObjects');
     await refreshSObjectDefinitions('Custom SObjects');
 
     await verifyOutputPanelTxt('Custom sObjects', 2);
@@ -121,7 +120,7 @@ describe('SObjects Definitions', () => {
   });
 
   it('Refresh SObject Definitions for Standard SObjects', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for Standard SObjects`);
+    logTestStart(testSetup, 'Refresh SObject Definitions for Standard SObjects');
     await refreshSObjectDefinitions('Standard SObjects');
 
     await verifyOutputPanelTxt('Standard sObjects');
@@ -140,7 +139,7 @@ describe('SObjects Definitions', () => {
   });
 
   it('Refresh SObject Definitions for All SObjects', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Refresh SObject Definitions for All SObjects`);
+    logTestStart(testSetup, 'Refresh SObject Definitions for All SObjects');
     await refreshSObjectDefinitions('All SObjects');
 
     await verifyOutputPanelTxt('Standard sObjects');

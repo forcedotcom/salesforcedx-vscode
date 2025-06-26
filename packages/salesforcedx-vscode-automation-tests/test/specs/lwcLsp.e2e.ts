@@ -21,6 +21,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
   let testSetup: TestSetup;
@@ -44,7 +45,7 @@ describe('LWC LSP', () => {
   });
 
   it('Go to Definition (JavaScript)', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Go to Definition (Javascript)`);
+    logTestStart(testSetup, 'Go to Definition (Javascript)');
     // Get open text editor
     const workbench = await getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.js');
@@ -64,7 +65,7 @@ describe('LWC LSP', () => {
 
   it('Go to Definition (HTML)', async () => {
     if (process.platform !== 'win32') {
-      log(`${testSetup.testSuiteSuffixName} - Go to Definition (HTML)`);
+      logTestStart(testSetup, 'Go to Definition (HTML)');
       // Get open text editor
       const workbench = await getWorkbench();
       const textEditor = await getTextEditor(workbench, 'lwc1.html');
@@ -84,7 +85,7 @@ describe('LWC LSP', () => {
   });
 
   it('Autocompletion', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
+    logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
     const workbench = await getWorkbench().wait();
     const textEditor = await getTextEditor(workbench, 'lwc1.html');

@@ -35,6 +35,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Run LWC Tests', () => {
   let testSetup: TestSetup;
@@ -63,7 +64,7 @@ describe('Run LWC Tests', () => {
   });
 
   it('SFDX: Run All Lightning Web Component Tests from Command Palette', async () => {
-    log(`${testSetup.testSuiteSuffixName} - SFDX: Run All Lightning Web Component Tests from Command Palette`);
+    logTestStart(testSetup, 'SFDX: Run All Lightning Web Component Tests from Command Palette');
 
     // Run SFDX: Run All Lightning Web Component Tests.
     await executeQuickPick('SFDX: Run All Lightning Web Component Tests', Duration.seconds(1));
@@ -86,7 +87,7 @@ describe('Run LWC Tests', () => {
   });
 
   it('SFDX: Refresh Lightning Web Component Test Explorer', async () => {
-    log(`${testSetup.testSuiteSuffixName} - SFDX: Refresh Lightning Web Component Test Explorer`);
+    logTestStart(testSetup, 'SFDX: Refresh Lightning Web Component Test Explorer');
     await executeQuickPick('Testing: Focus on LWC Tests View', Duration.seconds(1));
     // Run command SFDX: Refresh Lightning Web Component Test Explorer
     await executeQuickPick('SFDX: Refresh Lightning Web Component Test Explorer', Duration.seconds(2));
@@ -119,7 +120,7 @@ describe('Run LWC Tests', () => {
   });
 
   it('Run All tests via Test Sidebar', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Run All tests via Test Sidebar`);
+    logTestStart(testSetup, 'Run All tests via Test Sidebar');
     const workbench = getWorkbench();
     const lwcTestsSection = await getTestsSection(workbench, 'LWC Tests');
     const expectedItems = ['lwc1', 'lwc2', 'displays greeting', 'is defined'];
@@ -159,7 +160,7 @@ describe('Run LWC Tests', () => {
   });
 
   it('Run All Tests on a LWC via the Test Sidebar', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Run All Tests on a LWC via the Test Sidebar`);
+    logTestStart(testSetup, 'Run All Tests on a LWC via the Test Sidebar');
     const workbench = getWorkbench();
 
     // Click the run test button that is shown to the right when you hover a test class name on the Test sidebar
@@ -184,7 +185,7 @@ describe('Run LWC Tests', () => {
   });
 
   it('Run Single Test via the Test Sidebar', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Run Single Test via the Test Sidebar`);
+    logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
     const workbench = getWorkbench();
 
     // Hover a test name under one of the test lwc sections and click the run button that is shown to the right of the test name on the Test sidebar
@@ -218,7 +219,7 @@ describe('Run LWC Tests', () => {
   });
 
   it('SFDX: Run Current Lightning Web Component Test File from Command Palette', async () => {
-    log(`${testSetup.testSuiteSuffixName} - SFDX: Run Current Lightning Web Component Test File`);
+    logTestStart(testSetup, 'SFDX: Run Current Lightning Web Component Test File');
 
     // Run SFDX: Run Current Lightning Web Component Test File
     await executeQuickPick('SFDX: Run Current Lightning Web Component Test File', Duration.seconds(1));
@@ -241,7 +242,7 @@ describe('Run LWC Tests', () => {
 
   it.skip('Run All Tests via Code Lens action', async () => {
     // Skipping as this feature is currently not working
-    log(`${testSetup.testSuiteSuffixName} - Run All Tests via Code Lens action`);
+    logTestStart(testSetup, 'Run All Tests via Code Lens action');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
@@ -266,7 +267,7 @@ describe('Run LWC Tests', () => {
   });
 
   it('Run Single Test via Code Lens action', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Run Single Test via Code Lens action`);
+    logTestStart(testSetup, 'Run Single Test via Code Lens action');
 
     // Click the "Run Test" code lens at the top of one of the test methods
     const workbench = getWorkbench();
@@ -291,7 +292,7 @@ describe('Run LWC Tests', () => {
   });
 
   it('SFDX: Run Current Lightning Web Component Test File from main toolbar', async () => {
-    log(`${testSetup.testSuiteSuffixName} - SFDX: Run Current Lightning Web Component Test File from main toolbar`);
+    logTestStart(testSetup, 'SFDX: Run Current Lightning Web Component Test File from main toolbar');
 
     // Run SFDX: Run Current Lightning Web Component Test File
     const workbench = getWorkbench();

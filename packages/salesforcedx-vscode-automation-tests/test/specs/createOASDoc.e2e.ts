@@ -59,6 +59,7 @@ import {
   getIdealSimpleAccountResourceXml
 } from '../testData/oasDocs';
 import { caseManagerClassText, simpleAccountResourceClassText } from '../testData/sampleClassData';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Create OpenAPI v3 Specifications', () => {
   let prompt: QuickOpenBox | InputBox;
@@ -72,7 +73,7 @@ describe('Create OpenAPI v3 Specifications', () => {
   };
 
   before('Set up the testing environment', async () => {
-    log('CreateOASDoc - Set up the testing environment');
+    log('\nCreateOASDoc - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Set SF_LOG_LEVEL to 'debug' to get the logs in the 'llm_logs' folder when the OAS doc is generated
@@ -135,7 +136,7 @@ describe('Create OpenAPI v3 Specifications', () => {
   });
 
   it('Try to generate OAS doc from an ineligible Apex class', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Try to generate OAS doc from an ineligible Apex class`);
+    logTestStart(testSetup, 'Try to generate OAS doc from an ineligible Apex class');
     await openFile(
       path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'IneligibleApexClass.cls')
     );
@@ -158,8 +159,9 @@ describe('Create OpenAPI v3 Specifications', () => {
 
   describe('Composed mode', () => {
     it('Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation', async () => {
-      log(
-        `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation`
+      logTestStart(
+        testSetup,
+        'Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation'
       );
       await executeQuickPick('View: Close All Editors');
       await openFile(
@@ -181,13 +183,13 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Check for warnings and errors in the Problems Tab', async () => {
-      log(`${testSetup.testSuiteSuffixName} - Check for warnings and errors in the Problems Tab`);
+      logTestStart(testSetup, 'Check for warnings and errors in the Problems Tab');
       await countProblemsInProblemsTab(0);
     });
 
     it('Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
       // NOTE: The "fix" is actually replacing the OAS doc with the ideal solution
-      log(`${testSetup.testSuiteSuffixName} - Fix the OAS doc to get rid of the problems in the Problems Tab`);
+      logTestStart(testSetup, 'Fix the OAS doc to get rid of the problems in the Problems Tab');
 
       const workbench = getWorkbench();
       const textEditor = await getTextEditor(workbench, 'CaseManager.externalServiceRegistration-meta.xml');
@@ -196,7 +198,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Revalidate the OAS doc', async () => {
-      log(`${testSetup.testSuiteSuffixName} - Revalidate the OAS doc`);
+      logTestStart(testSetup, 'Revalidate the OAS doc');
       await executeQuickPick('SFDX: Validate OpenAPI Document (Beta)');
       await verifyNotificationWithRetry(
         /Validated OpenAPI Document CaseManager.externalServiceRegistration-meta.xml successfully/
@@ -208,7 +210,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Deploy the composed ESR to the org', async () => {
-      log(`${testSetup.testSuiteSuffixName} - Deploy the composed ESR to the org`);
+      logTestStart(testSetup, 'Deploy the composed ESR to the org');
       const workbench = getWorkbench();
       // Clear the Output view first.
       await clearOutputView(Duration.seconds(2));
@@ -217,8 +219,9 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge', async () => {
-      log(
-        `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge`
+      logTestStart(
+        testSetup,
+        'Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge'
       );
       await executeQuickPick('View: Close All Editors');
       await openFile(
@@ -263,9 +266,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
   describe('Decomposed mode', () => {
     it('Add "decomposeExternalServiceRegistrationBeta" setting to sfdx-project.json', async () => {
-      log(
-        `${testSetup.testSuiteSuffixName} - Add "decomposeExternalServiceRegistrationBeta" setting to sfdx-project.json`
-      );
+      logTestStart(testSetup, 'Add "decomposeExternalServiceRegistrationBeta" setting to sfdx-project.json');
       const workbench = getWorkbench();
       await openFile(path.join(testSetup.projectFolderPath!, 'sfdx-project.json'));
       const textEditor = await getTextEditor(workbench, 'sfdx-project.json');
@@ -276,8 +277,9 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation', async () => {
-      log(
-        `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation`
+      logTestStart(
+        testSetup,
+        'Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation'
       );
       await executeQuickPick('View: Close All Editors');
       await openFile(
@@ -304,13 +306,13 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Check for warnings and errors in the Problems Tab', async () => {
-      log(`${testSetup.testSuiteSuffixName} - Check for warnings and errors in the Problems Tab`);
+      logTestStart(testSetup, 'Check for warnings and errors in the Problems Tab');
       await countProblemsInProblemsTab(0);
     });
 
     it('Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
       // NOTE: The "fix" is actually replacing the OAS doc with the ideal solution from the EMU repo
-      log(`${testSetup.testSuiteSuffixName} - Fix the OAS doc to get rid of the problems in the Problems Tab`);
+      logTestStart(testSetup, 'Fix the OAS doc to get rid of the problems in the Problems Tab');
 
       const workbench = getWorkbench();
       let textEditor = await getTextEditor(workbench, 'SimpleAccountResource.yaml');
@@ -323,7 +325,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Revalidate the OAS doc', async () => {
-      log(`${testSetup.testSuiteSuffixName} - Revalidate the OAS doc`);
+      logTestStart(testSetup, 'Revalidate the OAS doc');
       const workbench = getWorkbench();
       const textEditor = await getTextEditor(workbench, 'SimpleAccountResource.yaml');
 
@@ -340,7 +342,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Deploy the decomposed ESR to the org', async () => {
-      log(`${testSetup.testSuiteSuffixName} - Deploy the decomposed ESR to the org`);
+      logTestStart(testSetup, 'Deploy the decomposed ESR to the org');
       const workbench = getWorkbench();
       // Clear the Output view first.
       await clearOutputView(Duration.seconds(2));
@@ -356,8 +358,9 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite', async () => {
-      log(
-        `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite`
+      logTestStart(
+        testSetup,
+        'Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite'
       );
       await executeQuickPick('View: Close All Editors');
       await openFile(
@@ -406,8 +409,9 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge', async () => {
-      log(
-        `${testSetup.testSuiteSuffixName} - Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge`
+      logTestStart(
+        testSetup,
+        'Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge'
       );
       await executeQuickPick('View: Close All Editors');
       await openFile(
@@ -494,7 +498,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
   describe('Disable A4D extension and ensure the commands to generate and validate OAS docs are not present', () => {
     it('Disable A4D extension', async () => {
-      log(`${testSetup.testSuiteSuffixName} - Disable A4D extension`);
+      logTestStart(testSetup, 'Disable A4D extension');
 
       const extensionsView = await (await new ActivityBar().getViewControl('Extensions'))?.openView();
       await pause(Duration.seconds(5));
@@ -522,7 +526,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
 
     it('Ensure the commands to generate and validate OAS docs are not present', async () => {
-      log(`${testSetup.testSuiteSuffixName} - Ensure the commands to generate and validate OAS docs are not present`);
+      logTestStart(testSetup, 'Ensure the commands to generate and validate OAS docs are not present');
       await executeQuickPick('View: Close All Editors');
       await reloadWindow(Duration.seconds(5));
 
@@ -548,7 +552,7 @@ describe('Create OpenAPI v3 Specifications', () => {
   });
 
   after('Tear down and clean up the testing environment', async () => {
-    log('CreateOASDoc - Tear down and clean up the testing environment');
+    log('\nCreateOASDoc - Tear down and clean up the testing environment');
     await testSetup?.tearDown();
   });
 

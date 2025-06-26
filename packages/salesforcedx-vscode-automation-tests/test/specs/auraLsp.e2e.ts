@@ -17,6 +17,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Aura LSP', () => {
   let testSetup: TestSetup;
@@ -48,7 +49,7 @@ describe('Aura LSP', () => {
   });
 
   it('Verify LSP finished indexing', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
+    logTestStart(testSetup, 'Verify LSP finished indexing');
 
     // Get output text from the LSP
     const outputViewText = await getOutputViewText('Aura Language Server');
@@ -58,7 +59,7 @@ describe('Aura LSP', () => {
   });
 
   it('Go to Definition', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Go to Definition`);
+    logTestStart(testSetup, 'Go to Definition');
     // Get open text editor
     const workbench = await getWorkbench();
     const textEditor = await getTextEditor(workbench, 'aura1.cmp');
@@ -76,7 +77,7 @@ describe('Aura LSP', () => {
   });
 
   it('Autocompletion', async () => {
-    log(`${testSetup.testSuiteSuffixName} - Autocompletion`);
+    logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
     const workbench = await getWorkbench();
     const textEditor = await getTextEditor(workbench, 'aura1.cmp');

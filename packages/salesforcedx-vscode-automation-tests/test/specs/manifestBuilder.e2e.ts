@@ -23,6 +23,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 import { dismissAllNotifications } from '../utils/uiHelpers';
 
 describe('Manifest Builder', () => {
@@ -40,6 +41,7 @@ describe('Manifest Builder', () => {
   });
 
   it('Generate Manifest File', async () => {
+    logTestStart(testSetup, 'Generate Manifest File');
     // Normally we would want to run the 'SFDX: Generate Manifest File' command here, but it is only
     // accessible via a context menu, and wdio-vscode-service isn't able to interact with
     // context menus, so instead the manifest file is manually created:
@@ -117,7 +119,7 @@ describe('Manifest Builder', () => {
   });
 
   it('SFDX: Deploy Source in Manifest to Org', async () => {
-    log(`${testSetup.testSuiteSuffixName} - SFDX: Deploy Source in Manifest to Org`);
+    logTestStart(testSetup, 'SFDX: Deploy Source in Manifest to Org');
     log(`Deploy: Current platform is: ${process.platform}`);
 
     log('Deploy: Getting workbench');
@@ -201,7 +203,7 @@ describe('Manifest Builder', () => {
   });
 
   it('SFDX: Retrieve Source in Manifest from Org', async () => {
-    log(`${testSetup.testSuiteSuffixName} - SFDX: Retrieve Source in Manifest from Org`);
+    logTestStart(testSetup, 'SFDX: Retrieve Source in Manifest from Org');
 
     // Clear output before running the command
     await clearOutputView();
