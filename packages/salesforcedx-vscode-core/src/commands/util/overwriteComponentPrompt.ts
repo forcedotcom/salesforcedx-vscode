@@ -58,7 +58,7 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
     let metadataSuffix;
     if (component.suffix) {
       metadataSuffix = component.suffix;
-    } else if (info && info.suffix) {
+    } else if (info?.suffix) {
       metadataSuffix = info.suffix;
     } else {
       notificationService.showErrorMessage(nls.localize('error_overwrite_prompt'));
@@ -66,7 +66,7 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
     }
 
     const extensions = [`.${metadataSuffix}-meta.xml`];
-    if (info && info.extensions) {
+    if (info?.extensions) {
       extensions.push(...info.extensions);
     }
 

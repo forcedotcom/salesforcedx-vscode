@@ -6,7 +6,7 @@
  */
 
 import { LibraryCommandletExecutor, workspaceUtils, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'node:fs';
 import { join, parse } from 'node:path';
 import * as vscode from 'vscode';

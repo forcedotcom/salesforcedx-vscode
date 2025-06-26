@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { MetadataComponent } from '@salesforce/source-deploy-retrieve-bundle';
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 
 export const createComponentCount = (components: Iterable<MetadataComponent>) => {
   const quantities: { [type: string]: number } = {};

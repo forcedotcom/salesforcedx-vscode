@@ -40,6 +40,7 @@ import {
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+import { getVscodeCoreExtension } from '../utils/externalExtensionUtils';
 
 // below dependencies must be required for bundling to work properly
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -79,7 +80,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   }
 
   public async retrieveOrgInfo(): Promise<boolean> {
-    if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+    if (vscode.workspace.workspaceFolders?.[0]) {
       this.salesforceProject = URI.file(vscode.workspace.workspaceFolders[0].uri.fsPath).fsPath;
       try {
         this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
@@ -231,12 +232,9 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   // Make VS Code the source of truth for checkpoints
   public async clearExistingCheckpoints(): Promise<boolean> {
-    const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
-    if (!salesforceCoreExtension?.isActive) {
-      await salesforceCoreExtension?.activate();
-    }
-    if (salesforceCoreExtension && salesforceCoreExtension.exports) {
-      const userId = await salesforceCoreExtension.exports.getUserId(this.salesforceProject);
+    const salesforceCoreExtension = await getVscodeCoreExtension();
+    if (salesforceCoreExtension?.exports) {
+      const userId = await salesforceCoreExtension.exports.getUserId();
       if (userId) {
         const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
         let errorString;
@@ -732,12 +730,10 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
   // If the log message is defined and isn't empty then set the action script
   // based upon whether or not the string starts with SELECT
   const logMessage = (breakpoint as any).logMessage as string;
-  if (logMessage && logMessage.length > 0) {
-    if (logMessage.toLocaleLowerCase().startsWith('select')) {
-      checkpointOverlayAction.ActionScriptType = ActionScriptEnum.SOQL;
-    } else {
-      checkpointOverlayAction.ActionScriptType = ActionScriptEnum.Apex;
-    }
+  if (logMessage?.length > 0) {
+    checkpointOverlayAction.ActionScriptType = logMessage.toLocaleLowerCase().startsWith('select')
+      ? ActionScriptEnum.SOQL
+      : ActionScriptEnum.Apex;
     checkpointOverlayAction.ActionScript = logMessage;
   }
   return checkpointOverlayAction;

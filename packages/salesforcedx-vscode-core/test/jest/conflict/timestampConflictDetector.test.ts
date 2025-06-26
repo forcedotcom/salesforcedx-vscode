@@ -30,7 +30,7 @@ describe('TimestampConflictDetector', () => {
       } as any);
     });
 
-    it('should return diff results for only the files that trip the timestamp conflict detector', async () => {
+    it('should return diff results for only the files that trip the timestamp conflict detector', () => {
       // Only return a diff for the first file, which should have tripped the timestamp check
       diffComponentsStub = jest
         .spyOn(diffUtils, 'diffComponents')

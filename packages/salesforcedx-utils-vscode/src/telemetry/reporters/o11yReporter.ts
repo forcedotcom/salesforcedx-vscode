@@ -28,7 +28,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
     o11yUploadEndpoint: string,
     readonly userId: string
   ) {
-    super(() => this.toDispose.forEach(d => d && d.dispose()));
+    super(() => this.toDispose.forEach(d => d?.dispose()));
     this.o11yService = O11yService.getInstance();
     this.userOptIn = true; // Assume opt-in for now
     this.o11yUploadEndpoint = o11yUploadEndpoint;
@@ -49,7 +49,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
     };
 
     const cpus = os.cpus();
-    if (cpus && cpus.length > 0) {
+    if (cpus?.length > 0) {
       commonProperties['common.cpus'] = `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
     }
 

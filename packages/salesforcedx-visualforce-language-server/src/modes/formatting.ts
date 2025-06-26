@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { FormattingOptions, Position, Range, TextDocument, TextEdit } from 'vscode-languageserver-types';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { FormattingOptions, Position, Range, TextEdit } from 'vscode-languageserver-types';
 import { pushAll } from '../utils/arrays';
 import { applyEdits } from '../utils/edits';
 import { isEOL } from '../utils/strings';
@@ -81,7 +82,7 @@ export const format = (
 
     for (const r of embeddedRanges) {
       const mode = r.mode;
-      if (mode && mode.format && enabledModes[mode.getId()] && !r.attributeValue) {
+      if (mode?.format && enabledModes[mode.getId()] && !r.attributeValue) {
         const edits = mode.format(newDocument, r, formattingOptions, settings);
         for (const edit of edits) {
           embeddedEdits.push(edit);

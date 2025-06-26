@@ -27,6 +27,7 @@ class MockRegistryAccess {
     // will be mocked in tests
   }
 }
+
 describe('ExternalServiceRegistrationManager', () => {
   let esrHandler: ExternalServiceRegistrationManager;
   let oasSpec: OpenAPIV3.Document;

@@ -6,7 +6,8 @@
 'use strict';
 
 import { LanguageService, TokenType } from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import { Position, Range, TextDocument } from 'vscode-languageserver-types';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Position, Range } from 'vscode-languageserver-types';
 
 type LanguageRange = Range & {
   languageId: string;
@@ -71,11 +72,9 @@ export const getDocumentRegions = (languageService: LanguageService, document: T
           }
           importedScripts.push(value);
         } else if (lastAttributeName === 'type' && lastTagName.toLowerCase() === 'script') {
-          if (/["'](module|(text|application)\/(java|ecma)script)["']/.test(scanner.getTokenText())) {
-            languageIdFromType = 'javascript';
-          } else {
-            languageIdFromType = void 0;
-          }
+          languageIdFromType = /["'](module|(text|application)\/(java|ecma)script)["']/.test(scanner.getTokenText())
+            ? 'javascript'
+            : void 0;
         } else {
           const attributeLanguageId = getAttributeLanguage(lastAttributeName);
           if (attributeLanguageId) {

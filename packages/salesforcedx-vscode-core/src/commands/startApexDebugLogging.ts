@@ -49,8 +49,8 @@ class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
       const userId = await getUserId(workspaceUtils.getRootWorkspacePath());
 
       let resultJson = await this.subExecute(new QueryTraceFlag().build(userId));
-      if (resultJson && resultJson.result && resultJson.result.totalSize >= 1) {
-        const traceflag = resultJson.result.records[0];
+      if (resultJson?.body?.result && resultJson.body.result.totalSize >= 1) {
+        const traceflag = resultJson.body.result.records[0];
         developerLogTraceFlag.setTraceFlagDebugLevelInfo(
           traceflag.Id,
           traceflag.StartDate,

@@ -38,7 +38,7 @@ describe('ParameterGatherers Unit Tests.', () => {
         expect(option.prompt).toEqual(nls.localize('parameter_gatherer_enter_file_name'));
         expect(option.validateInput).toBeDefined();
 
-        const validationResults = option.validateInput && option.validateInput(fileNameWithEleven);
+        const validationResults = option.validateInput?.(fileNameWithEleven);
         expect(validationResults).toEqual(
           nls
             .localize('parameter_gatherer_file_name_max_length_validation_error_message')
@@ -60,7 +60,7 @@ describe('ParameterGatherers Unit Tests.', () => {
         expect(option.prompt).toEqual(nls.localize('parameter_gatherer_enter_file_name'));
         expect(option.validateInput).toBeDefined();
 
-        const validationResults = option.validateInput && option.validateInput(fileNameWithTen);
+        const validationResults = option.validateInput?.(fileNameWithTen);
         expect(validationResults).toBeNull();
 
         return fileNameWithTen;
@@ -82,7 +82,7 @@ describe('ParameterGatherers Unit Tests.', () => {
         expect(option.prompt).toEqual(nls.localize('parameter_gatherer_enter_file_name'));
         expect(option.validateInput).toBeDefined();
 
-        const validationResults = option.validateInput && option.validateInput(fileNameWithFive);
+        const validationResults = option.validateInput?.(fileNameWithFive);
         expect(validationResults).toBeNull();
 
         return fileNameWithFive;

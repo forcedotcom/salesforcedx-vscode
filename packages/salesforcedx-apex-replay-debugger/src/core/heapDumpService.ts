@@ -255,13 +255,11 @@ export class HeapDumpService {
     // set so it can be expanded in the variables window. Note this check
     // is kind of superfluous but it's better to be safe than sorry
     if (!this.isPrimitiveType(tmpContainer.type)) {
-      if (createVarRef) {
-        tmpContainer.variablesRef = this.logContext.getVariableHandler().create(tmpContainer);
-      } else {
-        // If the variable is being cloned for a name change then
-        // it needs to use the same variablesRef as the parent
-        tmpContainer.variablesRef = refContainer.variablesRef;
-      }
+      tmpContainer.variablesRef = createVarRef
+        ? this.logContext.getVariableHandler().create(tmpContainer)
+        : // If the variable is being cloned for a name change then
+          // it needs to use the same variablesRef as the parent
+          refContainer.variablesRef;
     }
     return tmpContainer;
   }
@@ -551,7 +549,7 @@ export class HeapDumpService {
           // process the key
           const keyVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_KEY);
           let keyName = keyVarContainer!.value;
-          if (keyVarContainer && keyVarContainer.ref) {
+          if (keyVarContainer?.ref) {
             const keyRef = this.logContext.getRefsMap().get(keyVarContainer.ref);
             if (keyRef) {
               const updatedKeyVarContainer = this.createVariableFromReference(
@@ -574,7 +572,7 @@ export class HeapDumpService {
           // process the value
           const valueVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_VALUE);
           let valueVal = valueVarContainer!.value;
-          if (valueVarContainer && valueVarContainer.ref) {
+          if (valueVarContainer?.ref) {
             const valueRef = this.logContext.getRefsMap().get(valueVarContainer.ref);
             if (valueRef) {
               const updatedValueVarContainer = this.createVariableFromReference(

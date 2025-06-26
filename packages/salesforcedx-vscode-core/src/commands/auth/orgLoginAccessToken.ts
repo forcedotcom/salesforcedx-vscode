@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, AuthSideEffects } from '@salesforce/core-bundle';
+import { AuthInfo, AuthSideEffects } from '@salesforce/core';
 import { LibraryCommandletExecutor, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
@@ -38,7 +38,7 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
       };
       await authInfo.handleAliasAndDefaultSettings(sideEffects);
     } catch (error) {
-      if (error.message && error.message.includes('Bad_OAuth_Token')) {
+      if (error instanceof Error && error?.message?.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID
         channelService.appendLine(nls.localize('org_login_access_token_bad_oauth_token_message'));
       }

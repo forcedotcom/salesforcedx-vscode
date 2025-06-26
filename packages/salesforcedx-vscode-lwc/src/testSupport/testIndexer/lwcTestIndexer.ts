@@ -237,7 +237,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
             : testName === title;
           return isMatched;
         });
-        if (matchedRawTestResults && matchedRawTestResults.length > 0) {
+        if (matchedRawTestResults?.length > 0) {
           testCaseInfo.testResult = {
             status: matchedRawTestResults[0].status
           };
@@ -274,7 +274,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       const testUri = URI.file(testFsPath);
       const diagnostics = assertionResults.reduce((diagnosticsResult: vscode.Diagnostic[], assertionResult) => {
         const { failureMessages, location } = assertionResult;
-        if (failureMessages && failureMessages.length > 0) {
+        if (failureMessages?.length > 0) {
           const failureMessage = sanitizeFailureMessage(failureMessages[0]);
           const failurePosition =
             extractPositionFromFailureMessage(testFsPath, failureMessage) ||

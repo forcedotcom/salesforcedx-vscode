@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core-bundle';
+import { Connection } from '@salesforce/core';
 import { nls } from '../messages';
 
 type UserRecord = {
@@ -117,11 +117,7 @@ export class TraceFlags {
 
     const result = await this.connection.tooling.create('TraceFlag', traceFlag);
 
-    if (result.success && result.id) {
-      return result.id;
-    } else {
-      return undefined;
-    }
+    return result.success && result.id ? result.id : undefined;
   }
 
   private isValidDateLength(expirationDate: Date) {

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { TextDocument } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export type LanguageModelCache<T> = {
   get(document: TextDocument): T;
@@ -47,7 +47,7 @@ export const getLanguageModelCache = <T>(
       const version = document.version;
       const languageId = document.languageId;
       const languageModelInfo = languageModels[document.uri];
-      if (languageModelInfo && languageModelInfo.version === version && languageModelInfo.languageId === languageId) {
+      if (languageModelInfo?.version === version && languageModelInfo?.languageId === languageId) {
         languageModelInfo.cTime = Date.now();
         return languageModelInfo.languageModel;
       }

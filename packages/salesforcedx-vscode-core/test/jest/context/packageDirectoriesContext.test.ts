@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfProject } from '@salesforce/core-bundle';
+import { SfProject } from '@salesforce/core';
 import { workspaceUtils, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -52,9 +52,9 @@ jest.mock('vscode', () => ({
   }
 }));
 
-jest.mock('@salesforce/source-tracking-bundle', () => ({}));
-jest.mock('@salesforce/source-deploy-retrieve-bundle', () => ({}));
-jest.mock('@salesforce/core-bundle', () => ({
+jest.mock('@salesforce/source-tracking', () => ({}));
+jest.mock('@salesforce/source-deploy-retrieve', () => ({}));
+jest.mock('@salesforce/core', () => ({
   SfProject: {
     resolve: jest.fn()
   }

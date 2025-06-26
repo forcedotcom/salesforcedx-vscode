@@ -97,9 +97,9 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
       // remove when we drop CLI invocations
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const queryResponse = JSON.parse(result) as QueryResponse;
-      if (queryResponse && queryResponse.result && queryResponse.result.size === 1) {
+      if (queryResponse?.result?.size === 1) {
         const sessionIdToUpdate = queryResponse.result.records[0].Id;
-        if (sessionIdToUpdate && sessionIdToUpdate.startsWith('07a')) {
+        if (sessionIdToUpdate?.startsWith('07a')) {
           const sessionDetachCommandlet = new SfCommandlet(
             new SfWorkspaceChecker(),
             new IdGatherer(sessionIdToUpdate),

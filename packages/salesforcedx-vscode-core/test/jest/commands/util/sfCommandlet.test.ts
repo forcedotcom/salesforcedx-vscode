@@ -100,14 +100,15 @@ describe('SfCommandletExecutor', () => {
       expect(parseSpy).toHaveBeenCalledWith(dummyStdOut);
     });
 
-    it('should show a message to the User if there is a parsing error', async () => {
+    it('should show a message to the User if there is a parsing error', () => {
       // Arrange
       const executor = new ProjectDeployStartExecutor(flag, pushCommand);
       const updateCacheMock = jest.fn();
-      const executorAsAny = executor as any;
-      executorAsAny.updateCache = updateCacheMock;
-      executorAsAny.getDeployType = jest.fn().mockReturnValue(DeployType.Push);
-      executorAsAny.logMetric = jest.fn();
+      // @ts-expect-error accessing protected method
+      executor.updateCache = updateCacheMock;
+      // @ts-expect-error accessing protected method
+      executor.getDeployType = jest.fn().mockReturnValue(DeployType.Push);
+      executor.logMetric = jest.fn();
 
       try {
         // Act

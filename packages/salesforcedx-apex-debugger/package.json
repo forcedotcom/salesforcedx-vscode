@@ -25,7 +25,6 @@
     "@types/chai": "4.3.3",
     "@types/jest": "^29.5.5",
     "@types/mocha": "^10",
-    "@types/node": "^20.0.0",
     "@types/sinon": "^2.3.7",
     "@vscode/debugadapter-testsupport": "1.68.0",
     "chai": "^4.0.2",
@@ -40,7 +39,6 @@
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/adapter/apexDebug.ts  --bundle --outfile=dist/apexdebug.js --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",

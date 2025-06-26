@@ -4,7 +4,7 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": ["node_modules", ".vscode-test", "out"],
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
     {
       "path": "../salesforcedx-utils-vscode"

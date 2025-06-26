@@ -11,10 +11,6 @@
     "onView:never"
   ],
   "main": "out/src",
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "shx": "0.4.0"
-  },
   "dependencies": {
     "vscode-languageserver-types": "^3.4.0",
     "vscode-nls": "^2.0.2",
@@ -23,7 +19,7 @@
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./ && npm run copy:files",
-    "copy:files": "shx cp src/beautify/beautify-* out/src/beautify",
+    "copy:files": "shx mkdir -p out/src/beautify && shx cp src/beautify/beautify-* out/src/beautify",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "test": "npm run test:unit",

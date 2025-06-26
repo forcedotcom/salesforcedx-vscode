@@ -30,7 +30,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     readonly userId: string,
     enableUniqueMetrics?: boolean
   ) {
-    super(() => this.toDispose.forEach(d => d && d.dispose()));
+    super(() => this.toDispose.forEach(d => d?.dispose()));
     if (enableUniqueMetrics) {
       this.uniqueUserMetrics = true;
     }
@@ -79,7 +79,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     }
 
     // check if it's an Asimov key to change the endpoint
-    if (key && key.indexOf('AIF-') === 0) {
+    if (key?.indexOf('AIF-') === 0) {
       this.appInsightsClient.config.endpointUrl = 'https://vortex.data.microsoft.com/collect/v1';
     }
   }
@@ -94,7 +94,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     };
 
     const cpus = os.cpus();
-    if (cpus && cpus.length > 0) {
+    if (cpus?.length > 0) {
       commonProperties['common.cpus'] = `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
     }
 

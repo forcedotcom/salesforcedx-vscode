@@ -35,7 +35,7 @@ export class BreakpointService {
   }
 
   public isApexDebuggerBreakpointId(id: string): boolean {
-    return id != null && id.startsWith(DEBUGGER_BREAKPOINT_ID_PREFIX);
+    return id?.startsWith(DEBUGGER_BREAKPOINT_ID_PREFIX) ?? false;
   }
 
   public getTyperefFor(uri: string, line: number): string | undefined {
@@ -115,11 +115,7 @@ export class BreakpointService {
     try {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const breakpointId = JSON.parse(result).result.id as string;
-      if (this.isApexDebuggerBreakpointId(breakpointId)) {
-        return Promise.resolve(breakpointId);
-      } else {
-        return Promise.reject(result);
-      }
+      return this.isApexDebuggerBreakpointId(breakpointId) ? Promise.resolve(breakpointId) : Promise.reject(result);
     } catch {
       return Promise.reject(result);
     }
@@ -141,11 +137,9 @@ export class BreakpointService {
     try {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const deletedBreakpointId = JSON.parse(result).result.id as string;
-      if (this.isApexDebuggerBreakpointId(deletedBreakpointId)) {
-        return Promise.resolve(deletedBreakpointId);
-      } else {
-        return Promise.reject(result);
-      }
+      return this.isApexDebuggerBreakpointId(deletedBreakpointId)
+        ? Promise.resolve(deletedBreakpointId)
+        : Promise.reject(result);
     } catch {
       return Promise.reject(result);
     }
@@ -172,7 +166,7 @@ export class BreakpointService {
       }
     }
     for (const clientLine of clientLines) {
-      if (!knownBreakpoints || !knownBreakpoints.find(knownBreakpoint => knownBreakpoint.line === clientLine)) {
+      if (!knownBreakpoints?.find(knownBreakpoint => knownBreakpoint.line === clientLine)) {
         const typeref = this.getTyperefFor(uri, clientLine);
         if (typeref) {
           try {
@@ -208,11 +202,7 @@ export class BreakpointService {
     try {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const breakpointId = JSON.parse(result).result.id as string;
-      if (this.isApexDebuggerBreakpointId(breakpointId)) {
-        return Promise.resolve(breakpointId);
-      } else {
-        return Promise.reject(result);
-      }
+      return this.isApexDebuggerBreakpointId(breakpointId) ? Promise.resolve(breakpointId) : Promise.reject(result);
     } catch {
       return Promise.reject(result);
     }

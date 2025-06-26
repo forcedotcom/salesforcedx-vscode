@@ -397,10 +397,10 @@ export class MapTupleContainer implements VariableContainer {
     }
 
     const idsToFetch = [];
-    if (this.tuple.key && this.tuple.key.ref) {
+    if (this.tuple.key?.ref) {
       idsToFetch.push(this.tuple.key.ref);
     }
-    if (this.tuple.value && this.tuple.value.ref) {
+    if (this.tuple.value?.ref) {
       idsToFetch.push(this.tuple.value.ref);
     }
     await session.fetchReferencesIfNecessary(this.requestId, idsToFetch);
@@ -752,7 +752,7 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.SetBreakpointsResponse,
     args: DebugProtocol.SetBreakpointsArguments
   ): Promise<void> {
-    if (args.source && args.source.path && args.lines) {
+    if (args.source?.path && args.lines) {
       response.body = { breakpoints: [] };
       const uri = this.convertClientPathToDebugger(args.source.path);
       const unverifiedBreakpoints: number[] = [];
@@ -909,25 +909,13 @@ export class ApexDebug extends LoggingDebugSession {
               TRACE_CATEGORY_VARIABLES,
               'stackTraceRequest: state=' + JSON.stringify(stateRespObj.stateResponse.state)
             );
-            if (stateRespObj.stateResponse.state.locals && stateRespObj.stateResponse.state.locals.local) {
-              frameInfo.locals = stateRespObj.stateResponse.state.locals.local;
-            } else {
-              frameInfo.locals = [];
-            }
+            frameInfo.locals = stateRespObj.stateResponse.state.locals?.local ?? [];
 
-            if (stateRespObj.stateResponse.state.statics && stateRespObj.stateResponse.state.statics.static) {
-              frameInfo.statics = stateRespObj.stateResponse.state.statics.static;
-            } else {
-              frameInfo.statics = [];
-            }
+            frameInfo.statics = stateRespObj.stateResponse.state.statics?.static ?? [];
 
-            if (stateRespObj.stateResponse.state.globals && stateRespObj.stateResponse.state.globals.global) {
-              frameInfo.globals = stateRespObj.stateResponse.state.globals.global;
-            } else {
-              frameInfo.globals = [];
-            }
+            frameInfo.globals = stateRespObj.stateResponse.state.globals?.global ?? [];
 
-            if (stateRespObj.stateResponse.state.references && stateRespObj.stateResponse.state.references.references) {
+            if (stateRespObj.stateResponse.state.references?.references) {
               this.populateReferences(stateRespObj.stateResponse.state.references.references, frameInfo.requestId);
             }
           }
@@ -952,14 +940,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private hasStackFrames(response: DebuggerResponse): boolean {
-    if (
-      response &&
-      response.stateResponse &&
-      response.stateResponse.state &&
-      response.stateResponse.state.stack &&
-      response.stateResponse.state.stack.stackFrame &&
-      response.stateResponse.state.stack.stackFrame.length > 0
-    ) {
+    if (response?.stateResponse?.state?.stack?.stackFrame?.length > 0) {
       return true;
     }
     return false;
@@ -973,7 +954,7 @@ export class ApexDebug extends LoggingDebugSession {
         break;
       case EXCEPTION_BREAKPOINT_REQUEST:
         const requestArgs: SetExceptionBreakpointsArguments = args;
-        if (requestArgs && requestArgs.exceptionInfo) {
+        if (requestArgs?.exceptionInfo) {
           try {
             await this.lock.acquire('exception-breakpoint', async () =>
               this.myBreakpointService.reconcileExceptionBreakpoints(
@@ -1078,30 +1059,18 @@ export class ApexDebug extends LoggingDebugSession {
       new FrameCommand(frameInfo.requestId, frameInfo.frameNumber)
     );
     const frameRespObj: DebuggerResponse = JSON.parse(frameResponse);
-    if (frameRespObj && frameRespObj.frameResponse && frameRespObj.frameResponse.frame) {
+    if (frameRespObj?.frameResponse?.frame) {
       this.log(
         TRACE_CATEGORY_VARIABLES,
         `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` + JSON.stringify(frameRespObj.frameResponse.frame)
       );
-      if (frameRespObj.frameResponse.frame.locals && frameRespObj.frameResponse.frame.locals.local) {
-        frameInfo.locals = frameRespObj.frameResponse.frame.locals.local;
-      } else {
-        frameInfo.locals = [];
-      }
+      frameInfo.locals = frameRespObj.frameResponse.frame.locals?.local ?? [];
 
-      if (frameRespObj.frameResponse.frame.statics && frameRespObj.frameResponse.frame.statics.static) {
-        frameInfo.statics = frameRespObj.frameResponse.frame.statics.static;
-      } else {
-        frameInfo.statics = [];
-      }
+      frameInfo.statics = frameRespObj.frameResponse.frame.statics?.static ?? [];
 
-      if (frameRespObj.frameResponse.frame.globals && frameRespObj.frameResponse.frame.globals.global) {
-        frameInfo.globals = frameRespObj.frameResponse.frame.globals.global;
-      } else {
-        frameInfo.globals = [];
-      }
+      frameInfo.globals = frameRespObj.frameResponse.frame.globals?.global ?? [];
 
-      if (frameRespObj.frameResponse.frame.references && frameRespObj.frameResponse.frame.references.references) {
+      if (frameRespObj.frameResponse.frame.references?.references) {
         this.populateReferences(frameRespObj.frameResponse.frame.references.references, frameInfo.requestId);
       }
     }
@@ -1192,12 +1161,7 @@ export class ApexDebug extends LoggingDebugSession {
     );
     const referencesResponse = await this.myRequestService.execute(new ReferencesCommand(requestId, ...apexIds));
     const referencesResponseObj: DebuggerResponse = JSON.parse(referencesResponse);
-    if (
-      referencesResponseObj &&
-      referencesResponseObj.referencesResponse &&
-      referencesResponseObj.referencesResponse.references &&
-      referencesResponseObj.referencesResponse.references.references
-    ) {
+    if (referencesResponseObj?.referencesResponse?.references?.references) {
       this.populateReferences(referencesResponseObj.referencesResponse.references.references, requestId);
     }
   }
@@ -1258,13 +1222,11 @@ export class ApexDebug extends LoggingDebugSession {
     try {
       response.success = false;
       const errorObj = extractJsonObject(error);
-      if (errorObj && errorObj.message) {
+      if (errorObj?.message) {
         const errorMessage: string = errorObj.message;
-        if (errorMessage.includes('entity type cannot be inserted: Apex Debugger Session')) {
-          response.message = nls.localize('session_no_entity_access_text');
-        } else {
-          response.message = errorMessage;
-        }
+        response.message = errorMessage.includes('entity type cannot be inserted: Apex Debugger Session')
+          ? nls.localize('session_no_entity_access_text')
+          : errorMessage;
         if (errorObj.action) {
           this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${errorObj.action}`);
         }
@@ -1294,7 +1256,7 @@ export class ApexDebug extends LoggingDebugSession {
         })
         .withMsgHandler((message: DebuggerMessage) => {
           const data = message;
-          if (data && data.sobject && data.event) {
+          if (data?.sobject && data.event) {
             this.handleEvent(data);
           }
         })

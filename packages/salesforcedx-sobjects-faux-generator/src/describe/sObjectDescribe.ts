@@ -69,7 +69,7 @@ class SObjectDescribe {
       const batchResponse = await this.runRequest(batchRequest);
 
       const fetchedObjects: SObject[] = [];
-      if (batchResponse && batchResponse.results === undefined) {
+      if (batchResponse?.results === undefined) {
         return Promise.resolve(fetchedObjects);
       }
 

@@ -38,7 +38,7 @@ export class VariableAssignmentState implements DebugLogState {
       // Grab the a top level container from statics or locals if it exists
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
-        container = map.get(varName)!;
+        container = map.get(varName);
         // If the className is 'this' that means the variable being split was
         // this.<something>. We need to check the className for 'this' otherwise
         // a propery on 'this' would get incorrectly processed as a local variable.

@@ -170,11 +170,7 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
 
     try {
       const result = await new CommandOutput().getCmdResult(execution);
-      if (isProdOrg(JSON.parse(result))) {
-        await promptLogOutForProdOrg();
-      } else {
-        await notificationService.showSuccessfulExecution(execution.command.toString());
-      }
+      await (isProdOrg(JSON.parse(result)) ? promptLogOutForProdOrg() : notificationService.showSuccessfulExecution(execution.command.toString()));
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);

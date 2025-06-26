@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, TelemetryService, WorkspaceContextUtil } from '../../../src';
 import { ConfigUtil } from '../../../src/config/configUtil';
 import { WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages';
 
-jest.mock('@salesforce/core-bundle', () => ({
+jest.mock('@salesforce/core', () => ({
   Logger: {
     childFromRoot: () => ({
       debug: jest.fn()
@@ -20,7 +20,7 @@ jest.mock('@salesforce/core-bundle', () => ({
   },
 
   Messages: jest.fn().mockImplementation((arg1: string, arg2: string, arg3: Map<string, string>) => ({
-    loadMessages: jest.fn((arg4, arg5) => `Mocked message for arg4: ${arg4} and arg5: ${arg5}`)
+    loadMessages: jest.fn((arg4: string, arg5: string) => `Mocked message for arg4: ${arg4} and arg5: ${arg5}`)
   })),
 
   SfError: class {},

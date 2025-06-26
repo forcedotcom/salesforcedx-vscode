@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getInput, setFailed } from "@actions/core";
-import { context, getOctokit } from "@actions/github";
+import { getInput, setFailed } from '@actions/core';
+import { context, getOctokit } from '@actions/github';
 
 async function run() {
   try {
     const issue = context.payload.issue;
 
     if (!issue) {
-      setFailed("github.context.payload.issue does not exist");
+      setFailed('github.context.payload.issue does not exist');
       return;
     }
 
@@ -21,14 +21,14 @@ async function run() {
     // This will prevent noise on tickets already being investigated
     // This can be removed once the action has been running for a while
     const creationDate = new Date(issue.created_at);
-    const cutoffDate = new Date("2023-06-14T00:00:00Z");
+    const cutoffDate = new Date('2023-06-14T00:00:00Z');
     if (creationDate < cutoffDate) {
-      console.log("Issue was created before 6/14/2023, skipping");
+      console.log('Issue was created before 6/14/2023, skipping');
       return;
     }
 
     // Create a GitHub client
-    const token = getInput("repo-token");
+    const token = getInput('repo-token');
     const octokit = getOctokit(token);
 
     // Get owner and repo from context
@@ -36,7 +36,7 @@ async function run() {
     const repo = context.repo.repo;
     const issue_number = issue.number;
 
-    console.log("Issue URL:", issue.html_url);
+    console.log('Issue URL:', issue.html_url);
 
     const { body } = issue;
     const { login: author } = issue.user;
@@ -56,7 +56,7 @@ async function run() {
 
     const core = require('@actions/core');
     if (bodies[0] === null) {
-      core.setOutput("is_feature_request", "false");
+      core.setOutput('is_feature_request', 'false');
     } else {
       const featureRequestRegex = /(feature\s*request)/ig;
 
@@ -69,10 +69,10 @@ async function run() {
 
       if (featureRequests.length > 0) {
         console.log('This issue is a feature request!');
-        addLabel("type:enhancements");
-        core.setOutput("is_feature_request", "true");
+        addLabel('type:enhancements');
+        core.setOutput('is_feature_request', 'true');
       } else {
-        core.setOutput("is_feature_request", "false");
+        core.setOutput('is_feature_request', 'false');
       }
     }
 

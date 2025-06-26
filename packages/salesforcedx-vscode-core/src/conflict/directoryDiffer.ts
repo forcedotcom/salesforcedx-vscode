@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -95,7 +95,7 @@ class CommonDirDirectoryDiffer implements DirectoryDiffer {
       const stat = fs.statSync(fullPath);
       const relPath = path.join(subdir, filename);
 
-      if (stat && stat.isDirectory()) {
+      if (stat.isDirectory()) {
         this.walkFiles(root, relPath, callback);
       } else {
         callback({ filename, subdir, relPath });
