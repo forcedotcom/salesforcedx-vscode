@@ -161,17 +161,21 @@ describe('Debug Apex Tests', () => {
     await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 4, 2);
 
     // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar
+    let apexTestItem: TreeItem;
     await retryOperation(
       async () => {
         await pause(Duration.seconds(2));
         await apexTestsSection.click();
+        await apexTestsSection.wait(20_000);
+        apexTestItem = (await apexTestsSection.findItem('ExampleApexClass1Test')) as TreeItem;
+        await apexTestItem.wait(20_000);
+        await apexTestItem!.select();
       },
       3,
       'DebugApexTests - Error clicking apex tests section'
     );
-    const apexTestItem = (await apexTestsSection.findItem('ExampleApexClass1Test')) as TreeItem;
-    await apexTestItem.select();
-    const debugTestsAction = await apexTestItem.getActionButton('Debug Tests');
+
+    const debugTestsAction = await apexTestItem!.getActionButton('Debug Tests');
     expect(debugTestsAction).to.not.be.undefined;
     await retryOperation(
       async () => {
@@ -209,18 +213,19 @@ describe('Debug Apex Tests', () => {
     );
 
     // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
-    await apexTestsSection.click();
-    const apexTestItem = (await apexTestsSection.findItem('validateSayHello')) as TreeItem;
-    await apexTestItem.wait(20_000);
+    let apexTestItem: TreeItem;
     await retryOperation(
       async () => {
-        await pause(Duration.seconds(2));
+        await apexTestsSection.click();
+        await apexTestsSection.wait(20_000);
+        apexTestItem = (await apexTestsSection.findItem('validateSayHello')) as TreeItem;
+        await apexTestItem.wait(20_000);
         await apexTestItem.select();
       },
       3,
       'DebugApexTests - Error selecting apex test item'
     );
-    const debugTestAction = await apexTestItem.getActionButton('Debug Single Test');
+    const debugTestAction = await apexTestItem!.getActionButton('Debug Single Test');
     expect(debugTestAction).to.not.be.undefined;
     await retryOperation(
       async () => {
