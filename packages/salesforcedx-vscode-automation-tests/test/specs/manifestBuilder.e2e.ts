@@ -16,6 +16,7 @@ import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   clearOutputView,
+  dismissAllNotifications,
   executeQuickPick,
   getTextEditor,
   getWorkbench
@@ -24,7 +25,6 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
-import { dismissAllNotifications } from '../utils/uiHelpers';
 
 describe('Manifest Builder', () => {
   let testSetup: TestSetup;
@@ -124,7 +124,7 @@ describe('Manifest Builder', () => {
 
     log('Deploy: Getting workbench');
     const workbench = getWorkbench();
-    await dismissAllNotifications(workbench, 'Deploy:');
+    await dismissAllNotifications();
     // Clear output before running the command
     log('Deploy: Clearing output view');
 
@@ -139,7 +139,7 @@ describe('Manifest Builder', () => {
       log('Deploy: Running on Linux platform - using context menu approach');
 
       // Dismiss all notifications using the button in the status bar
-      await dismissAllNotifications(workbench, 'Deploy:');
+      await dismissAllNotifications();
 
       // Using the Context menu, run SFDX: Deploy Source in Manifest to Org
       log('Deploy: Getting sidebar and content');
@@ -214,7 +214,7 @@ describe('Manifest Builder', () => {
       log('Retrieve: Running on Linux platform - using context menu approach');
 
       // Dismiss all notifications using the button in the status bar
-      await dismissAllNotifications(workbench, 'Retrieve:');
+      await dismissAllNotifications();
 
       // Using the Context menu, run SFDX: Retrieve Source in Manifest from Org
       log('Retrieve: Getting sidebar and content');

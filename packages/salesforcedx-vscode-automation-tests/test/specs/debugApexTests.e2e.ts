@@ -101,7 +101,6 @@ describe('Debug Apex Tests', () => {
       3,
       'DebugApexTests - Error clicking debug all tests option'
     );
-    await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
@@ -129,7 +128,6 @@ describe('Debug Apex Tests', () => {
       3,
       'DebugApexTests - Error clicking debug test option'
     );
-    await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
@@ -170,7 +168,6 @@ describe('Debug Apex Tests', () => {
       3,
       'DebugApexTests - Error clicking debug tests action'
     );
-    await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
@@ -180,7 +177,7 @@ describe('Debug Apex Tests', () => {
   });
 
   it('Debug a Single Apex Test Method via the Test Sidebar', async () => {
-    logTestStart(testSetup, "Debug Single Apex Test Method via the Test Sidebar");
+    logTestStart(testSetup, 'Debug Single Apex Test Method via the Test Sidebar');
     const workbench = getWorkbench();
     await executeQuickPick('Testing: Focus on Apex Tests View', Duration.seconds(1));
 
@@ -208,7 +205,6 @@ describe('Debug Apex Tests', () => {
       3,
       'DebugApexTests - Error clicking debug test action'
     );
-    await pause(Duration.seconds(20));
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);

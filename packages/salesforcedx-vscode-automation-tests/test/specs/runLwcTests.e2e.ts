@@ -6,7 +6,6 @@
  */
 import {
   Duration,
-  log,
   pause,
   ProjectShapeOption,
   TestReqConfig
