@@ -6,8 +6,9 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import { OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil, TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { decorators } from '../decorators';
 import { OrgAuthInfo } from '../util/authInfo';
 import { workspaceContextUtils } from '.';
@@ -17,6 +18,7 @@ import { workspaceContextUtils } from '.';
  */
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
+  private extensionContext?: vscode.ExtensionContext;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -25,9 +27,11 @@ export class WorkspaceContext {
     this.onOrgChange = workspaceContextUtil.onOrgChange;
     this.onOrgChange(this.handleCliConfigChange);
     this.onOrgChange(this.handleOrgShapeChange);
+    this.onOrgChange(this.handleTraceFlagCleanup);
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
+    this.extensionContext = extensionContext;
     await WorkspaceContextUtil.getInstance().initialize(extensionContext);
   }
 
@@ -65,6 +69,26 @@ export class WorkspaceContext {
       }
     }
   }
+
+  /** Handle trace flag cleanup when org changes */
+  protected handleTraceFlagCleanup = async (orgInfo: OrgUserInfo) => {
+    if (!this.extensionContext) {
+      return;
+    }
+
+    try {
+      const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
+      const traceFlags = new TraceFlags(connection);
+      await traceFlags.handleTraceFlagCleanupAfterLogin(
+        this.extensionContext,
+        TRACE_FLAG_EXPIRATION_KEY,
+        APEX_CODE_DEBUG_LEVEL
+      );
+    } catch (error) {
+      // Silently handle connection errors - trace flag cleanup is not critical to org change success
+      console.log('Failed to perform trace flag cleanup after org change:', error);
+    }
+  };
 
   get username(): string | undefined {
     return WorkspaceContextUtil.getInstance().username;

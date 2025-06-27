@@ -11,21 +11,17 @@ import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   Row,
-  Table,
-  TraceFlags,
-  WorkspaceContextUtil
+  Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
-  APEX_CODE_DEBUG_LEVEL,
   CONFIG_SET_EXECUTOR,
   CONFIG_SET_NAME,
   TABLE_NAME_COL,
   TABLE_SUCCESS_COL,
   TABLE_VAL_COL,
-  TARGET_ORG_KEY,
-  TRACE_FLAG_EXPIRATION_KEY
+  TARGET_ORG_KEY
 } from '../constants';
 import { nls } from '../messages';
 import { SfCommandlet, SfWorkspaceChecker } from './util';
@@ -34,12 +30,10 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
   protected showChannelOutput = false;
   private outputTableRow: Row = {};
-  // private extensionContext: vscode.ExtensionContext;
 
   constructor(usernameOrAlias: string, extensionContext: vscode.ExtensionContext) {
     super(nls.localize(CONFIG_SET_EXECUTOR), CONFIG_SET_EXECUTOR, OUTPUT_CHANNEL);
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
-    // this.extensionContext = extensionContext;
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
@@ -89,19 +83,4 @@ const parameterGatherer = new EmptyParametersGatherer();
 export const configSet = async (usernameOrAlias: string, extensionContext: vscode.ExtensionContext): Promise<void> => {
   const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ConfigSetExecutor(usernameOrAlias, extensionContext));
   await commandlet.run();
-
-  // Verify that the config was actually set before attempting trace flag cleanup
-  try {
-    const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
-
-    const traceFlags = new TraceFlags(connection);
-    await traceFlags.handleTraceFlagCleanupAfterLogin(
-      extensionContext,
-      TRACE_FLAG_EXPIRATION_KEY,
-      APEX_CODE_DEBUG_LEVEL
-    );
-  } catch (error) {
-    // Silently handle connection errors - trace flag cleanup is not critical to config set success
-    console.log('Failed to perform trace flag cleanup after setting target org:', error);
-  }
 };

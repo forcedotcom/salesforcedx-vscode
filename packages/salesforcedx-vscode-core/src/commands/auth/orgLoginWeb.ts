@@ -10,8 +10,7 @@ import {
   CliCommandExecutor,
   ContinueResponse,
   isSFContainerMode,
-  ProgressNotification,
-  TraceFlags
+  ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'node:os';
 import { Observable } from 'rxjs/Observable';
@@ -19,8 +18,7 @@ import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../../channels/index';
-import { CLI, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL } from '../../constants';
-import { WorkspaceContext } from '../../context';
+import { CLI } from '../../constants';
 
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demoMode';
@@ -42,11 +40,9 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   protected showChannelOutput = false;
   protected deviceCodeReceived = false;
   protected stdOut = '';
-  private extensionContext?: vscode.ExtensionContext;
 
   constructor(extensionContext?: vscode.ExtensionContext) {
     super();
-    this.extensionContext = extensionContext;
   }
 
   public build(data: AuthParams): Command {
@@ -81,16 +77,6 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
 
     execution.processExitSubject.subscribe(async (exitCode) => {
       this.logMetric(execution.command.logName, startTime);
-
-      // If the command completed successfully, clean up trace flags
-      if (exitCode === 0 && this.extensionContext) {
-        // Add a small delay to allow workspace context to update with new org connection
-        const extensionContext = this.extensionContext;
-        setTimeout(async () => {
-          const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-          await traceFlags.handleTraceFlagCleanupAfterLogin(extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
-        }, 1000); // 1 second delay
-      }
     });
 
     notificationService.reportCommandExecutionStatus(execution, cancellationToken);
@@ -147,11 +133,9 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
 
 class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
-  private extensionContext?: vscode.ExtensionContext;
 
   constructor(extensionContext?: vscode.ExtensionContext) {
     super();
-    this.extensionContext = extensionContext;
   }
 
   public build(data: AuthParams): Command {
@@ -191,16 +175,6 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
       }
       this.logMetric(execution.command.logName, startTime, properties, measurements);
       this.onDidFinishExecutionEventEmitter.fire(startTime);
-
-      // If the command completed successfully, clean up trace flags
-      if (exitCode === 0 && this.extensionContext) {
-        // Add a small delay to allow workspace context to update with new org connection
-        const extensionContext = this.extensionContext;
-        setTimeout(async () => {
-          const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-          await traceFlags.handleTraceFlagCleanupAfterLogin(extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
-        }, 1000); // 1 second delay
-      }
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
@@ -245,17 +219,6 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
       } else {
         await notificationService.showSuccessfulExecution(execution.command.toString());
       }
-
-      // Clean up trace flags after successful login
-      if (this.extensionContext) {
-        // Add a small delay to allow workspace context to update with new org connection
-        const extensionContext = this.extensionContext;
-        setTimeout(async () => {
-          const traceFlags = new TraceFlags(await WorkspaceContext.getInstance().getConnection());
-          await traceFlags.handleTraceFlagCleanupAfterLogin(extensionContext, TRACE_FLAG_EXPIRATION_KEY, APEX_CODE_DEBUG_LEVEL);
-        }, 1000); // 1 second delay
-      }
-
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
