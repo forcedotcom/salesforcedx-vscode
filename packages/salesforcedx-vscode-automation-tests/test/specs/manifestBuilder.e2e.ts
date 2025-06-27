@@ -11,6 +11,7 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { validateCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
@@ -124,7 +125,15 @@ describe('Manifest Builder', () => {
 
     log('Deploy: Getting workbench');
     const workbench = getWorkbench();
-    await dismissAllNotifications();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        await dismissAllNotifications();
+      },
+      3,
+      'Deploy: Error dismissing all notifications'
+    );
+
     // Clear output before running the command
     log('Deploy: Clearing output view');
 

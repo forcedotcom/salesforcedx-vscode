@@ -38,7 +38,9 @@ import {
   clearOutputView,
   clickButtonOnModalDialog,
   isCommandAvailable,
-  overrideTextInFile
+  overrideTextInFile,
+  zoom,
+  zoomReset
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
@@ -303,7 +305,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
       // Zoom out the editor view
-      await executeQuickPick('View: Zoom Out');
+      await zoom('Out', 2); // Zoom out the editor view
 
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await retryOperation(
@@ -342,7 +344,7 @@ describe('Create OpenAPI v3 Specifications', () => {
           }
 
           // Both tabs are open - success!
-          await executeQuickPick('View: Reset Zoom');
+          await zoomReset();
         },
         5,
         'CreateOASDoc - Error verifying generated files are open'
@@ -438,8 +440,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
-      // Zoom out the editor view
-      await executeQuickPick('View: Zoom Out');
+      await zoom('Out', 2); // Zoom out the editor view
 
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await retryOperation(
@@ -478,7 +479,7 @@ describe('Create OpenAPI v3 Specifications', () => {
           }
 
           // Both tabs are open - success!
-          await executeQuickPick('View: Reset Zoom');
+          await zoomReset();
         },
         5,
         'CreateOASDoc - Error verifying generated files are open (overwrite mode)'
