@@ -102,8 +102,12 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug all tests option'
     );
 
+    await executeQuickPick('View: Zoom Out');
+
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(1));
+
+    await executeQuickPick('View: Reset Zoom');
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -129,10 +133,12 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug test option'
     );
 
-    await pause(Duration.seconds(20));
+    await executeQuickPick('View: Zoom Out');
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(1));
+
+    await executeQuickPick('View: Reset Zoom');
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -186,8 +192,12 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug tests action'
     );
 
+    await executeQuickPick('View: Zoom Out');
+
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(1));
+
+    await executeQuickPick('View: Reset Zoom');
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -236,8 +246,12 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug test action'
     );
 
+    await executeQuickPick('View: Zoom Out');
+
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
-    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(4));
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(1));
+
+    await executeQuickPick('View: Reset Zoom');
 
     // Continue with the debug session
     await continueDebugging(2, 30);
