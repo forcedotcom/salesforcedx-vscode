@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import { OrgUserInfo, WorkspaceContextUtil, TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil, TraceFlags, disposeTraceFlagExpiration } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { decorators } from '../decorators';
@@ -85,7 +85,8 @@ export class WorkspaceContext {
         APEX_CODE_DEBUG_LEVEL
       );
     } catch (error) {
-      // Silently handle connection errors - trace flag cleanup is not critical to org change success
+      // If the action performed results in no default org set, we need to remove the trace flag expiration
+      disposeTraceFlagExpiration();
       console.log('Failed to perform trace flag cleanup after org change:', error);
     }
   };
