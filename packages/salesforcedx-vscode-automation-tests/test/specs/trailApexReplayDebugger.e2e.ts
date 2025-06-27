@@ -22,11 +22,10 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
-  notificationIsPresentWithTimeout,
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { By, InputBox, QuickOpenBox, TextEditor, after } from 'vscode-extension-tester';
+import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
 /**
@@ -125,11 +124,10 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     await executeQuickPick('SFDX: Turn On Apex Debug Log for Replay Debugger', Duration.seconds(10));
 
     // Look for the success notification that appears which says, "SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran".
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
+    await verifyNotificationWithRetry(
       /SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran/,
       Duration.TEN_MINUTES
     );
-    expect(successNotificationWasFound).to.equal(true);
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText(
@@ -175,11 +173,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(quickPicks.length).to.be.greaterThan(0);
     await prompt.selectQuickPick('User User - ApexTestHandler');
 
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Get Apex Debug Logs successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/SFDX: Get Apex Debug Logs successfully ran/, Duration.TEN_MINUTES);
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
