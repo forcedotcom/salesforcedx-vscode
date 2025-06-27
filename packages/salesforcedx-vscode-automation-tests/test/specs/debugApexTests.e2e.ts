@@ -28,9 +28,7 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   dismissAllNotifications,
-  waitForAndGetCodeLens,
-  zoom,
-  zoomReset
+  waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { TreeItem, after } from 'vscode-extension-tester';
@@ -106,12 +104,8 @@ describe('Debug Apex Tests', () => {
 
     await pause(Duration.seconds(20));
 
-    await zoom('Out', 2); // Zoom out the editor view
-
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(1));
-
-    await zoomReset();
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -137,12 +131,8 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug test option'
     );
 
-    await zoom('Out', 2); // Zoom out the editor view
-
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(1));
-
-    await zoomReset();
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -196,14 +186,8 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug tests action'
     );
 
-    await pause(Duration.seconds(20));
-
-    await zoom('Out', 2); // Zoom out the editor view
-
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(1));
-
-    await zoomReset();
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -252,12 +236,8 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug test action'
     );
 
-    await zoom('Out', 2); // Zoom out the editor view
-
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
     await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.minutes(1));
-
-    await zoomReset();
 
     // Continue with the debug session
     await continueDebugging(2, 30);
