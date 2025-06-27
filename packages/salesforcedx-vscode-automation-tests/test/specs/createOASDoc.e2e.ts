@@ -305,36 +305,43 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await retryOperation(
         async () => {
-          await executeQuickPick('View: Open Last Editor in Group');
-          await pause(Duration.seconds(5)); // Allow time for editor to switch
+          await pause(Duration.seconds(3)); // Allow time for files to be opened after generation
           const workbench = getWorkbench();
           const editorView = workbench.getEditorView();
-          const activeTab = await editorView.getActiveTab();
-          if (!activeTab) {
-            throw new Error('No active tab found');
-          }
-          const title = await activeTab.getTitle();
-          expect(title).to.equal('SimpleAccountResource.yaml');
-        },
-        5,
-        'CreateOASDoc - Error waiting for YAML tab'
-      );
 
-      await retryOperation(
-        async () => {
-          await executeQuickPick('View: Open Previous Editor');
-          await pause(Duration.seconds(2)); // Allow time for editor to switch
-          const workbench = getWorkbench();
-          const editorView = workbench.getEditorView();
-          const activeTab = await editorView.getActiveTab();
-          if (!activeTab) {
-            throw new Error('No active tab found');
+          // Get all open tabs
+          const openTabs = await editorView.getOpenTabs();
+          if (!openTabs || openTabs.length === 0) {
+            throw new Error('No tabs are open in the editor view');
           }
-          const title = await activeTab.getTitle();
-          expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
+
+          // Collect all tab titles for verification
+          const tabTitles = [];
+          for (const tab of openTabs) {
+            try {
+              const title = await tab.getTitle();
+              tabTitles.push(title);
+            } catch (error) {
+              tabTitles.push(`[Error: ${error.message}]`);
+            }
+          }
+
+          // Check if both expected files are open
+          const hasYamlTab = tabTitles.includes('SimpleAccountResource.yaml');
+          const hasXmlTab = tabTitles.includes('SimpleAccountResource.externalServiceRegistration-meta.xml');
+
+          if (!hasYamlTab && !hasXmlTab) {
+            throw new Error(`Neither YAML nor XML tab found. Open tabs: [${tabTitles.join(', ')}]`);
+          } else if (!hasYamlTab) {
+            throw new Error(`YAML tab not found. Open tabs: [${tabTitles.join(', ')}]`);
+          } else if (!hasXmlTab) {
+            throw new Error(`XML tab not found. Open tabs: [${tabTitles.join(', ')}]`);
+          }
+
+          // Both tabs are open - success!
         },
         5,
-        'CreateOASDoc - Error waiting for XML tab'
+        'CreateOASDoc - Error verifying generated files are open'
       );
     });
 
@@ -430,36 +437,43 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await retryOperation(
         async () => {
-          await executeQuickPick('View: Open Last Editor in Group');
-          await pause(Duration.seconds(5)); // Allow time for editor to switch
+          await pause(Duration.seconds(3)); // Allow time for files to be opened after generation
           const workbench = getWorkbench();
           const editorView = workbench.getEditorView();
-          const activeTab = await editorView.getActiveTab();
-          if (!activeTab) {
-            throw new Error('No active tab found');
-          }
-          const title = await activeTab.getTitle();
-          expect(title).to.equal('SimpleAccountResource.yaml');
-        },
-        5,
-        'CreateOASDoc - Error waiting for YAML tab'
-      );
 
-      await retryOperation(
-        async () => {
-          await executeQuickPick('View: Open Previous Editor');
-          await pause(Duration.seconds(5)); // Allow time for editor to switch
-          const workbench = getWorkbench();
-          const editorView = workbench.getEditorView();
-          const activeTab = await editorView.getActiveTab();
-          if (!activeTab) {
-            throw new Error('No active tab found');
+          // Get all open tabs
+          const openTabs = await editorView.getOpenTabs();
+          if (!openTabs || openTabs.length === 0) {
+            throw new Error('No tabs are open in the editor view');
           }
-          const title = await activeTab.getTitle();
-          expect(title).to.equal('SimpleAccountResource.externalServiceRegistration-meta.xml');
+
+          // Collect all tab titles for verification
+          const tabTitles = [];
+          for (const tab of openTabs) {
+            try {
+              const title = await tab.getTitle();
+              tabTitles.push(title);
+            } catch (error) {
+              tabTitles.push(`[Error: ${error.message}]`);
+            }
+          }
+
+          // Check if both expected files are open
+          const hasYamlTab = tabTitles.includes('SimpleAccountResource.yaml');
+          const hasXmlTab = tabTitles.includes('SimpleAccountResource.externalServiceRegistration-meta.xml');
+
+          if (!hasYamlTab && !hasXmlTab) {
+            throw new Error(`Neither YAML nor XML tab found. Open tabs: [${tabTitles.join(', ')}]`);
+          } else if (!hasYamlTab) {
+            throw new Error(`YAML tab not found. Open tabs: [${tabTitles.join(', ')}]`);
+          } else if (!hasXmlTab) {
+            throw new Error(`XML tab not found. Open tabs: [${tabTitles.join(', ')}]`);
+          }
+
+          // Both tabs are open - success!
         },
         5,
-        'CreateOASDoc - Error waiting for XML tab'
+        'CreateOASDoc - Error verifying generated files are open (overwrite mode)'
       );
     });
 
