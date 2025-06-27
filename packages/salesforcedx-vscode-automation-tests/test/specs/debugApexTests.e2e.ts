@@ -104,6 +104,8 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking debug all tests option'
     );
 
+    await pause(Duration.seconds(20));
+
     await zoom('Out', 2); // Zoom out the editor view
 
     // Look for the success notification that appears which says, "Debug Test(s) successfully ran".
@@ -193,6 +195,8 @@ describe('Debug Apex Tests', () => {
       3,
       'DebugApexTests - Error clicking debug tests action'
     );
+
+    await pause(Duration.seconds(20));
 
     await zoom('Out', 2); // Zoom out the editor view
 
