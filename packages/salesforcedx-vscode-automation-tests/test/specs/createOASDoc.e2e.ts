@@ -302,6 +302,9 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
+      // Zoom out the editor view
+      await executeQuickPick('View: Zoom Out');
+
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await retryOperation(
         async () => {
@@ -339,6 +342,7 @@ describe('Create OpenAPI v3 Specifications', () => {
           }
 
           // Both tabs are open - success!
+          await executeQuickPick('View: Reset Zoom');
         },
         5,
         'CreateOASDoc - Error verifying generated files are open'
@@ -434,6 +438,9 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
+      // Zoom out the editor view
+      await executeQuickPick('View: Zoom Out');
+
       // Verify both the YAML and XML files of the generated OAS doc are open in the Editor View
       await retryOperation(
         async () => {
@@ -471,6 +478,7 @@ describe('Create OpenAPI v3 Specifications', () => {
           }
 
           // Both tabs are open - success!
+          await executeQuickPick('View: Reset Zoom');
         },
         5,
         'CreateOASDoc - Error verifying generated files are open (overwrite mode)'
