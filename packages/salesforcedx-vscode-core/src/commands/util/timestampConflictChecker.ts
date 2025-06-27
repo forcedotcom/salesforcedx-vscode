@@ -62,7 +62,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
           this.isManifest
         );
         const detector = new TimestampConflictDetector();
-        const diffs = detector.createDiffs(result);
+        const diffs = await detector.createDiffs(result);
 
         channelService.showCommandWithTimestamp(
           `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`

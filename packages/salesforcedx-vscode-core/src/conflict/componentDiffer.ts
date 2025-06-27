@@ -6,8 +6,8 @@
  */
 
 import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { filesDiffer } from './conflictUtils';
 
 export type ComponentDiff = {
   projectPath: string;
@@ -22,7 +22,10 @@ export type ComponentDiff = {
  * @param cacheRoot The common root of all files in the cacheComponent
  * @returns An array of file paths, where each element corresponds to one file that differs
  */
-export const diffComponents = (projectComponent: SourceComponent, cacheComponent: SourceComponent): ComponentDiff[] => {
+export const diffComponents = async (
+  projectComponent: SourceComponent,
+  cacheComponent: SourceComponent
+): Promise<ComponentDiff[]> => {
   const diffs: ComponentDiff[] = [];
 
   const projectIndex = new Map<string, string>();
@@ -47,18 +50,12 @@ export const diffComponents = (projectComponent: SourceComponent, cacheComponent
     cacheIndex.set(key, file);
   }
 
-  projectIndex.forEach((projectPath, key) => {
+  for (const [key, projectPath] of projectIndex.entries()) {
     const cachePath = cacheIndex.get(key);
-    if (cachePath && filesDiffer(projectPath, cachePath)) {
+    if (cachePath && (await filesDiffer(projectPath, cachePath))) {
       diffs.push({ projectPath, cachePath });
     }
-  });
+  }
 
   return diffs;
-};
-
-const filesDiffer = (projectPath: string, cachePath: string): boolean => {
-  const bufferOne = fs.readFileSync(projectPath);
-  const bufferTwo = fs.readFileSync(cachePath);
-  return !bufferOne.equals(bufferTwo);
 };

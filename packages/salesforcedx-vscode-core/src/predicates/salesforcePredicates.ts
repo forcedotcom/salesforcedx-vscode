@@ -5,18 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Predicate, PredicateResponse, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
+import {
+  Predicate,
+  PredicateResponse,
+  fileOrFolderExists,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 
 export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
-  public apply(item: typeof workspace): PredicateResponse {
+  public async apply(item: typeof workspace): Promise<PredicateResponse> {
     if (!workspaceUtils.hasRootWorkspace()) {
       return PredicateResponse.of(false, nls.localize('predicates_no_folder_opened_text'));
-    } else if (!fs.existsSync(path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE))) {
+    } else if (!(await fileOrFolderExists(path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE)))) {
       return PredicateResponse.of(false, nls.localize('predicates_no_salesforce_project_found_text'));
     } else {
       return PredicateResponse.true();

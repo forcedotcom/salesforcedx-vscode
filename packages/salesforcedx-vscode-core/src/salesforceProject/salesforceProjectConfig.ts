@@ -26,7 +26,8 @@ export default class SalesforceProjectConfig {
   }
 
   private static async initializeSalesforceProjectConfig() {
-    if (!SalesforceProjectConfig.instance && isSalesforceProjectOpened.apply(vscode.workspace).result) {
+    const predicateResult = await isSalesforceProjectOpened.apply(vscode.workspace);
+    if (!SalesforceProjectConfig.instance && predicateResult.result) {
       const salesforceProjectPath = workspaceUtils.getRootWorkspacePath();
       try {
         const salesforceProject = await SfProject.resolve(salesforceProjectPath);

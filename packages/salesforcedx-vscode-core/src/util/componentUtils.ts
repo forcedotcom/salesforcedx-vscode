@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
+import { isFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 
 export const LWC = 'lwc';
@@ -23,8 +23,7 @@ const getLightningComponentDirectory = (sourceFsPath: string): string => {
 };
 
 export const getComponentPath = async (sourceFsPath: string): Promise<string> => {
-  const stats = await fs.promises.stat(sourceFsPath);
-  let dirname = stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
+  let dirname = (await isFile(sourceFsPath)) ? path.dirname(sourceFsPath) : sourceFsPath;
   dirname = getLightningComponentDirectory(dirname);
   return dirname;
 };

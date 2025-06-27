@@ -8,10 +8,10 @@
 import {
   CancelResponse,
   ContinueResponse,
+  isDirectory,
   ParametersGatherer,
   PreconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import { Uri } from 'vscode';
 import { salesforceCoreSettings } from '../../settings';
 
@@ -29,9 +29,8 @@ export class FileInternalPathGatherer implements ParametersGatherer<{ outputdir:
 
   public async gather(): Promise<CancelResponse | ContinueResponse<{ outputdir: string }>> {
     const outputdir = this.filePath;
-    const isDir = fs.existsSync(outputdir) && fs.lstatSync(outputdir).isDirectory();
 
-    if (isDir) {
+    if (await isDirectory(outputdir)) {
       return { type: 'CONTINUE', data: { outputdir } };
     }
 

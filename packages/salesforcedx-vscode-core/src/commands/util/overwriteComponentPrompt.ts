@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalComponent, PostconditionChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { existsSync } from 'node:fs';
+import {
+  fileOrFolderExists,
+  LocalComponent,
+  PostconditionChecker,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
@@ -21,7 +25,19 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
       const { data } = inputs;
       // normalize data into a list when processing
       const componentsToCheck = data instanceof Array ? data : [data];
-      const foundComponents = componentsToCheck.filter(component => this.componentExists(component));
+
+      // Check which components exist using Promise.all
+      const componentExistenceResults = await Promise.all(
+        componentsToCheck.map(async component => ({
+          component,
+          exists: await this.componentExists(component)
+        }))
+      );
+
+      // Filter components that exist (any of their files exist)
+      const foundComponents = componentExistenceResults
+        .filter(result => result.exists.some(exists => exists))
+        .map(result => result.component);
 
       if (foundComponents.length > 0) {
         const toSkip = await this.promptOverwrite(foundComponents);
@@ -40,17 +56,19 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
     return { type: 'CANCEL' };
   }
 
-  private componentExists(component: LocalComponent) {
+  private async componentExists(component: LocalComponent) {
     const { fileName, type, outputdir } = component;
     const info = MetadataDictionary.getInfo(type);
     const pathStrategy = info ? info.pathStrategy : PathStrategyFactory.createDefaultStrategy();
-    return this.getFileExtensions(component).some(extension => {
-      const path = join(
-        workspaceUtils.getRootWorkspacePath(),
-        pathStrategy.getPathToSource(outputdir, fileName, extension)
-      );
-      return existsSync(path);
-    });
+    return await Promise.all(
+      this.getFileExtensions(component).map(async extension => {
+        const path = join(
+          workspaceUtils.getRootWorkspacePath(),
+          pathStrategy.getPathToSource(outputdir, fileName, extension)
+        );
+        return await fileOrFolderExists(path);
+      })
+    );
   }
 
   private getFileExtensions(component: LocalComponent) {
