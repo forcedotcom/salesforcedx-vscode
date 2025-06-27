@@ -85,7 +85,7 @@ jobs:
             bash -c '
               case "${{ matrix.os }}" in
                 "windows-latest")
-                  powershell -Command "if (-not (Test-Path ./extensions)) { New-Item -ItemType Directory -Path ./extensions }"
+                  powershell -Command "if (-not (Test-Path ./extensions)) { New-Item -ItemType Directory -Path ./extensions -Force }"
                   ;;
                 *)
                   mkdir -p ./extensions
@@ -99,14 +99,7 @@ jobs:
             bash -c '
               case "${{ matrix.os }}" in
                 "windows-latest")
-                  powershell -Command "
-                    Get-ChildItem -Path ./extensions -Directory | ForEach-Object {
-                      Get-ChildItem -Path $_.FullName -File | ForEach-Object {
-                        Move-Item -Path $_.FullName -Destination ./extensions/ -Force
-                      }
-                    }
-                    Get-ChildItem -Path ./extensions -Directory | Remove-Item -Recurse -Force
-                  "
+                  powershell -Command "Get-ChildItem -Path ./extensions -Directory | ForEach-Object { Get-ChildItem -Path \$_.FullName -File | ForEach-Object { Move-Item -Path \$_.FullName -Destination ./extensions/ -Force } }; Get-ChildItem -Path ./extensions -Directory | Remove-Item -Recurse -Force"
                   ;;
                 *)
                   find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \;
@@ -129,15 +122,7 @@ jobs:
               case "${{ matrix.os }}" in
                 "windows-latest")
                   echo "SF_CLI_VERSION=$SF_CLI_VERSION" >> $GITHUB_ENV
-                  powershell -Command "
-                    if ('"'"'$SF_CLI_VERSION'"'"' -match '"'"'@salesforce/cli/'"'"') {
-                      Write-Host '"'"'@salesforce/cli installed - $SF_CLI_VERSION'"'"'
-                    } else {
-                      Write-Error '"'"'The @salesforce/cli installation cannot be verified'"'"'
-                      exit 1
-                    }
-                    Add-Content -Path $env:GITHUB_ENV -Value '"'"'THROTTLE_FACTOR=5'"'"'
-                  "
+                  powershell -Command "if (\$env:SF_CLI_VERSION -match \"@salesforce/cli/\") { Write-Host \"@salesforce/cli installed - \$env:SF_CLI_VERSION\" } else { Write-Error \"The @salesforce/cli installation cannot be verified\"; exit 1 }; Add-Content -Path \$env:GITHUB_ENV -Value \"THROTTLE_FACTOR=5\""
                   ;;
                 *)
                   echo "Checking CLI version: $SF_CLI_VERSION"
