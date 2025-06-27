@@ -6,7 +6,7 @@
  */
 
 export { showDemoMode } from './demoModeDecorator';
-import { showOrg } from './scratchOrgDecorator';
+import { showOrg } from './orgDecorator';
 
 export const decorators = {
   showOrg
