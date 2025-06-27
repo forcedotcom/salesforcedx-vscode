@@ -74,7 +74,7 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       return undefined;
     }
 
-    const filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, sobjectName + '.json');
+    const filePath = path.join(soqlMetadataPath, STANDARDOBJECTS_DIR, `${sobjectName}.json`);
     try {
       const fileContent = await readFile(filePath);
       // TODO: validate content against a schema
@@ -83,7 +83,7 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       const message = nls.localize(
         'error_sobject_metadata_fs_request',
         sobjectName,
-        path.join(soqlMetadataPath, '*', sobjectName + '.json')
+        path.join(soqlMetadataPath, '*', `${sobjectName}.json`)
       );
       channelService.appendLine(message);
       return undefined;
@@ -92,7 +92,7 @@ export class FileSystemOrgDataSource implements OrgDataSource {
 }
 
 export class JsforceOrgDataSource implements OrgDataSource {
-  async retrieveSObjectsList(): Promise<string[]> {
+  public async retrieveSObjectsList(): Promise<string[]> {
     try {
       return await retrieveSObjects();
     } catch {
@@ -102,7 +102,7 @@ export class JsforceOrgDataSource implements OrgDataSource {
     }
   }
 
-  async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
+  public async retrieveSObject(sobjectName: string): Promise<SObject | undefined> {
     try {
       return toMinimalSObject(await retrieveSObject(sobjectName));
     } catch {

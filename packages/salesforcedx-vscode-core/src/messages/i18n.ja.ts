@@ -311,5 +311,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   component_empty: 'コンポーネントは空にできません',
   create_not_supported: '複数コンポーネントの作成はサポートされていません',
   input_incorrect_properties: '入力に正しいコンポーネントプロパティが含まれていません',
+  // eslint-disable-next-line prefer-template
   missing_label: MISSING_LABEL_MSG + ': %s'
 };

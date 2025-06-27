@@ -49,7 +49,7 @@ class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
       const userId = await getUserId(workspaceUtils.getRootWorkspacePath());
 
       let resultJson = await this.subExecute(new QueryTraceFlag().build(userId));
-      if (resultJson && resultJson.result && resultJson.result.totalSize >= 1) {
+      if (resultJson.result?.totalSize >= 1) {
         const traceflag = resultJson.result.records[0];
         developerLogTraceFlag.setTraceFlagDebugLevelInfo(
           traceflag.Id,
@@ -118,17 +118,13 @@ export const getUserId = async (projectPath: string): Promise<string> => {
   telemetryService.sendCommandEvent(execution.command.logName);
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  try {
-    const orgInfo = JSON.parse(result).result.records[0].Id;
-    return Promise.resolve(orgInfo);
-  } catch {
-    return Promise.reject(result);
-  }
+  const orgInfo = JSON.parse(result).result.records[0].Id;
+  return orgInfo;
 };
 
 class QueryUser extends SfCommandletExecutor<{}> {
   private username: string;
-  public constructor(username: string) {
+  constructor(username: string) {
     super();
     this.username = username;
   }
@@ -162,7 +158,7 @@ class CreateDebugLevel extends SfCommandletExecutor<{}> {
 class CreateTraceFlag extends SfCommandletExecutor<{}> {
   private userId: string;
 
-  public constructor(userId: string) {
+  constructor(userId: string) {
     super();
     this.userId = userId;
   }

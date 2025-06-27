@@ -112,7 +112,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     response: ContinueResponse<T>,
     output: string
   ): TelemetryData | undefined {
-    return;
+    return undefined;
   }
 
   /**

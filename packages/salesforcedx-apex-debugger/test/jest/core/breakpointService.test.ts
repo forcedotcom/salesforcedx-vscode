@@ -313,19 +313,19 @@ describe('breakpointService Unit Tests.', () => {
       (breakpointService as any).lineBreakpointCache.set(fakeUri, [
         {
           line: 1,
-          breakpointId: bpId + '1'
+          breakpointId: `${bpId}1`
         }
       ]);
 
       await breakpointService.reconcileLineBreakpoints('fake/project/path', fakeUri, 'test', [2, 3]);
-      expect(breakpointService.deleteBreakpoint).toHaveBeenCalledWith('fake/project/path', bpId + '1');
+      expect(breakpointService.deleteBreakpoint).toHaveBeenCalledWith('fake/project/path', `${bpId}1`);
     });
 
     it('Should create a breakpoint if typeref is found .', async () => {
       (breakpointService as any).lineBreakpointCache.set(fakeUri, [
         {
           line: 1,
-          breakpointId: bpId + '1'
+          breakpointId: `${bpId}1`
         }
       ]);
 

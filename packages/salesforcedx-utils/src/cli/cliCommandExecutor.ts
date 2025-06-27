@@ -43,7 +43,7 @@ export class CliCommandExecutor {
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
-  public constructor(command: Command, options: SpawnOptions, inheritGlobalEnvironmentVariables = true) {
+  constructor(command: Command, options: SpawnOptions, inheritGlobalEnvironmentVariables = true) {
     this.command = command;
     this.options = inheritGlobalEnvironmentVariables
       ? CliCommandExecutor.patchEnv(options, GlobalCliEnvironment.environmentVariables)

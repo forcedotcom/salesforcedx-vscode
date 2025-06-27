@@ -39,16 +39,12 @@ export class ComponentUtils {
 
   public buildComponentsList(metadataType: string, componentsFile?: string, componentsPath?: string): string[] {
     try {
-      if (isNullOrUndefined(componentsFile)) {
-        componentsFile = fs.readFileSync(componentsPath!, 'utf8');
-      }
-
-      const jsonObject = JSON.parse(componentsFile);
+      const jsonObject = JSON.parse(componentsFile ?? fs.readFileSync(componentsPath!, 'utf8'));
       let cmpArray = jsonObject.result;
 
       const components = [];
       if (!isNullOrUndefined(cmpArray)) {
-        cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
+        cmpArray = Array.isArray(cmpArray) ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
           const { fullName, manageableState, namespacePrefix } = cmp;
           if (!isNullOrUndefined(fullName) && validManageableStates.has(manageableState)) {
@@ -69,10 +65,7 @@ export class ComponentUtils {
   }
 
   public buildCustomObjectFieldsList(result?: string, componentsPath?: string): string[] {
-    if (isNullOrUndefined(result)) {
-      result = fs.readFileSync(componentsPath!, 'utf8');
-    }
-    const jsonResult = JSON.parse(result);
+    const jsonResult = JSON.parse(result ?? fs.readFileSync(componentsPath!, 'utf8'));
     const fields = jsonResult.result.map(
       (field: { name: string; type: string; relationshipName?: string; length?: number }) => {
         switch (field.type) {

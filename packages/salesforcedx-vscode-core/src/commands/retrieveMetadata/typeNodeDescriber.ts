@@ -11,16 +11,9 @@ import { NodeDescriber } from './nodeDescriber';
 export class TypeNodeDescriber extends NodeDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
     if (data) {
-      const dedupe = new Set<string>(); // filter dupes caused by cli bug. See buildOutput in parent class
-      data.forEach(c => dedupe.add(`${c.type}:${c.fileName}`));
+      const dedupe = new Set<string>(data.map(c => `${c.type}:${c.fileName}`)); // filter dupes caused by cli bug. See buildOutput in parent class
       if (dedupe.size < this.node.children!.length) {
-        return Array.from(dedupe).reduce((acc, current, index) => {
-          acc += current;
-          if (index < dedupe.size - 1) {
-            acc += ',';
-          }
-          return acc;
-        }, '');
+        return Array.from(dedupe).join(',');
       }
     }
     return this.node.fullName;
@@ -28,10 +21,6 @@ export class TypeNodeDescriber extends NodeDescriber {
 
   public async gatherOutputLocations(): Promise<LocalComponent[]> {
     await orgBrowser.refreshAndExpand(this.node);
-    const components = [];
-    for (const child of this.node.children!) {
-      components.push(...(await this.buildOutput(child)));
-    }
-    return components;
+    return (await Promise.all(this.node.children!.map(async child => this.buildOutput(child)))).flat();
   }
 }

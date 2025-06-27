@@ -15,8 +15,8 @@ const outputFolderPath = path.join(projectPaths.toolsFolder(), SOQLMETADATA_DIR)
 export const generateAllMetadata = async (sobjects: SObjectsStandardAndCustom) => {
   await createDirectory(outputFolderPath);
 
-  await Promise.all([
-    ...Object.entries(sobjects)
+  await Promise.all(
+    Object.entries(sobjects)
       .filter(([_, objects]) => objects.length > 0)
       .map(async ([category, objects]) => {
         const objectFolder = path.join(
@@ -27,7 +27,7 @@ export const generateAllMetadata = async (sobjects: SObjectsStandardAndCustom) =
         await createDirectory(objectFolder);
         return objects.map(o => writeFile(path.join(objectFolder, `${o.name}.json`), JSON.stringify(o, null, 2)));
       })
-  ]);
+  );
 };
 
 /** writes the typeNames.json file for SOQL*/

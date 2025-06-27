@@ -20,7 +20,7 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
     if (isContinue(inputs)) {
       const { data } = inputs;
       // normalize data into a list when processing
-      const componentsToCheck = data instanceof Array ? data : [data];
+      const componentsToCheck = Array.isArray(data) ? data : [data];
       const foundComponents = componentsToCheck.filter(component => this.componentExists(component));
 
       if (foundComponents.length > 0) {
@@ -30,7 +30,7 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
           return { type: 'CANCEL' };
         }
 
-        if (data instanceof Array) {
+        if (Array.isArray(data)) {
           inputs.data = componentsToCheck.filter(selection => !toSkip.has(selection));
         }
       }
@@ -58,7 +58,7 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
     let metadataSuffix;
     if (component.suffix) {
       metadataSuffix = component.suffix;
-    } else if (info && info.suffix) {
+    } else if (info?.suffix) {
       metadataSuffix = info.suffix;
     } else {
       notificationService.showErrorMessage(nls.localize('error_overwrite_prompt'));
@@ -66,7 +66,7 @@ export class OverwriteComponentPrompt implements PostconditionChecker<OneOrMany>
     }
 
     const extensions = [`.${metadataSuffix}-meta.xml`];
-    if (info && info.extensions) {
+    if (info?.extensions) {
       extensions.push(...info.extensions);
     }
 

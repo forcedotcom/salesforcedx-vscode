@@ -204,7 +204,7 @@ const resolveTestClassParam = async (testClass: string): Promise<string> => {
     // value not provided for re-run invocations
     // apply cached value, if available
     if (apexTestRunCacheService.hasCachedClassTestParam()) {
-      testClass = apexTestRunCacheService.getLastClassTestParam();
+      return apexTestRunCacheService.getLastClassTestParam();
     }
   } else {
     await apexTestRunCacheService.setCachedClassTestParam(testClass);
@@ -214,14 +214,14 @@ const resolveTestClassParam = async (testClass: string): Promise<string> => {
 
 // invokes apex test run on all tests in a class
 export const apexTestClassRunCodeAction = async (testClass: string) => {
-  testClass = await resolveTestClassParam(testClass);
-  if (isEmpty(testClass)) {
+  const resolved = await resolveTestClassParam(testClass);
+  if (isEmpty(resolved)) {
     // test param not provided: show error and terminate
     void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_class_test_param_text'));
     return;
   }
 
-  await apexTestRunCodeAction([testClass]);
+  await apexTestRunCodeAction([resolved]);
 };
 
 //   T E S T   M E T H O D
@@ -242,7 +242,7 @@ const resolveTestMethodParam = async (testMethod: string): Promise<string> => {
     // value not provided for re-run invocations
     // apply cached value, if available
     if (apexTestRunCacheService.hasCachedMethodTestParam()) {
-      testMethod = apexTestRunCacheService.getLastMethodTestParam();
+      return apexTestRunCacheService.getLastMethodTestParam();
     }
   } else {
     await apexTestRunCacheService.setCachedMethodTestParam(testMethod);
@@ -253,14 +253,14 @@ const resolveTestMethodParam = async (testMethod: string): Promise<string> => {
 
 // invokes apex test run on a test method
 export const apexTestMethodRunCodeAction = async (testMethod: string) => {
-  testMethod = await resolveTestMethodParam(testMethod);
-  if (isEmpty(testMethod)) {
+  const resolved = await resolveTestMethodParam(testMethod);
+  if (isEmpty(resolved)) {
     // test param not provided: show error and terminate
     void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_method_test_param_text'));
     return;
   }
 
-  await apexTestRunCodeAction([testMethod]);
+  await apexTestRunCodeAction([resolved]);
 };
 
 const isTestWithDiagnostic = (

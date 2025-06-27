@@ -20,11 +20,9 @@ export class TelemetryFile implements TelemetryReporter {
   constructor(extensionId: string) {
     this.fileUri = Uri.file(path.join(getRootWorkspacePath(), `${extensionId}-${LOCAL_TELEMETRY_FILE}`));
     console.log(
-      'Local telemetry event logging enabled for: ' +
-        extensionId +
-        '. Telemetry events will be appended to the file at: ' +
-        this.fileUri.fsPath +
-        '.'
+      `Local telemetry event logging enabled for: ${extensionId}. Telemetry events will be appended to the file at: ${
+        this.fileUri.fsPath
+      }.`
     );
   }
 
@@ -68,7 +66,7 @@ export class TelemetryFile implements TelemetryReporter {
     }
   ) {
     const timestamp = new Date().toISOString();
-    const content = JSON.stringify({ timestamp, command, data }, null, 2) + ',';
+    const content = `${JSON.stringify({ timestamp, command, data }, null, 2)},`;
     this.buffer += content;
     await this.flushBuffer();
   }

@@ -162,10 +162,10 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
         }
         const apexTest = new ApexTestNode(test.methodName, test.location);
 
-        apexTest.name = apexGroup.label + '.' + apexTest.label;
+        apexTest.name = `${apexGroup.label}.${apexTest.label}`;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);
-        if (this.rootNode && !(this.rootNode.children.indexOf(apexGroup) >= 0)) {
+        if (this.rootNode && !this.rootNode.children.includes(apexGroup)) {
           this.rootNode.children.push(apexGroup);
         }
         this.testStrings.add(apexGroup.name);
@@ -242,7 +242,7 @@ export abstract class TestNode extends vscode.TreeItem {
   // TODO: create a ticket to address this particular issue.
 
   // @ts-ignore
-  get tooltip(): string {
+  public get tooltip(): string {
     return this.description;
   }
 

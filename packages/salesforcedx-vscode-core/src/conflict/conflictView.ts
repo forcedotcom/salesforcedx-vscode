@@ -22,8 +22,6 @@ export class ConflictView {
   private _dataProvider?: ConflictOutlineProvider;
   private diffsOnly: boolean = false;
 
-  private constructor() {}
-
   public static getInstance(): ConflictView {
     if (!this.instance) {
       this.instance = new ConflictView();
@@ -31,14 +29,14 @@ export class ConflictView {
     return this.instance;
   }
 
-  get treeView() {
+  private get treeView() {
     if (this._treeView) {
       return this._treeView;
     }
     throw this.initError();
   }
 
-  get dataProvider() {
+  private get dataProvider() {
     if (this._dataProvider) {
       return this._dataProvider;
     }
@@ -107,7 +105,7 @@ export class ConflictView {
     if (node) {
       Promise.resolve(this.treeView.reveal(node, { expand: true })).catch(e => {
         const errorMessage = e.toString();
-        channelService.appendLine('Error during reveal: ' + errorMessage);
+        channelService.appendLine(`Error during reveal: ${errorMessage}`);
         telemetryService.sendException('ConflictDetectionException', errorMessage);
       });
     }

@@ -54,10 +54,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       config.trace = true;
     }
 
-    if (vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+    if (vscode.workspace?.workspaceFolders?.[0]) {
       config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
-
     if (!this.salesforceApexExtension?.isActive) {
       await this.salesforceApexExtension?.activate();
     }

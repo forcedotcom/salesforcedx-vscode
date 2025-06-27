@@ -77,7 +77,7 @@ export class GoldFileUtil {
       line: stoppedLine
     });
     stackTraceResponse.body.stackFrames.forEach(frame => {
-      if (frame.source && frame.source.path) {
+      if (frame.source?.path) {
         frame.source.path = '<redacted>';
       }
     });

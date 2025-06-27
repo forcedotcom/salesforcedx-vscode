@@ -118,7 +118,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         this.setCliTelemetryEnabled(this.isTelemetryExtensionConfigurationEnabled() && cliEnabled);
       })
       .catch(error => {
-        console.log('Error initializing telemetry service: ' + error);
+        console.log(`Error initializing telemetry service: ${error}`);
       });
 
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
@@ -247,7 +247,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
         let aggregatedMeasurements: Measurements | undefined;
         if (hrstart || measurements) {
-          aggregatedMeasurements = Object.assign({}, measurements);
+          aggregatedMeasurements = { ...measurements };
           if (hrstart) {
             aggregatedMeasurements.executionTime = this.getEndHRTime(hrstart);
           }
@@ -266,13 +266,8 @@ export class TelemetryService implements TelemetryServiceInterface {
           reporter.sendExceptionEvent(name, message);
         } catch {
           console.log(
-            'There was an error sending an exception report to: ' +
-              typeof reporter +
-              ' ' +
-              'name: ' +
-              name +
-              ' message: ' +
-              message
+            `There was an error sending an exception report to: ${typeof reporter} ` +
+              `name: ${name} message: ${message}`
           );
         }
       });

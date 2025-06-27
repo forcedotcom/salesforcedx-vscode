@@ -15,7 +15,7 @@ export class BaseDebuggerCommand extends BaseCommand {
   private readonly debuggedRequestId: string;
   private readonly request: DebuggerRequest | undefined;
 
-  public constructor(commandName: string, debuggedRequestId: string, queryString?: string, request?: DebuggerRequest) {
+  constructor(commandName: string, debuggedRequestId: string, queryString?: string, request?: DebuggerRequest) {
     super(queryString);
     this.commandName = commandName;
     this.debuggedRequestId = debuggedRequestId;

@@ -46,8 +46,7 @@ export class ExternalServiceRegistrationManager {
   private overwrite = false;
   private originalPath: string = '';
   private newPath: string = '';
-
-  providerType: string | undefined;
+  private providerType: string | undefined;
 
   private initialize(
     isESRDecomposed: boolean,
@@ -302,7 +301,7 @@ export class ExternalServiceRegistrationManager {
    * @param filename
    * @returns Promise<[string, string, boolean]> - [className.externalServiceRegistration-meta.xml, the file name of the generated ESR, a boolean indicating if the file already exists]
    */
-  pathExists = async (filename: string): Promise<FullPath> => {
+  public pathExists = async (filename: string): Promise<FullPath> => {
     // Step 1: Prompt for Folder
     const folder = await this.getFolderForArtifact();
     if (!folder) {
@@ -321,7 +320,7 @@ export class ExternalServiceRegistrationManager {
       } else if (whatToDo === nls.localize('merge')) {
         const currentTimestamp = getCurrentTimestamp();
         const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
-        const newFileName = namePart + '_' + currentTimestamp + '.externalServiceRegistration-meta.xml';
+        const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
         const esr_files_for_merge_folder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
         await createDirectory(esr_files_for_merge_folder);
         const newFullPath = path.join(esr_files_for_merge_folder, newFileName);
@@ -335,7 +334,7 @@ export class ExternalServiceRegistrationManager {
    * Handles the scenario where an ESR file already exists.
    * @returns A string indicating the user's choice: 'overwrite', 'merge', or 'cancel'.
    */
-  handleExistingESR = async (): Promise<string> =>
+  private handleExistingESR = async (): Promise<string> =>
     (await vscode.window.showWarningMessage(
       nls.localize('file_exists'),
       { modal: true },
@@ -343,7 +342,7 @@ export class ExternalServiceRegistrationManager {
       nls.localize('merge')
     )) ?? 'cancel';
 
-  getFolderForArtifact = async (): Promise<string | undefined> => {
+  public getFolderForArtifact = async (): Promise<string | undefined> => {
     const vscodeCoreExtension = await getVscodeCoreExtension();
     try {
       const registryAccess = new vscodeCoreExtension.exports.services.RegistryAccess();

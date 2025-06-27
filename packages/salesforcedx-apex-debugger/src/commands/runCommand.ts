@@ -8,7 +8,7 @@
 import { BaseDebuggerCommand } from './baseDebuggerCommand';
 
 export class RunCommand extends BaseDebuggerCommand {
-  public constructor(debuggedRequestId: string) {
+  constructor(debuggedRequestId: string) {
     super('run', debuggedRequestId);
   }
 }

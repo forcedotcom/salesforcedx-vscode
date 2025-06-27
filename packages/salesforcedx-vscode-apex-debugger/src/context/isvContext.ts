@@ -6,6 +6,7 @@
  */
 import { IsvContextUtil } from '@salesforce/salesforcedx-apex-debugger';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 
 export const setupGlobalDefaultUserIsvAuth = async () => {
@@ -24,7 +25,7 @@ export const setupGlobalDefaultUserIsvAuth = async () => {
 };
 
 export const registerIsvAuthWatcher = (extensionContext: vscode.ExtensionContext) => {
-  if (vscode.workspace.workspaceFolders instanceof Array && vscode.workspace.workspaceFolders.length > 0) {
+  if (Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0) {
     const configPath = projectPaths.salesforceProjectConfig();
     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
 
@@ -34,4 +35,15 @@ export const registerIsvAuthWatcher = (extensionContext: vscode.ExtensionContext
 
     extensionContext.subscriptions.push(isvAuthWatcher);
   }
+};
+
+export const getActiveApexExtension = async (): Promise<vscode.Extension<ApexVSCodeApi>> => {
+  const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
+  if (!salesforceApexExtension) {
+    throw new Error('Apex extension not found');
+  }
+  if (!salesforceApexExtension.isActive) {
+    await salesforceApexExtension.activate();
+  }
+  return salesforceApexExtension;
 };

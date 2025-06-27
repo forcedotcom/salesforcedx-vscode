@@ -108,7 +108,7 @@ const expandFunctions: {
       });
 
       return sobjectItems;
-    } catch (metadataErrors) {
+    } catch {
       return [];
     }
   },
@@ -210,7 +210,7 @@ const expandFunctions: {
               newCompletionItem(
                 v.value,
 
-                "'" + v.value + "'",
+                `'${v.value}'`,
                 CompletionItemKind.Value
               )
             )
@@ -225,7 +225,7 @@ const expandFunctions: {
 async function safeRetrieveSObject(dataSource: OrgDataSource, sobjectName?: string): Promise<SObject | undefined> {
   if (!sobjectName) {
     telemetryService.sendException('SOQLanguageServerException', 'Missing `sobjectName` from SOQL completion context!');
-    return Promise.resolve(undefined);
+    return undefined;
   }
   return await dataSource.retrieveSObject(sobjectName);
 }
@@ -272,8 +272,8 @@ function newFieldCompletionItems(field: SObjectField, soqlContext: SoqlItemConte
           ? {
               preselect: true,
               // extra space prefix to make it appear first
-              sortText: ' ' + field.name,
-              filterText: ' ' + field.name
+              sortText: ` ${field.name}`,
+              filterText: ` ${field.name}`
             }
           : {}
       )
@@ -281,8 +281,8 @@ function newFieldCompletionItems(field: SObjectField, soqlContext: SoqlItemConte
   );
   if (field.relationshipName && !soqlContext.dontShowRelationshipField) {
     fieldItems.push(
-      newCompletionItem(`${field.relationshipName}`, field.relationshipName + '.', CompletionItemKind.Class, {
-        detail: 'Ref. to ' + field.referenceTo.join(',')
+      newCompletionItem(`${field.relationshipName}`, `${field.relationshipName}.`, CompletionItemKind.Class, {
+        detail: `Ref. to ${field.referenceTo.join(',')}`
       })
     );
   }

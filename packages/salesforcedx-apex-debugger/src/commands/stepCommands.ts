@@ -8,19 +8,19 @@
 import { BaseDebuggerCommand } from './baseDebuggerCommand';
 
 export class StepIntoCommand extends BaseDebuggerCommand {
-  public constructor(debuggedRequestId: string) {
+  constructor(debuggedRequestId: string) {
     super('step', debuggedRequestId, 'type=into');
   }
 }
 
 export class StepOutCommand extends BaseDebuggerCommand {
-  public constructor(debuggedRequestId: string) {
+  constructor(debuggedRequestId: string) {
     super('step', debuggedRequestId, 'type=out');
   }
 }
 
 export class StepOverCommand extends BaseDebuggerCommand {
-  public constructor(debuggedRequestId: string) {
+  constructor(debuggedRequestId: string) {
     super('step', debuggedRequestId, 'type=over');
   }
 }

@@ -23,15 +23,11 @@ export class ConfigGet {
 
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
-    try {
-      const configMap = new Map<string, string>();
-      // Will be removed as part of removing CLI calls
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const results = JSON.parse(result).result as any[];
-      results.forEach(entry => configMap.set(entry.key, entry.value));
-      return Promise.resolve(configMap);
-    } catch (e) {
-      return Promise.reject(e);
-    }
+    const configMap = new Map<string, string>();
+    // Will be removed as part of removing CLI calls
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const results = JSON.parse(result).result as any[];
+    results.forEach(entry => configMap.set(entry.key, entry.value));
+    return configMap;
   }
 }

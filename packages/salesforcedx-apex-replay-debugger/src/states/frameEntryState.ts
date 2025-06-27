@@ -18,10 +18,9 @@ export class FrameEntryState extends FrameState implements DebugLogState {
     const sourceUri = logContext.getUriFromSignature(this._signature);
     const frame = new ApexDebugStackFrameInfo(logContext.getFrames().length, this._signature);
     const id = logContext.getFrameHandler().create(frame);
-    const className =
-      this._signature.indexOf('.') > -1
-        ? this._signature.substring(0, this._signature.lastIndexOf('.'))
-        : this._signature;
+    const className = this._signature.includes('.')
+      ? this._signature.substring(0, this._signature.lastIndexOf('.'))
+      : this._signature;
     if (logContext.getStaticVariablesClassMap().has(className)) {
       frame.statics = logContext.getStaticVariablesClassMap().get(className)!;
     } else {

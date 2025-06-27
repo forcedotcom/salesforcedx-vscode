@@ -45,7 +45,7 @@ type RefreshSelection = {
 class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
   private source?: SObjectRefreshSource;
 
-  public constructor(source?: SObjectRefreshSource) {
+  constructor(source?: SObjectRefreshSource) {
     this.source = source;
   }
 
@@ -139,7 +139,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
             })
       });
 
-      console.log('Generate success ' + JSON.stringify(result.data));
+      console.log(`Generate success ${JSON.stringify(result.data)}`);
       this.logMetric(
         execution.command.logName,
         startTime,
@@ -157,7 +157,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
         exitCode: LocalCommandExecution.SUCCESS_CODE
       });
     } catch (error) {
-      console.log('Generate error ' + error.error);
+      console.log(`Generate error ${error.error}`);
       telemetryService.sendException(
         'generate_faux_classes_create',
         `Error: name = ${error.name} message = ${error.error}`
@@ -169,7 +169,6 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     }
 
     RefreshSObjectsExecutor.isActive = false;
-    return;
   }
 }
 
@@ -215,7 +214,7 @@ const getVersionedConnection = async () => {
           connectionOptions: { version: apiVersionOverride }
         })
       : await WorkspaceContextUtil.getInstance().getConnection();
-  } catch (e) {
+  } catch {
     return undefined;
   }
 };

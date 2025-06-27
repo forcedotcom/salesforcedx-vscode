@@ -280,17 +280,17 @@ export class LanguageClientManager {
   private async removeApexDB(): Promise<void> {
     if (hasRootWorkspace() && vscode.workspace.workspaceFolders) {
       const wsrf = vscode.workspace.workspaceFolders[0].uri;
-      const toolsUri = URI.parse(wsrf.toString()).with({ path: wsrf.path + '/.sfdx/tools' });
+      const toolsUri = URI.parse(wsrf.toString()).with({ path: `${wsrf.path}/.sfdx/tools` });
       try {
         await Promise.all(
           (await vscode.workspace.fs.readDirectory(toolsUri))
             .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
             .map(([name]) => name)
-            .map(folder => URI.parse(toolsUri.toString()).with({ path: toolsUri.path + '/' + folder }))
+            .map(folder => URI.parse(toolsUri.toString()).with({ path: `${toolsUri.path}/${folder}` }))
             .map(folderUri => vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true }))
         );
       } catch (error) {
-        console.log('Error, failed to delete folder:' + error.message);
+        console.log(`Error, failed to delete folder:${error.message}`);
       }
     }
   }
@@ -432,7 +432,7 @@ export class LanguageClientManager {
           return false;
         }
         return true;
-      } catch (err) {
+      } catch {
         return false;
       }
     }

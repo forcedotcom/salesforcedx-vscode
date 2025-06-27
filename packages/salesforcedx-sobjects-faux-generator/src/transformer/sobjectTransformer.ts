@@ -74,6 +74,8 @@ export const writeSobjectFiles = async (args: WriteSobjectFilesArgs): Promise<SO
     args.emitter.emit(STDERR_EVENT, `${error instanceof Error ? error.message : String(error)}\n`);
     args.emitter.emit(ERROR_EVENT, error);
     args.emitter.emit(EXIT_EVENT, FAILURE_CODE);
+    // this error structure is weird but I don't know what might be using it.
+    // eslint-disable-next-line unicorn/no-useless-promise-resolve-reject
     return Promise.reject({
       error: error instanceof Error ? error : new Error(String(error)),
       data: { cancelled: false }

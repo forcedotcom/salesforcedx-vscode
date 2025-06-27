@@ -15,7 +15,7 @@ export class CommandBuilder {
   public args: string[] = [];
   public logName?: string;
 
-  public constructor(command: string) {
+  constructor(command: string) {
     this.command = command;
   }
 

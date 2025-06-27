@@ -42,12 +42,11 @@ export class WorkspaceContextUtil {
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
-    const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = projectPaths.salesforceProjectConfig();
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
-    this.cliConfigWatcher.onDidChange(bindedHandler);
-    this.cliConfigWatcher.onDidCreate(bindedHandler);
-    this.cliConfigWatcher.onDidDelete(bindedHandler);
+    this.cliConfigWatcher.onDidChange(() => this.handleCliConfigChange());
+    this.cliConfigWatcher.onDidCreate(() => this.handleCliConfigChange());
+    this.cliConfigWatcher.onDidDelete(() => this.handleCliConfigChange());
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
@@ -116,31 +115,31 @@ export class WorkspaceContextUtil {
     });
   }
 
-  get username(): string | undefined {
+  public get username(): string | undefined {
     return this._username;
   }
 
-  get alias(): string | undefined {
+  public get alias(): string | undefined {
     return this._alias;
   }
 
-  get orgId(): string | undefined {
+  public get orgId(): string | undefined {
     return this._orgId;
   }
 
-  get orgShape(): OrgShape | undefined {
+  public get orgShape(): OrgShape | undefined {
     return this._orgShape;
   }
 
-  set orgShape(shape: OrgShape) {
+  public set orgShape(shape: OrgShape) {
     this._orgShape = shape;
   }
 
-  get devHubId(): string | undefined {
+  public get devHubId(): string | undefined {
     return this._devHubId;
   }
 
-  set devHubId(id: string | undefined) {
+  public set devHubId(id: string | undefined) {
     this._devHubId = id;
   }
 }

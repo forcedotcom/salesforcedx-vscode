@@ -22,7 +22,7 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { handlePushDiagnosticErrors } from '../diagnostics';
-import { coerceMessageKey,nls } from '../messages';
+import { coerceMessageKey, nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
@@ -44,7 +44,7 @@ const pushCommand: CommandParams = {
 
 export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
-  public constructor(
+  constructor(
     flag?: string,
     public params: CommandParams = pushCommand,
     showChannelOutput: boolean = true
@@ -175,15 +175,15 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource || (errors && errors.files);
+      const rows = pushedSource || errors?.files;
       const title = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, title);
       if (parser.hasConflicts()) {
-        channelService.appendLine(nls.localize('push_conflicts_error') + '\n');
+        channelService.appendLine(`${nls.localize('push_conflicts_error')}\n`);
       }
       channelService.appendLine(outputTable);
       if (pushedSource && pushedSource.length === 0) {
-        const noResults = nls.localize('table_no_results_found') + '\n';
+        const noResults = `${nls.localize('table_no_results_found')}\n`;
         channelService.appendLine(noResults);
       }
     }

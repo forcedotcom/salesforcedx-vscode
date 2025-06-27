@@ -15,7 +15,7 @@ export class ChannelService {
   private readonly channel: OutputChannel;
   private static instances: { [key: string]: ChannelService } = {};
 
-  public constructor(channel: OutputChannel) {
+  constructor(channel: OutputChannel) {
     this.channel = channel;
   }
 
@@ -72,7 +72,7 @@ export class ChannelService {
   }
 
   public showCommandWithTimestamp(commandName: string) {
-    this.channel.appendLine(this.getExecutionTime() + ' ' + commandName);
+    this.channel.appendLine(`${this.getExecutionTime()} ${commandName}`);
   }
 
   private getExecutionTime() {

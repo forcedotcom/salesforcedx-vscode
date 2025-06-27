@@ -13,12 +13,12 @@ export class Pipeline {
     this.steps.push(currentStep);
   }
 
-  addStep(newStep: ProcessorStep) {
+  public addStep(newStep: ProcessorStep) {
     this.steps.push(newStep);
     return this;
   }
 
-  async execute(input: ProcessorInputOutput) {
+  public async execute(input: ProcessorInputOutput) {
     let output: ProcessorInputOutput = input;
     for (const step of this.steps) {
       output = await step.process(output);

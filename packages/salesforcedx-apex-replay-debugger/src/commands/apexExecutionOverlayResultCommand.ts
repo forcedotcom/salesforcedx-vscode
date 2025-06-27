@@ -144,7 +144,7 @@ export class ApexExecutionOverlayResultCommand extends BaseCommand {
   private readonly commandName = 'ApexExecutionOverlayResult';
   private readonly heapdumpKey: string;
 
-  public constructor(heapdumpKey: string) {
+  constructor(heapdumpKey: string) {
     super(undefined);
     this.heapdumpKey = heapdumpKey;
   }

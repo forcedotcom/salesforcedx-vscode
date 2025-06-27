@@ -34,21 +34,11 @@ import { openAPISchema_v3_0_guided } from '../openapi3.schema';
 const gil = GenerationInteractionLogger.getInstance();
 
 export class ApexRestStrategy extends GenerationStrategy {
-  methodsList: string[];
-  methodsDocSymbolMap: Map<string, DocumentSymbol>;
-  methodsContextMap: Map<string, ApexOASMethodDetail>;
-  urlMapping: string;
-  servicePrompts: Map<string, string>;
-  serviceResponses: Map<string, string>;
-  serviceRequests: Map<string, Promise<string>>;
-  classPrompt: string; // The prompt for the entire class
-  oasSchema: string;
+  private methodsDocSymbolMap: Map<string, DocumentSymbol>;
+  private methodsContextMap: Map<string, ApexOASMethodDetail>;
+  private urlMapping: string;
 
-  private constructor(
-    metadata: ApexClassOASEligibleResponse,
-    context: ApexClassOASGatherContextResponse,
-    sourceText: string
-  ) {
+  constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse, sourceText: string) {
     super(
       metadata,
       context,
@@ -57,12 +47,8 @@ export class ApexRestStrategy extends GenerationStrategy {
       SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR,
       'OpenAPI documents generated from Apex classes using Apex REST annotations are in beta.'
     );
-    this.methodsList = [];
-    this.servicePrompts = new Map();
-    this.serviceResponses = new Map();
     this.methodsDocSymbolMap = new Map();
     this.methodsContextMap = new Map();
-    this.serviceRequests = new Map();
     this.sourceText = sourceText;
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     const restResourceAnnotation = this.context.classDetail.annotations.find(a =>
@@ -81,7 +67,7 @@ export class ApexRestStrategy extends GenerationStrategy {
     return strategy;
   }
 
-  async resolveLLMResponses(serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
+  public async resolveLLMResponses(serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
     const methodNames = Array.from(serviceRequests.keys());
     const serviceResponses = await Promise.allSettled(Array.from(serviceRequests.values()));
     return new Map(
@@ -99,7 +85,7 @@ export class ApexRestStrategy extends GenerationStrategy {
     );
   }
 
-  prevalidateLLMResponse(): string[] {
+  private prevalidateLLMResponse(): string[] {
     const validResponses: string[] = [];
     for (const [methodName, response] of this.serviceResponses) {
       if (response === '') {
@@ -224,9 +210,9 @@ export class ApexRestStrategy extends GenerationStrategy {
     }
 
     const generationResult = await this.generate();
-    return Promise.resolve({
+    return {
       result: generationResult
-    });
+    };
   }
 
   private async generate(): Promise<PromptGenerationResult> {
@@ -271,7 +257,7 @@ export class ApexRestStrategy extends GenerationStrategy {
     };
   }
 
-  get openAPISchema(): string {
+  public get openAPISchema(): string {
     return this.oasSchema;
   }
 }

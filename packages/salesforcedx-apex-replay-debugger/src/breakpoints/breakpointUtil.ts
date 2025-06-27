@@ -34,7 +34,7 @@ export class BreakpointUtil {
   }
 
   public canSetLineBreakpoint(uri: string, line: number): boolean {
-    return this.lineNumberMapping.has(uri) && this.lineNumberMapping.get(uri)!.indexOf(line) !== -1;
+    return this.lineNumberMapping.has(uri) && this.lineNumberMapping.get(uri)!.includes(line);
   }
 
   public createMappingsFromLineBreakpointInfo(lineBpInfo: LineBreakpointInfo[]): void {
@@ -60,9 +60,8 @@ export class BreakpointUtil {
     let returnValue = '';
     this.typerefMapping.forEach((value, key) => {
       if (value === uriInput) {
-        if (key.indexOf('$') === -1) {
+        if (!key.includes('$')) {
           returnValue = key;
-          return;
         }
       }
     });

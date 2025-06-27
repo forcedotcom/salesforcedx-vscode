@@ -7,17 +7,14 @@
 import { ContinueResponse, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { join } from 'node:path';
-import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { channelService } from '../channels';
 import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
-import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   constructor() {
@@ -39,18 +36,14 @@ class LibraryDeployManifestExecutor extends DeployExecutor<string> {
 }
 
 export const deployManifest = async (manifestUri: URI) => {
-  if (!manifestUri) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId === 'forcesourcemanifest') {
-      manifestUri = editor.document.uri;
-    } else {
-      const errorMessage = nls.localize('deploy_select_manifest');
-      telemetryService.sendException('deploy_with_manifest', errorMessage);
-      void notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-      return;
-    }
+  const resolved =
+    manifestUri ??
+    (await getUriFromActiveEditor({
+      message: 'deploy_select_manifest',
+      exceptionKey: 'deploy_with_manifest'
+    }));
+  if (!resolved) {
+    return;
   }
 
   const messages = getConflictMessagesFor('deploy_with_manifest');

@@ -880,7 +880,7 @@ export const newStringValue = (name: string, value = 'value', slot?: number): Va
 
 export class DummyContainer implements VariableContainer {
   public variables: ApexVariable[];
-  public constructor(variables: ApexVariable[]) {
+  constructor(variables: ApexVariable[]) {
     this.variables = variables;
   }
 
@@ -900,7 +900,7 @@ export class DummyContainer implements VariableContainer {
 
 class ErrorDummyContainer implements VariableContainer {
   public variables: ApexVariable[];
-  public constructor(variables: ApexVariable[]) {
+  constructor(variables: ApexVariable[]) {
     this.variables = variables;
   }
 
