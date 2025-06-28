@@ -36,7 +36,6 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
-  notificationIsPresentWithTimeout,
   verifyOutputPanelText,
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
@@ -387,11 +386,7 @@ describe('Run Apex Tests', () => {
     await prompt.confirm();
 
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    const successNotification2WasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Run Apex Tests successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotification2WasFound).to.equal(true);
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
     outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
@@ -432,11 +427,7 @@ describe('Run Apex Tests', () => {
     await clickFilePathOkButton();
 
     // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Build Apex Test Suite successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/SFDX: Build Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
   });
 
   it('Add test to Apex Test Suite', async () => {
@@ -461,11 +452,7 @@ describe('Run Apex Tests', () => {
     await clickFilePathOkButton();
 
     // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Build Apex Test Suite successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/SFDX: Build Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
   });
 
   it('Run Apex Test Suite', async () => {
