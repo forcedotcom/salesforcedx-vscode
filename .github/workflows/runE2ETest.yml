@@ -114,6 +114,7 @@ jobs:
         with:
           max_attempts: 5
           command: |
+            bash -c '
             cd salesforcedx-vscode
 
             # Install dependencies
@@ -144,6 +145,7 @@ jobs:
 
             # Run headless test
             npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
+            '
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
