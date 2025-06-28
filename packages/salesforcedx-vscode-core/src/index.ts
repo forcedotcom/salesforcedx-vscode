@@ -506,7 +506,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
 
     const traceFlags = new TraceFlags(connection);
-    await traceFlags.handleTraceFlagCleanupAfterLogin(
+    await traceFlags.handleTraceFlagCleanup(
       extensionContext,
       TRACE_FLAG_EXPIRATION_KEY,
       APEX_CODE_DEBUG_LEVEL

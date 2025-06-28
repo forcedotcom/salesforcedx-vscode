@@ -175,7 +175,7 @@ export class TraceFlags {
     return false;
   }
 
-  public async handleTraceFlagCleanupAfterLogin(
+  public async handleTraceFlagCleanup(
     extensionContext: vscode.ExtensionContext,
     traceTagExpirationKey: string,
     apexCodeDebugLevel: string

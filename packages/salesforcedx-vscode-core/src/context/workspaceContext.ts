@@ -79,7 +79,7 @@ export class WorkspaceContext {
     try {
       const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
       const traceFlags = new TraceFlags(connection);
-      await traceFlags.handleTraceFlagCleanupAfterLogin(
+      await traceFlags.handleTraceFlagCleanup(
         this.extensionContext,
         TRACE_FLAG_EXPIRATION_KEY,
         APEX_CODE_DEBUG_LEVEL
