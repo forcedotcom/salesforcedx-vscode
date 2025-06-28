@@ -120,6 +120,7 @@ jobs:
           VSIX_TO_INSTALL: ./extensions
           DEV_HUB_ALIAS_NAME: vscodeOrg
           DEV_HUB_USER_NAME: svcideebot@salesforce.com
+          BASH_SILENCE_DEPRECATION_WARNING: 1
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

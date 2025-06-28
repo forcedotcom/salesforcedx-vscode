@@ -447,8 +447,15 @@ describe('Run Apex Tests', () => {
       semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
         ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
         : 'input.quick-input-list-checkbox';
-    const checkbox = await prompt.findElement(By.css(selector));
-    await checkbox.click();
+
+    await retryOperation(
+      async () => {
+        const checkbox = await prompt.findElement(By.css(selector));
+        await checkbox.click();
+      },
+      2,
+      'RunApexTests - Error clicking checkbox'
+    );
     await clickFilePathOkButton();
 
     // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
