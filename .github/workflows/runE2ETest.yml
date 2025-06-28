@@ -50,6 +50,65 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
+      - name: Clean project directories (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          cd salesforcedx-vscode
+          Remove-Item -Path ./extensions -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path ./e2e-temp -Recurse -Force -ErrorAction SilentlyContinue
+
+      - name: Clean project directories (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cd salesforcedx-vscode
+          rm -rf ./extensions
+          rm -rf ./e2e-temp
+
+      - name: Create extensions directory (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          cd salesforcedx-vscode
+          if (-not (Test-Path ./extensions)) { New-Item -ItemType Directory -Path ./extensions -Force }
+
+      - name: Create extensions directory (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cd salesforcedx-vscode
+          mkdir -p ./extensions
+
+      - name: Download extensions
+        shell: bash
+        run: |
+          cd salesforcedx-vscode
+          pwd
+          gh run download ${{ inputs.runId }} -D ./extensions
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
+      - name: Move downloaded files (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          cd salesforcedx-vscode
+          Get-ChildItem -Path ./extensions -Directory | ForEach-Object {
+            Get-ChildItem -Path $_.FullName -File | ForEach-Object {
+              Move-Item -Path $_.FullName -Destination ./extensions/ -Force
+            }
+          }
+          Get-ChildItem -Path ./extensions -Directory | Remove-Item -Recurse -Force
+
+      - name: Move downloaded files (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          cd salesforcedx-vscode
+          find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \;
+          find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+
       - name: Run all steps with retries
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
@@ -57,87 +116,28 @@ jobs:
           command: |
             cd salesforcedx-vscode
 
-            # clean project
-            bash -c '
-              case "${{ matrix.os }}" in
-                "windows-latest")
-                  powershell -Command "Remove-Item -Path ./extensions -Recurse -Force -ErrorAction SilentlyContinue"
-                  ;;
-                *)
-                  rm -rf ./extensions
-                  ;;
-              esac
-            '
-
-            # clean e2e-temp
-            bash -c '
-              case "${{ matrix.os }}" in
-                "windows-latest")
-                  powershell -Command "Remove-Item -Path ./e2e-temp -Recurse -Force -ErrorAction SilentlyContinue"
-                  ;;
-                *)
-                  rm -rf ./e2e-temp
-                  ;;
-              esac
-            '
-
-            # Download extension vsixes
-            bash -c '
-              case "${{ matrix.os }}" in
-                "windows-latest")
-                  powershell -Command "if (-not (Test-Path ./extensions)) { New-Item -ItemType Directory -Path ./extensions -Force }"
-                  ;;
-                *)
-                  mkdir -p ./extensions
-                  ;;
-              esac
-            '
-            pwd
-            gh run download ${{ inputs.runId }} -D ./extensions
-
-            # Move downloaded files to extensions root (platform-specific)
-            bash -c '
-              case "${{ matrix.os }}" in
-                "windows-latest")
-                  powershell -Command "Get-ChildItem -Path ./extensions -Directory | ForEach-Object { Get-ChildItem -Path \$_.FullName -File | ForEach-Object { Move-Item -Path \$_.FullName -Destination ./extensions/ -Force } }; Get-ChildItem -Path ./extensions -Directory | Remove-Item -Recurse -Force"
-                  ;;
-                *)
-                  find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \;
-                  find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
-                  ;;
-              esac
-            '
-
             # Install dependencies
             npm install
             npm install -g @salesforce/cli
 
             # Verify CLI and set environment variables
-            bash -c '
-              set -e
-              sf version
-              SF_CLI_VERSION=$(sf version)
-              echo "SF_CLI_VERSION: $SF_CLI_VERSION"
+            sf version
+            SF_CLI_VERSION=$(sf version)
+            echo "SF_CLI_VERSION: $SF_CLI_VERSION"
+            echo "SF_CLI_VERSION=$SF_CLI_VERSION" >> $GITHUB_ENV
 
-              case "${{ matrix.os }}" in
-                "windows-latest")
-                  echo "SF_CLI_VERSION=$SF_CLI_VERSION" >> $GITHUB_ENV
-                  powershell -Command "if (\$env:SF_CLI_VERSION -match \"@salesforce/cli/\") { Write-Host \"@salesforce/cli installed - \$env:SF_CLI_VERSION\" } else { Write-Error \"The @salesforce/cli installation cannot be verified\"; exit 1 }; Add-Content -Path \$env:GITHUB_ENV -Value \"THROTTLE_FACTOR=5\""
-                  ;;
-                *)
-                  echo "Checking CLI version: $SF_CLI_VERSION"
-                  grep_result=$(echo "$SF_CLI_VERSION" | grep -c "@salesforce/cli/" || echo "0")
-                  echo "Grep result: $grep_result"
-                  if [ "$grep_result" -gt 0 ]; then
-                    echo "@salesforce/cli installed -" $SF_CLI_VERSION
-                  else
-                    echo "The @salesforce/cli installation cannot be verified"
-                    exit 1
-                  fi
-                  echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
-                  ;;
-              esac
-            '
+            if echo "$SF_CLI_VERSION" | grep -q "@salesforce/cli/"; then
+              echo "@salesforce/cli installed - $SF_CLI_VERSION"
+            else
+              echo "The @salesforce/cli installation cannot be verified"
+              exit 1
+            fi
+
+            if [ "$RUNNER_OS" = "Windows" ]; then
+              echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
+            else
+              echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
+            fi
 
             # Compile packages
             npm run compile
