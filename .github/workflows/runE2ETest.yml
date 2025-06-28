@@ -50,59 +50,66 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
+      - name: Create build script
+        shell: bash
+        run: |
+          cat > build-script.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          export MSYS_NO_PATHCONV=1
+          cd salesforcedx-vscode
+
+          # Clean project directories
+          rm -rf ./extensions 2>/dev/null || true
+          rm -rf ./e2e-temp 2>/dev/null || true
+
+          # Create extensions directory
+          mkdir -p ./extensions
+
+          # Download extension vsixes
+          pwd
+          gh run download ${{ inputs.runId }} -D ./extensions
+
+          # Move downloaded files to extensions root
+          find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
+          find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+
+          # Install dependencies
+          npm install
+          npm install -g @salesforce/cli
+
+          # Verify CLI and set environment variables
+          sf version
+          SF_CLI_VERSION=$(sf version)
+          echo "SF_CLI_VERSION: $SF_CLI_VERSION"
+          echo "SF_CLI_VERSION=$SF_CLI_VERSION" >> $GITHUB_ENV
+
+          if echo "$SF_CLI_VERSION" | grep -q "@salesforce/cli/"; then
+            echo "@salesforce/cli installed - $SF_CLI_VERSION"
+          else
+            echo "The @salesforce/cli installation cannot be verified"
+            exit 1
+          fi
+
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
+          else
+            echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
+          fi
+
+          # Compile packages
+          npm run compile
+
+          # Run headless test
+          npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
+          EOF
+          chmod +x build-script.sh
+
       - name: Run all steps with retries
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: |
-            export MSYS_NO_PATHCONV=1
-            bash << 'EOF'
-            cd salesforcedx-vscode
-
-            # Clean project directories
-            rm -rf ./extensions 2>/dev/null || true
-            rm -rf ./e2e-temp 2>/dev/null || true
-
-            # Create extensions directory
-            mkdir -p ./extensions
-
-            # Download extension vsixes
-            pwd
-            gh run download ${{ inputs.runId }} -D ./extensions
-
-            # Move downloaded files to extensions root
-            find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
-            find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
-
-            # Install dependencies
-            npm install
-            npm install -g @salesforce/cli
-
-            # Verify CLI and set environment variables
-            sf version
-            SF_CLI_VERSION=$(sf version)
-            echo "SF_CLI_VERSION: $SF_CLI_VERSION"
-            echo "SF_CLI_VERSION=$SF_CLI_VERSION" >> $GITHUB_ENV
-
-            if echo "$SF_CLI_VERSION" | grep -q "@salesforce/cli/"; then
-              echo "@salesforce/cli installed - $SF_CLI_VERSION"
-            else
-              echo "The @salesforce/cli installation cannot be verified"
-              exit 1
-            fi
-
-            if [ "$RUNNER_OS" = "Windows" ]; then
-              echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
-            else
-              echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
-            fi
-
-            # Compile packages
-            npm run compile
-
-            # Run headless test
-            npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
-            EOF
+          command: bash build-script.sh
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
