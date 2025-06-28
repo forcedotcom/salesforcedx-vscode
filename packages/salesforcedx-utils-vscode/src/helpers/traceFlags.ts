@@ -209,6 +209,8 @@ export class TraceFlags {
     const expirationDate = extensionContext.workspaceState.get<string>(traceTagExpirationKey);
     if (expirationDate) {
       showTraceFlagExpiration(new Date(expirationDate), apexCodeDebugLevel);
+    } else {
+      disposeTraceFlagExpiration();
     }
   }
 }
