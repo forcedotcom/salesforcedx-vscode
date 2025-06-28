@@ -137,9 +137,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging: 'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
-  apex_debug_log_status_bar_text: '$(file-text) 詳細なログを記録しています。%s まで。',
-  apex_debug_log_status_bar_hover_text:
-    'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
   stop_apex_debug_logging: 'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
   isv_debug_bootstrap_create_project: 'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
   isv_debug_bootstrap_configure_project: 'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています',

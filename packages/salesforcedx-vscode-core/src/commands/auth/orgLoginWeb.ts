@@ -19,6 +19,7 @@ import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../../channels/index';
 import { CLI } from '../../constants';
+
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demoMode';
 import { notificationService } from '../../notifications/index';
@@ -39,6 +40,10 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   protected showChannelOutput = false;
   protected deviceCodeReceived = false;
   protected stdOut = '';
+
+  constructor(extensionContext?: vscode.ExtensionContext) {
+    super();
+  }
 
   public build(data: AuthParams): Command {
     const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_org_text'));
@@ -70,7 +75,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
       this.handleCliResponse(responseStr);
     });
 
-    execution.processExitSubject.subscribe(() => {
+    execution.processExitSubject.subscribe(async (exitCode) => {
       this.logMetric(execution.command.logName, startTime);
     });
 
@@ -129,6 +134,10 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
 class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
   protected showChannelOutput = false;
 
+  constructor(extensionContext?: vscode.ExtensionContext) {
+    super();
+  }
+
   public build(data: AuthParams): Command {
     const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_org_text'));
 
@@ -141,9 +150,44 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
     return command.build();
   }
+
+  public execute(response: ContinueResponse<AuthParams>): void {
+    const startTime = process.hrtime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: this.executionCwd,
+      env: { SF_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    let output = '';
+    execution.stdoutSubject.subscribe(realData => {
+      output += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(async (exitCode) => {
+      const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
+      let properties;
+      let measurements;
+      if (telemetryData) {
+        properties = telemetryData.properties;
+        measurements = telemetryData.measurements;
+      }
+      this.logMetric(execution.command.logName, startTime, properties, measurements);
+      this.onDidFinishExecutionEventEmitter.fire(startTime);
+    });
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+  }
 }
 
 export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
+  protected extensionContext?: vscode.ExtensionContext;
+
+  constructor(extensionContext?: vscode.ExtensionContext) {
+    super();
+    this.extensionContext = extensionContext;
+  }
+
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new CancellationTokenSource();
@@ -208,18 +252,19 @@ const promptLogOutForProdOrg = async () => {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
+const createOrgLoginWebExecutor = (extensionContext?: vscode.ExtensionContext): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
-      return new OrgLoginWebContainerExecutor();
+      return new OrgLoginWebContainerExecutor(extensionContext);
     case isDemoMode():
-      return new OrgLoginWebDemoModeExecutor();
+      return new OrgLoginWebDemoModeExecutor(extensionContext);
     default:
-      return new OrgLoginWebExecutor();
+      return new OrgLoginWebExecutor(extensionContext);
   }
 };
 
-export const orgLoginWeb = async (): Promise<void> => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, createOrgLoginWebExecutor());
+export const orgLoginWeb = async (extensionContext?: vscode.ExtensionContext): Promise<void> => {
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, createOrgLoginWebExecutor(extensionContext));
   await commandlet.run();
+  console.log('orgLoginWeb command executed');
 };

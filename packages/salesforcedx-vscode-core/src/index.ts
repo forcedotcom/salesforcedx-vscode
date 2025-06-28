@@ -10,6 +10,8 @@ import {
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
+  TraceFlags,
+  WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -66,7 +68,6 @@ import {
   sfProjectGenerate,
   sourceDiff,
   sourceFolderDiff,
-  startApexDebugLogging,
   taskStop,
   turnOffLogging,
   viewAllChanges,
@@ -77,6 +78,7 @@ import {
 } from './commands';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
+import { turnOnLogging } from './commands/startApexDebugLogging';
 import {
   FlagParameter,
   SelectFileName,
@@ -88,10 +90,10 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
+import { APEX_CODE_DEBUG_LEVEL, ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, TRACE_FLAG_EXPIRATION_KEY } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
+import { decorators, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -113,7 +115,7 @@ const flagIgnoreConflicts: FlagParameter<string> = {
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
   // Customer-facing commands
   const orgLoginAccessTokenCmd = vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken);
-  const orgLoginWebCmd = vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb);
+  const orgLoginWebCmd = vscode.commands.registerCommand('sf.org.login.web', () => orgLoginWeb(extensionContext));
   const orgLoginWebDevHubCmd = vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub);
 
   const orgLogoutAllCmd = vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll);
@@ -217,16 +219,19 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger);
 
-  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sf.start.apex.debug.logging',
-    startApexDebugLogging
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand('sf.start.apex.debug.logging', () =>
+    turnOnLogging(extensionContext)
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', () =>
+    turnOffLogging(extensionContext)
+  );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
-  const configSetCmd = vscode.commands.registerCommand('sf.config.set', configSet);
+  const configSetCmd = vscode.commands.registerCommand('sf.config.set', (usernameOrAlias: string) =>
+    configSet(usernameOrAlias, extensionContext)
+  );
 
   const diffFile = vscode.commands.registerCommand('sf.diff', sourceDiff);
 
@@ -495,6 +500,21 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
+
+  // Handle trace flag cleanup after setting target org
+  try {
+    const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
+
+    const traceFlags = new TraceFlags(connection);
+    await traceFlags.handleTraceFlagCleanup(
+      extensionContext,
+      TRACE_FLAG_EXPIRATION_KEY,
+      APEX_CODE_DEBUG_LEVEL
+    );
+  } catch (error) {
+    console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);
+  }
+
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
   return api;
@@ -530,9 +550,6 @@ export const deactivate = async (): Promise<void> => {
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
-
-  disposeTraceFlagExpiration();
-  return turnOffLogging();
 };
 
 const handleTheUnhandled = (): void => {
