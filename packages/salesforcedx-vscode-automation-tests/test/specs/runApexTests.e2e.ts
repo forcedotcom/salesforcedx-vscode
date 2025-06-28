@@ -180,6 +180,8 @@ describe('Run Apex Tests', () => {
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
+    await pause(Duration.seconds(10)); // Remove this once we have a way to wait for the tests to finish running
+
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
     const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
@@ -239,6 +241,7 @@ describe('Run Apex Tests', () => {
     expect(testingSideBarView).to.be.instanceOf(SideBarView);
 
     const apexTestsSection = await getTestsSection(workbench, 'Apex Tests');
+    await pause(Duration.seconds(10)); // Wait for test section to load
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
     const apexTestsItems = await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 6, 3);
 
