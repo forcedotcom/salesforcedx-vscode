@@ -55,12 +55,13 @@ jobs:
         with:
           max_attempts: 3
           command: |
-            bash -c '
+            export MSYS_NO_PATHCONV=1
+            bash << 'EOF'
             cd salesforcedx-vscode
 
             # Clean project directories
-            rm -rf ./extensions
-            rm -rf ./e2e-temp
+            rm -rf ./extensions 2>/dev/null || true
+            rm -rf ./e2e-temp 2>/dev/null || true
 
             # Create extensions directory
             mkdir -p ./extensions
@@ -70,7 +71,7 @@ jobs:
             gh run download ${{ inputs.runId }} -D ./extensions
 
             # Move downloaded files to extensions root
-            find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \;
+            find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
             find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
             # Install dependencies
@@ -101,7 +102,7 @@ jobs:
 
             # Run headless test
             npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
-            '
+            EOF
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
