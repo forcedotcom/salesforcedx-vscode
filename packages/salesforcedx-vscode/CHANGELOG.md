@@ -1,3 +1,17 @@
+# 64.3.0 - July 2, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Allow retries upon connection timeouts when running apex tests ([PR #6384](https://github.com/forcedotcom/salesforcedx-vscode/pull/6384))
+
+- Add strategy to telemetry ([PR #6374](https://github.com/forcedotcom/salesforcedx-vscode/pull/6374))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Allow retries upon connection timeouts when running apex tests ([PR #6384](https://github.com/forcedotcom/salesforcedx-vscode/pull/6384))
+
 # 64.2.1 - June 25, 2025
 
 ## Added
