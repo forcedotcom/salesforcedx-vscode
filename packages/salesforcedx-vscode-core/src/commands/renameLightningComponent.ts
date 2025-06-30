@@ -8,9 +8,10 @@
 import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer,
+  LibraryCommandletExecutor,
   notificationService,
-  LibraryCommandletExecutor
+  ParametersGatherer,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'node:fs';
@@ -20,7 +21,7 @@ import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { ComponentName, getComponentName, getComponentPath, isLwcComponent, TEST_FOLDER } from '../util';
-import { SfCommandlet, SfWorkspaceChecker, LwcAuraDuplicateComponentCheckerForRename } from './util';
+import { SfCommandlet, LwcAuraDuplicateComponentCheckerForRename } from './util';
 import {
   isNameMatch,
   RENAME_ERROR,

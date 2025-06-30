@@ -11,6 +11,7 @@ import {
   CompositeCliCommandExecutor,
   ContinueResponse,
   EmptyParametersGatherer,
+  SfWorkspaceChecker,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -21,7 +22,7 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo } from '../util';
 import { developerLogTraceFlag } from '.';
-import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor } from './util';
 
 class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();

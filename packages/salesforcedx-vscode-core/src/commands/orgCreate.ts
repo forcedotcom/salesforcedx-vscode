@@ -15,6 +15,7 @@ import {
   OrgCreateErrorResult,
   OrgCreateResultParser,
   ParametersGatherer,
+  SfWorkspaceChecker,
   workspaceUtils,
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -32,8 +33,7 @@ import {
   FileSelection,
   FileSelector,
   SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
+  SfCommandletExecutor
 } from './util';
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';

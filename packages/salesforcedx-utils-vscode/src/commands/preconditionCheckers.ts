@@ -5,33 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileOrFolderExists } from '../helpers/fs';
 import { nls } from '../messages';
-import { Predicate, PredicateResponse } from '../predicates';
 import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';
-import { getRootWorkspacePath, hasRootWorkspace } from '../workspaces';
-import { notificationService } from './index';
+import { workspaceUtils } from '../workspaces';
+import { NotificationService } from './notificationService';
 
-class IsSalesforceProjectOpened implements Predicate {
-  public async apply(): Promise<PredicateResponse> {
-    if (!hasRootWorkspace()) {
-      return PredicateResponse.of(false, nls.localize('predicates_no_folder_opened_text'));
-    } else if (!(await fileOrFolderExists(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE)))) {
-      return PredicateResponse.of(false, nls.localize('predicates_no_salesforce_project_found_text'));
-    } else {
-      return PredicateResponse.true();
-    }
+export const isSalesforceProjectOpened = (): { result: true; message?: never } | { result: false; message: string } => {
+  if (!workspaceUtils.hasRootWorkspace()) {
+    return { result: false, message: nls.localize('predicates_no_folder_opened_text') };
   }
-}
-
-const isSalesforceProjectOpened = new IsSalesforceProjectOpened();
+  if (!fs.existsSync(path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE))) {
+    return { result: false, message: nls.localize('predicates_no_salesforce_project_found_text') };
+  }
+  return { result: true };
+};
 
 export class SfWorkspaceChecker implements PreconditionChecker {
-  public async check(): Promise<boolean> {
-    const result = await isSalesforceProjectOpened.apply();
+  public check(): boolean {
+    const result = isSalesforceProjectOpened();
     if (!result.result) {
-      notificationService.showErrorMessage(result.message);
+      NotificationService.getInstance().showErrorMessage(result.message);
       return false;
     }
     return true;

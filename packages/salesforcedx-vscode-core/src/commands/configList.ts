@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { EmptyParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { EmptyParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
-import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor } from './util';
 
 class ConfigList extends SfCommandletExecutor<{}> {
   public build(_data: {}): Command {

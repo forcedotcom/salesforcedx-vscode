@@ -13,6 +13,7 @@ import {
   EmptyParametersGatherer,
   ProjectDeployStartResultParser,
   ProjectDeployStartResult,
+  SfWorkspaceChecker,
   Table,
   TelemetryBuilder,
   workspaceUtils
@@ -26,7 +27,7 @@ import { coerceMessageKey, nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
-import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor } from './util';
 
 export enum DeployType {
   Deploy = 'deploy',

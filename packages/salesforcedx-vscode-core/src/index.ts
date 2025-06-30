@@ -9,9 +9,11 @@ import {
   ChannelService,
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
+  SfWorkspaceChecker,
   TelemetryService,
   ensureCurrentWorkingDirIsProjectPath,
-  getRootWorkspacePath
+  getRootWorkspacePath,
+  isSalesforceProjectOpened
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as os from 'node:os';
@@ -77,14 +79,7 @@ import {
 } from './commands';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
-import {
-  FlagParameter,
-  SelectFileName,
-  SelectOutputDir,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './commands/util';
+import { FlagParameter, SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
@@ -96,7 +91,6 @@ import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
-import { isSalesforceProjectOpened } from './predicates';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './services';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
@@ -425,7 +419,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   // Context
-  const salesforceProjectOpened = isSalesforceProjectOpened.apply().result;
+  const salesforceProjectOpened = isSalesforceProjectOpened().result;
 
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;

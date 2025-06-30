@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LibraryCommandletExecutor, workspaceUtils, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  LibraryCommandletExecutor,
+  SfWorkspaceChecker,
+  workspaceUtils,
+  ContinueResponse
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'node:fs';
 import { join, parse } from 'node:path';
@@ -13,7 +18,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet } from './util';
 
 const GENERATE_MANIFEST_EXECUTOR = 'project_generate_manifest';
 const DEFAULT_MANIFEST = 'package.xml';
@@ -29,14 +34,7 @@ class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
     this.responseText = responseText;
   }
 
-  public async run(
-    response: ContinueResponse<string>,
-    progress?: vscode.Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
-    token?: vscode.CancellationToken
-  ): Promise<boolean> {
+  public async run(_response: ContinueResponse<string>): Promise<boolean> {
     if (this.sourcePaths) {
       const packageXML = await ComponentSet.fromSource(this.sourcePaths).getPackageXml();
       if (this.responseText === undefined) {

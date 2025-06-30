@@ -11,7 +11,7 @@ import * as path from 'node:path';
 import { SfCommandletExecutor } from './util';
 
 class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withArg('org:list:metadata-types')
       .withJson()

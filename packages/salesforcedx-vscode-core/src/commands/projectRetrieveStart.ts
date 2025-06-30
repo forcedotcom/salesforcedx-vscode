@@ -13,6 +13,7 @@ import {
   EmptyParametersGatherer,
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult,
+  SfWorkspaceChecker,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -20,7 +21,7 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
 import { coerceMessageKey, nls } from '../messages';
-import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor } from './util';
 
 const pullCommand: CommandParams = {
   command: 'project:retrieve:start',
