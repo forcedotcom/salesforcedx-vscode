@@ -15,45 +15,32 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { readFileSync } from 'node:fs';
-import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';
-import { workspaceContext } from '../context';
+import { APEX_CLASS_EXT } from '../constants';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
+import { getTestInfo } from './readTestFile';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
-  const apexClassItems = apexClasses
-    .filter(apexClass => {
-      const fileContent = readFileSync(apexClass.fsPath).toString();
-      return IS_TEST_REG_EXP.test(fileContent);
-    })
-    .map(apexClass => ({
-      label: basename(apexClass.toString(), APEX_CLASS_EXT),
-      description: apexClass.fsPath,
-      type: TestType.Class
-    }))
+  return (await Promise.all(apexClasses.map(getTestInfo)))
+    .filter(item => item !== undefined)
     .sort((a, b) => a.label.localeCompare(b.label));
-
-  return apexClassItems;
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const connection = await workspaceContext.getConnection();
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
   const testService = new TestService(connection);
-  const testSuites = await testService.retrieveAllSuites();
-
-  const quickPickItems = testSuites.map(testSuite => ({
+  return (await testService.retrieveAllSuites()).map(testSuite => ({
     label: testSuite.TestSuiteName,
     description: testSuite.id,
     type: TestType.Suite
   }));
-  return quickPickItems;
 };
 
 class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
@@ -127,7 +114,8 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
   }
 
   public async run(response: ContinueResponse<ApexTestSuiteOptions>): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
     await testService.buildSuite(response.data.suitename, response.data.tests);
     return true;

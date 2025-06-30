@@ -167,9 +167,16 @@ describe('Debug Apex Tests', () => {
         await pause(Duration.seconds(2));
         await apexTestsSection.click();
         await apexTestsSection.wait(20_000);
-        apexTestItem = (await apexTestsSection.findItem('ExampleApexClass1Test')) as TreeItem;
+        const foundItem = await apexTestsSection.findItem('ExampleApexClass1Test');
+        if (!foundItem) {
+          throw new Error('Expected TreeItem but got undefined');
+        }
+        if (!(foundItem instanceof TreeItem)) {
+          throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
+        }
+        apexTestItem = foundItem;
         await apexTestItem.wait(20_000);
-        await apexTestItem!.select();
+        await apexTestItem.select();
       },
       3,
       'DebugApexTests - Error clicking apex tests section'
@@ -218,7 +225,14 @@ describe('Debug Apex Tests', () => {
       async () => {
         await apexTestsSection.click();
         await apexTestsSection.wait(20_000);
-        apexTestItem = (await apexTestsSection.findItem('validateSayHello')) as TreeItem;
+        const foundItem = await apexTestsSection.findItem('validateSayHello');
+        if (!foundItem) {
+          throw new Error('Expected TreeItem but got undefined');
+        }
+        if (!(foundItem instanceof TreeItem)) {
+          throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
+        }
+        apexTestItem = foundItem;
         await apexTestItem.wait(20_000);
         await apexTestItem.select();
       },

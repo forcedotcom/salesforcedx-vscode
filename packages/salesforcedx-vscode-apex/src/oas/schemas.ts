@@ -116,20 +116,6 @@ export interface OpenAPIDoc {
   components?: { schemas?: Record<string, any> };
 }
 
-export interface Prompts {
-  SYSTEM_TAG: string;
-  END_OF_PROMPT_TAG: string;
-  USER_TAG: string;
-  ASSISTANT_TAG: string;
-  systemPrompt: string;
-  METHOD_BY_METHOD: {
-    USER_PROMPT: string;
-  };
-  wholeClass: {
-    userPrompt: string;
-  };
-}
-
 export type HttpRequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export const httpMethodMap: Record<string, HttpRequestMethod> = {
@@ -143,6 +129,7 @@ export const httpMethodMap: Record<string, HttpRequestMethod> = {
 export type OASGenerationCommandProperties = {
   isClass: string;
   overwrite: string;
+  strategy: string;
 };
 
 export type OASGenerationCommandMeasure = {

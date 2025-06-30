@@ -132,7 +132,7 @@ describe('Authentication', () => {
     try {
       const orgAlias = await createDefaultScratchOrg();
       expect(orgAlias).to.be.a('string');
-      scratchOrgAliasName = orgAlias as string;
+      scratchOrgAliasName = orgAlias;
     } catch (error) {
       throw new Error(`Failed to create scratch org: ${String(error)}`);
     }

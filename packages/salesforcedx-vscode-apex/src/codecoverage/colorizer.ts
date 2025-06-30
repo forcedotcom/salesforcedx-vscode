@@ -6,10 +6,9 @@
  */
 
 import { CodeCoverageResult } from '@salesforce/apex-node-bundle';
-import { SFDX_FOLDER, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import { existsSync, readFileSync } from 'node:fs';
+import { SFDX_FOLDER, projectPaths, fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { join, extname, basename } from 'node:path';
-import { Range, TextDocument, TextEditor, TextLine, window, workspace } from 'vscode';
+import { Range, TextDocument, TextEditor, window, workspace } from 'vscode';
 import { channelService } from '../channels';
 import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
@@ -19,21 +18,18 @@ import { StatusBarToggle } from './statusBarToggle';
 const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
 const getLineRange = (document: TextDocument, lineNumber: number): Range => {
-  let adjustedLineNumber: number;
-  let firstLine: TextLine;
+  const adjustedLineNumber = lineNumber - 1;
   try {
-    adjustedLineNumber = lineNumber - 1;
-    firstLine = document.lineAt(adjustedLineNumber);
+    const firstLine = document.lineAt(adjustedLineNumber);
+    return new Range(
+      adjustedLineNumber,
+      firstLine.range.start.character,
+      adjustedLineNumber,
+      firstLine.range.end.character
+    );
   } catch {
     throw new Error(nls.localize('colorizer_out_of_sync_code_coverage_data'));
   }
-
-  return new Range(
-    adjustedLineNumber,
-    firstLine.range.start.character,
-    adjustedLineNumber,
-    firstLine.range.end.character
-  );
 };
 
 type CoverageItem = {
@@ -43,22 +39,22 @@ type CoverageItem = {
   lines: { [key: string]: number };
 };
 
-const getTestRunId = (): string => {
+const getTestRunId = async (): Promise<string> => {
   const testRunIdFile = join(pathToApexTestResultsFolder, 'test-run-id.txt');
-  if (!existsSync(testRunIdFile)) {
+  if (!(await fileOrFolderExists(testRunIdFile))) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
-  return readFileSync(testRunIdFile, 'utf8');
+  return readFile(testRunIdFile);
 };
 
-const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
-  const testRunId = getTestRunId();
+const getCoverageData = async (): Promise<CoverageItem[] | CodeCoverageResult[]> => {
+  const testRunId = await getTestRunId();
   const testResultFilePath = join(pathToApexTestResultsFolder, `test-result-${testRunId}.json`);
 
-  if (!existsSync(testResultFilePath)) {
+  if (!(await fileOrFolderExists(testResultFilePath))) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
   }
-  const testResultOutput = readFileSync(testResultFilePath, 'utf8');
+  const testResultOutput = await readFile(testResultFilePath);
   const testResult = JSON.parse(testResultOutput);
   if (testResult.coverage === undefined && testResult.codecoverage === undefined) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
@@ -69,27 +65,22 @@ const getCoverageData = (): CoverageItem[] | CodeCoverageResult[] => {
 
 const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);
 
-const getApexMemberName = (filePath: string): string => {
-  if (isApexMetadata(filePath)) {
-    const extension = extname(filePath);
-    return basename(filePath, extension);
-  }
-  return '';
-};
+const getApexMemberName = (filePath: string): string =>
+  isApexMetadata(filePath) ? basename(filePath, extname(filePath)) : '';
 
 export class CodeCoverageHandler {
   public coveredLines: Range[] = [];
   public uncoveredLines: Range[] = [];
 
   constructor(private statusBar: StatusBarToggle) {
-    window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this);
-    this.onDidChangeActiveTextEditor(window.activeTextEditor);
+    window.onDidChangeActiveTextEditor(async () => await this.onDidChangeActiveTextEditor(), this);
+    void this.onDidChangeActiveTextEditor(window.activeTextEditor);
   }
 
-  public onDidChangeActiveTextEditor(editor?: TextEditor) {
+  public async onDidChangeActiveTextEditor(editor?: TextEditor) {
     if (editor && this.statusBar.isHighlightingEnabled) {
       try {
-        const coverage = applyCoverageToSource(editor.document);
+        const coverage = await applyCoverageToSource(editor.document);
         this.coveredLines = coverage.coveredLines;
         this.uncoveredLines = coverage.uncoveredLines;
         this.setCoverageDecorators(editor);
@@ -99,7 +90,7 @@ export class CodeCoverageHandler {
     }
   }
 
-  public toggleCoverage() {
+  public async toggleCoverage() {
     const editor = window.activeTextEditor;
     if (this.statusBar.isHighlightingEnabled) {
       this.statusBar.toggle(false);
@@ -111,7 +102,7 @@ export class CodeCoverageHandler {
     } else {
       try {
         if (editor?.document) {
-          const coverage = applyCoverageToSource(editor.document);
+          const coverage = await applyCoverageToSource(editor.document);
           this.coveredLines = coverage.coveredLines;
           this.uncoveredLines = coverage.uncoveredLines;
           this.setCoverageDecorators(editor);
@@ -141,19 +132,19 @@ export class CodeCoverageHandler {
   }
 }
 
-const applyCoverageToSource = (
+const applyCoverageToSource = async (
   document?: TextDocument
-): {
+): Promise<{
   coveredLines: Range[];
   uncoveredLines: Range[];
-} => {
+}> => {
   if (
     document &&
     !document.uri.fsPath.includes(SFDX_FOLDER) &&
     isApexMetadata(document.uri.fsPath) &&
     !IS_TEST_REG_EXP.test(document.getText())
   ) {
-    const codeCovArray = getCoverageData();
+    const codeCovArray = await getCoverageData();
     const apexMemberName = getApexMemberName(document.uri.fsPath);
     const codeCovItem = codeCovArray.find(covItem => covItem.name === apexMemberName);
 

@@ -93,16 +93,25 @@ describe('Run LWC Tests', () => {
     // Open the Tests Sidebar
     const workbench = getWorkbench();
     const lwcTestsSection = await getTestsSection(workbench, 'LWC Tests');
-    let lwcTestsItems = (await lwcTestsSection.getVisibleItems()) as TreeItem[];
+    let lwcTestsItems = await lwcTestsSection.getVisibleItems();
+    if (!Array.isArray(lwcTestsItems)) {
+      throw new Error(`Expected Array<TreeItem> but got different item type: ${typeof lwcTestsItems}`);
+    }
 
     // Run command SFDX: Run All Lightning Web Component Tests
     await executeQuickPick('SFDX: Run All Lightning Web Component Tests', Duration.seconds(2));
 
     // Get tree items again
-    lwcTestsItems = (await lwcTestsSection.getVisibleItems()) as TreeItem[];
+    lwcTestsItems = await lwcTestsSection.getVisibleItems();
+    if (!Array.isArray(lwcTestsItems)) {
+      throw new Error(`Expected Array<TreeItem> but got different item type: ${typeof lwcTestsItems}`);
+    }
 
     // Verify the tests that ran are labeled with a green dot on the Test sidebar
     for (const item of lwcTestsItems) {
+      if (!(item instanceof TreeItem)) {
+        throw new Error(`Expected TreeItem but got different item type: ${typeof item}`);
+      }
       await verifyTestIconColor(item, 'testPass');
     }
 
@@ -110,10 +119,16 @@ describe('Run LWC Tests', () => {
     await executeQuickPick('SFDX: Refresh Lightning Web Component Test Explorer', Duration.seconds(2));
 
     // Get tree items again
-    lwcTestsItems = (await lwcTestsSection.getVisibleItems()) as TreeItem[];
+    lwcTestsItems = await lwcTestsSection.getVisibleItems();
+    if (!Array.isArray(lwcTestsItems)) {
+      throw new Error(`Expected Array<TreeItem> but got different item type: ${typeof lwcTestsItems}`);
+    }
 
     // Verify the tests are now labeled with a blue dot on the Test sidebar
     for (const item of lwcTestsItems) {
+      if (!(item instanceof TreeItem)) {
+        throw new Error(`Expected TreeItem but got different item type: ${typeof item}`);
+      }
       await verifyTestIconColor(item, 'testNotRun');
     }
   });

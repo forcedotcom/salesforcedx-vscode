@@ -160,7 +160,13 @@ describe('Deploy and Retrieve', () => {
       await treeViewSection.expand();
 
       // The force-app/main/default and classes folders are already expanded, so we can find the file directly
-      const myClassFile = (await treeViewSection.findItem('MyClass.cls')) as DefaultTreeItem;
+      const myClassFile = await treeViewSection.findItem('MyClass.cls');
+      if (!myClassFile) {
+        throw new Error('Expected DefaultTreeItem but got undefined');
+      }
+      if (!(myClassFile instanceof DefaultTreeItem)) {
+        throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof myClassFile}`);
+      }
       const contextMenu = await myClassFile.openContextMenu();
       await contextMenu.select('SFDX: Deploy This Source to Org');
 
@@ -231,7 +237,13 @@ describe('Deploy and Retrieve', () => {
       }
 
       // The force-app/main/default and classes folders are already expanded, so we can find the file directly
-      const myClassFile = (await treeViewSection.findItem('MyClass.cls')) as DefaultTreeItem;
+      const myClassFile = await treeViewSection.findItem('MyClass.cls');
+      if (!myClassFile) {
+        throw new Error('Expected DefaultTreeItem but got undefined');
+      }
+      if (!(myClassFile instanceof DefaultTreeItem)) {
+        throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof myClassFile}`);
+      }
       const contextMenu = await myClassFile.openContextMenu();
       await contextMenu.select('SFDX: Retrieve This Source from Org');
 
@@ -480,7 +492,13 @@ describe('Deploy and Retrieve', () => {
       }
 
       // The force-app/main/default and classes folders are already expanded, so we can find the file directly
-      const myClassFile = (await treeViewSection.findItem('ExampleApexClass2.cls')) as DefaultTreeItem;
+      const myClassFile = await treeViewSection.findItem('ExampleApexClass2.cls');
+      if (!myClassFile) {
+        throw new Error('Expected DefaultTreeItem but got undefined');
+      }
+      if (!(myClassFile instanceof DefaultTreeItem)) {
+        throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof myClassFile}`);
+      }
       const contextMenu = await myClassFile.openContextMenu();
       await contextMenu.select('SFDX: Delete from Project and Org');
 

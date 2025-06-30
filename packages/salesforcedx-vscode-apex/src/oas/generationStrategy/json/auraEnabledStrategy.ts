@@ -5,10 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
-import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '..';
-import { workspaceContext } from '../../../context';
+import { ConfigUtil, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { getVscodeCoreExtension } from '../../../coreExtensionUtils';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
 import {
   ApexClassOASEligibleResponse,
@@ -16,6 +14,7 @@ import {
   PromptGenerationStrategyBid
 } from '../../schemas';
 import { buildClassPrompt } from '../buildPromptUtils';
+import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '../constants';
 import { GenerationStrategy } from '../generationStrategy';
 import { openAPISchema_v3_0_guided } from '../openapi3.schema';
 
@@ -25,7 +24,11 @@ export class AuraEnabledStrategy extends GenerationStrategy {
   private isDefaultOrg: boolean;
   private isOrgVersionCompatible: boolean;
 
-  constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
+  private constructor(
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse,
+    sourceText: string
+  ) {
     super(
       metadata,
       context,
@@ -37,11 +40,20 @@ export class AuraEnabledStrategy extends GenerationStrategy {
     this.servicePrompts = new Map();
     this.serviceResponses = new Map();
     this.serviceRequests = new Map();
-    this.sourceText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
+    this.sourceText = sourceText;
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
     this.isDefaultOrg = false;
     this.isOrgVersionCompatible = false;
+  }
+
+  public static async initialize(
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse
+  ): Promise<AuraEnabledStrategy> {
+    const sourceText = await readFile(metadata.resourceUri.fsPath);
+    const strategy = new AuraEnabledStrategy(metadata, context, sourceText);
+    return strategy;
   }
 
   get openAPISchema(): string {
@@ -54,10 +66,9 @@ export class AuraEnabledStrategy extends GenerationStrategy {
       this.isDefaultOrg = targetOrg !== undefined;
 
       if (this.isDefaultOrg) {
-        const connection = await workspaceContext.getConnection();
-        const apiVersion = connection.getApiVersion();
-        // Convert API version to number by handling decimal format (e.g. "58.0")
-        const numericVersion = parseFloat(apiVersion);
+        const vscodeCoreExtension = await getVscodeCoreExtension();
+        const apiVersion = await vscodeCoreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
+        const numericVersion = parseFloat(apiVersion.getApiVersion());
         this.isOrgVersionCompatible = numericVersion >= MIN_ORG_VERSION;
       }
     } catch (err) {
@@ -87,12 +98,12 @@ export class AuraEnabledStrategy extends GenerationStrategy {
 
   public async generateOAS(): Promise<string> {
     const responses: string[] = [];
+    const coreExtension = await getVscodeCoreExtension();
 
     // Get the connection and make the API call
-    const connection = await workspaceContext.getConnection();
-    const className = this.context.classDetail.name;
+    const connection = await coreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
     const apiVersion = connection.getApiVersion();
-    const endpoint = `${connection.instanceUrl}/services/data/v${apiVersion}/specifications/oas3/apex/${className}`;
+    const endpoint = `${connection.instanceUrl}/services/data/v${apiVersion}/specifications/oas3/apex/${this.context.classDetail.name}`;
 
     try {
       const result = await connection.request({

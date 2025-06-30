@@ -70,7 +70,13 @@ describe('Manifest Builder', () => {
         );
       }
 
-      const objectTreeItem = (await treeViewSection.findItem('objects')) as DefaultTreeItem;
+      const objectTreeItem = await treeViewSection.findItem('objects');
+      if (!objectTreeItem) {
+        throw new Error('Expected DefaultTreeItem but got undefined');
+      }
+      if (!(objectTreeItem instanceof DefaultTreeItem)) {
+        throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof objectTreeItem}`);
+      }
       if (!objectTreeItem) {
         throw new Error(
           'In verifyProjectLoaded(), findItem() returned a forceAppTreeItem with a value of null (or undefined)'
@@ -164,7 +170,13 @@ describe('Manifest Builder', () => {
       log('Deploy: Found tree view section');
 
       log('Deploy: Looking for manifest tree item');
-      const manifestTreeItem = (await treeViewSection.findItem('manifest')) as DefaultTreeItem;
+      const manifestTreeItem = await treeViewSection.findItem('manifest');
+      if (!manifestTreeItem) {
+        throw new Error('Expected DefaultTreeItem but got undefined');
+      }
+      if (!(manifestTreeItem instanceof DefaultTreeItem)) {
+        throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof manifestTreeItem}`);
+      }
       if (!manifestTreeItem) {
         throw new Error(
           'In verifyProjectLoaded(), findItem() returned a forceAppTreeItem with a value of null (or undefined)'
@@ -180,7 +192,13 @@ describe('Manifest Builder', () => {
 
       // Locate the "manifest.xml" file within the expanded "manifest" folder
       log('Deploy: Looking for manifest.xml file in expanded folder');
-      const manifestXmlFile = (await treeViewSection.findItem('manifest.xml')) as DefaultTreeItem;
+      const manifestXmlFile = await treeViewSection.findItem('manifest.xml');
+      if (!manifestXmlFile) {
+        throw new Error('Expected DefaultTreeItem but got undefined');
+      }
+      if (!(manifestXmlFile instanceof DefaultTreeItem)) {
+        throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof manifestXmlFile}`);
+      }
       if (!manifestXmlFile) {
         log('Deploy: ERROR - manifest.xml file not found after expansion');
         throw new Error('No manifest.xml file found');
@@ -239,7 +257,13 @@ describe('Manifest Builder', () => {
       log('Retrieve: Found tree view section');
 
       log('Retrieve: Looking for manifest tree item');
-      const manifestTreeItem = (await treeViewSection.findItem('manifest')) as DefaultTreeItem;
+      const manifestTreeItem = await treeViewSection.findItem('manifest');
+      if (!manifestTreeItem) {
+        throw new Error('Expected DefaultTreeItem but got undefined');
+      }
+      if (!(manifestTreeItem instanceof DefaultTreeItem)) {
+        throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof manifestTreeItem}`);
+      }
       if (!manifestTreeItem) {
         throw new Error(
           'In verifyProjectLoaded(), findItem() returned a forceAppTreeItem with a value of null (or undefined)'
@@ -255,7 +279,13 @@ describe('Manifest Builder', () => {
 
       // Locate the "manifest.xml" file within the expanded "manifest" folder
       log('Retrieve: Looking for manifest.xml file in expanded folder');
-      const manifestXmlFile = (await treeViewSection.findItem('manifest.xml')) as DefaultTreeItem;
+      const manifestXmlFile = await treeViewSection.findItem('manifest.xml');
+      if (!manifestXmlFile) {
+        throw new Error('Expected DefaultTreeItem but got undefined');
+      }
+      if (!(manifestXmlFile instanceof DefaultTreeItem)) {
+        throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof manifestXmlFile}`);
+      }
       if (!manifestXmlFile) {
         log('Retrieve: ERROR - manifest.xml file not found after expansion');
         throw new Error('No manifest.xml file found');

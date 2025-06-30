@@ -22,7 +22,7 @@ import {
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { DefaultTreeItem, TreeItem, Workbench, after } from 'vscode-extension-tester';
+import { DefaultTreeItem, TreeItem, Workbench } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('SObjects Definitions', () => {
@@ -60,12 +60,18 @@ describe('SObjects Definitions', () => {
     const treeViewSection = await content.getSection(projectName);
     expect(treeViewSection).to.not.be.undefined;
 
-    const objectTreeItem = (await treeViewSection.findItem('objects')) as DefaultTreeItem;
+    const objectTreeItem = await treeViewSection.findItem('objects');
     expect(objectTreeItem).to.not.be.undefined;
+    if (!(objectTreeItem instanceof DefaultTreeItem)) {
+      throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof objectTreeItem}`);
+    }
     await objectTreeItem.select();
 
-    const customerObjectFolder = (await objectTreeItem.findChildItem('Customer__c')) as DefaultTreeItem;
+    const customerObjectFolder = await objectTreeItem.findChildItem('Customer__c');
     expect(customerObjectFolder).to.not.be.undefined;
+    if (!(customerObjectFolder instanceof DefaultTreeItem)) {
+      throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof customerObjectFolder}`);
+    }
 
     await customerObjectFolder?.expand();
     expect(await customerObjectFolder?.isExpanded()).to.equal(true);
@@ -73,8 +79,11 @@ describe('SObjects Definitions', () => {
     const customerCustomObject = await customerObjectFolder.findChildItem('Customer__c.object-meta.xml');
     expect(customerCustomObject).to.not.be.undefined;
 
-    const productObjectFolder = (await objectTreeItem.findChildItem('Product__c')) as DefaultTreeItem;
+    const productObjectFolder = await objectTreeItem.findChildItem('Product__c');
     expect(productObjectFolder).to.not.be.undefined;
+    if (!(productObjectFolder instanceof DefaultTreeItem)) {
+      throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof productObjectFolder}`);
+    }
 
     await productObjectFolder?.expand();
     expect(await productObjectFolder?.isExpanded()).to.equal(true);
@@ -153,8 +162,10 @@ describe('SObjects Definitions', () => {
 
 const verifyOutputPanelTxt = async (type: string, qty?: number) => {
   log(`calling verifyOutputPanelText(${type})`);
-  const outputPanelText = (await attemptToFindOutputPanelText('Salesforce CLI', 'sObjects', 10)) as string;
-  expect(outputPanelText).to.not.be.undefined;
+  const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', 'sObjects', 10);
+  if (!outputPanelText) {
+    throw new Error('Expected output panel text but got undefined');
+  }
   const expectedTexts = [
     'Starting SFDX: Refresh SObject Definitions',
     'sf sobject definitions refresh',
@@ -188,29 +199,41 @@ const verifySObjectFolders = async (workbench: Workbench, projectName: string, f
   expect(treeViewSection).to.not.be.undefined;
 
   // Verify if '.sfdx' folder is in side panel
-  const sfdxTreeItem = (await treeViewSection.findItem('.sfdx')) as DefaultTreeItem;
+  const sfdxTreeItem = await treeViewSection.findItem('.sfdx');
   expect(sfdxTreeItem).to.not.be.undefined;
+  if (!(sfdxTreeItem instanceof DefaultTreeItem)) {
+    throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof sfdxTreeItem}`);
+  }
   await sfdxTreeItem.expand();
   expect(await sfdxTreeItem.isExpanded()).to.equal(true);
   await pause(Duration.seconds(1));
 
   // Verify if 'tools' folder is within '.sfdx'
-  const toolsTreeItem = (await sfdxTreeItem.findChildItem('tools')) as TreeItem;
+  const toolsTreeItem = await sfdxTreeItem.findChildItem('tools');
   expect(toolsTreeItem).to.not.be.undefined;
+  if (!(toolsTreeItem instanceof TreeItem)) {
+    throw new Error(`Expected TreeItem but got different item type: ${typeof toolsTreeItem}`);
+  }
   await toolsTreeItem.expand();
   expect(await toolsTreeItem.isExpanded()).to.equal(true);
   await pause(Duration.seconds(1));
 
   // Verify if 'sobjects' folder is within 'tools'
-  const sobjectsTreeItem = (await toolsTreeItem.findChildItem('sobjects')) as TreeItem;
+  const sobjectsTreeItem = await toolsTreeItem.findChildItem('sobjects');
   expect(sobjectsTreeItem).to.not.be.undefined;
+  if (!(sobjectsTreeItem instanceof TreeItem)) {
+    throw new Error(`Expected TreeItem but got different item type: ${typeof sobjectsTreeItem}`);
+  }
   await sobjectsTreeItem.expand();
   expect(await sobjectsTreeItem.isExpanded()).to.equal(true);
   await pause(Duration.seconds(1));
 
   // Verify if 'type' folder is within 'sobjects'
-  const objectsTreeItem = (await sobjectsTreeItem.findChildItem(folder)) as TreeItem;
+  const objectsTreeItem = await sobjectsTreeItem.findChildItem(folder);
   expect(objectsTreeItem).to.not.be.undefined;
+  if (!(objectsTreeItem instanceof TreeItem)) {
+    throw new Error(`Expected TreeItem but got different item type: ${typeof objectsTreeItem}`);
+  }
   await objectsTreeItem.expand();
   expect(await objectsTreeItem.isExpanded()).to.equal(true);
   await pause(Duration.seconds(1));

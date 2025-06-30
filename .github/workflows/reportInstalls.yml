@@ -3,18 +3,18 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 * * * *'
-      
+
 jobs:
   report-installs:
     runs-on: ubuntu-latest
-    env: 
+    env:
       VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
       OVSX_PAT: ${{ secrets.IDEE_OVSX_PAT }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
       - run: npm install
       - run: npm --version

@@ -180,7 +180,10 @@ describe('Apex Replay Debugger', () => {
     const editorView = workbench.getEditorView();
     const activeTab = await editorView.getActiveTab();
     const title = await activeTab?.getTitle();
-    const textEditor = (await editorView.openEditor(title!)) as TextEditor;
+    const textEditor = await editorView.openEditor(title!);
+    if (!(textEditor instanceof TextEditor)) {
+      throw new Error(`Expected TextEditor but got different editor type: ${typeof textEditor}`);
+    }
     const executionStarted = await textEditor.getLineOfText('|EXECUTION_STARTED');
     const executionFinished = await textEditor.getLineOfText('|EXECUTION_FINISHED');
     expect(executionStarted).to.be.greaterThanOrEqual(1);

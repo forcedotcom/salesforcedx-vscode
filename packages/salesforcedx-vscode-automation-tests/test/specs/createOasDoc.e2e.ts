@@ -95,7 +95,10 @@ describe('Create OpenAPI v3 Specifications', () => {
     // Install A4D extension
     const extensionsView = await (await new ActivityBar().getViewControl('Extensions'))?.openView();
     await pause(Duration.seconds(5));
-    const extensionsList = (await extensionsView?.getContent().getSection('Installed')) as ExtensionsViewSection;
+    const extensionsList = await extensionsView?.getContent().getSection('Installed');
+    if (!(extensionsList instanceof ExtensionsViewSection)) {
+      throw new Error(`Expected ExtensionsViewSection but got different section type: ${typeof extensionsList}`);
+    }
     const a4dExtension = await extensionsList?.findItem('Agentforce for Developers');
     await a4dExtension?.install();
     await executeQuickPick('View: Close Editor');
@@ -513,9 +516,10 @@ describe('Create OpenAPI v3 Specifications', () => {
         }
 
         // The force-app/main/default and classes folders are already expanded, so we can find the file directly
-        const simpleAccountResourceFile = (await treeViewSection.findItem(
-          'SimpleAccountResource.cls'
-        )) as DefaultTreeItem;
+        const simpleAccountResourceFile = await treeViewSection.findItem('SimpleAccountResource.cls');
+        if (!(simpleAccountResourceFile instanceof DefaultTreeItem)) {
+          throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof simpleAccountResourceFile}`);
+        }
         const contextMenu = await simpleAccountResourceFile.openContextMenu();
         const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
 
@@ -580,8 +584,14 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       const extensionsView = await (await new ActivityBar().getViewControl('Extensions'))?.openView();
       await pause(Duration.seconds(5));
-      const extensionsList = (await extensionsView?.getContent().getSection('Installed')) as ExtensionsViewSection;
-      const a4dExtension = (await extensionsList?.findItem('Agentforce for Developers')) as ExtensionsViewItem;
+      const extensionsList = await extensionsView?.getContent().getSection('Installed');
+      if (!(extensionsList instanceof ExtensionsViewSection)) {
+        throw new Error(`Expected ExtensionsViewSection but got different section type: ${typeof extensionsList}`);
+      }
+      const a4dExtension = await extensionsList?.findItem('Agentforce for Developers');
+      if (!(a4dExtension instanceof ExtensionsViewItem)) {
+        throw new Error(`Expected ExtensionsViewItem but got different item type: ${typeof a4dExtension}`);
+      }
       await a4dExtension.click();
 
       // In the extension details view, click the Disable button

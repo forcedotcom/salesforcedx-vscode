@@ -6,20 +6,24 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { SfProject } from '@salesforce/core-bundle';
 import {
   extensionUris,
   getJsonCandidate,
   identifyJsonTypeInString,
-  workspaceUtils
+  workspaceUtils,
+  createDirectory,
+  readDirectory,
+  readFile,
+  stat,
+  writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import * as yaml from 'yaml';
+import { parse as yamlParse } from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
+import { getVscodeCoreExtension } from './coreExtensionUtils';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
@@ -27,7 +31,7 @@ import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 
 import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
 
 const DOT_SFDX = '.sfdx';
-const TEMPLATES_DIR = path.join(DOT_SFDX, 'resources', 'templates');
+const TEMPLATES_DIR = path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX, 'resources', 'templates');
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -120,10 +124,10 @@ export const createProblemTabEntriesForOasDocument = (
  * @returns {Promise<boolean>} - True if sfdx-project.json contains decomposeExternalServiceRegistrationBeta.
  */
 export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
-  const projectPath = workspaceUtils.getRootWorkspacePath();
-  const sfProject = await SfProject.resolve(projectPath);
-  const sfdxProjectJson = sfProject.getSfProjectJson();
-  if (sfdxProjectJson.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const sfdxProjectJson = await vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance();
+
+  if (sfdxProjectJson?.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
     return true;
   }
 
@@ -158,7 +162,7 @@ export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => JSON.par
  * @param {string} doc - The YAML string representing the OAS document.
  * @returns {OpenAPIV3.Document} - The parsed OAS document.
  */
-export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => yaml.parse(doc) as OpenAPIV3.Document;
+export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => yamlParse(doc) as OpenAPIV3.Document;
 
 const PROMPT_TEMPLATES = {
   METHOD_BY_METHOD: path.join('resources', 'templates', 'methodByMethod.ejs')
@@ -179,39 +183,35 @@ export enum EjsTemplateKeys {
  * @param {string} src - The source directory.
  * @param {string} dest - The destination directory.
  */
-const copyDirectorySync = (src: string, dest: string) => {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
+const copyDirectorySync = async (src: string, dest: string) => {
+  await createDirectory(dest);
 
-  const entries = fs.readdirSync(src, { withFileTypes: true });
+  const entries = await readDirectory(src);
 
   for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
+    const srcPath = path.join(src, entry);
+    const destPath = path.join(dest, entry);
 
-    if (entry.isDirectory()) {
-      copyDirectorySync(srcPath, destPath);
+    if ((await stat(srcPath))?.type === vscode.FileType.Directory) {
+      await copyDirectorySync(srcPath, destPath);
     } else {
-      fs.copyFileSync(srcPath, destPath);
+      const content = await readFile(srcPath);
+      await writeFile(destPath, content);
     }
   }
 };
 
 /**
  * Resolves the template directory URI.
- * @returns {URI} - The URI of the template directory.
+ * @returns {Promise<URI>} - The URI of the template directory.
  */
-const resolveTemplateDir = (): URI => {
+const resolveTemplateDir = async (): Promise<URI> => {
   const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
   const extensionDir = extensionUris.extensionUri(VSCODE_APEX_EXTENSION_NAME);
   if (logLevel !== 'fatal') {
-    if (!fs.existsSync(TEMPLATES_DIR)) {
-      fs.mkdirSync(TEMPLATES_DIR, { recursive: true });
-      // copy contents of extensionDir to TEMPLATES_DIR
-      copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
-    }
-    return URI.file(path.join(process.cwd(), DOT_SFDX));
+    // copy contents of extensionDir to TEMPLATES_DIR
+    await copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
+    return URI.file(path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX));
   }
   return extensionDir;
 };
@@ -223,10 +223,10 @@ export const ejsTemplateHelpers = {
   /**
    * Gets the template path for a given key.
    * @param {ejsTemplateKey} key - The key for the template.
-   * @returns {URI} - The URI of the template path.
+   * @returns {Promise<URI>} - The URI of the template path.
    */
-  getTemplatePath: (key: ejsTemplateKey): URI => {
-    const baseExtensionPath = resolveTemplateDir();
+  getTemplatePath: async (key: ejsTemplateKey): Promise<URI> => {
+    const baseExtensionPath = await resolveTemplateDir();
     return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
   }
 };

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 import { BetaInfoInjectionStep } from './betaInfoInjectionStep';
@@ -17,7 +17,7 @@ import { ProcessorInputOutput } from './processorStep';
 import { PropertyCorrectionStep } from './propertyCorrectionStep';
 import { ReconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
-export type ProcessOasDocumentOptions = {
+type ProcessOasDocumentOptions = {
   context?: ApexClassOASGatherContextResponse;
   eligibleResult?: ApexClassOASEligibleResponse;
   isRevalidation?: boolean;

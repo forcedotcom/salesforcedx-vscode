@@ -120,7 +120,13 @@ describe('Debug LWC Tests', () => {
 
     // Hover a test name under one of the test lwc sections and click the debug button that is shown to the right of the test name on the Test sidebar
     const lwcTestsSection = await getTestsSection(workbench, 'LWC Tests');
-    const lwcTestItem = (await lwcTestsSection.findItem('displays greeting')) as TreeItem;
+    const lwcTestItem = await lwcTestsSection.findItem('displays greeting');
+    if (!lwcTestItem) {
+      throw new Error('Expected TreeItem but got undefined');
+    }
+    if (!(lwcTestItem instanceof TreeItem)) {
+      throw new Error(`Expected TreeItem but got different item type: ${typeof lwcTestItem}`);
+    }
     await lwcTestItem.select();
     const debugTestAction = await lwcTestItem.getActionButton('SFDX: Debug Lightning Web Component Test Case');
     expect(debugTestAction).to.not.be.undefined;
