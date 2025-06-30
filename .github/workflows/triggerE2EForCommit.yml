@@ -72,7 +72,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   # 📦 Deploy & Retrieve
-  deploy-deploy-and-retrieve:
+  deploy-and-retrieve:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:

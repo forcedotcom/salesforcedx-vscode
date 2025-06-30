@@ -74,8 +74,8 @@ jobs:
           find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
           find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
-          # Install dependencies
-          npm install
+          # Install dependencies (skip husky in CI)
+          HUSKY_SKIP_INSTALL=1 npm install
           npm install -g @salesforce/cli
 
           # Verify CLI and set environment variables

@@ -12,6 +12,7 @@ import {
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
   authorizeDevHub,
   createDefaultScratchOrg
@@ -22,8 +23,7 @@ import {
   executeQuickPick,
   findQuickPickItem,
   getStatusBarItemWhichIncludes,
-  getWorkbench,
-  notificationIsPresentWithTimeout
+  getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, InputBox, after } from 'vscode-extension-tester';
@@ -109,11 +109,7 @@ describe('Authentication', () => {
     await pause(Duration.seconds(5));
 
     // Look for the notification that appears which says, "SFDX: Set a Default Org successfully ran".
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Set a Default Org successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/SFDX: Set a Default Org successfully ran/, Duration.TEN_MINUTES);
 
     const expectedOutputWasFound = await attemptToFindOutputPanelText(
       'Salesforce CLI',
@@ -146,11 +142,7 @@ describe('Authentication', () => {
 
     await pause(Duration.seconds(3));
 
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Set a Default Org successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/SFDX: Set a Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Look for the org's alias name in the list of status bar items.
     const scratchOrgStatusBarItem = await getStatusBarItemWhichIncludes(scratchOrgAliasName);

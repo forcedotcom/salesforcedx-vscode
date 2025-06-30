@@ -21,7 +21,6 @@ import {
   executeQuickPick,
   getTextEditor,
   getWorkbench,
-  notificationIsPresentWithTimeout,
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
@@ -263,11 +262,10 @@ describe('Push and Pull', () => {
     fromTo: string,
     type?: string
   ): Promise<string | undefined> => {
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      new RegExp(`SFDX: ${operation} Source ${fromTo} Default Org successfully ran`),
+    await verifyNotificationWithRetry(
+      /SFDX: ${operation} Source ${fromTo} Default Org successfully ran/,
       Duration.TEN_MINUTES
     );
-    expect(successNotificationWasFound).to.equal(true);
     // Check the output.
     const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', `=== ${operation}ed Source`, 10);
     expect(outputPanelText).to.not.be.undefined;

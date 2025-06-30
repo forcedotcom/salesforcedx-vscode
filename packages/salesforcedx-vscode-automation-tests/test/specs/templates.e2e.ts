@@ -19,7 +19,6 @@ import {
   getFilteredVisibleTreeViewItemLabels,
   zoom,
   attemptToFindOutputPanelText,
-  notificationIsPresentWithTimeout,
   executeQuickPick,
   clearOutputView,
   getVisibleItemsFromSidebar
@@ -29,6 +28,7 @@ import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
 import { logTestStart } from '../utils/loggingHelper';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 
 describe('Templates', () => {
   let testSetup: TestSetup;
@@ -389,11 +389,10 @@ describe('Templates', () => {
     // Select the default directory (press Enter/Return).
     await inputBox.confirm();
 
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
+    await verifyNotificationWithRetry(
       /SFDX: Create Sample Analytics Template successfully ran/,
       Duration.TEN_MINUTES
     );
-    expect(successNotificationWasFound).to.equal(true);
 
     const outputPanelText = await attemptToFindOutputPanelText(
       'Salesforce CLI',

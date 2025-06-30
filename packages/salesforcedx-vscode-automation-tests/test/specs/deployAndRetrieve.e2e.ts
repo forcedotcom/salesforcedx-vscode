@@ -36,7 +36,6 @@ import {
   dismissAllNotifications,
   executeQuickPick,
   getTextEditor,
-  notificationIsPresentWithTimeout,
   reloadWindow,
   verifyOutputPanelText,
   getWorkbench
@@ -70,7 +69,7 @@ describe('Deploy and Retrieve', () => {
     ].join('\n');
     await dismissAllNotifications();
     await createApexClass('MyClass', classText);
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
+    const successNotificationWasFound = await verifyNotificationWithRetry(
       /SFDX: Create Apex Class successfully ran/,
       Duration.TEN_MINUTES
     );
@@ -343,7 +342,7 @@ describe('Deploy and Retrieve', () => {
     await executeQuickPick('SFDX: Delete This from Project and Org', Duration.seconds(2));
 
     // Make sure we get a notification for the source delete
-    const notificationFound = await notificationIsPresentWithTimeout(
+    const notificationFound = await verifyNotificationWithRetry(
       /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
       Duration.ONE_MINUTE
     );
@@ -357,7 +356,7 @@ describe('Deploy and Retrieve', () => {
       Duration.seconds(5)
     );
     expect(accepted).to.equal(true);
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
+    const successNotificationWasFound = await verifyNotificationWithRetry(
       /SFDX: Delete from Project and Org successfully ran/,
       Duration.TEN_MINUTES
     );
@@ -420,7 +419,7 @@ describe('Deploy and Retrieve', () => {
       await contextMenu.select('SFDX: Delete This from Project and Org');
 
       // Make sure we get a notification for the source delete
-      const notificationFound = await notificationIsPresentWithTimeout(
+      const notificationFound = await verifyNotificationWithRetry(
         /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
         Duration.ONE_MINUTE
       );
@@ -435,7 +434,7 @@ describe('Deploy and Retrieve', () => {
       );
       expect(accepted).to.equal(true);
 
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
+      const successNotificationWasFound = await verifyNotificationWithRetry(
         /SFDX: Delete from Project and Org successfully ran/,
         Duration.TEN_MINUTES
       );
@@ -503,7 +502,7 @@ describe('Deploy and Retrieve', () => {
       await contextMenu.select('SFDX: Delete from Project and Org');
 
       // Make sure we get a notification for the source delete
-      const notificationFound = await notificationIsPresentWithTimeout(
+      const notificationFound = await verifyNotificationWithRetry(
         /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
         Duration.ONE_MINUTE
       );
@@ -518,7 +517,7 @@ describe('Deploy and Retrieve', () => {
       );
       expect(accepted).to.equal(true);
 
-      const successNotificationWasFound = await notificationIsPresentWithTimeout(
+      const successNotificationWasFound = await verifyNotificationWithRetry(
         /SFDX: Delete from Project and Org successfully ran/,
         Duration.TEN_MINUTES
       );

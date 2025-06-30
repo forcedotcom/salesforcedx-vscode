@@ -23,7 +23,6 @@ import { continueDebugging } from '@salesforce/salesforcedx-vscode-test-tools/li
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
-  notificationIsPresentWithTimeout,
   getWorkbench,
   getStatusBarItemWhichIncludes,
   clearOutputView,
@@ -128,11 +127,7 @@ describe('Apex Replay Debugger', () => {
     // Run SFDX: Launch Apex Replay Debugger with Currently Selected Text.
     await executeQuickPick('SFDX: Execute Anonymous Apex with Currently Selected Text', Duration.seconds(1));
 
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /Execute Anonymous Apex successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/Execute Anonymous Apex successfully ran/, Duration.TEN_MINUTES);
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting Execute Anonymous Apex', 10);
@@ -163,11 +158,7 @@ describe('Apex Replay Debugger', () => {
     expect(quickPicks.length).to.be.greaterThanOrEqual(0);
     await prompt.selectQuickPick('User User - Api');
 
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Get Apex Debug Logs successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/SFDX: Get Apex Debug Logs successfully ran/, Duration.TEN_MINUTES);
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
@@ -239,11 +230,7 @@ describe('Apex Replay Debugger', () => {
     // Continue with the debug session
     await continueDebugging(2, 30);
 
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /Debug Test\(s\) successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/Debug Test\(s\) successfully ran/, Duration.TEN_MINUTES);
   });
 
   it('Run the Anonymous Apex Debugger using the Command Palette', async () => {
@@ -258,11 +245,7 @@ describe('Apex Replay Debugger', () => {
     // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
     await executeQuickPick('SFDX: Execute Anonymous Apex with Editor Contents', Duration.seconds(10));
 
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /Execute Anonymous Apex successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/Execute Anonymous Apex successfully ran/, Duration.TEN_MINUTES);
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting Execute Anonymous Apex', 10);
@@ -282,11 +265,10 @@ describe('Apex Replay Debugger', () => {
     prompt = await executeQuickPick('SFDX: Turn Off Apex Debug Log for Replay Debugger', Duration.seconds(1));
 
     // Look for the success notification that appears which says, "SFDX: Turn Off Apex Debug Log for Replay Debugger successfully ran".
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
+    await verifyNotificationWithRetry(
       /SFDX: Turn Off Apex Debug Log for Replay Debugger successfully ran/,
       Duration.TEN_MINUTES
     );
-    expect(successNotificationWasFound).to.equal(true);
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText(

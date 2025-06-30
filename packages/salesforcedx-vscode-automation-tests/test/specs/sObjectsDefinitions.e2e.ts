@@ -11,6 +11,7 @@ import {
   TestReqConfig,
   ProjectShapeOption
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
@@ -18,7 +19,6 @@ import {
   clearOutputView,
   executeQuickPick,
   getWorkbench,
-  notificationIsPresentWithTimeout,
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
@@ -97,11 +97,7 @@ describe('SObjects Definitions', () => {
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
     await pause(Duration.seconds(1));
 
-    const successNotificationWasFound = await notificationIsPresentWithTimeout(
-      /SFDX: Push Source to Default Org successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     const outputPanelText = await attemptToFindOutputPanelText(
       'Salesforce CLI',
@@ -184,11 +180,7 @@ const refreshSObjectDefinitions = async (type: string) => {
   await prompt.selectQuickPick(type);
   await pause(Duration.seconds(1));
 
-  const successNotificationWasFound = await notificationIsPresentWithTimeout(
-    /SFDX: Refresh SObject Definitions successfully ran/,
-    Duration.TEN_MINUTES
-  );
-  expect(successNotificationWasFound).to.equal(true);
+  await verifyNotificationWithRetry(/SFDX: Refresh SObject Definitions successfully ran/, Duration.TEN_MINUTES);
 };
 
 const verifySObjectFolders = async (workbench: Workbench, projectName: string, folder: string) => {
