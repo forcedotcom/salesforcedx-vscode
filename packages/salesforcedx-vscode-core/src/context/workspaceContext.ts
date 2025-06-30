@@ -71,7 +71,7 @@ export class WorkspaceContext {
   }
 
   /** Handle trace flag cleanup when org changes */
-  protected handleTraceFlagCleanup = async (orgInfo: OrgUserInfo) => {
+  protected handleTraceFlagCleanup = async () => {
     if (!this.extensionContext) {
       return;
     }
