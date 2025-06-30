@@ -112,6 +112,7 @@ jobs:
           command: bash build-script.sh
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
           SPEC_FILES: ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
