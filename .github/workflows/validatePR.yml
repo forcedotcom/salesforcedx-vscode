@@ -18,3 +18,8 @@ jobs:
       - run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Run E2E Tests
+        uses: ./.github/workflows/e2e.yml
+        with:
+          vscodeVersion: '1.100.3'
+          runId: ${{ github.run_id }}
