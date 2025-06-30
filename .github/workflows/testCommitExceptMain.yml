@@ -6,3 +6,10 @@ on:
 jobs:
   build-and-test:
     uses: ./.github/workflows/buildAndTest.yml
+  e2e-tests:
+    needs: build-and-test
+    uses: ./.github/workflows/e2e.yml
+    secrets: inherit
+    with:
+      vscodeVersion: '1.100.3'
+      runId: ${{ github.run_id }}
