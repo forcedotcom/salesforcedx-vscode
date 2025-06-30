@@ -115,7 +115,7 @@ const flagIgnoreConflicts: FlagParameter<string> = {
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
   // Customer-facing commands
   const orgLoginAccessTokenCmd = vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken);
-  const orgLoginWebCmd = vscode.commands.registerCommand('sf.org.login.web', () => orgLoginWeb(extensionContext));
+  const orgLoginWebCmd = vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb);
   const orgLoginWebDevHubCmd = vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub);
 
   const orgLogoutAllCmd = vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll);
@@ -229,9 +229,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
-  const configSetCmd = vscode.commands.registerCommand('sf.config.set', (usernameOrAlias: string) =>
-    configSet(usernameOrAlias, extensionContext)
-  );
+  const configSetCmd = vscode.commands.registerCommand('sf.config.set', configSet);
 
   const diffFile = vscode.commands.registerCommand('sf.diff', sourceDiff);
 

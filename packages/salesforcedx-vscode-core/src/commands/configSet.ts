@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import {
   ConfigUtil,
   ContinueResponse,
@@ -13,7 +12,6 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   CONFIG_SET_EXECUTOR,
@@ -31,7 +29,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   protected showChannelOutput = false;
   private outputTableRow: Row = {};
 
-  constructor(usernameOrAlias: string, extensionContext: vscode.ExtensionContext) {
+  constructor(usernameOrAlias: string) {
     super(nls.localize(CONFIG_SET_EXECUTOR), CONFIG_SET_EXECUTOR, OUTPUT_CHANNEL);
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
@@ -57,7 +55,6 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       channelService.appendLine(`Error: ${message}`);
       channelService.showChannelOutput();
     }
-
     return result;
   }
 
@@ -80,7 +77,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export const configSet = async (usernameOrAlias: string, extensionContext: vscode.ExtensionContext): Promise<void> => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ConfigSetExecutor(usernameOrAlias, extensionContext));
+export const configSet = async (usernameOrAlias: string): Promise<void> => {
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ConfigSetExecutor(usernameOrAlias));
   await commandlet.run();
 };
