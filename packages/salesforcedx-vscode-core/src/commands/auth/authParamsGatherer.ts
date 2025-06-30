@@ -9,12 +9,13 @@ import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforc
 import * as vscode from 'vscode';
 
 import { nls } from '../../messages';
+import { MessageKey } from '../../messages/i18n';
 import { SalesforceProjectConfig } from '../../salesforceProject';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
-export const PRODUCTION_URL = 'https://login.salesforce.com';
-export const SANDBOX_URL = 'https://test.salesforce.com';
-export const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
+const PRODUCTION_URL = 'https://login.salesforce.com';
+const SANDBOX_URL = 'https://test.salesforce.com';
+const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 
 export type AuthParams = {
   alias: string;
@@ -39,11 +40,11 @@ const inputInstanceUrl = async (): Promise<string | undefined> => {
 };
 
 const inputAlias = async (): Promise<string | undefined> => {
-  const aliasInputOptions = {
+  const aliasInputOptions: vscode.InputBoxOptions = {
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
     ignoreFocusOut: true
-  } as vscode.InputBoxOptions;
+  };
   const alias = await vscode.window.showInputBox(aliasInputOptions);
   return alias;
 };
@@ -61,10 +62,10 @@ const inputAccessToken = async (): Promise<string | undefined> => {
   return accessToken;
 };
 
-export class OrgTypeItem implements vscode.QuickPickItem {
+class OrgTypeItem implements vscode.QuickPickItem {
   public label: string;
   public detail: string;
-  constructor(localizeLabel: string, localizeDetail: string) {
+  constructor(localizeLabel: MessageKey, localizeDetail: MessageKey) {
     this.label = nls.localize(localizeLabel);
     this.detail = nls.localize(localizeDetail);
   }
@@ -126,10 +127,10 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
       loginUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
     }
 
-    const aliasInputOptions = {
+    const aliasInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: DEFAULT_ALIAS
-    } as vscode.InputBoxOptions;
+    };
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will default the alias to 'vscodeOrg'
     if (alias === undefined) {

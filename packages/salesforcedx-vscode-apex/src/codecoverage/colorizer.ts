@@ -18,7 +18,7 @@ import { StatusBarToggle } from './statusBarToggle';
 
 const pathToApexTestResultsFolder = projectPaths.apexTestResultsFolder();
 
-export const getLineRange = (document: TextDocument, lineNumber: number): Range => {
+const getLineRange = (document: TextDocument, lineNumber: number): Range => {
   let adjustedLineNumber: number;
   let firstLine: TextLine;
   try {
@@ -147,15 +147,13 @@ const applyCoverageToSource = (
   coveredLines: Range[];
   uncoveredLines: Range[];
 } => {
-  let coveredLines = Array<Range>();
-  let uncoveredLines = Array<Range>();
   if (
     document &&
     !document.uri.fsPath.includes(SFDX_FOLDER) &&
     isApexMetadata(document.uri.fsPath) &&
     !IS_TEST_REG_EXP.test(document.getText())
   ) {
-    const codeCovArray = getCoverageData() as { name: string }[];
+    const codeCovArray = getCoverageData();
     const apexMemberName = getApexMemberName(document.uri.fsPath);
     const codeCovItem = codeCovArray.find(covItem => covItem.name === apexMemberName);
 
@@ -163,20 +161,26 @@ const applyCoverageToSource = (
       throw new Error(nls.localize('colorizer_no_code_coverage_current_file', document.uri.fsPath));
     }
 
-    if (Reflect.has(codeCovItem, 'lines') && !Reflect.has(codeCovItem, 'uncoveredLines')) {
-      const covItem = codeCovItem as CoverageItem;
-      for (const key in covItem.lines) {
-        if (covItem.lines[key] === 1) {
-          coveredLines.push(getLineRange(document, Number(key)));
-        } else {
-          uncoveredLines.push(getLineRange(document, Number(key)));
-        }
-      }
-    } else {
-      const covResult = codeCovItem as CodeCoverageResult;
-      coveredLines = covResult.coveredLines.map(cov => getLineRange(document, Number(cov)));
-      uncoveredLines = covResult.uncoveredLines.map(uncov => getLineRange(document, Number(uncov)));
+    if (isCodeCoverageItem(codeCovItem)) {
+      return {
+        // TODO node 22: use native js object.groupBy
+        coveredLines: Object.entries(codeCovItem.lines)
+          .filter(([, value]) => value === 1)
+          .map(([key]) => getLineRange(document, Number(key))),
+        uncoveredLines: Object.entries(codeCovItem.lines)
+          .filter(([, value]) => value !== 1)
+          .map(([key]) => getLineRange(document, Number(key)))
+      };
     }
+    return {
+      coveredLines: codeCovItem.coveredLines.map(cov => getLineRange(document, Number(cov))),
+      uncoveredLines: codeCovItem.uncoveredLines.map(uncov => getLineRange(document, Number(uncov)))
+    };
   }
-  return { coveredLines, uncoveredLines };
+  return {
+    coveredLines: [],
+    uncoveredLines: []
+  };
 };
+
+const isCodeCoverageItem = (item: CoverageItem | CodeCoverageResult): item is CoverageItem => 'lines' in item;

@@ -40,17 +40,18 @@ export class MetadataOrchestrator {
     if (!isEligibleResponses || isEligibleResponses.length === 0) {
       throw new Error(nls.localize('validation_failed'));
     }
-    if (!isEligibleResponses[0].isApexOasEligible) {
-      if (isMethodSelected) {
-        const name = isEligibleResponses?.[0]?.symbols?.[0]?.docSymbol.name;
-        throw new Error(nls.localize('not_eligible_method', name));
-      }
+    if (!isEligibleResponses[0].isApexOasEligible && !isEligibleResponses[0].isEligible) {
       throw new Error(
-        nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri.fsPath, '.cls'))
+        nls.localize(
+          'apex_class_not_valid',
+          isEligibleResponses[0].resourceUri?.fsPath
+            ? path.basename(isEligibleResponses[0].resourceUri.fsPath, '.cls')
+            : 'unknown'
+        )
       );
     }
     const symbols = isEligibleResponses[0].symbols ?? [];
-    const eligibleSymbols = symbols.filter(s => s.isApexOasEligible);
+    const eligibleSymbols = symbols.filter(s => s.isApexOasEligible || s.isEligible);
     if (eligibleSymbols.length === 0) {
       throw new Error(
         nls.localize('apex_class_not_valid', path.basename(isEligibleResponses[0].resourceUri.fsPath, '.cls'))
@@ -69,7 +70,7 @@ export class MetadataOrchestrator {
       const classNumbers = requests.payload.length.toString();
       const requestTarget = buildRequestTarget(requests);
       try {
-        const response = (await languageClient?.isOpenAPIEligible(requests)) as ApexClassOASEligibleResponses;
+        const response = await languageClient?.isOpenAPIEligible(requests);
         telemetryService.sendEventData('isEligibleResponseSucceeded', {
           classNumbers,
           requestTarget

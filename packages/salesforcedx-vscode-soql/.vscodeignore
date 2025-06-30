@@ -14,6 +14,14 @@ test/**
 src/**
 tsconfig.json
 images/SOQL_Builder_50.16.0.gif
+coverage
+esbuild.config.mjs
+jest.config.js
+node_modules
+
+# do not reach outside the package
+../../**
+../**
 
 # local rxjs node modules
 node_modules/rxjs/src/**
@@ -22,7 +30,7 @@ node_modules/rxjs/_esm5/**
 node_modules/rxjs/_esm2015/**
 node_modules/typescript/**
 
-# ignore unused rxjs code 
+# ignore unused rxjs code
 node_modules/rxjs/src/**
 node_modules/rxjs/bundles/**
 node_modules/rxjs/_esm5/**

@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ensureCurrentWorkingDirIsProjectPath } from '@salesforce/salesforcedx-utils';
 import {
   ActivationTracker,
   ChannelService,
+  ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   TelemetryService,
-  getRootWorkspacePath,
-  ProgressNotification
+  ensureCurrentWorkingDirIsProjectPath,
+  getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -90,10 +90,7 @@ import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import {
-  checkPackageDirectoriesEditorView,
-  checkPackageDirectoriesExplorerView
-} from './context/packageDirectoriesContext';
+import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
@@ -387,7 +384,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   // commands are run with the project path returned from process.cwd(),
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
-  ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  await ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
   setNodeExtraCaCerts();
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
@@ -441,22 +438,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 
   // Set initial context
   await checkPackageDirectoriesEditorView();
-  await checkPackageDirectoriesExplorerView();
 
   // Register editor change listener
   const editorChangeDisposable = vscode.window.onDidChangeActiveTextEditor(async () => {
     await checkPackageDirectoriesEditorView();
   });
 
-  // Register explorer change listener
-  const watcher = vscode.workspace.createFileSystemWatcher('**/*', false, true, true);
-  const explorerChangeDisposable = watcher.onDidCreate(async uri => {
-    await checkPackageDirectoriesExplorerView();
-  });
-
   // Add to subscriptions
   extensionContext.subscriptions.push(editorChangeDisposable);
-  extensionContext.subscriptions.push(explorerChangeDisposable);
 
   if (salesforceProjectOpened) {
     await initializeProject(extensionContext);
@@ -511,9 +500,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
   console.log('SF CLI Extension Activated');
-
   handleTheUnhandled();
-
   return api;
 };
 
@@ -573,15 +560,22 @@ const handleTheUnhandled = (): void => {
     collectedData.stackTrace ??= reason ? reason.stack : 'No stack trace available';
 
     // make an attempt to isolate the first reference to one of our extensions from the stack
-    const fromExtension = collectedData.stackTrace
+    const dxExtension = collectedData.stackTrace
       ?.split(os.EOL)
       .filter(l => l.includes('at '))
       .flatMap(l => l.split(path.sep))
       .find(w => w.startsWith('salesforcedx-vscode'));
 
-    collectedData.fromExtension = fromExtension;
-
-    // Send detailed telemetry data
-    telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+    const exceptionCatcher = salesforceCoreSettings.getEnableAllExceptionCatcher();
+    // Send detailed telemetry data for only dx extensions by default.
+    // If the exception catcher is enabled, send telemetry data for all extensions.
+    if (dxExtension || exceptionCatcher) {
+      collectedData.fromExtension = dxExtension;
+      telemetryService.sendException('unhandledRejection', JSON.stringify(collectedData));
+      if (exceptionCatcher) {
+        console.log('Debug mode is enabled');
+        console.log('error data: %s', JSON.stringify(collectedData));
+      }
+    }
   });
 };

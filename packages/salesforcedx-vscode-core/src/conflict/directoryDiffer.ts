@@ -32,7 +32,7 @@ export type DirectoryDiffResults = {
   scannedRemote?: number;
 };
 
-export type DirectoryDiffer = {
+type DirectoryDiffer = {
   diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults;
 };
 
@@ -42,9 +42,7 @@ type FileStats = {
   relPath: string;
 };
 
-export class CommonDirDirectoryDiffer implements DirectoryDiffer {
-  constructor() {}
-
+class CommonDirDirectoryDiffer implements DirectoryDiffer {
   public diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults {
     const localSet = this.listFiles(localSourcePath);
     const different = new Set<TimestampFileProperties>();
@@ -71,7 +69,7 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
       different,
       scannedLocal: localSet.size,
       scannedRemote
-    } as DirectoryDiffResults;
+    };
   }
 
   private filesDiffer(one: string, two: string): boolean {

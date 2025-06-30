@@ -24,7 +24,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 
-export type ApexTestSuiteOptions = { suitename: string; tests: string[] };
+type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
@@ -56,29 +56,30 @@ const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
   return quickPickItems;
 };
 
-export class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
+class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const quickPickItems = await listApexTestSuiteItems();
 
-    const testSuiteName = (await vscode.window.showQuickPick(quickPickItems)) as ApexTestQuickPickItem;
+    const testSuiteName = await vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems);
 
     return testSuiteName ? { type: 'CONTINUE', data: testSuiteName } : { type: 'CANCEL' };
   }
 }
 
-export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
+class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
     const quickPickItems = await listApexTestSuiteItems();
 
-    const testSuiteName = (await vscode.window.showQuickPick(quickPickItems)) as ApexTestQuickPickItem;
+    const testSuiteName = await vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems);
 
     if (testSuiteName) {
       const apexClassItems = await listApexClassItems();
 
-      const apexClassSelection = (await vscode.window.showQuickPick(apexClassItems, {
-        canPickMany: true
-      })) as ApexTestQuickPickItem[];
-      const apexClassNames = apexClassSelection?.map(selection => selection.label);
+      const apexClassSelection =
+        (await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
+          canPickMany: true
+        })) ?? [];
+      const apexClassNames = apexClassSelection.map(selection => selection.label);
 
       return apexClassSelection
         ? {
@@ -91,19 +92,20 @@ export class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions
   }
 }
 
-export class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
+class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
-    const testSuiteInput = {
+    const testSuiteInput: vscode.InputBoxOptions = {
       prompt: 'Enter desired Apex test suite name:'
-    } as vscode.InputBoxOptions;
+    };
     const testSuiteName = await vscode.window.showInputBox(testSuiteInput);
 
     if (testSuiteName) {
       const apexClassItems = await listApexClassItems();
 
-      const apexClassSelection = (await vscode.window.showQuickPick(apexClassItems, {
-        canPickMany: true
-      })) as ApexTestQuickPickItem[];
+      const apexClassSelection =
+        (await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
+          canPickMany: true
+        })) ?? [];
       const apexClassNames = apexClassSelection?.map(selection => selection.label);
 
       return apexClassSelection

@@ -4,15 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
-import { ActionScriptEnum, OrgInfoError } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/commands';
+// TODO: clean up the types for all of this
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import {
+  ActionScriptEnum,
+  OrgInfoError,
+  breakpointUtil,
   CHECKPOINT,
   CHECKPOINTS_LOCK_STRING,
   FIELD_INTEGRITY_EXCEPTION,
   MAX_ALLOWED_CHECKPOINTS,
   OVERLAY_ACTION_DELETE_URL
-} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+} from '@salesforce/salesforcedx-apex-replay-debugger';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -46,7 +50,7 @@ const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE = 'Type: ';
 
 // These are the action script types for the ApexExecutionOverlayAction.
-export type ApexExecutionOverlayAction = {
+type ApexExecutionOverlayAction = {
   ActionScript: string;
   ActionScriptType: ActionScriptEnum;
   ExecutableEntityName: string | undefined;
@@ -600,7 +604,7 @@ class CheckpointInfoNode extends BaseNode {
 }
 
 // Remove the tags when the nodes using the checkpointOverlayAction become editable.
-export class CheckpointInfoActionScriptNode extends CheckpointInfoNode {
+class CheckpointInfoActionScriptNode extends CheckpointInfoNode {
   private checkpointOverlayAction: ApexExecutionOverlayAction;
   constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
     super(EDITABLE_FIELD_LABEL_ACTION_SCRIPT + cpOverlayActionInput.ActionScript);
@@ -615,7 +619,7 @@ export class CheckpointInfoActionScriptNode extends CheckpointInfoNode {
   }
 }
 
-export class CheckpointInfoActionScriptTypeNode extends CheckpointInfoNode {
+class CheckpointInfoActionScriptTypeNode extends CheckpointInfoNode {
   private checkpointOverlayAction: ApexExecutionOverlayAction;
   constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
     super(EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE + cpOverlayActionInput.ActionScriptType);
@@ -630,7 +634,7 @@ export class CheckpointInfoActionScriptTypeNode extends CheckpointInfoNode {
   }
 }
 
-export class CheckpointInfoIterationNode extends CheckpointInfoNode {
+class CheckpointInfoIterationNode extends CheckpointInfoNode {
   private checkpointOverlayAction: ApexExecutionOverlayAction;
   constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
     super(EDITABLE_FIELD_LABEL_ITERATIONS + cpOverlayActionInput.Iteration);
@@ -702,7 +706,7 @@ export const processBreakpointChangedForCheckpoints = async (
   }
 };
 
-export const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint): ApexExecutionOverlayAction => {
+const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint): ApexExecutionOverlayAction => {
   // declare the overlayAction with defaults
   const checkpointOverlayAction: ApexExecutionOverlayAction = {
     ActionScript: '',
@@ -835,7 +839,7 @@ const fetchExistingBreakpointForUriAndLineNumber = (uriInput: URI, lineInput: nu
       bp.location.range.start.line === lineInput
   );
 
-export const checkpointUtils = {
+const checkpointUtils = {
   fetchActiveEditorUri,
   fetchActiveSelectionLineNumber
 };

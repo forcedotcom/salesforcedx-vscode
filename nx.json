@@ -7,6 +7,13 @@
       ],
       "outputs": [
         "{projectRoot}/out"
+      ],
+      "inputs": [
+        "default",
+        "^default",
+        "{projectRoot}/tsconfig.json",
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*"
       ]
     },
     "lint": {
@@ -25,6 +32,39 @@
       ],
       "outputs": [
         "{projectRoot}/coverage"
+      ]
+    },
+    "bundle:extension": {
+      "cache": true,
+      "dependsOn": [
+        "compile",
+        "^bundle:extension"
+      ],
+      "inputs": [
+        "{projectRoot}/esbuild.config.mjs",
+        "{projectRoot}/esbuild.config.js",
+        "{projectRoot}/out/**",
+        "{projectRoot}/src/**"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
+    "vscode:package": {
+      "cache": true,
+      "dependsOn": [
+        "^vscode:package",
+        "vscode:bundle"
+      ],
+      "inputs": [
+        "{projectRoot}/esbuild.config.mjs",
+        "{projectRoot}/esbuild.config.js",
+        "{projectRoot}/package.json",
+        "{workspaceRoot}/package.json",
+        "{workspaceRoot}/scripts/vsce-bundled-extension.ts",
+        "{projectRoot}/dist",
+        "{projectRoot}/.vscodeignore",
+        "{projectRoot}/src/**"
       ]
     }
   }

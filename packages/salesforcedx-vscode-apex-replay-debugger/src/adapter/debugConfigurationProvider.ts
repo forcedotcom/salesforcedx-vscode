@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   private salesforceApexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
-  public static getConfig(logFile?: string, stopOnEntry: boolean = true) {
+  public static getConfig(logFile?: string, stopOnEntry: boolean = true): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
@@ -19,7 +19,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       logFile: logFile ? logFile : '${command:AskForLogFileName}',
       stopOnEntry,
       trace: true
-    } as vscode.DebugConfiguration;
+    };
   }
 
   public provideDebugConfigurations(

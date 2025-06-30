@@ -54,9 +54,9 @@ type Template = {
 
 class SelectProjectTemplate implements ParametersGatherer<Template> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Template>> {
-    const projectTemplateInputOptions = {
+    const projectTemplateInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('analytics_template_name_text')
-    } as vscode.InputBoxOptions;
+    };
     const fileName = await vscode.window.showInputBox(projectTemplateInputOptions);
 
     return fileName ? { type: 'CONTINUE', data: { fileName } } : { type: 'CANCEL' };

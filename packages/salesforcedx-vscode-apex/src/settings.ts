@@ -17,8 +17,7 @@ const APEX_ACTION_PROP_DEF_MODIFIERS = ['static'];
 const APEX_ACTION_PROP_ACCESS_MODIFIERS = ['global', 'public'];
 const APEX_ACTION_CLASS_REST_ANNOTATION = ['RestResource'];
 const APEX_ACTION_METHOD_REST_ANNOTATION = ['HttpDelete', 'HttpGet', 'HttpPatch', 'HttpPost', 'HttpPut'];
-// 'AuraEnabled' was removed for W-17550288 and should be added back with W-17579102
-const APEX_ACTION_METHOD_ANNOTATION: string[] = [];
+const APEX_ACTION_METHOD_ANNOTATION: string[] = ['AuraEnabled'];
 
 // Default eligibility for general OAS generation. Users can changed the setting through VSCode configurations
 const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
@@ -106,3 +105,9 @@ export const retrieveGeneralPropAccessModifiers = (): string[] =>
   vscode.workspace
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.general.prop.access-modifiers', DEFAULT_PROP_ACCESS_MODIFIERS);
+
+export function getApexLanguageServerRestartBehavior(): string {
+  return vscode.workspace
+    .getConfiguration('salesforcedx-vscode-apex')
+    .get<string>('languageServer.restartBehavior', 'prompt');
+}

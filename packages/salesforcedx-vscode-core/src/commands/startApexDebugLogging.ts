@@ -23,7 +23,7 @@ import { OrgAuthInfo } from '../util';
 import { developerLogTraceFlag } from '.';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
+class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();
   private cancellationToken = this.cancellationTokenSource.token;
 
@@ -80,7 +80,7 @@ export class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
       developerLogTraceFlag.turnOnLogging();
       executionWrapper.successfulExit();
     } catch (e) {
-      executionWrapper.failureExit(e as Error);
+      executionWrapper.failureExit(e);
     }
   }
 
@@ -121,12 +121,12 @@ export const getUserId = async (projectPath: string): Promise<string> => {
   try {
     const orgInfo = JSON.parse(result).result.records[0].Id;
     return Promise.resolve(orgInfo);
-  } catch (e) {
+  } catch {
     return Promise.reject(result);
   }
 };
 
-export class QueryUser extends SfCommandletExecutor<{}> {
+class QueryUser extends SfCommandletExecutor<{}> {
   private username: string;
   public constructor(username: string) {
     super();
@@ -142,7 +142,7 @@ export class QueryUser extends SfCommandletExecutor<{}> {
   }
 }
 
-export class CreateDebugLevel extends SfCommandletExecutor<{}> {
+class CreateDebugLevel extends SfCommandletExecutor<{}> {
   public readonly developerName = `ReplayDebuggerLevels${Date.now()}`;
   public build(): Command {
     return new SfCommandBuilder()
@@ -159,7 +159,7 @@ export class CreateDebugLevel extends SfCommandletExecutor<{}> {
   }
 }
 
-export class CreateTraceFlag extends SfCommandletExecutor<{}> {
+class CreateTraceFlag extends SfCommandletExecutor<{}> {
   private userId: string;
 
   public constructor(userId: string) {
@@ -186,7 +186,7 @@ export class CreateTraceFlag extends SfCommandletExecutor<{}> {
   }
 }
 
-export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
+class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     const nonNullDebugLevel = developerLogTraceFlag.getDebugLevelId()!;
     return new SfCommandBuilder()
@@ -201,7 +201,7 @@ export class UpdateDebugLevelsExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
+class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
   public build(): Command {
     const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
     return new SfCommandBuilder()
@@ -219,7 +219,7 @@ export class UpdateTraceFlagsExecutor extends SfCommandletExecutor<{}> {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export class QueryTraceFlag extends SfCommandletExecutor<{}> {
+class QueryTraceFlag extends SfCommandletExecutor<{}> {
   public build(userId: string): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('start_apex_debug_logging'))

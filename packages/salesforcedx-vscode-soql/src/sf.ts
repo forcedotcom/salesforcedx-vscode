@@ -6,13 +6,10 @@
  */
 
 import type { DescribeSObjectResult } from './types';
-import { Connection } from '@salesforce/core-bundle';
-import { ChannelService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { ChannelService, OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import * as debounce from 'debounce';
 import * as vscode from 'vscode';
 import { nls } from './messages';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const debounce = require('debounce');
 
 export const channelService = ChannelService.getInstance(nls.localize('soql_channel_name'));
 
@@ -24,46 +21,37 @@ const showChannelAndErrorMessage = (e: string) => {
   void vscode.window.showErrorMessage(message);
 };
 
+/** exported for test spy */
 export const debouncedShowChannelAndErrorMessage = debounce(showChannelAndErrorMessage, 1000);
 
-export const withSFConnection = async (f: (conn: Connection) => void, showErrorMessage = true): Promise<void> => {
+export const retrieveSObjects = async (): Promise<string[]> => {
   try {
     const conn = await workspaceContext.getConnection();
-    return f(conn as unknown as Connection);
+    return (await conn.describeGlobal$()).sobjects.filter(o => o.queryable).map(o => o.name);
   } catch (e) {
-    if (showErrorMessage) {
-      debouncedShowChannelAndErrorMessage(e);
-    }
+    debouncedShowChannelAndErrorMessage(e);
   }
 };
 
-export const retrieveSObjects = async (): Promise<string[]> => {
-  let foundSObjectNames: string[] = [];
-  await withSFConnection(async conn => {
-    const describeGlobalResult = await conn.describeGlobal$();
-    if (describeGlobalResult) {
-      const sobjectNames: string[] = describeGlobalResult.sobjects.filter(o => o.queryable).map(o => o.name);
-      foundSObjectNames = sobjectNames;
-    }
-  });
-
-  return foundSObjectNames;
-};
-
 export const retrieveSObject = async (sobjectName: string): Promise<DescribeSObjectResult> => {
-  let name: DescribeSObjectResult;
-  await withSFConnection(async conn => {
-    name = await conn.describe$(sobjectName);
-  });
-  return name;
+  try {
+    const conn = await workspaceContext.getConnection();
+    return await conn.describe$(sobjectName);
+  } catch (e) {
+    debouncedShowChannelAndErrorMessage(e);
+  }
 };
 
-export const onOrgChangeDefaultHandler = async (orgInfo: any): Promise<void> => {
-  const showErrorMessage = !!orgInfo.username;
-  await withSFConnection(conn => {
+export const onOrgChangeDefaultHandler = async (orgInfo: OrgUserInfo): Promise<void> => {
+  try {
+    const conn = await workspaceContext.getConnection();
     conn.describeGlobal$.clear();
     conn.describe$.clear();
-  }, showErrorMessage);
+  } catch (e) {
+    if (Boolean(orgInfo.username)) {
+      debouncedShowChannelAndErrorMessage(e);
+    }
+  }
 };
 
 workspaceContext.onOrgChange(onOrgChangeDefaultHandler);

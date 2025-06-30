@@ -139,6 +139,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     const packagesData = JSON.parse(packagesJson);
     return packagesData.result.map(
       (entry: any) =>
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         ({
           id: entry.SubscriberPackageId,
           name: entry.SubscriberPackageName,
@@ -359,7 +360,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
+type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
 
 type ForceIdeUri = {
   loginUrl: string;
@@ -367,7 +368,7 @@ type ForceIdeUri = {
   orgName: string;
 };
 
-export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
+class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   public static readonly uriValidator = (value: string) => {
     try {
       const url = new URL(value);

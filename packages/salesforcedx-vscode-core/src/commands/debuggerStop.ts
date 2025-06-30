@@ -35,8 +35,8 @@ type QueryRecord = {
   Id: string;
 };
 
-export type IdSelection = { id: string };
-export class IdGatherer implements ParametersGatherer<IdSelection> {
+type IdSelection = { id: string };
+class IdGatherer implements ParametersGatherer<IdSelection> {
   private readonly sessionIdToUpdate: string;
 
   public constructor(sessionIdToUpdate: string) {
@@ -48,7 +48,7 @@ export class IdGatherer implements ParametersGatherer<IdSelection> {
   }
 }
 
-export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
+class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
   public build(data: IdSelection): Command {
     return new SfCommandBuilder()
       .withArg('data:update:record')
@@ -62,7 +62,7 @@ export class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelect
   }
 }
 
-export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
+class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withArg('data:query')
@@ -94,6 +94,8 @@ export class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> 
 
     try {
       const result = await resultPromise;
+      // remove when we drop CLI invocations
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const queryResponse = JSON.parse(result) as QueryResponse;
       if (queryResponse && queryResponse.result && queryResponse.result.size === 1) {
         const sessionIdToUpdate = queryResponse.result.records[0].Id;

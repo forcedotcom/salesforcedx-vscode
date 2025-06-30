@@ -1,23 +1,21 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
+
+import { fileOrFolderExists, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
-import { SOBJECTS_DIR, CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR, SObjectCategory } from '../../../src';
-import { FauxClassGenerator } from '../../../src/generator';
-import { SObjectRefreshOutput } from '../../../src/types';
-import { folderExists } from '../../../src/utils';
+import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR, SOBJECTS_DIR } from '../../../src/constants';
+import { generateFauxClass } from '../../../src/generator/fauxClassGenerator';
 
 jest.mock('vscode');
 const vscodeMocked = jest.mocked(vscode);
 
 describe('Clean SObject Folders', () => {
-  const sfdxPath = process.cwd();
-  const baseFolder = join(sfdxPath, TOOLS, SOBJECTS_DIR);
+  const baseFolder = join(projectPaths.toolsFolder(), SOBJECTS_DIR);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -26,57 +24,33 @@ describe('Clean SObject Folders', () => {
     vscodeMocked.workspace.fs.delete.mockResolvedValue();
   });
 
-  it('Should remove standardObjects folder when category is STANDARD', async () => {
-    const gen = new FauxClassGenerator(SObjectCategory.STANDARD, STANDARDOBJECTS_DIR);
-    const output: SObjectRefreshOutput = {
-      sfdxPath,
-      addTypeNames: () => {},
-      getTypeNames: () => [],
-      addStandard: () => {},
-      addCustom: () => {},
-      getStandard: () => [],
-      getCustom: () => [],
-      setError: (m, s) => {}
-    };
-
+  it('Should remove only standardObjects folder when category is STANDARD', async () => {
     // Create both folders initially
     const standardOutputPath = join(baseFolder, STANDARDOBJECTS_DIR);
     const customOutputPath = join(baseFolder, CUSTOMOBJECTS_DIR);
     await vscodeMocked.workspace.fs.createDirectory(vscode.Uri.file(standardOutputPath));
     await vscodeMocked.workspace.fs.createDirectory(vscode.Uri.file(customOutputPath));
 
-    await gen.generate(output);
+    await generateFauxClass(standardOutputPath, { name: 'Account', fields: [] });
 
     // The standard folder should be recreated empty by generate()
-    expect(await folderExists(standardOutputPath)).toBeTruthy();
+    expect(await fileOrFolderExists(standardOutputPath)).toBeTruthy();
     // The custom folder should be untouched
-    expect(await folderExists(customOutputPath)).toBeTruthy();
+    expect(await fileOrFolderExists(customOutputPath)).toBeTruthy();
   });
 
-  it('Should remove customObjects folder when category is CUSTOM', async () => {
-    const gen = new FauxClassGenerator(SObjectCategory.CUSTOM, CUSTOMOBJECTS_DIR);
-    const output: SObjectRefreshOutput = {
-      sfdxPath,
-      addTypeNames: () => {},
-      getTypeNames: () => [],
-      addStandard: () => {},
-      addCustom: () => {},
-      getStandard: () => [],
-      getCustom: () => [],
-      setError: (m, s) => {}
-    };
-
+  it('Should remove only customObjects folder when category is CUSTOM', async () => {
     // Create both folders initially
     const standardOutputPath = join(baseFolder, STANDARDOBJECTS_DIR);
     const customOutputPath = join(baseFolder, CUSTOMOBJECTS_DIR);
     await vscodeMocked.workspace.fs.createDirectory(vscode.Uri.file(standardOutputPath));
     await vscodeMocked.workspace.fs.createDirectory(vscode.Uri.file(customOutputPath));
 
-    await gen.generate(output);
+    await generateFauxClass(customOutputPath, { name: 'Foo__c', fields: [] });
 
     // The custom folder should be recreated empty by generate()
-    expect(await folderExists(customOutputPath)).toBeTruthy();
+    expect(await fileOrFolderExists(customOutputPath)).toBeTruthy();
     // The standard folder should be untouched
-    expect(await folderExists(standardOutputPath)).toBeTruthy();
+    expect(await fileOrFolderExists(standardOutputPath)).toBeTruthy();
   });
 });

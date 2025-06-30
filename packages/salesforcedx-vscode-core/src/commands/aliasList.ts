@@ -9,7 +9,7 @@ import { EmptyParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
-export class AliasList extends SfCommandletExecutor<{}> {
+class AliasList extends SfCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('alias_list_text'))

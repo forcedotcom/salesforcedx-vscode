@@ -9,7 +9,6 @@ import { LibraryCommandletExecutor, workspaceUtils, ContinueResponse } from '@sa
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as fs from 'node:fs';
 import { join, parse } from 'node:path';
-import { format } from 'node:util';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -21,7 +20,7 @@ const DEFAULT_MANIFEST = 'package.xml';
 const MANIFEST_SAVE_PLACEHOLDER = 'manifest_input_save_placeholder';
 const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 
-export class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
+class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
   private responseText: string | undefined;
   constructor(sourcePaths: string[], responseText: string | undefined) {
@@ -58,10 +57,10 @@ export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | unde
     uris.push(sourceUri);
   }
   const sourcePaths = uris.map(uri => uri.fsPath);
-  const inputOptions = {
+  const inputOptions: vscode.InputBoxOptions = {
     placeHolder: nls.localize(MANIFEST_SAVE_PLACEHOLDER),
     prompt: nls.localize(MANIFEST_SAVE_PROMPT)
-  } as vscode.InputBoxOptions;
+  };
   const responseText = await vscode.window.showInputBox(inputOptions);
   if (sourcePaths) {
     const commandlet = new SfCommandlet(
@@ -100,8 +99,8 @@ const saveDocument = async (response: string, packageXML: string): Promise<void>
 
 const checkForDuplicateManifest = (saveLocation: string, fileName: string): void => {
   if (fs.existsSync(saveLocation)) {
-    void vscode.window.showErrorMessage(format(nls.localize('manifest_input_dupe_error'), fileName));
-    throw new Error(format(nls.localize('manifest_input_dupe_error'), fileName));
+    void vscode.window.showErrorMessage(nls.localize('manifest_input_dupe_error', fileName));
+    throw new Error(nls.localize('manifest_input_dupe_error', fileName));
   }
 };
 

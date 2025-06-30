@@ -70,11 +70,11 @@ export class TestRunner {
    * Determine jest command line arguments and output file path.
    * @param workspaceFolder workspace folder of the test
    */
-  public getJestExecutionInfo(workspaceFolder: vscode.WorkspaceFolder): JestExecutionInfo | undefined {
+  public async getJestExecutionInfo(workspaceFolder: vscode.WorkspaceFolder): Promise<JestExecutionInfo | undefined> {
     const { testRunId, testRunType, testExecutionInfo } = this;
     const { kind, testUri } = testExecutionInfo;
     const { fsPath: testFsPath } = testUri;
-    const tempFolder = testResultsWatcher.getTempFolder(workspaceFolder, testExecutionInfo);
+    const tempFolder = await testResultsWatcher.getTempFolder(workspaceFolder, testExecutionInfo);
 
     const testResultFileName = `test-result-${testRunId}.json`;
     const outputFilePath = path.join(tempFolder, testResultFileName);
@@ -115,14 +115,14 @@ export class TestRunner {
   /**
    * Generate shell execution info necessary for task execution
    */
-  public getShellExecutionInfo() {
+  public async getShellExecutionInfo() {
     const workspaceFolder = workspace.getTestWorkspaceFolder(this.testExecutionInfo.testUri);
     if (workspaceFolder) {
-      const jestExecutionInfo = this.getJestExecutionInfo(workspaceFolder);
+      const jestExecutionInfo = await this.getJestExecutionInfo(workspaceFolder);
       if (jestExecutionInfo) {
         const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;
-        const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(cwd);
+        const lwcTestRunnerExecutable = await workspace.getLwcTestRunnerExecutable(cwd);
         const cliArgs: string[] = workspace.getCliArgsFromJestArgs(jestArgs, this.testRunType);
         if (lwcTestRunnerExecutable) {
           return {
@@ -161,7 +161,7 @@ export class TestRunner {
    * Returns the task wrapper on task creation if successful.
    */
   public async executeAsSfTask(): Promise<SfTask | undefined> {
-    const shellExecutionInfo = this.getShellExecutionInfo();
+    const shellExecutionInfo = await this.getShellExecutionInfo();
     if (shellExecutionInfo) {
       const { command, args, workspaceFolder, testResultFsPath } = shellExecutionInfo;
       this.startWatchingTestResults(testResultFsPath);

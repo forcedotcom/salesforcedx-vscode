@@ -5,16 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AuthInfo, Connection } from '@salesforce/core-bundle';
 import {
-  SObjectCategory,
-  SObjectRefreshSource,
+  type SObjectCategory,
+  type SObjectRefreshSource,
   SOBJECTS_DIR,
-  SObjectTransformerFactory,
-  STANDARDOBJECTS_DIR
+  STANDARDOBJECTS_DIR,
+  writeSobjectFiles
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
+  ConfigUtil,
   ContinueResponse,
   isSFContainerMode,
   LocalCommandExecution,
@@ -23,22 +25,24 @@ import {
   ProgressNotification,
   projectPaths,
   SfCommandlet,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
+import { SalesforceProjectConfig } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
-export type RefreshSelection = {
+type RefreshSelection = {
   category: SObjectCategory;
   source: SObjectRefreshSource;
 };
 
-export class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
+class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
   private source?: SObjectRefreshSource;
 
   public constructor(source?: SObjectRefreshSource) {
@@ -46,8 +50,8 @@ export class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelecti
   }
 
   public async gather(): Promise<ContinueResponse<RefreshSelection> | CancelResponse> {
-    let category = SObjectCategory.ALL;
-    if (!this.source || this.source === SObjectRefreshSource.Manual) {
+    let category: SObjectCategory = 'ALL';
+    if (!this.source || this.source === 'manual') {
       const options = [
         nls.localize('sobject_refresh_all'),
         nls.localize('sobject_refresh_custom'),
@@ -56,13 +60,13 @@ export class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelecti
       const choice = await vscode.window.showQuickPick(options);
       switch (choice) {
         case options[0]:
-          category = SObjectCategory.ALL;
+          category = 'ALL';
           break;
         case options[1]:
-          category = SObjectCategory.CUSTOM;
+          category = 'CUSTOM';
           break;
         case options[2]:
-          category = SObjectCategory.STANDARD;
+          category = 'STANDARD';
           break;
         default:
           return { type: 'CANCEL' };
@@ -72,7 +76,7 @@ export class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelecti
       type: 'CONTINUE',
       data: {
         category,
-        source: this.source || SObjectRefreshSource.Manual
+        source: this.source || 'manual'
       }
     };
   }
@@ -109,35 +113,48 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
       channelService.showChannelOutput();
     }
 
-    if (response.data.source !== SObjectRefreshSource.StartupMin) {
+    if (response.data.source !== 'startupmin') {
       notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     }
 
     let progressLocation = vscode.ProgressLocation.Notification;
-    if (response.data.source !== SObjectRefreshSource.Manual) {
+    if (response.data.source !== 'manual') {
       progressLocation = vscode.ProgressLocation.Window;
     }
     ProgressNotification.show(execution, cancellationTokenSource, progressLocation);
 
     const commandName = execution.command.logName;
+
+    // precedence user override > project config > connection default
+    const apiVersionOverride =
+      (await ConfigUtil.getUserConfiguredApiVersion()) ?? (await SalesforceProjectConfig.getValue('sourceApiVersion'));
+
+    const versionedConn = apiVersionOverride
+      ? await Connection.create({
+          authInfo: await AuthInfo.create({
+            username: (await WorkspaceContextUtil.getInstance().getConnection()).getUsername()
+          }),
+          connectionOptions: { version: apiVersionOverride }
+        })
+      : await WorkspaceContextUtil.getInstance().getConnection();
+
     try {
-      let transformer;
-      if (response.data.source === SObjectRefreshSource.StartupMin) {
-        transformer = await SObjectTransformerFactory.create(
-          execution.cmdEmitter,
-          cancellationToken,
-          SObjectCategory.STANDARD,
-          SObjectRefreshSource.StartupMin
-        );
-      } else {
-        transformer = await SObjectTransformerFactory.create(
-          execution.cmdEmitter,
-          cancellationToken,
-          response.data.category,
-          response.data.source
-        );
-      }
-      const result = await transformer.transform();
+      // @ts-expect-error - TODO: remove when core-bundle is no longer used (conn types differ)
+      const result = await writeSobjectFiles({
+        emitter: execution.cmdEmitter,
+        cancellationToken,
+        ...(response.data.source === 'startupmin'
+          ? {
+              category: 'STANDARD',
+              source: 'startupmin'
+            }
+          : {
+              category: response.data.category,
+              source: response.data.source,
+              // TODO: make the consumer pass in the properly versioned connection
+              conn: versionedConn
+            })
+      });
 
       console.log('Generate success ' + JSON.stringify(result.data));
       this.logMetric(
@@ -183,7 +200,7 @@ export const refreshSObjects = async (source?: SObjectRefreshSource) => {
 export const initSObjectDefinitions = async (projectPath: string, isSettingEnabled: boolean) => {
   if (projectPath) {
     const sobjectFolder = isSettingEnabled ? getSObjectsDirectory() : getStandardSObjectsDirectory();
-    const refreshSource = isSettingEnabled ? SObjectRefreshSource.Startup : SObjectRefreshSource.StartupMin;
+    const refreshSource = isSettingEnabled ? 'startup' : 'startupmin';
 
     if (!fs.existsSync(sobjectFolder)) {
       telemetryService.sendEventData('sObjectRefreshNotification', { type: refreshSource }, undefined);

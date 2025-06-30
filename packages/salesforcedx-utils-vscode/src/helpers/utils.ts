@@ -90,6 +90,7 @@ export const extractJson = <T = any>(str: string): T => {
     throw new Error(`The string "${str}" does not contain an array or object.`);
   }
   // Try parsing the detected JSON structure
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   return JSON.parse(jsonCandidate) as T; // Cast to generic type
 };
 
@@ -139,12 +140,6 @@ const flushFilePaths = (filePaths: string[]): string[] => {
   }
 
   return filePaths;
-};
-
-export const asyncFilter = async <T>(arr: T[], callback: (value: T, index: number, array: T[]) => unknown) => {
-  const results = await Promise.all(arr.map(callback));
-
-  return arr.filter((_v, index) => results[index]);
 };
 
 export const fileUtils = {

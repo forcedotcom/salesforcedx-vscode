@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core-bundle';
+import type { Connection } from '@salesforce/core';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 import { DescribeSObjectResult, Field, SObjectField } from '../types/describe';
-import { SObjectShortDescription } from '.';
+import { SObjectShortDescription, SObjectsStandardAndCustom } from './types';
 
 const MAX_BATCH_REQUEST_SIZE = 25;
 
-export class SObjectDescribe {
+class SObjectDescribe {
   private connection: Connection;
   private readonly servicesPath: string = 'services/data';
   private readonly versionPrefix = 'v';
@@ -22,20 +22,6 @@ export class SObjectDescribe {
 
   constructor(connection: Connection) {
     this.connection = connection;
-  }
-
-  /**
-   * Method that returns a list of SObjects based on running a describe global request
-   * More info at https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_describeGlobal.htm
-   * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
-   */
-  public async describeGlobal(): Promise<SObjectShortDescription[]> {
-    const allDescriptions = await this.connection.describeGlobal();
-    const requestedDescriptions = allDescriptions.sobjects.map(sobject => ({
-      name: sobject.name,
-      custom: sobject.custom
-    }));
-    return requestedDescriptions;
   }
 
   public getVersion(): string {
@@ -66,7 +52,7 @@ export class SObjectDescribe {
   }
 
   public async runRequest(batchRequest: BatchRequest): Promise<BatchResponse> {
-    return this.connection.request({
+    return this.connection.request<BatchResponse>({
       method: 'POST',
       url: this.buildBatchRequestURL(),
       body: JSON.stringify(batchRequest),
@@ -74,7 +60,7 @@ export class SObjectDescribe {
         'User-Agent': 'salesforcedx-extension',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       }
-    }) as unknown as BatchResponse;
+    });
   }
 
   public async describeSObjectBatchRequest(types: string[]): Promise<SObject[]> {
@@ -110,12 +96,21 @@ export class SObjectDescribe {
       const batchTypes = types.slice(i, i + batchSize);
       requests.push(this.describeSObjectBatchRequest(batchTypes));
     }
-
-    const results = await Promise.all(requests);
-    const fetchedSObjects = ([] as SObject[]).concat(...results);
-    return fetchedSObjects;
+    return (await Promise.all(requests)).flat();
   }
 }
+
+export const describeSObjects = async (
+  conn: Connection,
+  sobjectNames: SObjectShortDescription[]
+): Promise<SObjectsStandardAndCustom> => {
+  const objects = await new SObjectDescribe(conn).fetchObjects(sobjectNames.map(s => s.name));
+  // TODO node22: object.groupBy
+  return {
+    standard: objects.filter(o => !o.custom),
+    custom: objects.filter(o => o.custom)
+  };
+};
 
 /**
  * Convert jsforce's complete sobject metadata to our internal (smaller) SObject representation
@@ -155,3 +150,14 @@ const pick = <T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> => {
   });
   return ret;
 };
+
+/**
+ * Method that returns a list of SObjects based on running a describe global request
+ * More info at https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_describeGlobal.htm
+ * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
+ */
+export const describeGlobal = async (conn: Connection): Promise<SObjectShortDescription[]> =>
+  (await conn.describeGlobal()).sobjects.map(sobject => ({
+    name: sobject.name,
+    custom: sobject.custom
+  }));

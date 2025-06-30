@@ -4,10 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { MetricError, MetricGeneral, MetricLaunch } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
+  MetricError,
+  MetricGeneral,
+  MetricLaunch,
   DEBUGGER_TYPE,
   LAST_OPENED_LOG_FOLDER_KEY,
   LAST_OPENED_LOG_KEY,
@@ -15,8 +17,9 @@ import {
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT
-} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+  SEND_METRIC_LAUNCH_EVENT,
+  breakpointUtil
+} from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';

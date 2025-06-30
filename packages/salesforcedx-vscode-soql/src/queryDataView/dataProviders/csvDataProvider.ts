@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Papa from 'papaparse';
@@ -33,66 +35,71 @@ export class CsvDataProvider implements DataProvider {
 
     data: JsonMap[]
   ): Papa.UnparseObject<string[]> {
-    const columnData = new SelectAnalyzer(query).getColumnData();
-    const fields: string[] = [];
-    const colDataQ = [columnData];
-    while (colDataQ.length > 0) {
-      const cd = colDataQ.shift();
-      cd?.columns.forEach(col => fields.push(col.title));
-      cd?.subTables.forEach(subTable => colDataQ.push(subTable));
-    }
-
-    const flattenRecord = (record: any, colData: ColumnData): string[][] => {
-      const recordValues: string[][] = [];
-
-      const queryRecord: string[] = [];
-      colData.columns.forEach(col => {
-        let currentObject: any = record;
-        col.fieldHelper.forEach(segment => {
-          const key = Object.keys(currentObject).find(k => k.toLowerCase() === segment.toLowerCase());
-          if (key) {
-            currentObject = currentObject[key];
-          }
-        });
-        queryRecord.push(
-          typeof currentObject === 'string' || typeof currentObject === 'number' || typeof currentObject === 'boolean'
-            ? `${currentObject}`
-            : ''
-        );
-      });
-
-      let subRecords: string[][] = [];
-      colData.subTables.forEach(subTable => {
-        const key = Object.keys(record).find(k => k.toLowerCase() === subTable.objectName.toLowerCase());
-        if (
-          key &&
-          record[key] &&
-          typeof record[key] === 'object' &&
-          Array.isArray((record[key] as unknown as any).records)
-        ) {
-          (record[key] as unknown as any).records.forEach((subRec: any) => {
-            subRecords = subRecords.concat(flattenRecord(subRec, subTable));
-          });
-        }
-      });
-
-      if (subRecords.length) {
-        subRecords.forEach(subRecordValues => {
-          recordValues.push(queryRecord.concat(subRecordValues));
-        });
-      } else {
-        recordValues.push(queryRecord);
-      }
-      return recordValues;
-    };
-    let values: string[][] = [];
-    data.forEach(record => {
-      values = values.concat(flattenRecord(record, columnData));
-    });
-
-    return {
-      fields,
-      data: values
-    };
+    return toTableFn(query, data);
   }
 }
+
+export const toTableFn = (query: string, data: JsonMap[]): Papa.UnparseObject<string[]> => {
+  const columnData = new SelectAnalyzer(query).getColumnData();
+  const fields: string[] = [];
+  const colDataQ = [columnData];
+  while (colDataQ.length > 0) {
+    const cd = colDataQ.shift();
+    cd?.columns.forEach(col => fields.push(col.title));
+    cd?.subTables.forEach(subTable => colDataQ.push(subTable));
+  }
+
+  let values: string[][] = [];
+  data.forEach(record => {
+    values = values.concat(flattenRecord(record, columnData));
+  });
+
+  return {
+    fields,
+    data: values
+  };
+};
+
+const flattenRecord = (record: any, colData: ColumnData): string[][] => {
+  const recordValues: string[][] = [];
+
+  const queryRecord: string[] = [];
+  colData.columns.forEach(col => {
+    let currentObject: any = record;
+    col.fieldHelper.forEach(segment => {
+      const key = Object.keys(currentObject).find(k => k.toLowerCase() === segment.toLowerCase());
+      if (key) {
+        currentObject = currentObject[key];
+      }
+    });
+    queryRecord.push(
+      typeof currentObject === 'string' || typeof currentObject === 'number' || typeof currentObject === 'boolean'
+        ? `${currentObject}`
+        : ''
+    );
+  });
+
+  let subRecords: string[][] = [];
+  colData.subTables.forEach(subTable => {
+    const key = Object.keys(record).find(k => k.toLowerCase() === subTable.objectName.toLowerCase());
+    if (
+      key &&
+      record[key] &&
+      typeof record[key] === 'object' &&
+      Array.isArray((record[key] as unknown as any).records)
+    ) {
+      (record[key] as unknown as any).records.forEach((subRec: any) => {
+        subRecords = subRecords.concat(flattenRecord(subRec, subTable));
+      });
+    }
+  });
+
+  if (subRecords.length) {
+    subRecords.forEach(subRecordValues => {
+      recordValues.push(queryRecord.concat(subRecordValues));
+    });
+  } else {
+    recordValues.push(queryRecord);
+  }
+  return recordValues;
+};

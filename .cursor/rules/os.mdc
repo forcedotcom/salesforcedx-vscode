@@ -1,0 +1,7 @@
+---
+description:
+globs: *.ts,*.test.ts
+alwaysApply: false
+---
+code should run on macos, windows, and linux
+watch out for path separators in code and tests (use path.join)

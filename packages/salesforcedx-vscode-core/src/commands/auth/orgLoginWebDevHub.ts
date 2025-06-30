@@ -20,7 +20,7 @@ import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from '../util'
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 import { AuthDemoModeExecutor, OrgLoginWebContainerExecutor } from './orgLoginWeb';
 
-export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExecutor {
+class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExecutor {
   public build(data: AuthDevHubParams): Command {
     const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_dev_hub_text'));
 
@@ -35,7 +35,7 @@ export class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExec
   }
 }
 
-export class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
+class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
   public build(data: AuthDevHubParams): Command {
@@ -50,7 +50,7 @@ export class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-export class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> {
+class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> {
   public build(data: AuthDevHubParams): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
@@ -64,12 +64,12 @@ export class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> 
   }
 }
 
-export class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
+class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
   public async gather(): Promise<CancelResponse | ContinueResponse<AuthDevHubParams>> {
-    const aliasInputOptions = {
+    const aliasInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: DEFAULT_ALIAS
-    } as vscode.InputBoxOptions;
+    };
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will default the alias to 'vscodeOrg'
     if (alias === undefined) {
@@ -84,14 +84,14 @@ export class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubPa
   }
 }
 
-export type AuthDevHubParams = {
+type AuthDevHubParams = {
   alias: string;
 };
 
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthDevHubParamsGatherer();
 
-export const createAuthDevHubExecutor = (): SfCommandletExecutor<{}> => {
+const createAuthDevHubExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
     case isSFContainerMode():
       return new OrgLoginWebDevHubContainerExecutor();

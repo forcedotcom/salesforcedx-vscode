@@ -64,7 +64,7 @@ class QuickLaunch {
       const logFileRetrieve = await this.retrieveLogFile(connection, testResult.logFileId);
 
       if (logFileRetrieve.success && logFileRetrieve.filePath) {
-        launchFromLogFile(logFileRetrieve.filePath, false);
+        await launchFromLogFile(logFileRetrieve.filePath, false);
         return true;
       }
     } else if (testResult.message) {
@@ -81,6 +81,8 @@ class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
+      // W-18453221
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const result: TestResult = (await testService.runTestSynchronous(payload, true)) as TestResult;
       if (workspaceUtils.hasRootWorkspace()) {
         const apexTestResultsPath = projectPaths.apexTestResultsFolder();
@@ -120,7 +122,7 @@ class QuickLaunch {
   }
 }
 
-export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
+class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   constructor() {
     super(nls.localize('debug_test_exec_name'), 'debug_test_replay_debugger', OUTPUT_CHANNEL);
   }
@@ -141,9 +143,9 @@ export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
 
 export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const executor = new TestDebuggerExecutor();
-  const response = {
+  const response: ContinueResponse<string[]> = {
     type: 'CONTINUE',
-    data: [className, methodName]
-  } as ContinueResponse<string[]>;
+    data: [className, methodName].filter((f): f is string => f !== undefined)
+  };
   await executor.execute(response);
 };

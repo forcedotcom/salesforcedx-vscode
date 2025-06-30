@@ -12,18 +12,17 @@ import {
   SFDX_LWC_EXTENSION_NAME,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve-bundle';
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { nls } from '../../messages';
+import { coerceMessageKey, nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { RetrieveDescriber } from '../retrieveMetadata';
 
 export const CONTINUE = 'CONTINUE';
 export const CANCEL = 'CANCEL';
-export const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
+const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
 export type FileNameParameter = {
   fileName: string;
@@ -96,7 +95,7 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string }>> {
-    const fileNameInputBoxOptions = {
+    const fileNameInputBoxOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_file_name'),
       ...(this.maxFileNameLength !== Infinity && {
         validateInput: value =>
@@ -106,7 +105,7 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
                 .replace('{0}', this.maxFileNameLength.toString())
             : null
       })
-    } as vscode.InputBoxOptions;
+    };
 
     const fileName = await vscode.window.showInputBox(fileNameInputBoxOptions);
     return fileName ? { type: CONTINUE, data: { fileName } } : { type: CANCEL };
@@ -115,9 +114,9 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
 
 export class SelectUsername implements ParametersGatherer<{ username: string }> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{ username: string }>> {
-    const usernameInputOptions = {
+    const usernameInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_username_name')
-    } as vscode.InputBoxOptions;
+    } satisfies vscode.InputBoxOptions;
     const username = await vscode.window.showInputBox(usernameInputOptions);
     return username ? { type: CONTINUE, data: { username } } : { type: CANCEL };
   }
@@ -136,56 +135,6 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
     );
 
     return response && response === this.LOGOUT_RESPONSE ? { type: CONTINUE, data: {} } : { type: CANCEL };
-  }
-}
-
-export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: string; outputdir: string }> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>> {
-    let packageDirs: string[] = [];
-    try {
-      packageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
-    } catch (e) {
-      if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
-        throw e;
-      }
-    }
-    const packageDir = await this.showMenu(packageDirs, 'parameter_gatherer_enter_dir_name');
-    let outputdir;
-    const namePathMap = new Map();
-    let fileName;
-    if (packageDir) {
-      const pathToPkg = path.join(workspaceUtils.getRootWorkspacePath(), packageDir);
-      const components = ComponentSet.fromSource(pathToPkg);
-
-      const lwcNames = [];
-      for (const component of components.getSourceComponents() || []) {
-        const { fullName, type } = component;
-        if (type.name === registry.types.lightningcomponentbundle.name) {
-          namePathMap.set(fullName, component.xml);
-          lwcNames.push(fullName);
-        }
-      }
-      const chosenLwcName = await this.showMenu(lwcNames, 'parameter_gatherer_enter_lwc_name');
-      if (chosenLwcName) {
-        const filePathToXml = namePathMap.get(chosenLwcName);
-        fileName = path.basename(filePathToXml, '.js-meta.xml');
-        // Path strategy expects a relative path to the output folder
-        outputdir = path.dirname(filePathToXml).replace(pathToPkg, packageDir);
-      }
-    }
-
-    return outputdir && fileName
-      ? {
-          type: CONTINUE,
-          data: { fileName, outputdir }
-        }
-      : { type: CANCEL };
-  }
-
-  public async showMenu(options: string[], message: string): Promise<string | undefined> {
-    return await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize(message)
-    } as vscode.QuickPickOptions);
   }
 }
 
@@ -239,7 +188,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
   public async showMenu(options: string[]): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
-    } as vscode.QuickPickOptions);
+    } satisfies vscode.QuickPickOptions);
   }
 }
 
@@ -301,7 +250,7 @@ export class PromptConfirmGatherer implements ParametersGatherer<{ choice: strin
   public async showMenu(options: string[]): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
       placeHolder: this.question
-    } as vscode.QuickPickOptions);
+    } satisfies vscode.QuickPickOptions);
   }
 }
 
@@ -325,7 +274,7 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
 
   public async showMenu(options: string[], message: string): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize(message)
-    } as vscode.QuickPickOptions);
+      placeHolder: nls.localize(coerceMessageKey(message))
+    } satisfies vscode.QuickPickOptions);
   }
 }

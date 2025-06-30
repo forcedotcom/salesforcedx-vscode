@@ -9,7 +9,7 @@ import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
-import { ApexReplayDebug, LaunchRequestArguments } from '../../src/adapter/apexReplayDebug';
+import { ApexReplayDebug } from '../../src/adapter/apexReplayDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints';
 import { GoldFileUtil } from './goldFileUtil';
 
@@ -77,13 +77,14 @@ describe('Replay debugger adapter - integration', () => {
     goldFileUtil = new GoldFileUtil(dc, path.join(LOG_FOLDER, `${testName}.gold`));
 
     const launchResponse = await dc.launchRequest({
+      // @ts-expect-error this code added a new property to the LaunchRequestArguments type
       salesforceProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,
       lineBreakpointInfo: lineBpInfo,
       projectPath: undefined
-    } as LaunchRequestArguments);
+    });
     expect(launchResponse.success).toBe(true);
 
     try {
@@ -141,13 +142,14 @@ describe('Replay debugger adapter - integration', () => {
     goldFileUtil = new GoldFileUtil(dc, path.join(LOG_FOLDER, `${testName}.gold`));
 
     const launchResponse = await dc.launchRequest({
+      // @ts-expect-error this code added a new property to the LaunchRequestArguments type
       salesforceProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
       trace: true,
       lineBreakpointInfo: lineBpInfo,
       projectPath: undefined
-    } as LaunchRequestArguments);
+    });
     expect(launchResponse.success).toBe(true);
 
     try {

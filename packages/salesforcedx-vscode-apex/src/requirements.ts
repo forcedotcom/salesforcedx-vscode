@@ -10,18 +10,20 @@
 
 import * as cp from 'node:child_process';
 import * as fs from 'node:fs';
+import { homedir } from 'node:os';
 import * as path from 'node:path';
+import { join } from 'node:path';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-const expandHomeDir = require('expand-home-dir');
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const findJavaHome = require('find-java-home');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
-export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
+const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
 type RequirementsData = {
   java_home: string;
   java_memory: number | null;
@@ -39,6 +41,43 @@ export const resolveRequirements = async (): Promise<RequirementsData> => {
     java_home: javaHome,
     java_memory: javaMemory
   });
+};
+
+const getPlatformSpecificBinary = (binary: string): string => (process.platform === 'win32' ? `${binary}.exe` : binary);
+
+const validateJavaInstallation = async (javaHome: string): Promise<boolean> => {
+  if (!javaHome) {
+    throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
+  }
+
+  const requiredBinaries = ['java', 'javac'];
+  const binDir = path.join(javaHome, 'bin');
+
+  // Check if bin directory exists and is accessible
+  if (!fs.existsSync(binDir)) {
+    throw new Error(nls.localize('java_bin_missing_text', javaHome));
+  }
+
+  // Check for required binaries
+  for (const binary of requiredBinaries) {
+    const platformBinary = getPlatformSpecificBinary(binary);
+    const binaryPath = path.join(binDir, platformBinary);
+
+    if (!fs.existsSync(binaryPath)) {
+      throw new Error(nls.localize('java_binary_missing_text', platformBinary, javaHome));
+    }
+
+    // On Windows, we don't check for X_OK permission
+    if (process.platform !== 'win32') {
+      try {
+        await fs.promises.access(binaryPath, fs.constants.X_OK);
+      } catch {
+        throw new Error(nls.localize('java_binary_not_executable_text', platformBinary, javaHome));
+      }
+    }
+  }
+
+  return true;
 };
 
 const checkJavaRuntime = async (): Promise<string> =>
@@ -60,43 +99,84 @@ const checkJavaRuntime = async (): Promise<string> =>
     }
 
     if (javaHome) {
-      javaHome = expandHomeDir(javaHome) as string;
-      if (isLocal(javaHome)) {
-        // prevent injecting malicious code from unknown repositories
-        return reject(nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK));
+      const expandedHome = expandHomeDir(javaHome);
+      if (!expandedHome) {
+        reject(nls.localize('java_home_expansion_failed_text'));
+        return;
       }
-      if (!fs.existsSync(javaHome)) {
-        return reject(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
+
+      // On Windows, we don't need to check for local paths
+      if (process.platform !== 'win32' && isLocal(expandedHome)) {
+        reject(nls.localize('java_runtime_local_text', expandedHome, SET_JAVA_DOC_LINK));
+        return;
       }
-      return resolve(javaHome);
+
+      if (!fs.existsSync(expandedHome)) {
+        reject(nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK));
+        return;
+      }
+
+      // Validate the Java installation
+      validateJavaInstallation(expandedHome)
+        .then(() => resolve(expandedHome))
+        .catch(error => reject(error.message));
+      return;
     }
 
     // Last resort, try to automatically detect
-    findJavaHome((err: Error, home: string) => {
+    findJavaHome((err: Error, home: string | undefined) => {
       if (err) {
-        return reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
-      } else {
-        return resolve(home);
+        reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
+        return;
       }
+
+      if (!home || typeof home !== 'string') {
+        reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
+        return;
+      }
+
+      validateJavaInstallation(home)
+        .then(() => resolve(home))
+        .catch(error => reject(error.message));
     });
   });
 
-const readJavaConfig = (): string => {
+const readJavaConfig = (): string | undefined => {
   const config = workspace.getConfiguration();
-  return config.get<string>('salesforcedx-vscode-apex.java.home', '');
+  return config.get<string>('salesforcedx-vscode-apex.java.home');
 };
 
-const isLocal = (javaHome: string): boolean => !path.isAbsolute(javaHome);
+const expandHomeDir = (p: string): string | undefined => {
+  if (!p || typeof p !== 'string') {
+    return undefined;
+  }
+  if (p === '~') return homedir();
+  if (!p.startsWith('~/')) return p;
+  return join(homedir(), p.slice(2));
+};
+
+const isLocal = (javaHome: string): boolean => {
+  if (!javaHome || typeof javaHome !== 'string') {
+    return true; // Consider invalid paths as local for safety
+  }
+  return !path.isAbsolute(javaHome);
+};
 
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
-  const cmdFile = path.join(javaHome, 'bin', 'java');
+  if (!javaHome || typeof javaHome !== 'string') {
+    throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
+  }
+
+  const cmdFile = path.join(javaHome, 'bin', getPlatformSpecificBinary('java'));
   const commandOptions = ['-XshowSettings:properties', '-version'];
+
   return new Promise((resolve, reject) => {
     cp.execFile(cmdFile, commandOptions, {}, (error, stdout, stderr) => {
       if (error) {
         reject(
           nls.localize('java_version_check_command_failed', `${cmdFile} ${commandOptions.join(' ')}`, error.message)
         );
+        return;
       }
 
       const versionMatch = stderr.match(/java\.version\s*=\s*(\d+)(?:\.(\d+))?/);

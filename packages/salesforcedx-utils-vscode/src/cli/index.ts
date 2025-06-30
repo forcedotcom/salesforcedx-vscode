@@ -11,7 +11,6 @@ export {
   CompositeCliCommandExecution,
   CompositeCliCommandExecutor
 } from './commandExecutor';
-export { DiffErrorResponse, DiffResultParser, DiffSuccessResponse } from './diffResultParser';
 export { LocalCommandExecution } from './localCommandExecutor';
 export { OrgCreateErrorResult, OrgCreateResultParser, OrgCreateSuccessResult } from './orgCreateResultParser';
 export { OrgOpenContainerResultParser, OrgOpenErrorResult, OrgOpenSuccessResult } from './orgOpenContainerResultParser';

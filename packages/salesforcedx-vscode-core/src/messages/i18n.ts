@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils-vscode';
 /**
  * Conventions:
  * _message: is for unformatted text that will be shown as-is to
@@ -152,8 +152,8 @@ export const messages = {
   warning_prompt_overwrite_all: 'Overwrite All',
   warning_prompt_skip: 'Skip',
   warning_prompt_skip_all: 'Skip All',
-  warning_prompt_other_existing: '%s other existing components',
-  warning_prompt_other_not_shown: '...%s other components not shown\n',
+  warning_prompt_other_existing: '%d other existing components',
+  warning_prompt_other_not_shown: '...%d other components not shown\n',
   config_list_text: 'SFDX: List All Config Variables',
   alias_list_text: 'SFDX: List All Aliases',
   org_delete_default_text: 'SFDX: Delete Default Org',
@@ -201,6 +201,7 @@ export const messages = {
   error_updating_salesforce_project: 'Error updating sfdx-project.json: %s',
   error_writing_installed_package_info: 'Error writing installed-package.json: %s',
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
+  error_creating_launchjson: 'Error creating launch.json: %s',
 
   demo_mode_status_text: '$(gist-secret) SFDX DEMO',
   demo_mode_status_tooltip:
@@ -307,6 +308,8 @@ export const messages = {
   apex_execute_text: 'Execute Anonymous Apex',
   apex_execute_library: 'Apex Library: Execute Anonymous',
 
+  cannot_determine_workspace: 'Cannot determine workspace',
+
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
   AIApplication: 'AI Applications',
@@ -366,6 +369,7 @@ export const messages = {
   CompactLayout: 'Compact Layouts',
   ConnectedApp: 'Connected Apps',
   ContentAsset: 'Content Assets',
+  ContentTypeBundle: 'Content Type Bundles',
   ConvIntelligenceSignalRule: 'Conv Intelligence Signal Rules',
   ConversationChannelDefinition: 'Conversation Channel Definitions',
   ConversationMessageDefinition: 'Conversation Message Definitions',
@@ -631,6 +635,7 @@ export const messages = {
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
+  WorkflowFlowAutomation: 'Workflow Flow Automations',
   XOrgHub: 'X Org Hubs',
 
   conflict_detect_execution_name: 'Conflict Detection',
@@ -643,14 +648,14 @@ export const messages = {
   conflict_detect_show_conflicts: 'View Conflicts and Cancel Deploy',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
-  conflict_detect_conflict_header_timestamp: 'Conflicts:\n    Found %s file(s) in conflict:\n',
+  conflict_detect_conflict_header_timestamp: 'Conflicts:\n    Found %d file(s) in conflict:\n',
   conflict_detect_command_hint: '\nRun the following command to overwrite the conflicts:\n  %s',
   conflict_detect_no_target_org: 'No target org for this project',
   conflict_detect_no_default_package_dir: 'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',
   conflict_detect_not_enabled: 'Enable the Detect Conflicts at Sync setting to view org differences',
   conflict_detect_root_title: 'Org Differences',
-  conflict_detect_view_root: '%s : %s file difference(s)',
+  conflict_detect_view_root: '%s : %d file difference(s)',
   conflict_detect_no_conflicts: 'No conflicts',
   conflict_detect_no_differences: 'No differences',
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
@@ -668,6 +673,7 @@ export const messages = {
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',
   beta_tapi_queue_status: 'The deploy is still in the Queue',
+  lib_retrieve_no_results: 'No components retrieved',
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_result_parse_error: 'Not able to parse current results.',
   lib_retrieve_message_title: 'Retrieve Warnings',
@@ -703,9 +709,9 @@ export const messages = {
   error_unable_to_get_started_function: 'Unable to access the function in "{0}".',
   pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
   pending_org_expiration_notification_message:
-    'Warning: One or more of your orgs expire in the next %s days. For more details, review the Output panel.',
+    'Warning: One or more of your orgs expire in the next %d days. For more details, review the Output panel.',
   pending_org_expiration_output_channel_message:
-    'Warning: The following orgs expire in the next %s days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
+    'Warning: The following orgs expire in the next %d days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
   soql_doc_url: 'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
@@ -721,5 +727,11 @@ export const messages = {
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',
   create_not_supported: 'Create is not supported for multiple components',
-  input_incorrect_properties: 'Input does not contain correct component properties'
-};
+  input_incorrect_properties: 'Input does not contain correct component properties',
+  manifest_editor_title_message: 'Manifest Editor',
+  missing_label: `${MISSING_LABEL_MSG}: %s`
+} as const;
+
+export type MessageKey = keyof typeof messages;
+
+export const isValidMessageKey = (key: string): key is MessageKey => key in messages;

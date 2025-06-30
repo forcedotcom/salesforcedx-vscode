@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export { CLIENT_ID, SOBJECTS_DIR, STANDARDOBJECTS_DIR, CUSTOMOBJECTS_DIR, SOQLMETADATA_DIR } from './constants';
-export { SObjectTransformer, SObjectTransformerFactory } from './transformer';
 export * from './types';
-export * from './describe';
-export * from './utils';
+export * from './describe/types';
+export { toMinimalSObject } from './describe/sObjectDescribe';
+export { writeSobjectFiles } from './transformer/sobjectTransformer';

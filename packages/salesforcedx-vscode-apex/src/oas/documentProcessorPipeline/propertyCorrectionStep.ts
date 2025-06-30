@@ -7,10 +7,14 @@
 
 import { JSONPath } from 'jsonpath-plus';
 import { OpenAPIV3 } from 'openapi-types';
+import { hasAuraFrameworkCapability } from '../../oasUtils';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class PropertyCorrectionStep implements ProcessorStep {
+  private input: ProcessorInputOutput | undefined;
+
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+    this.input = input;
     let fixedOASDoc = this.ensureServersIsPresent(input.openAPIDoc);
     fixedOASDoc = this.ensureInfoVersionIsPresent(fixedOASDoc);
     fixedOASDoc = this.ensurePathDescriptionIsPresent(fixedOASDoc);
@@ -31,7 +35,9 @@ export class PropertyCorrectionStep implements ProcessorStep {
   }
 
   private ensureServersIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    return { ...oasDoc, ...{ servers: [{ url: '/services/apexrest' }] } };
+    return this.input?.context && hasAuraFrameworkCapability(this.input.context)
+      ? oasDoc
+      : { ...oasDoc, ...{ servers: [{ url: '/services/apexrest' }] } };
   }
 
   private ensureOperationDescriptionIsPresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
@@ -71,7 +77,7 @@ export class PropertyCorrectionStep implements ProcessorStep {
     jsonPath: string,
     defaultDescription: string
   ): OpenAPIV3.Document<{}> {
-    const items = JSONPath({ path: jsonPath, json: oasDoc }) as { description?: string }[];
+    const items = JSONPath<{ description?: string }[]>({ path: jsonPath, json: oasDoc });
 
     items.forEach(item => {
       if (item && typeof item === 'object' && (!Reflect.has(item, 'description') || !item.description)) {
@@ -83,7 +89,7 @@ export class PropertyCorrectionStep implements ProcessorStep {
   }
 
   private ensureResponseContentsArePresent(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    const responses = JSONPath({ path: '$.paths[*][*].responses[*]', json: oasDoc }) as OpenAPIV3.ResponseObject[];
+    const responses = JSONPath<OpenAPIV3.ResponseObject[]>({ path: '$.paths[*][*].responses[*]', json: oasDoc });
 
     responses.forEach(response => {
       if (response && !response.content) {

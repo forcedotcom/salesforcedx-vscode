@@ -38,13 +38,13 @@ import { getZeroBasedRange } from './range';
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;
-  private tests: string[];
-  private codeCoverage: boolean = false;
-  private outputDir: string;
+  private readonly tests: string[];
+  private readonly outputDir: string;
+  private readonly codeCoverage: boolean;
 
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
-  constructor(tests: string[], outputDir = getTempFolder(), codeCoverage = settings.retrieveTestCodeCoverage()) {
+  constructor(tests: string[], outputDir: string, codeCoverage = settings.retrieveTestCodeCoverage()) {
     super(nls.localize('apex_test_run_text'), 'apex_test_run_code_action_library', OUTPUT_CHANNEL);
     this.tests = tests;
     this.outputDir = outputDir;
@@ -70,6 +70,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
         }
       }
     };
+    // TODO: fix in apex-node W-18453221
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const result = (await testService.runTestAsynchronous(
       payload,
       this.codeCoverage,
@@ -99,7 +101,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     const projectPath = getRootWorkspacePath();
     const project = await SfProject.resolve(projectPath);
 
-    const testsWithDiagnostics = result.tests.filter(test => test.diagnostic);
+    const testsWithDiagnostics = result.tests.filter(isTestWithDiagnostic);
     if (testsWithDiagnostics.length === 0) {
       return;
     }
@@ -110,7 +112,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     );
 
     testsWithDiagnostics.forEach(test => {
-      const diagnostic = test.diagnostic as ApexDiagnostic;
+      const diagnostic = test.diagnostic;
       const componentPath = correlatedArtifacts.get(test.apexClass.fullName ?? test.apexClass.name);
 
       if (componentPath) {
@@ -166,15 +168,16 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   }
 }
 
-const apexTestRunCodeAction = async (tests: string[]) => {
-  const testRunExecutor = new ApexLibraryTestRunExecutor(tests);
+export const apexTestRunCodeAction = async (tests: string[]) => {
+  const outputDir = await getTempFolder();
+  const testRunExecutor = new ApexLibraryTestRunExecutor(tests, outputDir);
   const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), testRunExecutor);
   await commandlet.run();
 };
 
-const getTempFolder = (): string => {
+const getTempFolder = async (): Promise<string> => {
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
-    const apexDir = getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+    const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
@@ -196,7 +199,7 @@ export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
 
 // evaluate test class param: if not provided, apply cached value
 // exported for testability
-export const resolveTestClassParam = async (testClass: string): Promise<string> => {
+const resolveTestClassParam = async (testClass: string): Promise<string> => {
   if (isEmpty(testClass)) {
     // value not provided for re-run invocations
     // apply cached value, if available
@@ -234,8 +237,7 @@ export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
 };
 
 // evaluate test method param: if not provided, apply cached value
-// exported for testability
-export const resolveTestMethodParam = async (testMethod: string): Promise<string> => {
+const resolveTestMethodParam = async (testMethod: string): Promise<string> => {
   if (isEmpty(testMethod)) {
     // value not provided for re-run invocations
     // apply cached value, if available
@@ -260,3 +262,7 @@ export const apexTestMethodRunCodeAction = async (testMethod: string) => {
 
   await apexTestRunCodeAction([testMethod]);
 };
+
+const isTestWithDiagnostic = (
+  test: ApexTestResultData
+): test is ApexTestResultData & { diagnostic: ApexDiagnostic[] } => 'diagnostic' in test;

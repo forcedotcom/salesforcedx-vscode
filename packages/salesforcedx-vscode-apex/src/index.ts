@@ -24,7 +24,6 @@ import {
   apexTestSuiteAdd,
   apexTestSuiteCreate,
   apexTestSuiteRun,
-  createApexActionFromMethod,
   createApexActionFromClass,
   validateOpenApiDocument,
   launchApexReplayDebuggerWithCurrentFile,
@@ -68,7 +67,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   const testOutlineProvider = getTestOutlineProvider();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
-    const apexDirPath = getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+    const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
 
     const testResultOutput = path.join(apexDirPath, '*.json');
     const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(testResultOutput);
@@ -177,10 +176,6 @@ const registerCommands = (): vscode.Disposable => {
     'sf.anon.apex.execute.selection',
     anonApexExecute
   );
-  const createApexActionFromMethodCmd = vscode.commands.registerCommand(
-    'sf.create.apex.action.method',
-    createApexActionFromMethod
-  );
   const createApexActionFromClassCmd = vscode.commands.registerCommand(
     'sf.create.apex.action.class',
     createApexActionFromClass
@@ -193,9 +188,12 @@ const registerCommands = (): vscode.Disposable => {
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
   );
-  const restartApexLanguageServerCmd = vscode.commands.registerCommand('sf.apex.languageServer.restart', async () => {
-    await restartLanguageServerAndClient(extensionContext);
-  });
+  const restartApexLanguageServerCmd = vscode.commands.registerCommand(
+    'sf.apex.languageServer.restart',
+    async (source?: 'commandPalette' | 'statusBar') => {
+      await restartLanguageServerAndClient(extensionContext, source ?? 'commandPalette');
+    }
+  );
 
   return vscode.Disposable.from(
     anonApexDebugDelegateCmd,
@@ -217,7 +215,6 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd,
-    createApexActionFromMethodCmd,
     createApexActionFromClassCmd,
     validateOpenApiDocumentCmd,
     launchApexReplayDebuggerWithCurrentFileCmd,

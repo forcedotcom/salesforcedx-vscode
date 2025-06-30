@@ -8,7 +8,8 @@ import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { APEX_LSP_ORPHAN } from './constants';
-import { findAndCheckOrphanedProcesses, terminateProcess, ProcessDetail } from './languageUtils';
+import { findAndCheckOrphanedProcesses, terminateProcess } from './languageUtils';
+import { ProcessDetail } from './languageUtils/languageClientManager';
 import { nls } from './messages';
 import { getTelemetryService } from './telemetry/telemetry';
 
@@ -26,7 +27,6 @@ const COMMAND = nls.localize('process_command');
 const CONFIRM = 'terminate_processes_confirm';
 const TERMINATE_ORPHANED_PROCESSES = 'terminate_orphaned_language_server_instances';
 const TERMINATED_PROCESS = 'terminated_orphaned_process';
-const TERMINATE_FAILED = 'terminate_failed';
 
 const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
   const telemetryService = await getTelemetryService();
@@ -129,7 +129,7 @@ const showProcessTerminated = (processDetail: ProcessDetail): void => {
 };
 
 const showTerminationFailed = (processInfo: ProcessDetail, err: any): void => {
-  channelService.appendLine(nls.localize(TERMINATE_FAILED, processInfo.pid, err.message));
+  channelService.appendLine(nls.localize('terminate_failed', processInfo.pid, err.message));
 };
 
 export const languageServerOrphanHandler = {

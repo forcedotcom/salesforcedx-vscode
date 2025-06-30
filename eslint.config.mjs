@@ -14,9 +14,15 @@ import eslintPluginImport, { __esModule } from 'eslint-plugin-import';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+
+import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
+
+const localRules = {
+  'no-duplicate-i18n-values': noDuplicateI18nValues
+};
 
 export default [
   {
@@ -35,16 +41,18 @@ export default [
       'packages/salesforcedx-vscode-soql/test/vscode-integration',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-lwc/test/vscode-integration',
-      'packages/salesforcedx-vscode-core/test/vscode-integration/**'
+      'packages/salesforcedx-vscode-core/test/vscode-integration/**',
+      'scripts/installVSIXFromBranch.ts',
+      'scripts/vsce-bundled-extension.ts',
+      'scripts/reportInstalls.ts'
     ]
   },
-  eslintPluginPrettierRecommended,
   {
     files: ['**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        projectService: true,
         sourceType: 'module',
         ecmaVersion: 2020,
         globals: {
@@ -60,9 +68,11 @@ export default [
       'jest-formatting': eslintPluginJestFormatting,
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
-      unicorn: eslintPluginUnicorn
+      unicorn: eslintPluginUnicorn,
+      local: { rules: localRules }
     },
     rules: {
+      'local/no-duplicate-i18n-values': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/filename-case': [
         'error',
@@ -93,6 +103,7 @@ export default [
         }
       ],
       '@typescript-eslint/adjacent-overload-signatures': 'error',
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-restricted-types': [
         'warn',
@@ -114,13 +125,13 @@ export default [
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/prefer-for-of': 'warn',
       '@typescript-eslint/unbound-method': 'warn',
       'prefer-arrow/prefer-arrow-functions': ['error', {}],
-      '@typescript-eslint/consistent-type-assertions': 'error',
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/dot-notation': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
@@ -286,6 +297,8 @@ export default [
       'no-unused-expressions': 'off',
       'no-unused-labels': 'error',
       'no-use-before-define': 'off',
+      'no-useless-constructor': 'off',
+      '@typescript-eslint/no-useless-constructor': 'error',
       'no-var': 'error',
       'object-shorthand': 'error',
       'one-var': ['error', 'never'],
@@ -314,22 +327,19 @@ export default [
     }
   },
   {
-    files: ['packages/salesforcedx**/test/jest/**/*'],
+    files: ['packages/salesforcedx**/test/jest/**/*', 'packages/salesforcedx**/test/unit/**/*'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
       jest: eslintPluginJest
     },
     rules: {
       'unicorn/filename-case': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unused-expressions': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/restrict-template-expressions': 'warn',
-      '@typescript-eslint/unbound-method': 'off',
-      'jest/unbound-method': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -338,7 +348,12 @@ export default [
           argsIgnorePattern: '.*',
           ignoreRestSiblings: true
         }
-      ]
+      ],
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/restrict-template-expressions': 'warn',
+      '@typescript-eslint/unbound-method': 'off',
+      'jest/unbound-method': 'error',
+      'no-useless-constructor': 'off'
     }
   },
   {
@@ -350,5 +365,6 @@ export default [
     rules: {
       'header/header': 'off'
     }
-  }
+  },
+  eslintConfigPrettier
 ];
