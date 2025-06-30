@@ -77,7 +77,7 @@ export class WorkspaceContext {
     }
 
     try {
-      const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
+      const connection = await WorkspaceContextUtil.getInstance().getConnection();
       const traceFlags = new TraceFlags(connection);
       await traceFlags.handleTraceFlagCleanup(
         this.extensionContext,

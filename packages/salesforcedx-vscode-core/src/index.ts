@@ -501,7 +501,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   // Handle trace flag cleanup after setting target org
   try {
-    const connection = await WorkspaceContextUtil.createFreshConnectionForTargetOrg();
+    const connection = await WorkspaceContextUtil.getInstance().getConnection();
 
     const traceFlags = new TraceFlags(connection);
     await traceFlags.handleTraceFlagCleanup(

@@ -184,7 +184,7 @@ export class TraceFlags {
     // Change the status bar message to reflect the trace flag expiration date for the new target org
 
     // If there is a non-expired TraceFlag for the current user, update the status bar message
-    const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.createFreshConnectionForTargetOrg()); // Get the new connection after switching
+    const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection()); // Get the new connection after switching
     const newUserId = await newTraceFlags.getUserIdOrThrow();
     const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
     if (!myTraceFlag) {
