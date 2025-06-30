@@ -31,19 +31,19 @@ describe('Advanced Localization Unit Tests', () => {
 
   describe('LocalizationConfig', () => {
     it('should create a singleton instance', () => {
-      const config1 = LocalizationConfig.getInstance('test');
-      const config2 = LocalizationConfig.getInstance('test');
+      const config1 = LocalizationConfig.getInstance();
+      const config2 = LocalizationConfig.getInstance();
       expect(config1).toBe(config2);
     });
 
     it('should return the same instance for different instance names', () => {
-      const config1 = LocalizationConfig.getInstance('test1');
-      const config2 = LocalizationConfig.getInstance('test2');
+      const config1 = LocalizationConfig.getInstance();
+      const config2 = LocalizationConfig.getInstance();
       expect(config1).toBe(config2);
     });
 
     it('should recognize supported locales', () => {
-      const config = LocalizationConfig.getInstance('test');
+      const config = LocalizationConfig.getInstance();
       expect(config.isLocaleSupported('en')).toBe(true);
       expect(config.isLocaleSupported('ja')).toBe(true);
       expect(config.isLocaleSupported('fr')).toBe(false);
@@ -51,7 +51,7 @@ describe('Advanced Localization Unit Tests', () => {
     });
 
     it('should handle non-string locale values', () => {
-      const config = LocalizationConfig.getInstance('test');
+      const config = LocalizationConfig.getInstance();
       expect(config.isLocaleSupported(null)).toBe(false);
       expect(config.isLocaleSupported(undefined)).toBe(false);
       expect(config.isLocaleSupported(123)).toBe(false);
@@ -59,7 +59,7 @@ describe('Advanced Localization Unit Tests', () => {
     });
 
     it('should return the default locale', () => {
-      const config = LocalizationConfig.getInstance('test');
+      const config = LocalizationConfig.getInstance();
       expect(config.getDefaultLocale()).toBe(DEFAULT_LOCALE);
     });
   });

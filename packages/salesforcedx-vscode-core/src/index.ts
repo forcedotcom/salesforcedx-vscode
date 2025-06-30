@@ -110,7 +110,7 @@ const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'
 };
 
-const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
+const registerCommands = (): vscode.Disposable => {
   // Customer-facing commands
   const orgLoginAccessTokenCmd = vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken);
   const orgLoginWebCmd = vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb);
@@ -309,7 +309,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
 };
 
-const registerInternalDevCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
+const registerInternalDevCommands = (): vscode.Disposable => {
   const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
     'sf.internal.lightning.generate.app',
     internalLightningGenerateApp
@@ -401,7 +401,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   if (internalDev) {
     // Internal Dev commands
-    const internalCommands = registerInternalDevCommands(extensionContext);
+    const internalCommands = registerInternalDevCommands();
     extensionContext.subscriptions.push(internalCommands);
 
     // Api
@@ -425,7 +425,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   // Context
-  const salesforceProjectOpened = isSalesforceProjectOpened.apply(vscode.workspace).result;
+  const salesforceProjectOpened = isSalesforceProjectOpened.apply().result;
 
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
@@ -452,7 +452,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   // Commands
-  const commands = registerCommands(extensionContext);
+  const commands = registerCommands();
   extensionContext.subscriptions.push(commands);
   extensionContext.subscriptions.push(registerConflictView());
   extensionContext.subscriptions.push(CommandEventDispatcher.getInstance());

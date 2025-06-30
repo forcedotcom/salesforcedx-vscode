@@ -58,7 +58,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     return DeployType.Push;
   }
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize(coerceMessageKey(this.params.description.default)))
       .withArg(this.params.command)
@@ -89,16 +89,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      await this.exitProcessHandlerPush(
-        exitCode,
-        stdOut,
-        workspacePath,
-        execFilePathOrPaths,
-        execution,
-        startTime,
-        cancellationToken,
-        cancellationTokenSource
-      );
+      await this.exitProcessHandlerPush(exitCode, stdOut, workspacePath, execFilePathOrPaths, execution, startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
@@ -109,9 +100,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     workspacePath: string,
     execFilePathOrPaths: string,
     execution: CliCommandExecution,
-    startTime: [number, number],
-    cancellationToken: vscode.CancellationToken | undefined,
-    cancellationTokenSource: vscode.CancellationTokenSource
+    startTime: [number, number]
   ): Promise<void> {
     if (execution.command.logName === PROJECT_DEPLOY_START_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);

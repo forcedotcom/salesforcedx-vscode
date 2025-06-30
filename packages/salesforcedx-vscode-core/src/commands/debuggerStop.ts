@@ -63,7 +63,7 @@ class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
 }
 
 class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withArg('data:query')
       .withDescription(nls.localize('debugger_query_session_text'))

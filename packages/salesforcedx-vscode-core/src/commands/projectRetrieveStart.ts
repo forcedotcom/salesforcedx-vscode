@@ -42,7 +42,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     this.flag = flag;
   }
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize(coerceMessageKey(this.params.description.default)))
       .withArg(this.params.command)
@@ -100,14 +100,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
       this.outputResultPull(pullParser);
     }
 
-    const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
-    let properties;
-    let measurements;
-    if (telemetryData) {
-      properties = telemetryData.properties;
-      measurements = telemetryData.measurements;
-    }
-    this.logMetric(execution.command.logName, startTime, properties, measurements);
+    this.logMetric(execution.command.logName, startTime);
     this.onDidFinishExecutionEventEmitter.fire(startTime);
   }
 

@@ -6,7 +6,6 @@
  */
 
 import * as path from 'node:path';
-import { workspace } from 'vscode';
 import { fileOrFolderExists } from '../helpers/fs';
 import { nls } from '../messages';
 import { Predicate, PredicateResponse } from '../predicates';
@@ -14,8 +13,8 @@ import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';
 import { getRootWorkspacePath, hasRootWorkspace } from '../workspaces';
 import { notificationService } from './index';
 
-class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
-  public async apply(item: typeof workspace): Promise<PredicateResponse> {
+class IsSalesforceProjectOpened implements Predicate {
+  public async apply(): Promise<PredicateResponse> {
     if (!hasRootWorkspace()) {
       return PredicateResponse.of(false, nls.localize('predicates_no_folder_opened_text'));
     } else if (!(await fileOrFolderExists(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE)))) {
@@ -30,7 +29,7 @@ const isSalesforceProjectOpened = new IsSalesforceProjectOpened();
 
 export class SfWorkspaceChecker implements PreconditionChecker {
   public async check(): Promise<boolean> {
-    const result = await isSalesforceProjectOpened.apply(workspace);
+    const result = await isSalesforceProjectOpened.apply();
     if (!result.result) {
       notificationService.showErrorMessage(result.message);
       return false;

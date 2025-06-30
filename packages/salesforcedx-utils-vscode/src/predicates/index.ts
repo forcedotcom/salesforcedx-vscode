@@ -8,8 +8,8 @@
 // This file is meant to mimics the functionality of Predicate and Predicates from Google Guava.
 // Expand as necessary.
 
-export type Predicate<T> = {
-  apply(item: T): PredicateResponse | Promise<PredicateResponse>;
+export type Predicate = {
+  apply(): PredicateResponse | Promise<PredicateResponse>;
 };
 
 export class PredicateResponse {

@@ -20,11 +20,11 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
 
   public async run(
     response: ContinueResponse<AccessTokenParams>,
-    progress?: vscode.Progress<{
+    _progress?: vscode.Progress<{
       message?: string | undefined;
       increment?: number | undefined;
     }>,
-    token?: vscode.CancellationToken
+    _token?: vscode.CancellationToken
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
     try {

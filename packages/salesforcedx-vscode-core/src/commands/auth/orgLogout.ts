@@ -29,7 +29,7 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
     return instance;
   }
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_logout_all_text'))
       .withArg('org:logout')

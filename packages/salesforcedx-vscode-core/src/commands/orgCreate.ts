@@ -73,7 +73,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
       stdOut += realData.toString();
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
       try {
         const createParser = new OrgCreateResultParser(stdOut);

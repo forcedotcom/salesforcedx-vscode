@@ -35,7 +35,7 @@ class StartApexDebugLoggingExecutor extends SfCommandletExecutor<{}> {
     channelService.streamCommandOutput(execution);
   }
 
-  public async execute(response: ContinueResponse<{}>): Promise<void> {
+  public async execute(_response: ContinueResponse<{}>): Promise<void> {
     const startTime = process.hrtime();
     const executionWrapper = new CompositeCliCommandExecutor(this.build()).execute(this.cancellationToken);
     this.attachExecution(executionWrapper, this.cancellationTokenSource, this.cancellationToken);

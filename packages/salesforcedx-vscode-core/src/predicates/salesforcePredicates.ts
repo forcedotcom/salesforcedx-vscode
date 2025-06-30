@@ -8,12 +8,11 @@
 import { Predicate, PredicateResponse, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 
-export class IsSalesforceProjectOpened implements Predicate<typeof workspace> {
-  public apply(item: typeof workspace): PredicateResponse {
+export class IsSalesforceProjectOpened implements Predicate {
+  public apply(): PredicateResponse {
     if (!workspaceUtils.hasRootWorkspace()) {
       return PredicateResponse.of(false, nls.localize('predicates_no_folder_opened_text'));
     } else if (!fs.existsSync(path.join(workspaceUtils.getRootWorkspacePath(), SFDX_PROJECT_FILE))) {

@@ -10,7 +10,7 @@ import { nls } from '../messages';
 import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
 
 class ConfigList extends SfCommandletExecutor<{}> {
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('config_list_text'))
       .withArg('config:list')
