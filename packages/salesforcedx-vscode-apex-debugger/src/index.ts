@@ -29,7 +29,7 @@ import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
-import { getActiveApexExtension } from './context/isvContext';
+import { getActiveApexExtension } from './context/apexExtension';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 

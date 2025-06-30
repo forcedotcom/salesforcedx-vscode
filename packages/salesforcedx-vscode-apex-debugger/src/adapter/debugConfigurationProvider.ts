@@ -7,7 +7,7 @@
 
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger';
 import * as vscode from 'vscode';
-import { getActiveApexExtension } from '../context/isvContext';
+import { getActiveApexExtension } from '../context/apexExtension';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {

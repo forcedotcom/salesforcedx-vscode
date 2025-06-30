@@ -1191,7 +1191,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   protected printToDebugConsole(msg?: string, sourceFile?: Source, sourceLine?: number): void {
-    if (msg && msg.length > 0) {
+    if (msg?.length) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stdout');
       event.body.source = sourceFile;
       event.body.line = sourceLine;
@@ -1201,13 +1201,13 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   protected warnToDebugConsole(msg?: string): void {
-    if (msg && msg.length > 0) {
+    if (msg?.length) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'console'));
     }
   }
 
   protected errorToDebugConsole(msg?: string): void {
-    if (msg && msg.length > 0) {
+    if (msg?.length) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stderr'));
     }
   }
