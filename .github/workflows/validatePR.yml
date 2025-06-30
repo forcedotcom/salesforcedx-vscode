@@ -20,6 +20,7 @@ jobs:
         run: npm run lint
   e2e-tests:
     uses: ./.github/workflows/e2e.yml
+    secrets: inherit
     with:
       vscodeVersion: '1.100.3'
       runId: ${{ github.run_id }}
