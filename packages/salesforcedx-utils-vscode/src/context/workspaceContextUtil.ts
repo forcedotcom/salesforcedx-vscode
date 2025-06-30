@@ -88,10 +88,10 @@ export class WorkspaceContextUtil {
     // Check if the target org was successfully set by reading it back
     const actualTargetOrg = await ConfigUtil.getTargetOrgOrAlias();
     if (!actualTargetOrg) {
-      throw new Error('Config set operation did not complete successfully - no target org found');
+      throw new Error('createFreshConnectionForTargetOrg() failed - No target org found');
     }
 
-    console.log('Config set successful, target org is:', actualTargetOrg);
+    console.log('New target org is:', actualTargetOrg);
 
     // Get the actual username for the target org (in case actualTargetOrg is an alias)
     const username = await ConfigUtil.getUsernameFor(actualTargetOrg);
