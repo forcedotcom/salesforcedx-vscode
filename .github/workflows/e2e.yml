@@ -8,6 +8,48 @@ on:
     types:
       - completed
 
+  workflow_call:
+    inputs:
+      apexE2ETests:
+        description: 'Apex E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      coreE2ETests:
+        description: 'Core E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      deployAndRetrieveE2ETests:
+        description: 'Deploy and Retrieve E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      lspE2ETests:
+        description: 'LSP E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      lwcE2ETests:
+        description: 'LWC E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      soqlE2ETests:
+        description: 'SOQL E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: '1.100.3'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
   workflow_dispatch:
     inputs:
       apexE2ETests:
