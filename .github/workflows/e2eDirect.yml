@@ -1,0 +1,94 @@
+name: Direct E2E Tests
+on:
+  workflow_call:
+    inputs:
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: '1.100.3'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+jobs:
+  apex-replay-debugger:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'apexReplayDebugger.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  authentication:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'authentication.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  create-oas-doc:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'createOasDoc.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  debug-apex-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'debugApexTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  debug-lwc-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'debugLwcTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  deploy-and-retrieve:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'deployAndRetrieve.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  manifest-builder:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'manifestBuilder.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  run-lwc-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'runLwcTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  sobjects-definitions:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'sObjectsDefinitions.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  trail-apex-replay-debugger:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'trailApexReplayDebugger.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
