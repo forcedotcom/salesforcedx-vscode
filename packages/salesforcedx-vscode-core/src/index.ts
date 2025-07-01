@@ -90,7 +90,7 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { APEX_CODE_DEBUG_LEVEL, ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND, TRACE_FLAG_EXPIRATION_KEY } from './constants';
+import { APEX_CODE_DEBUG_LEVEL, ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators, showDemoMode } from './decorators';
@@ -506,7 +506,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     const traceFlags = new TraceFlags(connection);
     await traceFlags.handleTraceFlagCleanup(
       extensionContext,
-      TRACE_FLAG_EXPIRATION_KEY,
       APEX_CODE_DEBUG_LEVEL
     );
   } catch (error) {

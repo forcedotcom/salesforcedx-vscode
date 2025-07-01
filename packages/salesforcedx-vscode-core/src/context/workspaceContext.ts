@@ -8,7 +8,7 @@
 import { Connection } from '@salesforce/core-bundle';
 import { OrgUserInfo, WorkspaceContextUtil, TraceFlags, disposeTraceFlagExpiration } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY } from '../constants';
+import { APEX_CODE_DEBUG_LEVEL } from '../constants';
 import { decorators } from '../decorators';
 import { OrgAuthInfo } from '../util/authInfo';
 import { workspaceContextUtils } from '.';
@@ -81,7 +81,6 @@ export class WorkspaceContext {
       const traceFlags = new TraceFlags(connection);
       await traceFlags.handleTraceFlagCleanup(
         this.extensionContext,
-        TRACE_FLAG_EXPIRATION_KEY,
         APEX_CODE_DEBUG_LEVEL
       );
     } catch (error) {

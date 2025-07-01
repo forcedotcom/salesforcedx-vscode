@@ -18,3 +18,4 @@ export const TARGET_ORG_KEY = 'target-org';
 export const TRUE = 'true';
 export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
 export const INTERNAL_FILTER = 'internal.salesforce.com';
+export const TRACE_FLAG_EXPIRATION_KEY = 'apexReplayDebugger.traceFlagExpiration';

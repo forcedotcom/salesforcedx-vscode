@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService, TraceFlags, showTraceFlagExpiration } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, TraceFlags, showTraceFlagExpiration, TRACE_FLAG_EXPIRATION_KEY } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY } from '../constants';
+import { APEX_CODE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContext } from '../context';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 

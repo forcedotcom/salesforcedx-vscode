@@ -17,7 +17,8 @@ export {
   SFDX_CORE_CONFIGURATION_NAME,
   SFDX_CORE_EXTENSION_NAME,
   SFDX_LWC_EXTENSION_NAME,
-  TELEMETRY_GLOBAL_USER_ID
+  TELEMETRY_GLOBAL_USER_ID,
+  TRACE_FLAG_EXPIRATION_KEY
 } from './constants';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService, TelemetryBuilder } from './services/telemetry';

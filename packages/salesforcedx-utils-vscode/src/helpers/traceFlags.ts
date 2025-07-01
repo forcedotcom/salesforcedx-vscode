@@ -7,6 +7,7 @@
 import { Connection } from '@salesforce/core-bundle';
 import * as vscode from 'vscode';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
+import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { optionHHmm, optionMMddYYYY } from '../date';
 import { nls } from '../messages';
@@ -177,7 +178,6 @@ export class TraceFlags {
 
   public async handleTraceFlagCleanup(
     extensionContext: vscode.ExtensionContext,
-    traceTagExpirationKey: string,
     apexCodeDebugLevel: string
   ): Promise<void> {
 
@@ -194,19 +194,19 @@ export class TraceFlags {
 
     const currentTime = new Date();
     if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
-      extensionContext.workspaceState.update(traceTagExpirationKey, myTraceFlag.ExpirationDate);
+      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, myTraceFlag.ExpirationDate);
     } else {
-      extensionContext.workspaceState.update(traceTagExpirationKey, undefined);
+      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
     }
 
     // Delete expired TraceFlags for the current user
     const expiredTraceFlagExists = await newTraceFlags.deleteExpiredTraceFlags(newUserId);
     if (expiredTraceFlagExists) {
-      extensionContext.workspaceState.update(traceTagExpirationKey, undefined);
+      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
     }
 
     // Apex Replay Debugger Expiration Status Bar Entry
-    const expirationDate = extensionContext.workspaceState.get<string>(traceTagExpirationKey);
+    const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
     if (expirationDate) {
       showTraceFlagExpiration(new Date(expirationDate), apexCodeDebugLevel);
     } else {
