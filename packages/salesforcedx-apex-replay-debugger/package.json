@@ -31,7 +31,7 @@
     "ts-jest": "^29.1.1"
   },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/adapter/apexReplayDebug.ts  --bundle --outfile=dist/apexreplaydebug.js --format=cjs --platform=node --minify",
+    "bundle:debugger": "node esbuild.config.js",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
