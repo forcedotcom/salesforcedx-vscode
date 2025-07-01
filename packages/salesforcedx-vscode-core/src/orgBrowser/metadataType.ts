@@ -72,7 +72,7 @@ const buildTypesList = (input: { metadataTypesPath: string } | { metadataJSONCon
       'metadataJSONContents' in input ? input.metadataJSONContents : fs.readFileSync(input.metadataTypesPath, 'utf8')
     );
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const metadataTypeObjects = (jsonObject.result.metadataObjects as MetadataObject[])
+    const metadataTypeObjects = (jsonObject.metadataObjects as MetadataObject[])
       .filter(type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName))
       .map(mdTypeObject => ({
         ...mdTypeObject,
