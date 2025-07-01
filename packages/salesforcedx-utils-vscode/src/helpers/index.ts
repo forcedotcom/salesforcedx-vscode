@@ -13,8 +13,11 @@ export {
   deleteFile,
   ensureCurrentWorkingDirIsProjectPath,
   fileOrFolderExists,
+  isDirectory,
+  isFile,
   readDirectory,
   readFile,
+  rename,
   safeDelete,
   stat,
   writeFile

@@ -9,6 +9,6 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
 export type CommandletExecutor<T> = {
-  execute(response: ContinueResponse<T>): void;
+  execute(response: ContinueResponse<T>): void | Promise<void>;
   readonly onDidFinishExecution?: vscode.Event<[number, number]>;
 };

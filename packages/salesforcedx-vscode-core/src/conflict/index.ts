@@ -14,6 +14,7 @@ import { ConflictView } from './conflictView';
 export { DirectoryDiffResults } from './directoryDiffer';
 export { MetadataCacheExecutor, MetadataCacheResult, MetadataCacheService, PathType } from './metadataCacheService';
 export { PersistentStorageService } from './persistentStorageService';
+export { filesDiffer } from './conflictUtils';
 export const conflictView = ConflictView.getInstance();
 
 export const setupConflictView = async (extensionContext: ExtensionContext): Promise<void> => {

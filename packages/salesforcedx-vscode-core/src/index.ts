@@ -428,7 +428,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   // Context
-  const salesforceProjectOpened = isSalesforceProjectOpened.apply(vscode.workspace).result;
+  const salesforceProjectOpened = (await isSalesforceProjectOpened.apply(vscode.workspace)).result;
 
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;

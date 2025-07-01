@@ -34,11 +34,11 @@ describe('TimestampConflictDetector', () => {
       // Only return a diff for the first file, which should have tripped the timestamp check
       diffComponentsStub = jest
         .spyOn(diffUtils, 'diffComponents')
-        .mockReturnValueOnce(testData.dummyDiffs)
-        .mockReturnValueOnce([]);
+        .mockResolvedValueOnce(testData.dummyDiffs)
+        .mockResolvedValueOnce([]);
       const timestampConflictDetector = new TimestampConflictDetector();
 
-      const diffs = timestampConflictDetector.createDiffs(testData.dummyMetadataCacheResult as any);
+      const diffs = await timestampConflictDetector.createDiffs(testData.dummyMetadataCacheResult as any);
 
       expect(correlateResultsStub).toHaveBeenCalledWith(testData.dummyMetadataCacheResult);
       expect(persistentStorageServiceMock).toHaveBeenCalled();
