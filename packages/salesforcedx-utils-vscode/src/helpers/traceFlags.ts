@@ -26,6 +26,9 @@ type TraceFlagRecord = {
   DebugLevel: DebugLevelRecord;
 };
 
+/** Generate user-specific key for storing trace flag expiration */
+export const getTraceFlagExpirationKey = (userId: string): string => `${TRACE_FLAG_EXPIRATION_KEY}_${userId}`;
+
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
   private readonly MILLISECONDS_PER_MINUTE = 60000;
@@ -184,27 +187,30 @@ export class TraceFlags {
     const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection()); // Get the new connection after switching
     const newUserId = await newTraceFlags.getUserIdOrThrow();
     const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
+
+    const userSpecificKey = getTraceFlagExpirationKey(newUserId);
+
     if (!myTraceFlag) {
-      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+      extensionContext.workspaceState.update(userSpecificKey, undefined);
       disposeTraceFlagExpiration();
       return;
     }
 
     const currentTime = new Date();
     if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
-      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, myTraceFlag.ExpirationDate);
+      extensionContext.workspaceState.update(userSpecificKey, myTraceFlag.ExpirationDate);
     } else {
-      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+      extensionContext.workspaceState.update(userSpecificKey, undefined);
     }
 
     // Delete expired TraceFlags for the current user
     const expiredTraceFlagExists = await newTraceFlags.deleteExpiredTraceFlags(newUserId);
     if (expiredTraceFlagExists) {
-      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+      extensionContext.workspaceState.update(userSpecificKey, undefined);
     }
 
     // Apex Replay Debugger Expiration Status Bar Entry
-    const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
+    const expirationDate = extensionContext.workspaceState.get<string>(userSpecificKey);
     if (expirationDate) {
       showTraceFlagExpiration(new Date(expirationDate));
     } else {

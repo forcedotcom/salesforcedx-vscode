@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService, TraceFlags, showTraceFlagExpiration, TRACE_FLAG_EXPIRATION_KEY } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, TraceFlags, showTraceFlagExpiration, getTraceFlagExpirationKey } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
@@ -22,17 +22,20 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
   // If an expired TraceFlag exists for the current user, delete it
   await traceFlags.deleteExpiredTraceFlags(userId);
 
+  // Get user-specific key for storing expiration date
+  const userSpecificKey = getTraceFlagExpirationKey(userId);
+
   try {
     const debugLevelResultId = await traceFlags.getOrCreateDebugLevel();
     const expirationDate = traceFlags.calculateExpirationDate(new Date());
     await traceFlags.createTraceFlag(userId, debugLevelResultId, expirationDate);
 
-    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, expirationDate);
+    extensionContext.workspaceState.update(userSpecificKey, expirationDate);
     showTraceFlagExpiration(expirationDate);
 
     await handleFinishCommand(command, true);
   } catch {
-    const expirationDate = extensionContext.workspaceState.get<Date>(TRACE_FLAG_EXPIRATION_KEY);
+    const expirationDate = extensionContext.workspaceState.get<Date>(userSpecificKey);
     if (expirationDate) {
       const expirationDateValidated = new Date(expirationDate);
       await notificationService.showInformationMessage(

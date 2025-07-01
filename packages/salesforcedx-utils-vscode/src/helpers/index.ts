@@ -20,7 +20,7 @@ export {
   writeFile
 } from './fs';
 export { fileExtensionsMatch, getRelativeProjectPath, getTestResultsFolder, projectPaths, TOOLS } from './paths';
-export { TraceFlags, showTraceFlagExpiration, disposeTraceFlagExpiration } from './traceFlags';
+export { TraceFlags, showTraceFlagExpiration, disposeTraceFlagExpiration, getTraceFlagExpirationKey } from './traceFlags';
 export {
   difference,
   extractJson,

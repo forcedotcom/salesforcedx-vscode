@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService, TraceFlags, disposeTraceFlagExpiration, TRACE_FLAG_EXPIRATION_KEY } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, TraceFlags, disposeTraceFlagExpiration, getTraceFlagExpirationKey } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
@@ -24,7 +24,11 @@ export const turnOffLogging = async (extensionContext: vscode.ExtensionContext):
 
   if (myTraceFlag?.Id) {
     await connection.tooling.delete('TraceFlag', myTraceFlag.Id);
-    extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
+
+    // Get user-specific key for clearing expiration date
+    const userSpecificKey = getTraceFlagExpirationKey(userId);
+    extensionContext.workspaceState.update(userSpecificKey, undefined);
+
     disposeTraceFlagExpiration();
     await handleFinishCommand(command, true);
   } else {
