@@ -43,6 +43,9 @@ export const messages = {
     'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   trace_flags_unknown_user: 'Unknown user',
   trace_flags_failed_to_create_debug_level: 'Failed to create a debug level',
+  apex_debug_log_status_bar_text: '$(file-text) Recording detailed logs until %s',
+  apex_debug_log_status_bar_hover_text:
+    'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
   no_local_or_remote_changes_found: 'No local or remote changes found.',
   state: 'STATE',
   full_name: 'FULL NAME',

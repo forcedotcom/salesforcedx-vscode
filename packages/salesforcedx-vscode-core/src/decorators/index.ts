@@ -6,8 +6,7 @@
  */
 
 export { showDemoMode } from './demoModeDecorator';
-export { disposeTraceFlagExpiration, showTraceFlagExpiration } from './traceflagTimeDecorator';
-import { showOrg } from './scratchOrgDecorator';
+import { showOrg } from './orgDecorator';
 
 export const decorators = {
   showOrg

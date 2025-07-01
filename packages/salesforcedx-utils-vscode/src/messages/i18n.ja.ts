@@ -41,5 +41,8 @@ export const messages: Partial<Record<MessageKey, string>> = {
   predicates_no_folder_opened_text:
     'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
   predicates_no_salesforce_project_found_text:
-    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。'
+    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
+  apex_debug_log_status_bar_text: '$(file-text) 詳細なログを記録しています。%s まで。',
+  apex_debug_log_status_bar_hover_text:
+    'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
 };
