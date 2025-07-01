@@ -7,7 +7,7 @@
 import { Connection } from '@salesforce/core-bundle';
 import * as vscode from 'vscode';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
-import { TRACE_FLAG_EXPIRATION_KEY } from '../constants';
+import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { optionHHmm, optionMMddYYYY } from '../date';
 import { nls } from '../messages';
@@ -64,8 +64,8 @@ export class TraceFlags {
   private async updateDebugLevel(id: string): Promise<boolean> {
     const debugLevel = {
       Id: id,
-      ApexCode: 'FINEST',
-      Visualforce: 'FINER'
+      ApexCode: APEX_CODE_DEBUG_LEVEL,
+      Visualforce: VISUALFORCE_DEBUG_LEVEL
     };
     const result = await this.connection.tooling.update('DebugLevel', debugLevel);
     return result.success;
@@ -85,8 +85,8 @@ export class TraceFlags {
     const debugLevel = {
       DeveloperName: 'ReplayDebuggerLevels',
       MasterLabel: 'ReplayDebuggerLevels',
-      ApexCode: 'FINEST',
-      Visualforce: 'FINER'
+      ApexCode: APEX_CODE_DEBUG_LEVEL,
+      Visualforce: VISUALFORCE_DEBUG_LEVEL
     };
     const debugLevelResult = await this.connection.tooling.create('DebugLevel', debugLevel);
     if (!debugLevelResult.success) {
@@ -176,10 +176,7 @@ export class TraceFlags {
     return false;
   }
 
-  public async handleTraceFlagCleanup(
-    extensionContext: vscode.ExtensionContext,
-    apexCodeDebugLevel: string
-  ): Promise<void> {
+  public async handleTraceFlagCleanup(extensionContext: vscode.ExtensionContext): Promise<void> {
 
     // Change the status bar message to reflect the trace flag expiration date for the new target org
 
@@ -208,7 +205,7 @@ export class TraceFlags {
     // Apex Replay Debugger Expiration Status Bar Entry
     const expirationDate = extensionContext.workspaceState.get<string>(TRACE_FLAG_EXPIRATION_KEY);
     if (expirationDate) {
-      showTraceFlagExpiration(new Date(expirationDate), apexCodeDebugLevel);
+      showTraceFlagExpiration(new Date(expirationDate));
     } else {
       disposeTraceFlagExpiration();
     }
@@ -217,17 +214,14 @@ export class TraceFlags {
 
 let statusBarItem: StatusBarItem | undefined;
 
-export const showTraceFlagExpiration = (
-  expirationDate: Date,
-  apexCodeDebugLevel: string
-): void => {
+export const showTraceFlagExpiration = (expirationDate: Date): void => {
   statusBarItem ??= window.createStatusBarItem(StatusBarAlignment.Left, 40);
   const expirationHHmm = expirationDate.toLocaleTimeString(undefined, optionHHmm);
   statusBarItem.text = nls.localize('apex_debug_log_status_bar_text', expirationHHmm);
 
   statusBarItem.tooltip = nls.localize(
     'apex_debug_log_status_bar_hover_text',
-    apexCodeDebugLevel,
+    APEX_CODE_DEBUG_LEVEL,
     expirationHHmm,
     expirationDate.toLocaleDateString(undefined, optionMMddYYYY)
   );

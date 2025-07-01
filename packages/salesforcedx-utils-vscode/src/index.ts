@@ -13,12 +13,14 @@ export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/comm
 export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
+  APEX_CODE_DEBUG_LEVEL,
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME,
   SFDX_CORE_EXTENSION_NAME,
   SFDX_LWC_EXTENSION_NAME,
   TELEMETRY_GLOBAL_USER_ID,
-  TRACE_FLAG_EXPIRATION_KEY
+  TRACE_FLAG_EXPIRATION_KEY,
+  VISUALFORCE_DEBUG_LEVEL
 } from './constants';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService, TelemetryBuilder } from './services/telemetry';

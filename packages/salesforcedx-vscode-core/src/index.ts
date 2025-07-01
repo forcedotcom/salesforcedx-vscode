@@ -90,7 +90,7 @@ import {
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { APEX_CODE_DEBUG_LEVEL, ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators, showDemoMode } from './decorators';
@@ -505,8 +505,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
     const traceFlags = new TraceFlags(connection);
     await traceFlags.handleTraceFlagCleanup(
-      extensionContext,
-      APEX_CODE_DEBUG_LEVEL
+      extensionContext
     );
   } catch (error) {
     console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);

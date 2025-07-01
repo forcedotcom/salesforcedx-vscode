@@ -7,7 +7,6 @@
 
 import { notificationService, TraceFlags, showTraceFlagExpiration, TRACE_FLAG_EXPIRATION_KEY } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { APEX_CODE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContext } from '../context';
 import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
 
@@ -29,7 +28,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
     await traceFlags.createTraceFlag(userId, debugLevelResultId, expirationDate);
 
     extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, expirationDate);
-    showTraceFlagExpiration(expirationDate, APEX_CODE_DEBUG_LEVEL);
+    showTraceFlagExpiration(expirationDate);
 
     await handleFinishCommand(command, true);
   } catch {
