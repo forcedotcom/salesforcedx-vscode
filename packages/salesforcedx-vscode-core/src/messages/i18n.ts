@@ -180,9 +180,6 @@ export const messages = {
   project_generate_analytics_template: 'Analytics project template',
   apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
   start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
-  apex_debug_log_status_bar_text: '$(file-text) Recording detailed logs until %s',
-  apex_debug_log_status_bar_hover_text:
-    'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
   stop_apex_debug_logging: 'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_create_project: 'SFDX: ISV Debugger Setup, Step 1 of 5: Creating project',
   isv_debug_bootstrap_configure_project: 'SFDX: ISV Debugger Setup, Step 2 of 5: Configuring project',
