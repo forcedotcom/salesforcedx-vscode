@@ -75,9 +75,17 @@ jobs:
           find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
           find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
-          # Clean up potentially corrupted VS Code archives
+          # Clean up potentially corrupted VS Code archives and cache
           rm -rf ./test-resources/*.zip 2>/dev/null || true
           rm -rf ./test-resources/vscode-* 2>/dev/null || true
+          rm -rf ./test-resources/VS* 2>/dev/null || true
+          rm -rf ~/.cache/vscode-test 2>/dev/null || true
+
+          # Force clean extraction directory if it exists
+          if [ -d "./test-resources" ]; then
+            find ./test-resources -name "*vscode*" -type d -exec rm -rf {} + 2>/dev/null || true
+            find ./test-resources -name "*VS*" -type d -exec rm -rf {} + 2>/dev/null || true
+          fi
 
           # Install dependencies
           npm install
