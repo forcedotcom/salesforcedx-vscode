@@ -23,25 +23,25 @@ export class TimestampConflictDetector {
     this.diffs = Object.assign({}, TimestampConflictDetector.EMPTY_DIFFS);
   }
 
-  public createDiffs(result?: MetadataCacheResult): DirectoryDiffResults {
+  public async createDiffs(result?: MetadataCacheResult): Promise<DirectoryDiffResults> {
     if (!result) {
       return TimestampConflictDetector.EMPTY_DIFFS;
     }
     this.createRootPaths(result);
     const components = MetadataCacheService.correlateResults(result);
-    this.determineConflicts(components);
+    await this.determineConflicts(components);
     return this.diffs;
   }
 
-  private determineConflicts(components: CorrelatedComponent[]) {
+  private async determineConflicts(components: CorrelatedComponent[]) {
     const cache = PersistentStorageService.getInstance();
     const conflicts: Set<TimestampFileProperties> = new Set<TimestampFileProperties>();
-    components.forEach(component => {
+    for (const component of components) {
       const lastModifiedInOrg = component.lastModifiedDate;
       const key = cache.makeKey(component.cacheComponent.type.name, component.cacheComponent.fullName);
       const lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (!lastModifiedInCache || this.dateIsGreater(lastModifiedInOrg, lastModifiedInCache)) {
-        const differences = diffComponents(component.projectComponent, component.cacheComponent);
+        const differences = await diffComponents(component.projectComponent, component.cacheComponent);
         if (differences) {
           differences.forEach(difference => {
             const cachePathRelative = relative(this.diffs.remoteRoot, difference.cachePath);
@@ -55,7 +55,7 @@ export class TimestampConflictDetector {
           });
         }
       }
-    });
+    }
     this.diffs.different = conflicts;
   }
 

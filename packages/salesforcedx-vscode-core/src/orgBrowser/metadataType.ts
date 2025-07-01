@@ -9,9 +9,10 @@ import {
   isNullOrUndefined,
   MISSING_LABEL_MSG,
   projectPaths,
-  workspaceUtils
+  workspaceUtils,
+  readFile,
+  fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { describeMetadata } from '../commands';
 import { coerceMessageKey, nls } from '../messages';
@@ -30,7 +31,7 @@ export class TypeUtils {
 
   public static readonly UNSUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
 
-  public async getTypesFolder(): Promise<string> {
+  public getTypesFolder(): string {
     if (!workspaceUtils.hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
       telemetryService.sendException('metadata_type_workspace', err);
@@ -41,15 +42,15 @@ export class TypeUtils {
   }
 
   public async loadTypes(forceRefresh?: boolean): Promise<MetadataObject[]> {
-    const typesFolder = await this.getTypesFolder();
+    const typesFolder = this.getTypesFolder();
     const typesPath = path.join(typesFolder, 'metadataTypes.json');
 
     let typesList: MetadataObject[];
-    if (forceRefresh || !fs.existsSync(typesPath)) {
+    if (forceRefresh || !(await fileOrFolderExists(typesPath))) {
       const result = await describeMetadata(typesFolder);
-      typesList = buildTypesList({ metadataJSONContents: result });
+      typesList = await buildTypesList({ metadataJSONContents: result });
     } else {
-      typesList = buildTypesList({ metadataTypesPath: typesPath });
+      typesList = await buildTypesList({ metadataTypesPath: typesPath });
     }
     return typesList;
   }
@@ -66,10 +67,12 @@ export class TypeUtils {
   }
 }
 
-const buildTypesList = (input: { metadataTypesPath: string } | { metadataJSONContents: string }): MetadataObject[] => {
+const buildTypesList = async (
+  input: { metadataTypesPath: string } | { metadataJSONContents: string }
+): Promise<MetadataObject[]> => {
   try {
     const jsonObject = JSON.parse(
-      'metadataJSONContents' in input ? input.metadataJSONContents : fs.readFileSync(input.metadataTypesPath, 'utf8')
+      'metadataJSONContents' in input ? input.metadataJSONContents : await readFile(input.metadataTypesPath)
     );
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const metadataTypeObjects = (jsonObject.result.metadataObjects as MetadataObject[])

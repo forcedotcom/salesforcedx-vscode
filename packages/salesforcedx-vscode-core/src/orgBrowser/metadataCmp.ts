@@ -5,9 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core-bundle';
-import { isNullOrUndefined, projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  fileOrFolderExists,
+  isNullOrUndefined,
+  projectPaths,
+  readFile,
+  workspaceUtils,
+  writeFile
+} from '@salesforce/salesforcedx-utils-vscode';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve-bundle/lib/src/registry';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
@@ -25,7 +31,7 @@ const STANDARDVALUESET_FULLNAME = 'StandardValueSet';
 export const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
 
 export class ComponentUtils {
-  public async getComponentsPath(metadataType: string, folderName?: string): Promise<string> {
+  public getComponentsPath(metadataType: string, folderName?: string): string {
     if (!workspaceUtils.hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
       telemetryService.sendException('metadata_cmp_workspace', err);
@@ -33,14 +39,18 @@ export class ComponentUtils {
     }
 
     const fileName = `${folderName ? `${metadataType}_${folderName}` : metadataType}.json`;
-    const componentsPath = path.join(await projectPaths.metadataFolder(), fileName);
+    const componentsPath = path.join(projectPaths.metadataFolder(), fileName);
     return componentsPath;
   }
 
-  public buildComponentsList(metadataType: string, componentsFile?: string, componentsPath?: string): string[] {
+  public async buildComponentsList(
+    metadataType: string,
+    componentsFile?: string,
+    componentsPath?: string
+  ): Promise<string[]> {
     try {
       if (isNullOrUndefined(componentsFile)) {
-        componentsFile = fs.readFileSync(componentsPath!, 'utf8');
+        componentsFile = await readFile(componentsPath!);
       }
 
       const jsonObject = JSON.parse(componentsFile);
@@ -68,9 +78,9 @@ export class ComponentUtils {
     }
   }
 
-  public buildCustomObjectFieldsList(result?: string, componentsPath?: string): string[] {
+  public async buildCustomObjectFieldsList(result?: string, componentsPath?: string): Promise<string[]> {
     if (isNullOrUndefined(result)) {
-      result = fs.readFileSync(componentsPath!, 'utf8');
+      result = await readFile(componentsPath!);
     }
     const jsonResult = JSON.parse(result);
     const fields = jsonResult.result.map(
@@ -102,7 +112,7 @@ export class ComponentUtils {
     });
     const result = { status: 0, result: metadataFileProperties };
     const jsonResult = JSON.stringify(result, null, 2);
-    fs.writeFileSync(componentsPath, jsonResult);
+    await writeFile(componentsPath, jsonResult);
     return jsonResult;
   }
 
@@ -115,7 +125,7 @@ export class ComponentUtils {
     const describeSObjectFieldsList = describeSObjectFields.fields;
     const result = { status: 0, result: describeSObjectFieldsList };
     const jsonResult = JSON.stringify(result, null, 2);
-    fs.writeFileSync(componentsPath, jsonResult);
+    await writeFile(componentsPath, jsonResult);
     return jsonResult;
   }
 
@@ -126,15 +136,15 @@ export class ComponentUtils {
     folderName?: string,
     forceRefresh?: boolean
   ): Promise<string[]> {
-    const componentsPath = await this.getComponentsPath(metadataType, folderName);
+    const componentsPath = this.getComponentsPath(metadataType, folderName);
     let componentsList: string[];
-    const freshFetch = forceRefresh || !fs.existsSync(componentsPath);
+    const freshFetch = forceRefresh || !(await fileOrFolderExists(componentsPath));
     const connection = await WorkspaceContext.getInstance().getConnection();
     if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
       if (freshFetch) {
         componentsList = await this.fetchCustomObjectsFields(connection, componentsPath, folderName);
       } else {
-        componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
+        componentsList = await this.fetchExistingCustomObjectsFields(componentsPath);
       }
     } else if (metadataType === STANDARDVALUESET_FULLNAME) {
       componentsList = standardValueSet.fullnames;
@@ -142,7 +152,7 @@ export class ComponentUtils {
       if (freshFetch) {
         componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName);
       } else {
-        componentsList = this.fetchExistingMetadataComponents(metadataType, componentsPath);
+        componentsList = await this.fetchExistingMetadataComponents(metadataType, componentsPath);
       }
     }
     return componentsList;
@@ -157,9 +167,7 @@ export class ComponentUtils {
    */
   public async fetchCustomObjectsFields(connection: Connection, componentsPath: string, folderName: string) {
     const result = await this.fetchAndSaveSObjectFieldsProperties(connection, componentsPath, folderName);
-    const fieldList = this.buildCustomObjectFieldsList(result, componentsPath);
-
-    return fieldList;
+    return this.buildCustomObjectFieldsList(result, componentsPath);
   }
 
   /**
@@ -168,7 +176,7 @@ export class ComponentUtils {
    * @param componentsPath existing json file path of the component
    * @returns list of name of metadata components
    */
-  public fetchExistingMetadataComponents(metadataType: string, componentsPath: string) {
+  public async fetchExistingMetadataComponents(metadataType: string, componentsPath: string) {
     return this.buildComponentsList(metadataType, undefined, componentsPath);
   }
 
@@ -192,8 +200,7 @@ export class ComponentUtils {
       componentsPath,
       folderName
     );
-    const componentList = this.buildComponentsList(metadataType, result, undefined);
-    return componentList;
+    return this.buildComponentsList(metadataType, result, undefined);
   }
 
   /**
@@ -201,7 +208,7 @@ export class ComponentUtils {
    * @param componentsPath existing json file path of the component
    * @returns a list of all fields of the standard or custom object
    */
-  public fetchExistingCustomObjectsFields(componentsPath: string) {
+  public async fetchExistingCustomObjectsFields(componentsPath: string) {
     return this.buildCustomObjectFieldsList(undefined, componentsPath);
   }
 }
