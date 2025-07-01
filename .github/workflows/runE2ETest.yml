@@ -57,6 +57,7 @@ jobs:
           #!/bin/bash
           set -e
           export MSYS_NO_PATHCONV=1
+          export HUSKY_SKIP_INSTALL=1
           cd salesforcedx-vscode
 
           # Clean project directories

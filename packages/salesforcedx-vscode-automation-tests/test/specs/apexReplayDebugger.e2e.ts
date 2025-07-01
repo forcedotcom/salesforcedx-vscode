@@ -102,7 +102,7 @@ describe('Apex Replay Debugger', () => {
       10
     );
     expect(outputPanelText).to.not.be.undefined;
-    expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger ');
+    expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger');
     expect(outputPanelText).to.contain('ended with exit code 0');
   });
 

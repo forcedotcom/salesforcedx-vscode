@@ -263,7 +263,7 @@ describe('Push and Pull', () => {
     type?: string
   ): Promise<string | undefined> => {
     await verifyNotificationWithRetry(
-      /SFDX: ${operation} Source ${fromTo} Default Org successfully ran/,
+      new RegExp(`SFDX: ${operation} Source ${fromTo} Default Org successfully ran`),
       Duration.TEN_MINUTES
     );
     // Check the output.
