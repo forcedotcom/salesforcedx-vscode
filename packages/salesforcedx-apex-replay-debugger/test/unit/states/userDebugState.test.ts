@@ -34,8 +34,8 @@ describe('User debug event', () => {
     projectPath: undefined
   };
 
-  beforeEach(() => {
-    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+  beforeEach(async () => {
+    context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
     warnToDebugConsoleStub = jest.spyOn(ApexReplayDebug.prototype, 'warnToDebugConsole');
     getLogLinesStub = jest
       .spyOn(LogContext.prototype, 'getLogLines')

@@ -6,17 +6,16 @@
  */
 
 import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { existsSync } from 'node:fs';
+import { projectPaths, workspaceUtils, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
-export const getDialogStartingPath = (extContext: vscode.ExtensionContext): URI | undefined => {
+export const getDialogStartingPath = async (extContext: vscode.ExtensionContext): Promise<URI | undefined> => {
   if (workspaceUtils.hasRootWorkspace()) {
     // If the user has already selected a document through getLogFileName then
     // use that path if it still exists.
     const pathToLastOpenedLogFolder = getLastOpenedLogFolder(extContext);
-    if (pathToLastOpenedLogFolder && folderExists(pathToLastOpenedLogFolder)) {
+    if (pathToLastOpenedLogFolder && (await folderExists(pathToLastOpenedLogFolder))) {
       const lastOpenedLogFolderUri = getUriFor(pathToLastOpenedLogFolder);
       return lastOpenedLogFolderUri;
     }
@@ -24,7 +23,7 @@ export const getDialogStartingPath = (extContext: vscode.ExtensionContext): URI 
     // same directory that the SFDX download logs command would download to
     // if it exists.
     const pathToWorkspaceLogsFolder = projectPaths.debugLogsFolder();
-    if (folderExists(pathToWorkspaceLogsFolder)) {
+    if (await folderExists(pathToWorkspaceLogsFolder)) {
       const workspaceLogsFolderUri = getUriFor(pathToWorkspaceLogsFolder);
       return workspaceLogsFolderUri;
     }
@@ -40,6 +39,6 @@ const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | u
   return pathToLastOpenedLogFolder;
 };
 
-const folderExists = (path: string): boolean => existsSync(path);
+const folderExists = async (path: string): Promise<boolean> => await fileOrFolderExists(path);
 
 const getUriFor = (path: string): URI => URI.file(path);

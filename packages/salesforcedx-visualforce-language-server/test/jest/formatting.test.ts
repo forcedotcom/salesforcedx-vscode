@@ -5,6 +5,7 @@
 'use strict';
 
 import * as assert from 'node:assert';
+// eslint-disable-next-line no-restricted-imports
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 

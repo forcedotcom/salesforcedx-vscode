@@ -31,8 +31,8 @@ describe('Statement execute event', () => {
     projectPath: undefined
   };
 
-  beforeEach(() => {
-    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+  beforeEach(async () => {
+    context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
   });
 
   it('Should not update frame without any frames', () => {

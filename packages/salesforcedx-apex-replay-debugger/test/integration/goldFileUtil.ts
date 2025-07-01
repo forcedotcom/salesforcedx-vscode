@@ -5,28 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { readFile, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol/lib/debugProtocol';
-import * as fs from 'node:fs';
 
 export class GoldFileUtil {
-  private readonly delimiter = '====================';
   private readonly dc: DebugClient;
   private readonly goldFilePath: string;
   private golds: string[] = [];
   private goldIndex: number = 0;
 
-  constructor(dc: DebugClient, goldFilePath: string) {
+  private constructor(dc: DebugClient, goldFilePath: string, golds: string[]) {
     this.dc = dc;
     this.goldFilePath = goldFilePath;
-    this.golds = fs.readFileSync(this.goldFilePath, 'utf-8').split(this.delimiter);
-    this.golds = this.golds.map(gold => gold.trim());
+    this.golds = golds;
   }
 
-  public close(): void {
-    fs.writeFileSync(this.goldFilePath, this.golds.join('\n'), {
-      encoding: 'utf8'
-    });
+  public static async create(dc: DebugClient, goldFilePath: string): Promise<GoldFileUtil> {
+    const content = await readFile(goldFilePath);
+    const golds = content.split('====================').map(gold => gold.trim());
+    return new GoldFileUtil(dc, goldFilePath, golds);
+  }
+
+  public async close(): Promise<void> {
+    await writeFile(this.goldFilePath, this.golds.join('\n'));
   }
 
   public async assertTopState(stoppedReason: string, stoppedFilePath: string, stoppedLine: number): Promise<void> {

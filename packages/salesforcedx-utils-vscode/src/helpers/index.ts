@@ -8,6 +8,7 @@
 export { ActivationTracker } from './activationTracker';
 export { isSFContainerMode } from './env';
 export * from './extensionUris';
+// eslint-disable-next-line no-restricted-imports
 export {
   createDirectory,
   deleteFile,

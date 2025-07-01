@@ -34,8 +34,13 @@ import { HeapDumpService } from '../../../src/core/heapDumpService';
 import { nls } from '../../../src/messages';
 
 export class MockApexReplayDebug extends ApexReplayDebug {
-  public setLogFile(args: LaunchRequestArguments) {
-    this.logContext = new LogContext(args, this);
+  public async setLogFile(args: LaunchRequestArguments): Promise<void> {
+    this.logContext = await LogContext.create(args, this);
+    this.heapDumpService = new HeapDumpService(this.logContext);
+  }
+
+  public async setLogContext(logContext: LogContext): Promise<void> {
+    this.logContext = logContext;
     this.heapDumpService = new HeapDumpService(this.logContext);
   }
 
@@ -85,14 +90,10 @@ describe('Replay debugger adapter - unit', () => {
     let sendEventSpy: jest.SpyInstance;
     let response: DebugProtocol.LaunchResponse;
     let args: LaunchRequestArguments;
-    let hasLogLinesStub: jest.SpyInstance;
-    let meetsLogLevelRequirementsStub: jest.SpyInstance;
     let readLogFileStub: jest.SpyInstance;
     let getLogSizeStub: jest.SpyInstance;
     let printToDebugConsoleStub: jest.SpyInstance;
     let errorToDebugConsoleStub: jest.SpyInstance;
-    let scanLogForHeapDumpLinesStub: jest.SpyInstance;
-    let fetchOverlayResultsForApexHeapDumpsStub: jest.SpyInstance;
     const lineBpInfo: LineBreakpointInfo[] = [];
     lineBpInfo.push({
       uri: 'classA',
@@ -126,37 +127,36 @@ describe('Replay debugger adapter - unit', () => {
         // Call the original implementation for non-output events
         return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
       });
-      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
+      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockResolvedValue(['line1', 'line2']);
       getLogSizeStub = jest.spyOn(LogContext.prototype, 'getLogSize').mockReturnValue(123);
     });
 
     afterEach(() => {
       sendResponseSpy.mockRestore();
       sendEventSpy.mockRestore();
-      hasLogLinesStub.mockRestore();
-      meetsLogLevelRequirementsStub.mockRestore();
       readLogFileStub.mockRestore();
       getLogSizeStub.mockRestore();
       printToDebugConsoleStub.mockRestore();
       errorToDebugConsoleStub.mockRestore();
-      if (scanLogForHeapDumpLinesStub) {
-        scanLogForHeapDumpLinesStub.mockRestore();
-      }
-      if (fetchOverlayResultsForApexHeapDumpsStub) {
-        fetchOverlayResultsForApexHeapDumpsStub.mockRestore();
-      }
+      jest.restoreAllMocks();
     });
 
     it('Should return error when there are no log lines', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(false);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(false);
+      const mockLogContext = {
+        hasLogLines: jest.fn().mockReturnValue(false),
+        meetsLogLevelRequirements: jest.fn().mockReturnValue(false),
+        getLogSize: jest.fn().mockReturnValue(123),
+        getLogFileName: jest.fn().mockReturnValue(logFileName),
+        scanLogForHeapDumpLines: jest.fn().mockReturnValue(false),
+        fetchOverlayResultsForApexHeapDumps: jest.fn().mockResolvedValue(true)
+      } as unknown as LogContext;
+
+      jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       await adapter.launchRequest(response, args);
 
-      expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
-      expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(0);
+      expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(0);
       expect(sendResponseSpy).toHaveBeenCalledTimes(1);
       expect(sendEventSpy).toHaveBeenCalledTimes(4);
       const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.mock.calls[0][0];
@@ -174,15 +174,21 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return error when log levels are incorrect', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(false);
+      const mockLogContext = {
+        hasLogLines: jest.fn().mockReturnValue(true),
+        meetsLogLevelRequirements: jest.fn().mockReturnValue(false),
+        getLogSize: jest.fn().mockReturnValue(123),
+        getLogFileName: jest.fn().mockReturnValue(logFileName),
+        scanLogForHeapDumpLines: jest.fn().mockReturnValue(false),
+        fetchOverlayResultsForApexHeapDumps: jest.fn().mockResolvedValue(true)
+      } as unknown as LogContext;
+
+      jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       await adapter.launchRequest(response, args);
 
-      expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
-      expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
       expect(sendResponseSpy).toHaveBeenCalledTimes(1);
       expect(sendEventSpy).toHaveBeenCalledTimes(4);
       const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.mock.calls[0][0];
@@ -200,16 +206,22 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should send response', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
+      const mockLogContext = {
+        hasLogLines: jest.fn().mockReturnValue(true),
+        meetsLogLevelRequirements: jest.fn().mockReturnValue(true),
+        getLogSize: jest.fn().mockReturnValue(123),
+        getLogFileName: jest.fn().mockReturnValue(logFileName),
+        scanLogForHeapDumpLines: jest.fn().mockReturnValue(false),
+        fetchOverlayResultsForApexHeapDumps: jest.fn().mockResolvedValue(true)
+      } as unknown as LogContext;
+
+      jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
 
-      expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
-      expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
       expect(printToDebugConsoleStub).toHaveBeenCalledTimes(1);
       const consoleMessage = printToDebugConsoleStub.mock.calls[0][0];
       expect(consoleMessage).toBe(nls.localize('session_started_text', logFileName));
@@ -219,80 +231,97 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should not scan for log lines if projectPath is undefined', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
-      scanLogForHeapDumpLinesStub = jest.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(false);
+      const mockLogContext = {
+        hasLogLines: jest.fn().mockReturnValue(true),
+        meetsLogLevelRequirements: jest.fn().mockReturnValue(true),
+        getLogSize: jest.fn().mockReturnValue(123),
+        getLogFileName: jest.fn().mockReturnValue(logFileName),
+        scanLogForHeapDumpLines: jest.fn().mockReturnValue(false),
+        fetchOverlayResultsForApexHeapDumps: jest.fn().mockResolvedValue(true)
+      } as unknown as LogContext;
+
+      jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       adapter.setProjectPath(undefined);
       await adapter.launchRequest(response, args);
 
-      expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
-      expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(1);
-      expect(scanLogForHeapDumpLinesStub).toHaveBeenCalledTimes(0);
+      expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.scanLogForHeapDumpLines).toHaveBeenCalledTimes(0);
     });
 
     it('Should scan log lines for heap dumps if projectPath is set', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
-      scanLogForHeapDumpLinesStub = jest.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(false);
-      fetchOverlayResultsForApexHeapDumpsStub = jest
-        .spyOn(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
-        .mockResolvedValue(true);
+      const mockLogContext = {
+        hasLogLines: jest.fn().mockReturnValue(true),
+        meetsLogLevelRequirements: jest.fn().mockReturnValue(true),
+        getLogSize: jest.fn().mockReturnValue(123),
+        getLogFileName: jest.fn().mockReturnValue(logFileName),
+        scanLogForHeapDumpLines: jest.fn().mockReturnValue(false),
+        fetchOverlayResultsForApexHeapDumps: jest.fn().mockResolvedValue(true)
+      } as unknown as LogContext;
+
+      jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
 
-      expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
-      expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(1);
-      expect(scanLogForHeapDumpLinesStub).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.scanLogForHeapDumpLines).toHaveBeenCalledTimes(1);
       // fetchOverlayResultsForApexHeapDumps should not be called if scanLogForHeapDumpLines returns false
-      expect(fetchOverlayResultsForApexHeapDumpsStub).toHaveBeenCalledTimes(0);
+      expect(mockLogContext.fetchOverlayResultsForApexHeapDumps).toHaveBeenCalledTimes(0);
     });
 
     it('Should call to fetch overlay results if heap dumps are found in the logs', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
-      scanLogForHeapDumpLinesStub = jest.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(true);
-      fetchOverlayResultsForApexHeapDumpsStub = jest
-        .spyOn(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
-        .mockResolvedValue(true);
+      const mockLogContext = {
+        hasLogLines: jest.fn().mockReturnValue(true),
+        meetsLogLevelRequirements: jest.fn().mockReturnValue(true),
+        getLogSize: jest.fn().mockReturnValue(123),
+        getLogFileName: jest.fn().mockReturnValue(logFileName),
+        scanLogForHeapDumpLines: jest.fn().mockReturnValue(true),
+        fetchOverlayResultsForApexHeapDumps: jest.fn().mockResolvedValue(true)
+      } as unknown as LogContext;
+
+      jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
 
-      expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
-      expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(1);
-      expect(scanLogForHeapDumpLinesStub).toHaveBeenCalledTimes(1);
-      expect(fetchOverlayResultsForApexHeapDumpsStub).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.scanLogForHeapDumpLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.fetchOverlayResultsForApexHeapDumps).toHaveBeenCalledTimes(1);
     });
 
     it('Should report a wrap up error if fetching heap dumps has a failure', async () => {
-      hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-      meetsLogLevelRequirementsStub = jest
-        .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-        .mockReturnValue(true);
-      scanLogForHeapDumpLinesStub = jest.spyOn(LogContext.prototype, 'scanLogForHeapDumpLines').mockReturnValue(true);
-      fetchOverlayResultsForApexHeapDumpsStub = jest
-        .spyOn(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
-        .mockResolvedValue(false);
+      const mockLogContext = {
+        hasLogLines: jest.fn().mockReturnValue(true),
+        meetsLogLevelRequirements: jest.fn().mockReturnValue(true),
+        getLogSize: jest.fn().mockReturnValue(123),
+        getLogFileName: jest.fn().mockReturnValue(logFileName),
+        scanLogForHeapDumpLines: jest.fn().mockReturnValue(true),
+        fetchOverlayResultsForApexHeapDumps: jest.fn().mockResolvedValue(false)
+      } as unknown as LogContext;
+
+      jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       args.lineBreakpointInfo = lineBpInfo;
+      args.projectPath = projectPath; // Ensure projectPath is set
+      adapter.setProjectPath(projectPath); // Reset adapter's projectPath
+      // Stub errorToDebugConsole directly on the adapter instance
+      adapter.errorToDebugConsole = jest.fn(function () {});
+
       await adapter.launchRequest(response, args);
 
-      expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
-      expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(1);
-      expect(scanLogForHeapDumpLinesStub).toHaveBeenCalledTimes(1);
-      expect(fetchOverlayResultsForApexHeapDumpsStub).toHaveBeenCalledTimes(1);
-      expect(errorToDebugConsoleStub).toHaveBeenCalledTimes(1);
-      expect(sendEventSpy).toHaveBeenCalledTimes(4);
-      const errorMessage = errorToDebugConsoleStub.mock.calls[0][0];
+      expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.scanLogForHeapDumpLines).toHaveBeenCalledTimes(1);
+      expect(mockLogContext.fetchOverlayResultsForApexHeapDumps).toHaveBeenCalledTimes(1);
+      // eslint-disable-next-line jest/unbound-method
+      expect(adapter.errorToDebugConsole as jest.Mock).toHaveBeenCalledTimes(1);
+      const errorMessage = (adapter.errorToDebugConsole as jest.Mock).mock.calls[0][0];
       expect(errorMessage).toBe(nls.localize('heap_dump_error_wrap_up_text'));
+      expect(sendEventSpy).toHaveBeenCalledTimes(4);
       expect(sendEventSpy.mock.calls[1][0]).toBeInstanceOf(Event);
       expect(sendEventSpy.mock.calls[1][0].body.subject).toBe('Fetching heap dumps failed');
       expect(sendEventSpy.mock.calls[2][0]).toBeInstanceOf(InitializedEvent);
@@ -432,7 +461,7 @@ describe('Replay debugger adapter - unit', () => {
         body: { threads: [] }
       });
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
+      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockResolvedValue(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
     });
 
@@ -490,7 +519,7 @@ describe('Replay debugger adapter - unit', () => {
         threadId: ApexReplayDebug.THREAD_ID
       };
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
+      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockResolvedValue(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
       getFramesStub = jest.spyOn(LogContext.prototype, 'getFrames').mockReturnValue(sampleStackFrames);
     });
@@ -886,8 +915,6 @@ describe('Replay debugger adapter - unit', () => {
       let sendEventSpy: jest.SpyInstance;
       let sendResponseSpy: jest.SpyInstance;
       let createMappingsFromLineBreakpointInfo: jest.SpyInstance;
-      let hasLogLinesStub: jest.SpyInstance;
-      let meetsLogLevelRequirementsStub: jest.SpyInstance;
       const initializedResponse = {
         success: true,
         type: 'response',
@@ -910,10 +937,17 @@ describe('Replay debugger adapter - unit', () => {
 
       beforeEach(() => {
         adapter = new MockApexReplayDebug();
-        hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
-        meetsLogLevelRequirementsStub = jest
-          .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
-          .mockReturnValue(true);
+        const mockLogContext = {
+          hasLogLines: jest.fn().mockReturnValue(true),
+          meetsLogLevelRequirements: jest.fn().mockReturnValue(true),
+          getLogSize: jest.fn().mockReturnValue(123),
+          getLogFileName: jest.fn().mockReturnValue('test.log'),
+          scanLogForHeapDumpLines: jest.fn().mockReturnValue(false),
+          fetchOverlayResultsForApexHeapDumps: jest.fn().mockResolvedValue(true)
+        } as unknown as LogContext;
+
+        jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
+
         // Create a targeted sendEvent spy that filters out output events
         sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
           if (event.event === 'output') {
@@ -929,11 +963,10 @@ describe('Replay debugger adapter - unit', () => {
       });
 
       afterEach(() => {
-        hasLogLinesStub.mockRestore();
-        meetsLogLevelRequirementsStub.mockRestore();
         sendResponseSpy.mockRestore();
         sendEventSpy.mockRestore();
         createMappingsFromLineBreakpointInfo.mockRestore();
+        jest.restoreAllMocks();
       });
 
       it('Should handle undefined args', async () => {

@@ -264,6 +264,18 @@ export default [
         }
       ],
       'import/no-self-import': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['node:fs', 'fs'],
+              message:
+                "Use VSCode's fs API instead of Node.js fs for web extension compatibility. See https://code.visualstudio.com/api/references/vscode-api#FileSystem for documentation."
+            }
+          ]
+        }
+      ],
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-indentation': 'error',
       'jsdoc/newline-after-description': 'off',

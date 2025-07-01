@@ -6,10 +6,17 @@
     "strict": false,
     "noImplicitAny": false
   },
-  "exclude": ["node_modules", ".vscode-test", "out"],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out"
+  ],
   "references": [
     {
       "path": "../salesforcedx-visualforce-markup-language-server"
+    },
+    {
+      "path": "../salesforcedx-utils-vscode"
     }
   ]
 }

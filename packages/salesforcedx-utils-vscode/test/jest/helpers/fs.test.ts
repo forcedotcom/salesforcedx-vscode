@@ -19,7 +19,7 @@ import {
   isDirectory,
   isFile,
   rename
-} from '../../../src/helpers/fs';
+} from '../../../src/helpers';
 
 jest.mock('vscode');
 const vscodeMocked = jest.mocked(vscode);

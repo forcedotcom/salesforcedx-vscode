@@ -74,7 +74,7 @@ describe('Replay debugger adapter - integration', () => {
     );
     const testName = 'recursive';
     const logFilePath = path.join(LOG_FOLDER, `${testName}.log`);
-    goldFileUtil = new GoldFileUtil(dc, path.join(LOG_FOLDER, `${testName}.gold`));
+    goldFileUtil = await GoldFileUtil.create(dc, path.join(LOG_FOLDER, `${testName}.gold`));
 
     const launchResponse = await dc.launchRequest({
       // @ts-expect-error this code added a new property to the LaunchRequestArguments type
@@ -139,7 +139,7 @@ describe('Replay debugger adapter - integration', () => {
     });
     const testName = 'statics';
     const logFilePath = path.join(LOG_FOLDER, `${testName}.log`);
-    goldFileUtil = new GoldFileUtil(dc, path.join(LOG_FOLDER, `${testName}.gold`));
+    goldFileUtil = await GoldFileUtil.create(dc, path.join(LOG_FOLDER, `${testName}.gold`));
 
     const launchResponse = await dc.launchRequest({
       // @ts-expect-error this code added a new property to the LaunchRequestArguments type

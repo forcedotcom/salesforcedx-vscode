@@ -10,7 +10,7 @@ import { EOL } from 'node:os';
 import { join, sep } from 'node:path';
 import { ExtensionContext, extensions, Uri } from 'vscode';
 import { z } from 'zod';
-import { readFile } from './fs';
+import { readFile } from './index';
 
 type ParsedLog = {
   dateTime: Date;
@@ -110,8 +110,8 @@ export const getExtensionHostLogActivationRecords = async (
 
   const pid =
     sessionStartMatches.groups &&
-      'pid' in sessionStartMatches.groups &&
-      typeof sessionStartMatches.groups.pid === 'string'
+    'pid' in sessionStartMatches.groups &&
+    typeof sessionStartMatches.groups.pid === 'string'
       ? sessionStartMatches.groups.pid
       : undefined;
 

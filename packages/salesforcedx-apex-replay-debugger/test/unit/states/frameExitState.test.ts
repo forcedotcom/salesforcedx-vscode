@@ -30,8 +30,8 @@ describe('Frame exit event', () => {
     projectPath: undefined
   };
 
-  beforeEach(() => {
-    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+  beforeEach(async () => {
+    context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
   });
 
   it('Should not remove anything if there are no frames', () => {
