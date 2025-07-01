@@ -74,6 +74,10 @@ jobs:
           find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
           find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
+          # Clean up potentially corrupted VS Code archives
+          rm -rf ./test-resources/*.zip 2>/dev/null || true
+          rm -rf ./test-resources/vscode-* 2>/dev/null || true
+
           # Install dependencies
           npm install
           npm install -g @salesforce/cli
