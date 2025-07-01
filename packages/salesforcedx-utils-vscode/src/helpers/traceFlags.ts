@@ -185,6 +185,7 @@ export class TraceFlags {
     const newUserId = await newTraceFlags.getUserIdOrThrow();
     const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
     if (!myTraceFlag) {
+      extensionContext.workspaceState.update(TRACE_FLAG_EXPIRATION_KEY, undefined);
       disposeTraceFlagExpiration();
       return;
     }
