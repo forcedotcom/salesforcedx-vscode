@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import { OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil, TraceFlags, disposeTraceFlagExpiration } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { decorators } from '../decorators';
 import { OrgAuthInfo } from '../util/authInfo';
@@ -17,6 +17,7 @@ import { workspaceContextUtils } from '.';
  */
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
+  private extensionContext?: vscode.ExtensionContext;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -25,9 +26,11 @@ export class WorkspaceContext {
     this.onOrgChange = workspaceContextUtil.onOrgChange;
     this.onOrgChange(this.handleCliConfigChange);
     this.onOrgChange(this.handleOrgShapeChange);
+    this.onOrgChange(this.handleTraceFlagCleanup);
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
+    this.extensionContext = extensionContext;
     await WorkspaceContextUtil.getInstance().initialize(extensionContext);
   }
 
@@ -65,6 +68,25 @@ export class WorkspaceContext {
       }
     }
   }
+
+  /** Handle trace flag cleanup when org changes */
+  protected handleTraceFlagCleanup = async () => {
+    if (!this.extensionContext) {
+      return;
+    }
+
+    try {
+      const connection = await WorkspaceContextUtil.getInstance().getConnection();
+      const traceFlags = new TraceFlags(connection);
+      await traceFlags.handleTraceFlagCleanup(
+        this.extensionContext
+      );
+    } catch (error) {
+      // If the action performed results in no default org set, we need to remove the trace flag expiration
+      disposeTraceFlagExpiration();
+      console.log('Failed to perform trace flag cleanup after org change:', error);
+    }
+  };
 
   get username(): string | undefined {
     return WorkspaceContextUtil.getInstance().username;
