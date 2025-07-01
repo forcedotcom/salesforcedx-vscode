@@ -12,6 +12,7 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   getWorkbench,
@@ -28,7 +29,6 @@ import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
 import { logTestStart } from '../utils/loggingHelper';
-import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 
 describe('Templates', () => {
   let testSetup: TestSetup;
@@ -389,10 +389,7 @@ describe('Templates', () => {
     // Select the default directory (press Enter/Return).
     await inputBox.confirm();
 
-    await verifyNotificationWithRetry(
-      /SFDX: Create Sample Analytics Template successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    await verifyNotificationWithRetry(/SFDX: Create Sample Analytics Template successfully ran/, Duration.TEN_MINUTES);
 
     const outputPanelText = await attemptToFindOutputPanelText(
       'Salesforce CLI',
