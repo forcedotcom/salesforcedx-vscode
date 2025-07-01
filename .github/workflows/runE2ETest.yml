@@ -76,16 +76,29 @@ jobs:
           find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
           # Clean up potentially corrupted VS Code archives and cache
+          # Remove from test-resources directory
           rm -rf ./test-resources/*.zip 2>/dev/null || true
+          rm -rf ./test-resources/*.tar.gz 2>/dev/null || true
           rm -rf ./test-resources/vscode-* 2>/dev/null || true
           rm -rf ./test-resources/VS* 2>/dev/null || true
-          rm -rf ~/.cache/vscode-test 2>/dev/null || true
 
-          # Force clean extraction directory if it exists
+          # Remove from vscode-extension-tester storage locations
+          rm -rf ~/.cache/vscode-test 2>/dev/null || true
+          rm -rf ~/.vscode-test 2>/dev/null || true
+          rm -rf ./node_modules/.cache/vscode-test 2>/dev/null || true
+
+          # Remove from common temp directories
+          rm -rf /tmp/*vscode* 2>/dev/null || true
+          rm -rf /tmp/*VS* 2>/dev/null || true
+
+          # Clean up any existing extraction directories
           if [ -d "./test-resources" ]; then
             find ./test-resources -name "*vscode*" -type d -exec rm -rf {} + 2>/dev/null || true
             find ./test-resources -name "*VS*" -type d -exec rm -rf {} + 2>/dev/null || true
           fi
+
+          # Force clean any existing storage that might contain corrupted files
+          find . -name "*1.100.3-stable*" -exec rm -rf {} + 2>/dev/null || true
 
           # Install dependencies
           npm install
