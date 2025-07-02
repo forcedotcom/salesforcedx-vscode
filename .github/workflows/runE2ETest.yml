@@ -169,7 +169,7 @@ jobs:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: salesforcedx-vscode/test-resources/screenshots
       - uses: actions/upload-artifact@v4
-        if: ${{ inputs.testToRun == 'createOASDoc.e2e.js' }}
+        if: ${{ inputs.testToRun == 'createOasDoc.e2e.js' }}
         with:
           name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
           path: salesforcedx-vscode/e2e-temp/TempProject-CreateOASDoc/llm-logs
