@@ -83,7 +83,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
       breakpointUtil.createMappingsFromLineBreakpointInfo(args.lineBreakpointInfo);
       delete args.lineBreakpointInfo;
     }
-    this.projectPath = args.projectPath;
     response.success = false;
     this.setupLogger(args);
     this.log(TRACE_CATEGORY_LAUNCH, `launchRequest: args=${JSON.stringify(args)}`);
@@ -126,11 +125,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       );
     } else {
       this.printToDebugConsole(nls.localize('session_started_text', this.logContext.getLogFileName()));
-      if (
-        this.projectPath &&
-        this.logContext.scanLogForHeapDumpLines() &&
-        !(await this.logContext.fetchOverlayResultsForApexHeapDumps(this.projectPath))
-      ) {
+      if (this.logContext.scanLogForHeapDumpLines() && !(await this.logContext.fetchOverlayResultsForApexHeapDumps())) {
         response.message = nls.localize('heap_dump_error_wrap_up_text');
         this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
         this.sendEvent(

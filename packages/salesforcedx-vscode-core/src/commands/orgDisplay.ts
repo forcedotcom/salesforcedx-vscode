@@ -5,28 +5,104 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { EmptyParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
-import { nls } from '../messages';
-import { FlagParameter, SelectUsername, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { OrgInfo, OrgDisplay } from '@salesforce/salesforcedx-utils';
+import {
+  EmptyParametersGatherer,
+  LibraryCommandletExecutor,
+  ContinueResponse,
+  Table,
+  Column,
+  Row
+} from '@salesforce/salesforcedx-utils-vscode';
 
-class OrgDisplay extends SfCommandletExecutor<{}> {
+import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { nls } from '../messages';
+import { OrgAuthInfo } from '../util';
+import { FlagParameter, SelectUsername, SfCommandlet, SfWorkspaceChecker } from './util';
+
+class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
-    super();
+    super(nls.localize('org_display_default_text'), 'org_display_library', OUTPUT_CHANNEL);
     this.flag = flag;
   }
 
-  public build(data: { username?: string }): Command {
-    const builder = new SfCommandBuilder()
-      .withDescription(nls.localize('org_display_default_text'))
-      .withArg('org:display')
-      .withLogName('org_display_default');
-    if (this.flag === '--target-org' && data.username) {
-      builder.withDescription(nls.localize('org_display_username_text')).withFlag(this.flag, data.username);
+  public async run(response: ContinueResponse<{ username?: string }>): Promise<boolean> {
+    try {
+      const { username } = response.data;
+      let targetUsername: string;
+
+      if (this.flag === '--target-org' && username) {
+        targetUsername = await OrgAuthInfo.getUsername(username);
+      } else {
+        const targetOrgOrAlias = await OrgAuthInfo.getTargetOrgOrAlias(true);
+        if (!targetOrgOrAlias) {
+          throw new Error(nls.localize('error_no_target_org'));
+        }
+        targetUsername = await OrgAuthInfo.getUsername(targetOrgOrAlias);
+      }
+
+      // Use the shared OrgDisplay class from utils
+      const orgDisplayUtil = new OrgDisplay(targetUsername);
+      const orgInfo = await orgDisplayUtil.getOrgInfo();
+
+      // Display warning about sensitive information
+      const warning =
+        'Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.\n' +
+        'Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.\n' +
+        'For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.';
+      channelService.appendLine(warning);
+      channelService.appendLine('');
+
+      // Display the org information
+      const output = this.formatOrgInfoAsTable(orgInfo);
+      channelService.appendLine(output);
+
+      return true;
+    } catch (error) {
+      if (error instanceof Error) {
+        channelService.appendLine(error.message);
+      }
+      throw error;
     }
-    return builder.build();
+  }
+
+  private formatOrgInfoAsTable(orgInfo: OrgInfo): string {
+    const columns: Column[] = [
+      { key: 'property', label: 'Key' },
+      { key: 'value', label: 'Value' }
+    ];
+    let rows: Row[] = [];
+
+    rows.push({ property: 'Access Token', value: orgInfo.accessToken });
+    rows.push({ property: 'Alias', value: orgInfo.alias });
+    rows.push({ property: 'API Version', value: orgInfo.apiVersion });
+    rows.push({ property: 'Client Id', value: orgInfo.clientId });
+    rows.push({ property: 'Connected Status', value: orgInfo.connectionStatus });
+    rows.push({ property: 'Instance Url', value: orgInfo.instanceUrl });
+    rows.push({ property: 'Org Id', value: orgInfo.id });
+    rows.push({ property: 'Username', value: orgInfo.username });
+
+    const isScratchOrg = !!orgInfo.devHubId;
+    if (isScratchOrg) {
+      rows.push({ property: 'Dev Hub Id', value: orgInfo.devHubId });
+      rows.push({ property: 'Created By', value: orgInfo.createdBy });
+      rows.push({ property: 'Created Date', value: orgInfo.createdDate });
+      rows.push({ property: 'Expiration Date', value: orgInfo.expirationDate });
+      rows.push({ property: 'Status', value: orgInfo.status });
+      rows.push({ property: 'Password', value: orgInfo.password || '' });
+      rows.push({ property: 'Org Name', value: orgInfo.orgName });
+    }
+
+    if (orgInfo.edition && !isScratchOrg) {
+      rows.push({ property: 'Edition', value: orgInfo.edition });
+    }
+
+    rows = rows.sort((a, b) => String(a.property).localeCompare(String(b.property)));
+
+    const table = new Table();
+    return table.createTable(rows, columns, 'Org Description');
   }
 }
 
@@ -35,7 +111,7 @@ const workspaceChecker = new SfWorkspaceChecker();
 export async function orgDisplay(this: FlagParameter<string>) {
   const flag = this ? this.flag : undefined;
   const parameterGatherer = flag ? new SelectUsername() : new EmptyParametersGatherer();
-  const executor = new OrgDisplay(flag);
+  const executor = new OrgDisplayExecutor(flag);
   const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
   await commandlet.run();
 }
