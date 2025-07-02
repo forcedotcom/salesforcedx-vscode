@@ -85,6 +85,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     }
     response.success = false;
     this.setupLogger(args);
+    this.projectPath = args.projectPath;
     this.log(TRACE_CATEGORY_LAUNCH, `launchRequest: args=${JSON.stringify(args)}`);
     this.sendEvent(
       new Event(SEND_METRIC_GENERAL_EVENT, {
@@ -456,6 +457,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public errorToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number): void {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
+  }
+
+  public getProjectPath(): string | undefined {
+    return this.projectPath;
   }
 }
 
