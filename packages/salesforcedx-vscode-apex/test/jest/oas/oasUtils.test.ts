@@ -619,9 +619,9 @@ describe('summarizeDiagnostics', () => {
   };
   class Range {}
   class Diagnostic {
-    range: Range;
-    message: string;
-    severity: number;
+    public range: Range;
+    public message: string;
+    public severity: number;
     constructor(range: Range, message: string, severity: number) {
       this.range = range;
       this.message = message;

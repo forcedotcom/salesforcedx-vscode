@@ -23,7 +23,7 @@ export class TaskViewService implements TreeDataProvider<Task> {
 
   public readonly onDidChangeTreeData: Event<Task | undefined> = this._onDidChangeTreeData.event;
 
-  public constructor() {
+  constructor() {
     this.tasks = [];
   }
 

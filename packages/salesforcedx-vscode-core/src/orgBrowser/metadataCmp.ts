@@ -49,16 +49,12 @@ export class ComponentUtils {
     componentsPath?: string
   ): Promise<string[]> {
     try {
-      if (isNullOrUndefined(componentsFile)) {
-        componentsFile = await readFile(componentsPath!);
-      }
-
-      const jsonObject = JSON.parse(componentsFile);
+      const jsonObject = JSON.parse(componentsFile ?? (await readFile(componentsPath!)));
       let cmpArray = jsonObject.result;
 
       const components = [];
       if (!isNullOrUndefined(cmpArray)) {
-        cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
+        cmpArray = Array.isArray(cmpArray) ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
           const { fullName, manageableState, namespacePrefix } = cmp;
           if (!isNullOrUndefined(fullName) && validManageableStates.has(manageableState)) {
@@ -79,25 +75,22 @@ export class ComponentUtils {
   }
 
   public async buildCustomObjectFieldsList(result?: string, componentsPath?: string): Promise<string[]> {
-    if (isNullOrUndefined(result)) {
-      result = await readFile(componentsPath!);
-    }
-    const jsonResult = JSON.parse(result);
-    const fields = jsonResult.result.map(
-      (field: { name: string; type: string; relationshipName?: string; length?: number }) => {
-        switch (field.type) {
-          case 'string':
-          case 'textarea':
-          case 'email':
-            return `${field.name} (${field.type}(${field.length}))`;
-          case 'reference':
-            return `${field.relationshipName} (reference)`;
-          default:
-            return `${field.name} (${field.type})`;
-        }
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const jsonResult = JSON.parse(result ?? (await readFile(componentsPath!))) as {
+      result: { name: string; type: string; relationshipName?: string; length?: number }[];
+    };
+    return jsonResult.result.map(field => {
+      switch (field.type) {
+        case 'string':
+        case 'textarea':
+        case 'email':
+          return `${field.name} (${field.type}(${field.length}))`;
+        case 'reference':
+          return `${field.relationshipName} (reference)`;
+        default:
+          return `${field.name} (${field.type})`;
       }
-    );
-    return fields;
+    });
   }
 
   public async fetchAndSaveMetadataComponentProperties(

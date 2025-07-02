@@ -13,7 +13,7 @@ export class ApexDebugStackFrameInfo {
   public locals: Map<string, ApexVariableContainer>;
   public globals: Map<string, ApexVariableContainer>;
 
-  public constructor(frameNumber: number, signature: string) {
+  constructor(frameNumber: number, signature: string) {
     this.frameNumber = frameNumber;
     this.signature = signature;
     this.statics = new Map<string, ApexVariableContainer>();

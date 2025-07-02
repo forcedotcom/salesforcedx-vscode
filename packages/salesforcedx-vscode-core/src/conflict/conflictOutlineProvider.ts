@@ -22,7 +22,7 @@ export class ConflictOutlineProvider implements vscode.TreeDataProvider<Conflict
   >();
   public readonly onDidChangeTreeData: vscode.Event<ConflictNode | undefined> = this.internalOnDidChangeTreeData.event;
 
-  public constructor() {
+  constructor() {
     this.root = null;
   }
 

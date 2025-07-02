@@ -11,7 +11,7 @@ import { Message } from './message';
 export class Localization implements LocalizationProvider {
   private readonly delegate: Message;
 
-  public constructor(delegate: Message) {
+  constructor(delegate: Message) {
     this.delegate = delegate;
   }
 

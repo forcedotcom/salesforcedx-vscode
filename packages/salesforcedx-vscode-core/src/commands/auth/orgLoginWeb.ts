@@ -168,16 +168,11 @@ export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
     void ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
-    try {
-      const result = await new CommandOutput().getCmdResult(execution);
-      if (isProdOrg(JSON.parse(result))) {
-        await promptLogOutForProdOrg();
-      } else {
-        await notificationService.showSuccessfulExecution(execution.command.toString());
-      }
-      return Promise.resolve();
-    } catch (err) {
-      return Promise.reject(err);
+    const result = await new CommandOutput().getCmdResult(execution);
+    if (isProdOrg(JSON.parse(result))) {
+      await promptLogOutForProdOrg();
+    } else {
+      await notificationService.showSuccessfulExecution(execution.command.toString());
     }
   }
 }
