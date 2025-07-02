@@ -105,7 +105,6 @@ module.exports = {
       const enSource = fs.readFileSync(enPath, 'utf8');
       const enAst = tsParser.parse(enSource, { sourceType: 'module', ecmaVersion: 2020 });
       enMessages = extractMessagesObject(enAst);
-      console.log('[i18n-english-rule] Extracted enMessages keys:', Object.keys(enMessages));
     } catch (e) {
       console.log('[i18n-english-rule] Failed to extract enMessages:', e);
       return {};

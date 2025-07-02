@@ -48,7 +48,7 @@ jest.mock('vscode', () => ({
     file: (filepath: string) => ({ fsPath: filepath })
   },
   Disposable: class {
-    dispose() {}
+    public dispose() {}
   }
 }));
 

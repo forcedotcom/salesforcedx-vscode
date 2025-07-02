@@ -10,10 +10,11 @@ import {
   ContinueResponse,
   ParametersGatherer,
   notificationService,
-  LibraryCommandletExecutor
+  LibraryCommandletExecutor,
+  readDirectory,
+  rename
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CreateUtil } from '@salesforce/templates';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -85,35 +86,33 @@ class GetComponentName implements ParametersGatherer<ComponentName> {
 
 const inputGuard = async (sourceFsPath: string, newName: string): Promise<string> => {
   const componentPath = await getComponentPath(sourceFsPath);
-  if (isLwcComponent(componentPath)) {
-    newName = newName.charAt(0).toLowerCase() + newName.slice(1);
-  }
-  CreateUtil.checkInputs(newName);
-  return newName;
+  const correctedName = isLwcComponent(componentPath) ? newName.charAt(0).toLowerCase() + newName.slice(1) : newName;
+  CreateUtil.checkInputs(correctedName);
+  return correctedName;
 };
 
 const renameComponent = async (sourceFsPath: string, newName: string): Promise<void> => {
   const componentPath = await getComponentPath(sourceFsPath);
   const componentName = getComponentName(componentPath);
-  const items = await fs.promises.readdir(componentPath);
+  const items = await readDirectory(componentPath);
   for (const item of items) {
     // only rename the file that has same name with component
     if (isNameMatch(item, componentName, componentPath)) {
       const newItem = item.replace(componentName, newName);
-      await fs.promises.rename(path.join(componentPath, item), path.join(componentPath, newItem));
+      await rename(path.join(componentPath, item), path.join(componentPath, newItem));
     }
     if (item === TEST_FOLDER) {
       const testFolderPath = path.join(componentPath, TEST_FOLDER);
-      const testFiles = await fs.promises.readdir(testFolderPath);
+      const testFiles = await readDirectory(testFolderPath);
       for (const file of testFiles) {
         if (isNameMatch(file, componentName, componentPath)) {
           const newFile = file.replace(componentName, newName);
-          await fs.promises.rename(path.join(testFolderPath, file), path.join(testFolderPath, newFile));
+          await rename(path.join(testFolderPath, file), path.join(testFolderPath, newFile));
         }
       }
     }
   }
   const newComponentPath = path.join(path.dirname(componentPath), newName);
-  await fs.promises.rename(componentPath, newComponentPath);
+  await rename(componentPath, newComponentPath);
   void notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
 };

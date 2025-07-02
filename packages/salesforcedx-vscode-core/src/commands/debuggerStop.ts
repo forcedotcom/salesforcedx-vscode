@@ -39,7 +39,7 @@ type IdSelection = { id: string };
 class IdGatherer implements ParametersGatherer<IdSelection> {
   private readonly sessionIdToUpdate: string;
 
-  public constructor(sessionIdToUpdate: string) {
+  constructor(sessionIdToUpdate: string) {
     this.sessionIdToUpdate = sessionIdToUpdate;
   }
 
@@ -97,9 +97,9 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
       // remove when we drop CLI invocations
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const queryResponse = JSON.parse(result) as QueryResponse;
-      if (queryResponse && queryResponse.result && queryResponse.result.size === 1) {
+      if (queryResponse?.result?.size === 1) {
         const sessionIdToUpdate = queryResponse.result.records[0].Id;
-        if (sessionIdToUpdate && sessionIdToUpdate.startsWith('07a')) {
+        if (sessionIdToUpdate?.startsWith('07a')) {
           const sessionDetachCommandlet = new SfCommandlet(
             new SfWorkspaceChecker(),
             new IdGatherer(sessionIdToUpdate),
@@ -111,8 +111,6 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
         void notificationService.showInformationMessage(nls.localize('debugger_stop_none_found_text'));
       }
     } catch {}
-
-    return Promise.resolve();
   }
 }
 

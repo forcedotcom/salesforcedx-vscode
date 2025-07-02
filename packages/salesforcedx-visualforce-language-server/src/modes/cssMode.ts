@@ -22,11 +22,11 @@ export const getCSSMode = (documentRegions: LanguageModelCache<HTMLDocumentRegio
   return {
     getId: () => 'css',
     configure: (options: any) => {
-      cssLanguageService.configure(options && options.css);
+      cssLanguageService.configure(options?.css);
     },
     doValidation: (document: TextDocument, settings: Settings) => {
       const embedded = embeddedCSSDocuments.get(document);
-      return cssLanguageService.doValidation(embedded, cssStylesheets.get(embedded), settings && settings.css);
+      return cssLanguageService.doValidation(embedded, cssStylesheets.get(embedded), settings?.css);
     },
     doComplete: (document: TextDocument, position: Position) => {
       const embedded = embeddedCSSDocuments.get(document);

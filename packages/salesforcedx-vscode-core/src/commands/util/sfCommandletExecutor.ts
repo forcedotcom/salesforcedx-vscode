@@ -60,7 +60,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     telemetryService.sendCommandEvent(logName, hrstart, properties, measurements);
   }
 
-  public execute(response: ContinueResponse<T>): void {
+  public execute(response: ContinueResponse<T>): void | Promise<void> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -112,7 +112,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     response: ContinueResponse<T>,
     output: string
   ): TelemetryData | undefined {
-    return;
+    return undefined;
   }
 
   /**
