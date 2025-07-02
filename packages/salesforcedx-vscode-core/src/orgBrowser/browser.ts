@@ -18,8 +18,6 @@ export class OrgBrowser {
   private _treeView?: TreeView<BrowserNode>;
   private _dataProvider?: MetadataOutlineProvider;
 
-  private constructor() {}
-
   public static getInstance(): OrgBrowser {
     if (!this.instance) {
       this.instance = new OrgBrowser();
@@ -27,14 +25,14 @@ export class OrgBrowser {
     return this.instance;
   }
 
-  get treeView() {
+  private get treeView() {
     if (this._treeView) {
       return this._treeView;
     }
     throw this.initError();
   }
 
-  get dataProvider() {
+  private get dataProvider() {
     if (this._dataProvider) {
       return this._dataProvider;
     }

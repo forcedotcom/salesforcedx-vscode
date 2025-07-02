@@ -32,7 +32,7 @@ describe('HTML Javascript Support', () => {
 
     const actualLabels = list.items.map(c => c.label).sort();
     for (const expected of expectedProposals) {
-      assert.ok(actualLabels.indexOf(expected) !== -1, 'Not found:' + expected + ' is ' + actualLabels.join(', '));
+      assert.ok(actualLabels.includes(expected), `Not found:${expected} is ${actualLabels.join(', ')}`);
     }
   };
 

@@ -39,22 +39,22 @@ export class ConflictNode extends vscode.TreeItem {
     this._children.push(conflictNode);
   }
 
-  get conflict() {
+  public get conflict() {
     return this._conflict;
   }
 
-  get parent() {
+  public get parent() {
     return this._parent;
   }
 
-  get children() {
+  public get children() {
     return this._children;
   }
 
   // TODO: create issue to track this
 
   // @ts-ignore
-  get tooltip() {
+  public get tooltip() {
     if (this._conflict) {
       let tooltipMessage: string = '';
       if (this._conflict.remoteLastModifiedDate) {

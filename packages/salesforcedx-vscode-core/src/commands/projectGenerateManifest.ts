@@ -56,11 +56,8 @@ class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
 }
 
 export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | undefined): Promise<void> => {
-  if (!uris || uris.length < 1) {
-    uris = [];
-    uris.push(sourceUri);
-  }
-  const sourcePaths = uris.map(uri => uri.fsPath);
+  const resolvedUris = uris?.length ? uris : [sourceUri];
+  const sourcePaths = resolvedUris.map(uri => uri.fsPath);
   const inputOptions: vscode.InputBoxOptions = {
     placeHolder: nls.localize(MANIFEST_SAVE_PLACEHOLDER),
     prompt: nls.localize(MANIFEST_SAVE_PROMPT)

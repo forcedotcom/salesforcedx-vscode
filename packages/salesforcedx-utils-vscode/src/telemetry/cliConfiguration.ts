@@ -19,7 +19,7 @@ export const isCLITelemetryAllowed = async (): Promise<boolean> => {
     const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
     return !isTelemetryDisabled;
   } catch (e) {
-    console.log('Error checking cli settings: ' + e);
+    console.log(`Error checking cli settings: ${e}`);
   }
   return true;
 };
