@@ -4,7 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  createDirectory,
+  isDirectory,
+  projectPaths,
+  safeDelete,
+  workspaceUtils,
+  writeFile
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -12,7 +19,6 @@ import {
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -147,14 +153,14 @@ export class MetadataCacheService {
 
     const { components, properties } = this.extractResults(result);
     if (components.length > 0 && this.componentPath && this.projectPath) {
-      const propsFile = this.saveProperties(properties);
+      const propsFile = await this.saveProperties(properties);
       const cacheCommon = this.findLongestCommonDir(components, this.cachePath);
 
       const sourceComps = this.sourceComponents.getSourceComponents().toArray();
       const projCommon = this.findLongestCommonDir(sourceComps, this.projectPath);
 
       let selectedType = PathType.Unknown;
-      if (fs.existsSync(this.componentPath) && fs.lstatSync(this.componentPath).isDirectory()) {
+      if (await isDirectory(this.componentPath)) {
         selectedType = PathType.Folder;
       } else if (this.isManifest) {
         selectedType = PathType.Manifest;
@@ -225,7 +231,7 @@ export class MetadataCacheService {
     return dir.endsWith(path.sep) ? dir.slice(0, -path.sep.length) : dir;
   }
 
-  private saveProperties(properties: FileProperties[]): string {
+  private async saveProperties(properties: FileProperties[]): Promise<string> {
     const props = {
       componentPath: this.componentPath,
       fileProperties: properties
@@ -233,8 +239,8 @@ export class MetadataCacheService {
     const propDir = this.getPropsPath();
     const propsFile = path.join(propDir, MetadataCacheService.PROPERTIES_FILE);
 
-    fs.mkdirSync(propDir);
-    fs.writeFileSync(propsFile, JSON.stringify(props));
+    await createDirectory(propDir);
+    await writeFile(propsFile, JSON.stringify(props));
     return propsFile;
   }
 
@@ -353,9 +359,9 @@ export class MetadataCacheService {
     return this.cachePath;
   }
 
-  private clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {
+  private async clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {
     try {
-      fs.rmSync(dirToRemove, { recursive: true, force: true });
+      await safeDelete(dirToRemove, { recursive: true });
     } catch (error) {
       if (throwErrorOnFailure) {
         throw error;

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs/promises';
+import { readDirectory, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { nls } from '../../messages';
 import { AURA, isLwcComponent, LWC, TEST_FOLDER } from '../../util/componentUtils';
@@ -31,7 +31,7 @@ export const INPUT_INCORRECT_COMPONENT_PROPERTIES_MESSAGE = 'input_incorrect_pro
 export const checkForDuplicateInComponent = async (componentPath: string, newName: string, items: string[]) => {
   let allFiles = items;
   if (items.includes(TEST_FOLDER)) {
-    const testFiles = await fs.readdir(path.join(componentPath, TEST_FOLDER));
+    const testFiles = await readDirectory(path.join(componentPath, TEST_FOLDER));
     allFiles = items.concat(testFiles);
   }
   const allFileNames = getOnlyFileNames(allFiles);
@@ -55,7 +55,7 @@ export const isNameMatch = (item: string, componentName: string, componentPath: 
  * @param name
  * @returns
  */
-export const checkForExistingComponentInAltLocation = (componentPath: string, name: string): Promise<boolean> => {
+export const checkForExistingComponentInAltLocation = async (componentPath: string, name: string): Promise<boolean> => {
   let pathToCheck;
   if (isLwcComponentPath(componentPath)) {
     pathToCheck = path.join(path.dirname(componentPath), AURA);
@@ -64,13 +64,10 @@ export const checkForExistingComponentInAltLocation = (componentPath: string, na
   }
 
   if (pathToCheck) {
-    return fs
-      .stat(path.join(pathToCheck, name))
-      .then(() => true) // Component exists
-      .catch(() => false); // Component does not exist
+    return await fileOrFolderExists(path.join(pathToCheck, name));
   }
 
-  return Promise.resolve(false); // No path to check
+  return false; // No path to check
 };
 
 export const checkForDuplicateName = async (componentPath: string, newName: string) => {
@@ -103,8 +100,10 @@ const isDuplicate = async (componentPath: string, newName: string): Promise<bool
   return allLwcComponents.includes(newName) || allAuraComponents.includes(newName);
 };
 
-const readFromDir = (dirPath: string): Promise<string[]> =>
-  fs
-    .readdir(dirPath)
-    .then(files => files)
-    .catch(() => []);
+const readFromDir = async (dirPath: string): Promise<string[]> => {
+  try {
+    return await readDirectory(dirPath);
+  } catch {
+    return [];
+  }
+};

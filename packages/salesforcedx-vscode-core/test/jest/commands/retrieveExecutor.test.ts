@@ -6,7 +6,7 @@
  */
 import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'node:fs';
+import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
@@ -49,7 +49,7 @@ describe('Retrieve Executor', () => {
 
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ type: vscode.FileType.File } as vscode.FileStat);
     jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue('test@username.com');
     workspaceContextGetInstanceSpy = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
     getSourceTrackingSpy = jest

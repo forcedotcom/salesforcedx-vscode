@@ -6,7 +6,7 @@
  */
 import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'node:fs';
+import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { DeployExecutor, DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { SfCommandletExecutor } from '../../../src/commands/util';
@@ -70,7 +70,7 @@ describe('Deploy Executor', () => {
 
   beforeEach(async () => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ type: vscode.FileType.File } as vscode.FileStat);
     jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
     jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue(dummyUsername);
     getSourceTrackingSpy = jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue({
