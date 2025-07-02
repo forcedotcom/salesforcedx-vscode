@@ -369,7 +369,7 @@ describe('Deploy and Retrieve', () => {
       'Starting SFDX: Delete from Project and Org',
       10
     );
-    log('Output panel text is: ' + outputPanelText);
+    log(`Output panel text is: ${outputPanelText}`);
 
     const expectedTexts = [
       '=== Deleted Source',
@@ -447,7 +447,7 @@ describe('Deploy and Retrieve', () => {
         'Starting SFDX: Delete from Project and Org',
         10
       );
-      log('Output panel text is: ' + outputPanelText);
+      log(`Output panel text is: ${outputPanelText}`);
 
       const pathToClassDeleteFromProjectAndOrg = path.join(
         'force-app',
@@ -530,7 +530,7 @@ describe('Deploy and Retrieve', () => {
         'Starting SFDX: Delete from Project and Org',
         10
       );
-      log('Output panel text is: ' + outputPanelText);
+      log(`Output panel text is: ${outputPanelText}`);
 
       const pathToClassDeleteFromProjectAndOrg = path.join(
         'force-app',

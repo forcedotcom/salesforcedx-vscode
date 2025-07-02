@@ -330,7 +330,7 @@ describe('Create OpenAPI v3 Specifications', () => {
               const title = await tab.getTitle();
               tabTitles.push(title);
             } catch (error) {
-              tabTitles.push(`[Error: ${error.message}]`);
+              tabTitles.push(`[Error: ${String(error)}]`);
             }
           }
 
@@ -465,7 +465,7 @@ describe('Create OpenAPI v3 Specifications', () => {
               const title = await tab.getTitle();
               tabTitles.push(title);
             } catch (error) {
-              tabTitles.push(`[Error: ${error.message}]`);
+              tabTitles.push(`[Error: ${String(error)}]`);
             }
           }
 

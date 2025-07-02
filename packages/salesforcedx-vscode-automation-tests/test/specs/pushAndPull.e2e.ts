@@ -250,39 +250,39 @@ describe('Push and Pull', () => {
     await testSetup1?.tearDown(false);
     await testSetup2?.tearDown();
   });
-
-  /**
-   * @param operation identifies if it's a pull or push operation
-   * @param fromTo indicates if changes are coming from or going to the org
-   * @param type indicates if the metadata is expected to have been created, changed or deleted
-   * @returns the output panel text after
-   */
-  const verifyPushAndPullOutputText = async (
-    operation: string,
-    fromTo: string,
-    type?: string
-  ): Promise<string | undefined> => {
-    await verifyNotificationWithRetry(
-      new RegExp(`SFDX: ${operation} Source ${fromTo} Default Org successfully ran`),
-      Duration.TEN_MINUTES
-    );
-    // Check the output.
-    const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', `=== ${operation}ed Source`, 10);
-    expect(outputPanelText).to.not.be.undefined;
-
-    if (type) {
-      if (operation === 'Push') {
-        expect(outputPanelText).to.contain(`${type}  ExampleApexClass1  ApexClass`);
-      } else {
-        expect(outputPanelText).to.contain(`${type}  Admin`);
-      }
-    } else {
-      expect(outputPanelText).to.contain('No results found');
-    }
-    expect(outputPanelText).to.contain('ended with exit code 0');
-    return outputPanelText;
-  };
 });
+
+/**
+ * @param operation identifies if it's a pull or push operation
+ * @param fromTo indicates if changes are coming from or going to the org
+ * @param type indicates if the metadata is expected to have been created, changed or deleted
+ * @returns the output panel text after
+ */
+const verifyPushAndPullOutputText = async (
+  operation: string,
+  fromTo: string,
+  type?: string
+): Promise<string | undefined> => {
+  await verifyNotificationWithRetry(
+    new RegExp(`SFDX: ${operation} Source ${fromTo} Default Org successfully ran`),
+    Duration.TEN_MINUTES
+  );
+  // Check the output.
+  const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', `=== ${operation}ed Source`, 10);
+  expect(outputPanelText).to.not.be.undefined;
+
+  if (type) {
+    if (operation === 'Push') {
+      expect(outputPanelText).to.contain(`${type}  ExampleApexClass1  ApexClass`);
+    } else {
+      expect(outputPanelText).to.contain(`${type}  Admin`);
+    }
+  } else {
+    expect(outputPanelText).to.contain('No results found');
+  }
+  expect(outputPanelText).to.contain('ended with exit code 0');
+  return outputPanelText;
+};
 
 const verifyPushSuccess = async (wait = Duration.TEN_MINUTES) => {
   await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, wait);

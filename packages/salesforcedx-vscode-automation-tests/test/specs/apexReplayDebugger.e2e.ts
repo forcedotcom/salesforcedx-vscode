@@ -196,7 +196,7 @@ describe('Apex Replay Debugger', () => {
     const title = await activeTab?.getTitle();
     if (title) logFileTitle = title;
     const logFilePath = path.join(projectFolderPath, '.sfdx', 'tools', 'debug', 'logs', logFileTitle);
-    console.log('*** logFilePath = ' + logFilePath);
+    console.log(`*** logFilePath = ${logFilePath}`);
 
     // Run SFDX: Launch Apex Replay Debugger with Last Log File
     prompt = await executeQuickPick('SFDX: Launch Apex Replay Debugger with Last Log File', Duration.seconds(1));

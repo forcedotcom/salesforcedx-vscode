@@ -31,7 +31,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -68,7 +68,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -113,7 +113,7 @@ jobs:
       runId: ${{ inputs.runId }}
 
   mdDeployRetrieve:
-    if: ${{ inputs.mdDeployRetrieve && inputs.vscodeVersion == '1.100.3'}}
+    if: ${{ inputs.mdDeployRetrieve && inputs.vscodeVersion == 'latest'}}
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
