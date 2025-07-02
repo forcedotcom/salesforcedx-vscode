@@ -88,11 +88,6 @@ class ConfirmationAndSourcePathGatherer implements ParametersGatherer<{ filePath
 }
 
 export const deleteSource = async (sourceUri: URI) => {
-  let isSourceTracked: boolean = false;
-  const orgType = await workspaceContextUtils.getWorkspaceOrgType();
-  if (orgType === OrgType.SourceTracked) {
-    isSourceTracked = true;
-  }
   const resolved =
     sourceUri ??
     (await getUriFromActiveEditor({
@@ -102,10 +97,12 @@ export const deleteSource = async (sourceUri: URI) => {
   if (!resolved) {
     return;
   }
-  const manifestChecker = new ManifestChecker(sourceUri);
+  const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+  const isSourceTracked = orgType === OrgType.SourceTracked;
+  const manifestChecker = new ManifestChecker(resolved);
   const commandlet = new SfCommandlet(
     manifestChecker,
-    new ConfirmationAndSourcePathGatherer(sourceUri),
+    new ConfirmationAndSourcePathGatherer(resolved),
     new DeleteSourceExecutor(isSourceTracked)
   );
   await commandlet.run();
