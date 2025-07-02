@@ -50,6 +50,30 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
+
+      - name: Clean VS Code cache and setup
+        shell: bash
+        run: |
+          # Clean up any corrupted VS Code downloads/cache
+          echo "Cleaning VS Code cache and temp files..."
+
+          # Remove vscode-extension-tester cache
+          rm -rf ~/.vscode-test 2>/dev/null || true
+          rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+
+          # Remove any partial downloads
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            rm -rf "$TEMP"/vscode-* 2>/dev/null || true
+            rm -rf "$USERPROFILE"/.vscode-test 2>/dev/null || true
+          else
+            rm -rf /tmp/vscode-* 2>/dev/null || true
+          fi
+
+          # Clean npm cache
+          npm cache clean --force
+
+          echo "VS Code cache cleanup completed"
+
       - name: Create build script
         shell: bash
         run: |
@@ -74,9 +98,24 @@ jobs:
           find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
           find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
-          # Install dependencies
-          npm install
-          npm install -g @salesforce/cli
+          # Install dependencies with retry logic for network issues
+          for i in {1..3}; do
+            if npm install; then
+              break
+            fi
+            echo "npm install attempt $i failed, retrying in 30 seconds..."
+            sleep 30
+            npm cache clean --force
+          done
+
+          # Install Salesforce CLI with retry
+          for i in {1..3}; do
+            if npm install -g @salesforce/cli; then
+              break
+            fi
+            echo "Salesforce CLI install attempt $i failed, retrying in 30 seconds..."
+            sleep 30
+          done
 
           # Verify CLI and set environment variables
           sf version
@@ -100,7 +139,8 @@ jobs:
           # Compile packages
           npm run compile
 
-          # Run headless test
+          # Run headless test with additional error handling
+          echo "Starting E2E test execution..."
           npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
           EOF
           chmod +x build-script.sh
