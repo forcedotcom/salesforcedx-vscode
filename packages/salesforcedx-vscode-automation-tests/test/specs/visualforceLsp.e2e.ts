@@ -57,7 +57,7 @@ describe('Visualforce LSP', () => {
 
     // Create an array of strings for the expected output text
     const expectedTexts = [
-      `target dir = ${pathToPagesFolder}`,
+      `target dir = ${pathToPagesFolder.replace(/^[A-Z]:/, match => match.toLowerCase())}`,
       `create ${pathToPage}`,
       `create ${pathToPage}-meta.xml`,
       'Finished SFDX: Create Visualforce Page'
