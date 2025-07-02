@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getMessageFromError, notificationService, PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
+import {
+  getMessageFromError,
+  notificationService,
+  PostconditionChecker,
+  readDirectory
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../../messages';
 import { ContinueOrCancel, getComponentName, getComponentPath, isContinue, OneOrMany } from '../../util';
 import { isComponentName, isDirFileNameSelection } from '../../util/types';
@@ -46,7 +50,7 @@ export class LwcAuraDuplicateComponentCheckerForRename implements PostconditionC
     try {
       const componentPath = await getComponentPath(this.sourceFsPath);
       await checkForDuplicateName(componentPath, name);
-      const items = await fs.promises.readdir(componentPath);
+      const items = await readDirectory(componentPath);
       await checkForDuplicateInComponent(componentPath, name, items);
       return { type: 'CONTINUE', data: inputs.data };
     } catch (error) {

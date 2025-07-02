@@ -7,7 +7,7 @@
 
 import * as fauxGen from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { ConfigUtil, LocalCommandExecution, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
+import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { RefreshSObjectsExecutor } from '../../../src/commands/refreshSObjects';
 import { SalesforceProjectConfig } from '../../../src/salesforceProject';
@@ -20,7 +20,7 @@ describe('RefreshSObjectsExecutor', () => {
 
     jest.spyOn(channelService, 'clear').mockImplementation(jest.fn());
     jest.spyOn(channelService, 'streamCommandOutput').mockImplementation(jest.fn());
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ type: vscode.FileType.File } as vscode.FileStat);
     jest.spyOn(ConfigUtil, 'getUserConfiguredApiVersion').mockResolvedValue(undefined);
     jest.spyOn(SalesforceProjectConfig, 'getValue').mockResolvedValue(undefined);
     jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
