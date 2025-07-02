@@ -28,8 +28,8 @@ const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 
 class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
-  private responseText: string | undefined;
-  constructor(sourcePaths: string[], responseText: string | undefined) {
+  private responseText: string;
+  constructor(sourcePaths: string[], responseText: string) {
     super(nls.localize(GENERATE_MANIFEST_EXECUTOR), GENERATE_MANIFEST_EXECUTOR, OUTPUT_CHANNEL);
     this.sourcePaths = sourcePaths;
     this.responseText = responseText;
@@ -45,12 +45,10 @@ class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
   ): Promise<boolean> {
     if (this.sourcePaths) {
       const packageXML = await ComponentSet.fromSource(this.sourcePaths).getPackageXml();
-      if (this.responseText === undefined) {
-        // Canceled and declined to name the document
-        await openUntitledDocument(packageXML);
-      } else {
-        saveDocument(this.responseText, packageXML);
-      }
+      // responseText is guaranteed to be a string here since we check for cancellation at the top level
+      // If responseText is empty string, user clicked OK without entering a name (will use default filename)
+      // If responseText has content, user entered a filename
+      await saveDocument(this.responseText, packageXML);
       return true;
     }
     return false;
@@ -68,6 +66,13 @@ export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | unde
     prompt: nls.localize(MANIFEST_SAVE_PROMPT)
   };
   const responseText = await vscode.window.showInputBox(inputOptions);
+
+  // If user cancelled the input (pressed Escape), don't proceed
+  if (responseText === undefined) {
+    void vscode.window.showWarningMessage(nls.localize('manifest_generation_cancelled'));
+    return;
+  }
+
   if (sourcePaths) {
     const commandlet = new SfCommandlet(
       new SfWorkspaceChecker(),
@@ -76,15 +81,6 @@ export const projectGenerateManifest = async (sourceUri: URI, uris: URI[] | unde
     );
     await commandlet.run();
   }
-};
-
-const openUntitledDocument = async (packageXML: string): Promise<void> => {
-  const newManifest = await vscode.workspace.openTextDocument({
-    content: packageXML,
-    language: 'xml'
-  });
-
-  void vscode.window.showTextDocument(newManifest);
 };
 
 const saveDocument = async (response: string, packageXML: string): Promise<void> => {
