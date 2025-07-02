@@ -87,9 +87,9 @@ export const retrieveAAMethodAnnotations = (): string[] => {
 };
 
 // The REST-related annotations should not be edited by users
-export const retrieveAAClassRestAnnotations = (): string[] => [...new Set([...APEX_ACTION_CLASS_REST_ANNOTATION])];
+export const retrieveAAClassRestAnnotations = (): string[] => [...new Set(APEX_ACTION_CLASS_REST_ANNOTATION)];
 
-export const retrieveAAMethodRestAnnotations = (): string[] => [...new Set([...APEX_ACTION_METHOD_REST_ANNOTATION])];
+export const retrieveAAMethodRestAnnotations = (): string[] => [...new Set(APEX_ACTION_METHOD_REST_ANNOTATION)];
 
 export const retrieveGeneralClassAccessModifiers = (): string[] =>
   vscode.workspace

@@ -137,7 +137,7 @@ export class TraceFlags {
 
   public calculateExpirationDate(expirationDate: Date): Date {
     if (!this.isValidDateLength(expirationDate)) {
-      expirationDate = new Date(Date.now() + this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE);
+      return new Date(Date.now() + this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE);
     }
     return expirationDate;
   }

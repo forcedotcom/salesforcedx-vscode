@@ -49,9 +49,7 @@ class MockMemento implements Memento {
     return Promise.resolve();
   }
 
-  public setKeysForSync(keys: readonly string[]): void {
-    return;
-  }
+  public setKeysForSync(keys: readonly string[]): void {}
 }
 
 class MockEnvironmentVariableCollection implements EnvironmentVariableCollection {

@@ -82,7 +82,7 @@ describe('Java Requirements Test', () => {
       getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
       (fileOrFolderExists as jest.Mock).mockResolvedValue(true);
       execFileSpy.mockImplementation((...args) => {
-        const cb = args[args.length - 1];
+        const cb = args.at(-1);
         cb('', '', 'java.version = 11.0.0');
       });
       const requirements = await resolveRequirements();
@@ -91,7 +91,7 @@ describe('Java Requirements Test', () => {
 
     it('Should not support Java 8', async () => {
       execFileSpy.mockImplementation((...args) => {
-        const cb = args[args.length - 1];
+        const cb = args.at(-1);
         cb('', '', 'java.version = 1.8.0');
       });
       try {
@@ -104,7 +104,7 @@ describe('Java Requirements Test', () => {
 
     it('Should support Java 11', async () => {
       execFileSpy.mockImplementation((...args) => {
-        const cb = args[args.length - 1];
+        const cb = args.at(-1);
         cb('', '', 'java.version = 11.0.0');
       });
       try {
@@ -117,7 +117,7 @@ describe('Java Requirements Test', () => {
 
     it('Should support Java 17', async () => {
       execFileSpy.mockImplementation((...args) => {
-        const cb = args[args.length - 1];
+        const cb = args.at(-1);
         cb('', '', 'java.version = 17.2.3');
       });
       try {
@@ -130,7 +130,7 @@ describe('Java Requirements Test', () => {
 
     it('Should support Java 21', async () => {
       execFileSpy.mockImplementation((...args) => {
-        const cb = args[args.length - 1];
+        const cb = args.at(-1);
         cb('', '', 'java.version = 21.0.0');
       });
       try {
@@ -143,7 +143,7 @@ describe('Java Requirements Test', () => {
 
     it('Should support Java 23', async () => {
       execFileSpy.mockImplementation((...args) => {
-        const cb = args[args.length - 1];
+        const cb = args.at(-1);
         cb('', '', 'java.version = 23.0.0');
       });
       try {
@@ -156,7 +156,7 @@ describe('Java Requirements Test', () => {
 
     it('Should reject java version check when execFile fails', async () => {
       execFileSpy.mockImplementation((...args) => {
-        const cb = args[args.length - 1];
+        const cb = args.at(-1);
         cb({ message: 'its broken' }, '', '');
       });
       try {

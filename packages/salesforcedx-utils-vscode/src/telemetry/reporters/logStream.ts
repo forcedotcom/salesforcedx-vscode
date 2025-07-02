@@ -22,9 +22,9 @@ export class LogStream extends Disposable implements TelemetryReporter {
     private extensionId: string,
     logFilePath: string
   ) {
-    super(() => this.toDispose.forEach(d => d && d.dispose()));
+    super(() => this.toDispose.forEach(d => d?.dispose()));
     this.logUri = Uri.file(path.join(logFilePath, `${this.extensionId}.txt`));
-    this.toDispose.push(workspace.onDidChangeConfiguration(() => () => {}));
+
     console.log(
       `VS Code telemetry event logging enabled for: ${this.extensionId}. Telemetry events will be written via write stream to a file at: ${this.logUri.fsPath}.`
     );
@@ -45,15 +45,10 @@ export class LogStream extends Disposable implements TelemetryReporter {
     measurements?: { [key: string]: number }
   ): void {
     const orgId = WorkspaceContextUtil.getInstance().orgId;
-    if (orgId && properties) {
-      properties.orgId = orgId;
-    } else if (orgId) {
-      properties = { orgId };
-    }
 
     void this.appendToFile(
       `telemetry/${eventName} ${JSON.stringify({
-        properties,
+        properties: { ...properties, ...(orgId ? { orgId } : {}) },
         measurements
       })}\n`
     );
@@ -66,7 +61,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
   ): void {
     const orgId = WorkspaceContextUtil.getInstance().orgId || '';
     const properties = { orgId };
-    console.log('LogStream.sendExceptionEvent - exceptionMessage: ' + exceptionMessage);
+    console.log(`LogStream.sendExceptionEvent - exceptionMessage: ${exceptionMessage}`);
 
     void this.appendToFile(
       `telemetry/${exceptionName} ${JSON.stringify({

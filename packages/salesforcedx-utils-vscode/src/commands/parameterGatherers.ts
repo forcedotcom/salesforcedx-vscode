@@ -8,7 +8,7 @@ import { CancelResponse, ContinueResponse, ParametersGatherer } from '../types';
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
   private readonly gatherers: ParametersGatherer<any>[];
-  public constructor(...gatherers: ParametersGatherer<any>[]) {
+  constructor(...gatherers: ParametersGatherer<any>[]) {
     this.gatherers = gatherers;
   }
   public async gather(): Promise<CancelResponse | ContinueResponse<T>> {

@@ -60,7 +60,7 @@ export class QueryDataViewService {
         data: extendQueryData(this.queryText, queryData),
         documentName: getDocumentName(this.document)
       })
-      .then(undefined, async (err: string) => {
+      .then(undefined, (err: string) => {
         const errorType = 'data_view_post_message';
         const message = nls.localize('error_unknown_error', errorType);
         channelService.appendLine(message);
@@ -117,7 +117,7 @@ export class QueryDataViewService {
         break;
       default:
         channelService.appendLine(nls.localize('error_unknown_error', type));
-        trackErrorWithTelemetry('data_view_message_type', type).catch(console.error);
+        trackErrorWithTelemetry('data_view_message_type', type);
         break;
     }
   }
@@ -126,7 +126,7 @@ export class QueryDataViewService {
     try {
       const fileService = new FileService(this.queryText, this.queryData, format, this.document);
       fileService.save();
-    } catch (err) {
+    } catch {
       const message = nls.localize('error_data_view_save');
       vscode.window.showErrorMessage(message);
       trackErrorWithTelemetry('data_view_save', message);

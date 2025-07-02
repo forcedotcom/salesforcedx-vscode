@@ -38,11 +38,10 @@ describe('Replay debugger adapter variable handling - unit', () => {
   let adapter: MockApexReplayDebug;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
-  const projectPath = undefined;
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: logFilePath,
     trace: true,
-    projectPath
+    projectPath: undefined
   };
 
   describe('Scopes request', () => {
@@ -605,22 +604,22 @@ describe('Replay debugger adapter variable handling - unit', () => {
         heapDumpService.replaceVariablesWithHeapDump();
 
         expect(frameInfo.globals.size).toBe(8);
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isbefore') as ApexVariableContainer).value).toBe(
+        expect((frameInfo.globals.get(`${EXTENT_TRIGGER_PREFIX}isbefore`) as ApexVariableContainer).value).toBe(
           'false'
         );
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isdelete') as ApexVariableContainer).value).toBe(
+        expect((frameInfo.globals.get(`${EXTENT_TRIGGER_PREFIX}isdelete`) as ApexVariableContainer).value).toBe(
           'false'
         );
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isundelete') as ApexVariableContainer).value).toBe(
+        expect((frameInfo.globals.get(`${EXTENT_TRIGGER_PREFIX}isundelete`) as ApexVariableContainer).value).toBe(
           'false'
         );
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isupdate') as ApexVariableContainer).value).toBe(
+        expect((frameInfo.globals.get(`${EXTENT_TRIGGER_PREFIX}isupdate`) as ApexVariableContainer).value).toBe(
           'false'
         );
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isafter') as ApexVariableContainer).value).toBe('true');
-        expect((frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'isinsert') as ApexVariableContainer).value).toBe('true');
+        expect((frameInfo.globals.get(`${EXTENT_TRIGGER_PREFIX}isafter`) as ApexVariableContainer).value).toBe('true');
+        expect((frameInfo.globals.get(`${EXTENT_TRIGGER_PREFIX}isinsert`) as ApexVariableContainer).value).toBe('true');
 
-        const triggerNew = frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'new') as ApexVariableContainer;
+        const triggerNew = frameInfo.globals.get(`${EXTENT_TRIGGER_PREFIX}new`) as ApexVariableContainer;
         expect(triggerNew.type).toBe('List<Account>');
         expect(triggerNew.variablesRef).toBeGreaterThan(0);
         expect(triggerNew.variables.size).toBe(3);
@@ -628,7 +627,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect((triggerNew.variables.get('1') as ApexVariableContainer).ref).toBe('0xf1fabe');
         expect((triggerNew.variables.get('2') as ApexVariableContainer).ref).toBe('0x76e9852b');
 
-        const triggerNewmap = frameInfo.globals.get(EXTENT_TRIGGER_PREFIX + 'newmap') as ApexVariableContainer;
+        const triggerNewmap = frameInfo.globals.get(`${EXTENT_TRIGGER_PREFIX}newmap`) as ApexVariableContainer;
         expect(triggerNewmap.type).toBe('Map<Id,Account>');
         expect(triggerNewmap.variablesRef).toBeGreaterThan(0);
         expect(triggerNewmap.variables.size).toBe(3);

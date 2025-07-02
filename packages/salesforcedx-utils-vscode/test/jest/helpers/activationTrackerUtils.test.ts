@@ -25,7 +25,7 @@ jest.mock('vscode', () => ({
   Disposable: class {
     // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     constructor() {}
-    dispose() {}
+    public dispose() {}
   },
   extensions: {
     getExtension: jest.fn()

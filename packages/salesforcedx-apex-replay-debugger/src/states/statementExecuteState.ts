@@ -13,16 +13,14 @@ export class StatementExecuteState implements DebugLogState {
   private readonly line: number;
 
   constructor(fields: string[]) {
-    this.line = parseInt(fields[fields.length - 1], 10);
+    this.line = parseInt(fields.at(-1) ?? '0', 10);
   }
 
   public handle(logContext: LogContext): boolean {
     const frame = logContext.getTopFrame();
     if (frame) {
       frame.line =
-        frame.name === EXEC_ANON_SIGNATURE
-          ? logContext.getExecAnonScriptLocationInDebugLog(this.line)
-          : this.line;
+        frame.name === EXEC_ANON_SIGNATURE ? logContext.getExecAnonScriptLocationInDebugLog(this.line) : this.line;
     }
     return true;
   }

@@ -25,8 +25,8 @@ export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageM
       globalSettings = options;
     },
     doComplete: (document: TextDocument, position: Position, settings: Settings = globalSettings) => {
-      const options = settings && settings.visualforce && settings.visualforce.suggest;
-      const doAutoComplete = settings && settings.visualforce && settings.visualforce.autoClosingTags;
+      const options = settings?.visualforce?.suggest;
+      const doAutoComplete = settings?.visualforce?.autoClosingTags;
       if (doAutoComplete) {
         options.hideAutoCompleteProposals = true;
       }
@@ -46,14 +46,14 @@ export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageM
       formatParams: FormattingOptions,
       settings: Settings = globalSettings
     ) => {
-      let formatSettings: HTMLFormatConfiguration = settings && settings.visualforce && settings.visualforce.format;
+      let formatSettings: HTMLFormatConfiguration = settings?.visualforce?.format;
       if (formatSettings) {
         formatSettings = merge(formatSettings, {});
       } else {
         formatSettings = {};
       }
       if (formatSettings.contentUnformatted) {
-        formatSettings.contentUnformatted = formatSettings.contentUnformatted + ',script';
+        formatSettings.contentUnformatted = `${formatSettings.contentUnformatted},script`;
       } else {
         formatSettings.contentUnformatted = 'script';
       }

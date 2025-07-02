@@ -81,7 +81,7 @@ export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<voi
       }
     }
 
-    if (results.length < 1) {
+    if (results.length === 0) {
       return;
     }
 

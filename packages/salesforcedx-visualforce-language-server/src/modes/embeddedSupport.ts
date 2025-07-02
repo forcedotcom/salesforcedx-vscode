@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
@@ -152,7 +154,7 @@ const getLanguageRanges = (document: TextDocument, regions: EmbeddedRegion[], ra
 const getLanguagesInDocument = (document: TextDocument, regions: EmbeddedRegion[]): string[] => {
   const result: string[] = [];
   for (const region of regions) {
-    if (region.languageId && result.indexOf(region.languageId) === -1) {
+    if (region.languageId && !result.includes(region.languageId)) {
       result.push(region.languageId);
       if (result.length === 3) {
         return result;
@@ -203,7 +205,7 @@ const getPrefix = (c: EmbeddedRegion) => {
   if (c.attributeValue) {
     switch (c.languageId) {
       case 'css':
-        return CSS_STYLE_RULE + '{';
+        return `${CSS_STYLE_RULE}{`;
     }
   }
   return '';

@@ -6,7 +6,12 @@
  */
 
 import { Connection } from '@salesforce/core-bundle';
-import { OrgUserInfo, WorkspaceContextUtil, TraceFlags, disposeTraceFlagExpiration } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  OrgUserInfo,
+  WorkspaceContextUtil,
+  TraceFlags,
+  disposeTraceFlagExpiration
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { decorators } from '../decorators';
 import { OrgAuthInfo } from '../util/authInfo';
@@ -78,9 +83,7 @@ export class WorkspaceContext {
     try {
       const connection = await WorkspaceContextUtil.getInstance().getConnection();
       const traceFlags = new TraceFlags(connection);
-      await traceFlags.handleTraceFlagCleanup(
-        this.extensionContext
-      );
+      await traceFlags.handleTraceFlagCleanup(this.extensionContext);
     } catch (error) {
       // If the action performed results in no default org set, we need to remove the trace flag expiration
       disposeTraceFlagExpiration();
@@ -88,15 +91,15 @@ export class WorkspaceContext {
     }
   };
 
-  get username(): string | undefined {
+  public get username(): string | undefined {
     return WorkspaceContextUtil.getInstance().username;
   }
 
-  get alias(): string | undefined {
+  public get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
   }
 
-  get orgId(): string | undefined {
+  public get orgId(): string | undefined {
     return WorkspaceContextUtil.getInstance().orgId;
   }
 }

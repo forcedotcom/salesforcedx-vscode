@@ -49,7 +49,7 @@ export class SessionService {
   }
 
   public isApexDebuggerSessionId(id: string): boolean {
-    return id != null && id.startsWith('07a');
+    return id?.startsWith('07a');
   }
 
   public async start(): Promise<string> {
@@ -79,14 +79,14 @@ export class SessionService {
       if (this.isApexDebuggerSessionId(sessionId)) {
         this.sessionId = sessionId;
         this.connected = true;
-        return Promise.resolve(this.sessionId);
+        return this.sessionId;
       } else {
         this.sessionId = '';
         this.connected = false;
-        return Promise.reject(result);
+        throw result;
       }
-    } catch (e) {
-      return Promise.reject(result);
+    } catch {
+      throw result;
     }
   }
 
@@ -111,13 +111,13 @@ export class SessionService {
       if (this.isApexDebuggerSessionId(sessionId)) {
         this.sessionId = '';
         this.connected = false;
-        return Promise.resolve(sessionId);
+        return sessionId;
       } else {
         this.connected = true;
-        return Promise.reject(result);
+        throw result;
       }
-    } catch (e) {
-      return Promise.reject(result);
+    } catch {
+      throw result;
     }
   }
 

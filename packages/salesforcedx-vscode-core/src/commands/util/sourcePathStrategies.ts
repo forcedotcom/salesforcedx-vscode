@@ -35,7 +35,7 @@ class FunctionTemplatePathStrategy implements SourcePathStrategy {
 
 class FunctionJavaTemplatePathStrategy implements SourcePathStrategy {
   public getPathToSource(dirPath: string, fileName: string, fileExt: string): string {
-    const className = fileName.charAt(0).toUpperCase() + fileName.slice(1) + 'Function';
+    const className = `${fileName.charAt(0).toUpperCase() + fileName.slice(1)}Function`;
     return join(dirPath, 'src', 'main', 'java', 'com', 'example', `${className}${fileExt}`);
   }
 }

@@ -35,14 +35,14 @@ export class BreakpointService {
   }
 
   public isApexDebuggerBreakpointId(id: string): boolean {
-    return id != null && id.startsWith(DEBUGGER_BREAKPOINT_ID_PREFIX);
+    return id?.startsWith(DEBUGGER_BREAKPOINT_ID_PREFIX);
   }
 
   public getTyperefFor(uri: string, line: number): string | undefined {
     const linesInTyperefs = this.lineNumberMapping.get(uri);
     if (linesInTyperefs) {
       for (const linesInTyperef of linesInTyperefs) {
-        if (linesInTyperef.lines.indexOf(line) >= 0) {
+        if (linesInTyperef.lines.includes(line)) {
           return linesInTyperef.typeref;
         }
       }
@@ -116,12 +116,12 @@ export class BreakpointService {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const breakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(breakpointId)) {
-        return Promise.resolve(breakpointId);
+        return breakpointId;
       } else {
-        return Promise.reject(result);
+        throw result;
       }
     } catch {
-      return Promise.reject(result);
+      throw result;
     }
   }
 
@@ -142,12 +142,12 @@ export class BreakpointService {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const deletedBreakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(deletedBreakpointId)) {
-        return Promise.resolve(deletedBreakpointId);
+        return deletedBreakpointId;
       } else {
-        return Promise.reject(result);
+        throw result;
       }
     } catch {
-      return Promise.reject(result);
+      throw result;
     }
   }
 
@@ -161,7 +161,7 @@ export class BreakpointService {
     if (knownBreakpoints) {
       for (let knownBpIdx = knownBreakpoints.length - 1; knownBpIdx >= 0; knownBpIdx--) {
         const knownBp = knownBreakpoints[knownBpIdx];
-        if (clientLines.indexOf(knownBp.line) === -1) {
+        if (!clientLines.includes(knownBp.line)) {
           try {
             const breakpointId = await this.deleteBreakpoint(projectPath, knownBp.breakpointId);
             if (breakpointId) {
@@ -172,7 +172,7 @@ export class BreakpointService {
       }
     }
     for (const clientLine of clientLines) {
-      if (!knownBreakpoints || !knownBreakpoints.find(knownBreakpoint => knownBreakpoint.line === clientLine)) {
+      if (!knownBreakpoints?.find(knownBreakpoint => knownBreakpoint.line === clientLine)) {
         const typeref = this.getTyperefFor(uri, clientLine);
         if (typeref) {
           try {
@@ -184,7 +184,7 @@ export class BreakpointService {
         }
       }
     }
-    return Promise.resolve(this.getBreakpointsFor(uri));
+    return this.getBreakpointsFor(uri);
   }
 
   public async createExceptionBreakpoint(
@@ -209,12 +209,12 @@ export class BreakpointService {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const breakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(breakpointId)) {
-        return Promise.resolve(breakpointId);
+        return breakpointId;
       } else {
-        return Promise.reject(result);
+        throw result;
       }
     } catch {
-      return Promise.reject(result);
+      throw result;
     }
   }
 

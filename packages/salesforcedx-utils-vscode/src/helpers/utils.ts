@@ -33,9 +33,7 @@ export const getJsonCandidate = (str: string): string | null => {
 };
 
 export const identifyJsonTypeInString = (str: string): 'object' | 'array' | 'primitive' | 'none' => {
-  str = str.trim(); // Remove leading/trailing whitespace
-
-  const jsonCandidate: string | null = getJsonCandidate(str);
+  const jsonCandidate: string | null = getJsonCandidate(str.trim()); // Remove leading/trailing whitespace
 
   // Check if the JSON candidate is a valid object or array
   if (jsonCandidate) {
@@ -81,13 +79,13 @@ export const identifyJsonTypeInString = (str: string): 'object' | 'array' | 'pri
 };
 
 export const extractJson = <T = any>(str: string): T => {
-  str = str.trim(); // Remove leading/trailing whitespace
+  const trimmedString = str.trim(); // Remove leading/trailing whitespace
 
-  const jsonCandidate: string | null = getJsonCandidate(str);
-  const jsonType = identifyJsonTypeInString(str);
+  const jsonCandidate: string | null = getJsonCandidate(trimmedString);
+  const jsonType = identifyJsonTypeInString(trimmedString);
 
   if (!jsonCandidate || jsonType === 'none' || jsonType === 'primitive') {
-    throw new Error(`The string "${str}" does not contain an array or object.`);
+    throw new Error(`The string "${trimmedString}" does not contain an array or object.`);
   }
   // Try parsing the detected JSON structure
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions

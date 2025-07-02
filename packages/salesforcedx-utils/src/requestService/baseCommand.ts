@@ -7,7 +7,7 @@
 export abstract class BaseCommand {
   protected readonly queryString: string | undefined;
 
-  public constructor(queryString?: string) {
+  constructor(queryString?: string) {
     this.queryString = queryString;
   }
 

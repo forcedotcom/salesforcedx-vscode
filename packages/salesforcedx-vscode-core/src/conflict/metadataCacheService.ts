@@ -74,7 +74,7 @@ export class MetadataCacheService {
   private isManifest: boolean = false;
   private sourceComponents: ComponentSet;
 
-  public constructor(username: string) {
+  constructor(username: string) {
     this.sourceComponents = new ComponentSet();
     this.cachePath = this.makeCachePath(username);
   }

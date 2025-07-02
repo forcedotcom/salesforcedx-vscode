@@ -39,7 +39,7 @@ class ProjectTemplateItem implements vscode.QuickPickItem {
 class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
   private readonly options: projectGenerateOptions;
 
-  public constructor(options = { isProjectWithManifest: false }) {
+  constructor(options = { isProjectWithManifest: false }) {
     super();
     this.options = options;
   }

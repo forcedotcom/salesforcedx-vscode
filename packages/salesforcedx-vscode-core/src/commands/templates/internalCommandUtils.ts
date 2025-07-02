@@ -23,7 +23,7 @@ export class InternalDevWorkspaceChecker implements PreconditionChecker {
 
 export class FileInternalPathGatherer implements ParametersGatherer<{ outputdir: string }> {
   private filePath: string;
-  public constructor(uri: Uri) {
+  constructor(uri: Uri) {
     this.filePath = uri.fsPath;
   }
 

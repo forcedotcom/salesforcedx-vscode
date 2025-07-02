@@ -18,10 +18,6 @@ import { SfCommandletExecutor } from './util';
 class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
   private execution?: CliCommandExecution;
 
-  public constructor() {
-    super();
-  }
-
   public build(data: {}): Command {
     return new SfCommandBuilder()
       .withArg('org:list:metadata-types')

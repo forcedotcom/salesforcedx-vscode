@@ -75,7 +75,7 @@ export class StreamingService {
 
     await this.systemEventClient.subscribe();
     await this.userEventClient.subscribe();
-    return Promise.resolve(this.isReady());
+    return this.isReady();
   }
 
   private removeTrailingSlashURL(instanceUrl?: string) {
@@ -92,12 +92,7 @@ export class StreamingService {
   }
 
   public isReady(): boolean {
-    if (
-      this.systemEventClient &&
-      this.systemEventClient.isConnected() &&
-      this.userEventClient &&
-      this.userEventClient.isConnected()
-    ) {
+    if (this.systemEventClient?.isConnected() && this.userEventClient?.isConnected()) {
       return true;
     }
     return false;

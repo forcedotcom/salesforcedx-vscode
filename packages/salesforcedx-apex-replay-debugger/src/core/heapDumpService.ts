@@ -36,7 +36,7 @@ import { LogContext } from './logContext';
 export class HeapDumpService {
   private logContext: LogContext;
 
-  public constructor(logContext: LogContext) {
+  constructor(logContext: LogContext) {
     this.logContext = logContext;
   }
 
@@ -551,7 +551,7 @@ export class HeapDumpService {
           // process the key
           const keyVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_KEY);
           let keyName = keyVarContainer!.value;
-          if (keyVarContainer && keyVarContainer.ref) {
+          if (keyVarContainer?.ref) {
             const keyRef = this.logContext.getRefsMap().get(keyVarContainer.ref);
             if (keyRef) {
               const updatedKeyVarContainer = this.createVariableFromReference(
@@ -574,7 +574,7 @@ export class HeapDumpService {
           // process the value
           const valueVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_VALUE);
           let valueVal = valueVarContainer!.value;
-          if (valueVarContainer && valueVarContainer.ref) {
+          if (valueVarContainer?.ref) {
             const valueRef = this.logContext.getRefsMap().get(valueVarContainer.ref);
             if (valueRef) {
               const updatedValueVarContainer = this.createVariableFromReference(
@@ -653,7 +653,7 @@ export class HeapDumpService {
   //                 that when the type name is split that it's split correctly since, due to
   //                 potential nesting just splitting on the comma isn't good enough.
   private getKeyTypeForMap(typeName: string, collectionType: string): string {
-    const lastIndexOfValue = ',' + collectionType;
+    const lastIndexOfValue = `,${collectionType}`;
     const keyTypeName = typeName.substring(typeName.indexOf('<') + 1, typeName.lastIndexOf(lastIndexOfValue));
     return keyTypeName;
   }

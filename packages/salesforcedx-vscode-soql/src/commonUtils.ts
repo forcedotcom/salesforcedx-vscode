@@ -15,11 +15,14 @@ export const getDocumentName = (document: vscode.TextDocument): string => {
   return path.basename(documentPath) || '';
 };
 
-export const trackErrorWithTelemetry = (problemId: string, error: string): Promise<void> => {
+export const trackErrorWithTelemetry = (problemId: string, error: string): void => {
   try {
-    telemetryService.sendException(`soql_error_${problemId.toLocaleLowerCase()}`, error);
-  } catch {
-    channelService.appendLine(`soql_error_telemetry:  ${error.toString()}`);
+    try {
+      telemetryService.sendException(`soql_error_${problemId.toLocaleLowerCase()}`, error);
+    } catch {
+      channelService.appendLine(`soql_error_telemetry:  ${error.toString()}`);
+    }
+  } catch (err) {
+    console.error(err);
   }
-  return Promise.resolve();
 };

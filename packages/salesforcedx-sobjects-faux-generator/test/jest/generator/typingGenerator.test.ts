@@ -175,8 +175,7 @@ describe('SObject Javascript type declaration generator', () => {
   it('Should create a declaration file with a field and relationship', async () => {
     const field1 = '{"name": "StringField", "type": "string", "referenceTo": []}';
     const relation1 = '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
-    const sobject1: string =
-      '{ "name": "Custom__c", "fields": [ ' + field1 + ',' + relation1 + ' ], "childRelationships": [] }';
+    const sobject1: string = `{ "name": "Custom__c", "fields": [ ${field1},${relation1} ], "childRelationships": [] }`;
     const objDef = generateSObjectDefinition(JSON.parse(sobject1));
 
     const sobjectFolder = process.cwd();

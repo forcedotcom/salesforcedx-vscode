@@ -38,7 +38,7 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
       };
       await authInfo.handleAliasAndDefaultSettings(sideEffects);
     } catch (error) {
-      if (error.message && error.message.includes('Bad_OAuth_Token')) {
+      if (error.message?.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID
         channelService.appendLine(nls.localize('org_login_access_token_bad_oauth_token_message'));
       }

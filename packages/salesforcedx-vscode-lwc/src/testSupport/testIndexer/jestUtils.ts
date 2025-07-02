@@ -72,7 +72,7 @@ export const populateAncestorTitles = (parsedResult: IExtendedParseResults) => {
  */
 export const extractPositionFromFailureMessage = (testFsPath: string, failureMessage: string) => {
   try {
-    const locationMatcher = new RegExp(escapeStrForRegex(testFsPath) + '\\:(\\d+)\\:(\\d+)', 'i');
+    const locationMatcher = new RegExp(`${escapeStrForRegex(testFsPath)}\\:(\\d+)\\:(\\d+)`, 'i');
     const matchResult = failureMessage.match(locationMatcher);
     if (matchResult) {
       const lineString = matchResult[1];

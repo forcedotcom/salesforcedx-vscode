@@ -30,9 +30,7 @@ export class HtmlUtils {
    * @param webview
    */
   public static transformHtml(html: string, pathToLwcDist: string, webview: vscode.Webview): string {
-    html = HtmlUtils.transformScriptTags(html, pathToLwcDist, webview);
-    html = HtmlUtils.replaceCspMetaTag(html, webview);
-    return html;
+    return HtmlUtils.replaceCspMetaTag(HtmlUtils.transformScriptTags(html, pathToLwcDist, webview), webview);
   }
 
   /**
@@ -58,6 +56,7 @@ export class HtmlUtils {
     let newScriptSrc: URI;
     while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
       newScriptSrc = webview.asWebviewUri(URI.file(path.join(pathToLwcDist, matches[1])));
+      // eslint-disable-next-line no-param-reassign
       html = html.replace(`./${matches[1]}`, newScriptSrc.toString());
     }
     return html;

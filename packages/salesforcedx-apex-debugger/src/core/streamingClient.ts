@@ -57,7 +57,7 @@ export class StreamingClientInfo {
   public readonly disconnectedHandler: () => void;
   public readonly messageHandler: (message: any) => void;
 
-  public constructor(builder: StreamingClientInfoBuilder) {
+  constructor(builder: StreamingClientInfoBuilder) {
     this.channel = builder.channel;
     this.timeout = builder.timeout;
     this.errorHandler = builder.errorHandler;
@@ -121,7 +121,7 @@ export class StreamingClient {
   private replayId = -1;
   private clientInfo: StreamingClientInfo;
 
-  public constructor(url: string, requestService: RequestService, clientInfo: StreamingClientInfo) {
+  constructor(url: string, requestService: RequestService, clientInfo: StreamingClientInfo) {
     this.clientInfo = clientInfo;
     this.client = new Client(url, {
       timeout: this.clientInfo.timeout,

@@ -292,7 +292,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     }
 
     if (output === '') {
-      output = nls.localize('lib_retrieve_no_results') + '\n';
+      output = `${nls.localize('lib_retrieve_no_results')}\n`;
     }
     return output;
   }

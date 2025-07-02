@@ -20,7 +20,7 @@ import {
 class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
-  public constructor(flag?: string) {
+  constructor(flag?: string) {
     super();
     this.flag = flag;
   }

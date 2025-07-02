@@ -12,7 +12,7 @@ export class Command {
   public readonly args: string[];
   public readonly logName?: string;
 
-  public constructor(builder: CommandBuilder) {
+  constructor(builder: CommandBuilder) {
     this.command = builder.command;
     this.description = builder.description;
     this.args = builder.args;

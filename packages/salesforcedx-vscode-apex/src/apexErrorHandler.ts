@@ -44,7 +44,8 @@ export class ApexErrorHandler extends EventEmitter implements ErrorHandler {
       this.emit('restarting', this.restarts.length);
       return { action: CloseAction.Restart };
     } else {
-      const diff = this.restarts[this.restarts.length - 1] - this.restarts[this.restarts.length - 5];
+      // assertions: we know the length is >= 5
+      const diff = this.restarts.at(-1)! - this.restarts.at(-5)!;
       // 3 minutes
       if (diff <= 3 * 60 * 1000) {
         this.emit('startFailed', this.restarts.length);

@@ -43,6 +43,7 @@ describe('O11yService', () => {
 
     await o11yService.initialize('test-extension', 'http://test-endpoint');
 
+    // @ts-expect-error - internal property
     expect(o11yService.o11yUploadEndpoint).toBe('http://test-endpoint');
     expect(mockModules.getInstrumentation).toHaveBeenCalledWith('test-extension-instrumentation');
     expect(mockModules.registerInstrumentedApp).toHaveBeenCalled();
@@ -58,7 +59,9 @@ describe('O11yService', () => {
 
   test('should log events correctly', () => {
     const logMock = jest.fn();
+    // @ts-expect-error - internal property
     o11yService.instrumentation = { log: logMock } as any;
+    // @ts-expect-error - internal property
     o11yService.a4dO11ySchema = {};
 
     o11yService.logEvent({ key: 'value' });
@@ -68,7 +71,7 @@ describe('O11yService', () => {
 
   test('should not log event if instrumentation is not initialized', () => {
     console.log = jest.fn();
-
+    // @ts-expect-error - internal property
     o11yService.instrumentation = undefined as any;
     o11yService.logEvent({ key: 'value' });
 
@@ -83,7 +86,9 @@ describe('O11yService', () => {
       getRawContentsOfCoreEnvelope: jest.fn().mockReturnValue({})
     };
 
+    // @ts-expect-error - internal property
     o11yService.protoEncoderFunc = mockProtoEncoder;
+    // @ts-expect-error - internal property
     o11yService._instrApp = { simpleCollector: mockSimpleCollector } as any;
     jest.spyOn(o11yService, 'uploadToFalconAsync').mockResolvedValue({} as Response);
 
@@ -95,7 +100,7 @@ describe('O11yService', () => {
 
   test('should not upload if simpleCollector has no data', async () => {
     const mockSimpleCollector = { hasData: false };
-
+    // @ts-expect-error - internal property
     o11yService._instrApp = { simpleCollector: mockSimpleCollector } as any;
 
     await o11yService.upload();
@@ -107,6 +112,7 @@ describe('O11yService', () => {
     o11yService = O11yService.getInstance();
 
     // Simulating a missing protoEncoderFunc
+    // @ts-expect-error - internal property
     o11yService.protoEncoderFunc = null;
 
     // Call upload but expect no rejection (since we now handle missing protoEncoderFunc safely)
@@ -147,6 +153,7 @@ describe('O11yService', () => {
   });
 
   test('should throw error if o11yUploadEndpoint is undefined', async () => {
+    // @ts-expect-error - internal property
     o11yService.o11yUploadEndpoint = undefined;
     jest.spyOn(o11yService, 'uploadToFalconAsync').mockRejectedValue(new Error('o11yUploadEndpoint is not defined'));
   });

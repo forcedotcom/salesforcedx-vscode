@@ -70,11 +70,11 @@ class SObjectDescribe {
 
       const fetchedObjects: SObject[] = [];
       if (batchResponse && batchResponse.results === undefined) {
-        return Promise.resolve(fetchedObjects);
+        return fetchedObjects;
       }
 
       batchResponse.results.forEach((sr, i) => {
-        if (sr.result instanceof Array) {
+        if (Array.isArray(sr.result)) {
           if (sr.result[0].errorCode && sr.result[0].message) {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
@@ -82,10 +82,10 @@ class SObjectDescribe {
         } else fetchedObjects.push(toMinimalSObject(sr.result));
       });
 
-      return Promise.resolve(fetchedObjects);
+      return fetchedObjects;
     } catch (error) {
       const errorMsg = Reflect.has(error, 'body') ? error.body : error.message;
-      return Promise.reject(errorMsg);
+      throw errorMsg;
     }
   }
 

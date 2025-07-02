@@ -95,11 +95,11 @@ export class BrowserNode extends vscode.TreeItem implements RetrieveMetadataTrig
     });
   }
 
-  get parent() {
+  public get parent() {
     return this._parent;
   }
 
-  get children() {
+  public get children() {
     return this._children;
   }
 
