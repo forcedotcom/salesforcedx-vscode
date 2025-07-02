@@ -150,13 +150,15 @@ describe('Apex Replay Debugger', () => {
 
     // Wait for the command to execute
     await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
-    await pause(Duration.seconds(2));
+    await pause(Duration.seconds(5)); // Increased pause to allow quickpick to fully load
 
-    // Select a log file
-    const quickPicks = await prompt.getQuickPicks();
-    expect(quickPicks).to.not.be.undefined;
-    expect(quickPicks.length).to.be.greaterThanOrEqual(0);
-    await prompt.selectQuickPick('User User - Api');
+    // Select a log file with error handling
+    await retryOperation(async () => {
+      const quickPicks = await prompt.getQuickPicks();
+      expect(quickPicks).to.not.be.undefined;
+      expect(quickPicks.length).to.be.greaterThanOrEqual(0);
+      await prompt.selectQuickPick('User User - Api');
+    });
 
     await verifyNotificationWithRetry(/SFDX: Get Apex Debug Logs successfully ran/, Duration.TEN_MINUTES);
 

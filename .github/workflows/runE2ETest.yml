@@ -57,7 +57,6 @@ jobs:
           #!/bin/bash
           set -e
           export MSYS_NO_PATHCONV=1
-          export HUSKY_SKIP_INSTALL=1
           cd salesforcedx-vscode
 
           # Clean project directories
@@ -74,31 +73,6 @@ jobs:
           # Move downloaded files to extensions root
           find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
           find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
-
-          # Clean up potentially corrupted VS Code archives and cache
-          # Remove from test-resources directory
-          rm -rf ./test-resources/*.zip 2>/dev/null || true
-          rm -rf ./test-resources/*.tar.gz 2>/dev/null || true
-          rm -rf ./test-resources/vscode-* 2>/dev/null || true
-          rm -rf ./test-resources/VS* 2>/dev/null || true
-
-          # Remove from vscode-extension-tester storage locations
-          rm -rf ~/.cache/vscode-test 2>/dev/null || true
-          rm -rf ~/.vscode-test 2>/dev/null || true
-          rm -rf ./node_modules/.cache/vscode-test 2>/dev/null || true
-
-          # Remove from common temp directories
-          rm -rf /tmp/*vscode* 2>/dev/null || true
-          rm -rf /tmp/*VS* 2>/dev/null || true
-
-          # Clean up any existing extraction directories
-          if [ -d "./test-resources" ]; then
-            find ./test-resources -name "*vscode*" -type d -exec rm -rf {} + 2>/dev/null || true
-            find ./test-resources -name "*VS*" -type d -exec rm -rf {} + 2>/dev/null || true
-          fi
-
-          # Force clean any existing storage that might contain corrupted files
-          find . -name "*1.100.3-stable*" -exec rm -rf {} + 2>/dev/null || true
 
           # Install dependencies
           npm install
@@ -148,6 +122,7 @@ jobs:
           DEV_HUB_ALIAS_NAME: vscodeOrg
           DEV_HUB_USER_NAME: svcideebot@salesforce.com
           BASH_SILENCE_DEPRECATION_WARNING: 1
+          HUSKY_SKIP_INSTALL: 1
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
