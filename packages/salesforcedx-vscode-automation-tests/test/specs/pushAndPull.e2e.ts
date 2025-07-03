@@ -219,7 +219,7 @@ describe('Push and Pull', () => {
   };
 
   it('SFDX: View Changes in Default Org', async () => {
-    logTestStart(testSetup2, 'Push And Pull - SFDX: View Changes in Default Org');
+    log('Push And Pull - SFDX: View Changes in Default Org');
     // Create second Project to then view Remote Changes
     // The new project will connect to the scratch org automatically on GHA, but does not work locally
     testSetup2 = await TestSetup.setUp(testReqConfig2);
