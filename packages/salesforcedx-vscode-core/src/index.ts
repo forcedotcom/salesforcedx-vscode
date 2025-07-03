@@ -11,6 +11,8 @@ import {
   SFDX_CORE_CONFIGURATION_NAME,
   SfWorkspaceChecker,
   TelemetryService,
+  TraceFlags,
+  WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
   isSalesforceProjectOpened
@@ -68,9 +70,9 @@ import {
   sfProjectGenerate,
   sourceDiff,
   sourceFolderDiff,
-  startApexDebugLogging,
   taskStop,
   turnOffLogging,
+  turnOnLogging,
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges,
@@ -86,7 +88,7 @@ import { PersistentStorageService, registerConflictView, setupConflictView } fro
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
+import { decorators, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -104,7 +106,7 @@ const flagIgnoreConflicts: FlagParameter<string> = {
   flag: '--ignore-conflicts'
 };
 
-const registerCommands = (): vscode.Disposable => {
+const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
   // Customer-facing commands
   const orgLoginAccessTokenCmd = vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken);
   const orgLoginWebCmd = vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb);
@@ -211,12 +213,13 @@ const registerCommands = (): vscode.Disposable => {
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger);
 
-  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sf.start.apex.debug.logging',
-    startApexDebugLogging
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand('sf.start.apex.debug.logging', () =>
+    turnOnLogging(extensionContext)
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', () =>
+    turnOffLogging(extensionContext)
+  );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
@@ -446,7 +449,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   // Commands
-  const commands = registerCommands();
+  const commands = registerCommands(extensionContext);
   extensionContext.subscriptions.push(commands);
   extensionContext.subscriptions.push(registerConflictView());
   extensionContext.subscriptions.push(CommandEventDispatcher.getInstance());
@@ -489,6 +492,17 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
+
+  // Handle trace flag cleanup after setting target org
+  try {
+    const connection = await WorkspaceContextUtil.getInstance().getConnection();
+
+    const traceFlags = new TraceFlags(connection);
+    await traceFlags.handleTraceFlagCleanup(extensionContext);
+  } catch (error) {
+    console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);
+  }
+
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
   return api;
@@ -524,9 +538,6 @@ export const deactivate = async (): Promise<void> => {
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
-
-  disposeTraceFlagExpiration();
-  return turnOffLogging();
 };
 
 const handleTheUnhandled = (): void => {

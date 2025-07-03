@@ -4,19 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommandOutput, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   CliCommandExecutor,
   CommandExecution,
   CompositeParametersGatherer,
   ContinueResponse,
+  createDirectory,
   ParametersGatherer,
+  ProgressNotification,
   projectPaths,
-  ProgressNotification
+  readFile,
+  safeDelete,
+  writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'node:child_process';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { URL } from 'node:url';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
@@ -160,7 +163,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     const projectInstalledPackagesPath = path.join(projectPath, this.relativeInstalledPackagesPath);
 
     // remove any previous project at this path location
-    await fs.promises.rm(projectPath, { recursive: true, force: true });
+    await safeDelete(projectPath, { recursive: true });
     // 1: create project
     await this.executeCommand(
       this.buildCreateProjectCommand(response.data),
@@ -186,13 +189,9 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     );
     try {
       const salesforceProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
-      const salesforceProjectConfig = JSON.parse(
-        await fs.promises.readFile(salesforceProjectJsonFile, { encoding: 'utf-8' })
-      );
+      const salesforceProjectConfig = JSON.parse(await readFile(salesforceProjectJsonFile));
       salesforceProjectConfig.namespace = this.parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson);
-      await fs.promises.writeFile(salesforceProjectJsonFile, JSON.stringify(salesforceProjectConfig, null, 2), {
-        encoding: 'utf-8'
-      });
+      await writeFile(salesforceProjectJsonFile, JSON.stringify(salesforceProjectConfig, null, 2));
     } catch (error) {
       console.error(error);
       channelService.appendLine(nls.localize('error_updating_salesforce_project', error.toString()));
@@ -202,8 +201,8 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
     // 3a: create package.xml for downloading org apex
     try {
-      await fs.promises.mkdir(projectMetadataTempPath, { recursive: true });
-      await fs.promises.writeFile(
+      await createDirectory(projectMetadataTempPath);
+      await writeFile(
         apexRetrievePackageXmlPath,
         `<?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
@@ -215,8 +214,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     <members>*</members>
     <name>ApexTrigger</name>
   </types>
-</Package>`,
-        { encoding: 'utf-8' }
+</Package>`
       );
     } catch (error) {
       console.error(error);
@@ -243,7 +241,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     const packageInfos = this.parsePackageInstalledListJson(packagesJson);
 
     // 5a: create directory where packages are to be retrieved
-    await fs.promises.mkdir(projectInstalledPackagesPath, { recursive: true }); // .sfdx/tools/installed-packages
+    await createDirectory(projectInstalledPackagesPath); // .sfdx/tools/installed-packages
     const packageNames = packageInfos.map(entry => entry.name);
 
     // 5b: retrieve packages
@@ -262,10 +260,9 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
       // generate installed-package.json file
       try {
-        await fs.promises.writeFile(
+        await writeFile(
           path.join(projectInstalledPackagesPath, packageInfo.name.replaceAll('.', '-'), 'installed-package.json'),
-          JSON.stringify(packageInfo, null, 2),
-          { encoding: 'utf-8' }
+          JSON.stringify(packageInfo, null, 2)
         );
       } catch (error) {
         console.error(error);
@@ -277,7 +274,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
 
     // 5c: cleanup temp files
     try {
-      await fs.promises.rm(projectMetadataTempPath, { recursive: true, force: true });
+      await safeDelete(projectMetadataTempPath, { recursive: true });
     } catch (error) {
       console.error(error);
       channelService.appendLine(nls.localize('error_cleanup_temp_files', error.toString()));
@@ -289,8 +286,8 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     channelService.appendLine(nls.localize('isv_debug_bootstrap_generate_launchjson'));
     try {
       const projectVsCodeFolder = path.join(projectPath, '.vscode');
-      await fs.promises.mkdir(projectVsCodeFolder, { recursive: true });
-      await fs.promises.writeFile(
+      await createDirectory(projectVsCodeFolder);
+      await writeFile(
         path.join(projectVsCodeFolder, 'launch.json'),
         // mostly duplicated from ApexDebuggerConfigurationProvider to avoid hard dependency from core to debugger module
         JSON.stringify(
@@ -311,8 +308,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
           },
           null,
           2
-        ),
-        { encoding: 'utf-8' }
+        )
       );
     } catch (error) {
       console.error(error);

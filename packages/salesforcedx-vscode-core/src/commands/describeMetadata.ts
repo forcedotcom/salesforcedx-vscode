@@ -5,12 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { CliCommandExecution, CliCommandExecutor, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
+import {
+  CliCommandExecution,
+  CliCommandExecutor,
+  createDirectory,
+  workspaceUtils,
+  writeFile
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { SfCommandletExecutor } from './util';
 
 class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
+  private execution?: CliCommandExecution;
+
   public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withArg('org:list:metadata-types')
@@ -19,7 +26,20 @@ class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
       .build();
   }
 
-  public execute(): CliCommandExecution {
+  public execute(): void {
+    if (!this.execution) {
+      this.execution = this.createExecution();
+    }
+  }
+
+  public getExecution(): CliCommandExecution {
+    if (!this.execution) {
+      this.execution = this.createExecution();
+    }
+    return this.execution;
+  }
+
+  private createExecution(): CliCommandExecution {
     const startTime = process.hrtime();
     const execution = new CliCommandExecutor(this.build({}), {
       cwd: workspaceUtils.getRootWorkspacePath()
@@ -34,13 +54,13 @@ class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
 
 export const describeMetadata = async (outputFolder: string): Promise<string> => {
   const describeMetadataExecutor = new DescribeMetadataExecutor();
-  const execution = describeMetadataExecutor.execute();
-  await fs.promises.mkdir(outputFolder, { recursive: true });
+  const execution = describeMetadataExecutor.getExecution();
+  await createDirectory(outputFolder);
 
   const filePath = path.join(outputFolder, 'metadataTypes.json');
 
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
-  fs.writeFileSync(filePath, result);
+  await writeFile(filePath, result);
   return result;
 };
