@@ -98,18 +98,60 @@ jobs:
           find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
           find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
+      - name: Create retry scripts
+        shell: bash
+        run: |
+          # Create install dependencies script
+          cat > install-dependencies.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "Installing npm dependencies..."
+          cd salesforcedx-vscode
+          npm install
+          echo "Dependencies installed successfully"
+          EOF
+          chmod +x install-dependencies.sh
+
+          # Create install Salesforce CLI script
+          cat > install-salesforce-cli.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "Installing Salesforce CLI..."
+          npm install -g @salesforce/cli
+          echo "Salesforce CLI installed successfully"
+          EOF
+          chmod +x install-salesforce-cli.sh
+
+          # Create E2E test script
+          cat > run-e2e-test.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          if [ $# -eq 0 ]; then
+              echo "Usage: $0 <spec_path>"
+              echo "Example: $0 packages/salesforcedx-vscode-automation-tests/lib/test/specs/mytest.e2e.js"
+              exit 1
+          fi
+          SPEC_PATH="$1"
+          echo "Running E2E test for spec: $SPEC_PATH"
+          cd salesforcedx-vscode
+          npm run compile
+          npm run gha-automation-tests --spec "$SPEC_PATH"
+          echo "E2E test completed successfully"
+          EOF
+          chmod +x run-e2e-test.sh
+
       - name: Install dependencies with retry
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: bash .github/scripts/install-dependencies.sh
+          command: bash install-dependencies.sh
           retry_wait_seconds: 30
 
       - name: Install Salesforce CLI with retry
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: bash .github/scripts/install-salesforce-cli.sh
+          command: bash install-salesforce-cli.sh
           retry_wait_seconds: 30
 
       - name: Verify CLI and setup environment
@@ -140,7 +182,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: bash .github/scripts/run-e2e-test.sh ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
+          command: bash run-e2e-test.sh ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
