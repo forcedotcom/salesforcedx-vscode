@@ -76,6 +76,8 @@ jobs:
 
       - name: Setup project directories
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
         run: |
           set -e
           export MSYS_NO_PATHCONV=1
