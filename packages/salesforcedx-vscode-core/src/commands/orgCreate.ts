@@ -74,7 +74,9 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
       stdOut += realData.toString();
     });
 
-    execution.processExitSubject.subscribe(() => {
+    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    execution.processExitSubject.subscribe(async () => {
       this.logMetric(execution.command.logName, startTime);
       try {
         const createParser = new OrgCreateResultParser(stdOut);
