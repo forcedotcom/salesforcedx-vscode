@@ -17,4 +17,37 @@ export type OrgInfo = {
   accessToken: string;
   instanceUrl: string;
   clientId: string;
+  apiVersion: string;
+  alias: string;
+  connectionStatus: string;
+  password?: string;
+};
+
+export type OrgQueryResult = {
+  Id: string;
+  Name: string;
+  CreatedDate: string;
+  CreatedBy: { Username: string };
+  OrganizationType: string;
+  InstanceName: string;
+  IsSandbox: boolean;
+};
+
+export type ScratchOrgQueryResult = {
+  Status: string;
+  CreatedBy: { Username: string };
+  CreatedDate: string;
+  ExpirationDate: string;
+  Edition: string;
+  OrgName: string;
+};
+
+export type ScratchOrgInfo = {
+  status: string;
+  createdBy: string;
+  createdDate: string;
+  expirationDate: string;
+  edition: string;
+  orgName: string;
+  password?: string;
 };
