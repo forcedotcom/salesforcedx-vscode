@@ -40,6 +40,7 @@ export class MockApexReplayDebug extends ApexReplayDebug {
   }
 
   public async setLogContext(logContext: LogContext): Promise<void> {
+    await Promise.resolve();
     this.logContext = logContext;
     this.heapDumpService = new HeapDumpService(this.logContext);
   }
