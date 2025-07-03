@@ -15,7 +15,7 @@ export class ApexVariableContainer {
   public ref: string | undefined;
   public variablesRef: number;
 
-  public constructor(
+  constructor(
     name = '',
     value = '',
     type = '',
@@ -52,7 +52,7 @@ export class ApexVariableContainer {
 export class ScopeContainer extends ApexVariableContainer {
   public readonly scopeType: ScopeType;
 
-  public constructor(type: ScopeType, variables: Map<string, ApexVariableContainer>) {
+  constructor(type: ScopeType, variables: Map<string, ApexVariableContainer>) {
     super('', '', '', undefined, 0, variables);
     this.scopeType = type;
   }

@@ -96,7 +96,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
 
     // listen for server startup
     execution.stdoutSubject.subscribe(async data => {
-      if (!serverStarted && data && data.toString().includes('Server up')) {
+      if (!serverStarted && data?.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
         notificationService.showSuccessfulExecution(executionName, channelService).catch();

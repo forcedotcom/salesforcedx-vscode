@@ -12,7 +12,7 @@ export class ApexHeapDump {
   private readonly namespace: string;
   private readonly line: number;
   private overlaySuccessResut: ApexExecutionOverlayResultCommandSuccess | undefined;
-  public constructor(heapDumpId: string, className: string, namespace: string, line: number) {
+  constructor(heapDumpId: string, className: string, namespace: string, line: number) {
     this.heapDumpId = heapDumpId;
     this.className = className;
     this.namespace = namespace;
@@ -37,7 +37,6 @@ export class ApexHeapDump {
     this.overlaySuccessResut = overlaySuccessResult;
   }
 
-  public toString = (): string => `HeapDumpId: ${this.heapDumpId}, ClassName: ${
-      this.className
-    }, Namespace: ${this.namespace}, Line: ${this.line}`;
+  public toString = (): string =>
+    `HeapDumpId: ${this.heapDumpId}, ClassName: ${this.className}, Namespace: ${this.namespace}, Line: ${this.line}`;
 }

@@ -12,11 +12,7 @@ import * as sinon from 'sinon';
 import { BaseDebuggerCommand } from '../../../src/commands/baseDebuggerCommand';
 import { DebuggerRequest } from '../../../src/commands/protocol';
 
-class DummyCommand extends BaseDebuggerCommand {
-  public constructor(commandName: string, debuggedRequestId: string, queryString?: string, request?: DebuggerRequest) {
-    super(commandName, debuggedRequestId, queryString, request);
-  }
-}
+class DummyCommand extends BaseDebuggerCommand {}
 
 export const getDefaultHeaders = (contentLength: number): any => ({
   'Content-Type': 'application/json;charset=utf-8',

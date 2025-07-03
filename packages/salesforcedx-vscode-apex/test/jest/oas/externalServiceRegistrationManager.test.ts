@@ -23,7 +23,7 @@ import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 jest.mock('../../../src/coreExtensionUtils');
 
 class MockRegistryAccess {
-  getTypeByName() {
+  public getTypeByName() {
     // will be mocked in tests
   }
 }
@@ -184,7 +184,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
   it('should handle existing ESR file', async () => {
     (vscode.window.showWarningMessage as jest.Mock).mockResolvedValue('merge');
-    const result = await esrHandler.handleExistingESR();
+    const result = await esrHandler['handleExistingESR']();
 
     expect(result).toBe('merge');
   });

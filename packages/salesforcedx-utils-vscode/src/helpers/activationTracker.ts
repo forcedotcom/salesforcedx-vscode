@@ -24,7 +24,7 @@ export class ActivationTracker {
     };
   }
 
-  async markActivationStop(activationEndDate?: Date): Promise<void> {
+  public async markActivationStop(activationEndDate?: Date): Promise<void> {
     // capture date and elapsed HR time
     const activateEndDate = activationEndDate ?? new Date();
     const hrEnd = this.telemetryService.getEndHRTime(this._activationInfo.startActivateHrTime);

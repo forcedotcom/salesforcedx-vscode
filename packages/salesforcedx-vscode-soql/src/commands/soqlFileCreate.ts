@@ -23,5 +23,4 @@ export const soqlOpenNew = async (): Promise<void> => {
     // open with SOQL builder
     void vscode.commands.executeCommand(OPEN_WITH_COMMAND, newUri, BUILDER_VIEW_TYPE);
   }
-  return Promise.resolve();
 };

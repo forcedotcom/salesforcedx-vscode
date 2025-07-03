@@ -22,7 +22,7 @@ export class ReferencesCommand extends BaseDebuggerCommand {
     };
   }
 
-  public constructor(debuggedRequestId: string, ...apexReferences: number[]) {
+  constructor(debuggedRequestId: string, ...apexReferences: number[]) {
     super('references', debuggedRequestId, undefined, ReferencesCommand.createGetReferenceRequest(apexReferences));
   }
 }

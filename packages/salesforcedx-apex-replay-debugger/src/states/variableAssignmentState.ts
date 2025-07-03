@@ -22,8 +22,8 @@ export class VariableAssignmentState implements DebugLogState {
       const frameInfo = logContext.getFrameHandler().get(id);
       const name = this.fields[3];
       const nameSplit = this.fields[3].split('.');
-      const className = name.indexOf('.') > -1 ? name.substring(0, name.lastIndexOf('.')) : '';
-      const varName = nameSplit.length > 0 ? nameSplit[nameSplit.length - 1] : name;
+      const className = name.includes('.') ? name.substring(0, name.lastIndexOf('.')) : '';
+      const varName = nameSplit.length > 0 ? nameSplit.at(-1)! : name;
       const value = this.fields[4].replace(/^"/, "'").replace(/"$/, "'");
       let ref;
       if (this.fields.length === 6) {
@@ -46,7 +46,7 @@ export class VariableAssignmentState implements DebugLogState {
         map = frameInfo.locals;
         container = map.get(varName);
         // if the variable we're given is a child variable, then it will come in the format of this.varName
-      } else if (name.indexOf('.') !== -1) {
+      } else if (name.includes('.')) {
         isNested = true;
       }
 
@@ -124,8 +124,8 @@ export class VariableAssignmentState implements DebugLogState {
 
   private parseJSONAndPopulate(value: string, container: ApexVariableContainer, logContext: LogContext) {
     try {
-      value = logContext.getUtil().surroundBlobsWithQuotes(value);
-      const obj = JSON.parse(value);
+      const modifiedValue = logContext.getUtil().surroundBlobsWithQuotes(value);
+      const obj = JSON.parse(modifiedValue);
       Object.keys(obj).forEach(key => {
         const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
         if (refContainer) {
@@ -134,7 +134,7 @@ export class VariableAssignmentState implements DebugLogState {
         } else {
           let varValue = obj[key];
           if (typeof varValue === 'string') {
-            varValue = "'" + varValue + "'";
+            varValue = `'${varValue}'`;
             varValue = logContext.getUtil().removeQuotesFromBlob(varValue);
           } else {
             varValue = `${varValue}`;
