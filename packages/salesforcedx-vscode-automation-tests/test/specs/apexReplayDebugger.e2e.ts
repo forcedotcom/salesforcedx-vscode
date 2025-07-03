@@ -49,7 +49,7 @@ describe('Apex Replay Debugger', () => {
   };
 
   before('Set up the testing environment', async () => {
-    logTestStart(testSetup, 'ApexReplayDebugger - Set up the testing environment');
+    log('ApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectFolderPath = testSetup.projectFolderPath!;
 
