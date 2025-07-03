@@ -76,7 +76,7 @@ class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
       type: 'CONTINUE',
       data: {
         category,
-        source: this.source || 'manual'
+        source: this.source ?? 'manual'
       }
     };
   }

@@ -339,7 +339,7 @@ export class LogContext {
   }
 
   public getExecAnonScriptLocationInDebugLog(scriptLine: number): number {
-    return this.execAnonMapping.get(scriptLine) || 0;
+    return this.execAnonMapping.get(scriptLine) ?? 0;
   }
 
   public getExecAnonScriptMapping(): Map<number, number> {

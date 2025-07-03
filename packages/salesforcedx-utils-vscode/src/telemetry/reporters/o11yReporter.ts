@@ -42,7 +42,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
   private getCommonProperties(): CommonProperties {
     const commonProperties: CommonProperties = {
       'common.os': os.platform(),
-      'common.platformversion': (os.release() || '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
+      'common.platformversion': (os.release() ?? '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
       'common.systemmemory': `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`,
       'common.extname': this.extensionId,
       'common.extversion': this.extensionVersion
@@ -90,9 +90,9 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
     measurements?: { [key: string]: number }
   ): void {
     if (this.userOptIn && eventName) {
-      const orgId = WorkspaceContextUtil.getInstance().orgId;
-      const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
-      const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
+      const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
+      const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
+      const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
       let props = properties ? { ...properties, ...this.aggregateLoggingProperties() } : {};
       props = this.applyTelemetryTag(orgId ? { ...props, orgId, orgShape, devHubId } : props);
 
@@ -118,9 +118,9 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
       error.message = exceptionMessage;
       error.stack = 'DEPRECATED';
 
-      const orgId = WorkspaceContextUtil.getInstance().orgId || '';
-      const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
-      const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
+      const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
+      const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
+      const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
       const baseProps = { orgId, orgShape, devHubId };
       const props = this.applyTelemetryTag({ ...baseProps, ...this.aggregateLoggingProperties() });
 
@@ -145,7 +145,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
    */
   private setTelemetryTag(): void {
     const config = workspace.getConfiguration();
-    this.telemetryTag = config?.get('salesforcedx-vscode-core.telemetry-tag') || undefined;
+    this.telemetryTag = config?.get('salesforcedx-vscode-core.telemetry-tag') ?? undefined;
   }
 
   /**

@@ -43,7 +43,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<LocalCom
       const componentToOpen = result.components.getSourceComponents().first();
 
       if (componentToOpen) {
-        const dirPath = (await SalesforcePackageDirectories.getDefaultPackageDir()) || '';
+        const dirPath = (await SalesforcePackageDirectories.getDefaultPackageDir()) ?? '';
         const defaultOutput = path.join(workspaceUtils.getRootWorkspacePath(), dirPath);
         const compSet = ComponentSet.fromSource(defaultOutput);
         await this.openResources(this.findResources(componentToOpen, compSet));
