@@ -102,9 +102,10 @@ export class OrgDisplay {
           const hubConnection = hubOrg.getConnection();
           // Query the dev hub for scratch org information
           const scratchOrgQuery = await hubConnection.singleRecordQuery<ScratchOrgQueryResult>(
-            "SELECT Status, CreatedBy.Username, CreatedDate, ExpirationDate, Edition, OrgName FROM ScratchOrgInfo WHERE ScratchOrg = '" +
-              authFields.orgId.substring(0, 15) +
-              "'"
+            `SELECT Status, CreatedBy.Username, CreatedDate, ExpirationDate, Edition, OrgName FROM ScratchOrgInfo WHERE ScratchOrg = '${authFields.orgId.substring(
+              0,
+              15
+            )}'`
           );
 
           scratchOrgInfo = {

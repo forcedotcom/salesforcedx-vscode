@@ -23,7 +23,7 @@ import { FlagParameter, SelectUsername, SfCommandlet, SfWorkspaceChecker } from 
 class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {
   private flag: string | undefined;
 
-  public constructor(flag?: string) {
+  constructor(flag?: string) {
     super(nls.localize('org_display_default_text'), 'org_display_library', OUTPUT_CHANNEL);
     this.flag = flag;
   }
