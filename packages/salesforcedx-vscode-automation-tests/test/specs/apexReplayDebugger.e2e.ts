@@ -33,6 +33,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Apex Replay Debugger', () => {
   let prompt: QuickOpenBox | InputBox;
@@ -48,7 +49,7 @@ describe('Apex Replay Debugger', () => {
   };
 
   before('Set up the testing environment', async () => {
-    log('ApexReplayDebugger - Set up the testing environment');
+    logTestStart(testSetup, 'ApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectFolderPath = testSetup.projectFolderPath!;
 
@@ -72,7 +73,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('Verify LSP finished indexing', async () => {
-    log('ApexReplayDebugger - Verify LSP finished indexing');
+    logTestStart(testSetup, 'ApexReplayDebugger - Verify LSP finished indexing');
 
     // Get Apex LSP Status Bar
     const statusBar = await retryOperation(async () => await getStatusBarItemWhichIncludes('Editor Language Status'));
@@ -81,7 +82,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
-    log('ApexReplayDebugger - SFDX: Turn On Apex Debug Log for Replay Debugger');
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Turn On Apex Debug Log for Replay Debugger');
 
     // Clear output before running the command
     await clearOutputView();
@@ -107,7 +108,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('Run the Anonymous Apex Debugger with Currently Selected Text', async () => {
-    log('ApexReplayDebugger - Run the Anonymous Apex Debugger with Currently Selected Text');
+    logTestStart(testSetup, 'ApexReplayDebugger - Run the Anonymous Apex Debugger with Currently Selected Text');
 
     // Clear output before running the command
     await clearOutputView();
@@ -140,7 +141,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('SFDX: Get Apex Debug Logs', async () => {
-    log('ApexReplayDebugger - SFDX: Get Apex Debug Logs');
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Get Apex Debug Logs');
 
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
@@ -184,7 +185,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('SFDX: Launch Apex Replay Debugger with Last Log File', async () => {
-    log('ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Last Log File');
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Last Log File');
 
     // Get open text editor
     const workbench = getWorkbench();
@@ -209,7 +210,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
-    log('ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
 
     const workbench = getWorkbench();
     await getTextEditor(workbench, logFileTitle);
@@ -222,7 +223,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('SFDX: Launch Apex Replay Debugger with Current File - test class', async () => {
-    log('ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - test class');
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - test class');
 
     // Run SFDX: Launch Apex Replay Debugger with Current File
     const workbench = getWorkbench();
@@ -236,7 +237,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('Run the Anonymous Apex Debugger using the Command Palette', async () => {
-    log('ApexReplayDebugger - Run the Anonymous Apex Debugger using the Command Palette');
+    logTestStart(testSetup, 'ApexReplayDebugger - Run the Anonymous Apex Debugger using the Command Palette');
 
     // Clear output before running the command
     await clearOutputView();
@@ -260,7 +261,7 @@ describe('Apex Replay Debugger', () => {
   });
 
   it('SFDX: Turn Off Apex Debug Log for Replay Debugger', async () => {
-    log('ApexReplayDebugger - SFDX: Turn Off Apex Debug Log for Replay Debugger');
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Turn Off Apex Debug Log for Replay Debugger');
 
     // Run SFDX: Turn Off Apex Debug Log for Replay Debugger
     await clearOutputView();

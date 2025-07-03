@@ -26,6 +26,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Push and Pull', () => {
   let testSetup1: TestSetup;
@@ -44,7 +45,7 @@ describe('Push and Pull', () => {
   });
 
   it('SFDX: View All Changes (Local and in Default Org)', async () => {
-    log('Push And Pull - SFDX: View All Changes (Local and in Default Org)');
+    logTestStart(testSetup1, 'Push And Pull - SFDX: View All Changes (Local and in Default Org)');
     await executeQuickPick('SFDX: View All Changes (Local and in Default Org)', Duration.seconds(5));
 
     // Check the output.
@@ -53,13 +54,13 @@ describe('Push and Pull', () => {
   });
 
   it('Create an Apex class', async () => {
-    log('Push And Pull - Create an Apex class');
+    logTestStart(testSetup1, 'Push And Pull - Create an Apex class');
     // Create an Apex Class.
     await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
   });
 
   it('SFDX: View Local Changes', async () => {
-    log('Push And Pull - SFDX: View Local Changes');
+    logTestStart(testSetup1, 'Push And Pull - SFDX: View Local Changes');
     await executeQuickPick('SFDX: View Local Changes', Duration.seconds(5));
 
     // Check the output.
@@ -73,7 +74,7 @@ describe('Push and Pull', () => {
   });
 
   it('Push the Apex class', async () => {
-    log('Push And Pull - Push the Apex class');
+    logTestStart(testSetup1, 'Push And Pull - Push the Apex class');
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
 
     await verifyPushSuccess();
@@ -82,7 +83,7 @@ describe('Push and Pull', () => {
   });
 
   it('Push again (with no changes)', async () => {
-    log('Push And Pull - Push again (with no changes)');
+    logTestStart(testSetup1, 'Push And Pull - Push again (with no changes)');
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
@@ -95,7 +96,7 @@ describe('Push and Pull', () => {
   });
 
   it('Modify the file and push the changes', async () => {
-    log('Push And Pull - Modify the file and push the changes');
+    logTestStart(testSetup1, 'Push And Pull - Modify the file and push the changes');
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
@@ -149,7 +150,7 @@ describe('Push and Pull', () => {
   });
 
   it('Pull the Apex class', async () => {
-    log('Push And Pull - Pull the Apex class');
+    logTestStart(testSetup1, 'Push And Pull - Pull the Apex class');
     // With this test, it's going to pull twice...
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -175,7 +176,7 @@ describe('Push and Pull', () => {
   });
 
   it("Modify the file (but don't save), then pull", async () => {
-    log("Push And Pull - Modify the file (but don't save), then pull");
+    logTestStart(testSetup1, "Push And Pull - Modify the file (but don't save), then pull");
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
@@ -193,7 +194,7 @@ describe('Push and Pull', () => {
   });
 
   it('Save the modified file, then pull', async () => {
-    log('Push And Pull - Save the modified file, then pull');
+    logTestStart(testSetup1, 'Push And Pull - Save the modified file, then pull');
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
@@ -218,7 +219,7 @@ describe('Push and Pull', () => {
   };
 
   it('SFDX: View Changes in Default Org', async () => {
-    log('Push And Pull - SFDX: View Changes in Default Org');
+    logTestStart(testSetup2, 'Push And Pull - SFDX: View Changes in Default Org');
     // Create second Project to then view Remote Changes
     // The new project will connect to the scratch org automatically on GHA, but does not work locally
     testSetup2 = await TestSetup.setUp(testReqConfig2);

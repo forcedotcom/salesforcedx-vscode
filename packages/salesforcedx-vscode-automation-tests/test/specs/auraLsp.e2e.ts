@@ -53,9 +53,9 @@ describe('Aura LSP', () => {
 
     // Get output text from the LSP
     const outputViewText = await getOutputViewText('Aura Language Server');
-    expect(outputViewText).to.contain('language server started');
     log('Output view text');
     log(outputViewText);
+    expect(outputViewText).to.contain('language server started');
   });
 
   it('Go to Definition', async () => {
