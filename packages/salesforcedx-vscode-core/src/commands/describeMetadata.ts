@@ -27,15 +27,11 @@ class DescribeMetadataExecutor extends SfCommandletExecutor<string> {
   }
 
   public execute(): void {
-    if (!this.execution) {
-      this.execution = this.createExecution();
-    }
+    this.execution ??= this.createExecution();
   }
 
   public getExecution(): CliCommandExecution {
-    if (!this.execution) {
-      this.execution = this.createExecution();
-    }
+    this.execution ??= this.createExecution();
     return this.execution;
   }
 

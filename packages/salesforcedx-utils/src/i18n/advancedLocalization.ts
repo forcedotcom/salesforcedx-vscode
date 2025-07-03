@@ -82,7 +82,7 @@ export class MessageBundleManager {
   }
 
   private rebuildMessages(instanceName: string): void {
-    const bundles = this.messageBundles.get(instanceName) || [];
+    const bundles = this.messageBundles.get(instanceName) ?? [];
     const baseBundle = bundles.find(b => b.type === 'base');
     const localeBundles = bundles.filter(b => b.type === 'locale');
 
@@ -90,7 +90,7 @@ export class MessageBundleManager {
       this.baseMessages = new Message(baseBundle.messages);
       localeBundles.forEach(localeBundle => {
         const messageLocale = localeBundle.messages['_locale'];
-        const locale = localeBundle.locale || (this.isValidLocale(messageLocale) ? messageLocale : DEFAULT_LOCALE);
+        const locale = localeBundle.locale ?? (this.isValidLocale(messageLocale) ? messageLocale : DEFAULT_LOCALE);
         if (this.isValidLocale(locale)) {
           this.localeMessages.set(locale, new Message(localeBundle.messages, this.baseMessages!));
         }
@@ -110,7 +110,7 @@ export class MessageBundleManager {
       throw new Error('No base messages registered');
     }
 
-    const localeConfig = config?.locale || DEFAULT_LOCALE;
+    const localeConfig = config?.locale ?? DEFAULT_LOCALE;
     const configManager = LocalizationConfig.getInstance();
 
     if (!configManager.isLocaleSupported(localeConfig)) {
@@ -118,7 +118,7 @@ export class MessageBundleManager {
       return this.baseMessages;
     }
 
-    return this.localeMessages.get(localeConfig) || this.baseMessages;
+    return this.localeMessages.get(localeConfig) ?? this.baseMessages;
   }
 }
 

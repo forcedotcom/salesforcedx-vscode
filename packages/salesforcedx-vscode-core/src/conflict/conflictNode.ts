@@ -102,7 +102,7 @@ export class ConflictGroupNode extends ConflictNode {
 
   public addChildren(conflicts: ConflictFile[]) {
     if (conflicts.length === 0) {
-      this.children.push(new ConflictNode(this.emptyLabel || '', vscode.TreeItemCollapsibleState.None));
+      this.children.push(new ConflictNode(this.emptyLabel ?? '', vscode.TreeItemCollapsibleState.None));
     }
 
     conflicts.forEach(entry => {
