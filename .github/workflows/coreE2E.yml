@@ -46,7 +46,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -98,7 +98,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
