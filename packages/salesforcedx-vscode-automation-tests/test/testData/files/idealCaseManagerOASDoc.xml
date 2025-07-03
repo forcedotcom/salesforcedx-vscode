@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">
+  <description>This is the ideal OpenAPI v3 specification for CaseManager.cls.</description>
+  <label>CaseManager</label>
+  <schema>openapi: 3.0.0
+info:
+  title: CaseManager
+  version: '1.0.0'
+  description: This is the ideal OpenAPI v3 specification for CaseManager.cls.
+servers:
+  - url: /services/apexrest
+    description: Apex rest
+paths:
+  /apex-rest-examples/v1/Cases:
+    description: The endpoint that contains the POST method.
+    post:
+      summary: Create a new case
+      description: Creates a new case with the provided information.
+      operationId: createCase
+      requestBody:
+        description: The properties of the case to create.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  type: string
+                  description: The subject of the case
+                status:
+                  type: string
+                  description: The status of the case
+                origin:
+                  type: string
+                  description: The origin of the case
+                priority:
+                  type: string
+                  description: The priority of the case
+      responses:
+        '200':
+          description: The ID of the newly created case.
+          content:
+            text/plain:
+              schema:
+                type: string</schema>
+  <schemaType>OpenApi3</schemaType>
+  <schemaUploadFileExtension>yaml</schemaUploadFileExtension>
+  <schemaUploadFileName>casemanager_openapi</schemaUploadFileName>
+  <status>Complete</status>
+  <systemVersion>3</systemVersion>
+  <operations>
+    <name>createCase</name>
+    <active>true</active>
+  </operations>
+  <registrationProvider>CaseManager</registrationProvider>
+  <registrationProviderType>ApexRest</registrationProviderType>
+  <namedCredential>null</namedCredential>
+</ExternalServiceRegistration>

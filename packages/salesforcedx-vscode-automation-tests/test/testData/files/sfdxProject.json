@@ -1,0 +1,15 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "name": "TempProject-CreateOASDoc",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "63.0",
+  "sourceBehaviorOptions": [
+    "decomposeExternalServiceRegistrationBeta"
+  ]
+}

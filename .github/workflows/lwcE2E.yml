@@ -3,11 +3,6 @@ name: LWC End to End Tests
 on:
   workflow_dispatch:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
       debugLwcTests:
         description: 'Debug LWC Tests'
         required: false
@@ -21,7 +16,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -30,11 +25,6 @@ on:
 
   workflow_call:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'develop'
-        type: string
       debugLwcTests:
         description: 'Debug LWC Tests'
         required: false
@@ -48,7 +38,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -61,8 +51,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'debugLwcTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -72,8 +60,6 @@ jobs:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch }}
-      automationRepo: 'salesforcedx-vscode-automation-tests-redhat'
       testToRun: 'runLwcTests.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
@@ -86,7 +72,7 @@ jobs:
     with:
       title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'All the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -100,7 +86,7 @@ jobs:
     with:
       title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'Not all the tests passed.'
       workflow: 'actions/runs/${{ github.run_id }}'
@@ -114,7 +100,7 @@ jobs:
     with:
       title: 'LWC E2E Tests'
       vscodeVersion: ${{ inputs.vscodeVersion }}
-      testsBranch: ${{ inputs.automationBranch }}
+      testsBranch: ${{ github.ref }}
       summary: '\n- Debug LWC Tests: ${{ needs.debugLwcTests.result }}\n- Run LWC Tests: ${{ needs.runLwcTests.result }}'
       result: 'The workflow was cancelled.'
       workflow: 'actions/runs/${{ github.run_id }}'

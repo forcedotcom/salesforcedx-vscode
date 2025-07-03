@@ -2,16 +2,6 @@ name: Run E2E Test
 on:
   workflow_call:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
-      automationRepo:
-        description: 'Set the repo to use for automation tests'
-        required: false
-        default: 'salesforcedx-vscode-automation-tests-redhat'
-        type: string
       testToRun:
         description: 'Run this E2E test'
         required: false
@@ -19,7 +9,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -39,7 +29,7 @@ jobs:
       matrix:
         os: ${{ fromJson(inputs.os) }}
         nodeVersion:
-          - 20.17.0
+          - 20.18.1
         vscodeVersion:
           - ${{ inputs.vscodeVersion }}
     steps:
@@ -48,17 +38,6 @@ jobs:
         with:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
-      - name: Download extension vsixes
-        run: |
-          mkdir ./extensions
-          pwd
-          gh run download ${{ inputs.runId }} -D ./extensions
-          mv ./extensions/*/* ./extensions/
-        working-directory: salesforcedx-vscode
-        env:
-          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-      - name: Display downloaded vsix files
-        run: ls -R ./salesforcedx-vscode/extensions
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -66,78 +45,121 @@ jobs:
           cache: npm
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
-            ${{ inputs.automationRepo }}/package-lock.json
       - name: Setup java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '11'
-      - name: Clone automation tests
-        uses: actions/checkout@v4
-        with:
-          repository: forcedotcom/${{ inputs.automationRepo }}
-          path: ${{ inputs.automationRepo }}
-          ref: ${{ inputs.automationBranch }}
-      - name: Install Test Dependencies
-        run: |
-          npm install
-        working-directory: ${{ inputs.automationRepo }}
-      - name: Install the Salesforce CLI
-        run: npm install -g @salesforce/cli
-      - name: Verify CLI
+
+      - name: Clean VS Code cache and setup
         shell: bash
         run: |
+          # Clean up any corrupted VS Code downloads/cache
+          echo "Cleaning VS Code cache and temp files..."
+
+          # Remove vscode-extension-tester cache
+          rm -rf ~/.vscode-test 2>/dev/null || true
+          rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+
+          # Remove any partial downloads
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            rm -rf "$TEMP"/vscode-* 2>/dev/null || true
+            rm -rf "$USERPROFILE"/.vscode-test 2>/dev/null || true
+          else
+            rm -rf /tmp/vscode-* 2>/dev/null || true
+          fi
+
+          # Clean npm cache
+          npm cache clean --force
+
+          echo "VS Code cache cleanup completed"
+
+      - name: Setup project directories
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+        run: |
           set -e
+          export MSYS_NO_PATHCONV=1
+          cd salesforcedx-vscode
+
+          # Clean project directories
+          rm -rf ./extensions 2>/dev/null || true
+          rm -rf ./e2e-temp 2>/dev/null || true
+
+          # Create extensions directory
+          mkdir -p ./extensions
+
+          # Download extension vsixes
+          pwd
+          gh run download ${{ inputs.runId }} -D ./extensions
+
+          # Move downloaded files to extensions root
+          find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
+          find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+
+      - name: Install dependencies with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: cd salesforcedx-vscode && npm install
+          retry_wait_seconds: 30
+
+      - name: Install Salesforce CLI with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm install -g @salesforce/cli
+          retry_wait_seconds: 30
+
+      - name: Verify CLI and setup environment
+        shell: bash
+        run: |
+          cd salesforcedx-vscode
+
+          # Verify CLI and set environment variables
           sf version
           SF_CLI_VERSION=$(sf version)
-          if [[ ((`echo $SF_CLI_VERSION | grep -c "@salesforce/cli/"` > 0))]]
-          then
-            echo "@salesforce/cli installed -" $SF_CLI_VERSION
+          echo "SF_CLI_VERSION: $SF_CLI_VERSION"
+          echo "SF_CLI_VERSION=$SF_CLI_VERSION" >> $GITHUB_ENV
+
+          if echo "$SF_CLI_VERSION" | grep -q "@salesforce/cli/"; then
+            echo "@salesforce/cli installed - $SF_CLI_VERSION"
           else
-            echo "The @salesforce/cli installation could not be verified"
+            echo "The @salesforce/cli installation cannot be verified"
             exit 1
           fi
-      - name: Set THROTTLE_FACTOR for macOS and Linux
-        if: matrix.os != 'windows-latest'
-        run: echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
-      - name: Set THROTTLE_FACTOR for Windows
-        if: matrix.os == 'windows-latest'
-        run: echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
-      - name: Run test setup script
-        if: inputs.automationRepo == 'salesforcedx-vscode-automation-tests'
-        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
+
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
+          else
+            echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
+          fi
+
+      - name: Run E2E test with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
-          run: |
-            npm run setup
-          working-directory: 'salesforcedx-vscode-automation-tests'
+          max_attempts: 3
+          command: cd salesforcedx-vscode && npm run compile && npm run gha-automation-tests --spec ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
         env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
-          ORG_ID: ${{ secrets.ORG_ID_E2E }}
-      - name: Run headless test
-        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
-        with:
-          run: |
-            npm run automation-tests
-          working-directory: ${{ inputs.automationRepo }}
-        env:
-          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SPEC_FILES: ${{ inputs.testToRun }}
+          SPEC_FILES: ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
           THROTTLE_FACTOR: ${{ env.THROTTLE_FACTOR }}
+          VSIX_TO_INSTALL: ./extensions
+          DEV_HUB_ALIAS_NAME: vscodeOrg
+          DEV_HUB_USER_NAME: svcideebot@salesforce.com
+          BASH_SILENCE_DEPRECATION_WARNING: 1
       - uses: actions/upload-artifact@v4
-        if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests'
+        if: failure()
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./${{ inputs.automationRepo }}/screenshots
+          path: salesforcedx-vscode/test-resources/screenshots
       - uses: actions/upload-artifact@v4
-        if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests-redhat'
-        with:
-          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./salesforcedx-vscode/extensions/screenshots
-      - uses: actions/upload-artifact@v4
-        if: ${{ inputs.testToRun }} == 'createOASDoc'
+        if: ${{ inputs.testToRun == 'createOasDoc.e2e.js' }}
         with:
           name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./${{ inputs.automationRepo }}/e2e-temp/TempProject-CreateOASDoc/llm-logs
+          path: salesforcedx-vscode/e2e-temp/TempProject-CreateOASDoc/llm-logs

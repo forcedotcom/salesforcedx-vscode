@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">
+  <description>This is the ideal OpenAPI v3 specification for SimpleAccountResource.cls.</description>
+  <label>SimpleAccountResource</label>
+  <schemaType>OpenApi3</schemaType>
+  <schemaUploadFileExtension>yaml</schemaUploadFileExtension>
+  <schemaUploadFileName>simpleaccountresource_openapi</schemaUploadFileName>
+  <status>Complete</status>
+  <systemVersion>3</systemVersion>
+  <operations>
+    <name>getAccount</name>
+    <active>true</active>
+  </operations>
+  <registrationProvider>SimpleAccountResource</registrationProvider>
+  <registrationProviderType>ApexRest</registrationProviderType>
+  <namedCredential>null</namedCredential>
+</ExternalServiceRegistration>
