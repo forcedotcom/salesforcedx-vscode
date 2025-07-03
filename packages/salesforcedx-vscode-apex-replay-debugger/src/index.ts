@@ -71,18 +71,12 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile',
     (editorUri: URI) => {
-      let logFile: string | undefined;
-      if (!editorUri) {
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-          editorUri = editor.document.uri;
-        }
+      const resolved = editorUri ?? vscode.window.activeTextEditor?.document.uri;
+
+      if (resolved) {
+        updateLastOpened(extContext, resolved.fsPath);
       }
-      if (editorUri) {
-        logFile = editorUri.fsPath;
-        updateLastOpened(extContext, editorUri.fsPath);
-      }
-      return launchFromLogFile(logFile);
+      return launchFromLogFile(resolved?.fsPath);
     }
   );
 

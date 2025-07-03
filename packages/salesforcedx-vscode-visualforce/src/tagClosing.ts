@@ -49,15 +49,16 @@ export const activateTagClosing = (
     if (!isEnabled) {
       return;
     }
-    const activeDocument = window.activeTextEditor && window.activeTextEditor.document;
+    const activeDocument = window.activeTextEditor?.document;
     if (document !== activeDocument || changes.length === 0) {
       return;
     }
     if (typeof timeout !== 'undefined') {
       clearTimeout(timeout);
     }
-    const lastChange = changes[changes.length - 1];
-    const lastCharacter = lastChange.text[lastChange.text.length - 1];
+    // assertion: we previously checked that changes is not zero-length
+    const lastChange = changes.at(-1)!;
+    const lastCharacter = lastChange.text.at(-1);
     if (lastChange.rangeLength > 0 || (lastCharacter !== '>' && lastCharacter !== '/')) {
       return;
     }
@@ -68,10 +69,10 @@ export const activateTagClosing = (
       tagProvider(document, position).then(text => {
         if (text && isEnabled) {
           const activeEditor = window.activeTextEditor!;
-          const currentDocument = activeEditor && activeEditor.document;
+          const currentDocument = activeEditor?.document;
           if (document === currentDocument && currentDocument.version === version) {
             const selections = activeEditor.selections;
-            if (selections.length && selections.some(s => s.active.isEqual(position))) {
+            if (selections.some(s => s.active.isEqual(position))) {
               activeEditor.insertSnippet(
                 new SnippetString(text),
                 selections.map(s => s.active)

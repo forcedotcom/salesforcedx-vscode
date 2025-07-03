@@ -161,7 +161,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.traceAll = args.trace;
     } else if (typeof args.trace === 'string') {
       this.trace = args.trace.split(',').map(category => category.trim());
-      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
+      this.traceAll = this.trace.includes(TRACE_ALL);
     }
     if (this.trace?.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
       logger.setup(Logger.LogLevel.Verbose, false);
@@ -436,13 +436,13 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   public log(traceCategory: TraceCategory, message: string) {
-    if (this.trace && (this.traceAll || this.trace.indexOf(traceCategory) >= 0)) {
+    if (this.trace && (this.traceAll || this.trace.includes(traceCategory))) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
 
   public shouldTraceLogFile(): boolean {
-    return this.traceAll || this.trace.indexOf(TRACE_CATEGORY_LOGFILE) !== -1;
+    return this.traceAll || this.trace.includes(TRACE_CATEGORY_LOGFILE);
   }
 
   public printToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number, category = 'stdout'): void {

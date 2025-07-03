@@ -44,7 +44,7 @@ export class ApexLanguageClient extends LanguageClient {
    * @param clientOptions - The client options for the language client.
    * @param forceDebug - Optional flag to force debug mode.
    */
-  public constructor(
+  constructor(
     id: string,
     name: string,
     serverOptions: ServerOptions,

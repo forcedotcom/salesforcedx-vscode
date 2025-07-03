@@ -22,9 +22,9 @@ export class OrgDisplay {
       // will be removed as part of removing CLI calls
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const orgInfo = JSON.parse(result).result as OrgInfo;
-      return Promise.resolve(orgInfo);
+      return orgInfo;
     } catch {
-      return Promise.reject(result);
+      throw result;
     }
   }
 }

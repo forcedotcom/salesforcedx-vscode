@@ -36,7 +36,7 @@ export class LogContextUtil {
 
   public substringFromLastPeriod(value: string): string {
     const valueSplit = value.split('.');
-    return valueSplit.length > 1 ? valueSplit[valueSplit.length - 1] : value;
+    return valueSplit.length > 1 ? valueSplit.at(-1)! : value;
   }
 
   public surroundBlobsWithQuotes(value: string): string {

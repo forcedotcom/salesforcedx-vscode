@@ -14,11 +14,11 @@ import { ApexClassOASEligibleResponse } from '../schemas';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 export class MethodValidationStep implements ProcessorStep {
-  static diagnosticCollection: vscode.DiagnosticCollection =
+  public static diagnosticCollection: vscode.DiagnosticCollection =
     vscode.languages.createDiagnosticCollection('OAS Method Validations');
   private diagnostics: vscode.Diagnostic[] = [];
 
-  process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+  public process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     if (!input.eligibilityResult) {
       console.log('skipping methodValidationStep as no eligibility results passed');
       return Promise.resolve(input);

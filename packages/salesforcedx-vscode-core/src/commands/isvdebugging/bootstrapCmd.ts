@@ -95,9 +95,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   public parseOrgNamespaceQueryResultJson(orgNamespaceQueryJson: string): string {
     const orgNamespaceQueryResponse = JSON.parse(orgNamespaceQueryJson);
     if (
-      orgNamespaceQueryResponse.result &&
-      orgNamespaceQueryResponse.result.records &&
-      orgNamespaceQueryResponse.result.records[0] &&
+      orgNamespaceQueryResponse.result?.records?.[0] &&
       typeof orgNamespaceQueryResponse.result.records[0].NamespacePrefix === 'string'
     ) {
       return orgNamespaceQueryResponse.result.records[0].NamespacePrefix;
@@ -420,7 +418,7 @@ const workspaceChecker = new EmptyPreChecker();
 const parameterGatherer = new CompositeParametersGatherer(
   forceIdeUrlGatherer,
   new SelectProjectName(() => {
-    if (forceIdeUrlGatherer.forceIdUrl && forceIdeUrlGatherer.forceIdUrl.orgName) {
+    if (forceIdeUrlGatherer.forceIdUrl?.orgName) {
       return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_'));
     }
     return '';

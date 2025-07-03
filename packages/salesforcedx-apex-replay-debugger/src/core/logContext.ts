@@ -315,7 +315,7 @@ export class LogContext {
 
   public getTopFrame(): StackFrame | undefined {
     if (this.stackFrameInfos.length > 0) {
-      return this.stackFrameInfos[this.stackFrameInfos.length - 1];
+      return this.stackFrameInfos.at(-1);
     }
   }
 
@@ -370,7 +370,6 @@ export class LogContext {
 
       if (processedKey === processedSignature) {
         uri = value;
-        return;
       }
     });
     return uri;
@@ -394,7 +393,7 @@ export class LogContext {
         if (this.session.shouldTraceLogFile() && !(this.state instanceof UserDebugState)) {
           this.session.printToDebugConsole(logLine);
         }
-        if (this.state && this.state.handle(this)) {
+        if (this.state?.handle(this)) {
           break;
         }
       }
@@ -410,13 +409,14 @@ export class LogContext {
     }
     const fields = logLine.split('|');
     if (fields.length >= 3) {
+      // this check makes several ! assertions below allowable
       switch (fields[1]) {
         case EVENT_CODE_UNIT_STARTED:
         case EVENT_CONSTRUCTOR_ENTRY:
         case EVENT_METHOD_ENTRY:
           return new FrameEntryState(fields);
         case EVENT_VF_APEX_CALL_START:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields[fields.length - 2])) {
+          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
             return new NoOpState();
           } else {
             return new FrameEntryState(fields);
@@ -430,7 +430,7 @@ export class LogContext {
         case EVENT_VARIABLE_ASSIGNMENT:
           return new VariableAssignmentState(fields);
         case EVENT_VF_APEX_CALL_END:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields[fields.length - 2])) {
+          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
             return new NoOpState();
           } else {
             return new FrameExitState(fields);

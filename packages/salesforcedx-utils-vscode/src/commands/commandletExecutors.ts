@@ -86,7 +86,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     response: ContinueResponse<T>,
     output: string
   ): TelemetryData | undefined {
-    return;
+    return undefined;
   }
 
   public abstract build(data: T): Command;
@@ -184,7 +184,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
     }
   }
 
-  get telemetryData(): TelemetryData {
+  public get telemetryData(): TelemetryData {
     return this.telemetry.build();
   }
 }
