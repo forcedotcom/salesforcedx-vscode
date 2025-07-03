@@ -40,10 +40,10 @@ describe('Variable assignment event', () => {
     const STATIC_PRIMITIVE_VARIABLE_ASSIGNMENT = 'fakeTime|VARIABLE_ASSIGNMENT|[5]|signature.staticInteger|5';
     const LOCAL_PRIMITIVE_VARIABLE_ASSIGNMENT = 'fakeTime|VARIABLE_ASSIGNMENT|[5]|localInteger|0';
 
-    beforeEach(() => {
+    beforeEach(async () => {
       // push frames on
       const state = new FrameEntryState(['signature']);
-      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
       expect(state.handle(context)).toBe(false);
 
@@ -104,10 +104,10 @@ describe('Variable assignment event', () => {
     const LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{"a":"0x37e2e22e","b1":BLOB(5 bytes),"b2":BLOB(50 bytes),"d":3.14,"m":"0xff6e2ff","s":"MyObject.s"}|${DUMMY_REF}`;
     const LOCAL_NESTED_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[12]|this.s|"MyObject.s"|${DUMMY_REF}`;
     const LOCAL_NESTED_JSON_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.a|{"Name":"MyObjectAccount"}|${DUMMY_REF}`;
-    beforeEach(() => {
+    beforeEach(async () => {
       // push frames on
       const state = new FrameEntryState(['signature']);
-      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
       expect(state.handle(context)).toBe(false);
       // add begin states for a local and static variable
@@ -244,10 +244,10 @@ describe('Variable assignment event', () => {
     const STATIC_NESTED_REASSIGNMENT2 = `04:35:37.25 (28667298)|VARIABLE_ASSIGNMENT|[11]|NestedClass.staticAcc2|{"Name":"staticacc1"}|${DUMMY_REF1}`;
     const STATIC_NESTED_REASSIGNMENT3 = `04:35:37.25 (30077406)|VARIABLE_ASSIGNMENT|[16]|NestedClass.staticAcc1|{"Name":"changed in method1"}|${DUMMY_REF2}`;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       // push frames on
       const state = new FrameEntryState(['signature']);
-      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
       expect(state.handle(context)).toBe(false);
       // add begin states for a local and static variable
@@ -353,10 +353,10 @@ describe('Variable assignment event', () => {
     const PARENT_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.m|${CHILD_REF}|${PARENT_REF}`;
     const PARENT_VARIABLE_ASSIGNMENT2 = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.n|${CHILD_REF}|${PARENT_REF}`;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       // push frames on
       const state = new FrameEntryState(['signature']);
-      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
       expect(state.handle(context)).toBe(false);
       // add begin states for a local and static variable
@@ -435,10 +435,10 @@ describe('Variable assignment event', () => {
     const SET_BEGIN = '09:43:08.67 (107041268)|VARIABLE_SCOPE_BEGIN|[30]|aset|Set<MyObject>|true|false';
     const SET_ASSIGNMENT = `09:43:08.67 (107119928)|VARIABLE_ASSIGNMENT|[30]|aset|${SET_VALUE}|${DUMMY_REF3}`;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       // push frames on
       const state = new FrameEntryState(['signature']);
-      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
       expect(state.handle(context)).toBe(false);
       getUriFromSignatureStub = jest

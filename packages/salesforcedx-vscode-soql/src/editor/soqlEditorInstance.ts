@@ -95,6 +95,7 @@ class ConnectionChangedListener {
     this.editorInstances = this.editorInstances.filter(instance => instance !== editor);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async connectionChanged(): Promise<void> {
     this.editorInstances.forEach(editor => editor.onConnectionChanged());
   }
@@ -245,7 +246,7 @@ export class SOQLEditorInstance {
     const conn = await workspaceContext.getConnection();
     // @ts-expect-error - mismatch in Logger between core and core-bundle
     const queryData = await runQuery(conn)(queryText);
-    this.openQueryDataView(queryData);
+    await this.openQueryDataView(queryData);
     this.runQueryDone();
   }
 
@@ -255,9 +256,9 @@ export class SOQLEditorInstance {
     });
   }
 
-  protected openQueryDataView(queryData: QueryResult<JsonMap>): void {
+  protected async openQueryDataView(queryData: QueryResult<JsonMap>): Promise<void> {
     const webview = new QueryDataView(this.subscriptions, queryData, this.document);
-    webview.createOrShowWebView();
+    await webview.createOrShowWebView();
   }
 
   // Write out the json to a given document. //

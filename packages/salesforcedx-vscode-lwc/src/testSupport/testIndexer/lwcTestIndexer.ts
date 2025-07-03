@@ -61,6 +61,8 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   /**
    * Set up file system watcher for test files change/create/delete.
    */
+  // match the interface
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async configureAndIndex() {
     const lwcTestWatcher = vscode.workspace.createFileSystemWatcher(LWC_TEST_GLOB_PATTERN);
     lwcTestWatcher.onDidCreate(

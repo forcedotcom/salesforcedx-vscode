@@ -94,7 +94,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       })
     );
 
-    this.logContext = new LogContext(args, this);
+    this.logContext = await LogContext.create(args, this);
     this.heapDumpService = new HeapDumpService(this.logContext);
 
     if (!this.logContext.hasLogLines()) {

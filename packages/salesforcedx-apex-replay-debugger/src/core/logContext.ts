@@ -58,8 +58,8 @@ export class LogContext {
   private readonly util = new LogContextUtil();
   private readonly session: ApexReplayDebug;
   private readonly launchArgs: LaunchRequestArguments;
-  private readonly logLines: string[] = [];
-  private readonly logSize: number;
+  private logLines: string[] = [];
+  private logSize: number = 0;
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
   private staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
@@ -78,11 +78,16 @@ export class LogContext {
   private backupStaticVariablesClassMap = this.staticVariablesClassMap;
   private backupVariableHandles = this.variableHandles;
 
-  constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
+  private constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
     this.session = session;
-    this.logLines = this.util.readLogFile(launchArgs.logFile);
-    this.logSize = this.util.getFileSize(launchArgs.logFile);
+  }
+
+  public static async create(launchArgs: LaunchRequestArguments, session: ApexReplayDebug): Promise<LogContext> {
+    const instance = new LogContext(launchArgs, session);
+    instance.logLines = await instance.util.readLogFile(launchArgs.logFile);
+    instance.logSize = await instance.util.getFileSize(launchArgs.logFile);
+    return instance;
   }
 
   public getUtil(): LogContextUtil {

@@ -54,8 +54,8 @@ if (!salesforceCoreExtension) {
   throw new Error('Salesforce Core Extension not initialized');
 }
 
-const registerCommands = (): vscode.Disposable => {
-  const dialogStartingPathUri = getDialogStartingPath(extContext);
+const registerCommands = async (): Promise<vscode.Disposable> => {
+  const dialogStartingPathUri = await getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
     const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
       canSelectFiles: true,
@@ -82,9 +82,9 @@ const registerCommands = (): vscode.Disposable => {
 
   const launchFromLogFilePathCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile.path',
-    logFilePath => {
+    async logFilePath => {
       if (logFilePath) {
-        launchFromLogFile(logFilePath, true);
+        await launchFromLogFile(logFilePath, true);
       }
     }
   );
@@ -156,7 +156,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const extensionHRStart = process.hrtime();
 
   extContext = extensionContext;
-  const commands = registerCommands();
+  const commands = await registerCommands();
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',

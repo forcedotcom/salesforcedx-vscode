@@ -64,7 +64,7 @@ describe('OrgGet unit tests.', () => {
       getCmdResultSpy.mockResolvedValue(partialJson);
       const configGet = new ConfigGet();
       // Unexpected token error is thrown b/c json can not be parsed.
-      expect(configGet.getConfig(fakePath)).rejects.toThrowError(/Unexpected token/);
+      await expect(configGet.getConfig(fakePath)).rejects.toThrowError(/Unexpected token/);
     });
   });
 });

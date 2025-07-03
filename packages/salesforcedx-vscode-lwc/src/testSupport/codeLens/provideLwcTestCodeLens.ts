@@ -16,11 +16,7 @@ import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
  * @param document text document
  * @param token cancellation token
  */
-export const provideLwcTestCodeLens = async (
-  document: TextDocument,
-
-  token: CancellationToken
-): Promise<CodeLens[]> => {
+export const provideLwcTestCodeLens = async (document: TextDocument, token: CancellationToken): Promise<CodeLens[]> => {
   const fsPath = document.uri.fsPath;
   const parseResults = parse(fsPath, document.getText());
   const { itBlocks } = parseResults;

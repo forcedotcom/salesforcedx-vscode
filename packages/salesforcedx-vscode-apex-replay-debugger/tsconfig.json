@@ -17,10 +17,10 @@
       "path": "../salesforcedx-utils-vscode"
     },
     {
-      "path": "../salesforcedx-vscode-core"
+      "path": "../salesforcedx-vscode-apex"
     },
     {
-      "path": "../salesforcedx-vscode-apex"
+      "path": "../salesforcedx-vscode-core"
     }
   ]
 }

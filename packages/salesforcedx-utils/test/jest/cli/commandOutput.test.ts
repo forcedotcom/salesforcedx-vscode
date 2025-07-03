@@ -43,7 +43,7 @@ describe('CommandOutput Unit Tests.', () => {
     const exitCallback = fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 0 response to indicate success
     exitCallback(successCode);
-    result.then(outValue => {
+    await result.then(outValue => {
       expect(outValue).toEqual('');
     });
   });
@@ -56,7 +56,7 @@ describe('CommandOutput Unit Tests.', () => {
     const exitCallback = fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 0 response to indicate success
     exitCallback(successCode);
-    result.then(outValue => {
+    await result.then(outValue => {
       expect(outValue).toEqual(goodOutput);
     });
   });
@@ -69,7 +69,7 @@ describe('CommandOutput Unit Tests.', () => {
     const exitCallback = fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 0 response to indicate success
     exitCallback(successCode);
-    result.then(outValue => {
+    await result.then(outValue => {
       expect(outValue).toEqual(goodOutput + goodOutput + goodOutput);
     });
   });
@@ -95,7 +95,7 @@ describe('CommandOutput Unit Tests.', () => {
     const exitCallback = fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 1 response to indicate failure
     exitCallback(failCode);
-    result.catch(outValue => {
+    await result.catch(outValue => {
       expect(outValue).toEqual(goodOutput);
     });
   });
@@ -107,7 +107,7 @@ describe('CommandOutput Unit Tests.', () => {
     const exitCallback = fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 1 response to indicate failure
     exitCallback(failCode);
-    result.catch(outValue => {
+    await result.catch(outValue => {
       expect(outValue).toEqual(badOutput);
     });
   });
@@ -118,7 +118,7 @@ describe('CommandOutput Unit Tests.', () => {
     const exitCallback = fakeExecution.processExitSubject.subscribe.mock.calls[0][0];
     // Call the exit callback with a 1 response to indicate failure
     exitCallback(failCode);
-    result.catch(outValue => {
+    await result.catch(outValue => {
       expect(outValue).toEqual(badOutput);
     });
   });
