@@ -64,20 +64,56 @@
 - If you want to relax or disable a rule that is stricter in the shared config, you’ll need to explicitly override it after extending the shared config (e.g., `no-console: 'off'`, `@typescript-eslint/no-explicit-any: 'off'`).
 - If you have more relaxed rules for tests than upstream, keep those overrides.
 
-### 4.4. Rules in Upstream but Not Present in Yours (New Rules You’d Get)
+### 4.4. Rules in Upstream but Not Present in Yours (New Rules You'd Get)
 
-The following rules are present in `eslint-config-salesforce-typescript` but **not** in your current config. If you switch, these will be newly enforced unless you explicitly override them:
+**The following rules are present in upstream but missing entirely from your current config:**
 
-- `unicorn/prefer-node-protocol`
-- `unicorn/prefer-object-from-entries`
-- `import/no-self-import`
-- `import/no-empty-named-blocks`
+- `unicorn/numeric-separators-style: 'warn'` - Enforces numeric separator style
+- `@typescript-eslint/return-await: 'error'` - Requires consistent return await
+- `@typescript-eslint/prefer-includes: 'error'` - Prefers .includes() over .indexOf()
+- `@typescript-eslint/prefer-reduce-type-parameter: 'error'` - Prefers reduce type parameter
+- `@typescript-eslint/prefer-string-starts-ends-with: 'error'` - Prefers string startsWith/endsWith
+- `@typescript-eslint/switch-exhaustiveness-check: 'error'` - Ensures switch statements are exhaustive
+- `@typescript-eslint/type-annotation-spacing: 'error'` - Enforces spacing around type annotations
+- `no-return-await: 'off'` - Turned off (base rule disabled for TypeScript)
 
-Most other rules in the shared config are already present in your config, or would only differ if you have them set to `off` or a different value. Prettier integration and test file handling are already present in both configs, though the shared config may have slightly different settings.
+**The following rules exist in both but with different values:**
+
+- `@typescript-eslint/array-type`: upstream `'array-simple'` vs current `'array'`
+- `@typescript-eslint/consistent-type-definitions`: upstream `['warn', 'type']` vs current `'off'`
+- `@typescript-eslint/member-ordering`: upstream `'error'` vs current `'off'`
+- `@typescript-eslint/explicit-function-return-type`: upstream `'error'` vs current `'off'`
+
+**Migration Impact:** The migration would introduce **8 new rules** and **change 4 existing rules** to be more strict. This is **not** a purely eliminative migration as originally assessed.
+
+The main benefits of migration would be:
+
+- **Reduced maintenance burden** - no need to keep rule definitions in sync
+- **Cleaner config** - focus only on customizations
+- **Automatic updates** - new rules from upstream would apply automatically
+- **Standardization** - align with official Salesforce TypeScript linting standards
+
+**However, this comes with the cost of:**
+
+- **New rule enforcement** - 8 additional rules to fix violations for
+- **Stricter standards** - 4 rules becoming more strict than current settings
+- **Potential breaking changes** - existing code may need updates to pass linting
 
 ---
 
-## 5. Summary Table
+## 5. Summary
+
+The migration to `eslint-config-salesforce-typescript` would introduce **new rule enforcement** and **stricter linting standards**. After line-by-line comparison of the upstream config, the migration would add 8 new rules and make 4 existing rules more strict, contrary to the initial assessment.
+
+### 5.1. Key Findings
+
+- **Migration would introduce new rule enforcement** - 8 new rules and 4 rule changes would be applied
+- **Not purely eliminative** - contrary to initial assessment, this migration adds behavioral changes
+- **Some rules would become more strict** - explicit function return types, member ordering, etc.
+- **Focus is still on maintenance benefits** - automatic updates, cleaner config, reduced sync burden
+- **Customizations remain necessary** - local rules, rule relaxations, test overrides still needed
+
+### 5.2. Summary Table
 
 | Rule/Section                        | In Upstream? | In Our Config? | Action             |
 | ----------------------------------- | :----------: | :------------: | ------------------ |
