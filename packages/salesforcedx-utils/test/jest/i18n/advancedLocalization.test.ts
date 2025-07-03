@@ -36,12 +36,6 @@ describe('Advanced Localization Unit Tests', () => {
       expect(config1).toBe(config2);
     });
 
-    it('should return the same instance for different instance names', () => {
-      const config1 = LocalizationConfig.getInstance();
-      const config2 = LocalizationConfig.getInstance();
-      expect(config1).toBe(config2);
-    });
-
     it('should recognize supported locales', () => {
       const config = LocalizationConfig.getInstance();
       expect(config.isLocaleSupported('en')).toBe(true);
