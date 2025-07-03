@@ -15,7 +15,7 @@ export const getDialogStartingPath = async (extContext: vscode.ExtensionContext)
     // If the user has already selected a document through getLogFileName then
     // use that path if it still exists.
     const pathToLastOpenedLogFolder = getLastOpenedLogFolder(extContext);
-    if (pathToLastOpenedLogFolder && (await folderExists(pathToLastOpenedLogFolder))) {
+    if (pathToLastOpenedLogFolder && (await fileOrFolderExists(pathToLastOpenedLogFolder))) {
       const lastOpenedLogFolderUri = getUriFor(pathToLastOpenedLogFolder);
       return lastOpenedLogFolderUri;
     }
@@ -23,7 +23,7 @@ export const getDialogStartingPath = async (extContext: vscode.ExtensionContext)
     // same directory that the SFDX download logs command would download to
     // if it exists.
     const pathToWorkspaceLogsFolder = projectPaths.debugLogsFolder();
-    if (await folderExists(pathToWorkspaceLogsFolder)) {
+    if (await fileOrFolderExists(pathToWorkspaceLogsFolder)) {
       const workspaceLogsFolderUri = getUriFor(pathToWorkspaceLogsFolder);
       return workspaceLogsFolderUri;
     }
@@ -38,7 +38,5 @@ const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | u
   const pathToLastOpenedLogFolder = extContext.workspaceState.get<string>(LAST_OPENED_LOG_FOLDER_KEY);
   return pathToLastOpenedLogFolder;
 };
-
-const folderExists = async (path: string): Promise<boolean> => await fileOrFolderExists(path);
 
 const getUriFor = (path: string): URI => URI.file(path);

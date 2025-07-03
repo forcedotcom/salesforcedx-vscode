@@ -8,7 +8,6 @@
 export { ActivationTracker } from './activationTracker';
 export { isSFContainerMode } from './env';
 export * from './extensionUris';
-// eslint-disable-next-line no-restricted-imports
 export {
   createDirectory,
   deleteFile,
@@ -24,7 +23,12 @@ export {
   writeFile
 } from './fs';
 export { fileExtensionsMatch, getRelativeProjectPath, getTestResultsFolder, projectPaths, TOOLS } from './paths';
-export { TraceFlags, showTraceFlagExpiration, disposeTraceFlagExpiration, getTraceFlagExpirationKey } from './traceFlags';
+export {
+  TraceFlags,
+  showTraceFlagExpiration,
+  disposeTraceFlagExpiration,
+  getTraceFlagExpirationKey
+} from './traceFlags';
 export {
   difference,
   extractJson,

@@ -85,13 +85,9 @@ export class LogContext {
 
   public static async create(launchArgs: LaunchRequestArguments, session: ApexReplayDebug): Promise<LogContext> {
     const instance = new LogContext(launchArgs, session);
-    await instance.initialize();
+    instance.logLines = await instance.util.readLogFile(launchArgs.logFile);
+    instance.logSize = await instance.util.getFileSize(launchArgs.logFile);
     return instance;
-  }
-
-  private async initialize(): Promise<void> {
-    this.logLines = await this.util.readLogFile(this.launchArgs.logFile);
-    this.logSize = await this.util.getFileSize(this.launchArgs.logFile);
   }
 
   public getUtil(): LogContextUtil {

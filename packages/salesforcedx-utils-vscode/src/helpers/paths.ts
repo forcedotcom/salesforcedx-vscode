@@ -10,7 +10,7 @@ import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '..';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
-import { createDirectory } from './index';
+import { createDirectory } from './fs';
 
 export const ORGS = 'orgs';
 export const METADATA = 'metadata';

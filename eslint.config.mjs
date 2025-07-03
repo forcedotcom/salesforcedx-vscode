@@ -269,7 +269,7 @@ export default [
         {
           patterns: [
             {
-              group: ['node:fs', 'fs'],
+              group: ['node:fs', 'fs-extra'],
               message:
                 "Use VSCode's fs API instead of Node.js fs for web extension compatibility. See https://code.visualstudio.com/api/references/vscode-api#FileSystem for documentation."
             }
@@ -359,7 +359,8 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
-      'no-useless-constructor': 'off'
+      'no-useless-constructor': 'off',
+      'no-restricted-imports': 'off'
     }
   },
   {
