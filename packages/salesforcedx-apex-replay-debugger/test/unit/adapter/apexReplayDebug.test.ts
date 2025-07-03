@@ -348,9 +348,9 @@ describe('Replay debugger adapter - unit', () => {
       projectPath
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
       adapter = new MockApexReplayDebug();
-      adapter.setLogFile(launchRequestArgs);
+      await adapter.setLogFile(launchRequestArgs);
       // Create a targeted sendEvent spy that filters out output events
       sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
         if (event.event === 'output') {
@@ -456,14 +456,14 @@ describe('Replay debugger adapter - unit', () => {
       projectPath
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
       adapter = new MockApexReplayDebug();
       response = Object.assign(adapter.getDefaultResponse(), {
         body: { threads: [] }
       });
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
       readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockResolvedValue(['line1', 'line2']);
-      adapter.setLogFile(launchRequestArgs);
+      await adapter.setLogFile(launchRequestArgs);
     });
 
     afterEach(() => {
@@ -511,7 +511,7 @@ describe('Replay debugger adapter - unit', () => {
       }
     ];
 
-    beforeEach(() => {
+    beforeEach(async () => {
       adapter = new MockApexReplayDebug();
       response = Object.assign(adapter.getDefaultResponse(), {
         body: { stackFrames: [] }
@@ -521,7 +521,7 @@ describe('Replay debugger adapter - unit', () => {
       };
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
       readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockResolvedValue(['line1', 'line2']);
-      adapter.setLogFile(launchRequestArgs);
+      await adapter.setLogFile(launchRequestArgs);
       getFramesStub = jest.spyOn(LogContext.prototype, 'getFrames').mockReturnValue(sampleStackFrames);
     });
 
@@ -555,9 +555,9 @@ describe('Replay debugger adapter - unit', () => {
       projectPath
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
       adapter = new MockApexReplayDebug();
-      adapter.setLogFile(launchRequestArgs);
+      await adapter.setLogFile(launchRequestArgs);
       response = Object.assign(adapter.getDefaultResponse(), {
         body: {}
       });
@@ -783,9 +783,9 @@ describe('Replay debugger adapter - unit', () => {
       projectPath
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
       adapter = new MockApexReplayDebug();
-      adapter.setLogFile(launchRequestArgs);
+      await adapter.setLogFile(launchRequestArgs);
       response = Object.assign(adapter.getDefaultResponse(), {
         body: {}
       });

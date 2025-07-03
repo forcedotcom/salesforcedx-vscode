@@ -78,7 +78,7 @@ const handleCacheResults = async (username: string, cache?: MetadataCacheResult)
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
       await differ.diffOneFile(cache.selectedPath, cache.cache.components[0], username);
     } else if (cache.selectedType === PathType.Folder) {
-      differ.diffFolder(cache, username);
+      await differ.diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('source_diff_components_not_in_org');

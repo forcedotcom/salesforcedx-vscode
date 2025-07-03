@@ -129,7 +129,7 @@ export default [
           }
         }
       ],
-      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'warn',
       '@typescript-eslint/no-misused-spread': 'error',
       '@typescript-eslint/no-unsafe-argument': 'warn',

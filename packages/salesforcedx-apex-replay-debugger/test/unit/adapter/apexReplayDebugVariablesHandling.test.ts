@@ -54,9 +54,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
     let args: DebugProtocol.ScopesArguments;
     let frameHandler: Handles<ApexDebugStackFrameInfo>;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       adapter = new MockApexReplayDebug();
-      adapter.setLogFile(launchRequestArgs);
+      await adapter.setLogFile(launchRequestArgs);
       response = Object.assign(adapter.getDefaultResponse(), {
         body: {}
       });
@@ -138,9 +138,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
     let args: DebugProtocol.VariablesArguments;
     let variableHandler: Handles<ApexVariableContainer>;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       adapter = new MockApexReplayDebug();
-      adapter.setLogFile(launchRequestArgs);
+      await adapter.setLogFile(launchRequestArgs);
       response = Object.assign(adapter.getDefaultResponse(), {
         body: {}
       });
@@ -217,9 +217,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
       let refsMap: Map<string, ApexVariableContainer>;
       let staticVariablesClassMap: Map<string, Map<string, ApexVariableContainer>>;
 
-      beforeEach(() => {
+      beforeEach(async () => {
         adapter = new MockApexReplayDebug();
-        adapter.setLogFile(launchRequestArgs);
+        await adapter.setLogFile(launchRequestArgs);
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
         staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
@@ -531,9 +531,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
       let refsMap: Map<string, ApexVariableContainer>;
       let staticVariablesClassMap: Map<string, Map<string, ApexVariableContainer>>;
 
-      beforeEach(() => {
+      beforeEach(async () => {
         adapter = new MockApexReplayDebug();
-        adapter.setLogFile(launchRequestArgs);
+        await adapter.setLogFile(launchRequestArgs);
         frameHandler = new Handles<ApexDebugStackFrameInfo>();
         refsMap = new Map<string, ApexVariableContainer>();
         staticVariablesClassMap = new Map<string, Map<string, ApexVariableContainer>>();
