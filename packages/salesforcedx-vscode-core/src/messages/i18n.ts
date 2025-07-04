@@ -166,6 +166,20 @@ export const messages = {
   debugger_stop_none_found_text: 'No Apex Debugger session found.',
   data_query_input_text: 'SFDX: Execute SOQL Query...',
   data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
+  data_query_success_message: 'Query executed successfully. Found %s records. Results saved to: %s',
+  data_query_error_message: 'Error executing query: %s',
+  data_query_error_org_expired:
+    'Your org appears to have expired or is no longer accessible. Please refresh your org connection or authorize a new org.',
+  data_query_error_session_expired: 'Your session has expired. Please refresh your org connection.',
+  data_query_error_invalid_login: 'Invalid login credentials. Please re-authorize your org.',
+  data_query_error_insufficient_access:
+    'Insufficient access rights. You may not have permission to execute this query.',
+  data_query_error_malformed_query: 'The SOQL query is malformed. Please check your query syntax.',
+  data_query_error_invalid_field: 'One or more fields in your query are invalid. Please check the field names.',
+  data_query_error_invalid_type: 'One or more object types in your query are invalid. Please check the object names.',
+  data_query_error_connection: 'Unable to connect to your org. Please check your internet connection and org status.',
+  data_query_error_tooling_not_found:
+    "The requested metadata was not found. This may be because it doesn't exist or you don't have access to it.",
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   anon_apex_execute_document_text: 'SFDX: Execute Anonymous Apex with Editor Contents',
   anon_apex_execute_selection_text: 'SFDX: Execute Anonymous Apex with Currently Selected Text',
