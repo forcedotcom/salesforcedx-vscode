@@ -26,16 +26,16 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
   }
 
   public provideDebugConfigurations(
-    folder: vscode.WorkspaceFolder | undefined,
-    token?: vscode.CancellationToken
+    _folder: vscode.WorkspaceFolder | undefined,
+    _token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
     return [DebugConfigurationProvider.getConfig()];
   }
 
   public resolveDebugConfiguration(
-    folder: vscode.WorkspaceFolder | undefined,
+    _folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
-    token?: vscode.CancellationToken
+    _token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
     return this.asyncDebugConfig(config).catch(async err =>
       vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined)

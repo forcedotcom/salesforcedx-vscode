@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ContinueResponse, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, SfWorkspaceChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { join } from 'node:path';
 import { URI } from 'vscode-uri';
@@ -13,7 +13,7 @@ import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { DeployExecutor } from './baseDeployRetrieve';
-import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 class LibraryDeployManifestExecutor extends DeployExecutor<string> {
