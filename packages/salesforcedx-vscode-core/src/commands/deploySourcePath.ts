@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import type { URI } from 'vscode-uri';
 import { getConflictMessagesFor } from '../conflict/messages';
@@ -12,7 +12,7 @@ import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './retrieveSourcePath';
-import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { LibraryPathsGatherer, SfCommandlet } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 import { TimestampConflictChecker } from './util/timestampConflictChecker';

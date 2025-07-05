@@ -31,6 +31,5 @@ export {
 } from './parameterGatherers';
 export { SfCommandlet } from './sfCommandlet';
 export { SfCommandletExecutor } from './sfCommandletExecutor';
-export { SfWorkspaceChecker } from './sfWorkspaceChecker';
 export { PathStrategyFactory, SourcePathStrategy } from './sourcePathStrategies';
 export * from './lwcAuraDuplicateComponentCheckers';

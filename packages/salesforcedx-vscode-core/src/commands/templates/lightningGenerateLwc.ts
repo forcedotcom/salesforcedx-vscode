@@ -8,7 +8,8 @@
 import {
   CompositeParametersGatherer,
   DirFileNameSelection,
-  LocalComponent
+  LocalComponent,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
@@ -19,8 +20,7 @@ import {
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
-  SfCommandlet,
-  SfWorkspaceChecker
+  SfCommandlet
 } from '../util';
 import { LwcAuraDuplicateComponentCheckerForCreate } from '../util/lwcAuraDuplicateComponentCheckers';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
