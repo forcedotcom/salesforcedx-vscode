@@ -75,7 +75,7 @@ const buildTypesList = async (
       'metadataJSONContents' in input ? input.metadataJSONContents : await readFile(input.metadataTypesPath)
     );
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const metadataTypeObjects = (jsonObject.result.metadataObjects as MetadataObject[])
+    const metadataTypeObjects = (jsonObject.metadataObjects as MetadataObject[])
       .filter(type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName))
       .map(mdTypeObject => ({
         ...mdTypeObject,
