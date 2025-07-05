@@ -357,7 +357,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             cancellable: false
           },
 
-          async (progress, token) => {
+          async (progress, _token) => {
             writeToDebuggerOutputWindow(
               `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_org_info')}`
             );
@@ -479,7 +479,7 @@ export class CheckpointNode extends BaseNode {
   private actionObjectId: string | undefined;
 
   constructor(
-    breapointIdInput: string,
+    breakpointIdInput: string,
     enabledInput: boolean,
     uriInput: string,
     sourceFileInput: string,
@@ -487,7 +487,7 @@ export class CheckpointNode extends BaseNode {
   ) {
     super(`${sourceFileInput}:${checkpointOverlayActionInput.Line}`, TreeItemCollapsibleState.Expanded);
     this.uri = uriInput;
-    this.breakpointId = breapointIdInput;
+    this.breakpointId = breakpointIdInput;
     this.enabled = enabledInput;
     this.checkpointOverlayAction = checkpointOverlayActionInput;
     this.actionObjectId = undefined;

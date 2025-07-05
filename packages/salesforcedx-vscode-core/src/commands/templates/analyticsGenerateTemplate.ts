@@ -10,12 +10,13 @@ import {
   CompositeParametersGatherer,
   ContinueResponse,
   DirFileNameSelection,
-  ParametersGatherer
+  ParametersGatherer,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { PathStrategyFactory, SelectOutputDir, SfCommandlet, SfWorkspaceChecker, SourcePathStrategy } from '../util';
+import { PathStrategyFactory, SelectOutputDir, SfCommandlet, SourcePathStrategy } from '../util';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { ANALYTICS_TEMPLATE_DIRECTORY, ANALYTICS_TEMPLATE_TYPE } from './metadataTypeConstants';
 

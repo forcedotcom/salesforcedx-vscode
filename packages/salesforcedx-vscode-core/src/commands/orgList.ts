@@ -6,11 +6,12 @@
  */
 
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
-import { PromptConfirmGatherer, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { PromptConfirmGatherer, SfCommandlet, SfCommandletExecutor } from './util';
 
 class OrgListExecutor extends SfCommandletExecutor<{}> {
-  public build(data: { choice?: string }): Command {
+  public build(_data: { choice?: string }): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_list_clean_text'))
       .withArg('org:list')

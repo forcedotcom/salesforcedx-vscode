@@ -12,14 +12,14 @@ import {
   ContinueResponse,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  notificationService
+  notificationService,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
-import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker, SimpleGatherer } from '../util';
+import { SfCommandlet, SfCommandletExecutor, SimpleGatherer } from '../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 
 export class OrgLogoutAll extends SfCommandletExecutor<{}> {
@@ -29,7 +29,7 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
     return instance;
   }
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_logout_all_text'))
       .withArg('org:logout')
@@ -54,14 +54,7 @@ class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
     super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
   }
 
-  public async run(
-    response: ContinueResponse<string>,
-    progress?: Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
-    token?: CancellationToken
-  ): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
       await removeUsername(response.data);
     } catch (e) {

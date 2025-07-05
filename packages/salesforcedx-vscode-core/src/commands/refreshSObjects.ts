@@ -88,7 +88,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.event;
   private static isActive = false;
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('sobjects_refresh'))
       .withArg('sobject definitions refresh')

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CompositeParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { CompositeParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { lightningGenerateLwc } from '../../../../src/commands/templates';
 import { OverwriteComponentPrompt } from '../../../../src/commands/util/overwriteComponentPrompt';
 import {
@@ -15,17 +15,16 @@ import {
   SelectLwcComponentType
 } from '../../../../src/commands/util/parameterGatherers';
 import * as commandlet from '../../../../src/commands/util/sfCommandlet';
-import { SfWorkspaceChecker } from '../../../../src/commands/util/sfWorkspaceChecker';
 
 jest.mock('../../../../src/commands/util/sfCommandlet');
-jest.mock('../../../../src/commands/util/sfWorkspaceChecker');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../../src/commands/util/parameterGatherers');
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
   return {
     ...actual,
-    CompositeParametersGatherer: jest.fn()
+    CompositeParametersGatherer: jest.fn(),
+    SfWorkspaceChecker: jest.fn()
   };
 });
 

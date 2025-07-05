@@ -6,10 +6,10 @@
  */
 
 import {
+  getTraceFlagExpirationKey,
   notificationService,
-  TraceFlags,
   showTraceFlagExpiration,
-  getTraceFlagExpirationKey
+  TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';

@@ -19,6 +19,7 @@ type PlaceholderToType<S extends string> = S extends '%s'
           : unknown;
 
 // Recursively extracts argument types from a message string
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ExtractArgs<S extends string, Acc extends any[] = []> = S extends `${infer _}%${infer P}${infer Rest}`
   ? P extends 's' | 'd' | 'i' | 'f' | 'j'
     ? ExtractArgs<Rest, [...Acc, PlaceholderToType<`%${P}`>]>

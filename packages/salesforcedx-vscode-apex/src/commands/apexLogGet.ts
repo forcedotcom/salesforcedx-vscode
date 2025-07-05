@@ -113,7 +113,7 @@ class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   }
 }
 
-export const apexLogGet = async (explorerDir?: any) => {
+export const apexLogGet = async () => {
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     new LogFileSelector(),

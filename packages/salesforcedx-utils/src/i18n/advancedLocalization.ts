@@ -32,7 +32,7 @@ export class LocalizationConfig {
 
   private constructor() {}
 
-  public static getInstance(instanceName: string): LocalizationConfig {
+  public static getInstance(): LocalizationConfig {
     LocalizationConfig.instance ??= new LocalizationConfig();
     return LocalizationConfig.instance;
   }
@@ -111,7 +111,7 @@ export class MessageBundleManager {
     }
 
     const localeConfig = config?.locale || DEFAULT_LOCALE;
-    const configManager = LocalizationConfig.getInstance('default');
+    const configManager = LocalizationConfig.getInstance();
 
     if (!configManager.isLocaleSupported(localeConfig)) {
       console.error(`Cannot find ${localeConfig}, defaulting to ${DEFAULT_LOCALE}`);

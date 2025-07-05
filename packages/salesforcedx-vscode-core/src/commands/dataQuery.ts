@@ -5,10 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer,
+  SfWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor } from './util';
 
 class DataQueryExecutor extends SfCommandletExecutor<{}> {
   public build(data: QueryAndApiInputs): Command {
@@ -86,7 +91,7 @@ enum ApiType {
 
 const workspaceChecker = new SfWorkspaceChecker();
 
-export const dataQuery = (explorerDir?: any): void => {
+export const dataQuery = (): void => {
   const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new DataQueryExecutor());
   void commandlet.run();

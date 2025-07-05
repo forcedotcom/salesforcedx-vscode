@@ -8,7 +8,7 @@
 export * from './commands';
 export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
 export { EmptyPostChecker } from './commands/postconditionCheckers';
-export { EmptyPreChecker, SfWorkspaceChecker } from './commands/preconditionCheckers';
+export { EmptyPreChecker, SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
@@ -35,7 +35,6 @@ export * from './i18n';
 export * from './types';
 export * from './date';
 export * from './output';
-export * from './predicates';
 export * from './providers';
 export * from './services';
 export * from './settings';

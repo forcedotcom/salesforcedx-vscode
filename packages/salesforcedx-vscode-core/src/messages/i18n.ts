@@ -718,9 +718,6 @@ export const messages = {
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
   parameter_gatherer_file_name_max_length_validation_error_message: 'File name cannot exceed {0} characters',
   source_status: 'Source Status',
-  predicates_no_folder_opened_text: 'No folder opened. Open a Salesforce DX project in VS Code.',
-  predicates_no_salesforce_project_found_text:
-    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',

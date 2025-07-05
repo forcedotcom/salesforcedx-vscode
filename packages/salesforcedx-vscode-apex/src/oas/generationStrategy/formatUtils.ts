@@ -48,7 +48,7 @@ export const excludeUnrelatedMethods = (
   JSONPath({
     path: '$.paths.*', // Access each method under each path
     json: oas,
-    callback: (operation, type, fullPath) => {
+    callback: (operation, _type, _fullPath) => {
       for (const [method] of Object.entries(operation)) {
         if (method !== httpMethod) {
           delete operation[method];

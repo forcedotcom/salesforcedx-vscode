@@ -154,11 +154,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new TestsSelector();
-
 export const apexTestRun = async () => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ApexLibraryTestRunExecutor());
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new TestsSelector(), new ApexLibraryTestRunExecutor());
   await commandlet.run();
 };
 

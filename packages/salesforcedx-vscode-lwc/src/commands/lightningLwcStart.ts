@@ -63,7 +63,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     );
   }
 
-  public execute(response: ContinueResponse<{}>): void {
+  public execute(_response: ContinueResponse<{}>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;

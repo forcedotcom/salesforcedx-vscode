@@ -7,9 +7,10 @@
 
 import {
   ContinueResponse,
-  LibraryCommandletExecutor,
   createDirectory,
   fileOrFolderExists,
+  LibraryCommandletExecutor,
+  SfWorkspaceChecker,
   workspaceUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -19,7 +20,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet } from './util';
 
 const GENERATE_MANIFEST_EXECUTOR = 'project_generate_manifest';
 const DEFAULT_MANIFEST = 'package.xml';
@@ -35,14 +36,7 @@ class GenerateManifestExecutor extends LibraryCommandletExecutor<string> {
     this.responseText = responseText;
   }
 
-  public async run(
-    response: ContinueResponse<string>,
-    progress?: vscode.Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
-    token?: vscode.CancellationToken
-  ): Promise<boolean> {
+  public async run(_response: ContinueResponse<string>): Promise<boolean> {
     if (this.sourcePaths) {
       const packageXML = await ComponentSet.fromSource(this.sourcePaths).getPackageXml();
       // responseText is guaranteed to be a string here since we check for cancellation at the top level
