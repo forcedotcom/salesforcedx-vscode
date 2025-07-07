@@ -14,7 +14,7 @@ import {
   fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import { describeMetadata } from '../commands/describeMetadata';
+import { describeMetadata, DescribeMetadataResult } from '../commands/describeMetadata';
 import { coerceMessageKey, nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
@@ -64,12 +64,10 @@ export class TypeUtils {
 }
 
 const buildTypesList = async (
-  input: { metadataTypesPath: string } | { metadataJSONContents: string }
+  input: { metadataTypesPath: string } | { metadataJSONContents: DescribeMetadataResult }
 ): Promise<MetadataObject[]> => {
   try {
-    const jsonObject = JSON.parse(
-      'metadataJSONContents' in input ? input.metadataJSONContents : await readFile(input.metadataTypesPath)
-    );
+    const jsonObject = 'metadataJSONContents' in input ? input.metadataJSONContents : JSON.parse(await readFile(input.metadataTypesPath));
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const metadataTypeObjects = (jsonObject.metadataObjects as MetadataObject[])
       .filter(type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName))
