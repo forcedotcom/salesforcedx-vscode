@@ -1,3 +1,11 @@
+# 64.4.0 - July 9, 2025
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Manifest generation is cancelled when escaping ([PR #6391](https://github.com/forcedotcom/salesforcedx-vscode/pull/6391))
+
 # 64.3.0 - July 2, 2025
 
 ## Fixed
