@@ -5,6 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable import/extensions */
+/* eslint-disable import/no-unresolved */
+// @ts-nocheck
+
+/**
+ * NOTE:
+ * This test file uses dynamic imports to allow Jest to properly mock VS Code dependencies.
+ * Due to TypeScript's ESM + moduleResolution=node16/nodenext behavior, dynamic imports require `.js` extensions,
+ * but Jest cannot resolve TypeScript sources with `.js` in the path.
+ *
+ * We suppress TS and ESLint rules here to enable working dynamic imports *without* breaking the test runtime.
+ * This is a known limitation in the TS + Jest ecosystem.
+ */
+
 import * as vscode from 'vscode';
 import { AppInsights } from '../../../../src';
 import * as Settings from '../../../../src/settings';
