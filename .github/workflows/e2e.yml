@@ -48,7 +48,7 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -62,7 +62,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Core:
@@ -71,7 +71,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   DeployAndRetrieve:
@@ -80,7 +80,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LSP:
@@ -89,7 +89,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LWC:
@@ -98,7 +98,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   SOQL:
@@ -107,7 +107,7 @@ jobs:
     secrets: inherit
     with:
       automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Apex_min_vscode_version:

@@ -53,7 +53,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public initializeRequest(
     response: DebugProtocol.InitializeResponse,
-    args: DebugProtocol.InitializeRequestArguments
+    _args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
     this.initializedResponse.body = {
@@ -161,7 +161,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.traceAll = args.trace;
     } else if (typeof args.trace === 'string') {
       this.trace = args.trace.split(',').map(category => category.trim());
-      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
+      this.traceAll = this.trace.includes(TRACE_ALL);
     }
     if (this.trace?.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
       logger.setup(Logger.LogLevel.Verbose, false);
@@ -171,8 +171,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   public configurationDoneRequest(
-    response: DebugProtocol.ConfigurationDoneResponse,
-    args: DebugProtocol.ConfigurationDoneArguments
+    _response: DebugProtocol.ConfigurationDoneResponse,
+    _args: DebugProtocol.ConfigurationDoneArguments
   ): void {
     if (this.logContext.getLaunchArgs().stopOnEntry) {
       // Stop in the debug log
@@ -193,7 +193,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
   }
 
-  public disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
+  public disconnectRequest(response: DebugProtocol.DisconnectResponse, _args: DebugProtocol.DisconnectArguments): void {
     this.printToDebugConsole(nls.localize('session_terminated_text'));
     response.success = true;
     this.sendResponse(response);
@@ -213,7 +213,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  public stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): void {
+  public stackTraceRequest(response: DebugProtocol.StackTraceResponse, _args: DebugProtocol.StackTraceArguments): void {
     response.body = {
       stackFrames: this.logContext.getFrames().slice().reverse()
     };
@@ -313,19 +313,19 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  public continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
+  public continueRequest(response: DebugProtocol.ContinueResponse, _args: DebugProtocol.ContinueArguments): void {
     this.executeStep(response, 'Run');
   }
 
-  public nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
+  public nextRequest(response: DebugProtocol.NextResponse, _args: DebugProtocol.NextArguments): void {
     this.executeStep(response, 'Over');
   }
 
-  public stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
+  public stepInRequest(response: DebugProtocol.StepInResponse, _args: DebugProtocol.StepInArguments): void {
     this.executeStep(response, 'In');
   }
 
-  public stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
+  public stepOutRequest(response: DebugProtocol.StepOutResponse, _args: DebugProtocol.StepOutArguments): void {
     this.executeStep(response, 'Out');
   }
 
@@ -436,13 +436,13 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   public log(traceCategory: TraceCategory, message: string) {
-    if (this.trace && (this.traceAll || this.trace.indexOf(traceCategory) >= 0)) {
+    if (this.trace && (this.traceAll || this.trace.includes(traceCategory))) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
 
   public shouldTraceLogFile(): boolean {
-    return this.traceAll || this.trace.indexOf(TRACE_CATEGORY_LOGFILE) !== -1;
+    return this.traceAll || this.trace.includes(TRACE_CATEGORY_LOGFILE);
   }
 
   public printToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number, category = 'stdout'): void {

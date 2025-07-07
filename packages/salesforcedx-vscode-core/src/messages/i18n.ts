@@ -180,9 +180,6 @@ export const messages = {
   project_generate_analytics_template: 'Analytics project template',
   apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
   start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
-  apex_debug_log_status_bar_text: '$(file-text) Recording detailed logs until %s',
-  apex_debug_log_status_bar_hover_text:
-    'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
   stop_apex_debug_logging: 'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_create_project: 'SFDX: ISV Debugger Setup, Step 1 of 5: Creating project',
   isv_debug_bootstrap_configure_project: 'SFDX: ISV Debugger Setup, Step 2 of 5: Configuring project',
@@ -213,6 +210,7 @@ export const messages = {
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
+  manifest_generation_cancelled: 'SFDX: Generate Manifest File was cancelled.',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
   REST_API_description: 'Execute the query with REST API',
@@ -720,9 +718,6 @@ export const messages = {
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
   parameter_gatherer_file_name_max_length_validation_error_message: 'File name cannot exceed {0} characters',
   source_status: 'Source Status',
-  predicates_no_folder_opened_text: 'No folder opened. Open a Salesforce DX project in VS Code.',
-  predicates_no_salesforce_project_found_text:
-    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   rename_not_supported: 'Rename is not supported for multiple components',
   input_no_component_name: 'Input does not contain component name',
   component_empty: 'Component cannot be empty',

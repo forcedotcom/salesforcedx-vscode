@@ -6,11 +6,11 @@
  */
 
 import { AuthInfo, AuthSideEffects } from '@salesforce/core-bundle';
-import { LibraryCommandletExecutor, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { LibraryCommandletExecutor, ContinueResponse, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
 import { nls } from '../../messages';
-import { SfCommandlet, SfWorkspaceChecker } from '../util';
+import { SfCommandlet } from '../util';
 import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
 
 class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
@@ -20,11 +20,11 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
 
   public async run(
     response: ContinueResponse<AccessTokenParams>,
-    progress?: vscode.Progress<{
+    _progress?: vscode.Progress<{
       message?: string | undefined;
       increment?: number | undefined;
     }>,
-    token?: vscode.CancellationToken
+    _token?: vscode.CancellationToken
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
     try {
@@ -38,7 +38,7 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
       };
       await authInfo.handleAliasAndDefaultSettings(sideEffects);
     } catch (error) {
-      if (error.message && error.message.includes('Bad_OAuth_Token')) {
+      if (error.message?.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID
         channelService.appendLine(nls.localize('org_login_access_token_bad_oauth_token_message'));
       }

@@ -4,12 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import * as fs from 'node:fs';
+import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { DocumentSymbol } from 'vscode';
-import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT } from '..';
 import { nls } from '../../../messages';
-import { cleanupGeneratedDoc, parseOASDocFromJson, hasValidRestAnnotations } from '../../../oasUtils';
+import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
 import { retrieveAAClassRestAnnotations } from '../../../settings';
 import { getTelemetryService } from '../../../telemetry/telemetry';
 import GenerationInteractionLogger from '../../generationInteractionLogger';
@@ -21,13 +19,14 @@ import {
   PromptGenerationStrategyBid
 } from '../../schemas';
 import { buildClassPrompt, generatePromptForMethod } from '../buildPromptUtils';
+import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '../constants';
 import {
-  formatUrlPath,
-  extractParametersInPath,
+  combineYamlByMethod,
   excludeNon2xxResponses,
   excludeUnrelatedMethods,
-  updateOperationIds,
-  combineYamlByMethod
+  extractParametersInPath,
+  formatUrlPath,
+  updateOperationIds
 } from '../formatUtils';
 import { GenerationStrategy } from '../generationStrategy';
 import { openAPISchema_v3_0_guided } from '../openapi3.schema';
@@ -35,18 +34,11 @@ import { openAPISchema_v3_0_guided } from '../openapi3.schema';
 const gil = GenerationInteractionLogger.getInstance();
 
 export class ApexRestStrategy extends GenerationStrategy {
-  methodsList: string[];
-  methodsDocSymbolMap: Map<string, DocumentSymbol>;
-  methodsContextMap: Map<string, ApexOASMethodDetail>;
-  urlMapping: string;
-  servicePrompts: Map<string, string>;
-  serviceResponses: Map<string, string>;
-  serviceRequests: Map<string, Promise<string>>;
-  sourceText: string;
-  classPrompt: string; // The prompt for the entire class
-  oasSchema: string;
+  private methodsDocSymbolMap: Map<string, DocumentSymbol>;
+  private methodsContextMap: Map<string, ApexOASMethodDetail>;
+  private urlMapping: string;
 
-  public constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
+  constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse, sourceText: string) {
     super(
       metadata,
       context,
@@ -55,13 +47,9 @@ export class ApexRestStrategy extends GenerationStrategy {
       SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR,
       'OpenAPI documents generated from Apex classes using Apex REST annotations are in beta.'
     );
-    this.methodsList = [];
-    this.servicePrompts = new Map();
-    this.serviceResponses = new Map();
     this.methodsDocSymbolMap = new Map();
     this.methodsContextMap = new Map();
-    this.serviceRequests = new Map();
-    this.sourceText = fs.readFileSync(new URL(this.metadata.resourceUri.toString()), 'utf8');
+    this.sourceText = sourceText;
     this.classPrompt = buildClassPrompt(this.context.classDetail);
     const restResourceAnnotation = this.context.classDetail.annotations.find(a =>
       retrieveAAClassRestAnnotations().includes(a.name)
@@ -70,7 +58,16 @@ export class ApexRestStrategy extends GenerationStrategy {
     this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
   }
 
-  async resolveLLMResponses(serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
+  public static async initialize(
+    metadata: ApexClassOASEligibleResponse,
+    context: ApexClassOASGatherContextResponse
+  ): Promise<ApexRestStrategy> {
+    const sourceText = await readFile(metadata.resourceUri.fsPath);
+    const strategy = new ApexRestStrategy(metadata, context, sourceText);
+    return strategy;
+  }
+
+  public async resolveLLMResponses(serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
     const methodNames = Array.from(serviceRequests.keys());
     const serviceResponses = await Promise.allSettled(Array.from(serviceRequests.values()));
     return new Map(
@@ -88,7 +85,7 @@ export class ApexRestStrategy extends GenerationStrategy {
     );
   }
 
-  prevalidateLLMResponse(): string[] {
+  private prevalidateLLMResponse(): string[] {
     const validResponses: string[] = [];
     for (const [methodName, response] of this.serviceResponses) {
       if (response === '') {
@@ -212,13 +209,13 @@ export class ApexRestStrategy extends GenerationStrategy {
       };
     }
 
-    const generationResult = this.generate();
-    return Promise.resolve({
+    const generationResult = await this.generate();
+    return {
       result: generationResult
-    });
+    };
   }
 
-  private generate(): PromptGenerationResult {
+  private async generate(): Promise<PromptGenerationResult> {
     const list = (this.metadata.symbols ?? []).filter(s => s.isApexOasEligible);
     for (const symbol of list) {
       const methodName = symbol.docSymbol.name;
@@ -228,7 +225,7 @@ export class ApexRestStrategy extends GenerationStrategy {
         this.methodsContextMap.set(methodName, methodDetail);
       }
 
-      const input = generatePromptForMethod(
+      const input = await generatePromptForMethod(
         methodName,
         this.sourceText,
         this.methodsDocSymbolMap,
@@ -260,7 +257,7 @@ export class ApexRestStrategy extends GenerationStrategy {
     };
   }
 
-  get openAPISchema(): string {
+  public get openAPISchema(): string {
     return this.oasSchema;
   }
 }

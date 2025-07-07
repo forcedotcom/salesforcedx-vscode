@@ -10,10 +10,10 @@ import {
   CompositeParametersGatherer,
   ContinueResponse,
   ParametersGatherer,
-  PostconditionChecker
+  PostconditionChecker,
+  fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ProjectOptions, TemplateType } from '@salesforce/templates';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -39,7 +39,7 @@ class ProjectTemplateItem implements vscode.QuickPickItem {
 class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
   private readonly options: projectGenerateOptions;
 
-  public constructor(options = { isProjectWithManifest: false }) {
+  constructor(options = { isProjectWithManifest: false }) {
     super();
     this.options = options;
   }
@@ -141,8 +141,7 @@ export class PathExistsChecker implements PostconditionChecker<ProjectNameAndPat
     inputs: ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse
   ): Promise<ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
-      const pathExists = fs.existsSync(path.join(inputs.data.projectUri, `${inputs.data.projectName}/`));
-      if (!pathExists) {
+      if (!(await fileOrFolderExists(path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)))) {
         return inputs;
       } else {
         const overwrite = await notificationService.showWarningMessage(

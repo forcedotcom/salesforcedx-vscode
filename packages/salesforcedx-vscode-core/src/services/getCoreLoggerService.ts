@@ -9,50 +9,50 @@ import { FieldValue, Fields, LoggerInterface, LogLine, LoggerLevelValue } from '
 
 export class CoreLoggerService implements LoggerInterface {
   private level: LoggerLevelValue = 0;
-  public constructor(private loggerName: string) {
+  constructor(private loggerName: string) {
     this.loggerName = loggerName;
   }
-  getName(): string {
+  public getName(): string {
     return this.loggerName;
   }
-  getLevel(): LoggerLevelValue {
+  public getLevel(): LoggerLevelValue {
     return this.level;
   }
-  setLevel(level?: LoggerLevelValue): LoggerInterface {
+  public setLevel(level?: LoggerLevelValue): LoggerInterface {
     this.level = level ?? 0;
     return this;
   }
-  shouldLog(level: number): boolean {
+  public shouldLog(_level: number): boolean {
     return true;
   }
-  getBufferedRecords(): LogLine[] {
+  public getBufferedRecords(): LogLine[] {
     return [];
   }
-  readLogContentsAsText(): string {
+  public readLogContentsAsText(): string {
     return '';
   }
-  child(name: string, fields?: Fields | undefined): LoggerInterface {
+  public child(_name: string, _fields?: Fields | undefined): LoggerInterface {
     return new CoreLoggerService(`${this.getName()}.childLogger`);
   }
-  addField(name: string, value: FieldValue): LoggerInterface {
+  public addField(_name: string, _value: FieldValue): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  trace(...args: unknown[]): LoggerInterface {
+  public trace(..._args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  debug(...args: unknown[]): LoggerInterface {
+  public debug(..._args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  info(...args: unknown[]): LoggerInterface {
+  public info(..._args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  warn(...args: unknown[]): LoggerInterface {
+  public warn(..._args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  error(...args: unknown[]): LoggerInterface {
+  public error(..._args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
-  fatal(...args: unknown[]): LoggerInterface {
+  public fatal(..._args: unknown[]): LoggerInterface {
     throw new Error('Method not implemented.');
   }
 }

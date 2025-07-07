@@ -9,9 +9,13 @@ import {
   ChannelService,
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
+  SfWorkspaceChecker,
   TelemetryService,
+  TraceFlags,
+  WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
-  getRootWorkspacePath
+  getRootWorkspacePath,
+  isSalesforceProjectOpened
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as os from 'node:os';
@@ -66,9 +70,9 @@ import {
   sfProjectGenerate,
   sourceDiff,
   sourceFolderDiff,
-  startApexDebugLogging,
   taskStop,
   turnOffLogging,
+  turnOnLogging,
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges,
@@ -77,26 +81,18 @@ import {
 } from './commands';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
-import {
-  FlagParameter,
-  SelectFileName,
-  SelectOutputDir,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './commands/util';
+import { FlagParameter, SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, disposeTraceFlagExpiration, showDemoMode } from './decorators';
+import { decorators, showDemoMode } from './decorators';
 import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
-import { isSalesforceProjectOpened } from './predicates';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './services';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
@@ -217,12 +213,13 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
 
   const apexGenerateTriggerCmd = vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger);
 
-  const startApexDebugLoggingCmd = vscode.commands.registerCommand(
-    'sf.start.apex.debug.logging',
-    startApexDebugLogging
+  const startApexDebugLoggingCmd = vscode.commands.registerCommand('sf.start.apex.debug.logging', () =>
+    turnOnLogging(extensionContext)
   );
 
-  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', turnOffLogging);
+  const stopApexDebugLoggingCmd = vscode.commands.registerCommand('sf.stop.apex.debug.logging', () =>
+    turnOffLogging(extensionContext)
+  );
 
   const isvDebugBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
 
@@ -309,7 +306,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
 };
 
-const registerInternalDevCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
+const registerInternalDevCommands = (): vscode.Disposable => {
   const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
     'sf.internal.lightning.generate.app',
     internalLightningGenerateApp
@@ -401,7 +398,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   if (internalDev) {
     // Internal Dev commands
-    const internalCommands = registerInternalDevCommands(extensionContext);
+    const internalCommands = registerInternalDevCommands();
     extensionContext.subscriptions.push(internalCommands);
 
     // Api
@@ -425,7 +422,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   // Context
-  const salesforceProjectOpened = isSalesforceProjectOpened.apply(vscode.workspace).result;
+  const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
 
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
@@ -495,6 +492,17 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   void activateTracker.markActivationStop();
   MetricsReporter.extensionPackStatus();
+
+  // Handle trace flag cleanup after setting target org
+  try {
+    const connection = await WorkspaceContextUtil.getInstance().getConnection();
+
+    const traceFlags = new TraceFlags(connection);
+    await traceFlags.handleTraceFlagCleanup(extensionContext);
+  } catch (error) {
+    console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);
+  }
+
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
   return api;
@@ -530,9 +538,6 @@ export const deactivate = async (): Promise<void> => {
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
-
-  disposeTraceFlagExpiration();
-  return turnOffLogging();
 };
 
 const handleTheUnhandled = (): void => {

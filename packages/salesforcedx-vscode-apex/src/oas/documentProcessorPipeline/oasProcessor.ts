@@ -17,7 +17,7 @@ import { ProcessorInputOutput } from './processorStep';
 import { PropertyCorrectionStep } from './propertyCorrectionStep';
 import { ReconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
-export type ProcessOasDocumentOptions = {
+type ProcessOasDocumentOptions = {
   context?: ApexClassOASGatherContextResponse;
   eligibleResult?: ApexClassOASEligibleResponse;
   isRevalidation?: boolean;
@@ -27,14 +27,14 @@ export type ProcessOasDocumentOptions = {
 export class OasProcessor {
   private document: OpenAPIV3.Document;
   private options?: ProcessOasDocumentOptions;
-  static diagnosticCollection: vscode.DiagnosticCollection =
+  public static diagnosticCollection: vscode.DiagnosticCollection =
     vscode.languages.createDiagnosticCollection('OAS Validations');
   constructor(document: OpenAPIV3.Document, options?: ProcessOasDocumentOptions) {
     this.document = document;
     this.options = options;
   }
 
-  async process(): Promise<ProcessorInputOutput> {
+  public async process(): Promise<ProcessorInputOutput> {
     const pipeline = !this.options?.isRevalidation
       ? new Pipeline(new PropertyCorrectionStep())
           .addStep(new BetaInfoInjectionStep(this.options?.betaInfo))

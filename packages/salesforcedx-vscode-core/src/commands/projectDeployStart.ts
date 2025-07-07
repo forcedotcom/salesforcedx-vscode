@@ -13,6 +13,7 @@ import {
   EmptyParametersGatherer,
   ProjectDeployStartResultParser,
   ProjectDeployStartResult,
+  SfWorkspaceChecker,
   Table,
   TelemetryBuilder,
   workspaceUtils
@@ -22,11 +23,11 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { handlePushDiagnosticErrors } from '../diagnostics';
-import { coerceMessageKey,nls } from '../messages';
+import { coerceMessageKey, nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { DeployRetrieveExecutor } from './baseDeployRetrieve';
-import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor } from './util';
 
 export enum DeployType {
   Deploy = 'deploy',
@@ -44,7 +45,7 @@ const pushCommand: CommandParams = {
 
 export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
-  public constructor(
+  constructor(
     flag?: string,
     public params: CommandParams = pushCommand,
     showChannelOutput: boolean = true
@@ -58,7 +59,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     return DeployType.Push;
   }
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize(coerceMessageKey(this.params.description.default)))
       .withArg(this.params.command)
@@ -89,16 +90,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      await this.exitProcessHandlerPush(
-        exitCode,
-        stdOut,
-        workspacePath,
-        execFilePathOrPaths,
-        execution,
-        startTime,
-        cancellationToken,
-        cancellationTokenSource
-      );
+      await this.exitProcessHandlerPush(exitCode, stdOut, workspacePath, execFilePathOrPaths, execution, startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
@@ -109,9 +101,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     workspacePath: string,
     execFilePathOrPaths: string,
     execution: CliCommandExecution,
-    startTime: [number, number],
-    cancellationToken: vscode.CancellationToken | undefined,
-    cancellationTokenSource: vscode.CancellationTokenSource
+    startTime: [number, number]
   ): Promise<void> {
     if (execution.command.logName === PROJECT_DEPLOY_START_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);
@@ -175,15 +165,15 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource || (errors && errors.files);
+      const rows = pushedSource || errors?.files;
       const title = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, title);
       if (parser.hasConflicts()) {
-        channelService.appendLine(nls.localize('push_conflicts_error') + '\n');
+        channelService.appendLine(`${nls.localize('push_conflicts_error')}\n`);
       }
       channelService.appendLine(outputTable);
       if (pushedSource && pushedSource.length === 0) {
-        const noResults = nls.localize('table_no_results_found') + '\n';
+        const noResults = `${nls.localize('table_no_results_found')}\n`;
         channelService.appendLine(noResults);
       }
     }

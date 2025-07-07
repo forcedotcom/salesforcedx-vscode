@@ -137,9 +137,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging: 'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
-  apex_debug_log_status_bar_text: '$(file-text) 詳細なログを記録しています。%s まで。',
-  apex_debug_log_status_bar_hover_text:
-    'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
   stop_apex_debug_logging: 'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
   isv_debug_bootstrap_create_project: 'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
   isv_debug_bootstrap_configure_project: 'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています',
@@ -253,10 +250,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   functions_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
   parameter_gatherer_file_name_max_length_validation_error_message: 'ファイル名は {0} 文字を超えることはできません',
-  predicates_no_folder_opened_text:
-    'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
-  predicates_no_salesforce_project_found_text:
-    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
 
   conflict_detect_execution_name: '競合検出',
   conflict_detect_initialization_error: 'メタデータキャッシュの初期化中に予期せぬエラーが発生しました',
@@ -311,5 +304,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   component_empty: 'コンポーネントは空にできません',
   create_not_supported: '複数コンポーネントの作成はサポートされていません',
   input_incorrect_properties: '入力に正しいコンポーネントプロパティが含まれていません',
+  // eslint-disable-next-line prefer-template
   missing_label: MISSING_LABEL_MSG + ': %s'
 };

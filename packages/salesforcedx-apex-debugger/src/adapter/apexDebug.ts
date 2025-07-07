@@ -198,7 +198,7 @@ export class ApexVariable extends Variable {
   }
 
   private static extractNumber(s: string): string {
-    if (s[0] === '[' && s[s.length - 1] === ']') {
+    if (s[0] === '[' && s.at(-1) === ']') {
       return s.substring(1, s.length - 1);
     }
     return s;
@@ -227,12 +227,18 @@ export class ScopeContainer implements VariableContainer {
   private type: ScopeType;
   private frameInfo: ApexDebugStackFrameInfo;
 
-  public constructor(type: ScopeType, frameInfo: ApexDebugStackFrameInfo) {
+  constructor(type: ScopeType, frameInfo: ApexDebugStackFrameInfo) {
     this.type = type;
     this.frameInfo = frameInfo;
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  // extra variables required to satisfy the interface
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.frameInfo.locals && !this.frameInfo.statics && !this.frameInfo.globals) {
       await session.fetchFrameVariables(this.frameInfo);
     }
@@ -274,13 +280,18 @@ export class ObjectReferenceContainer implements VariableContainer {
   protected requestId: string;
   public readonly size: number | undefined;
 
-  public constructor(reference: Reference, requestId: string) {
+  constructor(reference: Reference, requestId: string) {
     this.reference = reference;
     this.requestId = requestId;
     this.size = reference.size;
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.reference.fields) {
       // this object is empty
       return [];
@@ -305,33 +316,23 @@ export class ObjectReferenceContainer implements VariableContainer {
 }
 
 export class CollectionReferenceContainer extends ObjectReferenceContainer {
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  public async expand(session: ApexDebug, filter: FilterType, start = 0, count?: number): Promise<ApexVariable[]> {
     if (!this.reference.value) {
-      // this object is empty
       return [];
     }
-    if (start === undefined) {
-      start = 0;
-    }
-    if (count === undefined) {
-      count = this.reference.value.length;
-    }
-    const apexVariables: ApexVariable[] = [];
-    for (let i = start; i < start + count && i < this.reference.value.length; i++) {
-      const variableReference = await session.resolveApexIdToVariableReference(
-        this.requestId,
-        this.reference.value[i].ref
-      );
-      apexVariables.push(
-        new ApexVariable(
-          this.reference.value[i],
+    const resolvedCount = count ?? this.reference.value.length;
+
+    return Promise.all(
+      this.reference.value.slice(start, start + resolvedCount).map(async item => {
+        const variableReference = await session.resolveApexIdToVariableReference(this.requestId, item.ref);
+        return new ApexVariable(
+          item,
           ApexVariableKind.Collection,
           variableReference,
           session.getNumberOfChildren(variableReference)
-        )
-      );
-    }
-    return Promise.resolve(apexVariables);
+        );
+      })
+    );
   }
 }
 
@@ -342,18 +343,12 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
     this.tupleContainers.set(reference, tupleContainer);
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
-    if (start === undefined) {
-      start = 0;
-    }
-    if (count === undefined) {
-      count = this.tupleContainers.size;
-    }
-    const apexVariables: ApexVariable[] = [];
-    let offset = 0;
-    this.tupleContainers.forEach((container, reference) => {
-      if (offset >= start && offset < start + count) {
-        apexVariables.push(
+  public async expand(session: ApexDebug, filter: FilterType, start = 0, count?: number): Promise<ApexVariable[]> {
+    const resolvedCount = count ?? this.tupleContainers.size;
+    return Array.from(this.tupleContainers.entries())
+      .slice(start, start + resolvedCount)
+      .map(
+        ([reference, container]) =>
           new ApexVariable(
             {
               name: container.keyAsString(),
@@ -365,11 +360,7 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
             reference,
             session.getNumberOfChildren(reference)
           )
-        );
-      }
-      offset++;
-    });
-    return Promise.resolve(apexVariables);
+      );
   }
 }
 
@@ -377,7 +368,7 @@ export class MapTupleContainer implements VariableContainer {
   private tuple: Tuple;
   private requestId: string;
 
-  public constructor(tuple: Tuple, requestId: string) {
+  constructor(tuple: Tuple, requestId: string) {
     this.tuple = tuple;
     this.requestId = requestId;
   }
@@ -390,17 +381,22 @@ export class MapTupleContainer implements VariableContainer {
     return ApexVariable.valueAsString(this.tuple.value);
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.tuple.key && !this.tuple.value) {
       // this object is empty
       return [];
     }
 
     const idsToFetch = [];
-    if (this.tuple.key && this.tuple.key.ref) {
+    if (this.tuple.key?.ref) {
       idsToFetch.push(this.tuple.key.ref);
     }
-    if (this.tuple.value && this.tuple.value.ref) {
+    if (this.tuple.value?.ref) {
       idsToFetch.push(this.tuple.value.ref);
     }
     await session.fetchReferencesIfNecessary(this.requestId, idsToFetch);
@@ -474,7 +470,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
-    args: DebugProtocol.InitializeRequestArguments
+    _args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
     this.initializedResponse.body = {
@@ -496,7 +492,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(this.initializedResponse);
   }
 
-  protected attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): void {
+  protected attachRequest(response: DebugProtocol.AttachResponse, _args: DebugProtocol.AttachRequestArguments): void {
     response.success = false;
     this.sendResponse(response);
   }
@@ -709,9 +705,9 @@ export class ApexDebug extends LoggingDebugSession {
       this.traceAll = args.trace;
     } else if (typeof args.trace === 'string') {
       this.trace = args.trace.split(',').map(category => category.trim());
-      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
+      this.traceAll = this.trace.includes(TRACE_ALL);
     }
-    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
+    if (this.trace?.includes(TRACE_CATEGORY_PROTOCOL)) {
       // only log debug adapter protocol if 'protocol' tracing flag is set, ignore traceAll here
       logger.setup(Logger.LogLevel.Verbose, false);
     } else {
@@ -721,8 +717,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected async disconnectRequest(
     response: DebugProtocol.DisconnectResponse,
-
-    args: DebugProtocol.DisconnectArguments
+    _args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     try {
       response.success = false;
@@ -752,7 +747,7 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.SetBreakpointsResponse,
     args: DebugProtocol.SetBreakpointsArguments
   ): Promise<void> {
-    if (args.source && args.source.path && args.lines) {
+    if (args.source?.path && args.lines) {
       response.body = { breakpoints: [] };
       const uri = this.convertClientPathToDebugger(args.source.path);
       const unverifiedBreakpoints: number[] = [];
@@ -766,7 +761,7 @@ export class ApexDebug extends LoggingDebugSession {
             this.mySessionService.getSessionId(),
             args.lines!.map(line => this.convertClientLineToDebugger(line))
           );
-          return Promise.resolve(knownBps);
+          return knownBps;
         });
       } catch {}
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
@@ -893,7 +888,7 @@ export class ApexDebug extends LoggingDebugSession {
           `stackTraceRequest: args threadId=${args.threadId} startFrame=${args.startFrame} levels=${args.levels}`
         );
         const responseString = await this.myRequestService.execute(new StateCommand(requestId));
-        return Promise.resolve(responseString);
+        return responseString;
       });
       const stateRespObj: DebuggerResponse = JSON.parse(stateResponse);
       const clientFrames: StackFrame[] = [];
@@ -907,27 +902,27 @@ export class ApexDebug extends LoggingDebugSession {
             // populate first stack frame with info from state response (saves a server round trip)
             this.log(
               TRACE_CATEGORY_VARIABLES,
-              'stackTraceRequest: state=' + JSON.stringify(stateRespObj.stateResponse.state)
+              `stackTraceRequest: state=${JSON.stringify(stateRespObj.stateResponse.state)}`
             );
-            if (stateRespObj.stateResponse.state.locals && stateRespObj.stateResponse.state.locals.local) {
+            if (stateRespObj.stateResponse.state.locals?.local) {
               frameInfo.locals = stateRespObj.stateResponse.state.locals.local;
             } else {
               frameInfo.locals = [];
             }
 
-            if (stateRespObj.stateResponse.state.statics && stateRespObj.stateResponse.state.statics.static) {
+            if (stateRespObj.stateResponse.state.statics?.static) {
               frameInfo.statics = stateRespObj.stateResponse.state.statics.static;
             } else {
               frameInfo.statics = [];
             }
 
-            if (stateRespObj.stateResponse.state.globals && stateRespObj.stateResponse.state.globals.global) {
+            if (stateRespObj.stateResponse.state.globals?.global) {
               frameInfo.globals = stateRespObj.stateResponse.state.globals.global;
             } else {
               frameInfo.globals = [];
             }
 
-            if (stateRespObj.stateResponse.state.references && stateRespObj.stateResponse.state.references.references) {
+            if (stateRespObj.stateResponse.state.references?.references) {
               this.populateReferences(stateRespObj.stateResponse.state.references.references, frameInfo.requestId);
             }
           }
@@ -952,14 +947,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private hasStackFrames(response: DebuggerResponse): boolean {
-    if (
-      response &&
-      response.stateResponse &&
-      response.stateResponse.state &&
-      response.stateResponse.state.stack &&
-      response.stateResponse.state.stack.stackFrame &&
-      response.stateResponse.state.stack.stackFrame.length > 0
-    ) {
+    if (response.stateResponse?.state?.stack?.stackFrame?.length > 0) {
       return true;
     }
     return false;
@@ -973,7 +961,7 @@ export class ApexDebug extends LoggingDebugSession {
         break;
       case EXCEPTION_BREAKPOINT_REQUEST:
         const requestArgs: SetExceptionBreakpointsArguments = args;
-        if (requestArgs && requestArgs.exceptionInfo) {
+        if (requestArgs?.exceptionInfo) {
           try {
             await this.lock.acquire('exception-breakpoint', async () =>
               this.myBreakpointService.reconcileExceptionBreakpoints(
@@ -1078,77 +1066,76 @@ export class ApexDebug extends LoggingDebugSession {
       new FrameCommand(frameInfo.requestId, frameInfo.frameNumber)
     );
     const frameRespObj: DebuggerResponse = JSON.parse(frameResponse);
-    if (frameRespObj && frameRespObj.frameResponse && frameRespObj.frameResponse.frame) {
+    if (frameRespObj.frameResponse?.frame) {
       this.log(
         TRACE_CATEGORY_VARIABLES,
-        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` + JSON.stringify(frameRespObj.frameResponse.frame)
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=${JSON.stringify(frameRespObj.frameResponse.frame)}`
       );
-      if (frameRespObj.frameResponse.frame.locals && frameRespObj.frameResponse.frame.locals.local) {
+      if (frameRespObj.frameResponse.frame.locals?.local) {
         frameInfo.locals = frameRespObj.frameResponse.frame.locals.local;
       } else {
         frameInfo.locals = [];
       }
 
-      if (frameRespObj.frameResponse.frame.statics && frameRespObj.frameResponse.frame.statics.static) {
+      if (frameRespObj.frameResponse.frame.statics?.static) {
         frameInfo.statics = frameRespObj.frameResponse.frame.statics.static;
       } else {
         frameInfo.statics = [];
       }
 
-      if (frameRespObj.frameResponse.frame.globals && frameRespObj.frameResponse.frame.globals.global) {
+      if (frameRespObj.frameResponse.frame.globals?.global) {
         frameInfo.globals = frameRespObj.frameResponse.frame.globals.global;
       } else {
         frameInfo.globals = [];
       }
 
-      if (frameRespObj.frameResponse.frame.references && frameRespObj.frameResponse.frame.references.references) {
+      if (frameRespObj.frameResponse.frame.references?.references) {
         this.populateReferences(frameRespObj.frameResponse.frame.references.references, frameInfo.requestId);
       }
     }
   }
 
   protected populateReferences(references: Reference[], requestId: string): void {
-    references.map(reference => {
-      if (this.variableContainerReferenceByApexId.has(reference.id)) {
-        return;
-      }
-      let variableReference: number;
-      if (reference.type === 'object') {
-        variableReference = this.variableHandles.create(new ObjectReferenceContainer(reference, requestId));
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
-        );
-      } else if (reference.type === 'list' || reference.type === 'set') {
-        variableReference = this.variableHandles.create(new CollectionReferenceContainer(reference, requestId));
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages} with size ${reference.size}`
-        );
-      } else if (reference.type === 'map') {
-        const mapContainer = new MapReferenceContainer(reference, requestId);
-        // explode all map entried so that we can drill down a map logically
-        if (reference.tuple) {
-          reference.tuple.forEach(tuple => {
-            const tupleContainer = new MapTupleContainer(tuple, requestId);
-            const tupleReference = this.variableHandles.create(tupleContainer);
-            mapContainer.addTupleContainer(tupleReference, tupleContainer);
-          });
+    references
+      .filter(reference => !this.variableContainerReferenceByApexId.has(reference.id))
+      .map(reference => {
+        let variableReference: number;
+        if (reference.type === 'object') {
+          variableReference = this.variableHandles.create(new ObjectReferenceContainer(reference, requestId));
+          this.log(
+            TRACE_CATEGORY_VARIABLES,
+            `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+          );
+        } else if (reference.type === 'list' || reference.type === 'set') {
+          variableReference = this.variableHandles.create(new CollectionReferenceContainer(reference, requestId));
+          this.log(
+            TRACE_CATEGORY_VARIABLES,
+            `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages} with size ${reference.size}`
+          );
+        } else if (reference.type === 'map') {
+          const mapContainer = new MapReferenceContainer(reference, requestId);
+          // explode all map entried so that we can drill down a map logically
+          if (reference.tuple) {
+            reference.tuple.forEach(tuple => {
+              const tupleContainer = new MapTupleContainer(tuple, requestId);
+              const tupleReference = this.variableHandles.create(tupleContainer);
+              mapContainer.addTupleContainer(tupleReference, tupleContainer);
+            });
+          }
+          variableReference = this.variableHandles.create(mapContainer);
+          this.log(
+            TRACE_CATEGORY_VARIABLES,
+            `populateReferences: new map reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+          );
+        } else {
+          const referenceInfo = JSON.stringify(reference);
+          this.log(TRACE_CATEGORY_VARIABLES, `populateReferences: unhandled reference: ${referenceInfo}`);
+          return;
         }
-        variableReference = this.variableHandles.create(mapContainer);
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new map reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
-        );
-      } else {
-        const referenceInfo = JSON.stringify(reference);
-        this.log(TRACE_CATEGORY_VARIABLES, `populateReferences: unhandled reference: ${referenceInfo}`);
-        return;
-      }
 
-      // map apex id to container reference
-      this.variableContainerReferenceByApexId.set(reference.id, variableReference);
-    });
+        // map apex id to container reference
+        this.variableContainerReferenceByApexId.set(reference.id, variableReference);
+      });
   }
 
   public getNumberOfChildren(variableReference: number | undefined): number | undefined {
@@ -1192,12 +1179,7 @@ export class ApexDebug extends LoggingDebugSession {
     );
     const referencesResponse = await this.myRequestService.execute(new ReferencesCommand(requestId, ...apexIds));
     const referencesResponseObj: DebuggerResponse = JSON.parse(referencesResponse);
-    if (
-      referencesResponseObj &&
-      referencesResponseObj.referencesResponse &&
-      referencesResponseObj.referencesResponse.references &&
-      referencesResponseObj.referencesResponse.references.references
-    ) {
+    if (referencesResponseObj.referencesResponse?.references?.references) {
       this.populateReferences(referencesResponseObj.referencesResponse.references.references, requestId);
     }
   }
@@ -1224,7 +1206,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   protected printToDebugConsole(msg?: string, sourceFile?: Source, sourceLine?: number): void {
-    if (msg && msg.length !== 0) {
+    if (msg?.length) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stdout');
       event.body.source = sourceFile;
       event.body.line = sourceLine;
@@ -1234,19 +1216,19 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   protected warnToDebugConsole(msg?: string): void {
-    if (msg && msg.length !== 0) {
+    if (msg?.length) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'console'));
     }
   }
 
   protected errorToDebugConsole(msg?: string): void {
-    if (msg && msg.length !== 0) {
+    if (msg?.length) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stderr'));
     }
   }
 
   public log(traceCategory: TraceCategory, message: string) {
-    if (this.trace && (this.traceAll || this.trace.indexOf(traceCategory) >= 0)) {
+    if (this.trace && (this.traceAll || this.trace.includes(traceCategory))) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
@@ -1258,7 +1240,7 @@ export class ApexDebug extends LoggingDebugSession {
     try {
       response.success = false;
       const errorObj = extractJsonObject(error);
-      if (errorObj && errorObj.message) {
+      if (errorObj?.message) {
         const errorMessage: string = errorObj.message;
         if (errorMessage.includes('entity type cannot be inserted: Apex Debugger Session')) {
           response.message = nls.localize('session_no_entity_access_text');
@@ -1294,7 +1276,7 @@ export class ApexDebug extends LoggingDebugSession {
         })
         .withMsgHandler((message: DebuggerMessage) => {
           const data = message;
-          if (data && data.sobject && data.event) {
+          if (data?.sobject && data.event) {
             this.handleEvent(data);
           }
         })

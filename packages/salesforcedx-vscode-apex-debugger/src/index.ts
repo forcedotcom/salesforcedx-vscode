@@ -25,11 +25,11 @@ import {
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
+import { getActiveApexExtension } from './context/apexExtension';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
@@ -48,7 +48,7 @@ export const getDebuggerType = async (session: vscode.DebugSession): Promise<str
 
 const registerCommands = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
-    if (event && event.session) {
+    if (event?.session) {
       const type = await getDebuggerType(event.session);
       if (type === DEBUGGER_TYPE && event.event === SHOW_MESSAGE_EVENT) {
         const eventBody = event.body as VscodeDebuggerMessage;
@@ -111,49 +111,44 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 ];
 
 const configureExceptionBreakpoint = async (): Promise<void> => {
-  const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
-  if (!salesforceApexExtension?.isActive) {
-    await salesforceApexExtension?.activate();
-  }
-  if (salesforceApexExtension?.exports) {
-    // @ts-expect-error - typing ExceptionBreakpointItem exists only in the debugger, but the breakpoints are coming from core ext which doesn't have the types
-    const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
-      await salesforceApexExtension.exports.getExceptionBreakpointInfo();
-    console.log('Retrieved exception breakpoint info from language server');
-    let enabledExceptionBreakpointTyperefs: string[] = [];
-    if (vscode.debug.activeDebugSession) {
-      const responseBody = await vscode.debug.activeDebugSession.customRequest(LIST_EXCEPTION_BREAKPOINTS_REQUEST);
-      if (responseBody && responseBody.typerefs) {
-        enabledExceptionBreakpointTyperefs = responseBody.typerefs;
-      }
-    } else {
-      enabledExceptionBreakpointTyperefs = Array.from(cachedExceptionBreakpoints.keys());
+  const salesforceApexExtension = await getActiveApexExtension();
+  // @ts-expect-error - typing ExceptionBreakpointItem exists only in the debugger, but the breakpoints are coming from core ext which doesn't have the types
+  const exceptionBreakpointInfos: ExceptionBreakpointItem[] =
+    await salesforceApexExtension.exports.getExceptionBreakpointInfo();
+  console.log('Retrieved exception breakpoint info from language server');
+  let enabledExceptionBreakpointTyperefs: string[] = [];
+  if (vscode.debug.activeDebugSession) {
+    const responseBody = await vscode.debug.activeDebugSession.customRequest(LIST_EXCEPTION_BREAKPOINTS_REQUEST);
+    if (responseBody?.typerefs) {
+      enabledExceptionBreakpointTyperefs = responseBody.typerefs;
     }
-    const processedBreakpointInfos = mergeExceptionBreakpointInfos(
-      exceptionBreakpointInfos,
-      enabledExceptionBreakpointTyperefs
-    );
-    const selectExceptionOptions: vscode.QuickPickOptions = {
-      placeHolder: nls.localize('select_exception_text'),
+  } else {
+    enabledExceptionBreakpointTyperefs = Array.from(cachedExceptionBreakpoints.keys());
+  }
+  const processedBreakpointInfos = mergeExceptionBreakpointInfos(
+    exceptionBreakpointInfos,
+    enabledExceptionBreakpointTyperefs
+  );
+  const selectExceptionOptions: vscode.QuickPickOptions = {
+    placeHolder: nls.localize('select_exception_text'),
+    matchOnDescription: true
+  };
+  const selectedException = await vscode.window.showQuickPick(processedBreakpointInfos, selectExceptionOptions);
+  if (selectedException) {
+    const selectBreakModeOptions: vscode.QuickPickOptions = {
+      placeHolder: nls.localize('select_break_option_text'),
       matchOnDescription: true
     };
-    const selectedException = await vscode.window.showQuickPick(processedBreakpointInfos, selectExceptionOptions);
-    if (selectedException) {
-      const selectBreakModeOptions: vscode.QuickPickOptions = {
-        placeHolder: nls.localize('select_break_option_text'),
-        matchOnDescription: true
+    const selectedBreakMode = await vscode.window.showQuickPick(EXCEPTION_BREAK_MODES, selectBreakModeOptions);
+    if (selectedBreakMode) {
+      selectedException.breakMode = selectedBreakMode.breakMode;
+      const args: SetExceptionBreakpointsArguments = {
+        exceptionInfo: selectedException
       };
-      const selectedBreakMode = await vscode.window.showQuickPick(EXCEPTION_BREAK_MODES, selectBreakModeOptions);
-      if (selectedBreakMode) {
-        selectedException.breakMode = selectedBreakMode.breakMode;
-        const args: SetExceptionBreakpointsArguments = {
-          exceptionInfo: selectedException
-        };
-        if (vscode.debug.activeDebugSession) {
-          await vscode.debug.activeDebugSession.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
-        }
-        updateExceptionBreakpointCache(selectedException);
+      if (vscode.debug.activeDebugSession) {
+        await vscode.debug.activeDebugSession.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
       }
+      updateExceptionBreakpointCache(selectedException);
     }
   }
 };
@@ -165,7 +160,7 @@ export const mergeExceptionBreakpointInfos = (
   const processedBreakpointInfos: ExceptionBreakpointItem[] = [];
   if (enabledBreakpointTyperefs.length > 0) {
     for (let i = breakpointInfos.length - 1; i >= 0; i--) {
-      if (enabledBreakpointTyperefs.indexOf(breakpointInfos[i].typeref) >= 0) {
+      if (enabledBreakpointTyperefs.includes(breakpointInfos[i].typeref)) {
         breakpointInfos[i].breakMode = EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS;
         breakpointInfos[i].description = `$(stop) ${nls.localize('always_break_text')}`;
         processedBreakpointInfos.unshift(breakpointInfos[i]);
@@ -195,13 +190,13 @@ export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointIt
 const registerFileWatchers = (): vscode.Disposable => {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
 
-  clsWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidChange(() => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidCreate(() => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidDelete(() => notifyDebuggerSessionFileChanged());
   const trgWatcher = vscode.workspace.createFileSystemWatcher('**/*.trigger');
-  trgWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidChange(() => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidCreate(() => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidDelete(() => notifyDebuggerSessionFileChanged());
 
   return vscode.Disposable.from(clsWatcher, trgWatcher);
 };

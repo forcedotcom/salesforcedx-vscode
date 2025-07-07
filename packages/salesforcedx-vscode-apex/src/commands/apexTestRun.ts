@@ -27,14 +27,14 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
-import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import { languages, workspace, window, CancellationToken, QuickPickItem, Uri } from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT, IS_TEST_REG_EXP } from '../constants';
+import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
+import { getTestInfo } from './readTestFile';
 
 export enum TestType {
   All,
@@ -79,16 +79,7 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
         description: nls.localize('apex_test_run_all_tests_description_text'),
         type: TestType.All
       },
-      ...apexClasses
-        .filter(apexClass => {
-          const fileContent = readFileSync(apexClass.fsPath, 'utf-8');
-          return IS_TEST_REG_EXP.test(fileContent);
-        })
-        .map(apexClass => ({
-          label: basename(apexClass.toString(), APEX_CLASS_EXT),
-          description: apexClass.fsPath,
-          type: TestType.Class
-        }))
+      ...(await Promise.all(apexClasses.map(getTestInfo))).filter(item => item !== undefined)
     ];
 
     const selection = await window.showQuickPick<ApexTestQuickPickItem>(fileItems);
@@ -163,11 +154,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new TestsSelector();
-
 export const apexTestRun = async () => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ApexLibraryTestRunExecutor());
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new TestsSelector(), new ApexLibraryTestRunExecutor());
   await commandlet.run();
 };
 

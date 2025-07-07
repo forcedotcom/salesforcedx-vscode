@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as ejs from 'ejs';
-import * as fs from 'node:fs';
 import { DocumentSymbol } from 'vscode';
 import { nls } from '../../messages';
 import { ejsTemplateHelpers, EjsTemplatesEnum } from '../../oasUtils';
@@ -32,7 +32,7 @@ export const getAnnotationsWithParameters = (annotations: ApexAnnotationDetail[]
     .map(annotation => {
       const paramsEntries = Object.entries(annotation.parameters);
       const paramsAsStr =
-        paramsEntries.length > 0 ? paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ') : undefined;
+        paramsEntries.length > 0 ? `${paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ')}` : undefined;
       return paramsAsStr
         ? `Annotation name: ${annotation.name} , Parameters: ${paramsAsStr}`
         : `Annotation name: ${annotation.name}.`;
@@ -83,20 +83,21 @@ export const getPromptForMethodContext = (methodContext: ApexOASMethodDetail | u
   return methodContextPrompt;
 };
 
-export const generatePromptForMethod = (
+export const generatePromptForMethod = async (
   methodName: string,
   docText: string,
   methodsDocSymbolMap: Map<string, DocumentSymbol>,
   methodsContextMap: Map<string, ApexOASMethodDetail>,
   classPrompt: string
-): string => {
-  const templatePath = ejsTemplateHelpers.getTemplatePath(EjsTemplatesEnum.METHOD_BY_METHOD);
+): Promise<string> => {
+  const templatePath = await ejsTemplateHelpers.getTemplatePath(EjsTemplatesEnum.METHOD_BY_METHOD);
 
   const methodImplementation = getMethodImplementation(methodName, docText, methodsDocSymbolMap);
   const methodContext = methodsContextMap.get(methodName);
   const additionalUserPrompts = getPromptForMethodContext(methodContext);
   try {
-    const renderedTemplate = ejs.render(fs.readFileSync(templatePath.fsPath, 'utf8'), {
+    const templateContent = await readFile(templatePath.fsPath);
+    const renderedTemplate = ejs.render(templateContent, {
       classPrompt,
       methodImplementation,
       additionalUserPrompts

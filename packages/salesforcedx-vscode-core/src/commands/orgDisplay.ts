@@ -6,14 +6,14 @@
  */
 
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { EmptyParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import { EmptyParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
-import { FlagParameter, SelectUsername, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { FlagParameter, SelectUsername, SfCommandlet, SfCommandletExecutor } from './util';
 
 class OrgDisplay extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
-  public constructor(flag?: string) {
+  constructor(flag?: string) {
     super();
     this.flag = flag;
   }

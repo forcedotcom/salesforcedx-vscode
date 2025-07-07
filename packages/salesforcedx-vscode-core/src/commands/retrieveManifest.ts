@@ -4,18 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ContinueResponse, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, SfWorkspaceChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { join } from 'node:path';
-import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
-import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
-import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet } from './util';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   constructor() {
@@ -38,18 +35,14 @@ class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
 }
 
 export const retrieveManifest = async (explorerPath: URI): Promise<void> => {
-  if (!explorerPath) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId === 'forcesourcemanifest') {
-      explorerPath = editor.document.uri;
-    } else {
-      const errorMessage = nls.localize('retrieve_select_manifest');
-      telemetryService.sendException('retrieve_with_manifest', errorMessage);
-      notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-      return;
-    }
+  const resolved =
+    explorerPath ??
+    (await getUriFromActiveEditor({
+      message: 'retrieve_select_manifest',
+      exceptionKey: 'retrieve_with_manifest'
+    }));
+  if (!resolved) {
+    return;
   }
 
   const commandlet = new SfCommandlet(

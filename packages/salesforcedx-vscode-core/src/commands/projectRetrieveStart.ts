@@ -13,6 +13,7 @@ import {
   EmptyParametersGatherer,
   ProjectRetrieveStartResultParser,
   ProjectRetrieveStartResult,
+  SfWorkspaceChecker,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
@@ -20,7 +21,7 @@ import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
 import { coerceMessageKey, nls } from '../messages';
-import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor } from './util';
 
 const pullCommand: CommandParams = {
   command: 'project:retrieve:start',
@@ -34,7 +35,7 @@ const pullCommand: CommandParams = {
 export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
 
-  public constructor(
+  constructor(
     flag?: string,
     public params: CommandParams = pullCommand
   ) {
@@ -42,7 +43,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     this.flag = flag;
   }
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     const builder = new SfCommandBuilder()
       .withDescription(nls.localize(coerceMessageKey(this.params.description.default)))
       .withArg(this.params.command)
@@ -50,7 +51,9 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
       .withLogName(this.params.logName.default);
 
     if (this.flag === '--ignore-conflicts') {
-      builder.withArg(this.flag).withDescription(nls.localize(coerceMessageKey(this.params.description.ignoreConflicts)));
+      builder
+        .withArg(this.flag)
+        .withDescription(nls.localize(coerceMessageKey(this.params.description.ignoreConflicts)));
     }
     return builder.build();
   }
@@ -98,14 +101,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
       this.outputResultPull(pullParser);
     }
 
-    const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
-    let properties;
-    let measurements;
-    if (telemetryData) {
-      properties = telemetryData.properties;
-      measurements = telemetryData.measurements;
-    }
-    this.logMetric(execution.command.logName, startTime, properties, measurements);
+    this.logMetric(execution.command.logName, startTime);
     this.onDidFinishExecutionEventEmitter.fire(startTime);
   }
 
@@ -133,11 +129,11 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
       const tableTitle = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, tableTitle);
       if (parser.hasConflicts()) {
-        channelService.appendLine(nls.localize('pull_conflicts_error') + '\n');
+        channelService.appendLine(`${nls.localize('pull_conflicts_error')}\n`);
       }
       channelService.appendLine(outputTable);
       if (pulledSource && pulledSource.length === 0) {
-        const noResults = nls.localize('table_no_results_found') + '\n';
+        const noResults = `${nls.localize('table_no_results_found')}\n`;
         channelService.appendLine(noResults);
       }
     }

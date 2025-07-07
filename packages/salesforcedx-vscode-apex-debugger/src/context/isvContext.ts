@@ -24,13 +24,13 @@ export const setupGlobalDefaultUserIsvAuth = async () => {
 };
 
 export const registerIsvAuthWatcher = (extensionContext: vscode.ExtensionContext) => {
-  if (vscode.workspace.workspaceFolders instanceof Array && vscode.workspace.workspaceFolders.length > 0) {
+  if (Array.isArray(vscode.workspace.workspaceFolders) && vscode.workspace.workspaceFolders.length > 0) {
     const configPath = projectPaths.salesforceProjectConfig();
     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
 
-    isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidChange(() => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidCreate(() => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidDelete(() => setupGlobalDefaultUserIsvAuth());
 
     extensionContext.subscriptions.push(isvAuthWatcher);
   }

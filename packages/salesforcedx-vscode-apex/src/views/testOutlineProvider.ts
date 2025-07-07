@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TestResult } from '@salesforce/apex-node-bundle';
-import { readFileSync } from 'node:fs';
+import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -121,7 +121,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
 
   public async onResultFileCreate(apexTestPath: string, testResultFile: string) {
     const testRunIdFile = path.join(apexTestPath, TEST_RUN_ID_FILE);
-    const testRunId = readFileSync(testRunIdFile).toString();
+    const testRunId = await readFile(testRunIdFile);
     const testResultFilePath = path.join(
       apexTestPath,
       !testRunId ? TEST_RESULT_JSON_FILE : `test-result-${testRunId}.json`
@@ -129,7 +129,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
 
     if (testResultFile === testResultFilePath) {
       await this.refresh();
-      this.updateTestResults(testResultFile);
+      await this.updateTestResults(testResultFile);
     }
   }
 
@@ -162,10 +162,10 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
         }
         const apexTest = new ApexTestNode(test.methodName, test.location);
 
-        apexTest.name = apexGroup.label + '.' + apexTest.label;
+        apexTest.name = `${apexGroup.label}.${apexTest.label}`;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);
-        if (this.rootNode && !(this.rootNode.children.indexOf(apexGroup) >= 0)) {
+        if (this.rootNode && !this.rootNode.children.includes(apexGroup)) {
           this.rootNode.children.push(apexGroup);
         }
         this.testStrings.add(apexGroup.name);
@@ -176,8 +176,8 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     return this.rootNode;
   }
 
-  public updateTestResults(testResultFilePath: string) {
-    const testResultOutput = readFileSync(testResultFilePath, 'utf8');
+  public async updateTestResults(testResultFilePath: string) {
+    const testResultOutput = await readFile(testResultFilePath);
     const testResultContent = JSON.parse(testResultOutput) as TestResult;
 
     this.updateTestsFromLibrary(testResultContent);
@@ -242,7 +242,7 @@ export abstract class TestNode extends vscode.TreeItem {
   // TODO: create a ticket to address this particular issue.
 
   // @ts-ignore
-  get tooltip(): string {
+  public get tooltip(): string {
     return this.description;
   }
 

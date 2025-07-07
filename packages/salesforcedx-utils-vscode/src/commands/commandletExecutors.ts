@@ -62,31 +62,11 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
       env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
-    let output = '';
-    execution.stdoutSubject.subscribe(realData => {
-      output += realData.toString();
-    });
-
-    execution.processExitSubject.subscribe(exitCode => {
-      const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
-      let properties;
-      let measurements;
-      if (telemetryData) {
-        properties = telemetryData.properties;
-        measurements = telemetryData.measurements;
-      }
-      this.logMetric(execution.command.logName, startTime, properties, measurements);
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-  }
-
-  protected getTelemetryData(
-    success: boolean,
-    response: ContinueResponse<T>,
-    output: string
-  ): TelemetryData | undefined {
-    return;
   }
 
   public abstract build(data: T): Command;
@@ -184,7 +164,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
     }
   }
 
-  get telemetryData(): TelemetryData {
+  public get telemetryData(): TelemetryData {
     return this.telemetry.build();
   }
 }

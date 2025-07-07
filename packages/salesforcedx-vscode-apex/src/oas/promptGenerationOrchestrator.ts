@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { GenerationStrategy } from './generationStrategy/generationStrategy';
 import { nls } from '../messages';
 import { cleanupGeneratedDoc } from '../oasUtils';
 import GenerationInteractionLogger from './generationInteractionLogger';
-import { GenerationStrategy } from './generationStrategy/generationStrategy';
 import {
-  GenerationStrategyType,
+  type GenerationStrategyType,
   initializeAndBid,
-  StrategyTypes
+  type StrategyTypes
 } from './generationStrategy/generationStrategyFactory';
 import {
   ApexClassOASEligibleResponse,
@@ -30,16 +30,17 @@ const gil = GenerationInteractionLogger.getInstance();
 
 // An orchestrator that coordinates the generation of prompts for Apex classes.
 export class PromptGenerationOrchestrator {
-  metadata: ApexClassOASEligibleResponse;
-  context: ApexClassOASGatherContextResponse;
-  strategies: Map<GenerationStrategyType, StrategyTypes>;
-  strategy: GenerationStrategy | undefined = undefined;
+  private metadata: ApexClassOASEligibleResponse;
+  private context: ApexClassOASGatherContextResponse;
+  private strategies: Map<GenerationStrategyType, StrategyTypes>;
+  public strategy: GenerationStrategy | undefined = undefined;
   // The orchestrator is initialized with metadata and context.
   constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse) {
     this.metadata = metadata;
     this.context = context;
     this.strategies = new Map<GenerationStrategyType, StrategyTypes>();
   }
+
 
   // Initialize strategies and get their bids in one step
   private async initializeAndBid(): Promise<Map<GenerationStrategyType, PromptGenerationStrategyBid>> {
@@ -82,7 +83,7 @@ export class PromptGenerationOrchestrator {
   }
 
   // Apply a specific rule to select the name of the best strategy from the list of bids.
-  applyRule(
+  private applyRule(
     rule: BidRule,
     bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
   ): GenerationStrategyType | undefined {

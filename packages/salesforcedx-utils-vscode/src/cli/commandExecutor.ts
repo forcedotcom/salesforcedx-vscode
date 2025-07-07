@@ -49,7 +49,7 @@ export class CliCommandExecutor {
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
-  public constructor(command: Command, options: SpawnOptions, inheritGlobalEnvironmentVariables = true) {
+  constructor(command: Command, options: SpawnOptions, inheritGlobalEnvironmentVariables = true) {
     this.command = command;
     this.options = inheritGlobalEnvironmentVariables
       ? CliCommandExecutor.patchEnv(options, GlobalCliEnvironment.environmentVariables)
@@ -65,7 +65,7 @@ export class CliCommandExecutor {
 export class CompositeCliCommandExecutor {
   private readonly command: Command;
 
-  public constructor(commands: Command) {
+  constructor(commands: Command) {
     this.command = commands;
   }
 
@@ -116,7 +116,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(async () => {
+      timerSubscriber = timer.subscribe(() => {
         if (cancellationToken.isCancellationRequested) {
           try {
             this.exitSubject.next();

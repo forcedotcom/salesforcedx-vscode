@@ -48,7 +48,7 @@ describe('getDialogStartingPath', () => {
     expect((dialogStartingPathUri as URI).path).toEqual(testPath);
   });
 
-  it('Should return project log folder when last opened log folder not present', async () => {
+  it('Should return project log folder when last opened log folder not present', () => {
     hasRootWorkspaceStub.mockReturnValue(true);
     mockGet.mockReturnValue(undefined);
     const fakePathToDebugLogsFolder = 'path/to/debug/logs';
@@ -67,7 +67,7 @@ describe('getDialogStartingPath', () => {
     expect((dialogStartingPathUri as URI).path).toEqual(fakePathToDebugLogsFolder);
   });
 
-  it('Should return state folder as fallback when project log folder not present', async () => {
+  it('Should return state folder as fallback when project log folder not present', () => {
     hasRootWorkspaceStub.mockReturnValue(true);
     mockGet.mockReturnValue(undefined);
     const fakePathToDebugLogsFolder = 'path/to/debug/logs';
@@ -89,7 +89,7 @@ describe('getDialogStartingPath', () => {
     expect((dialogStartingPathUri as URI).path).toEqual(fakePathToStateFolder);
   });
 
-  it('Should return undefined when not in a project workspace', async () => {
+  it('Should return undefined when not in a project workspace', () => {
     hasRootWorkspaceStub.mockReturnValue(false);
     mockGet.mockReturnValue(testPath);
 

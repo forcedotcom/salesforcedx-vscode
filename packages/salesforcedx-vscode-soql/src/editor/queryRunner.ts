@@ -11,6 +11,7 @@ import type { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type QueryResult<T> = Awaited<ReturnType<Connection['query']>>;
 
 export const runQuery =
@@ -35,7 +36,7 @@ export const runQuery =
 /**
   As query complexity grows
   we will need to flatten the results of nested values
-  in order to be parsed and diplayed correctly
+  in order to be parsed and displayed correctly
  */
 const flattenQueryRecords = (rawQueryRecords: JsonMap[]) =>
   // filter out the attributes key

@@ -200,9 +200,6 @@ export const activate = async (context: ExtensionContext) => {
     ]
   });
 
-  if (salesforceCoreExtension?.exports) {
-  }
-
   telemetryService?.sendExtensionActivationEvent(extensionHRStart);
 };
 

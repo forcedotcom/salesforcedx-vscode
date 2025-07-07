@@ -49,7 +49,6 @@ export class SfCommandlet<T> {
           if (inputs.msg) {
             notificationService.showErrorMessage(inputs.msg);
           }
-          return;
       }
     }
   }

@@ -18,6 +18,7 @@ import {
   CancelResponse,
   ConfigUtil,
   ContinueResponse,
+  fileOrFolderExists,
   isSFContainerMode,
   LocalCommandExecution,
   notificationService,
@@ -28,7 +29,6 @@ import {
   SfWorkspaceChecker,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -45,7 +45,7 @@ type RefreshSelection = {
 class SObjectRefreshGatherer implements ParametersGatherer<RefreshSelection> {
   private source?: SObjectRefreshSource;
 
-  public constructor(source?: SObjectRefreshSource) {
+  constructor(source?: SObjectRefreshSource) {
     this.source = source;
   }
 
@@ -88,7 +88,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     RefreshSObjectsExecutor.refreshSObjectsCommandCompletionEventEmitter.event;
   private static isActive = false;
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('sobjects_refresh'))
       .withArg('sobject definitions refresh')
@@ -139,7 +139,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
             })
       });
 
-      console.log('Generate success ' + JSON.stringify(result.data));
+      console.log(`Generate success ${JSON.stringify(result.data)}`);
       this.logMetric(
         execution.command.logName,
         startTime,
@@ -157,7 +157,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
         exitCode: LocalCommandExecution.SUCCESS_CODE
       });
     } catch (error) {
-      console.log('Generate error ' + error.error);
+      console.log(`Generate error ${error.error}`);
       telemetryService.sendException(
         'generate_faux_classes_create',
         `Error: name = ${error.name} message = ${error.error}`
@@ -169,7 +169,6 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     }
 
     RefreshSObjectsExecutor.isActive = false;
-    return;
   }
 }
 
@@ -186,7 +185,7 @@ export const initSObjectDefinitions = async (projectPath: string, isSettingEnabl
     const sobjectFolder = isSettingEnabled ? getSObjectsDirectory() : getStandardSObjectsDirectory();
     const refreshSource = isSettingEnabled ? 'startup' : 'startupmin';
 
-    if (!fs.existsSync(sobjectFolder)) {
+    if (!(await fileOrFolderExists(sobjectFolder))) {
       telemetryService.sendEventData('sObjectRefreshNotification', { type: refreshSource }, undefined);
       try {
         await refreshSObjects(refreshSource);
@@ -215,7 +214,7 @@ const getVersionedConnection = async () => {
           connectionOptions: { version: apiVersionOverride }
         })
       : await WorkspaceContextUtil.getInstance().getConnection();
-  } catch (e) {
+  } catch {
     return undefined;
   }
 };

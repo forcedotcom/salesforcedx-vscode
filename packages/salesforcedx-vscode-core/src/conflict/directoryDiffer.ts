@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { readDirectory, isDirectory } from '@salesforce/salesforcedx-utils-vscode';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -15,13 +15,36 @@ import { conflictView } from '../conflict';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
+import { filesDiffer } from './conflictUtils';
 import { MetadataCacheResult } from './metadataCacheService';
+
+type FileStats = {
+  filename: string;
+  subdir: string;
+  relPath: string;
+};
+
+/** Recursively walk directory and return list of FileStats objects */
+const walkFiles = async (root: string, subdir: string = ''): Promise<FileStats[]> => {
+  const fullDir = path.join(root, subdir);
+  const subdirList = await readDirectory(fullDir);
+
+  return (
+    await Promise.all(
+      subdirList.flatMap(async filename => {
+        const fullPath = path.join(fullDir, filename);
+        const relPath = path.join(subdir, filename);
+        return (await isDirectory(fullPath)) ? walkFiles(root, relPath) : [{ filename, subdir, relPath }];
+      })
+    )
+  ).flat();
+};
 
 export type TimestampFileProperties = {
   localRelPath: string;
   remoteRelPath: string;
-  localLastModifiedDate?: string | undefined;
-  remoteLastModifiedDate?: string | undefined;
+  localLastModifiedDate?: string;
+  remoteLastModifiedDate?: string;
 };
 
 export type DirectoryDiffResults = {
@@ -32,83 +55,41 @@ export type DirectoryDiffResults = {
   scannedRemote?: number;
 };
 
-type DirectoryDiffer = {
-  diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults;
+const diff = async (localSourcePath: string, remoteSourcePath: string): Promise<DirectoryDiffResults> => {
+  const [localFiles, remoteFiles] = (await Promise.all([walkFiles(localSourcePath), walkFiles(remoteSourcePath)])).map(
+    fileList => fileList.map(f => f.relPath)
+  );
+  const localSet = new Set(localFiles);
+
+  // process remote files to generate differences
+  const different = new Set(
+    (
+      await Promise.all(
+        remoteFiles
+          .filter(remoteFile => localSet.has(remoteFile))
+          .map(async relPath => {
+            const file1 = path.join(localSourcePath, relPath);
+            const file2 = path.join(remoteSourcePath, relPath);
+            const isDifferent = await filesDiffer(file1, file2);
+            return isDifferent ? { localRelPath: relPath, remoteRelPath: relPath } : undefined;
+          })
+      )
+    ).filter(rf => rf !== undefined)
+  );
+
+  return {
+    localRoot: localSourcePath,
+    remoteRoot: remoteSourcePath,
+    different,
+    scannedLocal: localSet.size,
+    scannedRemote: remoteFiles.length
+  };
 };
 
-type FileStats = {
-  filename: string;
-  subdir: string;
-  relPath: string;
-};
-
-class CommonDirDirectoryDiffer implements DirectoryDiffer {
-  public diff(localSourcePath: string, remoteSourcePath: string): DirectoryDiffResults {
-    const localSet = this.listFiles(localSourcePath);
-    const different = new Set<TimestampFileProperties>();
-
-    // process remote files to generate differences
-    let scannedRemote = 0;
-    this.walkFiles(remoteSourcePath, '', stats => {
-      scannedRemote++;
-      if (localSet.has(stats.relPath)) {
-        const file1 = path.join(localSourcePath, stats.relPath);
-        const file2 = path.join(remoteSourcePath, stats.relPath);
-        if (this.filesDiffer(file1, file2)) {
-          different.add({
-            localRelPath: stats.relPath,
-            remoteRelPath: stats.relPath
-          });
-        }
-      }
-    });
-
-    return {
-      localRoot: localSourcePath,
-      remoteRoot: remoteSourcePath,
-      different,
-      scannedLocal: localSet.size,
-      scannedRemote
-    };
-  }
-
-  private filesDiffer(one: string, two: string): boolean {
-    const buffer1 = fs.readFileSync(one);
-    const buffer2 = fs.readFileSync(two);
-    return !buffer1.equals(buffer2);
-  }
-
-  private listFiles(root: string): Set<string> {
-    const results = new Set<string>();
-    this.walkFiles(root, '', stats => {
-      results.add(stats.relPath);
-    });
-    return results;
-  }
-
-  private walkFiles(root: string, subdir: string, callback: (stats: FileStats) => void) {
-    const fullDir = path.join(root, subdir);
-    const subdirList = fs.readdirSync(fullDir);
-
-    subdirList.forEach(filename => {
-      const fullPath = path.join(fullDir, filename);
-      const stat = fs.statSync(fullPath);
-      const relPath = path.join(subdir, filename);
-
-      if (stat && stat.isDirectory()) {
-        this.walkFiles(root, relPath, callback);
-      } else {
-        callback({ filename, subdir, relPath });
-      }
-    });
-  }
-}
-
-export const diffFolder = (cache: MetadataCacheResult, username: string) => {
+export const diffFolder = async (cache: MetadataCacheResult, username: string): Promise<void> => {
   const localPath = path.join(cache.project.baseDirectory, cache.project.commonRoot);
   const remotePath = path.join(cache.cache.baseDirectory, cache.cache.commonRoot);
-  const differ = new CommonDirDirectoryDiffer();
-  const diffs = differ.diff(localPath, remotePath);
+  const diffs = await diff(localPath, remotePath);
 
   conflictView.visualizeDifferences(nls.localize('source_diff_folder_title', username), username, true, diffs, true);
 };
@@ -127,30 +108,28 @@ export const diffOneFile = async (
   targetOrgorAlias: string
 ): Promise<void> => {
   const filePart = path.basename(localFile);
+  const remoteFilePaths = [
+    ...remoteComponent.walkContent(),
+    ...(remoteComponent.xml ? [remoteComponent.xml] : [])
+  ].filter(filePath => filePath.endsWith(filePart));
 
-  const remoteFilePaths = remoteComponent.walkContent();
-  if (remoteComponent.xml) {
-    remoteFilePaths.push(remoteComponent.xml);
-  }
   for (const filePath of remoteFilePaths) {
-    if (filePath.endsWith(filePart)) {
-      const remoteUri = URI.file(filePath);
-      const localUri = URI.file(localFile);
+    const remoteUri = URI.file(filePath);
+    const localUri = URI.file(localFile);
 
-      try {
-        await vscode.commands.executeCommand(
-          'vscode.diff',
-          remoteUri,
-          localUri,
-          nls.localize('source_diff_title', targetOrgorAlias, filePart, filePart)
-        );
-      } catch (err) {
-        await notificationService.showErrorMessage(err.message);
-        channelService.appendLine(err.message);
-        channelService.showChannelOutput();
-        telemetryService.sendException('source_diff_file', `Error: name = ${err.name} message = ${err.message}`);
-      }
-      return;
+    try {
+      await vscode.commands.executeCommand(
+        'vscode.diff',
+        remoteUri,
+        localUri,
+        nls.localize('source_diff_title', targetOrgorAlias, filePart, filePart)
+      );
+    } catch (err) {
+      await notificationService.showErrorMessage(err.message);
+      channelService.appendLine(err.message);
+      channelService.showChannelOutput();
+      telemetryService.sendException('source_diff_file', `Error: name = ${err.name} message = ${err.message}`);
     }
+    return;
   }
 };

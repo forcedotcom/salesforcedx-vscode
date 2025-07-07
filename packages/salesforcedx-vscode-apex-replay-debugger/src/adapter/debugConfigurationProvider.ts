@@ -26,16 +26,16 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
   }
 
   public provideDebugConfigurations(
-    folder: vscode.WorkspaceFolder | undefined,
-    token?: vscode.CancellationToken
+    _folder: vscode.WorkspaceFolder | undefined,
+    _token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
     return [DebugConfigurationProvider.getConfig()];
   }
 
   public resolveDebugConfiguration(
-    folder: vscode.WorkspaceFolder | undefined,
+    _folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
-    token?: vscode.CancellationToken
+    _token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
     return this.asyncDebugConfig(config).catch(async err =>
       vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined)
@@ -54,10 +54,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       config.trace = true;
     }
 
-    if (vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+    if (vscode.workspace?.workspaceFolders?.[0]) {
       config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
-
     if (!this.salesforceApexExtension?.isActive) {
       await this.salesforceApexExtension?.activate();
     }

@@ -28,6 +28,7 @@
 import { z } from 'zod';
 import { loadO11yModules } from '../telemetry/utils/o11yLoader';
 
+const O11Y_UPLOAD_THRESHOLD_BYTES = 50_000;
 export class O11yService {
   O11Y_UPLOAD_THRESHOLD_BYTES = 50_000;
   o11yUploadEndpoint: string | undefined;
@@ -127,7 +128,7 @@ export class O11yService {
     }
   }
 
-  async upload(): Promise<void> {
+  public async upload(): Promise<void> {
     try {
       // Log anything that was buffered
       await this.uploadAsNeededAsync(true);
@@ -137,7 +138,7 @@ export class O11yService {
     }
   }
 
-  initSimpleCollector(
+  private initSimpleCollector(
     o11yApp: InstrumentedAppMethods,
     environment: Environment,
     o11yModules: Awaited<ReturnType<typeof loadO11yModules>> | null
@@ -157,7 +158,7 @@ export class O11yService {
     return simpleCollector;
   }
 
-  uploadAsNeededAsync(ignoreThreshold = false): Promise<PromiseSettledResult<Response>[]> {
+  private uploadAsNeededAsync(ignoreThreshold = false): Promise<PromiseSettledResult<Response>[]> {
     const promises: Promise<Response>[] = [];
 
     if (!O11yService.sharedProtoEncoderFunc) {
@@ -168,7 +169,7 @@ export class O11yService {
     const simpleCollector = O11yService.sharedInstrApp?.simpleCollector;
     if (
       simpleCollector?.hasData &&
-      (ignoreThreshold || simpleCollector.estimatedByteSize >= this.O11Y_UPLOAD_THRESHOLD_BYTES)
+      (ignoreThreshold || simpleCollector.estimatedByteSize >= O11Y_UPLOAD_THRESHOLD_BYTES)
     ) {
       const rawContents = simpleCollector.getRawContentsOfCoreEnvelope();
       const binary = O11yService.sharedProtoEncoderFunc(rawContents);
@@ -178,17 +179,19 @@ export class O11yService {
     return Promise.allSettled(promises);
   }
 
-  async uploadToFalconAsync(binary: Uint8Array): Promise<Response> {
+  // public only for testing
+  public async uploadToFalconAsync(binary: Uint8Array): Promise<Response> {
     const b64 = Buffer.from(binary).toString('base64');
 
     if (!this.o11yUploadEndpoint) {
-      return Promise.reject(new Error('o11yUploadEndpoint is not defined'));
+      throw new Error('o11yUploadEndpoint is not defined');
     }
 
     return this.postRequest(this.o11yUploadEndpoint, { base64Env: b64 });
   }
 
-  postRequest = (endpoint: string, body: any): Promise<Response> =>
+  // public only for testing
+  public postRequest = (endpoint: string, body: any): Promise<Response> =>
     fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

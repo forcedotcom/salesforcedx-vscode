@@ -13,7 +13,7 @@ import {
   workspaceUtils,
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
-import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
+import { Properties, Measurements } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
@@ -60,7 +60,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     telemetryService.sendCommandEvent(logName, hrstart, properties, measurements);
   }
 
-  public execute(response: ContinueResponse<T>): void {
+  public execute(response: ContinueResponse<T>): void | Promise<void> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -69,20 +69,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
       env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
-    let output = '';
-    execution.stdoutSubject.subscribe(realData => {
-      output += realData.toString();
-    });
-
-    execution.processExitSubject.subscribe(exitCode => {
-      const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
-      let properties;
-      let measurements;
-      if (telemetryData) {
-        properties = telemetryData.properties;
-        measurements = telemetryData.measurements;
-      }
-      this.logMetric(execution.command.logName, startTime, properties, measurements);
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
@@ -107,22 +95,12 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     return parsed;
   }
 
-  protected getTelemetryData(
-    success: boolean,
-    response: ContinueResponse<T>,
-    output: string
-  ): TelemetryData | undefined {
-    return;
-  }
-
   /**
    * Base method (no-op) that is overridden by sub-classes
    * projectDeployStart and projectRetrieveStart to update the local cache's
    * timestamps post-operation, in order to be in sync for the
    * "Detect Conflicts at Sync" setting.
    */
-
-  protected updateCache(result: any): void {}
 
   public abstract build(data: T): Command;
 }
