@@ -116,7 +116,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(async () => {
+      timerSubscriber = timer.subscribe(() => {
         if (cancellationToken.isCancellationRequested) {
           try {
             this.exitSubject.next();

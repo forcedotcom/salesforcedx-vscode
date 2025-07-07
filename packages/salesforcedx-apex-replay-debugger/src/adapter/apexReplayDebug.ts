@@ -53,7 +53,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public initializeRequest(
     response: DebugProtocol.InitializeResponse,
-    args: DebugProtocol.InitializeRequestArguments
+    _args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
     this.initializedResponse.body = {
@@ -83,9 +83,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
       breakpointUtil.createMappingsFromLineBreakpointInfo(args.lineBreakpointInfo);
       delete args.lineBreakpointInfo;
     }
-    this.projectPath = args.projectPath;
     response.success = false;
     this.setupLogger(args);
+    this.projectPath = args.projectPath;
     this.log(TRACE_CATEGORY_LAUNCH, `launchRequest: args=${JSON.stringify(args)}`);
     this.sendEvent(
       new Event(SEND_METRIC_GENERAL_EVENT, {
@@ -126,11 +126,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       );
     } else {
       this.printToDebugConsole(nls.localize('session_started_text', this.logContext.getLogFileName()));
-      if (
-        this.projectPath &&
-        this.logContext.scanLogForHeapDumpLines() &&
-        !(await this.logContext.fetchOverlayResultsForApexHeapDumps(this.projectPath))
-      ) {
+      if (this.logContext.scanLogForHeapDumpLines() && !(await this.logContext.fetchOverlayResultsForApexHeapDumps())) {
         response.message = nls.localize('heap_dump_error_wrap_up_text');
         this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
         this.sendEvent(
@@ -171,8 +167,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   public configurationDoneRequest(
-    response: DebugProtocol.ConfigurationDoneResponse,
-    args: DebugProtocol.ConfigurationDoneArguments
+    _response: DebugProtocol.ConfigurationDoneResponse,
+    _args: DebugProtocol.ConfigurationDoneArguments
   ): void {
     if (this.logContext.getLaunchArgs().stopOnEntry) {
       // Stop in the debug log
@@ -193,7 +189,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
   }
 
-  public disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
+  public disconnectRequest(response: DebugProtocol.DisconnectResponse, _args: DebugProtocol.DisconnectArguments): void {
     this.printToDebugConsole(nls.localize('session_terminated_text'));
     response.success = true;
     this.sendResponse(response);
@@ -213,7 +209,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  public stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): void {
+  public stackTraceRequest(response: DebugProtocol.StackTraceResponse, _args: DebugProtocol.StackTraceArguments): void {
     response.body = {
       stackFrames: this.logContext.getFrames().slice().reverse()
     };
@@ -313,19 +309,19 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  public continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
+  public continueRequest(response: DebugProtocol.ContinueResponse, _args: DebugProtocol.ContinueArguments): void {
     this.executeStep(response, 'Run');
   }
 
-  public nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
+  public nextRequest(response: DebugProtocol.NextResponse, _args: DebugProtocol.NextArguments): void {
     this.executeStep(response, 'Over');
   }
 
-  public stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
+  public stepInRequest(response: DebugProtocol.StepInResponse, _args: DebugProtocol.StepInArguments): void {
     this.executeStep(response, 'In');
   }
 
-  public stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
+  public stepOutRequest(response: DebugProtocol.StepOutResponse, _args: DebugProtocol.StepOutArguments): void {
     this.executeStep(response, 'Out');
   }
 
@@ -461,6 +457,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public errorToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number): void {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
+  }
+
+  public getProjectPath(): string | undefined {
+    return this.projectPath;
   }
 }
 

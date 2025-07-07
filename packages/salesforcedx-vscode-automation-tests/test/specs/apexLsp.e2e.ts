@@ -103,7 +103,7 @@ const verifyLspRestart = async (cleanDb: boolean): Promise<void> => {
   expect(outputViewText).to.contain(LSP_STATUS.preludeStarting);
 };
 
-const setupTestEnvironment = async (testSetup: TestSetup): Promise<void> => {
+const setupTestEnvironment = async (): Promise<void> => {
   log('ApexLsp - Set up the testing environment');
   log(`ApexLsp - JAVA_HOME: ${EnvironmentSettings.getInstance().javaHome}`);
   // Allow time for VSCode to fully initialize and load extensions
@@ -226,7 +226,7 @@ describe('Apex LSP', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
-    await setupTestEnvironment(testSetup);
+    await setupTestEnvironment();
   });
 
   beforeEach(function () {

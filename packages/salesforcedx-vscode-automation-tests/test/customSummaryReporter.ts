@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Runner, MochaOptions, Test } from 'mocha';
+import { Runner, Test } from 'mocha';
 
 const { EVENT_RUN_END, EVENT_TEST_PASS, EVENT_TEST_FAIL, EVENT_TEST_PENDING } = Runner.constants;
 class CustomSummaryReporter {
@@ -13,7 +13,7 @@ class CustomSummaryReporter {
   private failures: { title: string; error: string; duration: number }[] = [];
   private pending: { title: string }[] = [];
 
-  constructor(runner: Runner, options?: MochaOptions) {
+  constructor(runner: Runner) {
     // Listen for passed tests
     runner.on(EVENT_TEST_PASS, (test: Test) => {
       this.passes.push({
