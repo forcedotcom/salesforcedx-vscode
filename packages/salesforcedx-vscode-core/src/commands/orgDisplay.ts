@@ -25,7 +25,11 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
   private flag: string | undefined;
 
   constructor(flag?: string) {
-    super(nls.localize('org_display_default_text'), 'org_display_library', OUTPUT_CHANNEL);
+    super(
+      nls.localize(flag ? 'org_display_username_text' : 'org_display_default_text'),
+      'org_display_library',
+      OUTPUT_CHANNEL
+    );
     this.flag = flag;
   }
 
@@ -74,45 +78,40 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       { key: 'property', label: 'Key' },
       { key: 'value', label: 'Value' }
     ];
-    let rows: Row[] = [];
-
-    rows.push({ property: 'Access Token', value: orgInfo.accessToken });
-    rows.push({ property: 'Alias', value: orgInfo.alias });
-    rows.push({ property: 'API Version', value: orgInfo.apiVersion });
-    rows.push({ property: 'Client Id', value: orgInfo.clientId });
-    rows.push({ property: 'Connected Status', value: orgInfo.connectionStatus });
-    rows.push({ property: 'Instance Url', value: orgInfo.instanceUrl });
-    rows.push({ property: 'Org Id', value: orgInfo.id });
-    rows.push({ property: 'Username', value: orgInfo.username });
-
     const isScratchOrg = !!orgInfo.devHubId;
-    if (isScratchOrg) {
-      rows.push({ property: 'Dev Hub Id', value: orgInfo.devHubId });
-      rows.push({ property: 'Created By', value: orgInfo.createdBy });
-      rows.push({ property: 'Created Date', value: orgInfo.createdDate });
-      rows.push({ property: 'Expiration Date', value: orgInfo.expirationDate });
-      rows.push({ property: 'Status', value: orgInfo.status });
-      rows.push({ property: 'Password', value: orgInfo.password || '' });
-      rows.push({ property: 'Org Name', value: orgInfo.orgName });
-    }
 
-    if (orgInfo.edition && !isScratchOrg) {
-      rows.push({ property: 'Edition', value: orgInfo.edition });
-    }
-
-    rows = rows.sort((a, b) => String(a.property).localeCompare(String(b.property)));
+    const rows: Row[] = [
+      { property: 'Access Token', value: orgInfo.accessToken },
+      { property: 'Alias', value: orgInfo.alias },
+      { property: 'API Version', value: orgInfo.apiVersion },
+      { property: 'Client Id', value: orgInfo.clientId },
+      { property: 'Connected Status', value: orgInfo.connectionStatus },
+      { property: 'Instance Url', value: orgInfo.instanceUrl },
+      { property: 'Org Id', value: orgInfo.id },
+      { property: 'Username', value: orgInfo.username },
+      ...(isScratchOrg
+        ? [
+            { property: 'Dev Hub Id', value: orgInfo.devHubId },
+            { property: 'Created By', value: orgInfo.createdBy },
+            { property: 'Created Date', value: orgInfo.createdDate },
+            { property: 'Expiration Date', value: orgInfo.expirationDate },
+            { property: 'Status', value: orgInfo.status },
+            { property: 'Password', value: orgInfo.password ?? '' },
+            { property: 'Org Name', value: orgInfo.orgName }
+          ]
+        : []),
+      ...(orgInfo.edition && !isScratchOrg ? [{ property: 'Edition', value: orgInfo.edition }] : [])
+    ].sort((a, b) => String(a.property).localeCompare(String(b.property)));
 
     const table = new Table();
     return table.createTable(rows, columns, 'Org Description');
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-
 export async function orgDisplay(this: FlagParameter<string>) {
   const flag = this ? this.flag : undefined;
   const parameterGatherer = flag ? new SelectUsername() : new EmptyParametersGatherer();
   const executor = new OrgDisplayExecutor(flag);
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, executor);
   await commandlet.run();
 }
