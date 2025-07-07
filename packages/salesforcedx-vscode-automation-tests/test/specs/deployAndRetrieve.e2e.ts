@@ -43,6 +43,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Deploy and Retrieve', () => {
   const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'MyClass');
@@ -86,12 +87,12 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('Verify Source Tracking Setting is enabled', async () => {
-    log('Deploy and Retrieve - Verify Source Tracking Setting is enabled');
+    logTestStart(testSetup, 'Verify Source Tracking Setting is enabled');
     expect(await isBooleanSettingEnabled(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE));
   });
 
   it('Deploy with SFDX: Deploy This Source to Org - ST enabled', async () => {
-    log('Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST enabled');
+    logTestStart(testSetup, 'Deploy with SFDX: Deploy This Source to Org - ST enabled');
     const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -100,7 +101,7 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('Deploy again (with no changes) - ST enabled', async () => {
-    log('Deploy and Retrieve - Deploy again (with no changes) - ST enabled');
+    logTestStart(testSetup, 'Deploy again (with no changes) - ST enabled');
     const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -110,7 +111,7 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('Modify the file and deploy again - ST enabled', async () => {
-    log('Deploy and Retrieve - Modify the file and deploy again - ST enabled');
+    logTestStart(testSetup, 'Modify the file and deploy again - ST enabled');
     const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -127,7 +128,7 @@ describe('Deploy and Retrieve', () => {
   // Use context menu only for Windows and Ubuntu
   if (process.platform !== 'darwin') {
     it('Deploy with context menu from editor view', async () => {
-      log('Deploy with context menu from editor view');
+      logTestStart(testSetup, 'Deploy with context menu from editor view');
       const workbench = getWorkbench();
       // Clear the Output view first.
       await clearOutputView(Duration.seconds(2));
@@ -142,7 +143,7 @@ describe('Deploy and Retrieve', () => {
 
   if (process.platform !== 'darwin') {
     it('Deploy with context menu from explorer view', async () => {
-      log('Deploy with context menu from explorer view');
+      logTestStart(testSetup, 'Deploy with context menu from explorer view');
       // Clear the Output view first.
       await clearOutputView(Duration.seconds(2));
       await executeQuickPick('File: Focus on Files Explorer');
@@ -174,7 +175,7 @@ describe('Deploy and Retrieve', () => {
   }
 
   it('Retrieve with SFDX: Retrieve This Source from Org', async () => {
-    log('Deploy and Retrieve - Retrieve with SFDX: Retrieve This Source from Org');
+    logTestStart(testSetup, 'Retrieve with SFDX: Retrieve This Source from Org');
     const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -184,7 +185,7 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('Modify the file and retrieve again', async () => {
-    log('Deploy and Retrieve - Modify the file and retrieve again');
+    logTestStart(testSetup, 'Modify the file and retrieve again');
     const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -205,7 +206,7 @@ describe('Deploy and Retrieve', () => {
   // Use context menu only for Windows and Ubuntu
   if (process.platform !== 'darwin') {
     it('Retrieve with context menu from editor view', async () => {
-      log('Retrieve with context menu from editor view');
+      logTestStart(testSetup, 'Retrieve with context menu from editor view');
       const workbench = getWorkbench();
       // Clear the Output view first.
       await clearOutputView(Duration.seconds(2));
@@ -220,7 +221,7 @@ describe('Deploy and Retrieve', () => {
 
   if (process.platform !== 'darwin') {
     it('Retrieve with context menu from explorer view', async () => {
-      log('Retrieve with context menu from explorer view');
+      logTestStart(testSetup, 'Retrieve with context menu from explorer view');
       // Clear the Output view first.
       await clearOutputView(Duration.seconds(2));
       await executeQuickPick('File: Focus on Files Explorer');
@@ -251,7 +252,7 @@ describe('Deploy and Retrieve', () => {
   }
 
   it('Prefer Deploy on Save when `Push or deploy on save` is enabled', async () => {
-    log("Deploy and Retrieve - Prefer Deploy on Save when 'Push or deploy on save' is enabled");
+    logTestStart(testSetup, "Prefer Deploy on Save when 'Push or deploy on save' is enabled");
     const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -277,7 +278,7 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('Disable Source Tracking Setting', async () => {
-    log('Deploy and Retrieve - Disable Source Tracking Setting');
+    logTestStart(testSetup, 'Disable Source Tracking Setting');
     await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
 
     expect(await disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
@@ -288,7 +289,7 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('Deploy with SFDX: Deploy This Source to Org - ST disabled', async () => {
-    log('Deploy and Retrieve - Deploy with SFDX: Deploy This Source to Org - ST disabled');
+    logTestStart(testSetup, 'Deploy with SFDX: Deploy This Source to Org - ST disabled');
     const workbench = getWorkbench();
     // Clear all notifications so clear output button is visible
     await executeQuickPick('Notifications: Clear All Notifications');
@@ -300,7 +301,7 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('Deploy again (with no changes) - ST disabled', async () => {
-    log('Deploy and Retrieve - Deploy again (with no changes) - ST enabled');
+    logTestStart(testSetup, 'Deploy again (with no changes) - ST enabled');
     const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -310,7 +311,7 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('Modify the file and deploy again - ST disabled', async () => {
-    log('Deploy and Retrieve - Modify the file and deploy again - ST disabled');
+    logTestStart(testSetup, 'Modify the file and deploy again - ST disabled');
     const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
@@ -325,7 +326,7 @@ describe('Deploy and Retrieve', () => {
   });
 
   it('SFDX: Delete This from Project and Org - Command Palette', async () => {
-    log('Deploy and Retrieve - SFDX: Delete This from Project and Org - Command Palette');
+    logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Command Palette');
     const workbench = getWorkbench();
 
     // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
@@ -380,13 +381,12 @@ describe('Deploy and Retrieve', () => {
       'ended with exit code 0'
     ];
 
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
   if (process.platform !== 'darwin') {
     it('Create and push 2 apex classes', async () => {
-      log('Deploy and Retrieve - Create and push 2 apex classes');
+      logTestStart(testSetup, 'Create and push 2 apex classes');
 
       // Create the Apex Classes.
       await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
@@ -406,7 +406,7 @@ describe('Deploy and Retrieve', () => {
     });
 
     it('SFDX: Delete This from Project and Org - Right click from editor view', async () => {
-      log('Deploy and Retrieve - SFDX: Delete This from Project and Org - Right click from editor view');
+      logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Right click from editor view');
       const workbench = getWorkbench();
       // Clear the Output view first.
       await clearOutputView();
@@ -466,12 +466,11 @@ describe('Deploy and Retrieve', () => {
         'ended with exit code 0'
       ];
 
-      expect(outputPanelText).to.not.be.undefined;
-      await verifyOutputPanelText(outputPanelText!, expectedTexts);
+      await verifyOutputPanelText(outputPanelText, expectedTexts);
     });
 
     it('SFDX: Delete This from Project and Org - Right click from explorer view', async () => {
-      log('SFDX: Delete This from Project and Org - Right click from explorer view');
+      logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Right click from explorer view');
       // Clear the Output view first.
       await clearOutputView();
 
@@ -549,8 +548,7 @@ describe('Deploy and Retrieve', () => {
         'ended with exit code 0'
       ];
 
-      expect(outputPanelText).to.not.be.undefined;
-      await verifyOutputPanelText(outputPanelText!, expectedTexts);
+      await verifyOutputPanelText(outputPanelText, expectedTexts);
     });
   }
 

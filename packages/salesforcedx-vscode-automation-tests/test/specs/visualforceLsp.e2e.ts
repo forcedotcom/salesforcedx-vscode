@@ -68,8 +68,7 @@ describe('Visualforce LSP', () => {
       'Starting SFDX: Create Visualforce Page',
       10
     );
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
 
     // Get open text editor and verify file content
     const workbench = await getWorkbench();

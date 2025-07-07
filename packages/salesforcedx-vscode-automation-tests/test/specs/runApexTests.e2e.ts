@@ -128,8 +128,7 @@ describe('Run Apex Tests', () => {
       'ended SFDX: Run Apex Tests'
     ];
 
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
   it('Run Single Test via Apex Class', async () => {
@@ -161,8 +160,7 @@ describe('Run Apex Tests', () => {
       'ended SFDX: Run Apex Tests'
     ];
 
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
   it('Run All Tests via Command Palette', async () => {
@@ -196,8 +194,7 @@ describe('Run Apex Tests', () => {
       'ended SFDX: Run Apex Tests'
     ];
 
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
   it('Run Single Class via Command Palette', async () => {
@@ -226,8 +223,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ended SFDX: Run Apex Tests'
     ];
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
   it('Run All tests via Test Sidebar', async () => {
@@ -269,8 +265,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass3Test.validateSayHello  Pass',
       'ended SFDX: Run Apex Tests'
     ];
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
 
     // Verify the tests that are passing are labeled with a green dot on the Test sidebar
     for (const item of apexTestsItems) {
@@ -284,7 +279,7 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const outputPanelText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'ExampleApexClass2Test', 'Run Tests');
+    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'ExampleApexClass2Test', 'Run Tests');
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -294,8 +289,8 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass2Test.validateSayHello  Pass',
       'ended SFDX: Run Apex Tests'
     ];
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    expect(terminalText).to.not.be.undefined;
+    await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
   it('Run Single Test via the Test Sidebar', async () => {
@@ -304,7 +299,7 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const outputPanelText = await runTestCaseFromSideBar(
+    const terminalText = await runTestCaseFromSideBar(
       workbench,
       'Apex Tests',
       'validateSayHello',
@@ -319,8 +314,8 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ended SFDX: Run Apex Tests'
     ];
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    expect(terminalText).to.not.be.undefined;
+    await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
   it('Run a test that fails and fix it', async () => {
@@ -356,8 +351,7 @@ describe('Run Apex Tests', () => {
     let outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
     let expectedTexts = ['Assertion Failed: incorrect ticker symbol', 'Expected: CRM, Actual: SFDC'];
 
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
 
     // Fix test
     const textEditor = await getTextEditor(workbench, 'AccountService.cls');
@@ -400,8 +394,7 @@ describe('Run Apex Tests', () => {
       'ended SFDX: Run Apex Tests'
     ];
 
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
   it('Create Apex Test Suite', async () => {
@@ -491,8 +484,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass2Test.validateSayHello  Pass',
       'ended SFDX: Run Apex Tests'
     ];
-    expect(outputPanelText).to.not.be.undefined;
-    await verifyOutputPanelText(outputPanelText!, expectedTexts);
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
   after('Tear down and clean up the testing environment', async () => {
