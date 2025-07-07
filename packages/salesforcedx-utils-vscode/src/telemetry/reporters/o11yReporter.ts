@@ -28,7 +28,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
     o11yUploadEndpoint: string,
     private readonly userId: string
   ) {
-    super(() => this.toDispose.forEach(d => d && d.dispose()));
+    super(() => this.toDispose.forEach(d => d?.dispose()));
     this.o11yService = O11yService.getInstance(extensionId);
     this.userOptIn = true; // Assume opt-in for now
     this.o11yUploadEndpoint = o11yUploadEndpoint;

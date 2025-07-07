@@ -28,13 +28,12 @@
 import { z } from 'zod';
 import { loadO11yModules } from '../telemetry/utils/o11yLoader';
 
-const O11Y_UPLOAD_THRESHOLD_BYTES = 50_000;
 export class O11yService {
-  O11Y_UPLOAD_THRESHOLD_BYTES = 50_000;
-  o11yUploadEndpoint: string | undefined;
-  instrumentation: Instrumentation;
-  a4dO11ySchema: unknown;
-  readonly environment: Record<string, string> = {};
+  public static readonly O11Y_UPLOAD_THRESHOLD_BYTES = 50000;
+  public o11yUploadEndpoint?: string;
+  public instrumentation?: any;
+  public a4dO11ySchema?: any;
+  public environment: Record<string, string> = {};
   private static instances: Map<string, O11yService> = new Map();
 
   // Shared instrumentation and app across all extensions
@@ -56,7 +55,7 @@ export class O11yService {
     return O11yService.instances.get(extensionId)!;
   }
 
-  async initialize(extensionName: string, o11yUploadEndpoint: string) {
+  public async initialize(extensionName: string, o11yUploadEndpoint: string) {
     this.extensionName = extensionName;
     this.o11yUploadEndpoint = o11yUploadEndpoint;
 
@@ -169,7 +168,7 @@ export class O11yService {
     const simpleCollector = O11yService.sharedInstrApp?.simpleCollector;
     if (
       simpleCollector?.hasData &&
-      (ignoreThreshold || simpleCollector.estimatedByteSize >= O11Y_UPLOAD_THRESHOLD_BYTES)
+      (ignoreThreshold || simpleCollector.estimatedByteSize >= O11yService.O11Y_UPLOAD_THRESHOLD_BYTES)
     ) {
       const rawContents = simpleCollector.getRawContentsOfCoreEnvelope();
       const binary = O11yService.sharedProtoEncoderFunc(rawContents);

@@ -34,7 +34,7 @@ export const determineReporters = (config: TelemetryReporterConfig) => {
   if (isDevMode) {
     addDevModeReporter(reporters, extName);
   } else {
-    addO11yReporter(reporters);
+    addO11yReporter(reporters, extName);
     addAppInsightsReporter(reporters, reporterName, version, aiKey, userId);
     addLogstreamReporter(reporters, extName);
   }
