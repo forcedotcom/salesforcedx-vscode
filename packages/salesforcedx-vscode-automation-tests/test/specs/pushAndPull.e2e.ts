@@ -9,6 +9,7 @@ import {
   createCommand,
   Duration,
   log,
+  pause,
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
@@ -21,6 +22,7 @@ import {
   executeQuickPick,
   getTextEditor,
   getWorkbench,
+  overrideTextInFile,
   reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
@@ -97,13 +99,24 @@ describe('Push and Pull', () => {
 
   it('Modify the file and push the changes', async () => {
     logTestStart(testSetup1, 'Push And Pull - Modify the file and push the changes');
+    const newText = `public with sharing class ExampleApexClass1 {
+      public ExampleApexClass1() {
+          // sample comment
+      }
+    }`;
+
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
     // Modify the file by adding a comment.
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
-    await textEditor.setTextAtLine(3, '        // sample comment');
+
+    // Don't save the file just yet.
+    await overrideTextInFile(textEditor, newText, false);
+
+    // Wait for editor to stabilize before continuing
+    await pause(Duration.seconds(1));
 
     // Push the file.
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
@@ -116,7 +129,14 @@ describe('Push and Pull', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Now save the file.
+    log('Saving the file');
+
+    // Ensure editor is focused and ready for save operation
+    await textEditor.click();
+    await pause(Duration.seconds(1));
+
     await textEditor.save();
+    log('File saved');
 
     // An now push the changes.
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
@@ -183,8 +203,16 @@ describe('Push and Pull', () => {
     // Modify the file by adding a comment.
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
-    await textEditor.setTextAtLine(3, '        // sample comment for the pull test');
+    const newText = `public with sharing class ExampleApexClass1 {
+      public ExampleApexClass1() {
+          // sample comment for the pull test
+      }
+    }`;
     // Don't save the file just yet.
+    await overrideTextInFile(textEditor, newText, false);
+
+    // Wait for editor to stabilize before continuing
+    await pause(Duration.seconds(1));
 
     // Pull the file.
     await executeQuickPick('SFDX: Pull Source from Default Org', Duration.seconds(5));
