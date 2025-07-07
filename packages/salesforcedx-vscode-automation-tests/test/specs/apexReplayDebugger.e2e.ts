@@ -102,7 +102,6 @@ describe('Apex Replay Debugger', () => {
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger');
     expect(outputPanelText).to.contain('ended with exit code 0');
   });
@@ -132,7 +131,6 @@ describe('Apex Replay Debugger', () => {
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting Execute Anonymous Apex', 10);
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain('Compiled successfully.');
     expect(outputPanelText).to.contain('Executed successfully.');
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
@@ -165,16 +163,18 @@ describe('Apex Replay Debugger', () => {
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
     expect(outputPanelText).to.contain('ended SFDX: Get Apex Debug Logs');
 
     // Verify content on log file
-    const editorView = workbench.getEditorView();
-    const activeTab = await editorView.getActiveTab();
-    const title = await activeTab?.getTitle();
-    const textEditor = await editorView.openEditor(title!);
+    const textEditor = await retryOperation(async () => {
+      const editorView = workbench.getEditorView();
+      const activeTab = await editorView.getActiveTab();
+      const title = await activeTab?.getTitle();
+      return await editorView.openEditor(title!);
+    });
+
     if (!(textEditor instanceof TextEditor)) {
       throw new Error(`Expected TextEditor but got different editor type: ${typeof textEditor}`);
     }
@@ -252,7 +252,6 @@ describe('Apex Replay Debugger', () => {
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting Execute Anonymous Apex', 10);
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain('Compiled successfully.');
     expect(outputPanelText).to.contain('Executed successfully.');
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
@@ -279,7 +278,6 @@ describe('Apex Replay Debugger', () => {
       'Starting SFDX: Turn Off Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain('ended with exit code 0');
   });
 
