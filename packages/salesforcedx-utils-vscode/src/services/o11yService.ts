@@ -79,8 +79,6 @@ export class O11yService {
   }
 
   private async initializeSharedResources() {
-    console.log('Initializing shared O11y resources');
-
     // Ensure modules are loaded before using them
     O11yService.sharedO11yModules = await loadO11yModules();
 
@@ -89,12 +87,10 @@ export class O11yService {
 
     // Create a single shared instrumentation
     const sharedInstrumentationName = 'salesforce-vscode-extensions-instrumentation';
-    console.log('Creating shared instrumentation with name:', sharedInstrumentationName);
     O11yService.sharedInstrumentation = getInstrumentation(sharedInstrumentationName);
 
     // Create a single shared app
     const sharedAppName = 'salesforce-vscode-extensions';
-    console.log('Registering shared app with name:', sharedAppName);
 
     // STEP 1: Register the shared app
     O11yService.sharedInstrApp = registerInstrumentedApp(sharedAppName, {
