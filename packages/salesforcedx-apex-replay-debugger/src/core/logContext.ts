@@ -237,10 +237,10 @@ export class LogContext {
     return this.apexHeapDumps.length > 0;
   }
 
-  public async fetchOverlayResultsForApexHeapDumps(projectPath: string): Promise<boolean> {
+  public async fetchOverlayResultsForApexHeapDumps(): Promise<boolean> {
     let success = true;
     try {
-      const orgInfo = await new OrgDisplay().getOrgInfo(projectPath);
+      const orgInfo = await new OrgDisplay().getOrgInfo();
       const requestService = new RequestService();
       requestService.instanceUrl = orgInfo.instanceUrl;
       requestService.accessToken = orgInfo.accessToken;
