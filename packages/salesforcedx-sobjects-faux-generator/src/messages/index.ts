@@ -28,5 +28,3 @@ export const nls = {
   localize: <K extends MessageKey>(key: K, ...args: MessageArgs<K, typeof enMessages>): string =>
     localizationService.localize(key, ...args)
 };
-
-export { MessageKey };

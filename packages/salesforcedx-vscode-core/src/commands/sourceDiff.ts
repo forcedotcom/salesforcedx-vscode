@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { URI } from 'vscode-uri';
 import { MetadataCacheExecutor, MetadataCacheResult, PathType } from '../conflict';
 import * as differ from '../conflict/directoryDiffer';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 const workspaceChecker = new SfWorkspaceChecker();
@@ -78,7 +79,7 @@ const handleCacheResults = async (username: string, cache?: MetadataCacheResult)
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
       await differ.diffOneFile(cache.selectedPath, cache.cache.components[0], username);
     } else if (cache.selectedType === PathType.Folder) {
-      differ.diffFolder(cache, username);
+      await differ.diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('source_diff_components_not_in_org');

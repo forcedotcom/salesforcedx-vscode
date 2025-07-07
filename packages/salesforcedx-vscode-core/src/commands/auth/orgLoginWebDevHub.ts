@@ -10,13 +10,14 @@ import {
   CancelResponse,
   ContinueResponse,
   isSFContainerMode,
-  ParametersGatherer
+  ParametersGatherer,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demoMode';
-import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from '../util';
+import { SfCommandlet, SfCommandletExecutor } from '../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 import { AuthDemoModeExecutor, OrgLoginWebContainerExecutor } from './orgLoginWeb';
 

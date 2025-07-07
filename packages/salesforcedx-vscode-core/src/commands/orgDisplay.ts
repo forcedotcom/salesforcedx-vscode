@@ -12,13 +12,14 @@ import {
   ContinueResponse,
   Table,
   Column,
-  Row
+  Row,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { OrgAuthInfo } from '../util';
-import { FlagParameter, SelectUsername, SfCommandlet, SfWorkspaceChecker } from './util';
+import { FlagParameter, SelectUsername, SfCommandlet } from './util';
 
 class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {
   private flag: string | undefined;

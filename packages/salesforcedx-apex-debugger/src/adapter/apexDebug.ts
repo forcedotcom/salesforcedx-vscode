@@ -232,7 +232,13 @@ export class ScopeContainer implements VariableContainer {
     this.frameInfo = frameInfo;
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  // extra variables required to satisfy the interface
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.frameInfo.locals && !this.frameInfo.statics && !this.frameInfo.globals) {
       await session.fetchFrameVariables(this.frameInfo);
     }
@@ -280,7 +286,12 @@ export class ObjectReferenceContainer implements VariableContainer {
     this.size = reference.size;
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.reference.fields) {
       // this object is empty
       return [];
@@ -370,7 +381,12 @@ export class MapTupleContainer implements VariableContainer {
     return ApexVariable.valueAsString(this.tuple.value);
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.tuple.key && !this.tuple.value) {
       // this object is empty
       return [];
@@ -454,7 +470,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
-    args: DebugProtocol.InitializeRequestArguments
+    _args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
     this.initializedResponse.body = {
@@ -476,7 +492,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(this.initializedResponse);
   }
 
-  protected attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): void {
+  protected attachRequest(response: DebugProtocol.AttachResponse, _args: DebugProtocol.AttachRequestArguments): void {
     response.success = false;
     this.sendResponse(response);
   }
@@ -701,8 +717,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected async disconnectRequest(
     response: DebugProtocol.DisconnectResponse,
-
-    args: DebugProtocol.DisconnectArguments
+    _args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     try {
       response.success = false;

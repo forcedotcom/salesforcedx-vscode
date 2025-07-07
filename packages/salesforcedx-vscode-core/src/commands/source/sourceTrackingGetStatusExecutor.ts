@@ -27,7 +27,7 @@ export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<s
     channelService.showChannelOutput();
   }
 
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(_response: ContinueResponse<string>): Promise<boolean> {
     await this.execute();
     return true;
   }

@@ -73,7 +73,7 @@ class ConnectionChangedListener {
   protected static instance: ConnectionChangedListener;
 
   protected constructor() {
-    onOrgChange(async (orgInfo: any) => {
+    onOrgChange(async (_orgInfo: any) => {
       await this.connectionChanged();
     });
 
