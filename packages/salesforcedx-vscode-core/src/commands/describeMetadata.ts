@@ -12,6 +12,7 @@ import { WorkspaceContext } from '../context';
 
 export type DescribeMetadataResult = Awaited<ReturnType<Connection['metadata']['describe']>>;
 
+/** make an API call for the describe, and save it locally for the next time we need it */
 export const describeMetadata = async (outputFolder: string): Promise<DescribeMetadataResult> => {
   await createDirectory(outputFolder);
   const filePath = path.join(outputFolder, 'metadataTypes.json');

@@ -26,6 +26,7 @@ export type MetadataObject = {
   xmlName: string;
   label: string;
 };
+
 export class TypeUtils {
   public static readonly FOLDER_TYPES = new Set(['CustomObject', 'Dashboard', 'Document', 'EmailTemplate', 'Report']);
   public static readonly UNSUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
@@ -43,12 +44,12 @@ export class TypeUtils {
     const typesFolder = this.getTypesFolder();
     const typesPath = path.join(typesFolder, 'metadataTypes.json');
 
-    if (forceRefresh || !(await fileOrFolderExists(typesPath))) {
-      const result = await describeMetadata(typesFolder);
-      return buildTypesList({ metadataJSONContents: result });
-    } else {
-      return buildTypesList({ metadataTypesPath: typesPath });
-    }
+    const describeResult =
+      forceRefresh || !(await fileOrFolderExists(typesPath))
+        ? await describeMetadata(typesFolder)
+        : // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          (JSON.parse(await readFile(typesPath)) as DescribeMetadataResult);
+    return buildTypesList(describeResult);
   }
 
   public getFolderForType(metadataType: string): string {
@@ -63,19 +64,16 @@ export class TypeUtils {
   }
 }
 
-const buildTypesList = async (
-  input: { metadataTypesPath: string } | { metadataJSONContents: DescribeMetadataResult }
-): Promise<MetadataObject[]> => {
+const buildTypesList = (describeResult: DescribeMetadataResult): MetadataObject[] => {
   try {
-    const jsonObject = 'metadataJSONContents' in input ? input.metadataJSONContents : JSON.parse(await readFile(input.metadataTypesPath));
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const metadataTypeObjects = (jsonObject.metadataObjects as MetadataObject[])
+    const metadataTypeObjects = describeResult.metadataObjects
       .filter(type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName))
       .map(mdTypeObject => ({
         ...mdTypeObject,
         label: nls.localize(coerceMessageKey(mdTypeObject.xmlName)).startsWith(MISSING_LABEL_MSG)
           ? mdTypeObject.xmlName
-          : nls.localize(coerceMessageKey(mdTypeObject.xmlName))
+          : nls.localize(coerceMessageKey(mdTypeObject.xmlName)),
+        suffix: mdTypeObject.suffix ?? undefined
       }))
       .sort((a, b) => (a.label > b.label ? 1 : -1));
     telemetryService.sendEventData('Metadata Types Quantity', undefined, {
