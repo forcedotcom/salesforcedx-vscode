@@ -104,9 +104,9 @@ export default [
         ]
       ],
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
-          args: 'none',
+          argsIgnorePattern: '^_',
           ignoreRestSiblings: true
         }
       ],

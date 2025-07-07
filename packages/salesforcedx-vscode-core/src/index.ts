@@ -9,11 +9,13 @@ import {
   ChannelService,
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
+  SfWorkspaceChecker,
   TelemetryService,
   TraceFlags,
   WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
-  getRootWorkspacePath
+  getRootWorkspacePath,
+  isSalesforceProjectOpened
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
 import * as os from 'node:os';
@@ -70,6 +72,7 @@ import {
   sourceFolderDiff,
   taskStop,
   turnOffLogging,
+  turnOnLogging,
   viewAllChanges,
   viewLocalChanges,
   viewRemoteChanges,
@@ -78,15 +81,7 @@ import {
 } from './commands';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
-import { turnOnLogging } from './commands/startApexDebugLogging';
-import {
-  FlagParameter,
-  SelectFileName,
-  SelectOutputDir,
-  SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
-} from './commands/util';
+import { FlagParameter, SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
@@ -98,7 +93,6 @@ import { isDemoMode } from './modes/demoMode';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
-import { isSalesforceProjectOpened } from './predicates';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './services';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
@@ -312,7 +306,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
 };
 
-const registerInternalDevCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
+const registerInternalDevCommands = (): vscode.Disposable => {
   const internalLightningGenerateAppCmd = vscode.commands.registerCommand(
     'sf.internal.lightning.generate.app',
     internalLightningGenerateApp
@@ -404,7 +398,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   if (internalDev) {
     // Internal Dev commands
-    const internalCommands = registerInternalDevCommands(extensionContext);
+    const internalCommands = registerInternalDevCommands();
     extensionContext.subscriptions.push(internalCommands);
 
     // Api
@@ -428,7 +422,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   // Context
-  const salesforceProjectOpened = (await isSalesforceProjectOpened.apply(vscode.workspace)).result;
+  const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
 
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
@@ -504,9 +498,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     const connection = await WorkspaceContextUtil.getInstance().getConnection();
 
     const traceFlags = new TraceFlags(connection);
-    await traceFlags.handleTraceFlagCleanup(
-      extensionContext
-    );
+    await traceFlags.handleTraceFlagCleanup(extensionContext);
   } catch (error) {
     console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);
   }
