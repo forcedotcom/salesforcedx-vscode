@@ -14,7 +14,7 @@ import {
   fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import { describeMetadata } from '../commands';
+import { describeMetadata } from '../commands/describeMetadata';
 import { coerceMessageKey, nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
