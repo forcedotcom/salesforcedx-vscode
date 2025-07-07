@@ -1099,7 +1099,7 @@ export class ApexDebug extends LoggingDebugSession {
           );
         } else if (reference.type === 'map') {
           const mapContainer = new MapReferenceContainer(reference, requestId);
-          // explode all map entried so that we can drill down a map logically
+          // explode all map entries so that we can drill down a map logically
           if (reference.tuple) {
             reference.tuple.forEach(tuple => {
               const tupleContainer = new MapTupleContainer(tuple, requestId);
