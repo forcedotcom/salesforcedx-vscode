@@ -588,7 +588,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo(args.salesforceProject);
+        const orgInfo = await new OrgDisplay().getOrgInfo();
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }
@@ -1114,7 +1114,7 @@ export class ApexDebug extends LoggingDebugSession {
           );
         } else if (reference.type === 'map') {
           const mapContainer = new MapReferenceContainer(reference, requestId);
-          // explode all map entried so that we can drill down a map logically
+          // explode all map entries so that we can drill down a map logically
           if (reference.tuple) {
             reference.tuple.forEach(tuple => {
               const tupleContainer = new MapTupleContainer(tuple, requestId);

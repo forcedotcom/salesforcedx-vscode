@@ -82,7 +82,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     if (vscode.workspace.workspaceFolders?.[0]) {
       this.salesforceProject = URI.file(vscode.workspace.workspaceFolders[0].uri.fsPath).fsPath;
       try {
-        this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
+        this.orgInfo = await new OrgDisplay().getOrgInfo();
       } catch (error) {
         const result = JSON.parse(error) as OrgInfoError;
         const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
