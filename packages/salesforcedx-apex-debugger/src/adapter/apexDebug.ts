@@ -6,7 +6,6 @@
  */
 
 import {
-  ConfigGet,
   OrgDisplay,
   RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
@@ -14,6 +13,7 @@ import {
   extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
+import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import {
   DebugSession,
   Event,
@@ -567,13 +567,9 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
-        const config = await new ConfigGet().getConfig(
-          args.salesforceProject,
-          SF_CONFIG_ISV_DEBUGGER_SID,
-          SF_CONFIG_ISV_DEBUGGER_URL
-        );
-        const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
-        const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
+        const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+        const isvDebuggerSid = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_SID));
+        const isvDebuggerUrl = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_URL));
         if (typeof isvDebuggerSid === 'undefined' || typeof isvDebuggerUrl === 'undefined') {
           response.message = nls.localize('invalid_isv_project_config');
           // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set

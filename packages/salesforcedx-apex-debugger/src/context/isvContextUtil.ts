@@ -8,23 +8,19 @@
 import {
   ENV_SF_ORG_INSTANCE_URL,
   ENV_SF_TARGET_ORG,
-  ConfigGet,
   GlobalCliEnvironment,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
+import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 
 export class IsvContextUtil {
   public async setIsvDebuggerContext(projectWorkspacePath: string) {
     let isvDebugProject = false;
     if (projectWorkspacePath) {
-      const config = await new ConfigGet().getConfig(
-        projectWorkspacePath,
-        SF_CONFIG_ISV_DEBUGGER_SID,
-        SF_CONFIG_ISV_DEBUGGER_URL
-      );
-      const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
-      const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
+      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+      const isvDebuggerSid = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_SID));
+      const isvDebuggerUrl = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_URL));
 
       if (typeof isvDebuggerSid !== 'undefined' && typeof isvDebuggerUrl !== 'undefined') {
         // set auth context

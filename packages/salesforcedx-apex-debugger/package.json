@@ -14,6 +14,7 @@
   ],
   "dependencies": {
     "@salesforce/salesforcedx-utils": "64.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.4.0",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
