@@ -28,7 +28,6 @@ export type MetadataObject = {
 };
 export class TypeUtils {
   public static readonly FOLDER_TYPES = new Set(['CustomObject', 'Dashboard', 'Document', 'EmailTemplate', 'Report']);
-
   public static readonly UNSUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
 
   public getTypesFolder(): string {
@@ -37,22 +36,19 @@ export class TypeUtils {
       telemetryService.sendException('metadata_type_workspace', err);
       throw new Error(err);
     }
-    const metadataTypesPath = projectPaths.metadataFolder();
-    return metadataTypesPath;
+    return projectPaths.metadataFolder();
   }
 
   public async loadTypes(forceRefresh?: boolean): Promise<MetadataObject[]> {
     const typesFolder = this.getTypesFolder();
     const typesPath = path.join(typesFolder, 'metadataTypes.json');
 
-    let typesList: MetadataObject[];
     if (forceRefresh || !(await fileOrFolderExists(typesPath))) {
       const result = await describeMetadata(typesFolder);
-      typesList = await buildTypesList({ metadataJSONContents: result });
+      return buildTypesList({ metadataJSONContents: result });
     } else {
-      typesList = await buildTypesList({ metadataTypesPath: typesPath });
+      return buildTypesList({ metadataTypesPath: typesPath });
     }
-    return typesList;
   }
 
   public getFolderForType(metadataType: string): string {
