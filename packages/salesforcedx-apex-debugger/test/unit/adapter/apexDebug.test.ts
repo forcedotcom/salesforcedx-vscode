@@ -6,8 +6,8 @@
  */
 // This is only done in tests because we are mocking things
 
+import { Config } from '@salesforce/core-bundle';
 import {
-  ConfigGet,
   DEFAULT_CONNECTION_TIMEOUT_MS,
   OrgDisplay,
   OrgInfo,
@@ -158,7 +158,9 @@ describe('Interactive debugger adapter - unit', () => {
       sessionRequestFilterSpy = sinon.spy(SessionService.prototype, 'withRequestFilter');
       resetIdleTimersSpy = sinon.spy(ApexDebugForTest.prototype, 'resetIdleTimer');
       orgInfoSpy = sinon.stub(OrgDisplay.prototype, 'getOrgInfo').returns({} as OrgInfo);
-      configGetSpy = sinon.stub(ConfigGet.prototype, 'getConfig').returns({} as Map<string, string>);
+      configGetSpy = sinon.stub(Config, 'create').returns(Promise.resolve({
+        get: () => undefined
+      } as any));
       args = {
         salesforceProject: 'project',
         userIdFilter: ['005FAKE1', '005FAKE2', '005FAKE1'],
@@ -281,12 +283,14 @@ describe('Interactive debugger adapter - unit', () => {
       const config = new Map<string, string>();
       config.set('org-isv-debugger-sid', '123');
       config.set('org-isv-debugger-url', 'instanceurl');
-      configGetSpy.returns(config);
+      configGetSpy.returns(Promise.resolve({
+        get: (key: string) => config.get(key)
+      } as any));
 
       await adapter.launchRequest(initializedResponse, args);
 
-      expect(adapter.getRequestService().accessToken).to.equal('123');
-      expect(adapter.getRequestService().instanceUrl).to.equal('instanceurl');
+      expect(adapter.getRequestService().accessToken).to.equal('"123"');
+      expect(adapter.getRequestService().instanceUrl).to.equal('"instanceurl"');
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse(0).success).to.equal(true);
@@ -317,7 +321,9 @@ describe('Interactive debugger adapter - unit', () => {
       const config = new Map<string, string>();
       config.set('nonexistent-sid', '123');
       config.set('nonexistent-url', 'instanceurl');
-      configGetSpy.returns(config);
+      configGetSpy.returns(Promise.resolve({
+        get: (key: string) => config.get(key)
+      } as any));
 
       await adapter.launchRequest(initializedResponse, args);
 
