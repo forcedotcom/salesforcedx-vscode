@@ -84,9 +84,6 @@ describe('Create OpenAPI v3 Specifications', () => {
     // Set a telemetry tag to distinguish it as an E2E test run
     await setSettingValue('salesforcedx-vscode-core.telemetry-tag', 'e2e-test', true);
 
-    // Use VSCode's modal dialog style instead of Mac's native dialog style
-    await setSettingValue('window.dialogStyle', 'custom', false);
-
     // Disable preview mode for opening editors
     await setSettingValue('workbench.editor.enablePreview', false, false);
     await executeQuickPick('View: Close Editor');
