@@ -160,6 +160,7 @@ export class LocalizationService {
   }
 
   public localize<K extends string>(key: K, ...args: any[]): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.nls.localize(key, ...args);
   }
 
