@@ -264,7 +264,6 @@ describe('Push and Pull', () => {
 
     // Check the output.
     const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', 'Source Status', 10);
-    expect(outputPanelText, 'outputPanelText is not undefined').to.not.be.undefined;
     expect(outputPanelText).to.contain('Remote Add  ExampleApexClass1  ApexClass');
   });
 
@@ -298,7 +297,6 @@ const verifyPushAndPullOutputText = async (
   );
   // Check the output.
   const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', `=== ${operation}ed Source`, 10);
-  expect(outputPanelText).to.not.be.undefined;
 
   if (type) {
     if (operation === 'Push') {

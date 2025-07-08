@@ -82,7 +82,6 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
     // Verify test results are listed on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain('Assertion Failed: incorrect ticker symbol');
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
@@ -110,7 +109,6 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       'Starting SFDX: Update Checkpoints in Org',
       10
     );
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain(
       'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation'
     );
@@ -135,7 +133,6 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger');
     expect(outputPanelText).to.contain('ended with exit code 0');
   });
@@ -177,7 +174,6 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
-    expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
     expect(outputPanelText).to.contain('ended SFDX: Get Apex Debug Logs');
@@ -239,7 +235,6 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
       // Verify test results are listed on vscode's Output section
       const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
-      expect(outputPanelText).to.not.be.undefined;
       expect(outputPanelText).to.contain('AccountServiceTest.should_create_account');
       expect(outputPanelText).to.contain('Pass');
     }
