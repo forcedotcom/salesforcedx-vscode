@@ -149,7 +149,7 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('should filter out attributes field', () => {
-      const records = [{ Id: '001', Name: 'Test1', attributes: { type: 'Account' } }];
+      const records = [{ Id: '001', Name: 'Test1', attributes: { type: 'Account', url: 'https://example.com' } }];
       const expected = 'Id,Name\n001,Test1';
       expect(convertToCSV(records)).toBe(expected);
     });
@@ -160,42 +160,48 @@ describe('DataQuery Pure Functions', () => {
       expect(convertToCSV(records)).toBe(expected);
     });
 
-    it('should handle null and undefined values', () => {
-      const records = [{ Id: '001', Name: null, Description: undefined }];
-      const expected = 'Id,Name,Description\n001,,';
-      expect(convertToCSV(records)).toBe(expected);
-    });
+    describe('bad data handling', () => {
+      it('should handle null and undefined values', () => {
+        const records = [{ Id: '001', Name: null, Description: undefined }];
+        const expected = 'Id,Name,Description\n001,,';
+        expect(convertToCSV(records)).toBe(expected);
+      });
 
-    it('should handle object values', () => {
-      const records = [{ Id: '001', Owner: { Id: '005', Name: 'John' } }];
-      const expected = 'Id,Owner\n001,"{""Id"":""005"",""Name"":""John""}"';
-      expect(convertToCSV(records)).toBe(expected);
-    });
+      it('should handle object values', () => {
+        const records = [{ Id: '001', Owner: { Id: '005', Name: 'John' } }];
+        const expected = 'Id,Owner\n001,"{""Id"":""005"",""Name"":""John""}"';
+        expect(convertToCSV(records)).toBe(expected);
+      });
 
-    it('should handle malformed records with undefined first record', () => {
-      const records = [undefined, { Id: '001', Name: 'Test' }];
-      expect(convertToCSV(records)).toBe('');
-    });
+      it('should handle malformed records with undefined first record', () => {
+        const records = [undefined, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - bad input
+        expect(convertToCSV(records)).toBe('');
+      });
 
-    it('should handle malformed records with null first record', () => {
-      const records = [null, { Id: '001', Name: 'Test' }];
-      expect(convertToCSV(records)).toBe('');
-    });
+      it('should handle malformed records with null first record', () => {
+        const records = [null, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - bad input
+        expect(convertToCSV(records)).toBe('');
+      });
 
-    it('should handle malformed records with non-object first record', () => {
-      const records = ['not an object', { Id: '001', Name: 'Test' }];
-      expect(convertToCSV(records)).toBe('');
-    });
+      it('should handle malformed records with non-object first record', () => {
+        const records = ['not an object', { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - bad input
+        expect(convertToCSV(records)).toBe('');
+      });
 
-    it('should handle records with empty object as first record', () => {
-      const records = [{}, { Id: '001', Name: 'Test' }];
-      expect(convertToCSV(records)).toBe('');
-    });
+      it('should handle records with empty object as first record', () => {
+        const records = [{}, { Id: '001', Name: 'Test' }];
+        expect(convertToCSV(records)).toBe('');
+      });
 
-    it('should handle records with malformed individual records', () => {
-      const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
-      const expected = 'Id,Name\n001,Test1\n\n002,Test2';
-      expect(convertToCSV(records)).toBe(expected);
+      it('should handle records with malformed individual records', () => {
+        const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
+        const expected = 'Id,Name\n001,Test1\n002,Test2';
+        // @ts-expect-error - bad input
+        expect(convertToCSV(records)).toBe(expected);
+      });
     });
   });
 
@@ -221,7 +227,7 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('should filter out attributes field', () => {
-      const records = [{ Id: '001', Name: 'Test1', attributes: { type: 'Account' } }];
+      const records = [{ Id: '001', Name: 'Test1', attributes: { type: 'Account', url: 'https://example.com' } }];
       const output = generateTableOutput(records, 'Test Table');
 
       expect(output).toContain('Id');
@@ -244,34 +250,40 @@ describe('DataQuery Pure Functions', () => {
       expect(output).toContain('005'); // Should show the Id from the object
     });
 
-    it('should handle malformed records with undefined first record', () => {
-      const records = [undefined, { Id: '001', Name: 'Test' }];
-      expect(generateTableOutput(records, 'Test Table')).toBe('');
-    });
+    describe('bad data handling', () => {
+      it('should handle malformed records with undefined first record', () => {
+        const records = [undefined, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - bad input
+        expect(generateTableOutput(records, 'Test Table')).toBe('');
+      });
 
-    it('should handle malformed records with null first record', () => {
-      const records = [null, { Id: '001', Name: 'Test' }];
-      expect(generateTableOutput(records, 'Test Table')).toBe('');
-    });
+      it('should handle malformed records with null first record', () => {
+        const records = [null, { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - bad input
+        expect(generateTableOutput(records, 'Test Table')).toBe('');
+      });
 
-    it('should handle malformed records with non-object first record', () => {
-      const records = ['not an object', { Id: '001', Name: 'Test' }];
-      expect(generateTableOutput(records, 'Test Table')).toBe('');
-    });
+      it('should handle malformed records with non-object first record', () => {
+        const records = ['not an object', { Id: '001', Name: 'Test' }];
+        // @ts-expect-error - bad input
+        expect(generateTableOutput(records, 'Test Table')).toBe('');
+      });
 
-    it('should handle records with empty object as first record', () => {
-      const records = [{}, { Id: '001', Name: 'Test' }];
-      expect(generateTableOutput(records, 'Test Table')).toBe('');
-    });
+      it('should handle records with empty object as first record', () => {
+        const records = [{}, { Id: '001', Name: 'Test' }];
+        expect(generateTableOutput(records, 'Test Table')).toBe('');
+      });
 
-    it('should handle records with malformed individual records', () => {
-      const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
-      const output = generateTableOutput(records, 'Test Table');
-      expect(output).toContain('Test Table');
-      expect(output).toContain('Id');
-      expect(output).toContain('Name');
-      expect(output).toContain('001');
-      expect(output).toContain('002');
+      it('should handle records with malformed individual records', () => {
+        const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
+        // @ts-expect-error - bad input
+        const output = generateTableOutput(records, 'Test Table');
+        expect(output).toContain('Test Table');
+        expect(output).toContain('Id');
+        expect(output).toContain('Name');
+        expect(output).toContain('001');
+        expect(output).toContain('002');
+      });
     });
   });
 
@@ -296,7 +308,8 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('should handle null records', () => {
-      const result = convertQueryResultToCSV({ records: null as any, totalSize: 0, done: true });
+      // @ts-expect-error - null is not a valid type for records
+      const result = convertQueryResultToCSV({ records: null, totalSize: 0, done: true });
       expect(result).toBe('data_query_no_records');
     });
   });
@@ -360,7 +373,8 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('should handle null records', () => {
-      displayTableResults({ records: null as any, totalSize: 0, done: true });
+      // @ts-expect-error - null is not a valid type for records
+      displayTableResults({ records: null, totalSize: 0, done: true });
       expect(channelService.appendLine).toHaveBeenCalledWith('data_query_no_records');
     });
   });
