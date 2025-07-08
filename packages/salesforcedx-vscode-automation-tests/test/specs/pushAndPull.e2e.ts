@@ -112,9 +112,6 @@ describe('Push and Pull', () => {
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
 
-    // Don't save the file just yet.
-    await overrideTextInFile(textEditor, newText, false);
-
     // Wait for editor to stabilize before continuing
     await pause(Duration.seconds(1));
 
@@ -128,15 +125,8 @@ describe('Push and Pull', () => {
     // Clear the Output view again.
     await clearOutputView(Duration.seconds(2));
 
-    // Now save the file.
-    log('Saving the file');
-
-    // Ensure editor is focused and ready for save operation
-    await textEditor.click();
-    await pause(Duration.seconds(1));
-
-    await textEditor.save();
-    log('File saved');
+    // Don't save the file just yet.
+    await overrideTextInFile(textEditor, newText, false);
 
     // An now push the changes.
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
@@ -298,6 +288,7 @@ const verifyPushAndPullOutputText = async (
   // Check the output.
   const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', `=== ${operation}ed Source`, 10);
 
+  log(`outputPanelText: ${outputPanelText}`);
   if (type) {
     if (operation === 'Push') {
       expect(outputPanelText).to.contain(`${type}  ExampleApexClass1  ApexClass`);
