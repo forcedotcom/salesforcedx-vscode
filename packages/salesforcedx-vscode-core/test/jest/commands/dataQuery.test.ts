@@ -5,12 +5,58 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+jest.mock('../../../src/channels', () => ({
+  channelService: { appendLine: jest.fn() }
+}));
+jest.mock('../../../src/messages', () => ({
+  nls: {
+    localize: (key: string, ...args: any[]) => {
+      // Map error keys to themselves for error message tests
+      const errorKeys = [
+        'data_query_error_org_expired',
+        'data_query_error_session_expired',
+        'data_query_error_invalid_login',
+        'data_query_error_insufficient_access',
+        'data_query_error_malformed_query',
+        'data_query_error_invalid_field',
+        'data_query_error_invalid_type',
+        'data_query_error_connection',
+        'data_query_error_tooling_not_found',
+        'data_query_error_message',
+        'data_query_no_records',
+        'data_query_table_title',
+        'data_query_input_text',
+        'data_query_running_query',
+        'data_query_complete',
+        'data_query_warning_limit',
+        'data_query_success_message',
+        'data_query_open_file',
+        'parameter_gatherer_enter_soql_query',
+        'REST_API',
+        'REST_API_description',
+        'tooling_API',
+        'tooling_API_description'
+      ];
+      if (errorKeys.includes(key)) {
+        return key;
+      }
+      return key;
+    }
+  }
+}));
+
+import { channelService } from '../../../src/channels';
+
 import {
   convertToCSV,
   escapeCSVField,
   formatFieldValue,
   formatFieldValueForDisplay,
-  generateTableOutput
+  generateTableOutput,
+  buildQueryOptions,
+  displayTableResults,
+  convertQueryResultToCSV,
+  formatErrorMessage
 } from '../../../src/commands/dataQuery';
 
 describe('DataQuery Pure Functions', () => {
@@ -125,6 +171,32 @@ describe('DataQuery Pure Functions', () => {
       const expected = 'Id,Owner\n001,"{""Id"":""005"",""Name"":""John""}"';
       expect(convertToCSV(records)).toBe(expected);
     });
+
+    it('should handle malformed records with undefined first record', () => {
+      const records = [undefined, { Id: '001', Name: 'Test' }];
+      expect(convertToCSV(records)).toBe('');
+    });
+
+    it('should handle malformed records with null first record', () => {
+      const records = [null, { Id: '001', Name: 'Test' }];
+      expect(convertToCSV(records)).toBe('');
+    });
+
+    it('should handle malformed records with non-object first record', () => {
+      const records = ['not an object', { Id: '001', Name: 'Test' }];
+      expect(convertToCSV(records)).toBe('');
+    });
+
+    it('should handle records with empty object as first record', () => {
+      const records = [{}, { Id: '001', Name: 'Test' }];
+      expect(convertToCSV(records)).toBe('');
+    });
+
+    it('should handle records with malformed individual records', () => {
+      const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
+      const expected = 'Id,Name\n001,Test1\n\n002,Test2';
+      expect(convertToCSV(records)).toBe(expected);
+    });
   });
 
   describe('generateTableOutput', () => {
@@ -170,6 +242,126 @@ describe('DataQuery Pure Functions', () => {
       const output = generateTableOutput(records, 'Test Table');
 
       expect(output).toContain('005'); // Should show the Id from the object
+    });
+
+    it('should handle malformed records with undefined first record', () => {
+      const records = [undefined, { Id: '001', Name: 'Test' }];
+      expect(generateTableOutput(records, 'Test Table')).toBe('');
+    });
+
+    it('should handle malformed records with null first record', () => {
+      const records = [null, { Id: '001', Name: 'Test' }];
+      expect(generateTableOutput(records, 'Test Table')).toBe('');
+    });
+
+    it('should handle malformed records with non-object first record', () => {
+      const records = ['not an object', { Id: '001', Name: 'Test' }];
+      expect(generateTableOutput(records, 'Test Table')).toBe('');
+    });
+
+    it('should handle records with empty object as first record', () => {
+      const records = [{}, { Id: '001', Name: 'Test' }];
+      expect(generateTableOutput(records, 'Test Table')).toBe('');
+    });
+
+    it('should handle records with malformed individual records', () => {
+      const records = [{ Id: '001', Name: 'Test1' }, null, { Id: '002', Name: 'Test2' }];
+      const output = generateTableOutput(records, 'Test Table');
+      expect(output).toContain('Test Table');
+      expect(output).toContain('Id');
+      expect(output).toContain('Name');
+      expect(output).toContain('001');
+      expect(output).toContain('002');
+    });
+  });
+
+  describe('buildQueryOptions', () => {
+    it('should return base options when maxFetch is undefined', () => {
+      expect(buildQueryOptions()).toEqual({ autoFetch: true, scanAll: false });
+    });
+    it('should include maxFetch when provided', () => {
+      expect(buildQueryOptions(100)).toEqual({ autoFetch: true, scanAll: false, maxFetch: 100 });
+    });
+  });
+
+  describe('convertQueryResultToCSV', () => {
+    it('should return no records message if records are empty', () => {
+      const result = convertQueryResultToCSV({ records: [], totalSize: 0, done: true });
+      expect(result).toBe('data_query_no_records');
+    });
+    it('should convert records to CSV if present', () => {
+      const result = convertQueryResultToCSV({ records: [{ Id: '001', Name: 'Test' }], totalSize: 1, done: true });
+      expect(result).toContain('Id,Name');
+      expect(result).toContain('001,Test');
+    });
+
+    it('should handle null records', () => {
+      const result = convertQueryResultToCSV({ records: null as any, totalSize: 0, done: true });
+      expect(result).toBe('data_query_no_records');
+    });
+  });
+
+  describe('formatErrorMessage', () => {
+    const errorCases = [
+      { input: { message: 'HTTP response contains html content' }, expected: 'data_query_error_org_expired' },
+      { input: { message: 'INVALID_SESSION_ID' }, expected: 'data_query_error_session_expired' },
+      { input: { message: 'INVALID_LOGIN' }, expected: 'data_query_error_invalid_login' },
+      { input: { message: 'INSUFFICIENT_ACCESS' }, expected: 'data_query_error_insufficient_access' },
+      { input: { message: 'MALFORMED_QUERY' }, expected: 'data_query_error_malformed_query' },
+      { input: { message: 'INVALID_FIELD' }, expected: 'data_query_error_invalid_field' },
+      { input: { message: 'INVALID_TYPE' }, expected: 'data_query_error_invalid_type' },
+      { input: { message: 'connection error' }, expected: 'data_query_error_connection' },
+      { input: { message: 'tooling not found' }, expected: 'data_query_error_tooling_not_found' },
+      { input: { message: 'Some other error' }, expected: 'data_query_error_message' }
+    ];
+    errorCases.forEach(({ input, expected }) => {
+      it(`should handle error: ${input.message}`, () => {
+        expect(formatErrorMessage(input)).toBe(expected);
+      });
+    });
+
+    it('should handle Error instances', () => {
+      const error = new Error('HTTP response contains html content');
+      expect(formatErrorMessage(error)).toBe('data_query_error_org_expired');
+    });
+
+    it('should handle objects with message property', () => {
+      const error = { message: 'INVALID_SESSION_ID' };
+      expect(formatErrorMessage(error)).toBe('data_query_error_session_expired');
+    });
+
+    it('should handle string errors', () => {
+      const error = 'Some random error message';
+      expect(formatErrorMessage(error)).toBe('data_query_error_message');
+    });
+
+    it('should handle null and undefined', () => {
+      expect(formatErrorMessage(null)).toBe('data_query_error_message');
+      expect(formatErrorMessage(undefined)).toBe('data_query_error_message');
+    });
+  });
+
+  describe('displayTableResults', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+    it('should display no records message for empty results', () => {
+      displayTableResults({ records: [], totalSize: 0, done: true });
+      expect(channelService.appendLine).toHaveBeenCalledWith('data_query_no_records');
+    });
+
+    it('should display table for results with records', () => {
+      displayTableResults({
+        records: [{ Id: '001', Name: 'Test' }],
+        totalSize: 1,
+        done: true
+      });
+      expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining('data_query_table_title'));
+    });
+
+    it('should handle null records', () => {
+      displayTableResults({ records: null as any, totalSize: 0, done: true });
+      expect(channelService.appendLine).toHaveBeenCalledWith('data_query_no_records');
     });
   });
 });

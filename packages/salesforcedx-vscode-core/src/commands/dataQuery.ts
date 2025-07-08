@@ -19,7 +19,7 @@ import {
   workspaceUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
-import path from 'node:path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { WorkspaceContext } from '../context';
@@ -32,11 +32,12 @@ interface QueryResult {
 }
 
 class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
+  protected showSuccessNotifications = false;
+
   constructor() {
     super(nls.localize('data_query_input_text'), 'data_soql_query_library', OUTPUT_CHANNEL);
     // Disable automatic success notifications since we show our own custom success notification
     // Keep failure notifications enabled for automatic error handling
-    this.showSuccessNotifications = false;
   }
 
   public async run(response: ContinueResponse<QueryAndApiInputs>): Promise<boolean> {
@@ -50,14 +51,14 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
       const queryResult = await this.runSoqlQuery(api === 'TOOLING' ? connection.tooling : connection, query);
 
       // Display results in table format
-      this.displayTableResults(queryResult);
+      displayTableResults(queryResult);
 
       // Save results to CSV file and show notification
       await this.saveResultsToCSV(queryResult);
 
       return true;
     } catch (error) {
-      const errorMessage = this.formatErrorMessage(error);
+      const errorMessage = formatErrorMessage(error);
       channelService.appendLine(errorMessage);
       return false;
     }
@@ -78,7 +79,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
     const maxFetch = await this.getMaxFetch();
 
     // Execute query with appropriate options (with or without maxFetch limit)
-    const result = await connection.query(query, this.buildQueryOptions(maxFetch));
+    const result = await connection.query(query, buildQueryOptions(maxFetch));
 
     // Show warning if user-configured limit caused records to be truncated
     if (maxFetch !== undefined && result.records.length > 0 && result.totalSize > result.records.length) {
@@ -127,25 +128,8 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
     return undefined;
   }
 
-  /**
-   * Builds query options for the Salesforce connection query method.
-   * Supports optional maxFetch limit when user has configured query limits.
-   *
-   * @param maxFetch - Optional maximum number of records to fetch. If undefined, no limit is applied.
-   * @returns Query options object with autoFetch and scanAll settings, plus maxFetch if specified.
-   */
-  private buildQueryOptions(maxFetch?: number) {
-    const baseOptions = {
-      autoFetch: true,
-      scanAll: false
-    };
-
-    // Conditionally add maxFetch if user has configured a limit
-    return maxFetch ? { ...baseOptions, maxFetch } : baseOptions;
-  }
-
   private async saveResultsToCSV(queryResult: QueryResult): Promise<void> {
-    const csvContent = this.convertToCSV(queryResult);
+    const csvContent = convertQueryResultToCSV(queryResult);
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const fileName = `soql-query-${timestamp}.csv`;
@@ -168,74 +152,11 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
         }
       });
   }
-
-  private displayTableResults(queryResult: QueryResult): void {
-    if (!queryResult.records || queryResult.records.length === 0) {
-      channelService.appendLine(nls.localize('data_query_no_records'));
-      return;
-    }
-
-    const tableOutput = generateTableOutput(queryResult.records, nls.localize('data_query_table_title'));
-    channelService.appendLine(`\n${tableOutput}`);
-  }
-
-  private convertToCSV(queryResult: QueryResult): string {
-    if (!queryResult.records || queryResult.records.length === 0) {
-      return nls.localize('data_query_no_records');
-    }
-
-    return convertToCSV(queryResult.records);
-  }
-
-  private formatErrorMessage(error: any): string {
-    const errorString = error instanceof Error ? error.message : String(error);
-
-    // Check for common error patterns and provide better messages
-    if (errorString.includes('HTTP response contains html content')) {
-      return nls.localize('data_query_error_org_expired');
-    }
-
-    if (errorString.includes('INVALID_SESSION_ID')) {
-      return nls.localize('data_query_error_session_expired');
-    }
-
-    if (errorString.includes('INVALID_LOGIN')) {
-      return nls.localize('data_query_error_invalid_login');
-    }
-
-    if (errorString.includes('INSUFFICIENT_ACCESS')) {
-      return nls.localize('data_query_error_insufficient_access');
-    }
-
-    if (errorString.includes('MALFORMED_QUERY')) {
-      return nls.localize('data_query_error_malformed_query');
-    }
-
-    if (errorString.includes('INVALID_FIELD')) {
-      return nls.localize('data_query_error_invalid_field');
-    }
-
-    if (errorString.includes('INVALID_TYPE')) {
-      return nls.localize('data_query_error_invalid_type');
-    }
-
-    if (errorString.includes('connection') || errorString.includes('network')) {
-      return nls.localize('data_query_error_connection');
-    }
-
-    // For tooling API specific errors
-    if (errorString.includes('tooling') && errorString.includes('not found')) {
-      return nls.localize('data_query_error_tooling_not_found');
-    }
-
-    // Default error message
-    return nls.localize('data_query_error_message', errorString);
-  }
 }
 
 class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<CancelResponse | ContinueResponse<QueryAndApiInputs>> {
-    const editor = await vscode.window.activeTextEditor;
+    const editor = vscode.window.activeTextEditor;
 
     let query;
 
@@ -306,14 +227,28 @@ export const generateTableOutput = (records: any[], title: string): string => {
     return '';
   }
 
-  const fields = Object.keys(records[0]).filter(key => key !== 'attributes');
+  // Ensure the first record exists and is an object
+  const firstRecord = records[0];
+  if (!firstRecord || typeof firstRecord !== 'object') {
+    return '';
+  }
+
+  const fields = Object.keys(firstRecord).filter(key => key !== 'attributes');
+  // If no fields after filtering attributes, return empty string
+  if (fields.length === 0) {
+    return '';
+  }
+
   const columns: Column[] = fields.map(field => ({
     key: field,
     label: field
   }));
-  const rows: Row[] = records.map((record: { [x: string]: any }) =>
-    Object.fromEntries(fields.map(field => [field, formatFieldValueForDisplay(record[field])]))
-  );
+  const rows: Row[] = records.map((record: { [x: string]: any }) => {
+    if (!record || typeof record !== 'object') {
+      return {};
+    }
+    return Object.fromEntries(fields.map(field => [field, formatFieldValueForDisplay(record[field])]));
+  });
 
   return new Table().createTable(rows, columns, title);
 };
@@ -326,16 +261,30 @@ export const convertToCSV = (records: any[]): string => {
     return '';
   }
 
-  const fields = Object.keys(records[0]).filter(key => key !== 'attributes');
+  // Ensure the first record exists and is an object
+  const firstRecord = records[0];
+  if (!firstRecord || typeof firstRecord !== 'object') {
+    return '';
+  }
+
+  const fields = Object.keys(firstRecord).filter(key => key !== 'attributes');
+  // If no fields after filtering attributes, return empty string
+  if (fields.length === 0) {
+    return '';
+  }
+
   const header = fields.map(field => escapeCSVField(field)).join(',');
-  const rows = records.map((record: { [x: string]: any }) =>
-    fields
+  const rows = records.map((record: { [x: string]: any }) => {
+    if (!record || typeof record !== 'object') {
+      return '';
+    }
+    return fields
       .map(field => {
         const value = record[field];
         return escapeCSVField(formatFieldValue(value));
       })
-      .join(',')
-  );
+      .join(',');
+  });
 
   return [header, ...rows].join('\n');
 };
@@ -378,4 +327,101 @@ export const formatFieldValueForDisplay = (value: any): string => {
   const stringValue = String(value);
   // Truncate long values for display
   return stringValue.length > 50 ? `${stringValue.substring(0, 47)}...` : stringValue;
+};
+
+/**
+ * Builds query options for the Salesforce connection query method.
+ * Supports optional maxFetch limit when user has configured query limits.
+ *
+ * @param maxFetch - Optional maximum number of records to fetch. If undefined, no limit is applied.
+ * @returns Query options object with autoFetch and scanAll settings, plus maxFetch if specified.
+ */
+export const buildQueryOptions = (maxFetch?: number) => {
+  const baseOptions = {
+    autoFetch: true,
+    scanAll: false
+  };
+
+  // Conditionally add maxFetch if user has configured a limit (including 0)
+  return maxFetch !== undefined ? { ...baseOptions, maxFetch } : baseOptions;
+};
+
+/**
+ * Displays query results in table format
+ */
+export const displayTableResults = (queryResult: QueryResult): void => {
+  if (!queryResult.records || queryResult.records.length === 0) {
+    channelService.appendLine(nls.localize('data_query_no_records'));
+    return;
+  }
+
+  const tableOutput = generateTableOutput(queryResult.records, nls.localize('data_query_table_title'));
+  channelService.appendLine(`\n${tableOutput}`);
+};
+
+/**
+ * Converts query result to CSV string
+ */
+export const convertQueryResultToCSV = (queryResult: QueryResult): string => {
+  if (!queryResult.records || queryResult.records.length === 0) {
+    return nls.localize('data_query_no_records');
+  }
+
+  return convertToCSV(queryResult.records);
+};
+
+/**
+ * Formats error messages for better user experience
+ */
+export const formatErrorMessage = (error: any): string => {
+  // Handle different error formats
+  let errorString: string;
+  if (error instanceof Error) {
+    errorString = error.message;
+  } else if (error && typeof error === 'object' && 'message' in error) {
+    errorString = String(error.message);
+  } else {
+    errorString = String(error);
+  }
+
+  // Check for common error patterns and provide better messages
+  if (errorString.includes('HTTP response contains html content')) {
+    return nls.localize('data_query_error_org_expired');
+  }
+
+  if (errorString.includes('INVALID_SESSION_ID')) {
+    return nls.localize('data_query_error_session_expired');
+  }
+
+  if (errorString.includes('INVALID_LOGIN')) {
+    return nls.localize('data_query_error_invalid_login');
+  }
+
+  if (errorString.includes('INSUFFICIENT_ACCESS')) {
+    return nls.localize('data_query_error_insufficient_access');
+  }
+
+  if (errorString.includes('MALFORMED_QUERY')) {
+    return nls.localize('data_query_error_malformed_query');
+  }
+
+  if (errorString.includes('INVALID_FIELD')) {
+    return nls.localize('data_query_error_invalid_field');
+  }
+
+  if (errorString.includes('INVALID_TYPE')) {
+    return nls.localize('data_query_error_invalid_type');
+  }
+
+  if (errorString.includes('connection') || errorString.includes('network')) {
+    return nls.localize('data_query_error_connection');
+  }
+
+  // For tooling API specific errors
+  if (errorString.includes('tooling') && errorString.includes('not found')) {
+    return nls.localize('data_query_error_tooling_not_found');
+  }
+
+  // Default error message
+  return nls.localize('data_query_error_message', errorString);
 };
