@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ConfigAggregator } from '@salesforce/core-bundle';
 import { Connection, Tooling } from '@salesforce/core-bundle/org/connection';
 import {
   CancelResponse,
@@ -31,10 +32,11 @@ interface QueryResult {
 }
 
 class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
-  private readonly MAX_FETCH = 50_000;
-
   constructor() {
     super(nls.localize('data_query_input_text'), 'data_soql_query_library', OUTPUT_CHANNEL);
+    // Disable automatic success notifications since we show our own custom success notification
+    // Keep failure notifications enabled for automatic error handling
+    this.showSuccessNotifications = false;
   }
 
   public async run(response: ContinueResponse<QueryAndApiInputs>): Promise<boolean> {
@@ -45,32 +47,13 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
       const connection = await WorkspaceContext.getInstance().getConnection();
 
       // Execute query using the appropriate API
-      const queryResult = await this.runSoqlQuery(api === ApiType.TOOLING ? connection.tooling : connection, query);
+      const queryResult = await this.runSoqlQuery(api === 'TOOLING' ? connection.tooling : connection, query);
 
       // Display results in table format
       this.displayTableResults(queryResult);
 
-      // Convert results to CSV and save to file
-      const csvContent = this.convertToCSV(queryResult);
-
-      // Generate filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `soql-query-${timestamp}.csv`;
-
-      // Get workspace path and create output directory
-      const outputDir = path.join(workspaceUtils.getRootWorkspacePath(), '.sfdx', 'data');
-      const filePath = path.join(outputDir, fileName);
-
-      // Write CSV file
-      await writeFile(filePath, csvContent);
-
-      // Open the file in editor
-      const document = await vscode.workspace.openTextDocument(filePath);
-      await vscode.window.showTextDocument(document);
-
-      // Show success message
-      const recordCount = queryResult.totalSize;
-      channelService.appendLine(nls.localize('data_query_success_message', recordCount.toString(), filePath));
+      // Save results to CSV file and show notification
+      await this.saveResultsToCSV(queryResult);
 
       return true;
     } catch (error) {
@@ -80,117 +63,128 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
     }
   }
 
+  /**
+   * Executes a SOQL query using the provided connection (REST or Tooling API).
+   * Applies user-configured query limits if set, otherwise allows results under Salesforce limits.
+   *
+   * @param connection - Salesforce connection (REST or Tooling API)
+   * @param query - SOQL query string to execute
+   * @returns Promise resolving to query results with records and metadata
+   */
   private async runSoqlQuery(connection: Connection | Tooling, query: string): Promise<QueryResult> {
-    channelService.appendLine('Running query...');
+    channelService.appendLine(nls.localize('data_query_running_query'));
 
-    const result = await connection.query(query, {
-      autoFetch: true,
-      maxFetch: this.MAX_FETCH,
-      scanAll: false
-    });
+    // Get user-configured query limit (if any)
+    const maxFetch = await this.getMaxFetch();
 
-    if (result.records.length > 0 && result.totalSize > result.records.length) {
+    // Execute query with appropriate options (with or without maxFetch limit)
+    const result = await connection.query(query, this.buildQueryOptions(maxFetch));
+
+    // Show warning if user-configured limit caused records to be truncated
+    if (maxFetch !== undefined && result.records.length > 0 && result.totalSize > result.records.length) {
       const missingRecords = result.totalSize - result.records.length;
       channelService.appendLine(
-        `Warning: The query result is missing ${missingRecords} records due to a ${this.MAX_FETCH} record limit. ` +
-          `Increase the number of records returned by setting the config value "org-max-query-limit" or the environment variable "SF_ORG_MAX_QUERY_LIMIT" to ${result.totalSize} or greater than ${this.MAX_FETCH}.`
+        nls.localize('data_query_warning_limit', missingRecords, maxFetch, result.totalSize, maxFetch)
       );
     }
 
-    channelService.appendLine(`Query complete with ${result.totalSize} records returned`);
+    channelService.appendLine(nls.localize('data_query_complete', result.totalSize));
 
     return result;
   }
 
+  /**
+   * Retrieves the maximum fetch limit from user configuration.
+   * Checks SF CLI config first, then environment variable, then returns undefined if no limit is set.
+   *
+   * @returns Promise resolving to the configured limit number, or undefined if no limit is set.
+   */
+  private async getMaxFetch(): Promise<number | undefined> {
+    try {
+      // Priority 1: Check SF CLI config value (org-max-query-limit)
+      const configAggregator = await ConfigAggregator.create();
+      const configValue = configAggregator.getPropertyValue('org-max-query-limit');
+      if (configValue) {
+        const parsed = parseInt(String(configValue), 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // If config reading fails, fall back to environment variable
+    }
+
+    // Priority 2: Check environment variable as fallback (SF_ORG_MAX_QUERY_LIMIT)
+    const envValue = process.env.SF_ORG_MAX_QUERY_LIMIT;
+    if (envValue) {
+      const parsed = parseInt(envValue, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+
+    // No limit configured - return undefined to allow unlimited queries
+    return undefined;
+  }
+
+  /**
+   * Builds query options for the Salesforce connection query method.
+   * Supports optional maxFetch limit when user has configured query limits.
+   *
+   * @param maxFetch - Optional maximum number of records to fetch. If undefined, no limit is applied.
+   * @returns Query options object with autoFetch and scanAll settings, plus maxFetch if specified.
+   */
+  private buildQueryOptions(maxFetch?: number) {
+    const baseOptions = {
+      autoFetch: true,
+      scanAll: false
+    };
+
+    // Conditionally add maxFetch if user has configured a limit
+    return maxFetch ? { ...baseOptions, maxFetch } : baseOptions;
+  }
+
+  private async saveResultsToCSV(queryResult: QueryResult): Promise<void> {
+    const csvContent = this.convertToCSV(queryResult);
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const fileName = `soql-query-${timestamp}.csv`;
+    const outputDir = path.join(workspaceUtils.getRootWorkspacePath(), '.sfdx', 'data');
+    const filePath = path.join(outputDir, fileName);
+    await writeFile(filePath, csvContent);
+
+    // Show success message with clickable file link
+    const openFileAction = nls.localize('data_query_open_file');
+    vscode.window
+      .showInformationMessage(
+        nls.localize('data_query_success_message', queryResult.totalSize, filePath),
+        openFileAction
+      )
+      .then(selection => {
+        if (selection === openFileAction) {
+          vscode.workspace.openTextDocument(vscode.Uri.file(filePath)).then(doc => {
+            vscode.window.showTextDocument(doc);
+          });
+        }
+      });
+  }
+
   private displayTableResults(queryResult: QueryResult): void {
     if (!queryResult.records || queryResult.records.length === 0) {
-      channelService.appendLine('No records found');
+      channelService.appendLine(nls.localize('data_query_no_records'));
       return;
     }
 
-    const records = queryResult.records;
-    const fields = Object.keys(records[0]).filter(key => key !== 'attributes');
-
-    // Create table columns
-    const columns: Column[] = fields.map(field => ({
-      key: field,
-      label: field
-    }));
-
-    // Create table rows
-    const rows: Row[] = records.map((record: { [x: string]: any }) => {
-      const row: Row = {};
-      fields.forEach(field => {
-        const value = record[field];
-        row[field] = this.formatFieldValueForDisplay(value);
-      });
-      return row;
-    });
-
-    // Create and display table
-    const table = new Table();
-    const tableOutput = table.createTable(rows, columns, 'Query Results');
-
+    const tableOutput = generateTableOutput(queryResult.records, nls.localize('data_query_table_title'));
     channelService.appendLine(`\n${tableOutput}`);
   }
 
   private convertToCSV(queryResult: QueryResult): string {
     if (!queryResult.records || queryResult.records.length === 0) {
-      return 'No records found';
+      return nls.localize('data_query_no_records');
     }
 
-    const records = queryResult.records;
-    const fields = Object.keys(records[0]).filter(key => key !== 'attributes');
-
-    // Create CSV header
-    const header = fields.map(field => this.escapeCSVField(field)).join(',');
-
-    // Create CSV rows
-    const rows = records.map((record: { [x: string]: any }) =>
-      fields
-        .map(field => {
-          const value = record[field];
-          return this.escapeCSVField(this.formatFieldValue(value));
-        })
-        .join(',')
-    );
-
-    return [header, ...rows].join('\n');
-  }
-
-  private escapeCSVField(field: string): string {
-    // If field contains comma, quote, or newline, wrap in quotes and escape internal quotes
-    if (field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')) {
-      return `"${field.replace(/"/g, '""')}"`;
-    }
-    return field;
-  }
-
-  private formatFieldValue(value: any): string {
-    if (value === null || value === undefined) {
-      return '';
-    }
-    if (typeof value === 'object') {
-      // Handle nested objects (like relationship fields)
-      return JSON.stringify(value);
-    }
-    return String(value);
-  }
-
-  private formatFieldValueForDisplay(value: any): string {
-    if (value === null || value === undefined) {
-      return '';
-    }
-    if (typeof value === 'object') {
-      // For display, show a simplified version of nested objects
-      if (value.Id) {
-        return value.Id;
-      }
-      return '[Object]';
-    }
-    const stringValue = String(value);
-    // Truncate long values for display
-    return stringValue.length > 30 ? `${stringValue.substring(0, 27)}...` : stringValue;
+    return convertToCSV(queryResult.records);
   }
 
   private formatErrorMessage(error: any): string {
@@ -271,13 +265,13 @@ class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
       .replace(/(\r\n|\n)/g, ' ');
 
     const restApi = {
-      api: ApiType.REST,
+      api: 'REST' as const,
       label: nls.localize('REST_API'),
       description: nls.localize('REST_API_description')
     };
 
     const toolingApi = {
-      api: ApiType.TOOLING,
+      api: 'TOOLING' as const,
       label: nls.localize('tooling_API'),
       description: nls.localize('tooling_API_description')
     };
@@ -294,10 +288,7 @@ type QueryAndApiInputs = {
   api: ApiType;
 };
 
-enum ApiType {
-  REST,
-  TOOLING
-}
+type ApiType = 'REST' | 'TOOLING';
 
 const workspaceChecker = new SfWorkspaceChecker();
 
@@ -305,4 +296,86 @@ export const dataQuery = (): void => {
   const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new DataQueryExecutor());
   void commandlet.run();
+};
+
+/**
+ * Generates table output from query records
+ */
+export const generateTableOutput = (records: any[], title: string): string => {
+  if (!records || records.length === 0) {
+    return '';
+  }
+
+  const fields = Object.keys(records[0]).filter(key => key !== 'attributes');
+  const columns: Column[] = fields.map(field => ({
+    key: field,
+    label: field
+  }));
+  const rows: Row[] = records.map((record: { [x: string]: any }) =>
+    Object.fromEntries(fields.map(field => [field, formatFieldValueForDisplay(record[field])]))
+  );
+
+  return new Table().createTable(rows, columns, title);
+};
+
+/**
+ * Converts query records to CSV format
+ */
+export const convertToCSV = (records: any[]): string => {
+  if (!records || records.length === 0) {
+    return '';
+  }
+
+  const fields = Object.keys(records[0]).filter(key => key !== 'attributes');
+  const header = fields.map(field => escapeCSVField(field)).join(',');
+  const rows = records.map((record: { [x: string]: any }) =>
+    fields
+      .map(field => {
+        const value = record[field];
+        return escapeCSVField(formatFieldValue(value));
+      })
+      .join(',')
+  );
+
+  return [header, ...rows].join('\n');
+};
+
+/**
+ * Escapes a field value for CSV format
+ */
+export const escapeCSVField = (field: string): string => {
+  // If field contains comma, quote, or newline, wrap in quotes and escape internal quotes
+  if (field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')) {
+    return `"${field.replace(/"/g, '""')}"`;
+  }
+  return field;
+};
+
+/**
+ * Formats a field value for CSV export
+ */
+export const formatFieldValue = (value: any): string => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'object') {
+    // Handle nested objects (like relationship fields)
+    return JSON.stringify(value);
+  }
+  return String(value);
+};
+
+/**
+ * Formats a field value for table display
+ */
+export const formatFieldValueForDisplay = (value: any): string => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'object') {
+    return value.Id ? value.Id : '[Object]';
+  }
+  const stringValue = String(value);
+  // Truncate long values for display
+  return stringValue.length > 50 ? `${stringValue.substring(0, 47)}...` : stringValue;
 };
