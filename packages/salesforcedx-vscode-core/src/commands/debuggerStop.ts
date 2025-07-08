@@ -11,14 +11,15 @@ import {
   ContinueResponse,
   EmptyParametersGatherer,
   ParametersGatherer,
-  ProgressNotification
+  ProgressNotification,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
-import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor } from './util';
 
 type QueryResponse = {
   status: number;
@@ -63,7 +64,7 @@ class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
 }
 
 class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withArg('data:query')
       .withDescription(nls.localize('debugger_query_session_text'))

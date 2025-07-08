@@ -55,7 +55,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   public readonly relativeApexPackageXmlPath = path.join(this.relativeMetadataTempPath, PACKAGE_XML);
   public readonly relativeInstalledPackagesPath = path.join(projectPaths.relativeToolsFolder(), INSTALLED_PACKAGES);
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     throw new Error('not in use');
   }
 

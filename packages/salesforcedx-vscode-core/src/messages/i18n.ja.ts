@@ -250,10 +250,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   functions_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
   parameter_gatherer_file_name_max_length_validation_error_message: 'ファイル名は {0} 文字を超えることはできません',
-  predicates_no_folder_opened_text:
-    'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
-  predicates_no_salesforce_project_found_text:
-    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
 
   conflict_detect_execution_name: '競合検出',
   conflict_detect_initialization_error: 'メタデータキャッシュの初期化中に予期せぬエラーが発生しました',

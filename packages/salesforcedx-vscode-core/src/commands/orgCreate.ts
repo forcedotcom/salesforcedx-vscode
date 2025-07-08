@@ -16,6 +16,7 @@ import {
   OrgCreateErrorResult,
   OrgCreateResultParser,
   ParametersGatherer,
+  SfWorkspaceChecker,
   workspaceUtils,
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -33,8 +34,7 @@ import {
   FileSelection,
   FileSelector,
   SfCommandlet,
-  SfCommandletExecutor,
-  SfWorkspaceChecker
+  SfCommandletExecutor
 } from './util';
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
@@ -74,7 +74,9 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
       stdOut += realData.toString();
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {
+    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    execution.processExitSubject.subscribe(async () => {
       this.logMetric(execution.command.logName, startTime);
       try {
         const createParser = new OrgCreateResultParser(stdOut);

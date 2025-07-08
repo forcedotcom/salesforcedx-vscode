@@ -82,7 +82,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     if (vscode.workspace.workspaceFolders?.[0]) {
       this.salesforceProject = URI.file(vscode.workspace.workspaceFolders[0].uri.fsPath).fsPath;
       try {
-        this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
+        this.orgInfo = await new OrgDisplay().getOrgInfo();
       } catch (error) {
         const result = JSON.parse(error) as OrgInfoError;
         const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
@@ -357,7 +357,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             cancellable: false
           },
 
-          async (progress, token) => {
+          async (progress, _token) => {
             writeToDebuggerOutputWindow(
               `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_org_info')}`
             );
@@ -479,7 +479,7 @@ export class CheckpointNode extends BaseNode {
   private actionObjectId: string | undefined;
 
   constructor(
-    breapointIdInput: string,
+    breakpointIdInput: string,
     enabledInput: boolean,
     uriInput: string,
     sourceFileInput: string,
@@ -487,7 +487,7 @@ export class CheckpointNode extends BaseNode {
   ) {
     super(`${sourceFileInput}:${checkpointOverlayActionInput.Line}`, TreeItemCollapsibleState.Expanded);
     this.uri = uriInput;
-    this.breakpointId = breapointIdInput;
+    this.breakpointId = breakpointIdInput;
     this.enabled = enabledInput;
     this.checkpointOverlayAction = checkpointOverlayActionInput;
     this.actionObjectId = undefined;

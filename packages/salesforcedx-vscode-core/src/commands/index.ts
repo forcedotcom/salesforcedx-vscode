@@ -15,7 +15,6 @@ export { dataQuery } from './dataQuery';
 export { debuggerStop } from './debuggerStop';
 export { deleteSource } from './deleteSource';
 export { projectGenerateManifest } from './projectGenerateManifest';
-export { describeMetadata } from './describeMetadata';
 export { packageInstall } from './packageInstall';
 export { refreshSObjects, initSObjectDefinitions } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';

@@ -292,7 +292,7 @@ type ApiType = 'REST' | 'TOOLING';
 
 const workspaceChecker = new SfWorkspaceChecker();
 
-export const dataQuery = (explorerDir?: any): void => {
+export const dataQuery = (): void => {
   const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new DataQueryExecutor());
   void commandlet.run();
