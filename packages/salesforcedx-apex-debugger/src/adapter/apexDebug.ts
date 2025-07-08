@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config } from '@salesforce/core-bundle';
 import {
   OrgDisplay,
   RequestService,
@@ -14,6 +13,7 @@ import {
   extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
+import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import {
   DebugSession,
   Event,
@@ -567,9 +567,9 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
-        const localConfig = await Config.create({ isGlobal: false });
-        const isvDebuggerSid = JSON.stringify(localConfig.get(SF_CONFIG_ISV_DEBUGGER_SID));
-        const isvDebuggerUrl = JSON.stringify(localConfig.get(SF_CONFIG_ISV_DEBUGGER_URL));
+        const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+        const isvDebuggerSid = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_SID));
+        const isvDebuggerUrl = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_URL));
         if (typeof isvDebuggerSid === 'undefined' || typeof isvDebuggerUrl === 'undefined') {
           response.message = nls.localize('invalid_isv_project_config');
           // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set
@@ -759,7 +759,7 @@ export class ApexDebug extends LoggingDebugSession {
           );
           return knownBps;
         });
-      } catch {}
+      } catch { }
       verifiedBreakpoints.forEach(verifiedBreakpoint => {
         const lineNumber = this.convertDebuggerLineToClient(verifiedBreakpoint);
         response.body.breakpoints.push({
@@ -1110,7 +1110,7 @@ export class ApexDebug extends LoggingDebugSession {
           );
         } else if (reference.type === 'map') {
           const mapContainer = new MapReferenceContainer(reference, requestId);
-          // explode all map entries so that we can drill down a map logically
+          // explode all map entried so that we can drill down a map logically
           if (reference.tuple) {
             reference.tuple.forEach(tuple => {
               const tupleContainer = new MapTupleContainer(tuple, requestId);

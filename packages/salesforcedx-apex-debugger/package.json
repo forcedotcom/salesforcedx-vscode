@@ -13,8 +13,8 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core-bundle": "^8.12.0",
     "@salesforce/salesforcedx-utils": "64.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.4.0",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
@@ -41,7 +41,7 @@
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/adapter/apexDebug.ts  --bundle --outfile=dist/apexdebug.js --format=cjs --platform=node --minify",
+    "bundle:debugger": "node ./esbuild.config.js",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
