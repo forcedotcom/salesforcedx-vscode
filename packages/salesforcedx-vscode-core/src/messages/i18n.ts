@@ -166,7 +166,7 @@ export const messages = {
   debugger_stop_none_found_text: 'No Apex Debugger session found.',
   data_query_input_text: 'SFDX: Execute SOQL Query...',
   data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
-  data_query_success_message: 'Query executed successfully. Found %s records. Results saved to: %s',
+  data_query_success_message: 'Query executed successfully. Found %d records. Results saved to: %s',
   data_query_error_message: 'Error executing query: %s',
   data_query_error_org_expired:
     'Your org appears to have expired or is no longer accessible. Please refresh your org connection or authorize a new org.',
@@ -180,6 +180,13 @@ export const messages = {
   data_query_error_connection: 'Unable to connect to your org. Please check your internet connection and org status.',
   data_query_error_tooling_not_found:
     "The requested metadata was not found. This may be because it doesn't exist or you don't have access to it.",
+  data_query_open_file: 'Open File',
+  data_query_running_query: 'Running query...',
+  data_query_warning_limit:
+    'Warning: The query result is missing %d records due to a %d record limit. Increase the number of records returned by setting the config value "org-max-query-limit" or the environment variable "SF_ORG_MAX_QUERY_LIMIT" to %d or greater than %d.',
+  data_query_complete: 'Query complete with %d records returned',
+  data_query_no_records: 'No records found',
+  data_query_table_title: 'Query Results',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
   anon_apex_execute_document_text: 'SFDX: Execute Anonymous Apex with Editor Contents',
   anon_apex_execute_selection_text: 'SFDX: Execute Anonymous Apex with Currently Selected Text',
