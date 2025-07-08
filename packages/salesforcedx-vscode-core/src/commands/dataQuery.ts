@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ConfigAggregator } from '@salesforce/core-bundle';
 import { Connection, Tooling } from '@salesforce/core-bundle/org/connection';
 import {
   CancelResponse,
   Column,
+  ConfigAggregatorProvider,
   ContinueResponse,
   LibraryCommandletExecutor,
   ParametersGatherer,
@@ -102,7 +102,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
   private async getMaxFetch(): Promise<number | undefined> {
     try {
       // Priority 1: Check SF CLI config value (org-max-query-limit)
-      const configAggregator = await ConfigAggregator.create();
+      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
       const configValue = configAggregator.getPropertyValue('org-max-query-limit');
       if (configValue) {
         const parsed = parseInt(String(configValue), 10);
