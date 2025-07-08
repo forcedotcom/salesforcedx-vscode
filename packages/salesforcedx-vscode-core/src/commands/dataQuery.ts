@@ -25,11 +25,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 
-interface QueryResult {
-  records: any[];
-  totalSize: number;
-  done: boolean;
-}
+type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
 class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
   protected showSuccessNotifications = false;
@@ -76,7 +72,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
     channelService.appendLine(nls.localize('data_query_running_query'));
 
     // Get user-configured query limit (if any)
-    const maxFetch = await this.getMaxFetch();
+    const maxFetch = await getMaxFetch();
 
     // Execute query with appropriate options (with or without maxFetch limit)
     const result = await connection.query(query, buildQueryOptions(maxFetch));
@@ -92,40 +88,6 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
     channelService.appendLine(nls.localize('data_query_complete', result.totalSize));
 
     return result;
-  }
-
-  /**
-   * Retrieves the maximum fetch limit from user configuration.
-   * Checks SF CLI config first, then environment variable, then returns undefined if no limit is set.
-   *
-   * @returns Promise resolving to the configured limit number, or undefined if no limit is set.
-   */
-  private async getMaxFetch(): Promise<number | undefined> {
-    try {
-      // Priority 1: Check SF CLI config value (org-max-query-limit)
-      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-      const configValue = configAggregator.getPropertyValue('org-max-query-limit');
-      if (configValue) {
-        const parsed = parseInt(String(configValue), 10);
-        if (!isNaN(parsed) && parsed > 0) {
-          return parsed;
-        }
-      }
-    } catch {
-      // If config reading fails, fall back to environment variable
-    }
-
-    // Priority 2: Check environment variable as fallback (SF_ORG_MAX_QUERY_LIMIT)
-    const envValue = process.env.SF_ORG_MAX_QUERY_LIMIT;
-    if (envValue) {
-      const parsed = parseInt(envValue, 10);
-      if (!isNaN(parsed) && parsed > 0) {
-        return parsed;
-      }
-    }
-
-    // No limit configured - return undefined to allow unlimited queries
-    return undefined;
   }
 
   private async saveResultsToCSV(queryResult: QueryResult): Promise<void> {
@@ -206,30 +168,47 @@ class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
 
 type QueryAndApiInputs = {
   query: string;
-  api: ApiType;
+  api: 'REST' | 'TOOLING';
 };
-
-type ApiType = 'REST' | 'TOOLING';
-
-const workspaceChecker = new SfWorkspaceChecker();
 
 export const dataQuery = (): void => {
   const parameterGatherer = new GetQueryAndApiInputs();
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new DataQueryExecutor());
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, new DataQueryExecutor());
   void commandlet.run();
+};
+
+/**
+ * Retrieves the maximum fetch limit from user configuration.
+ * Checks SF CLI config first, then environment variable, then returns undefined if no limit is set.
+ *
+ * @returns Promise resolving to the configured limit number, or undefined if no limit is set.
+ */
+const getMaxFetch = async (): Promise<number | undefined> => {
+  try {
+    // Priority 1: Check SF CLI config value (org-max-query-limit)
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const configValue = configAggregator.getPropertyValue<string>('org-max-query-limit');
+    if (configValue) {
+      const parsed = parseInt(configValue, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+  } catch {
+    // If config reading fails, fall back to environment variable
+  }
+
+  // No limit configured - return undefined to allow default amount of queries
+  return undefined;
 };
 
 /**
  * Generates table output from query records
  */
-export const generateTableOutput = (records: any[], title: string): string => {
-  if (!records || records.length === 0) {
-    return '';
-  }
-
+export const generateTableOutput = (records: QueryResult['records'], title: string): string => {
   // Ensure the first record exists and is an object
   const firstRecord = records[0];
-  if (!firstRecord || typeof firstRecord !== 'object') {
+  if (!isRecord(firstRecord)) {
     return '';
   }
 
@@ -243,27 +222,27 @@ export const generateTableOutput = (records: any[], title: string): string => {
     key: field,
     label: field
   }));
-  const rows: Row[] = records.map((record: { [x: string]: any }) => {
-    if (!record || typeof record !== 'object') {
-      return {};
-    }
-    return Object.fromEntries(fields.map(field => [field, formatFieldValueForDisplay(record[field])]));
-  });
+  const rows: Row[] = records
+    .filter(isRecord)
+    .map(record => Object.fromEntries(fields.map(field => [field, formatFieldValueForDisplay(record[field])])));
 
   return new Table().createTable(rows, columns, title);
 };
 
+const isRecord = (record: unknown): record is Record<string, unknown> =>
+  Boolean(record) && typeof record === 'object' && !Array.isArray(record);
+
 /**
  * Converts query records to CSV format
  */
-export const convertToCSV = (records: any[]): string => {
+export const convertToCSV = (records: QueryResult['records']): string => {
   if (!records || records.length === 0) {
     return '';
   }
 
   // Ensure the first record exists and is an object
   const firstRecord = records[0];
-  if (!firstRecord || typeof firstRecord !== 'object') {
+  if (!isRecord(firstRecord)) {
     return '';
   }
 
@@ -274,17 +253,9 @@ export const convertToCSV = (records: any[]): string => {
   }
 
   const header = fields.map(field => escapeCSVField(field)).join(',');
-  const rows = records.map((record: { [x: string]: any }) => {
-    if (!record || typeof record !== 'object') {
-      return '';
-    }
-    return fields
-      .map(field => {
-        const value = record[field];
-        return escapeCSVField(formatFieldValue(value));
-      })
-      .join(',');
-  });
+  const rows = records
+    .filter(isRecord)
+    .map(record => fields.map(field => escapeCSVField(formatFieldValue(record[field]))).join(','));
 
   return [header, ...rows].join('\n');
 };
@@ -303,7 +274,7 @@ export const escapeCSVField = (field: string): string => {
 /**
  * Formats a field value for CSV export
  */
-export const formatFieldValue = (value: any): string => {
+export const formatFieldValue = (value: unknown): string => {
   if (value === null || value === undefined) {
     return '';
   }
@@ -317,12 +288,12 @@ export const formatFieldValue = (value: any): string => {
 /**
  * Formats a field value for table display
  */
-export const formatFieldValueForDisplay = (value: any): string => {
+export const formatFieldValueForDisplay = (value: unknown): string => {
   if (value === null || value === undefined) {
     return '';
   }
   if (typeof value === 'object') {
-    return value.Id ? value.Id : '[Object]';
+    return 'Id' in value ? String(value.Id) : '[Object]';
   }
   const stringValue = String(value);
   // Truncate long values for display
@@ -373,7 +344,7 @@ export const convertQueryResultToCSV = (queryResult: QueryResult): string => {
 /**
  * Formats error messages for better user experience
  */
-export const formatErrorMessage = (error: any): string => {
+export const formatErrorMessage = (error: unknown): string => {
   // Handle different error formats
   let errorString: string;
   if (error instanceof Error) {
