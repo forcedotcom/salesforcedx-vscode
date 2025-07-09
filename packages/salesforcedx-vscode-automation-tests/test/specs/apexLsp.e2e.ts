@@ -14,7 +14,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
 import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import { getFolderName, removeFolder } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { getFolderName } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   getWorkbench,
@@ -169,7 +169,7 @@ const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<v
   if (cleanDb) {
     const releaseDir = findReleaseDir();
     const standardApexLibraryPath = path.normalize(path.join(PATHS.tools, releaseDir, 'StandardApexLibrary'));
-    await removeFolder(standardApexLibraryPath);
+    await fs.promises.rm(standardApexLibraryPath, { recursive: true, force: true });
     expect(await getFolderName(standardApexLibraryPath)).to.equal(null);
   }
 
@@ -265,7 +265,7 @@ describe('Apex LSP', () => {
 
   after('Tear down and clean up the testing environment', async () => {
     log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
-    await removeFolder(PATHS.apexClass);
+    await fs.promises.rm(PATHS.apexClass, { recursive: true, force: true });
     await testSetup?.tearDown();
   });
 });
