@@ -7,9 +7,9 @@
 
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
-# @forcedotcom/pdt will be requested for
+# @forcedotcom/ide-experience will be requested for
 # review when someone opens a pull request.
 
 #ECCN:Open Source
-#GUSINFO: Platform Dev Tools Scrum Team, Platform Dev Tools
-*       @forcedotcom/pdt
+#GUSINFO: Platform Dev Tools Scrum Team, IDE Experience Team
+*       @forcedotcom/ide-experience
