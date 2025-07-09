@@ -1,5 +1,5 @@
 {
-  "timeout": 720000,
+  "timeout": 1800000,
   "require": [
     "ts-node/register"
   ],

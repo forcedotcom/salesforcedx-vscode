@@ -173,7 +173,7 @@ jobs:
           fi
 
           if [ "$RUNNER_OS" = "Windows" ]; then
-            echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
+            echo "THROTTLE_FACTOR=3" >> $GITHUB_ENV
           else
             echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
           fi
