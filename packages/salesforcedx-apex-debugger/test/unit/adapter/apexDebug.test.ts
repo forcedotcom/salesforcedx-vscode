@@ -6,6 +6,7 @@
  */
 // This is only done in tests because we are mocking things
 
+import { ConfigAggregator } from '@salesforce/core-bundle';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   OrgDisplay,
@@ -13,7 +14,6 @@ import {
   RequestService,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
-import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import { OutputEvent, Source, StackFrame, StoppedEvent, ThreadEvent } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as AsyncLock from 'async-lock';
@@ -158,11 +158,9 @@ describe('Interactive debugger adapter - unit', () => {
       sessionRequestFilterSpy = sinon.spy(SessionService.prototype, 'withRequestFilter');
       resetIdleTimersSpy = sinon.spy(ApexDebugForTest.prototype, 'resetIdleTimer');
       orgInfoSpy = sinon.stub(OrgDisplay.prototype, 'getOrgInfo').returns({} as OrgInfo);
-      configGetSpy = sinon.stub(ConfigAggregatorProvider, 'getInstance').returns({
-        getConfigAggregator: () => Promise.resolve({
-          getPropertyValue: () => undefined
-        })
-      } as any);
+      configGetSpy = sinon.stub(ConfigAggregator, 'create').returns(Promise.resolve({
+        getPropertyValue: () => undefined
+      } as any));
       args = {
         salesforceProject: 'project',
         userIdFilter: ['005FAKE1', '005FAKE2', '005FAKE1'],
@@ -285,11 +283,9 @@ describe('Interactive debugger adapter - unit', () => {
       const config = new Map<string, string>();
       config.set('org-isv-debugger-sid', '123');
       config.set('org-isv-debugger-url', 'instanceurl');
-      configGetSpy.returns({
-        getConfigAggregator: () => Promise.resolve({
-          getPropertyValue: (key: string) => config.get(key)
-        })
-      } as any);
+      configGetSpy.returns(Promise.resolve({
+        getPropertyValue: (key: string) => config.get(key)
+      } as any));
 
       await adapter.launchRequest(initializedResponse, args);
 
@@ -325,11 +321,9 @@ describe('Interactive debugger adapter - unit', () => {
       const config = new Map<string, string>();
       config.set('nonexistent-sid', '123');
       config.set('nonexistent-url', 'instanceurl');
-      configGetSpy.returns({
-        getConfigAggregator: () => Promise.resolve({
-          getPropertyValue: (key: string) => config.get(key)
-        })
-      } as any);
+      configGetSpy.returns(Promise.resolve({
+        getPropertyValue: (key: string) => config.get(key)
+      } as any));
 
       await adapter.launchRequest(initializedResponse, args);
 
