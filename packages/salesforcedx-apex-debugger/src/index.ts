@@ -19,7 +19,6 @@ export {
   EXCEPTION_BREAKPOINT_REQUEST
 } from './constants';
 export { SetExceptionBreakpointsArguments } from './adapter/apexDebug';
-export { IsvContextUtil } from './context';
 export enum VscodeDebuggerMessageType {
   Info,
   Warning,
