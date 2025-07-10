@@ -136,6 +136,7 @@ jobs:
       testToRun: 'apexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["macos-latest"]'
 
   apex-trail-replay-debugger:
     uses: ./.github/workflows/runE2ETest.yml

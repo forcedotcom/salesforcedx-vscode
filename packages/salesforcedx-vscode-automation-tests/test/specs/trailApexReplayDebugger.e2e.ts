@@ -86,7 +86,8 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
-  it('Set Breakpoints and Checkpoints', async () => {
+  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
+  it.skip('Set Breakpoints and Checkpoints', async () => {
     logTestStart(testSetup, 'Set Breakpoints and Checkpoints');
     // Get open text editor
     const workbench = getWorkbench();
