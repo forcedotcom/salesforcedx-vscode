@@ -41,7 +41,7 @@
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
-    "bundle:debugger": "node ./esbuild.config.js",
+    "bundle:debugger": "esbuild ./src/adapter/apexDebug.ts --bundle --outfile=dist/apexDebug.js --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",

@@ -14,7 +14,6 @@ import {
   extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
-// import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import {
   DebugSession,
   Event,
