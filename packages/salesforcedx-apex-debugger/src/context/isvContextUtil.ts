@@ -20,10 +20,10 @@ export class IsvContextUtil {
       const configAggregator: ConfigAggregator = await ConfigAggregator.create({
         projectPath: projectWorkspacePath
       });
-      const isvDebuggerSid = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_SID));
-      const isvDebuggerUrl = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_URL));
+      const isvDebuggerSid = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_SID);
+      const isvDebuggerUrl = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_URL);
 
-      if (typeof isvDebuggerSid !== 'undefined' && typeof isvDebuggerUrl !== 'undefined') {
+      if (isvDebuggerSid && isvDebuggerUrl) {
         // set auth context
         GlobalCliEnvironment.environmentVariables.set(ENV_SF_TARGET_ORG, isvDebuggerSid);
         GlobalCliEnvironment.environmentVariables.set(ENV_SF_ORG_INSTANCE_URL, isvDebuggerUrl);

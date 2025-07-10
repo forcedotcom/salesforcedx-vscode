@@ -570,9 +570,9 @@ export class ApexDebug extends LoggingDebugSession {
         const configAggregator: ConfigAggregator = await ConfigAggregator.create({
           projectPath: args.salesforceProject
         });
-        const isvDebuggerSid = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_SID));
-        const isvDebuggerUrl = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_URL));
-        if (typeof isvDebuggerSid === 'undefined' || typeof isvDebuggerUrl === 'undefined') {
+        const isvDebuggerSid = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_SID);
+        const isvDebuggerUrl = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_URL);
+        if (isvDebuggerSid === undefined || isvDebuggerUrl === undefined) {
           response.message = nls.localize('invalid_isv_project_config');
           // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set
           this.sendEvent(

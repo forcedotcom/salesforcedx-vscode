@@ -289,8 +289,8 @@ describe('Interactive debugger adapter - unit', () => {
 
       await adapter.launchRequest(initializedResponse, args);
 
-      expect(adapter.getRequestService().accessToken).to.equal('"123"');
-      expect(adapter.getRequestService().instanceUrl).to.equal('"instanceurl"');
+      expect(adapter.getRequestService().accessToken).to.equal('123');
+      expect(adapter.getRequestService().instanceUrl).to.equal('instanceurl');
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse(0).success).to.equal(true);
