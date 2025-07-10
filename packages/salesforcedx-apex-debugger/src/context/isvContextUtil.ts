@@ -16,7 +16,6 @@ import {
 
 export class IsvContextUtil {
   public async setIsvDebuggerContext(projectWorkspacePath: string) {
-    let isvDebugProject = false;
     if (projectWorkspacePath) {
       const configAggregator: ConfigAggregator = await ConfigAggregator.create({
         projectPath: projectWorkspacePath
@@ -28,10 +27,10 @@ export class IsvContextUtil {
         // set auth context
         GlobalCliEnvironment.environmentVariables.set(ENV_SF_TARGET_ORG, isvDebuggerSid);
         GlobalCliEnvironment.environmentVariables.set(ENV_SF_ORG_INSTANCE_URL, isvDebuggerUrl);
-        isvDebugProject = true;
+        return true;
       }
     }
-    return isvDebugProject;
+    return false;
   }
 
   public resetCliEnvironmentVars() {
