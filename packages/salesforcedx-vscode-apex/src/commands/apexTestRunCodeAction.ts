@@ -153,7 +153,10 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
               .map(pkgDir => `${path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath)}/**/*.cls`)
               .flatMap(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'))
           )
-        ).map(file => file.toString())
+        )
+          .flat()
+          // parsing to string for set to dedupe, then back to URI
+          .map(uri => uri.toString())
       )
     )
       .map(filePath => URI.parse(filePath))
