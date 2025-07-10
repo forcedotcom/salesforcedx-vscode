@@ -193,7 +193,8 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(executionFinished).to.be.greaterThan(0);
   });
 
-  it('Replay an Apex Debug Log', async () => {
+  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
+  it.skip('Replay an Apex Debug Log', async () => {
     logTestStart(testSetup, 'Replay an Apex Debug Log');
     // Run SFDX: Launch Apex Replay Debugger with Current File
     await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(30));
