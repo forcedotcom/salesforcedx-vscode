@@ -65,6 +65,16 @@ jobs:
           if [ "$RUNNER_OS" = "Windows" ]; then
             rm -rf "$TEMP"/vscode-* 2>/dev/null || true
             rm -rf "$USERPROFILE"/.vscode-test 2>/dev/null || true
+            # Clean VS Code user extensions directory
+            rm -rf "$USERPROFILE"/.vscode/extensions 2>/dev/null || true
+            # Clean VS Code insiders extensions directory
+            rm -rf "$USERPROFILE"/.vscode-insiders/extensions 2>/dev/null || true
+            # Force kill any VS Code processes that might be locking files
+            taskkill //F //IM Code.exe 2>/dev/null || true
+            taskkill //F //IM Code-insiders.exe 2>/dev/null || true
+            taskkill //F //IM "Microsoft VS Code.exe" 2>/dev/null || true
+            # Wait a bit for processes to fully terminate
+            sleep 5
           else
             rm -rf /tmp/vscode-* 2>/dev/null || true
           fi
@@ -73,6 +83,35 @@ jobs:
           npm cache clean --force
 
           echo "VS Code cache cleanup completed"
+
+      - name: Windows-specific setup
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          Write-Host "Setting up Windows-specific configurations..."
+
+          # Disable Windows Defender real-time protection for the workspace
+          # This helps prevent file locking issues during extension operations
+          try {
+            Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+            Write-Host "Windows Defender real-time protection disabled"
+          } catch {
+            Write-Host "Could not disable Windows Defender (non-critical)"
+          }
+
+          # Set environment variables for better file handling
+          [Environment]::SetEnvironmentVariable("VSCODE_SKIP_GETTING_STARTED", "true", "Process")
+          [Environment]::SetEnvironmentVariable("VSCODE_DISABLE_CRASH_REPORTER", "true", "Process")
+          [Environment]::SetEnvironmentVariable("VSCODE_EXTENSIONS_AUTOCHECK_UPDATES", "false", "Process")
+
+          # Create extensions directory with proper permissions
+          $extensionsDir = "$env:USERPROFILE\.vscode\extensions"
+          if (Test-Path $extensionsDir) {
+            Remove-Item $extensionsDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          New-Item -ItemType Directory -Path $extensionsDir -Force
+
+          Write-Host "Windows-specific setup completed"
 
       - name: Setup project directories
         shell: bash
@@ -122,7 +161,7 @@ jobs:
           EOF
           chmod +x install-salesforce-cli.sh
 
-          # Create E2E test script
+          # Create E2E test script with Windows-specific handling
           cat > run-e2e-test.sh << 'EOF'
           #!/bin/bash
           set -e
@@ -134,6 +173,17 @@ jobs:
           SPEC_PATH="$1"
           echo "Running E2E test for spec: $SPEC_PATH"
           cd salesforcedx-vscode
+
+          # Windows-specific pre-test setup
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "Setting up Windows-specific environment..."
+            export VSCODE_SKIP_GETTING_STARTED=true
+            export VSCODE_DISABLE_CRASH_REPORTER=true
+            export VSCODE_EXTENSIONS_AUTOCHECK_UPDATES=false
+            # Add retry delay for Windows
+            export RETRY_DELAY=2000
+          fi
+
           npm run compile
           npm run gha-automation-tests --spec "$SPEC_PATH"
           echo "E2E test completed successfully"
@@ -174,6 +224,10 @@ jobs:
 
           if [ "$RUNNER_OS" = "Windows" ]; then
             echo "THROTTLE_FACTOR=3" >> $GITHUB_ENV
+            # Create temporary directories for VS Code extension tester
+            mkdir -p "$RUNNER_TEMP/extest-settings" "$RUNNER_TEMP/extest-storage"
+            # Set permissions for Windows
+            chmod 755 "$RUNNER_TEMP/extest-settings" "$RUNNER_TEMP/extest-storage" 2>/dev/null || true
           else
             echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
           fi
@@ -195,6 +249,15 @@ jobs:
           DEV_HUB_ALIAS_NAME: vscodeOrg
           DEV_HUB_USER_NAME: svcideebot@salesforce.com
           BASH_SILENCE_DEPRECATION_WARNING: 1
+          # Windows-specific environment variables to prevent file locking issues
+          VSCODE_SKIP_GETTING_STARTED: true
+          VSCODE_DISABLE_CRASH_REPORTER: true
+          VSCODE_EXTENSIONS_AUTOCHECK_UPDATES: false
+          VSCODE_SKIP_RELEASE_NOTES: true
+          VSCODE_SKIP_WELCOME: true
+          # Extension tester specific settings
+          EXTEST_SETTINGS_DIR: ${{ runner.temp }}/extest-settings
+          EXTEST_STORAGE_DIR: ${{ runner.temp }}/extest-storage
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
