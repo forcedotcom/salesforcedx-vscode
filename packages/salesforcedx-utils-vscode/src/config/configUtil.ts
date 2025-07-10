@@ -24,10 +24,8 @@ export class ConfigUtil {
     switch (configSource) {
       case ConfigAggregator.Location.LOCAL:
         return ConfigSource.Local;
-        break;
       case ConfigAggregator.Location.GLOBAL:
         return ConfigSource.Global;
-        break;
       default:
         return ConfigSource.None;
     }
