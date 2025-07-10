@@ -53,7 +53,7 @@ export const activateTagClosing = (
     if (document !== activeDocument || changes.length === 0) {
       return;
     }
-    if (typeof timeout !== 'undefined') {
+    if (timeout !== undefined) {
       clearTimeout(timeout);
     }
     // assertion: we previously checked that changes is not zero-length

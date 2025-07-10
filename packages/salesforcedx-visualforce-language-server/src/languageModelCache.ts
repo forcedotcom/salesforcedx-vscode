@@ -87,7 +87,7 @@ export const getLanguageModelCache = <T>(
       }
     },
     dispose: () => {
-      if (typeof cleanupInterval !== 'undefined') {
+      if (cleanupInterval !== undefined) {
         clearInterval(cleanupInterval);
         cleanupInterval = void 0;
         languageModels = {};
