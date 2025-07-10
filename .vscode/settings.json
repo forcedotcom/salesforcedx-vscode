@@ -34,5 +34,17 @@
   "prettier.printWidth": 120,
   "prettier.arrowParens": "avoid",
   "editor.rulers": [120],
-  "cSpell.words": ["debugadapter", "debugprotocol", "salesforcedx", "STREAMINGAPI", "testsupport"]
+  "cSpell.words": [
+    "breakpointid",
+    "debugadapter",
+    "debugprotocol",
+    "Gack",
+    "HOTSWAP",
+    "salesforcedx",
+    "sobject",
+    "STREAMINGAPI",
+    "testsupport",
+    "typeref",
+    "typerefs"
+  ]
 }

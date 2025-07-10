@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigAggregator } from '@salesforce/core-bundle';
 import {
   OrgDisplay,
   RequestService,
@@ -13,7 +14,7 @@ import {
   extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
-import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
+// import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import {
   DebugSession,
   Event,
@@ -567,7 +568,9 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
-        const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+        const configAggregator: ConfigAggregator = await ConfigAggregator.create({
+          projectPath: args.salesforceProject
+        });
         const isvDebuggerSid = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_SID));
         const isvDebuggerUrl = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_URL));
         if (typeof isvDebuggerSid === 'undefined' || typeof isvDebuggerUrl === 'undefined') {

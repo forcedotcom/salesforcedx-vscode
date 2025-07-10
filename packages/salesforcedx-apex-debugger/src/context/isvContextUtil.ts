@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigAggregator } from '@salesforce/core-bundle';
 import {
   ENV_SF_ORG_INSTANCE_URL,
   ENV_SF_TARGET_ORG,
@@ -12,13 +13,14 @@ import {
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
-import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 
 export class IsvContextUtil {
   public async setIsvDebuggerContext(projectWorkspacePath: string) {
     let isvDebugProject = false;
     if (projectWorkspacePath) {
-      const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+      const configAggregator: ConfigAggregator = await ConfigAggregator.create({
+        projectPath: projectWorkspacePath
+      });
       const isvDebuggerSid = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_SID));
       const isvDebuggerUrl = JSON.stringify(configAggregator.getPropertyValue(SF_CONFIG_ISV_DEBUGGER_URL));
 
