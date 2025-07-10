@@ -79,6 +79,8 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
   private readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
+  protected showSuccessNotifications = true;
+  protected showFailureNotifications = true;
   protected readonly telemetry = new TelemetryBuilder();
 
   /**
@@ -141,9 +143,9 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
       }
 
       if (!this.cancelled) {
-        if (success) {
+        if (success && this.showSuccessNotifications) {
           notificationService.showSuccessfulExecution(this.executionName, channelService).catch(e => console.error(e));
-        } else {
+        } else if (!success && this.showFailureNotifications) {
           notificationService.showFailedExecution(this.executionName);
         }
       }
