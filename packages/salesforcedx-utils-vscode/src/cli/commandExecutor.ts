@@ -38,7 +38,7 @@ export class CliCommandExecutor {
     }
 
     // then specific environment from Spawn Options
-    if (typeof options.env !== 'undefined') {
+    if (options.env !== undefined) {
       Object.assign(env, options.env);
     }
 
