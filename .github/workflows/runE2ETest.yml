@@ -84,6 +84,85 @@ jobs:
 
           echo "VS Code cache cleanup completed"
 
+      - name: Create VS Code download script
+        shell: bash
+        run: |
+          # Create a script to download VS Code with fallback methods
+          cat > download-vscode.sh << 'EOF'
+          #!/bin/bash
+          set -e
+
+          VSCODE_VERSION="${1:-latest}"
+          echo "Downloading VS Code version: $VSCODE_VERSION"
+
+          # Function to download with curl as fallback
+          download_with_curl() {
+            local version="$1"
+            local platform
+
+            case "$RUNNER_OS" in
+              "Linux")
+                platform="linux-x64"
+                ;;
+              "Windows")
+                platform="win32-x64"
+                ;;
+              "macOS")
+                platform="darwin"
+                ;;
+              *)
+                echo "Unsupported platform: $RUNNER_OS"
+                return 1
+                ;;
+            esac
+
+            local url="https://update.code.visualstudio.com/${version}/${platform}/stable"
+            local vscode_dir="$HOME/.vscode-test"
+            mkdir -p "$vscode_dir"
+
+            echo "Downloading VS Code using curl from: $url"
+
+            # Use curl with built-in retry capability
+            curl -L --retry 3 --retry-delay 10 --retry-max-time 120 \
+                 --connect-timeout 30 --max-time 300 \
+                 --create-dirs -o "$vscode_dir/vscode-${version}-${platform}.tar.gz" \
+                 "$url"
+
+            echo "VS Code downloaded successfully with curl"
+            return 0
+          }
+
+          # Try to download VS Code using the extension tester's download mechanism first
+          echo "Attempting VS Code download with @vscode/test-electron..."
+          if npx @vscode/test-electron download --version "$VSCODE_VERSION" 2>&1; then
+            echo "VS Code download successful with @vscode/test-electron"
+            exit 0
+          else
+            echo "Primary download method failed, trying curl fallback..."
+            # Clean up any partial downloads
+            rm -rf ~/.vscode-test 2>/dev/null || true
+            rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+
+            # Try curl as fallback
+            if download_with_curl "$VSCODE_VERSION"; then
+              echo "VS Code download successful with curl fallback"
+              exit 0
+            else
+              echo "All download methods failed"
+              exit 1
+            fi
+          fi
+          EOF
+
+          chmod +x download-vscode.sh
+
+      - name: Pre-download VS Code with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 5
+          command: bash download-vscode.sh "${{ matrix.vscodeVersion }}"
+          retry_wait_seconds: 30
+
       - name: Windows-specific setup
         if: runner.os == 'Windows'
         shell: powershell
@@ -161,7 +240,7 @@ jobs:
           EOF
           chmod +x install-salesforce-cli.sh
 
-          # Create E2E test script with Windows-specific handling
+          # Create E2E test script with Windows-specific handling (retry handled by GitHub action)
           cat > run-e2e-test.sh << 'EOF'
           #!/bin/bash
           set -e
@@ -183,6 +262,15 @@ jobs:
             # Add retry delay for Windows
             export RETRY_DELAY=2000
           fi
+
+          # Set network timeout and retry environment variables
+          export VSCODE_EXTENSION_TESTER_NETWORK_TIMEOUT=60000
+          export VSCODE_EXTENSION_TESTER_DOWNLOAD_RETRY=5
+          export VSCODE_EXTENSION_TESTER_DOWNLOAD_DELAY=10000
+
+          # Clean up any existing VS Code cache on failure
+          rm -rf ~/.vscode-test 2>/dev/null || true
+          rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
 
           npm run compile
           npm run gha-automation-tests --spec "$SPEC_PATH"
@@ -237,6 +325,7 @@ jobs:
         with:
           max_attempts: 3
           command: bash run-e2e-test.sh ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
+          retry_wait_seconds: 30
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
@@ -258,6 +347,23 @@ jobs:
           # Extension tester specific settings
           EXTEST_SETTINGS_DIR: ${{ runner.temp }}/extest-settings
           EXTEST_STORAGE_DIR: ${{ runner.temp }}/extest-storage
+          # Network timeout and retry settings
+          VSCODE_EXTENSION_TESTER_NETWORK_TIMEOUT: 60000
+          VSCODE_EXTENSION_TESTER_DOWNLOAD_RETRY: 5
+          VSCODE_EXTENSION_TESTER_DOWNLOAD_DELAY: 10000
+
+      - name: Clean up VS Code cache on failure
+        if: failure()
+        shell: bash
+        run: |
+          echo "Cleaning up VS Code cache after failure..."
+          rm -rf ~/.vscode-test 2>/dev/null || true
+          rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            rm -rf "$USERPROFILE"/.vscode-test 2>/dev/null || true
+            rm -rf "$USERPROFILE"/.cache/vscode-extension-tester 2>/dev/null || true
+          fi
+          echo "VS Code cache cleanup completed"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
