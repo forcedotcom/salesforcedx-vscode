@@ -127,7 +127,7 @@ describe('Manifest Builder', () => {
   });
 
   // This test seems to failing due to bug in command palette command: SFDX: Deploy Source in Manifest to Org.
-  // TODO: Fix the command palette command and re-enable this test.
+  // TODO: Re-enable with WI-19015026: https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002HzT7qYAF/view
   it.skip('SFDX: Deploy Source in Manifest to Org', async () => {
     logTestStart(testSetup, 'SFDX: Deploy Source in Manifest to Org');
     log(`Deploy: Current platform is: ${process.platform}`);
@@ -236,7 +236,7 @@ describe('Manifest Builder', () => {
   });
 
   // This test seems to failing due to bug in command palette command: SFDX: Deploy Source in Manifest to Org.
-  // TODO: Fix the command palette command and re-enable this test.
+  // TODO: Re-enable with WI-19015026: https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002HzT7qYAF/view
   it.skip('SFDX: Retrieve Source in Manifest from Org', async () => {
     logTestStart(testSetup, 'SFDX: Retrieve Source in Manifest from Org');
 
