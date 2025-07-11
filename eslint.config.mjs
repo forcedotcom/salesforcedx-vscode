@@ -17,6 +17,7 @@ import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
 
 import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
 
@@ -63,7 +64,8 @@ export default [
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
-      local: { rules: localRules }
+      local: { rules: localRules },
+      'barrel-files': eslintPluginBarrelFiles
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
@@ -397,6 +399,8 @@ export default [
     // Effect-specific rules for services package
     files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
     rules: {
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       // Effect code should always handle promises properly

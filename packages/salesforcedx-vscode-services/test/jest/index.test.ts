@@ -29,7 +29,6 @@ describe('Extension', () => {
 
     const api = await activate(context);
     expect(api).toBeDefined();
-    expect(api.telemetryService).toBeDefined();
     expect(api.services).toBeDefined();
     expect(api.services.ConnectionService).toBeDefined();
     expect(api.services.ConnectionServiceLive).toBeDefined();

@@ -6,11 +6,10 @@
  */
 
 import * as vscode from 'vscode';
-import { ConnectionService, ConnectionServiceLive, ProjectService, ProjectServiceLive } from './core';
-import { telemetryService } from './telemetry';
+import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
+import { ProjectService, ProjectServiceLive } from './core/projectService';
 
 export type SalesforceVSCodeServicesApi = {
-  telemetryService: typeof telemetryService;
   services: {
     ConnectionService: typeof ConnectionService;
     ConnectionServiceLive: typeof ConnectionServiceLive;
@@ -20,15 +19,12 @@ export type SalesforceVSCodeServicesApi = {
 };
 
 /** Activates the Salesforce Services extension and returns API for other extensions to consume */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
-  // Initialize telemetry
-  await telemetryService.initializeService(context);
-
   console.log('Salesforce Services extension is now active!');
 
   // Return API for other extensions to consume
   const api: SalesforceVSCodeServicesApi = {
-    telemetryService,
     services: {
       ConnectionService,
       ConnectionServiceLive,
@@ -44,7 +40,3 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 export const deactivate = (): void => {
   console.log('Salesforce Services extension is now deactivated!');
 };
-
-// Re-export for convenience
-export { ConnectionService, ConnectionServiceLive, ProjectService, ProjectServiceLive };
-export { telemetryService };

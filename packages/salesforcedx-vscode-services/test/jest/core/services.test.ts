@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConnectionService, ConnectionServiceLive, ProjectService, ProjectServiceLive } from '../../../src/core';
+import { ConnectionService, ConnectionServiceLive } from '../../../src/core/connectionService';
+import { ProjectService, ProjectServiceLive } from '../../../src/core/projectService';
 
 describe('Effect Services', () => {
   describe('ConnectionService', () => {

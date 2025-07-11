@@ -23,7 +23,7 @@ const getServicesExtension = Effect.sync(() =>
 );
 
 const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeServicesApi =>
-  api !== null && api !== undefined && typeof api === 'object' && 'telemetryService' in api;
+  api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
 
 /** Effect to get the Services API (activates extension if needed) */
 export const getServicesApi = pipe(
@@ -41,21 +41,8 @@ export const getServicesApi = pipe(
   )
 );
 
-/** Effect to get the telemetry service specifically */
-export const getTelemetryService = Effect.gen(function* () {
-  const api = yield* getServicesApi;
-  return api.telemetryService;
-});
-
 /** Effect to get the connection services */
 export const getConnectionServices = Effect.gen(function* () {
   const api = yield* getServicesApi;
   return api.services;
 });
-
-/** Effect to initialize telemetry for a given context */
-export const initializeTelemetry = (context: vscode.ExtensionContext): Effect.Effect<void, Error, never> =>
-  Effect.gen(function* () {
-    const telemetryService = yield* getTelemetryService;
-    yield* Effect.tryPromise(() => telemetryService.initializeService(context));
-  });

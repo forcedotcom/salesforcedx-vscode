@@ -5,37 +5,41 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { Context, Effect } from 'effect';
+import { AuthInfo, Connection } from '@salesforce/core';
+import { Context, Effect, pipe } from 'effect';
+import { WorkspaceService } from '../vscode/workspaceService';
+import { ConfigService } from './configService';
 
-// Use the actual connection type from WorkspaceContextUtil
-type SalesforceConnection = Awaited<ReturnType<typeof WorkspaceContextUtil.prototype.getConnection>>;
+// Use the actual connection type from sfdx-core
+export type SalesforceConnection = Connection;
 
 export type ConnectionService = {
   /** Get a Connection to the target org */
-  readonly getConnection: Effect.Effect<SalesforceConnection, Error, never>;
-
-  /** Check if a connection is available */
-  readonly hasConnection: Effect.Effect<boolean, Error, never>;
+  readonly getConnection: Effect.Effect<SalesforceConnection, Error, ConfigService | WorkspaceService>;
 };
 
 export const ConnectionService = Context.GenericTag<ConnectionService>('ConnectionService');
 
 export const ConnectionServiceLive = ConnectionService.of({
-  getConnection: Effect.tryPromise({
-    try: () => WorkspaceContextUtil.getInstance().getConnection(),
-    catch: (error: unknown) => new Error(`Failed to get connection: ${String(error)}`)
-  }),
-
-  hasConnection: Effect.gen(function* () {
-    try {
-      yield* Effect.tryPromise({
-        try: () => WorkspaceContextUtil.getInstance().getConnection(),
-        catch: () => new Error('No connection available')
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  })
+  getConnection: pipe(
+    ConfigService,
+    Effect.flatMap(configService => configService.getConfigAggregator),
+    Effect.flatMap(configAggregator => {
+      const rawUsername = configAggregator.getPropertyValue('target-org');
+      const username = typeof rawUsername === 'string' ? rawUsername : undefined;
+      return username ? Effect.succeed(username) : Effect.fail(new Error('No default org (target-org) set in config'));
+    }),
+    Effect.flatMap(username =>
+      Effect.tryPromise({
+        try: () => AuthInfo.create({ username }),
+        catch: error => new Error(`Failed to create AuthInfo: ${String(error)}`)
+      })
+    ),
+    Effect.flatMap(authInfo =>
+      Effect.tryPromise({
+        try: () => Connection.create({ authInfo }),
+        catch: error => new Error(`Failed to create Connection: ${String(error)}`)
+      })
+    )
+  )
 });

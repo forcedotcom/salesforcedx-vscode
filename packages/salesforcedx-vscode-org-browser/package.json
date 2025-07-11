@@ -24,9 +24,6 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "64.4.0",
-    "@salesforce/salesforcedx-utils-vscode": "64.4.0",
-    "applicationinsights": "1.0.7",
     "effect": "^3.10.10",
     "vscode-uri": "^3.1.0"
   },

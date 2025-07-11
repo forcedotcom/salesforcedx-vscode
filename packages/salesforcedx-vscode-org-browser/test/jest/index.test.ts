@@ -29,9 +29,7 @@ jest.mock('vscode', () => ({
 
 // Import the mocked functions
 import { Effect } from 'effect';
-import { initializeTelemetry } from '../../src/services/extensionProvider';
 
-const mockInitializeTelemetry = initializeTelemetry as jest.MockedFunction<typeof initializeTelemetry>;
 const mockRunPromise = Effect.runPromise as jest.MockedFunction<typeof Effect.runPromise>;
 
 describe('Extension', () => {
@@ -44,7 +42,6 @@ describe('Extension', () => {
 
     await activate(context);
 
-    expect(mockInitializeTelemetry).toHaveBeenCalledWith(context);
     expect(mockRunPromise).toHaveBeenCalled();
   });
 
