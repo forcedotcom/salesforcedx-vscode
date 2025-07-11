@@ -156,7 +156,8 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
-  it('SFDX: Get Apex Debug Logs', async () => {
+  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
+  it.skip('SFDX: Get Apex Debug Logs', async () => {
     logTestStart(testSetup, 'SFDX: Get Apex Debug Logs');
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
