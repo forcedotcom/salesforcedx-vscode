@@ -61,7 +61,7 @@ describe('ActivationTracker', () => {
     await tracker.markActivationStop();
 
     expect(tracker.activationInfo).toEqual({
-      startActivateHrTime: expect.arrayContaining([expect.any(Number), expect.any(Number)]),
+      startActivateHrTime: expect.any(Number),
       activateStartDate: expect.any(Date),
       activateEndDate: expect.any(Date),
       extensionActivationTime: expect.any(Number),

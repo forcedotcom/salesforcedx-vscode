@@ -14,7 +14,7 @@ import { isLwcJestTest } from '../utils/isLwcJestTest';
 
 import { workspaceService } from '../workspace/workspaceService';
 
-const debugSessionStartTimes = new Map<string, [number, number]>();
+const debugSessionStartTimes = new Map<string, number>();
 
 /**
  * Create a VS Code debug configuration for LWC Jest tests.
@@ -100,7 +100,7 @@ export const lwcTestDebugActiveTextEditorTest = async () => {
 export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
-  const startTime = process.hrtime();
+  const startTime = globalThis.performance.now();
   debugSessionStartTimes.set(sfDebugSessionId, startTime);
 };
 

@@ -5,6 +5,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "overrides": {
+    "@salesforce/vscode-service-provider@*": "file:../salesforcedx-vscode-service-provider"
+  },
   "engines": {
     "node": ">=20.17.0"
   },

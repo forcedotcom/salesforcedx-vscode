@@ -235,7 +235,6 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
-  const extensionHRStart = process.hrtime();
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const fileWatchers = registerFileWatchers();
@@ -269,7 +268,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     );
   }
 
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  telemetryService.sendExtensionActivationEvent();
 };
 
 export const deactivate = () => {

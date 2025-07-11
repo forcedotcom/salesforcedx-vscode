@@ -52,7 +52,7 @@ export type FlagParameter<T> = {
 
 export type CommandletExecutor<T> = {
   execute(response: ContinueResponse<T>): void | Promise<void>;
-  readonly onDidFinishExecution?: Event<[number, number]>;
+  readonly onDidFinishExecution?: Event<number>;
 };
 
 // Selection

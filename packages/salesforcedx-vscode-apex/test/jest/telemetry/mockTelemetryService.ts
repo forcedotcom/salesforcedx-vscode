@@ -32,6 +32,9 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
   getReporters(): TelemetryReporter[] {
     return [];
   }
+  getTelemetryReporterName(): string {
+    return 'mock-reporter';
+  }
   isTelemetryEnabled(): Promise<boolean> {
     return Promise.resolve(true);
   }
@@ -47,18 +50,13 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
   sendActivationEventInfo(activationInfo: ActivationInfo): void {
     // No-op implementation
   }
-  sendExtensionActivationEvent(hrstart: [number, number], markEndTime?: number, telemetryData?: TelemetryData): void {
+  sendExtensionActivationEvent(hrstart: number, markEndTime?: number, telemetryData?: TelemetryData): void {
     // No-op implementation
   }
   sendExtensionDeactivationEvent(): void {
     // No-op implementation
   }
-  sendCommandEvent(
-    commandName?: string,
-    hrstart?: [number, number],
-    properties?: Properties,
-    measurements?: Measurements
-  ): void {
+  sendCommandEvent(commandName?: string, hrstart?: number, properties?: Properties, measurements?: Measurements): void {
     // No-op implementation
   }
   sendException(name: string, message: string): void {
@@ -66,6 +64,9 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
   }
   sendEventData(eventName: string, properties?: { [key: string]: string }, measures?: { [key: string]: number }): void {
     // No-op implementation
+  }
+  getEndHRTime(hrstart: number): number {
+    return 3.141; // Mock implementation returning a fixed value
   }
   dispose(): void {
     // No-op implementation

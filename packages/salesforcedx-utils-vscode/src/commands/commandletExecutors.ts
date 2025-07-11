@@ -20,8 +20,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();
-  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<[number, number]>();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this.onDidFinishExecutionEventEmitter.event;
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<number>();
+  public readonly onDidFinishExecution: vscode.Event<number> = this.onDidFinishExecutionEventEmitter.event;
 
   constructor(outputChannel?: vscode.OutputChannel) {
     this.outputChannel = outputChannel;
@@ -44,17 +44,12 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     ProgressNotification.show(execution, cancellationTokenSource);
   }
 
-  public logMetric(
-    logName: string | undefined,
-    hrstart: [number, number],
-    properties?: Properties,
-    measurements?: Measurements
-  ) {
+  public logMetric(logName: string | undefined, hrstart: number, properties?: Properties, measurements?: Measurements) {
     TelemetryService.getInstance().sendCommandEvent(logName, hrstart, properties, measurements);
   }
 
   public execute(response: ContinueResponse<T>): void {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -110,7 +105,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
   ): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
     if (SettingsService.getEnableClearOutputBeforeEachCommand()) {

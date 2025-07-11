@@ -153,8 +153,6 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
   console.log('Apex Replay Debugger Extension Activated');
-  const extensionHRStart = process.hrtime();
-
   extContext = extensionContext;
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
@@ -199,7 +197,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     );
   }
 
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  telemetryService.sendExtensionActivationEvent();
 };
 
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {

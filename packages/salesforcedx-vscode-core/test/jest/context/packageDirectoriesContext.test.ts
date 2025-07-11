@@ -15,7 +15,6 @@ import { checkPackageDirectoriesEditorView } from '../../../src/context/packageD
 // Mock all external dependencies
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
   const mockTelemetryService = {
-    hrTimeToMilliseconds: jest.fn().mockReturnValue(100)
   };
 
   return {
@@ -87,7 +86,6 @@ describe('packageDirectoriesContext', () => {
 
     // Ensure TelemetryService mock is properly set up
     (TelemetryService.getInstance as jest.Mock).mockReturnValue({
-      hrTimeToMilliseconds: jest.fn().mockReturnValue(100)
     });
 
     // Mock the directory reading for each level

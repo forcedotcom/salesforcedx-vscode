@@ -73,7 +73,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(response: ContinueResponse<string>): void {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = workspaceUtils.getRootWorkspacePath() || '';
@@ -101,7 +101,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     workspacePath: string,
     execFilePathOrPaths: string,
     execution: CliCommandExecution,
-    startTime: [number, number]
+    startTime: number
   ): Promise<void> {
     if (execution.command.logName === PROJECT_DEPLOY_START_LOG_NAME) {
       const pushResult = this.parseOutput(stdOut);

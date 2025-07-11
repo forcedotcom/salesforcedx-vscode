@@ -6,7 +6,6 @@
  */
 
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import * as util from 'node:util';
 import { DebugSessionCustomEvent } from 'vscode';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex-debugger';
@@ -32,9 +31,10 @@ export class TelemetryService {
     this.reporters = reporters;
   }
 
-  public sendExtensionActivationEvent(hrstart: [number, number]): void {
+  public sendExtensionActivationEvent(hrstart?: number): void {
+    const startTime = hrstart || globalThis.performance.now();
     if (this.reporters !== undefined && this.isTelemetryEnabled) {
-      const startupTime = this.getEndHRTime(hrstart);
+      const startupTime = this.getEndHRTime(startTime);
       this.reporters.forEach(reporter => {
         reporter.sendTelemetryEvent(
           'activationEvent',
@@ -59,9 +59,8 @@ export class TelemetryService {
     }
   }
 
-  private getEndHRTime(hrstart: [number, number]): number {
-    const hrend = process.hrtime(hrstart);
-    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
+  public getEndHRTime(hrstart: number): number {
+    return globalThis.performance.now() - hrstart;
   }
 
   public sendMetricEvent(event: DebugSessionCustomEvent): void {

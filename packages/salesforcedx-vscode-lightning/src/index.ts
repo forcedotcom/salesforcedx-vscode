@@ -20,7 +20,7 @@ const getActivationMode = (): string => {
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
-  const extensionHRStart = process.hrtime();
+  const extensionHRStart = globalThis.performance.now();
   console.log(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what

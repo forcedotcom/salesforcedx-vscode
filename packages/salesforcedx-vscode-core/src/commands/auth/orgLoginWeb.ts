@@ -56,7 +56,7 @@ export class OrgLoginWebContainerExecutor extends SfCommandletExecutor<AuthParam
   }
 
   public execute(response: ContinueResponse<AuthParams>): void {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -146,7 +146,7 @@ class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {
 
 export abstract class AuthDemoModeExecutor<T> extends SfCommandletExecutor<T> {
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
