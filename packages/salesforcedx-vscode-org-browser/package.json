@@ -38,6 +38,7 @@
   ],
   "scripts": {
     "bundle:extension": "npm run compile && node ./esbuild.config.mjs",
+    "run:web": "npx vscode-test-web --browserType=chromium --extensionDevelopmentPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-services --open-devtools ~/eng/repros/ext-qa",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "npm run bundle:extension && vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

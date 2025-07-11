@@ -71,6 +71,7 @@
     "ts-loader": "^9.3.0",
     "ts-node": "10.9.2",
     "typescript": "^5.8.3",
+    "@vscode/test-web": "0.0.71",
     "yaml": "2.6.0"
   },
   "scripts": {
