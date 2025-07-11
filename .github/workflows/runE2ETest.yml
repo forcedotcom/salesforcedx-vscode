@@ -2,16 +2,6 @@ name: Run E2E Test
 on:
   workflow_call:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
-      automationRepo:
-        description: 'Set the repo to use for automation tests'
-        required: false
-        default: 'salesforcedx-vscode-automation-tests-redhat'
-        type: string
       testToRun:
         description: 'Run this E2E test'
         required: false
@@ -39,7 +29,7 @@ jobs:
       matrix:
         os: ${{ fromJson(inputs.os) }}
         nodeVersion:
-          - 20.17.0
+          - 20.18.1
         vscodeVersion:
           - ${{ inputs.vscodeVersion }}
     steps:
@@ -48,17 +38,6 @@ jobs:
         with:
           path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
-      - name: Download extension vsixes
-        run: |
-          mkdir ./extensions
-          pwd
-          gh run download ${{ inputs.runId }} -D ./extensions
-          mv ./extensions/*/* ./extensions/
-        working-directory: salesforcedx-vscode
-        env:
-          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
-      - name: Display downloaded vsix files
-        run: ls -R ./salesforcedx-vscode/extensions
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -66,78 +45,332 @@ jobs:
           cache: npm
           cache-dependency-path: |
             salesforcedx-vscode/package-lock.json
-            ${{ inputs.automationRepo }}/package-lock.json
       - name: Setup java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '11'
-      - name: Clone automation tests
-        uses: actions/checkout@v4
-        with:
-          repository: forcedotcom/${{ inputs.automationRepo }}
-          path: ${{ inputs.automationRepo }}
-          ref: ${{ inputs.automationBranch }}
-      - name: Install Test Dependencies
-        run: |
-          npm install
-        working-directory: ${{ inputs.automationRepo }}
-      - name: Install the Salesforce CLI
-        run: npm install -g @salesforce/cli
-      - name: Verify CLI
+
+      - name: Clean VS Code cache and setup
         shell: bash
         run: |
+          # Clean up any corrupted VS Code downloads/cache
+          echo "Cleaning VS Code cache and temp files..."
+
+          # Remove vscode-extension-tester cache
+          rm -rf ~/.vscode-test 2>/dev/null || true
+          rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+
+          # Remove any partial downloads
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            rm -rf "$TEMP"/vscode-* 2>/dev/null || true
+            rm -rf "$USERPROFILE"/.vscode-test 2>/dev/null || true
+            # Clean VS Code user extensions directory
+            rm -rf "$USERPROFILE"/.vscode/extensions 2>/dev/null || true
+            # Clean VS Code insiders extensions directory
+            rm -rf "$USERPROFILE"/.vscode-insiders/extensions 2>/dev/null || true
+            # Force kill any VS Code processes that might be locking files
+            taskkill //F //IM Code.exe 2>/dev/null || true
+            taskkill //F //IM Code-insiders.exe 2>/dev/null || true
+            taskkill //F //IM "Microsoft VS Code.exe" 2>/dev/null || true
+            # Wait a bit for processes to fully terminate
+            sleep 5
+          else
+            rm -rf /tmp/vscode-* 2>/dev/null || true
+          fi
+
+          # Clean npm cache
+          npm cache clean --force
+
+          echo "VS Code cache cleanup completed"
+
+      - name: Create VS Code download script
+        shell: bash
+        run: |
+          # Create a script to download VS Code with fallback methods
+          cat > download-vscode.sh << 'EOF'
+          #!/bin/bash
           set -e
+
+          VSCODE_VERSION="${1:-latest}"
+          echo "Downloading VS Code version: $VSCODE_VERSION"
+
+          # Function to download with curl as fallback
+          download_with_curl() {
+            local version="$1"
+            local platform
+
+            case "$RUNNER_OS" in
+              "Linux")
+                platform="linux-x64"
+                ;;
+              "Windows")
+                platform="win32-x64"
+                ;;
+              "macOS")
+                platform="darwin"
+                ;;
+              *)
+                echo "Unsupported platform: $RUNNER_OS"
+                return 1
+                ;;
+            esac
+
+            local url="https://update.code.visualstudio.com/${version}/${platform}/stable"
+            local vscode_dir="$HOME/.vscode-test"
+            mkdir -p "$vscode_dir"
+
+            echo "Downloading VS Code using curl from: $url"
+
+            # Use curl with built-in retry capability
+            curl -L --retry 3 --retry-delay 10 --retry-max-time 120 \
+                 --connect-timeout 30 --max-time 300 \
+                 --create-dirs -o "$vscode_dir/vscode-${version}-${platform}.tar.gz" \
+                 "$url"
+
+            echo "VS Code downloaded successfully with curl"
+            return 0
+          }
+
+          # Try to download VS Code using the extension tester's download mechanism first
+          echo "Attempting VS Code download with @vscode/test-electron..."
+          if npx @vscode/test-electron download --version "$VSCODE_VERSION" 2>&1; then
+            echo "VS Code download successful with @vscode/test-electron"
+            exit 0
+          else
+            echo "Primary download method failed, trying curl fallback..."
+            # Clean up any partial downloads
+            rm -rf ~/.vscode-test 2>/dev/null || true
+            rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+
+            # Try curl as fallback
+            if download_with_curl "$VSCODE_VERSION"; then
+              echo "VS Code download successful with curl fallback"
+              exit 0
+            else
+              echo "All download methods failed"
+              exit 1
+            fi
+          fi
+          EOF
+
+          chmod +x download-vscode.sh
+
+      - name: Pre-download VS Code with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 5
+          command: bash download-vscode.sh "${{ matrix.vscodeVersion }}"
+          retry_wait_seconds: 30
+
+      - name: Windows-specific setup
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          Write-Host "Setting up Windows-specific configurations..."
+
+          # Disable Windows Defender real-time protection for the workspace
+          # This helps prevent file locking issues during extension operations
+          try {
+            Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+            Write-Host "Windows Defender real-time protection disabled"
+          } catch {
+            Write-Host "Could not disable Windows Defender (non-critical)"
+          }
+
+          # Set environment variables for better file handling
+          [Environment]::SetEnvironmentVariable("VSCODE_SKIP_GETTING_STARTED", "true", "Process")
+          [Environment]::SetEnvironmentVariable("VSCODE_DISABLE_CRASH_REPORTER", "true", "Process")
+          [Environment]::SetEnvironmentVariable("VSCODE_EXTENSIONS_AUTOCHECK_UPDATES", "false", "Process")
+
+          # Create extensions directory with proper permissions
+          $extensionsDir = "$env:USERPROFILE\.vscode\extensions"
+          if (Test-Path $extensionsDir) {
+            Remove-Item $extensionsDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          New-Item -ItemType Directory -Path $extensionsDir -Force
+
+          Write-Host "Windows-specific setup completed"
+
+      - name: Setup project directories
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+        run: |
+          set -e
+          export MSYS_NO_PATHCONV=1
+          cd salesforcedx-vscode
+
+          # Clean project directories
+          rm -rf ./extensions 2>/dev/null || true
+          rm -rf ./e2e-temp 2>/dev/null || true
+
+          # Create extensions directory
+          mkdir -p ./extensions
+
+          # Download extension vsixes
+          pwd
+          gh run download ${{ inputs.runId }} -D ./extensions
+
+          # Move downloaded files to extensions root
+          find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
+          find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+
+      - name: Create retry scripts
+        shell: bash
+        run: |
+          # Create install dependencies script
+          cat > install-dependencies.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "Installing npm dependencies..."
+          cd salesforcedx-vscode
+          npm install
+          echo "Dependencies installed successfully"
+          EOF
+          chmod +x install-dependencies.sh
+
+          # Create install Salesforce CLI script
+          cat > install-salesforce-cli.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "Installing Salesforce CLI..."
+          npm install -g @salesforce/cli
+          echo "Salesforce CLI installed successfully"
+          EOF
+          chmod +x install-salesforce-cli.sh
+
+          # Create E2E test script with Windows-specific handling (retry handled by GitHub action)
+          cat > run-e2e-test.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          if [ $# -eq 0 ]; then
+              echo "Usage: $0 <spec_path>"
+              echo "Example: $0 packages/salesforcedx-vscode-automation-tests/lib/test/specs/mytest.e2e.js"
+              exit 1
+          fi
+          SPEC_PATH="$1"
+          echo "Running E2E test for spec: $SPEC_PATH"
+          cd salesforcedx-vscode
+
+          # Windows-specific pre-test setup
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "Setting up Windows-specific environment..."
+            export VSCODE_SKIP_GETTING_STARTED=true
+            export VSCODE_DISABLE_CRASH_REPORTER=true
+            export VSCODE_EXTENSIONS_AUTOCHECK_UPDATES=false
+            # Add retry delay for Windows
+            export RETRY_DELAY=2000
+          fi
+
+          # Set network timeout and retry environment variables
+          export VSCODE_EXTENSION_TESTER_NETWORK_TIMEOUT=60000
+          export VSCODE_EXTENSION_TESTER_DOWNLOAD_RETRY=5
+          export VSCODE_EXTENSION_TESTER_DOWNLOAD_DELAY=10000
+
+          # Clean up any existing VS Code cache on failure
+          rm -rf ~/.vscode-test 2>/dev/null || true
+          rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+
+          npm run compile
+          npm run gha-automation-tests --spec "$SPEC_PATH"
+          echo "E2E test completed successfully"
+          EOF
+          chmod +x run-e2e-test.sh
+
+      - name: Install dependencies with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash install-dependencies.sh
+          retry_wait_seconds: 30
+
+      - name: Install Salesforce CLI with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash install-salesforce-cli.sh
+          retry_wait_seconds: 30
+
+      - name: Verify CLI and setup environment
+        shell: bash
+        run: |
+          cd salesforcedx-vscode
+
+          # Verify CLI and set environment variables
           sf version
           SF_CLI_VERSION=$(sf version)
-          if [[ ((`echo $SF_CLI_VERSION | grep -c "@salesforce/cli/"` > 0))]]
-          then
-            echo "@salesforce/cli installed -" $SF_CLI_VERSION
+          echo "SF_CLI_VERSION: $SF_CLI_VERSION"
+          echo "SF_CLI_VERSION=$SF_CLI_VERSION" >> $GITHUB_ENV
+
+          if echo "$SF_CLI_VERSION" | grep -q "@salesforce/cli/"; then
+            echo "@salesforce/cli installed - $SF_CLI_VERSION"
           else
-            echo "The @salesforce/cli installation could not be verified"
+            echo "The @salesforce/cli installation cannot be verified"
             exit 1
           fi
-      - name: Set THROTTLE_FACTOR for macOS and Linux
-        if: matrix.os != 'windows-latest'
-        run: echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
-      - name: Set THROTTLE_FACTOR for Windows
-        if: matrix.os == 'windows-latest'
-        run: echo "THROTTLE_FACTOR=5" >> $GITHUB_ENV
-      - name: Run test setup script
-        if: inputs.automationRepo == 'salesforcedx-vscode-automation-tests'
-        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
+
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
+            # Create temporary directories for VS Code extension tester
+            mkdir -p "$RUNNER_TEMP/extest-settings" "$RUNNER_TEMP/extest-storage"
+            # Set permissions for Windows
+            chmod 755 "$RUNNER_TEMP/extest-settings" "$RUNNER_TEMP/extest-storage" 2>/dev/null || true
+          else
+            echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
+          fi
+
+      - name: Run E2E test with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
-          run: |
-            npm run setup
-          working-directory: 'salesforcedx-vscode-automation-tests'
+          max_attempts: 3
+          command: bash run-e2e-test.sh ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
+          retry_wait_seconds: 30
         env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
-          ORG_ID: ${{ secrets.ORG_ID_E2E }}
-      - name: Run headless test
-        uses: coactions/setup-xvfb@b6b4fcfb9f5a895edadc3bc76318fae0ac17c8b3
-        with:
-          run: |
-            npm run automation-tests
-          working-directory: ${{ inputs.automationRepo }}
-        env:
-          VSCODE_VERSION: ${{ matrix.vscodeVersion }}
-          SPEC_FILES: ${{ inputs.testToRun }}
+          SPEC_FILES: ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
           ORG_ID: ${{ secrets.ORG_ID_E2E }}
           THROTTLE_FACTOR: ${{ env.THROTTLE_FACTOR }}
+          VSIX_TO_INSTALL: ./extensions
+          DEV_HUB_ALIAS_NAME: vscodeOrg
+          DEV_HUB_USER_NAME: svcideebot@salesforce.com
+          BASH_SILENCE_DEPRECATION_WARNING: 1
+          # Windows-specific environment variables to prevent file locking issues
+          VSCODE_SKIP_GETTING_STARTED: true
+          VSCODE_DISABLE_CRASH_REPORTER: true
+          VSCODE_EXTENSIONS_AUTOCHECK_UPDATES: false
+          VSCODE_SKIP_RELEASE_NOTES: true
+          VSCODE_SKIP_WELCOME: true
+          # Extension tester specific settings
+          EXTEST_SETTINGS_DIR: ${{ runner.temp }}/extest-settings
+          EXTEST_STORAGE_DIR: ${{ runner.temp }}/extest-storage
+          # Network timeout and retry settings
+          VSCODE_EXTENSION_TESTER_NETWORK_TIMEOUT: 60000
+          VSCODE_EXTENSION_TESTER_DOWNLOAD_RETRY: 5
+          VSCODE_EXTENSION_TESTER_DOWNLOAD_DELAY: 10000
+
+      - name: Clean up VS Code cache on failure
+        if: failure()
+        shell: bash
+        run: |
+          echo "Cleaning up VS Code cache after failure..."
+          rm -rf ~/.vscode-test 2>/dev/null || true
+          rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            rm -rf "$USERPROFILE"/.vscode-test 2>/dev/null || true
+            rm -rf "$USERPROFILE"/.cache/vscode-extension-tester 2>/dev/null || true
+          fi
+          echo "VS Code cache cleanup completed"
       - uses: actions/upload-artifact@v4
-        if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests'
+        if: failure()
         with:
           name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./${{ inputs.automationRepo }}/screenshots
+          path: salesforcedx-vscode/test-resources/screenshots
       - uses: actions/upload-artifact@v4
-        if: failure() && inputs.automationRepo == 'salesforcedx-vscode-automation-tests-redhat'
-        with:
-          name: screenshots-${{ inputs.testToRun }}-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./salesforcedx-vscode/extensions/screenshots
-      - uses: actions/upload-artifact@v4
-        if: ${{ inputs.testToRun }} == 'createOASDoc'
+        if: ${{ inputs.testToRun == 'createOasDoc.e2e.js' }}
         with:
           name: llm-logs-${{ matrix.os }}-${{ inputs.vscodeVersion }}
-          path: ./${{ inputs.automationRepo }}/e2e-temp/TempProject-CreateOASDoc/llm-logs
+          path: salesforcedx-vscode/e2e-temp/TempProject-CreateOASDoc/llm-logs

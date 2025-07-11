@@ -1,0 +1,217 @@
+name: Direct E2E Tests
+on:
+  workflow_call:
+    inputs:
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: 'latest'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+jobs:
+  # 🚀 Setup & Initialization
+  setup-initial-suite:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'anInitialSuite.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # 🔧 Core Features
+  core-authentication:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'authentication.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  core-create-project:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'createProject.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  core-sfdx-project-json:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'sfdxProjectJson.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  core-sobjects-definitions:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'sObjectsDefinitions.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  core-org-browser:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'orgBrowser.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  core-miscellaneous:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'miscellaneous.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # 📦 Deploy & Retrieve
+  deploy-and-retrieve:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'deployAndRetrieve.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  deploy-metadata-deploy-retrieve:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'metadataDeployRetrieve.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  deploy-push-and-pull:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'pushAndPull.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  deploy-manifest-builder:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'manifestBuilder.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # 🐛 Apex Features
+  apex-lsp:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'apexLsp.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  apex-run-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'runApexTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  apex-debug-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'debugApexTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  apex-replay-debugger:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'apexReplayDebugger.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+      os: '["macos-latest"]'
+
+  apex-trail-replay-debugger:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'trailApexReplayDebugger.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # ⚡ LWC Features
+  lwc-lsp:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'lwcLsp.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  lwc-run-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'runLwcTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  lwc-debug-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'debugLwcTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # 🔥 Aura Features
+  aura-lsp:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'auraLsp.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # 📄 Visualforce Features
+  visualforce-lsp:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'visualforceLsp.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # 🔍 SOQL Features
+  soql-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'soql.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # 📋 Templates
+  templates-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'templates.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
+
+  # 📚 OpenAPI Documentation
+  docs-create-oas-doc:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'createOasDoc.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}

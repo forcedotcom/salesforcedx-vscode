@@ -84,8 +84,22 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       try {
         this.orgInfo = await new OrgDisplay().getOrgInfo();
       } catch (error) {
-        const result = JSON.parse(error) as OrgInfoError;
-        const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
+        let errorMessage: string;
+
+        // Check if error is already an Error object with a message
+        if (error instanceof Error) {
+          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${error.message}`;
+        } else {
+          // Try to parse as JSON (for backwards compatibility)
+          try {
+            const result = JSON.parse(error as string) as OrgInfoError;
+            errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
+          } catch {
+            // If JSON parsing fails, treat as string
+            errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${String(error)}`;
+          }
+        }
+
         writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
         return false;
       }

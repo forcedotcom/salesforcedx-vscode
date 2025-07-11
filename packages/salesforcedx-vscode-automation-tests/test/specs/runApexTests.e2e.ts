@@ -1,0 +1,494 @@
+/*
+ * Copyright (c) 2023, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import {
+  Duration,
+  log,
+  pause,
+  ProjectShapeOption,
+  TestReqConfig
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
+  createApexClassWithBugs,
+  createApexClassWithTest
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
+import {
+  getTestsSection,
+  runTestCaseFromSideBar,
+  verifyTestIconColor,
+  verifyTestItemsInSideBar
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
+import {
+  attemptToFindOutputPanelText,
+  clearOutputView,
+  clickFilePathOkButton,
+  dismissAllNotifications,
+  executeQuickPick,
+  getStatusBarItemWhichIncludes,
+  getTextEditor,
+  getWorkbench,
+  verifyOutputPanelText,
+  waitForAndGetCodeLens
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { expect } from 'chai';
+import * as semver from 'semver';
+import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
+
+describe('Run Apex Tests', () => {
+  let prompt: InputBox | QuickOpenBox;
+  let testSetup: TestSetup;
+  const testReqConfig: TestReqConfig = {
+    projectConfig: {
+      projectShape: ProjectShapeOption.NEW
+    },
+    isOrgRequired: true,
+    testSuiteSuffixName: 'RunApexTests'
+  };
+
+  before('Set up the testing environment', async () => {
+    log('RunApexTests - Set up the testing environment');
+    testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Create Apex class 1 and test
+    await retryOperation(
+      () => createApexClassWithTest('ExampleApexClass1'),
+      2,
+      'RunApexTests - Error creating Apex class 1 and test'
+    );
+
+    // Create Apex class 2 and test
+    await retryOperation(
+      () => createApexClassWithTest('ExampleApexClass2'),
+      2,
+      'RunApexTests - Error creating Apex class 2 and test'
+    );
+
+    // Create Apex class 3 and test
+    await retryOperation(
+      () => createApexClassWithTest('ExampleApexClass3'),
+      2,
+      'RunApexTests - Error creating Apex class 3 and test'
+    );
+
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
+  });
+
+  it('Verify LSP finished indexing', async () => {
+    logTestStart(testSetup, 'Verify LSP finished indexing');
+
+    // Get Apex LSP Status Bar
+    const statusBar = await retryOperation(async () => await getStatusBarItemWhichIncludes('Editor Language Status'));
+    await statusBar.click();
+    expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
+  });
+
+  it('Run All Tests via Apex Class', async () => {
+    logTestStart(testSetup, 'Run All Tests via Apex Class');
+    const workbench = getWorkbench();
+    const textEditor = await getTextEditor(workbench, 'ExampleApexClass1Test.cls');
+
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+
+    // Click the "Run All Tests" code lens at the top of the class
+    const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
+    expect(runAllTestsOption).to.not.be.undefined;
+    await runAllTestsOption!.click();
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify test results are listed on vscode's Output section
+    // Also verify that all tests pass
+    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const expectedTexts = [
+      '=== Test Summary',
+      'Outcome              Passed',
+      'Tests Ran            1',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'ExampleApexClass1Test.validateSayHello  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
+  });
+
+  it('Run Single Test via Apex Class', async () => {
+    logTestStart(testSetup, 'Run Single Test via Apex Class');
+    const workbench = getWorkbench();
+    const textEditor = await getTextEditor(workbench, 'ExampleApexClass2Test.cls');
+
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+
+    // Click the "Run Test" code lens at the top of one of the test methods
+    const runTestOption = await waitForAndGetCodeLens(textEditor, 'Run Test');
+    expect(runTestOption).to.not.be.undefined;
+    await runTestOption!.click();
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify test results are listed on vscode's Output section
+    // Also verify that all tests pass
+    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const expectedTexts = [
+      '=== Test Summary',
+      'Outcome              Passed',
+      'Tests Ran            1',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'ExampleApexClass2Test.validateSayHello  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
+  });
+
+  it('Run All Tests via Command Palette', async () => {
+    logTestStart(testSetup, 'Run All Tests via Command Palette');
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+
+    // Run SFDX: Run Apex tests.
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
+
+    // Select the "All Tests" option
+    await prompt.selectQuickPick('All Tests');
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    await pause(Duration.seconds(10)); // Remove this once we have a way to wait for the tests to finish running
+
+    // Verify test results are listed on vscode's Output section
+    // Also verify that all tests pass
+    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const expectedTexts = [
+      '=== Test Summary',
+      'Outcome              Passed',
+      'Tests Ran            3',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'ExampleApexClass1Test.validateSayHello  Pass',
+      'ExampleApexClass2Test.validateSayHello  Pass',
+      'ExampleApexClass3Test.validateSayHello  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
+  });
+
+  it('Run Single Class via Command Palette', async () => {
+    logTestStart(testSetup, 'Run Single Class via Command Palette');
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+
+    // Run SFDX: Run Apex tests.
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
+
+    // Select the "ExampleApexClass1Test" file
+    await prompt.selectQuickPick('ExampleApexClass1Test');
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify test results are listed on vscode's Output section
+    // Also verify that all tests pass
+    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const expectedTexts = [
+      '=== Test Summary',
+      'Outcome              Passed',
+      'Tests Ran            1',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'ExampleApexClass1Test.validateSayHello  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
+  });
+
+  it('Run All tests via Test Sidebar', async () => {
+    logTestStart(testSetup, 'Run All tests via Test Sidebar');
+    const workbench = getWorkbench();
+    const testingView = await workbench.getActivityBar().getViewControl('Testing');
+    expect(testingView).to.not.be.undefined;
+    // Open the Test Sidebar
+    const testingSideBarView = await testingView?.openView();
+    expect(testingSideBarView).to.be.instanceOf(SideBarView);
+
+    const apexTestsSection = await getTestsSection(workbench, 'Apex Tests');
+    await pause(Duration.seconds(10)); // Wait for test section to load
+    const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
+    const apexTestsItems = await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 6, 3);
+
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+
+    // Click the run tests button on the top right corner of the Test sidebar
+    await apexTestsSection.click();
+    const runTestsAction = await apexTestsSection.getAction('Run Tests');
+    await runTestsAction!.click();
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify test results are listed on vscode's Output section
+    // Also verify that all tests pass
+    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const expectedTexts = [
+      '=== Test Summary',
+      'Outcome              Passed',
+      'Tests Ran            3',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'ExampleApexClass1Test.validateSayHello  Pass',
+      'ExampleApexClass2Test.validateSayHello  Pass',
+      'ExampleApexClass3Test.validateSayHello  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
+
+    // Verify the tests that are passing are labeled with a green dot on the Test sidebar
+    for (const item of apexTestsItems) {
+      await verifyTestIconColor(item, 'testPass');
+    }
+  });
+
+  it('Run All Tests on a Class via the Test Sidebar', async () => {
+    logTestStart(testSetup, 'Run All Tests on a Class via the Test Sidebar');
+    const workbench = getWorkbench();
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'ExampleApexClass2Test', 'Run Tests');
+    const expectedTexts = [
+      '=== Test Summary',
+      'Outcome              Passed',
+      'Tests Ran            1',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'ExampleApexClass2Test.validateSayHello  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+    expect(terminalText).to.not.be.undefined;
+    await verifyOutputPanelText(terminalText!, expectedTexts);
+  });
+
+  it('Run Single Test via the Test Sidebar', async () => {
+    logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
+    const workbench = getWorkbench();
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+    const terminalText = await runTestCaseFromSideBar(
+      workbench,
+      'Apex Tests',
+      'validateSayHello',
+      'Run Single Test'
+    );
+    const expectedTexts = [
+      '=== Test Summary',
+      'Outcome              Passed',
+      'Tests Ran            1',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'ExampleApexClass1Test.validateSayHello  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+    expect(terminalText).to.not.be.undefined;
+    await verifyOutputPanelText(terminalText!, expectedTexts);
+  });
+
+  it('Run a test that fails and fix it', async () => {
+    logTestStart(testSetup, 'Run a test that fails and fix it');
+    // Create Apex class AccountService
+    await createApexClassWithBugs();
+
+    // Push source to org
+    const workbench = getWorkbench();
+    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
+
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+
+    // Run SFDX: Run Apex tests.
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
+
+    // Select the "AccountServiceTest" file
+    await prompt.setText('AccountServiceTest');
+    await prompt.confirm();
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify test results are listed on vscode's Output section
+    // Also verify that the test fails
+    let outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    let expectedTexts = ['Assertion Failed: incorrect ticker symbol', 'Expected: CRM, Actual: SFDC'];
+
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
+
+    // Fix test
+    const textEditor = await getTextEditor(workbench, 'AccountService.cls');
+    await textEditor.setTextAtLine(6, '\t\t\tTickerSymbol = tickerSymbol');
+    await textEditor.save();
+    await pause(Duration.seconds(1));
+
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
+
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+
+    // Run SFDX: Run Apex tests to verify fix
+    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
+
+    // Select the "AccountServiceTest" file
+    await prompt.setText('AccountServiceTest');
+    await prompt.confirm();
+
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify test results are listed on vscode's Output section
+    outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    expectedTexts = [
+      '=== Test Summary',
+      'Outcome              Passed',
+      'Tests Ran            1',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'AccountServiceTest.should_create_account  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
+  });
+
+  it('Create Apex Test Suite', async () => {
+    logTestStart(testSetup, 'Create Apex Test Suite');
+    // Run SFDX: Create Apex Test Suite.
+    prompt = await executeQuickPick('SFDX: Create Apex Test Suite', Duration.seconds(2));
+
+    // Set the name of the new Apex Test Suite
+    await prompt.setText('ApexTestSuite');
+    await prompt.confirm();
+    await pause(Duration.seconds(2));
+
+    // Choose tests that will belong to the new Apex Test Suite
+    await prompt.setText('ExampleApexClass1Test');
+    // Use different selector depending on VSCode version
+    const selector =
+      EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
+      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
+        ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
+        : 'input.quick-input-list-checkbox';
+    const checkbox = await prompt.findElement(By.css(selector));
+    await checkbox.click();
+    await clickFilePathOkButton();
+
+    // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Build Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
+  });
+
+  it('Add test to Apex Test Suite', async () => {
+    logTestStart(testSetup, 'Add test to Apex Test Suite');
+    // Run SFDX: Add Tests to Apex Test Suite.
+    prompt = await executeQuickPick('SFDX: Add Tests to Apex Test Suite', Duration.seconds(1));
+
+    // Select the suite recently created called ApexTestSuite
+    await prompt.selectQuickPick('ApexTestSuite');
+    await pause(Duration.seconds(2));
+
+    // Choose tests that will belong to the already created Apex Test Suite
+    await prompt.setText('ExampleApexClass2Test');
+    // Use different selector depending on VSCode version
+    const selector =
+      EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
+      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
+        ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
+        : 'input.quick-input-list-checkbox';
+
+    await retryOperation(
+      async () => {
+        const checkbox = await prompt.findElement(By.css(selector));
+        await checkbox.click();
+      },
+      2,
+      'RunApexTests - Error clicking checkbox'
+    );
+    await clickFilePathOkButton();
+
+    // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Build Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
+  });
+
+  it('Run Apex Test Suite', async () => {
+    logTestStart(testSetup, 'Run Apex Test Suite');
+    // Clear the Output view.
+    await dismissAllNotifications();
+    await clearOutputView(Duration.seconds(2));
+
+    // Run SFDX: Run Apex Test Suite.
+    await executeQuickPick('SFDX: Run Apex Test Suite', Duration.seconds(1));
+
+    // Select the suite recently created called ApexTestSuite
+    await prompt.selectQuickPick('ApexTestSuite');
+    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify test results are listed on vscode's Output section
+    // Also verify that all tests pass
+    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const expectedTexts = [
+      '=== Test Summary',
+      'TEST NAME',
+      'ended SFDX: Run Apex Tests',
+      'Outcome              Passed',
+      'Tests Ran            2',
+      'Pass Rate            100%',
+      'TEST NAME',
+      'ExampleApexClass1Test.validateSayHello  Pass',
+      'ExampleApexClass2Test.validateSayHello  Pass',
+      'ended SFDX: Run Apex Tests'
+    ];
+    await verifyOutputPanelText(outputPanelText, expectedTexts);
+  });
+
+  after('Tear down and clean up the testing environment', async () => {
+    log('RunApexTests - Tear down and clean up the testing environment');
+    await testSetup?.tearDown();
+  });
+});
