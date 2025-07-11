@@ -18,7 +18,7 @@ on:
       os:
         description: 'Operating System(s) to run the E2E tests on'
         required: false
-        default: '["macos-latest", "ubuntu-latest", "windows-latest-16x"]'
+        default: '["macos-latest", "ubuntu-latest", "windows-latest"]'
         type: string
 jobs:
   build:
