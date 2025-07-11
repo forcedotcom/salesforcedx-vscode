@@ -70,13 +70,13 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
   });
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile',
-    (editorUri: URI) => {
+    async (editorUri: URI) => {
       const resolved = editorUri ?? vscode.window.activeTextEditor?.document.uri;
 
       if (resolved) {
         updateLastOpened(extContext, resolved.fsPath);
       }
-      return launchFromLogFile(resolved?.fsPath);
+      await launchFromLogFile(resolved?.fsPath);
     }
   );
 
@@ -89,10 +89,13 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
     }
   );
 
-  const launchFromLastLogFileCmd = vscode.commands.registerCommand('sf.launch.replay.debugger.last.logfile', () => {
-    const lastOpenedLog = extContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
-    return launchFromLogFile(lastOpenedLog);
-  });
+  const launchFromLastLogFileCmd = vscode.commands.registerCommand(
+    'sf.launch.replay.debugger.last.logfile',
+    async () => {
+      const lastOpenedLog = extContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
+      await launchFromLogFile(lastOpenedLog);
+    }
+  );
 
   const sfCreateCheckpointsCmd = vscode.commands.registerCommand(
     'sf.create.checkpoints',
