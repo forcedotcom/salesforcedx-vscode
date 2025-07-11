@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigAggregator } from '@salesforce/core-bundle';
 import {
-  ConfigGet,
   OrgDisplay,
   RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
@@ -148,7 +148,7 @@ export class ApexVariable extends Variable {
   }
 
   public static valueAsString(value: Value): string {
-    if (typeof value.value === 'undefined' || value.value === null) {
+    if (value.value === undefined || value.value === null) {
       // We want to explicitly display null for null values (no type info for strings).
       return 'null';
     }
@@ -567,14 +567,12 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
-        const config = await new ConfigGet().getConfig(
-          args.salesforceProject,
-          SF_CONFIG_ISV_DEBUGGER_SID,
-          SF_CONFIG_ISV_DEBUGGER_URL
-        );
-        const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
-        const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
-        if (typeof isvDebuggerSid === 'undefined' || typeof isvDebuggerUrl === 'undefined') {
+        const configAggregator: ConfigAggregator = await ConfigAggregator.create({
+          projectPath: args.salesforceProject
+        });
+        const isvDebuggerSid = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_SID);
+        const isvDebuggerUrl = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_URL);
+        if (isvDebuggerSid === undefined || isvDebuggerUrl === undefined) {
           response.message = nls.localize('invalid_isv_project_config');
           // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set
           this.sendEvent(
@@ -1151,7 +1149,7 @@ export class ApexDebug extends LoggingDebugSession {
     requestId: string,
     apexId: number | undefined
   ): Promise<number | undefined> {
-    if (typeof apexId === 'undefined') {
+    if (apexId === undefined) {
       return;
     }
     if (!this.variableContainerReferenceByApexId.has(apexId)) {

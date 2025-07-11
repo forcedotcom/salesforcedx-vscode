@@ -166,7 +166,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
-    if (typeof this.cliAllowsTelemetryPromise !== 'undefined') {
+    if (this.cliAllowsTelemetryPromise !== undefined) {
       return this.cliAllowsTelemetryPromise;
     }
     this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();
