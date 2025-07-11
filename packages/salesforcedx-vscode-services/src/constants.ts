@@ -5,4 +5,4 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const EXTENSION_NAME = '@salesforce/salesforcedx-vscode-services';
+export const EXTENSION_NAME = 'salesforcedx-vscode-services';

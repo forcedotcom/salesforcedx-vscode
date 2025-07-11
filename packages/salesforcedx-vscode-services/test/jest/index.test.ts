@@ -6,7 +6,33 @@
  */
 
 import { activate, deactivate } from '../../src/index';
-import * as vscode from 'vscode';
+import { ChannelService } from '../../src/vscode/channelService';
+import { Layer, Effect as EffectFn } from 'effect';
+import type { Effect } from 'effect/Effect';
+
+// Create a mock ChannelService
+const mockChannelService = {
+  getChannel: EffectFn.sync(() => ({
+    appendLine: jest.fn(),
+    append: jest.fn(),
+    clear: jest.fn(),
+    show: jest.fn(),
+    hide: jest.fn(),
+    dispose: jest.fn(),
+    name: 'mock',
+    replace: jest.fn(),
+    logLevel: 0,
+    onDidChangeLogLevel: jest.fn(),
+    trace: jest.fn(),
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+  })),
+  appendToChannel: (_message: string): Effect<void, never, never> => EffectFn.sync(() => {})
+};
+
+const MockChannelServiceLayer = Layer.succeed(ChannelService, mockChannelService);
 
 describe('Extension', () => {
   it('should activate successfully', async () => {
@@ -25,9 +51,10 @@ describe('Extension', () => {
         get: jest.fn().mockReturnValue(undefined),
         update: jest.fn()
       }
-    } as unknown as vscode.ExtensionContext;
+    } as unknown as import('vscode').ExtensionContext;
 
-    const api = await activate(context);
+    // Provide the mock ChannelService layer for activation
+    const api = await activate(context, MockChannelServiceLayer);
     expect(api).toBeDefined();
     expect(api.services).toBeDefined();
     expect(api.services.ConnectionService).toBeDefined();

@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfProject } from '@salesforce/core';
 import { Context, Effect } from 'effect';
 import * as Option from 'effect/Option';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { SfProject } from '@salesforce/core';
 
 export type ProjectService = {
   /** Check if we're in a Salesforce project (sfdx-project.json exists) */
@@ -30,14 +30,12 @@ export const ProjectServiceLive = ProjectService.of({
     });
   }),
 
-  isSalesforceProject: Effect.catchAll(
-    Effect.flatMap(
-      Effect.sync(() => undefined), // dummy, will be replaced
-      () => ProjectServiceLive.getSfProject
-    ),
-    () => Effect.succeed(false)
-  ).pipe(
-    Effect.as(true),
-    Effect.catchAll(() => Effect.succeed(false))
+  isSalesforceProject: Effect.flatMap(
+    Effect.sync(() => ProjectServiceLive.getSfProject),
+    effect =>
+      effect.pipe(
+        Effect.as(true),
+        Effect.catchAll(() => Effect.succeed(false))
+      )
   )
 });

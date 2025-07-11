@@ -6,31 +6,53 @@
  */
 
 import * as vscode from 'vscode';
-import { activate, deactivate } from '../../src/index';
+import { Effect, Context, Layer } from 'effect';
+import { activateEffect, deactivateEffect } from '../../src/index';
+import { ExtensionProviderService } from '../../src/services/extensionProvider';
+import { ConnectionService, ConnectionServiceLive } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { ProjectService, ProjectServiceLive } from 'salesforcedx-vscode-services/src/core/projectService';
 
-// Mock the Effect-based extension provider
-jest.mock('../../src/services/extensionProvider', () => ({
-  initializeTelemetry: jest.fn()
-}));
+// 1. Full OutputChannel mock
+const mockAppendLine = jest.fn();
+const mockOutputChannel: vscode.OutputChannel = {
+  name: 'mock',
+  append: jest.fn(),
+  appendLine: mockAppendLine,
+  replace: jest.fn(),
+  clear: jest.fn(),
+  show: jest.fn(),
+  hide: jest.fn(),
+  dispose: jest.fn()
+};
 
-// Mock Effect
-jest.mock('effect', () => ({
-  Effect: {
-    runPromise: jest.fn().mockResolvedValue(undefined)
-  }
-}));
+// 2. ChannelService mock
+const mockChannelService = {
+  getChannel: Effect.sync(() => mockOutputChannel),
+  appendToChannel: (message: string): Effect.Effect<void> => Effect.sync(() => mockAppendLine(message))
+};
+const MockChannelService = Context.GenericTag<typeof mockChannelService>('ChannelService');
+const MockChannelServiceLayer = (_: string): Layer.Layer<typeof mockChannelService> =>
+  Layer.effect(
+    MockChannelService,
+    Effect.sync(() => mockChannelService)
+  );
 
-// Mock vscode
-jest.mock('vscode', () => ({
-  extensions: {
-    getExtension: jest.fn()
-  }
-}));
-
-// Import the mocked functions
-import { Effect } from 'effect';
-
-const mockRunPromise = Effect.runPromise as jest.MockedFunction<typeof Effect.runPromise>;
+// 3. ExtensionProviderService mock
+const MockExtensionProviderServiceLive = Layer.effect(
+  ExtensionProviderService,
+  Effect.sync(() => ({
+    getServicesApi: Effect.sync(() => ({
+      services: {
+        ConnectionService: {} as typeof ConnectionService,
+        ConnectionServiceLive: {} as typeof ConnectionServiceLive,
+        ProjectService: {} as typeof ProjectService,
+        ProjectServiceLive: {} as typeof ProjectServiceLive,
+        ChannelService: MockChannelService,
+        ChannelServiceLayer: MockChannelServiceLayer
+      }
+    }))
+  }))
+);
 
 describe('Extension', () => {
   beforeEach(() => {
@@ -38,15 +60,12 @@ describe('Extension', () => {
   });
 
   it('should activate successfully', async () => {
-    const context = {} as vscode.ExtensionContext;
-
-    await activate(context);
-
-    expect(mockRunPromise).toHaveBeenCalled();
+    await Effect.runPromise(Effect.provide(activateEffect, MockExtensionProviderServiceLive));
+    expect(mockAppendLine).toHaveBeenCalledWith('Salesforce Org Browser extension is now active!');
   });
 
-  it('should deactivate successfully', () => {
-    deactivate();
-    expect(true).toBe(true);
+  it('should deactivate successfully', async () => {
+    await Effect.runPromise(Effect.provide(deactivateEffect, MockExtensionProviderServiceLive));
+    expect(mockAppendLine).toHaveBeenCalledWith('Salesforce Org Browser extension is now deactivated!');
   });
 });

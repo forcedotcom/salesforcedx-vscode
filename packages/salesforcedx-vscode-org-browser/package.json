@@ -24,11 +24,11 @@
     "Other"
   ],
   "dependencies": {
-    "effect": "^3.10.10",
+    "effect": "^3.16.12",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-vscode-services": "64.4.0",
+    "salesforcedx-vscode-services": "64.4.0",
     "@types/node": "^20.0.0",
     "esbuild": "0.25.0",
     "nyc": "^15"

@@ -1,5 +1,5 @@
 {
-  "name": "@salesforce/salesforcedx-vscode-services",
+  "name": "salesforcedx-vscode-services",
   "displayName": "Salesforce Services",
   "description": "a shared services extension for other extensions to use",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.18.1",
-    "effect": "^3.10.10",
+    "effect": "^3.16.12",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {

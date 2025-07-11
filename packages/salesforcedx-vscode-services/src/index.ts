@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Effect } from 'effect';
 import * as vscode from 'vscode';
 import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
+import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 
 export type SalesforceVSCodeServicesApi = {
   services: {
@@ -15,13 +17,27 @@ export type SalesforceVSCodeServicesApi = {
     ConnectionServiceLive: typeof ConnectionServiceLive;
     ProjectService: typeof ProjectService;
     ProjectServiceLive: typeof ProjectServiceLive;
+    ChannelService: typeof ChannelService;
+    ChannelServiceLayer: typeof ChannelServiceLayer;
   };
 };
 
 /** Activates the Salesforce Services extension and returns API for other extensions to consume */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
-  console.log('Salesforce Services extension is now active!');
+
+export const activate = async (
+  context: vscode.ExtensionContext,
+  channelServiceLayer = ChannelServiceLayer('Salesforce Services')
+): Promise<SalesforceVSCodeServicesApi> => {
+  // Output activation message using ChannelService
+  await Effect.runPromise(
+    Effect.provide(
+      Effect.gen(function* () {
+        const svc = yield* ChannelService;
+        yield* svc.appendToChannel('Salesforce Services extension is activating!');
+      }),
+      channelServiceLayer
+    )
+  );
 
   // Return API for other extensions to consume
   const api: SalesforceVSCodeServicesApi = {
@@ -29,10 +45,13 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ConnectionService,
       ConnectionServiceLive,
       ProjectService,
-      ProjectServiceLive
+      ProjectServiceLive,
+      ChannelService,
+      ChannelServiceLayer
     }
   };
 
+  console.log('Salesforce Services extension is now active!');
   return api;
 };
 

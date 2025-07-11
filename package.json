@@ -101,7 +101,7 @@
     "check:deps": "lerna exec --no-bail --stream depcheck",
     "check:peer-deps": "check-peer-dependencies",
     "check:typescript-project-references": "workspaces-to-typescript-project-references --check",
-    "vscode:bundle": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
+    "vscode:bundle": "npm run compile && npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
     "vscode:bundle:debugger": "lerna run bundle:debugger",
     "vscode:bundle:extension": "lerna run bundle:extension",
     "vscode:package": "node ./scripts/capture-esbuild-warnings.js && lerna run vscode:package --concurrency 1",
