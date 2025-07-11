@@ -393,5 +393,62 @@ export default [
       'header/header': 'off'
     }
   },
+  {
+    // Effect-specific rules for services package
+    files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'error',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      // Effect code should always handle promises properly
+      '@typescript-eslint/no-floating-promises': 'error',
+
+      'class-methods-use-this': 'error',
+      // Effect encourages immutability
+      'prefer-const': 'error',
+      'no-param-reassign': 'error',
+
+      // Allow Effect imports and prefer non-bundled @salesforce/core
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: ['**/test/**', '**/scripts/**'],
+          // Allow Effect and core Salesforce dependencies
+          optionalDependencies: false
+        }
+      ],
+
+      // Effect code tends to use functional patterns
+      'prefer-arrow/prefer-arrow-functions': [
+        'error',
+        {
+          disallowPrototype: true,
+          singleReturnOnly: false,
+          classPropertiesAllowed: false
+        }
+      ],
+      '@typescript-eslint/no-explicit-any': 'error',
+
+      // Effect uses generators extensively - allow yield*
+      '@typescript-eslint/require-await': 'off',
+
+      // Effect service patterns
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // Relaxed rules for test files in services and org-browser packages
+    files: [
+      'packages/salesforcedx-vscode-services/test/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/test/**/*.ts'
+    ],
+    rules: {
+      // Deactivate import-order for tests to allow for mock-before-import
+      'import/order': 'off'
+    }
+  },
   eslintConfigPrettier
 ];

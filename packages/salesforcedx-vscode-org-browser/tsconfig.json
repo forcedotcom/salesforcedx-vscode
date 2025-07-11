@@ -4,17 +4,8 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/oas/generationStrategy/*.json",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-utils"
@@ -23,7 +14,7 @@
       "path": "../salesforcedx-utils-vscode"
     },
     {
-      "path": "../salesforcedx-vscode-core"
+      "path": "../salesforcedx-vscode-services"
     }
   ]
 }

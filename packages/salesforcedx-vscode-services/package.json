@@ -1,0 +1,59 @@
+{
+  "name": "@salesforce/salesforcedx-vscode-services",
+  "displayName": "Salesforce Services",
+  "description": "a shared services extension for other extensions to use",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/VSCodeServices.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "64.4.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "dependencies": {
+    "@salesforce/core": "^8.18.1",
+    "@salesforce/salesforcedx-utils-vscode": "64.4.0",
+    "effect": "^3.10.10",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "0.25.0",
+    "nyc": "^15"
+  },
+  "scripts": {
+    "bundle:extension": "npm run compile && node ./esbuild.config.mjs",
+    "vscode:package": "npm run bundle:extension && vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "compile": "tsc -p ./",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "npm run test:unit",
+    "test:unit": "jest --coverage"
+  },
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
+  "main": "dist/index.js",
+  "types": "out/src/index.d.ts",
+  "browser": "./dist/browser.js",
+  "contributes": {
+    "commands": []
+  }
+}

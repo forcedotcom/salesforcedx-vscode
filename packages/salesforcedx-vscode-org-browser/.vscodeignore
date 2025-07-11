@@ -1,0 +1,17 @@
+.vscode/**
+.vscode-test/**
+out/test/**
+test/**
+src/**
+**/*.map
+.gitignore
+tsconfig.json
+
+# ignore unused rxjs code
+node_modules/rxjs/src/**
+node_modules/rxjs/bundles/**
+node_modules/rxjs/_esm5/**
+node_modules/rxjs/_esm2015/**
+
+# ignore unused dayjs code
+node_modules/dayjs/esm/**

@@ -4,16 +4,20 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "exclude": ["node_modules", ".vscode-test", "out"],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out"
+  ],
   "references": [
     {
       "path": "../salesforcedx-apex-debugger"
     },
     {
-      "path": "../salesforcedx-utils-vscode"
+      "path": "../salesforcedx-utils"
     },
     {
-      "path": "../salesforcedx-utils"
+      "path": "../salesforcedx-utils-vscode"
     },
     {
       "path": "../salesforcedx-vscode-apex"
