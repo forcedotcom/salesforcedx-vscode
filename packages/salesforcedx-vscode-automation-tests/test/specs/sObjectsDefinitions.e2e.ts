@@ -165,7 +165,7 @@ const verifyOutputPanelTxt = async (type: string, qty?: number) => {
   const expectedTexts = [
     'Starting SFDX: Refresh SObject Definitions',
     'sf sobject definitions refresh',
-    `Processed ${qty || ''}`,
+    `Processed ${qty ?? ''}`,
     `${type}`,
     'ended with exit code 0'
   ];
