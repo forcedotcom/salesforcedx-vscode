@@ -56,7 +56,7 @@ export const activate = async (context: ExtensionContext) => {
   }
   telemetryService = salesforceCoreExtension?.exports?.services?.TelemetryService.getInstance();
   await telemetryService?.initializeService(context);
-  const extensionHRStart = process.hrtime();
+  const extensionHRStart = globalThis.performance.now();
   const toDispose = context.subscriptions;
 
   // The server is implemented in node

@@ -48,12 +48,11 @@ export class ApexActionController {
     let eligibilityResult;
     let context;
     let name: string = 'Should Never Be Empty';
-    let generationHrStart: [number, number] = [-1, -1];
-    let generationHrDuration: [number, number] = [-1, -1];
+    let generationHrStart: number = -1;
     let overwrite = true;
     const telemetryService = getTelemetryService();
     this.gil.clear();
-    const hrStart = process.hrtime();
+    const hrStart = globalThis.performance.now();
     let props: OASGenerationCommandProperties = {
       isClass: `${isClass}`,
       overwrite: 'false',
@@ -120,9 +119,9 @@ export class ApexActionController {
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
 
           // Step 7: Use the strategy to generate the OAS
-          generationHrStart = process.hrtime();
+          generationHrStart = globalThis.performance.now();
           const openApiDocument = await strategy.generateOAS();
-          generationHrDuration = process.hrtime(generationHrStart);
+          const generationHrDuration = globalThis.performance.now() - generationHrStart;
           this.gil.addPostGenDoc(openApiDocument);
           this.gil.addGenerationStrategy(this.getBidRule() ?? 'MANUAL');
           this.gil.addOutputTokenLimit(strategy!.outputTokenLimit);
@@ -154,7 +153,7 @@ export class ApexActionController {
           const [errors, warnings, infos, hints, total] = summarizeDiagnostics(processedOasResult.errors);
 
           measures = {
-            generationDuration: getTelemetryService().hrTimeToMilliseconds(generationHrDuration),
+            generationDuration: generationHrDuration,
             biddedCallCount: generationOrchestrator.strategy?.biddedCallCount,
             llmCallCount: generationOrchestrator.strategy?.resolutionAttempts,
             generationSize: generationOrchestrator.strategy?.maxBudget,

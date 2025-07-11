@@ -18,7 +18,7 @@ export class ActivationTracker {
     this.extensionContext = extensionContext;
     this.telemetryService = telemetryService;
     this._activationInfo = {
-      startActivateHrTime: process.hrtime(),
+      startActivateHrTime: globalThis.performance.now(),
       activateStartDate: new Date(),
       extensionActivationTime: 0
     };

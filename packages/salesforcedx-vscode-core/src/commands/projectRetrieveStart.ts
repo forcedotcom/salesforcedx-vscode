@@ -59,7 +59,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(response: ContinueResponse<string>): void {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -84,7 +84,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     exitCode: number | undefined,
     execution: CliCommandExecution,
     response: ContinueResponse<string>,
-    startTime: [number, number],
+    startTime: number,
     output: string
   ): void {
     if (execution.command.logName === PROJECT_RETRIEVE_START_LOG_NAME) {

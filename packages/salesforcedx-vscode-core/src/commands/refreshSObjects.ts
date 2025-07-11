@@ -101,7 +101,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
       await vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'));
       return;
     }
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     RefreshSObjectsExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
