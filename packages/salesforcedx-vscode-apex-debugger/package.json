@@ -24,6 +24,7 @@
     "Debuggers"
   ],
   "dependencies": {
+    "@salesforce/core-bundle": "^8.18.1",
     "@salesforce/salesforcedx-apex-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -43,7 +44,7 @@
   ],
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:copy": "cp ../salesforcedx-apex-debugger/dist/apexdebug.js ./dist/",
+    "bundle:extension:copy": "cp ../salesforcedx-apex-debugger/dist/apexDebug.js ./dist/",
     "bundle:extension:build": "node ./esbuild.config.js",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
@@ -75,7 +76,7 @@
       "dist"
     ],
     "debuggers": [
-      "./dist/apexdebug.js"
+      "./dist/apexDebug.js"
     ],
     "packageUpdates": {
       "main": "dist/index.js",
