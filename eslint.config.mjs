@@ -71,6 +71,7 @@ export default [
       'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-instanceof-builtins': 'error',
+      'unicorn/no-typeof-undefined': 'error',
       'unicorn/no-useless-fallback-in-spread': 'error',
       'unicorn/no-useless-length-check': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
@@ -104,9 +105,9 @@ export default [
         ]
       ],
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
-          args: 'none',
+          argsIgnorePattern: '^_',
           ignoreRestSiblings: true
         }
       ],

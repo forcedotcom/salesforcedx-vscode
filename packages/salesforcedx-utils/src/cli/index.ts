@@ -8,7 +8,6 @@ export { CliCommandExecution } from './cliCommandExecution';
 export { CliCommandExecutor } from './cliCommandExecutor';
 export { CommandBuilder } from './commandBuilder';
 export { CommandOutput } from './commandOutput';
-export { ConfigGet } from './configGet';
 export { GlobalCliEnvironment } from './globalCliEnvironment';
 export { OrgDisplay } from './orgDisplay';
 export { SfCommandBuilder } from './sfCommandBuilder';

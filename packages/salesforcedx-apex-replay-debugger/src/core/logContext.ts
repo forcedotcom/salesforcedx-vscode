@@ -232,10 +232,10 @@ export class LogContext {
     return this.apexHeapDumps.length > 0;
   }
 
-  public async fetchOverlayResultsForApexHeapDumps(projectPath: string): Promise<boolean> {
+  public async fetchOverlayResultsForApexHeapDumps(): Promise<boolean> {
     let success = true;
     try {
-      const orgInfo = await new OrgDisplay().getOrgInfo(projectPath);
+      const orgInfo = await new OrgDisplay().getOrgInfo();
       const requestService = new RequestService();
       requestService.instanceUrl = orgInfo.instanceUrl;
       requestService.accessToken = orgInfo.accessToken;
@@ -276,9 +276,23 @@ export class LogContext {
       }
     } catch (error) {
       success = false;
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const result = JSON.parse(error) as OrgInfoError;
-      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
+      let errorMessage: string;
+
+      // Check if error is already an Error object with a message
+      if (error instanceof Error) {
+        errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${error.message}`;
+      } else {
+        // Try to parse as JSON (for backwards compatibility)
+        try {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          const result = JSON.parse(error as string) as OrgInfoError;
+          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
+        } catch {
+          // If JSON parsing fails, treat as string
+          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${String(error)}`;
+        }
+      }
+
       this.session.errorToDebugConsole(errorMessage);
     }
     return success;

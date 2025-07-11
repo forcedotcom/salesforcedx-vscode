@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigAggregator } from '@salesforce/core-bundle';
 import {
-  ConfigGet,
   OrgDisplay,
   RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
@@ -148,7 +148,7 @@ export class ApexVariable extends Variable {
   }
 
   public static valueAsString(value: Value): string {
-    if (typeof value.value === 'undefined' || value.value === null) {
+    if (value.value === undefined || value.value === null) {
       // We want to explicitly display null for null values (no type info for strings).
       return 'null';
     }
@@ -232,7 +232,13 @@ export class ScopeContainer implements VariableContainer {
     this.frameInfo = frameInfo;
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  // extra variables required to satisfy the interface
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.frameInfo.locals && !this.frameInfo.statics && !this.frameInfo.globals) {
       await session.fetchFrameVariables(this.frameInfo);
     }
@@ -280,7 +286,12 @@ export class ObjectReferenceContainer implements VariableContainer {
     this.size = reference.size;
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.reference.fields) {
       // this object is empty
       return [];
@@ -370,7 +381,12 @@ export class MapTupleContainer implements VariableContainer {
     return ApexVariable.valueAsString(this.tuple.value);
   }
 
-  public async expand(session: ApexDebug, filter: FilterType, start?: number, count?: number): Promise<ApexVariable[]> {
+  public async expand(
+    session: ApexDebug,
+    _filter: FilterType,
+    _start?: number,
+    _count?: number
+  ): Promise<ApexVariable[]> {
     if (!this.tuple.key && !this.tuple.value) {
       // this object is empty
       return [];
@@ -454,7 +470,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
-    args: DebugProtocol.InitializeRequestArguments
+    _args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
     this.initializedResponse.body = {
@@ -476,7 +492,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(this.initializedResponse);
   }
 
-  protected attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): void {
+  protected attachRequest(response: DebugProtocol.AttachResponse, _args: DebugProtocol.AttachRequestArguments): void {
     response.success = false;
     this.sendResponse(response);
   }
@@ -551,14 +567,12 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
-        const config = await new ConfigGet().getConfig(
-          args.salesforceProject,
-          SF_CONFIG_ISV_DEBUGGER_SID,
-          SF_CONFIG_ISV_DEBUGGER_URL
-        );
-        const isvDebuggerSid = config.get(SF_CONFIG_ISV_DEBUGGER_SID);
-        const isvDebuggerUrl = config.get(SF_CONFIG_ISV_DEBUGGER_URL);
-        if (typeof isvDebuggerSid === 'undefined' || typeof isvDebuggerUrl === 'undefined') {
+        const configAggregator: ConfigAggregator = await ConfigAggregator.create({
+          projectPath: args.salesforceProject
+        });
+        const isvDebuggerSid = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_SID);
+        const isvDebuggerUrl = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_URL);
+        if (isvDebuggerSid === undefined || isvDebuggerUrl === undefined) {
           response.message = nls.localize('invalid_isv_project_config');
           // telemetry for the case where the org-isv-debugger-sid and/or org-isv-debugger-url config variable is not set
           this.sendEvent(
@@ -572,7 +586,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo(args.salesforceProject);
+        const orgInfo = await new OrgDisplay().getOrgInfo();
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }
@@ -701,8 +715,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected async disconnectRequest(
     response: DebugProtocol.DisconnectResponse,
-
-    args: DebugProtocol.DisconnectArguments
+    _args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     try {
       response.success = false;
@@ -1099,7 +1112,7 @@ export class ApexDebug extends LoggingDebugSession {
           );
         } else if (reference.type === 'map') {
           const mapContainer = new MapReferenceContainer(reference, requestId);
-          // explode all map entried so that we can drill down a map logically
+          // explode all map entries so that we can drill down a map logically
           if (reference.tuple) {
             reference.tuple.forEach(tuple => {
               const tupleContainer = new MapTupleContainer(tuple, requestId);
@@ -1136,7 +1149,7 @@ export class ApexDebug extends LoggingDebugSession {
     requestId: string,
     apexId: number | undefined
   ): Promise<number | undefined> {
-    if (typeof apexId === 'undefined') {
+    if (apexId === undefined) {
       return;
     }
     if (!this.variableContainerReferenceByApexId.has(apexId)) {

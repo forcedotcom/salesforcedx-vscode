@@ -190,13 +190,13 @@ export const getExceptionBreakpointCache = (): Map<string, ExceptionBreakpointIt
 const registerFileWatchers = (): vscode.Disposable => {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
 
-  clsWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidChange(() => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidCreate(() => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidDelete(() => notifyDebuggerSessionFileChanged());
   const trgWatcher = vscode.workspace.createFileSystemWatcher('**/*.trigger');
-  trgWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidChange(() => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidCreate(() => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidDelete(() => notifyDebuggerSessionFileChanged());
 
   return vscode.Disposable.from(clsWatcher, trgWatcher);
 };

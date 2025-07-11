@@ -38,7 +38,7 @@ export class CliCommandExecutor {
     }
 
     // then specific environment from Spawn Options
-    if (typeof options.env !== 'undefined') {
+    if (options.env !== undefined) {
       Object.assign(env, options.env);
     }
 
@@ -116,7 +116,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
     let timerSubscriber: Subscription | null;
     if (cancellationToken) {
       const timer = Observable.interval(1000);
-      timerSubscriber = timer.subscribe(async () => {
+      timerSubscriber = timer.subscribe(() => {
         if (cancellationToken.isCancellationRequested) {
           try {
             this.exitSubject.next();

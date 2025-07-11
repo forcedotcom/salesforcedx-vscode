@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionContext, TreeView, window } from 'vscode';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { BrowserNode, MetadataOutlineProvider } from '../orgBrowser';
 import { telemetryService } from '../telemetry';
@@ -50,6 +51,12 @@ export class OrgBrowser {
         await this.dataProvider.onViewChange();
       }
     });
+
+    // Listen to org changes and refresh the data provider when org switches
+    WorkspaceContext.getInstance().onOrgChange(async () => {
+      await this.dataProvider.onViewChange();
+    });
+
     extensionContext.subscriptions.push(this._treeView);
   }
 

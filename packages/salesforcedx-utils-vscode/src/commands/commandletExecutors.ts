@@ -62,31 +62,11 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
       env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
-    let output = '';
-    execution.stdoutSubject.subscribe(realData => {
-      output += realData.toString();
-    });
-
-    execution.processExitSubject.subscribe(exitCode => {
-      const telemetryData = this.getTelemetryData(exitCode === 0, response, output);
-      let properties;
-      let measurements;
-      if (telemetryData) {
-        properties = telemetryData.properties;
-        measurements = telemetryData.measurements;
-      }
-      this.logMetric(execution.command.logName, startTime, properties, measurements);
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-  }
-
-  protected getTelemetryData(
-    success: boolean,
-    response: ContinueResponse<T>,
-    output: string
-  ): TelemetryData | undefined {
-    return undefined;
   }
 
   public abstract build(data: T): Command;
@@ -99,6 +79,8 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
   private readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
+  protected showSuccessNotifications = true;
+  protected showFailureNotifications = true;
   protected readonly telemetry = new TelemetryBuilder();
 
   /**
@@ -161,9 +143,9 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
       }
 
       if (!this.cancelled) {
-        if (success) {
+        if (success && this.showSuccessNotifications) {
           notificationService.showSuccessfulExecution(this.executionName, channelService).catch(e => console.error(e));
-        } else {
+        } else if (!success && this.showFailureNotifications) {
           notificationService.showFailedExecution(this.executionName);
         }
       }

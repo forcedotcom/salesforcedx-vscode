@@ -872,7 +872,7 @@ export const newStringValue = (name: string, value = 'value', slot?: number): Va
     nameForMessages: 'String',
     value
   };
-  if (typeof slot !== 'undefined') {
+  if (slot !== undefined) {
     result.slot = slot;
   }
   return result;
