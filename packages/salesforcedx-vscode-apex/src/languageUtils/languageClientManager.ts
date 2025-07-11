@@ -301,7 +301,7 @@ export class LanguageClientManager {
   ): Promise<void> {
     const telemetryService = getTelemetryService();
     try {
-      const langClientHRStart = process.hrtime();
+      const langClientHRStart = globalThis.performance.now();
       this.setClientInstance(await languageServer.createLanguageServer(extensionContext));
 
       const languageClient = this.getClientInstance();

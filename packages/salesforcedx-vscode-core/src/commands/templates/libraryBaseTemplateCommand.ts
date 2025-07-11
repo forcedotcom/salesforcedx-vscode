@@ -53,7 +53,7 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
   protected telemetryProperties: Properties = {};
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const commandName = this.executionName;
     channelService.showCommandWithTimestamp(`Starting ${commandName}`);
     const result: ExecutionResult = await window.withProgress(

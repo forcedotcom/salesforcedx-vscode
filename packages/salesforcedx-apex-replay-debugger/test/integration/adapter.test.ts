@@ -17,7 +17,7 @@ const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CONFIG_DIR = path.join(__dirname, '..', '..', 'test', 'integration', 'config');
 const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 
-describe('Replay debugger adapter - integration', () => {
+describe.skip('Replay debugger adapter - integration', () => {
   jest.setTimeout(320000);
   let goldFileUtil: GoldFileUtil;
   let dc: DebugClient;

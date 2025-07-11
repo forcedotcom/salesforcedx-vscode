@@ -15,7 +15,7 @@ const logName = 'lightning_lwc_open';
 const commandName = nls.localize('lightning_lwc_open_text');
 
 export const lightningLwcOpen = async () => {
-  const startTime = process.hrtime();
+  const startTime = globalThis.performance.now();
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
     try {

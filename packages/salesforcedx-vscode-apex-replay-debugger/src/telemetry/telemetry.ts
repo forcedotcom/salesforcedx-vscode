@@ -6,7 +6,6 @@
  */
 
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import * as util from 'node:util';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex-replay-debugger';
 
@@ -31,9 +30,10 @@ export class TelemetryService {
     this.reporters = reporters;
   }
 
-  public sendExtensionActivationEvent(hrstart: [number, number]): void {
+  public sendExtensionActivationEvent(hrstart?: number): void {
+    const startTime = hrstart || globalThis.performance.now();
     if (this.reporters !== undefined && this.isTelemetryEnabled) {
-      const startupTime = this.getEndHRTime(hrstart);
+      const startupTime = this.getEndHRTime(startTime);
       this.reporters.forEach(reporter => {
         reporter.sendTelemetryEvent(
           'activationEvent',
@@ -106,8 +106,7 @@ export class TelemetryService {
     }
   }
 
-  private getEndHRTime(hrstart: [number, number]): number {
-    const [seconds, nanoseconds] = process.hrtime(hrstart);
-    return Number(util.format('%d%d', seconds, nanoseconds / 1000000));
+  private getEndHRTime(hrstart: number): number {
+    return globalThis.performance.now() - hrstart;
   }
 }

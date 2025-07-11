@@ -12,7 +12,6 @@ import {
   TelemetryReporter,
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
-import * as util from 'node:util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { z } from 'zod';
 import {
@@ -197,12 +196,8 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, telemetryData);
   }
 
-  public sendExtensionActivationEvent(
-    hrstart: [number, number],
-    markEndTime?: number,
-    telemetryData?: TelemetryData
-  ): void {
-    const startupTime = markEndTime ?? this.getEndHRTime(hrstart);
+  public sendExtensionActivationEvent(hrstart?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
+    const startupTime = markEndTime ?? (hrstart !== undefined ? this.getEndHRTime(hrstart) : 0);
     const properties = {
       extensionName: this.extensionName,
       ...telemetryData?.properties
@@ -231,7 +226,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   public sendCommandEvent(
     commandName?: string,
-    hrstart?: [number, number],
+    hrstart?: number,
     properties?: Properties,
     measurements?: Measurements
   ): void {
@@ -290,13 +285,8 @@ export class TelemetryService implements TelemetryServiceInterface {
     });
   }
 
-  public getEndHRTime(hrstart: [number, number]): number {
-    const hrend = process.hrtime(hrstart);
-    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
-  }
-
-  public hrTimeToMilliseconds(hrtime: [number, number]): number {
-    return hrtime[0] * 1000 + hrtime[1] / 1000000;
+  public getEndHRTime(hrstart: number): number {
+    return globalThis.performance.now() - hrstart;
   }
 
   /**

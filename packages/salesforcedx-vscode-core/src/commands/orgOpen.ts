@@ -48,7 +48,7 @@ class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(response: ContinueResponse<string>): void {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
