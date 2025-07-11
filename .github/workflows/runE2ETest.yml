@@ -311,7 +311,7 @@ jobs:
           fi
 
           if [ "$RUNNER_OS" = "Windows" ]; then
-            echo "THROTTLE_FACTOR=3" >> $GITHUB_ENV
+            echo "THROTTLE_FACTOR=1" >> $GITHUB_ENV
             # Create temporary directories for VS Code extension tester
             mkdir -p "$RUNNER_TEMP/extest-settings" "$RUNNER_TEMP/extest-storage"
             # Set permissions for Windows
