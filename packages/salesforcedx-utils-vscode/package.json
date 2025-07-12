@@ -11,7 +11,7 @@
   "main": "out/src",
   "dependencies": {
     "@salesforce/core-bundle": "^8.18.1",
-    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils": "64.4.0",
     "@salesforce/source-tracking-bundle": "^7.4.7",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "applicationinsights": "1.0.7",

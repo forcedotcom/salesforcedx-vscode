@@ -8,8 +8,8 @@
     "vscode": "^1.90.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.4.0",
     "typescript": "5.8.3",
     "vscode-css-languageservice": "^2.1.9",
     "vscode-languageserver": "^9.0.1",
