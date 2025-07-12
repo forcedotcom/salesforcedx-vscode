@@ -154,7 +154,10 @@ describe('Replay debugger adapter - unit', () => {
 
       jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
-      await adapter.launchRequest(response, args);
+      adapter.launchRequest(response, args);
+
+      // Wait for the promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
       expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(0);
@@ -186,7 +189,10 @@ describe('Replay debugger adapter - unit', () => {
 
       jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
-      await adapter.launchRequest(response, args);
+      adapter.launchRequest(response, args);
+
+      // Wait for the promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
       expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
@@ -219,7 +225,10 @@ describe('Replay debugger adapter - unit', () => {
       jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       args.lineBreakpointInfo = lineBpInfo;
-      await adapter.launchRequest(response, args);
+      adapter.launchRequest(response, args);
+
+      // Wait for the promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
       expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
@@ -244,7 +253,10 @@ describe('Replay debugger adapter - unit', () => {
       jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       adapter.setProjectPath(undefined);
-      await adapter.launchRequest(response, args);
+      adapter.launchRequest(response, args);
+
+      // Wait for the promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
       expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
@@ -264,7 +276,10 @@ describe('Replay debugger adapter - unit', () => {
       jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       args.lineBreakpointInfo = lineBpInfo;
-      await adapter.launchRequest(response, args);
+      adapter.launchRequest(response, args);
+
+      // Wait for the promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
       expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
@@ -286,7 +301,10 @@ describe('Replay debugger adapter - unit', () => {
       jest.spyOn(LogContext, 'create').mockResolvedValue(mockLogContext);
 
       args.lineBreakpointInfo = lineBpInfo;
-      await adapter.launchRequest(response, args);
+      adapter.launchRequest(response, args);
+
+      // Wait for the promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
       expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
@@ -312,7 +330,10 @@ describe('Replay debugger adapter - unit', () => {
       // Stub errorToDebugConsole directly on the adapter instance
       adapter.errorToDebugConsole = jest.fn(function () {});
 
-      await adapter.launchRequest(response, args);
+      adapter.launchRequest(response, args);
+
+      // Wait for the promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(mockLogContext.hasLogLines).toHaveBeenCalledTimes(1);
       expect(mockLogContext.meetsLogLevelRequirements).toHaveBeenCalledTimes(1);
@@ -971,7 +992,11 @@ describe('Replay debugger adapter - unit', () => {
       });
 
       it('Should handle undefined args', async () => {
-        await adapter.launchRequest(initializedResponse, {} as LaunchRequestArguments);
+        adapter.launchRequest(initializedResponse, {} as LaunchRequestArguments);
+
+        // Wait for the promise to resolve
+        await new Promise(resolve => setTimeout(resolve, 0));
+
         expect(createMappingsFromLineBreakpointInfo).toHaveBeenCalledTimes(0);
         expect(initializedResponse.message).toEqual(nls.localize('session_language_server_error_text'));
         expect(sendEventSpy).toHaveBeenCalledTimes(4);
@@ -986,7 +1011,11 @@ describe('Replay debugger adapter - unit', () => {
           projectPath: undefined
         };
 
-        await adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
+        adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
+
+        // Wait for the promise to resolve
+        await new Promise(resolve => setTimeout(resolve, 0));
+
         expect(createMappingsFromLineBreakpointInfo).toHaveBeenCalledTimes(1);
         expect(sendResponseSpy).toHaveBeenCalledTimes(1);
         const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.mock.calls[0][0];
@@ -1012,7 +1041,10 @@ describe('Replay debugger adapter - unit', () => {
           projectPath: projectPathArg,
           logFile: 'someTestLogFile.log'
         };
-        await adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
+        adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
+
+        // Wait for the promise to resolve
+        await new Promise(resolve => setTimeout(resolve, 0));
 
         expect(createMappingsFromLineBreakpointInfo).toHaveBeenCalledTimes(1);
         expect(createMappingsFromLineBreakpointInfo.mock.calls[0][0]).toEqual(info);
