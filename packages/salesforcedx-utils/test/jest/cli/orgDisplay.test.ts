@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org, Config, StateAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, Org, Config, StateAggregator, ConfigAggregator } from '@salesforce/core-bundle';
 import { OrgDisplay } from '../../../src';
 
 // Mock the Salesforce Core classes
@@ -25,6 +25,9 @@ jest.mock('@salesforce/core-bundle', () => ({
   },
   StateAggregator: {
     getInstance: jest.fn()
+  },
+  ConfigAggregator: {
+    create: jest.fn()
   }
 }));
 
@@ -35,6 +38,7 @@ describe('OrgDisplay unit tests.', () => {
   let mockOrg: any;
   let mockConfig: any;
   let mockStateAggregator: any;
+  let mockConfigAggregator: any;
 
   beforeEach(() => {
     orgDisplay = new OrgDisplay();
@@ -81,8 +85,14 @@ describe('OrgDisplay unit tests.', () => {
     // Setup mock StateAggregator
     mockStateAggregator = {
       aliases: {
-        getAll: jest.fn().mockReturnValue([])
+        getAll: jest.fn().mockReturnValue([]),
+        getUsername: jest.fn().mockImplementation((usernameOrAlias) => usernameOrAlias)
       }
+    };
+
+    // Setup mock ConfigAggregator
+    mockConfigAggregator = {
+      getPropertyValue: jest.fn().mockReturnValue(undefined)
     };
 
     jest.mocked(AuthInfo).create.mockResolvedValue(mockAuthInfo);
@@ -91,6 +101,7 @@ describe('OrgDisplay unit tests.', () => {
     jest.mocked(Config).create.mockResolvedValue(mockConfig);
     jest.mocked(Config).getDefaultOptions.mockReturnValue({});
     jest.mocked(StateAggregator).getInstance.mockResolvedValue(mockStateAggregator);
+    jest.mocked(ConfigAggregator).create.mockResolvedValue(mockConfigAggregator);
   });
 
   it('Should create instance.', () => {
@@ -123,22 +134,19 @@ describe('OrgDisplay unit tests.', () => {
   });
 
   it('Should get username from config when not provided.', async () => {
-    // Mock config to return username
-    mockConfig.get.mockReturnValue('test@example.com');
-
+    // Mock ConfigAggregator to return username from target-org property
+    mockConfigAggregator.getPropertyValue.mockReturnValue('test@example.com');
     const result = await orgDisplay.getOrgInfo();
-
     expect(result.username).toBe('test@example.com');
   });
 
-  it('Should get username from state aggregator when config fails.', async () => {
-    // Mock state aggregator to return username
-    mockStateAggregator.aliases.getAll.mockReturnValue({
-      defaultusername: 'test@example.com'
-    });
+  it('Should get username from config and resolve alias when alias is provided.', async () => {
+    // Mock ConfigAggregator to return an alias
+    mockConfigAggregator.getPropertyValue.mockReturnValue('test-alias');
+    // Mock StateAggregator to resolve alias to username
+    mockStateAggregator.aliases.getUsername.mockReturnValue('test@example.com');
 
     const result = await orgDisplay.getOrgInfo();
-
     expect(result.username).toBe('test@example.com');
   });
 

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org, Config, StateAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core-bundle';
 import { OrgInfo, OrgQueryResult, ScratchOrgQueryResult, ScratchOrgInfo } from '../types/orgInfo';
 
 export class OrgDisplay {
@@ -21,29 +21,16 @@ export class OrgDisplay {
     if (this.username) {
       return this.username;
     }
+
     // Try to get username from project config
     try {
-      const config = await Config.create(Config.getDefaultOptions());
-      const configUsernameOrAlias = config.get('target-org');
+      const configAggregator: ConfigAggregator = await ConfigAggregator.create();
+      const configUsernameOrAlias = configAggregator.getPropertyValue<string>('target-org');
       if (configUsernameOrAlias && typeof configUsernameOrAlias === 'string') {
         usernameOrAlias = configUsernameOrAlias;
       }
     } catch {
       // Ignore config errors
-    }
-
-    // Try to get from state aggregator if not found in config
-    if (!usernameOrAlias) {
-      try {
-        const stateAggregator = await StateAggregator.getInstance();
-        const aliases = stateAggregator.aliases.getAll();
-        const defaultAlias = aliases['defaultusername'];
-        if (defaultAlias && typeof defaultAlias === 'string') {
-          usernameOrAlias = defaultAlias;
-        }
-      } catch {
-        // Ignore state errors
-      }
     }
 
     if (!usernameOrAlias) {
