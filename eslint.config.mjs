@@ -363,7 +363,11 @@ export default [
     }
   },
   {
-    files: ['packages/salesforcedx**/test/jest/**/*', 'packages/salesforcedx**/test/unit/**/*'],
+    files: [
+      'packages/salesforcedx**/test/jest/**/*',
+      'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx-vscode-automation-tests/**/*'
+    ],
     plugins: {
       '@typescript-eslint': typescriptEslint,
       jest: eslintPluginJest
