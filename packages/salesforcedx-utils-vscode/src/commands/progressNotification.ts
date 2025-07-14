@@ -19,7 +19,7 @@ export class ProgressNotification {
     return vscode.window.withProgress(
       {
         title: nls.localize('progress_notification_text', execution.command.toString()),
-        location: progressLocation || vscode.ProgressLocation.Notification,
+        location: progressLocation ?? vscode.ProgressLocation.Notification,
         cancellable: true
       },
       (progress, cancellationToken) =>
