@@ -56,7 +56,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     if (config.entryPointFilter === undefined) {
       config.entryPointFilter = '';
     }
-    config.salesforceProject = config.salesforceProject || (folder ? folder.uri.fsPath : '${workspaceRoot}');
+    config.salesforceProject = config.salesforceProject ?? (folder ? folder.uri.fsPath : '${workspaceRoot}');
 
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();

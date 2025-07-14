@@ -138,7 +138,7 @@ export class ConfigUtil {
    */
   public static async getUsernameFor(usernameOrAlias: string) {
     const info = await StateAggregator.getInstance();
-    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
+    return info.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
   }
 
   public static async unsetTargetOrg(): Promise<void> {

@@ -12,9 +12,7 @@ export class WorkspaceUtils {
   private static _instance: WorkspaceUtils;
 
   public static get instance() {
-    if (WorkspaceUtils._instance === undefined) {
-      WorkspaceUtils._instance = new WorkspaceUtils();
-    }
+    WorkspaceUtils._instance ??= new WorkspaceUtils();
     return WorkspaceUtils._instance;
   }
 

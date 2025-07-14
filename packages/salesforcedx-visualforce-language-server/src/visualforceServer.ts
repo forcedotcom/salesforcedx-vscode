@@ -320,7 +320,7 @@ connection.onDocumentRangeFormatting(async formatParams => {
   if (!settings) {
     settings = globalSettings;
   }
-  const unformattedTags: string = settings?.visualforce?.format?.unformatted || '';
+  const unformattedTags: string = settings?.visualforce?.format?.unformatted ?? '';
   const enabledModes = {
     css: !unformattedTags.match(/\bstyle\b/),
     javascript: !unformattedTags.match(/\bscript\b/)
