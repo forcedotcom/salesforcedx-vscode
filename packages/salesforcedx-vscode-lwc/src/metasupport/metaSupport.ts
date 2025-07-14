@@ -56,7 +56,7 @@ export class MetaSupport {
       extensionApi.addXMLFileAssociations(inputFileAssociations);
     } catch (error) {
       channelService.appendLine(nls.localize('lightning_lwc_fail_redhat_extension'));
-      const errorMsg = error.message ? error.message : error;
+      const errorMsg = error.message ?? error;
       channelService.appendLine(errorMsg);
     }
   }

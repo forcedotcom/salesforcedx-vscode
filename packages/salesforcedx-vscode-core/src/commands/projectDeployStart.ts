@@ -76,7 +76,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const workspacePath = workspaceUtils.getRootWorkspacePath() || '';
+    const workspacePath = workspaceUtils.getRootWorkspacePath() ?? '';
     const execFilePathOrPaths = this.getDeployType() === DeployType.Deploy ? response.data : '';
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,
@@ -165,7 +165,7 @@ export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pushedSource = successes ? successes.result.files : undefined;
     if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource || errors?.files;
+      const rows = pushedSource ?? errors?.files;
       const title = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, title);
       if (parser.hasConflicts()) {

@@ -113,7 +113,7 @@ export const deactivate = async () => {
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
-  return config.get('activationMode') || 'autodetect'; // default to autodetect
+  return config.get('activationMode') ?? 'autodetect'; // default to autodetect
 };
 
 const registerCommands = (_extensionContext: ExtensionContext): Disposable =>

@@ -180,9 +180,7 @@ export class StreamingClient {
       },
       outgoing: (message: any, callback: (message: any) => void) => {
         if (message.channel === '/meta/subscribe' && this.isReplaySupported) {
-          if (!message.ext) {
-            message.ext = {};
-          }
+          message.ext ??= {};
           const replayFrom: any = {};
           replayFrom[this.clientInfo.channel] = this.replayId;
           message.ext['replay'] = replayFrom;

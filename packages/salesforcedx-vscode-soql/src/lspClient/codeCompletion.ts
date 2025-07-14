@@ -80,7 +80,7 @@ async function expandPlaceholders(
 
       const handler = expandFunctions[commandName];
       if (handler) {
-        expandedItems.splice(index, 1, ...(await handler(item?.data?.soqlContext || {}, dataSource)));
+        expandedItems.splice(index, 1, ...(await handler(item?.data?.soqlContext ?? {}, dataSource)));
       } else {
         telemetryService.sendException(
           'SOQLLanguageServerException',

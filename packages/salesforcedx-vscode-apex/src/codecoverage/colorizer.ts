@@ -60,7 +60,7 @@ const getCoverageData = async (): Promise<CoverageItem[] | CodeCoverageResult[]>
     throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
   }
 
-  return testResult.codecoverage || testResult.coverage.coverage;
+  return testResult.codecoverage ?? testResult.coverage.coverage;
 };
 
 const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);

@@ -125,7 +125,7 @@ export class ProjectRetrieveStartExecutor extends SfCommandletExecutor<{}> {
     const errors = parser.getErrors();
     const pulledSource = successes ? successes?.result.files : undefined;
     if (pulledSource || parser.hasConflicts()) {
-      const rows = pulledSource || errors?.files;
+      const rows = pulledSource ?? errors?.files;
       const tableTitle = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
       const outputTable = this.getOutputTable(table, rows, tableTitle);
       if (parser.hasConflicts()) {

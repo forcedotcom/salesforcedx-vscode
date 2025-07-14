@@ -90,7 +90,7 @@ class MockEnvironmentVariableCollection implements EnvironmentVariableCollection
 
 export class MockExtensionContext implements ExtensionContext {
   constructor(mode?: ExtensionMode) {
-    this.extensionMode = mode || ExtensionMode.Test;
+    this.extensionMode = mode ?? ExtensionMode.Test;
     this.globalState = new MockMemento();
     this.workspaceState = new MockMemento();
     this.secrets = {

@@ -18,9 +18,7 @@ export class SourceTrackingProvider {
   protected sourceTrackers: Map<string, SourceTracking>;
 
   public static getInstance() {
-    if (SourceTrackingProvider.instance === undefined) {
-      SourceTrackingProvider.instance = new SourceTrackingProvider();
-    }
+    SourceTrackingProvider.instance ??= new SourceTrackingProvider();
     return SourceTrackingProvider.instance;
   }
 

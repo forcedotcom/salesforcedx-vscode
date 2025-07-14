@@ -15,9 +15,7 @@ export class PreviewService {
   private static _instance: PreviewService;
 
   public static get instance() {
-    if (PreviewService._instance === undefined) {
-      PreviewService._instance = new PreviewService();
-    }
+    PreviewService._instance ??= new PreviewService();
     return PreviewService._instance;
   }
 
@@ -27,7 +25,7 @@ export class PreviewService {
       return '';
     }
 
-    return store.get(`last${platform}Device`) || '';
+    return store.get(`last${platform}Device`) ?? '';
   }
 
   public updateRememberedDevice(platform: keyof typeof PlatformName, deviceName: string): void {
@@ -42,6 +40,6 @@ export class PreviewService {
   }
 
   public getLogLevel(): string {
-    return WorkspaceUtils.instance.getWorkspaceSettings().get(this.logLevelKey) || this.defaultLogLevel;
+    return WorkspaceUtils.instance.getWorkspaceSettings().get(this.logLevelKey) ?? this.defaultLogLevel;
   }
 }

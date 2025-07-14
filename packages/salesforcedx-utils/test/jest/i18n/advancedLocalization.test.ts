@@ -128,7 +128,8 @@ describe('Advanced Localization Unit Tests', () => {
       };
 
       manager.registerMessageBundle('test', baseBundle);
-      const message = manager.loadMessageBundle({ locale: 'fr' as any });
+      // @ts-expect-error - test invalid locale
+      const message = manager.loadMessageBundle({ locale: 'fr' });
 
       expect(message.localize('hello')).toBe('Hello');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Cannot find fr, defaulting to en'));

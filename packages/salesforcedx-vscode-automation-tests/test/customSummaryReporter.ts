@@ -18,7 +18,7 @@ class CustomSummaryReporter {
     runner.on(EVENT_TEST_PASS, (test: Test) => {
       this.passes.push({
         title: test.title,
-        duration: test.duration || 0
+        duration: test.duration ?? 0
       });
     });
 
@@ -27,7 +27,7 @@ class CustomSummaryReporter {
       this.failures.push({
         title: test.title,
         error: err.message,
-        duration: test.duration || 0
+        duration: test.duration ?? 0
       });
     });
 

@@ -32,7 +32,7 @@ export class ApexTestRunner {
   private eventsEmitter: events.EventEmitter;
   constructor(testOutline: ApexTestOutlineProvider, eventsEmitter?: events.EventEmitter) {
     this.testOutline = testOutline;
-    this.eventsEmitter = eventsEmitter || new events.EventEmitter();
+    this.eventsEmitter = eventsEmitter ?? new events.EventEmitter();
     this.eventsEmitter.on('sf:update_selection', this.updateSelection);
   }
 

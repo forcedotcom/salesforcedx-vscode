@@ -16,7 +16,7 @@ const protocol2CodeConverter = (value: string): Uri => Uri.parse(value);
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
-  return config.get('activationMode') || 'autodetect'; // default to autodetect
+  return config.get('activationMode') ?? 'autodetect'; // default to autodetect
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {

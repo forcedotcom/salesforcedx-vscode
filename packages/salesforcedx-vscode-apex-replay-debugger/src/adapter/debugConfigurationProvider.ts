@@ -19,7 +19,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
       request: DEBUGGER_LAUNCH_TYPE,
-      logFile: logFile ? logFile : '${command:AskForLogFileName}',
+      logFile: logFile ?? '${command:AskForLogFileName}',
       stopOnEntry,
       trace: true
     };
@@ -46,7 +46,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
-    config.logFile = config.logFile || '${command:AskForLogFileName}';
+    config.logFile = config.logFile ?? '${command:AskForLogFileName}';
     if (config.stopOnEntry === undefined) {
       config.stopOnEntry = true;
     }

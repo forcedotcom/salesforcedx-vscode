@@ -44,7 +44,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
     properties?: { [key: string]: string },
     measurements?: { [key: string]: number }
   ): void {
-    const orgId = WorkspaceContextUtil.getInstance().orgId;
+    const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
 
     void this.appendToFile(
       `telemetry/${eventName} ${JSON.stringify({
@@ -59,7 +59,7 @@ export class LogStream extends Disposable implements TelemetryReporter {
     exceptionMessage: string,
     measurements?: { [key: string]: number }
   ): void {
-    const orgId = WorkspaceContextUtil.getInstance().orgId || '';
+    const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
     const properties = { orgId };
     console.log(`LogStream.sendExceptionEvent - exceptionMessage: ${exceptionMessage}`);
 
