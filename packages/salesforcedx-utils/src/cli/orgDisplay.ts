@@ -16,34 +16,49 @@ export class OrgDisplay {
   }
 
   public async getUsername(): Promise<string> {
+    let usernameOrAlias: string | undefined;
+
     if (this.username) {
       return this.username;
     }
-
     // Try to get username from project config
     try {
       const config = await Config.create(Config.getDefaultOptions());
-      const username = config.get('target-org');
-      if (username && typeof username === 'string') {
-        return username;
+      const configUsernameOrAlias = config.get('target-org');
+      if (configUsernameOrAlias && typeof configUsernameOrAlias === 'string') {
+        usernameOrAlias = configUsernameOrAlias;
       }
     } catch {
       // Ignore config errors
     }
 
-    // Try to get from state aggregator
-    try {
-      const stateAggregator = await StateAggregator.getInstance();
-      const aliases = stateAggregator.aliases.getAll();
-      const defaultAlias = aliases['defaultusername'];
-      if (defaultAlias && typeof defaultAlias === 'string') {
-        return defaultAlias;
+    // Try to get from state aggregator if not found in config
+    if (!usernameOrAlias) {
+      try {
+        const stateAggregator = await StateAggregator.getInstance();
+        const aliases = stateAggregator.aliases.getAll();
+        const defaultAlias = aliases['defaultusername'];
+        if (defaultAlias && typeof defaultAlias === 'string') {
+          usernameOrAlias = defaultAlias;
+        }
+      } catch {
+        // Ignore state errors
       }
-    } catch {
-      // Ignore state errors
     }
 
-    throw new Error('No username provided and no default username found in project config or state');
+    if (!usernameOrAlias) {
+      throw new Error('No username provided and no default username found in project config or state');
+    }
+
+    // Resolve alias to actual username if needed
+    try {
+      const stateAggregator = await StateAggregator.getInstance();
+      const actualUsername = stateAggregator.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
+      return actualUsername;
+    } catch {
+      // If we can't resolve, return what we have
+      return usernameOrAlias;
+    }
   }
 
   public async getOrgInfo(): Promise<OrgInfo> {

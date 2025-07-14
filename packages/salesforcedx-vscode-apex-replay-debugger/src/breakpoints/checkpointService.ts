@@ -214,7 +214,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         errorString = reason;
       }
     );
-    // The resturn string will be the overlay Id and will end up being
+    // The return string will be the overlay Id and will end up being
     // used if the node is deleted
     if (returnString) {
       const result = JSON.parse(returnString) as ApexExecutionOverlaySuccessResult;
