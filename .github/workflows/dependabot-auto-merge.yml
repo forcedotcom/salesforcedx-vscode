@@ -1,0 +1,217 @@
+name: Dependabot Auto-Merge
+
+# This workflow automatically merges dependabot PRs when all required checks pass
+# Includes: PR validation, code quality, unit tests, build, and all E2E tests
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [develop]
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to check and merge'
+        required: true
+        type: string
+
+jobs:
+  dependabot-auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: Wait for status checks
+        id: wait-for-checks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request?.number || '${{ github.event.inputs.pr_number }}';
+
+            // Required status checks that must pass (including all E2E tests)
+            const requiredChecks = [
+              'pr-validation',
+              'code-quality',
+              'unit-tests',
+              'build-all',
+              'setup-initial-suite',
+              'core-authentication',
+              'core-create-project',
+              'core-sfdx-project-json',
+              'core-sobjects-definitions',
+              'core-org-browser',
+              'core-miscellaneous',
+              'deploy-and-retrieve',
+              'deploy-metadata-deploy-retrieve',
+              'deploy-push-and-pull',
+              'deploy-manifest-builder',
+              'apex-lsp',
+              'apex-run-tests',
+              'apex-debug-tests',
+              'apex-replay-debugger',
+              'apex-trail-replay-debugger',
+              'lwc-lsp',
+              'lwc-run-tests',
+              'lwc-debug-tests',
+              'aura-lsp',
+              'visualforce-lsp',
+              'soql-tests',
+              'templates-tests',
+              'docs-create-oas-doc'
+            ];
+
+            console.log(`Waiting for ${requiredChecks.length} required checks to complete...`);
+
+            // Wait for all checks to complete with timeout
+            const maxWaitTime = 120 * 60 * 1000; // 2 hours in milliseconds
+            const checkInterval = 30 * 1000; // Check every 30 seconds
+            const startTime = Date.now();
+
+            while (Date.now() - startTime < maxWaitTime) {
+              const { data: checks } = await github.rest.checks.listForRef({
+                owner,
+                repo,
+                ref: context.payload.pull_request.head.sha
+              });
+
+              const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
+                owner,
+                repo,
+                ref: context.payload.pull_request.head.sha
+              });
+
+              // Combine check runs and statuses
+              const allChecks = [
+                ...checks.check_runs.map(check => ({
+                  name: check.name,
+                  status: check.status,
+                  conclusion: check.conclusion
+                })),
+                ...statuses.map(status => ({
+                  name: status.context,
+                  status: status.state === 'pending' ? 'in_progress' : 'completed',
+                  conclusion: status.state
+                }))
+              ];
+
+              console.log(`Found ${allChecks.length} total checks`);
+
+              let allRequired = true;
+              let allPassed = true;
+
+              for (const requiredCheck of requiredChecks) {
+                const check = allChecks.find(c => c.name === requiredCheck);
+
+                if (!check) {
+                  console.log(`❌ Required check '${requiredCheck}' not found`);
+                  allRequired = false;
+                  continue;
+                }
+
+                if (check.status !== 'completed') {
+                  console.log(`⏳ Required check '${requiredCheck}' is still running (${check.status})`);
+                  allRequired = false;
+                  continue;
+                }
+
+                if (check.conclusion !== 'success') {
+                  console.log(`❌ Required check '${requiredCheck}' failed (${check.conclusion})`);
+                  allPassed = false;
+                  continue;
+                }
+
+                console.log(`✅ Required check '${requiredCheck}' passed`);
+              }
+
+              if (allRequired && allPassed) {
+                console.log('🎉 All required checks have passed!');
+                return 'success';
+              }
+
+              if (allRequired && !allPassed) {
+                console.log('❌ All checks completed but some failed');
+                return 'failure';
+              }
+
+              console.log('⏳ Still waiting for checks to complete...');
+              await new Promise(resolve => setTimeout(resolve, checkInterval));
+            }
+
+            console.log('⏰ Timeout waiting for checks to complete');
+            return 'timeout';
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge for Dependabot PRs
+        if: steps.wait-for-checks.outputs.result == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request?.number || '${{ github.event.inputs.pr_number }}';
+
+            console.log(`Enabling auto-merge for PR #${number}`);
+
+            await github.rest.pulls.enableAutoMerge({
+              owner,
+              repo,
+              pull_number: number,
+              merge_method: 'squash'
+            });
+
+            console.log('✅ Auto-merge enabled successfully');
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on PR
+        if: steps.wait-for-checks.outputs.result == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request?.number || '${{ github.event.inputs.pr_number }}';
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: '🤖 All checks (including E2E tests) have passed! This dependabot PR will be automatically merged.'
+            });
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on failure
+        if: steps.wait-for-checks.outputs.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request?.number || '${{ github.event.inputs.pr_number }}';
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: '❌ Some required checks have failed. This dependabot PR will not be automatically merged.'
+            });
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on timeout
+        if: steps.wait-for-checks.outputs.result == 'timeout'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request?.number || '${{ github.event.inputs.pr_number }}';
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: '⏰ Timeout waiting for checks to complete. This dependabot PR will not be automatically merged.'
+            });
+          github-token: ${{ secrets.GITHUB_TOKEN }}
