@@ -76,7 +76,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(this.initializedResponse);
   }
 
-  public async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
+  public launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
     let lineBreakpointInfoAvailable = false;
     if (args?.lineBreakpointInfo) {
       lineBreakpointInfoAvailable = true;
@@ -94,61 +94,125 @@ export class ApexReplayDebug extends LoggingDebugSession {
       })
     );
 
-    this.logContext = await LogContext.create(args, this);
-    this.heapDumpService = new HeapDumpService(this.logContext);
+    LogContext.create(args, this)
+      .then(logContext => {
+        this.logContext = logContext;
+        this.heapDumpService = new HeapDumpService(this.logContext);
 
-    if (!this.logContext.hasLogLines()) {
-      response.message = nls.localize('no_log_file_text');
-      this.sendEvent(
-        new Event(SEND_METRIC_ERROR_EVENT, {
-          subject: 'No log lines found',
-          callstack: new Error().stack,
-          message: response.message
-        })
-      );
-    } else if (!this.logContext.meetsLogLevelRequirements()) {
-      response.message = nls.localize('incorrect_log_levels_text');
-      this.sendEvent(
-        new Event(SEND_METRIC_ERROR_EVENT, {
-          subject: 'Incorrect log levels',
-          callstack: new Error().stack,
-          message: response.message
-        })
-      );
-    } else if (!lineBreakpointInfoAvailable) {
-      response.message = nls.localize('session_language_server_error_text');
-      this.sendEvent(
-        new Event(SEND_METRIC_ERROR_EVENT, {
-          subject: 'No line breakpoint info available',
-          callstack: new Error().stack,
-          message: response.message
-        })
-      );
-    } else {
-      this.printToDebugConsole(nls.localize('session_started_text', this.logContext.getLogFileName()));
-      if (this.logContext.scanLogForHeapDumpLines() && !(await this.logContext.fetchOverlayResultsForApexHeapDumps())) {
-        response.message = nls.localize('heap_dump_error_wrap_up_text');
-        this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
+        if (!this.logContext.hasLogLines()) {
+          response.message = nls.localize('no_log_file_text');
+          this.sendEvent(
+            new Event(SEND_METRIC_ERROR_EVENT, {
+              subject: 'No log lines found',
+              callstack: new Error().stack,
+              message: response.message
+            })
+          );
+        } else if (!this.logContext.meetsLogLevelRequirements()) {
+          response.message = nls.localize('incorrect_log_levels_text');
+          this.sendEvent(
+            new Event(SEND_METRIC_ERROR_EVENT, {
+              subject: 'Incorrect log levels',
+              callstack: new Error().stack,
+              message: response.message
+            })
+          );
+        } else if (!lineBreakpointInfoAvailable) {
+          response.message = nls.localize('session_language_server_error_text');
+          this.sendEvent(
+            new Event(SEND_METRIC_ERROR_EVENT, {
+              subject: 'No line breakpoint info available',
+              callstack: new Error().stack,
+              message: response.message
+            })
+          );
+        } else {
+          this.printToDebugConsole(nls.localize('session_started_text', this.logContext.getLogFileName()));
+          if (this.logContext.scanLogForHeapDumpLines()) {
+            this.logContext
+              .fetchOverlayResultsForApexHeapDumps()
+              .then(success => {
+                if (!success) {
+                  response.message = nls.localize('heap_dump_error_wrap_up_text');
+                  this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
+                  this.sendEvent(
+                    new Event(SEND_METRIC_ERROR_EVENT, {
+                      subject: 'Fetching heap dumps failed',
+                      callstack: new Error().stack,
+                      message: response.message
+                    })
+                  );
+                }
+                response.success = true;
+                this.sendResponse(response);
+                this.sendEvent(new InitializedEvent());
+                this.sendEvent(
+                  new Event(SEND_METRIC_LAUNCH_EVENT, {
+                    logSize: this.logContext.getLogSize(),
+                    error: {
+                      subject: response.message
+                    }
+                  })
+                );
+              })
+              .catch(error => {
+                response.message = nls.localize('heap_dump_error_wrap_up_text');
+                this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
+                this.sendEvent(
+                  new Event(SEND_METRIC_ERROR_EVENT, {
+                    subject: 'Fetching heap dumps failed',
+                    callstack: error.stack,
+                    message: response.message
+                  })
+                );
+                response.success = true;
+                this.sendResponse(response);
+                this.sendEvent(new InitializedEvent());
+                this.sendEvent(
+                  new Event(SEND_METRIC_LAUNCH_EVENT, {
+                    logSize: this.logContext.getLogSize(),
+                    error: {
+                      subject: response.message
+                    }
+                  })
+                );
+              });
+            return;
+          }
+          response.success = true;
+        }
+        this.sendResponse(response);
+        this.sendEvent(new InitializedEvent());
+        this.sendEvent(
+          new Event(SEND_METRIC_LAUNCH_EVENT, {
+            logSize: this.logContext.getLogSize(),
+            error: {
+              subject: response.message
+            }
+          })
+        );
+      })
+      .catch(error => {
+        response.message = nls.localize('session_language_server_error_text');
         this.sendEvent(
           new Event(SEND_METRIC_ERROR_EVENT, {
-            subject: 'Fetching heap dumps failed',
-            callstack: new Error().stack,
+            subject: 'LogContext creation failed',
+            callstack: error.stack,
             message: response.message
           })
         );
-      }
-      response.success = true;
-    }
-    this.sendResponse(response);
-    this.sendEvent(new InitializedEvent());
-    this.sendEvent(
-      new Event(SEND_METRIC_LAUNCH_EVENT, {
-        logSize: this.logContext.getLogSize(),
-        error: {
-          subject: response.message
-        }
-      })
-    );
+        response.success = false;
+        this.sendResponse(response);
+        this.sendEvent(new InitializedEvent());
+        this.sendEvent(
+          new Event(SEND_METRIC_LAUNCH_EVENT, {
+            logSize: 0,
+            error: {
+              subject: response.message
+            }
+          })
+        );
+      });
   }
 
   public setupLogger(args: LaunchRequestArguments): void {
@@ -217,10 +281,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  public async scopesRequest(
-    response: DebugProtocol.ScopesResponse,
-    args: DebugProtocol.ScopesArguments
-  ): Promise<void> {
+  public scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
     const heapDumpId = this.logContext.hasHeapDumpForTopFrame();
     if (heapDumpId) {
       try {
@@ -276,10 +337,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
   }
 
-  public async variablesRequest(
-    response: DebugProtocol.VariablesResponse,
-    args: DebugProtocol.VariablesArguments
-  ): Promise<void> {
+  public variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments): void {
     response.success = true;
     try {
       const scopesContainer = this.logContext.getVariableHandler().get(args.variablesReference);

@@ -32,8 +32,8 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "64.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.4.0",
     "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-data-view": "0.1.0",
@@ -46,14 +46,14 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.18.1",
-    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils": "64.4.0",
     "@salesforce/ts-types": "2.0.12",
     "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-core": "64.4.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
