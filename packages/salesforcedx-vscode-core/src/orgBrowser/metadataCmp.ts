@@ -131,7 +131,7 @@ export class ComponentUtils {
   ): Promise<string[]> {
     const componentsPath = this.getComponentsPath(metadataType, folderName);
     let componentsList: string[];
-    const freshFetch = forceRefresh ?? !(await fileOrFolderExists(componentsPath));
+    const freshFetch = Boolean(forceRefresh) || !(await fileOrFolderExists(componentsPath));
     const connection = await WorkspaceContext.getInstance().getConnection();
     if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
       if (freshFetch) {
