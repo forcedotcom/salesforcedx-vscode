@@ -8,11 +8,12 @@
 import {
   CompositeParametersGatherer,
   DirFileNameSelection,
-  LocalComponent
+  LocalComponent,
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateType, VisualforceComponentOptions } from '@salesforce/templates';
 import { nls } from '../../messages';
-import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet, SfWorkspaceChecker } from '../util';
+import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { VISUALFORCE_COMPONENT_DIRECTORY, VISUALFORCE_COMPONENT_TYPE } from './metadataTypeConstants';

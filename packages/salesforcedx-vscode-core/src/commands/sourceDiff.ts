@@ -5,32 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import { SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { URI } from 'vscode-uri';
-import { channelService } from '../channels';
 import { MetadataCacheExecutor, MetadataCacheResult, PathType } from '../conflict';
 import * as differ from '../conflict/directoryDiffer';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { telemetryService } from '../telemetry';
-import { FilePathGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { FilePathGatherer, SfCommandlet } from './util';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 const workspaceChecker = new SfWorkspaceChecker();
 
 export const sourceDiff = async (sourceUri?: URI) => {
-  if (!sourceUri) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-      sourceUri = editor.document.uri;
-    } else {
-      const errorMessage = nls.localize('source_diff_unsupported_type');
-      telemetryService.sendException('unsupported_type_on_diff', errorMessage);
-      await notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-      return;
-    }
+  const resolved =
+    sourceUri ??
+    (await getUriFromActiveEditor({
+      message: 'source_diff_unsupported_type',
+      exceptionKey: 'unsupported_type_on_diff'
+    }));
+
+  if (!resolved) {
+    return;
   }
 
   const targetOrgorAlias = WorkspaceContext.getInstance().username;
@@ -44,23 +40,19 @@ export const sourceDiff = async (sourceUri?: URI) => {
     'source_diff',
     handleCacheResults
   );
-  const commandlet = new SfCommandlet(workspaceChecker, new FilePathGatherer(sourceUri), executor);
+  const commandlet = new SfCommandlet(workspaceChecker, new FilePathGatherer(resolved), executor);
   await commandlet.run();
 };
 
 export const sourceFolderDiff = async (explorerPath?: URI) => {
-  if (!explorerPath) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-      explorerPath = editor.document.uri;
-    } else {
-      const errorMessage = nls.localize('source_diff_unsupported_type');
-      telemetryService.sendException('unsupported_type_on_diff', errorMessage);
-      await notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-      return;
-    }
+  const resolved =
+    explorerPath ??
+    (await getUriFromActiveEditor({
+      message: 'source_diff_unsupported_type',
+      exceptionKey: 'unsupported_type_on_diff'
+    }));
+  if (!resolved) {
+    return;
   }
 
   const username = WorkspaceContext.getInstance().username;
@@ -71,7 +63,7 @@ export const sourceFolderDiff = async (explorerPath?: URI) => {
 
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
-    new FilePathGatherer(explorerPath),
+    new FilePathGatherer(resolved),
     new MetadataCacheExecutor(
       username,
       nls.localize('source_diff_folder_text'),
@@ -87,7 +79,7 @@ const handleCacheResults = async (username: string, cache?: MetadataCacheResult)
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
       await differ.diffOneFile(cache.selectedPath, cache.cache.components[0], username);
     } else if (cache.selectedType === PathType.Folder) {
-      differ.diffFolder(cache, username);
+      await differ.diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('source_diff_components_not_in_org');

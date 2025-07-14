@@ -15,7 +15,6 @@ export { dataQuery } from './dataQuery';
 export { debuggerStop } from './debuggerStop';
 export { deleteSource } from './deleteSource';
 export { projectGenerateManifest } from './projectGenerateManifest';
-export { describeMetadata } from './describeMetadata';
 export { packageInstall } from './packageInstall';
 export { refreshSObjects, initSObjectDefinitions } from './refreshSObjects';
 export { renameLightningComponent } from './renameLightningComponent';
@@ -35,7 +34,7 @@ export { projectDeployStart } from './projectDeployStart';
 export { projectGenerateWithManifest, sfProjectGenerate } from './projectGenerate';
 export { projectRetrieveStart } from './projectRetrieveStart';
 export { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './source/viewChanges';
-export { startApexDebugLogging } from './startApexDebugLogging';
+export { turnOnLogging } from './startApexDebugLogging';
 export { turnOffLogging } from './stopApexDebugLogging';
 export { taskStop } from './taskStop';
 export {
@@ -56,6 +55,3 @@ export {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './templates';
-import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
-
-export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();

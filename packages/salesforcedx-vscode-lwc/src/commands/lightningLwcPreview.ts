@@ -127,23 +127,20 @@ export const getPreview = () => {
 const lwcPreviewContainerMode = () => {
   const message = nls.localize('lightning_lwc_preview_container_mode');
   vscode.window.showErrorMessage(message);
-  return;
 };
 
 const lwcPreview = async (sourceUri: URI) => {
   const startTime = process.hrtime();
 
-  if (!sourceUri) {
-    if (vscode.window.activeTextEditor) {
-      sourceUri = URI.from(vscode.window.activeTextEditor.document.uri);
-    } else {
-      const message = nls.localize('lightning_lwc_preview_file_undefined', sourceUri);
-      showError(new Error(message), logName, commandName);
-      return;
-    }
-  }
+  const resolved =
+    sourceUri ?? (vscode.window.activeTextEditor ? URI.from(vscode.window.activeTextEditor.document.uri) : undefined);
 
-  const resourcePath = sourceUri.fsPath;
+  if (!resolved) {
+    const message = nls.localize('lightning_lwc_preview_file_undefined', resolved);
+    showError(new Error(message), logName, commandName);
+    return;
+  }
+  const resourcePath = resolved.fsPath;
   if (!resourcePath) {
     const message = nls.localize('lightning_lwc_preview_file_undefined', resourcePath);
     showError(new Error(message), logName, commandName);
@@ -167,7 +164,6 @@ const lwcPreview = async (sourceUri: URI) => {
   } catch {
     const message = nls.localize('lightning_lwc_preview_file_nonexist', resourcePath);
     showError(new Error(message), logName, commandName);
-    return;
   }
 };
 
@@ -531,7 +527,7 @@ const executeMobilePreview = async (
   // listen for Android Emulator finished
   if (isAndroid) {
     previewExecution.stdoutSubject.subscribe(async data => {
-      if (data && data.toString().includes(androidSuccessString)) {
+      if (data?.toString().includes(androidSuccessString)) {
         notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
         vscode.window.showInformationMessage(nls.localize('lightning_lwc_android_start', targetDevice));
       }

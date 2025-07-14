@@ -32,7 +32,7 @@ export const getAnnotationsWithParameters = (annotations: ApexAnnotationDetail[]
     .map(annotation => {
       const paramsEntries = Object.entries(annotation.parameters);
       const paramsAsStr =
-        paramsEntries.length > 0 ? paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ') : undefined;
+        paramsEntries.length > 0 ? `${paramsEntries.map(([key, value]) => `${key}: ${value}`).join(', ')}` : undefined;
       return paramsAsStr
         ? `Annotation name: ${annotation.name} , Parameters: ${paramsAsStr}`
         : `Annotation name: ${annotation.name}.`;

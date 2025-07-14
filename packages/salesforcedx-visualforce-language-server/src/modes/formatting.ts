@@ -29,6 +29,7 @@ export const format = (
     while (isEOL(content, endOffset - 1) && endOffset > prevLineStart) {
       endOffset--;
     }
+    // eslint-disable-next-line no-param-reassign
     formatRange = Range.create(formatRange.start, document.positionAt(endOffset));
   }
 
@@ -56,6 +57,7 @@ export const format = (
     return result;
   }
   // modify the range
+  // eslint-disable-next-line no-param-reassign
   formatRange = Range.create(startPos, formatRange.end);
 
   // perform a html format and apply changes to a new document
@@ -63,7 +65,7 @@ export const format = (
   const htmlEdits = htmlMode.format(document, formatRange, formattingOptions, settings);
   const htmlFormattedContent = applyEdits(document, htmlEdits);
   const newDocument = TextDocument.create(
-    document.uri + '.tmp',
+    `${document.uri}.tmp`,
     document.languageId,
     document.version,
     htmlFormattedContent
@@ -81,7 +83,7 @@ export const format = (
 
     for (const r of embeddedRanges) {
       const mode = r.mode;
-      if (mode && mode.format && enabledModes[mode.getId()] && !r.attributeValue) {
+      if (mode?.format && enabledModes[mode.getId()] && !r.attributeValue) {
         const edits = mode.format(newDocument, r, formattingOptions, settings);
         for (const edit of edits) {
           embeddedEdits.push(edit);

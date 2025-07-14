@@ -67,7 +67,22 @@ export default [
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
+      'unicorn/consistent-empty-array-spread': 'error',
+      'unicorn/consistent-function-scoping': 'error',
+      'unicorn/explicit-length-check': 'error',
+      'unicorn/no-instanceof-builtins': 'error',
+      'unicorn/no-typeof-undefined': 'error',
+      'unicorn/no-useless-fallback-in-spread': 'error',
+      'unicorn/no-useless-length-check': 'error',
+      'unicorn/no-useless-promise-resolve-reject': 'error',
+      'unicorn/no-useless-spread': 'error',
+      'unicorn/prefer-at': 'error',
+      'unicorn/prefer-array-find': 'error',
+      'unicorn/prefer-includes': 'error',
+
       'unicorn/prefer-node-protocol': 'error',
+      'unicorn/prefer-object-from-entries': 'error',
+      'unicorn/prefer-optional-catch-binding': 'error',
       'unicorn/filename-case': [
         'error',
         {
@@ -90,13 +105,14 @@ export default [
         ]
       ],
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
-          args: 'none',
+          argsIgnorePattern: '^_',
           ignoreRestSiblings: true
         }
       ],
       '@typescript-eslint/adjacent-overload-signatures': 'error',
+      '@typescript-eslint/class-literal-property-style': 'error',
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-restricted-types': [
@@ -116,6 +132,7 @@ export default [
       ],
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/no-misused-spread': 'error',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unsafe-call': 'warn',
@@ -124,11 +141,17 @@ export default [
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/prefer-for-of': 'warn',
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/unbound-method': ['warn', { ignoreStatic: true }],
       'prefer-arrow/prefer-arrow-functions': ['error', {}],
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/dot-notation': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-member-accessibility': [
+        'error',
+        { accessibility: 'explicit', overrides: { constructors: 'no-public' } }
+      ],
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@stylistic/eslint-plugin-ts/member-delimiter-style': [
         'error',
@@ -282,7 +305,10 @@ export default [
       'no-fallthrough': 'off',
       'no-invalid-this': 'off',
       'no-new-wrappers': 'error',
+      'no-param-reassign': 'error',
       'no-shadow': 'off',
+      'no-self-assign': 'error',
+      'no-self-compare': 'error',
       'no-throw-literal': 'error',
       'no-trailing-spaces': 'error',
       'no-undef-init': 'error',
@@ -291,13 +317,18 @@ export default [
       'no-unused-expressions': 'off',
       'no-unused-labels': 'error',
       'no-use-before-define': 'off',
+      'no-useless-catch': 'error',
+      'no-useless-computed-key': 'error',
       'no-useless-constructor': 'off',
+      'no-useless-return': 'error',
       '@typescript-eslint/no-useless-constructor': 'error',
       'no-var': 'error',
       'object-shorthand': 'error',
       'one-var': ['error', 'never'],
       'prefer-arrow/prefer-arrow-functions': ['warn', {}],
       'prefer-const': 'error',
+      'prefer-object-spread': 'error',
+      'prefer-template': 'error',
       'quote-props': ['error', 'as-needed'],
       quotes: 'off',
       radix: 'error',
@@ -328,6 +359,8 @@ export default [
     },
     rules: {
       'unicorn/filename-case': 'off',
+      'unicorn/consistent-function-scoping': 'off',
+
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -347,7 +380,20 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
-      'no-useless-constructor': 'off'
+      'no-useless-constructor': 'off',
+      'no-param-reassign': 'off'
+    }
+  },
+  {
+    // these have extensive copy-paste from an old version of msft language server
+    // this rule requires strict null checks to be enabled and that code does not support it
+    files: [
+      'packages/salesforcedx-visualforce-markup-language-server/**',
+      'packages/salesforcedx-visualforce-language-server/**',
+      'packages/salesforcedx-vscode-soql/**'
+    ],
+    rules: {
+      '@typescript-eslint/prefer-nullish-coalescing': 'off'
     }
   },
   {

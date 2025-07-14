@@ -5,16 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CompositeParametersGatherer, LocalComponent, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
-import type { URI } from 'vscode-uri';
 import {
-  MetadataTypeGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SfCommandlet,
-  SfWorkspaceChecker,
-  SimpleGatherer
-} from '../util';
+  CompositeParametersGatherer,
+  LocalComponent,
+  ParametersGatherer,
+  SfWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode';
+import type { URI } from 'vscode-uri';
+import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet, SimpleGatherer } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import {
   ApexTestTemplateGatherer,

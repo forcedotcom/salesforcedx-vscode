@@ -80,7 +80,7 @@ export class OrgAuthInfo {
 
   public static async getUsername(usernameOrAlias: string): Promise<string> {
     const info = await StateAggregator.getInstance();
-    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
+    return info.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
   }
 
   public static async isAScratchOrg(username: string): Promise<boolean> {
@@ -174,7 +174,7 @@ const displayMessage = (
   if (enableWarning !== undefined && !enableWarning) {
     return;
   }
-  const buttons = items || [];
+  const buttons = items ?? [];
   channelService.appendLine(output);
   channelService.showChannelOutput();
   if (vsCodeWindowType) {

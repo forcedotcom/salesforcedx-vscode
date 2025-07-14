@@ -34,7 +34,7 @@ type SingleResult = {
 
 export class BatchDeleteExistingOverlayActionCommand extends BaseCommand {
   private readonly requests: BatchRequests;
-  public constructor(requests: BatchRequests) {
+  constructor(requests: BatchRequests) {
     super(undefined);
     this.requests = requests;
   }

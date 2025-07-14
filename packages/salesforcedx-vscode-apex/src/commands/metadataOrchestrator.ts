@@ -160,7 +160,7 @@ export class MetadataOrchestrator {
     return responses;
   };
 
-  getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
+  public getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
     ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 }
 

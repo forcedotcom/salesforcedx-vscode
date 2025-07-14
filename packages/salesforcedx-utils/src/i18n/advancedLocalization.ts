@@ -32,7 +32,7 @@ export class LocalizationConfig {
 
   private constructor() {}
 
-  public static getInstance(instanceName: string): LocalizationConfig {
+  public static getInstance(): LocalizationConfig {
     LocalizationConfig.instance ??= new LocalizationConfig();
     return LocalizationConfig.instance;
   }
@@ -82,7 +82,7 @@ export class MessageBundleManager {
   }
 
   private rebuildMessages(instanceName: string): void {
-    const bundles = this.messageBundles.get(instanceName) || [];
+    const bundles = this.messageBundles.get(instanceName) ?? [];
     const baseBundle = bundles.find(b => b.type === 'base');
     const localeBundles = bundles.filter(b => b.type === 'locale');
 
@@ -90,7 +90,7 @@ export class MessageBundleManager {
       this.baseMessages = new Message(baseBundle.messages);
       localeBundles.forEach(localeBundle => {
         const messageLocale = localeBundle.messages['_locale'];
-        const locale = localeBundle.locale || (this.isValidLocale(messageLocale) ? messageLocale : DEFAULT_LOCALE);
+        const locale = localeBundle.locale ?? (this.isValidLocale(messageLocale) ? messageLocale : DEFAULT_LOCALE);
         if (this.isValidLocale(locale)) {
           this.localeMessages.set(locale, new Message(localeBundle.messages, this.baseMessages!));
         }
@@ -110,15 +110,15 @@ export class MessageBundleManager {
       throw new Error('No base messages registered');
     }
 
-    const localeConfig = config?.locale || DEFAULT_LOCALE;
-    const configManager = LocalizationConfig.getInstance('default');
+    const localeConfig = config?.locale ?? DEFAULT_LOCALE;
+    const configManager = LocalizationConfig.getInstance();
 
     if (!configManager.isLocaleSupported(localeConfig)) {
       console.error(`Cannot find ${localeConfig}, defaulting to ${DEFAULT_LOCALE}`);
       return this.baseMessages;
     }
 
-    return this.localeMessages.get(localeConfig) || this.baseMessages;
+    return this.localeMessages.get(localeConfig) ?? this.baseMessages;
   }
 }
 
@@ -148,7 +148,7 @@ export class LocalizationService {
       try {
         const message = this.messageBundleManager.loadMessageBundle();
         this._nls = new Localization(message);
-      } catch (error) {
+      } catch {
         console.warn(
           `LocalizationService: No messages registered for instance '${this.instanceName}', using fallback localization`
         );
@@ -160,6 +160,7 @@ export class LocalizationService {
   }
 
   public localize<K extends string>(key: K, ...args: any[]): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.nls.localize(key, ...args);
   }
 

@@ -12,7 +12,7 @@ import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 import ruleset from './ruleset.spectral';
 
 export class OasValidationStep implements ProcessorStep {
-  async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+  public async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     const spectral = new Spectral();
     spectral.setRuleset(ruleset);
 

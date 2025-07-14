@@ -16,12 +16,12 @@ const protocol2CodeConverter = (value: string): Uri => Uri.parse(value);
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
-  return config.get('activationMode') || 'autodetect'; // default to autodetect
+  return config.get('activationMode') ?? 'autodetect'; // default to autodetect
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
   const extensionHRStart = process.hrtime();
-  console.log('Activation Mode: ' + getActivationMode());
+  console.log(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
@@ -48,14 +48,14 @@ export const activate = async (extensionContext: ExtensionContext) => {
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     console.log('Aura LSP - autodetect did not find a valid project structure, exiting....');
-    console.log('WorkspaceType detected: ' + workspaceType);
+    console.log(`WorkspaceType detected: ${workspaceType}`);
     return;
   }
   // If activationMode === always, ignore workspace type and continue activating
 
   // 4) If we get here, we either passed autodetect validation or activationMode == always
   console.log('Aura Components Extension Activated');
-  console.log('WorkspaceType detected: ' + workspaceType);
+  console.log(`WorkspaceType detected: ${workspaceType}`);
 
   // Initialize telemetry service
   await TelemetryService.getInstance().initializeService(extensionContext);

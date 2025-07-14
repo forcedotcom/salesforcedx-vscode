@@ -52,6 +52,36 @@ export const fileOrFolderExists = async (filePath: string): Promise<boolean> => 
 };
 
 /**
+ * Checks if a path is a directory
+ * @param path The path to check
+ * @returns True if the path exists and is a directory, false otherwise
+ */
+export const isDirectory = async (path: string): Promise<boolean> => {
+  try {
+    const uri = URI.file(path);
+    const fileStat = await vscode.workspace.fs.stat(uri);
+    return fileStat.type === vscode.FileType.Directory;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Checks if a path is a file
+ * @param path The path to check
+ * @returns True if the path exists and is a file, false otherwise
+ */
+export const isFile = async (path: string): Promise<boolean> => {
+  try {
+    const uri = URI.file(path);
+    const fileStat = await vscode.workspace.fs.stat(uri);
+    return fileStat.type === vscode.FileType.File;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Creates a directory recursively.  Will not throw if the directory already exists.
  * @param dirPath The path to the directory
  */
@@ -137,5 +167,22 @@ export const ensureCurrentWorkingDirIsProjectPath = async (rootWorkspacePath: st
     } catch {
       // Path doesn't exist, do nothing
     }
+  }
+};
+
+/**
+ * Renames or moves a file or directory
+ * @param oldPath The current path of the file or directory
+ * @param newPath The new path for the file or directory
+ */
+export const rename = async (oldPath: string, newPath: string): Promise<void> => {
+  try {
+    const oldUri = URI.file(oldPath);
+    const newUri = URI.file(newPath);
+    await vscode.workspace.fs.rename(oldUri, newUri);
+  } catch (error) {
+    throw new Error(
+      `Failed to rename ${oldPath} to ${newPath}: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 };

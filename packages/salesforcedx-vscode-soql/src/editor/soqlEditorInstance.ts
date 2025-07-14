@@ -73,7 +73,7 @@ class ConnectionChangedListener {
   protected static instance: ConnectionChangedListener;
 
   protected constructor() {
-    onOrgChange(async (orgInfo: any) => {
+    onOrgChange(async (_orgInfo: any) => {
       await this.connectionChanged();
     });
 
@@ -182,7 +182,7 @@ export class SOQLEditorInstance {
         const { unsupported } = event.payload;
         const hasUnsupported = Array.isArray(unsupported) ? unsupported.length : unsupported;
         if (hasUnsupported) {
-          trackErrorWithTelemetry('syntax_unsupported', JSON.stringify(event.payload)).catch(console.error);
+          trackErrorWithTelemetry('syntax_unsupported', JSON.stringify(event.payload));
           const message = nls.localize('info_syntax_unsupported');
           channelService.appendLine(message);
         }
@@ -226,7 +226,7 @@ export class SOQLEditorInstance {
       default: {
         const message = nls.localize('error_unknown_error', event.type);
         channelService.appendLine(message);
-        trackErrorWithTelemetry('message_unknown', event.type).catch(console.error);
+        trackErrorWithTelemetry('message_unknown', event.type);
       }
     }
   }
@@ -238,7 +238,7 @@ export class SOQLEditorInstance {
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);
       this.runQueryDone();
-      return Promise.resolve();
+      return;
     }
 
     const queryText = this.document.getText();

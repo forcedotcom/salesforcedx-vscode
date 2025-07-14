@@ -12,6 +12,7 @@ import {
   OrgOpenContainerResultParser,
   OrgOpenErrorResult,
   OrgOpenSuccessResult,
+  SfWorkspaceChecker,
   workspaceUtils,
   ContinueResponse,
   isSFContainerMode,
@@ -24,10 +25,10 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { SfCommandlet, SfCommandletExecutor, SfWorkspaceChecker } from './util';
+import { SfCommandlet, SfCommandletExecutor } from './util';
 
 class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
       .withArg('org:open')
@@ -100,7 +101,7 @@ class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
 class OrgOpenExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
 
-  public build(data: {}): Command {
+  public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withDescription(nls.localize('org_open_default_scratch_org_text'))
       .withArg('org:open')

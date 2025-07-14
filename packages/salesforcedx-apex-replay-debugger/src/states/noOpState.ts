@@ -9,7 +9,7 @@ import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
 export class NoOpState implements DebugLogState {
-  public handle(logContext: LogContext): boolean {
+  public handle(_logContext: LogContext): boolean {
     return false;
   }
 }

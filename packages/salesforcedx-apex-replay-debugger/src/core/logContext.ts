@@ -232,10 +232,10 @@ export class LogContext {
     return this.apexHeapDumps.length > 0;
   }
 
-  public async fetchOverlayResultsForApexHeapDumps(projectPath: string): Promise<boolean> {
+  public async fetchOverlayResultsForApexHeapDumps(): Promise<boolean> {
     let success = true;
     try {
-      const orgInfo = await new OrgDisplay().getOrgInfo(projectPath);
+      const orgInfo = await new OrgDisplay().getOrgInfo();
       const requestService = new RequestService();
       requestService.instanceUrl = orgInfo.instanceUrl;
       requestService.accessToken = orgInfo.accessToken;
@@ -276,9 +276,23 @@ export class LogContext {
       }
     } catch (error) {
       success = false;
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const result = JSON.parse(error) as OrgInfoError;
-      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
+      let errorMessage: string;
+
+      // Check if error is already an Error object with a message
+      if (error instanceof Error) {
+        errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${error.message}`;
+      } else {
+        // Try to parse as JSON (for backwards compatibility)
+        try {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          const result = JSON.parse(error as string) as OrgInfoError;
+          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
+        } catch {
+          // If JSON parsing fails, treat as string
+          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${String(error)}`;
+        }
+      }
+
       this.session.errorToDebugConsole(errorMessage);
     }
     return success;
@@ -310,7 +324,7 @@ export class LogContext {
 
   public getTopFrame(): StackFrame | undefined {
     if (this.stackFrameInfos.length > 0) {
-      return this.stackFrameInfos[this.stackFrameInfos.length - 1];
+      return this.stackFrameInfos.at(-1);
     }
   }
 
@@ -339,7 +353,7 @@ export class LogContext {
   }
 
   public getExecAnonScriptLocationInDebugLog(scriptLine: number): number {
-    return this.execAnonMapping.get(scriptLine) || 0;
+    return this.execAnonMapping.get(scriptLine) ?? 0;
   }
 
   public getExecAnonScriptMapping(): Map<number, number> {
@@ -365,7 +379,6 @@ export class LogContext {
 
       if (processedKey === processedSignature) {
         uri = value;
-        return;
       }
     });
     return uri;
@@ -389,7 +402,7 @@ export class LogContext {
         if (this.session.shouldTraceLogFile() && !(this.state instanceof UserDebugState)) {
           this.session.printToDebugConsole(logLine);
         }
-        if (this.state && this.state.handle(this)) {
+        if (this.state?.handle(this)) {
           break;
         }
       }
@@ -405,13 +418,14 @@ export class LogContext {
     }
     const fields = logLine.split('|');
     if (fields.length >= 3) {
+      // this check makes several ! assertions below allowable
       switch (fields[1]) {
         case EVENT_CODE_UNIT_STARTED:
         case EVENT_CONSTRUCTOR_ENTRY:
         case EVENT_METHOD_ENTRY:
           return new FrameEntryState(fields);
         case EVENT_VF_APEX_CALL_START:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields[fields.length - 2])) {
+          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
             return new NoOpState();
           } else {
             return new FrameEntryState(fields);
@@ -425,7 +439,7 @@ export class LogContext {
         case EVENT_VARIABLE_ASSIGNMENT:
           return new VariableAssignmentState(fields);
         case EVENT_VF_APEX_CALL_END:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields[fields.length - 2])) {
+          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
             return new NoOpState();
           } else {
             return new FrameExitState(fields);

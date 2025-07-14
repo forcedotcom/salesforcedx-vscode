@@ -87,7 +87,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
     telemetryService.sendEventData('apexLSPSettings', undefined, {
-      maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0
+      maxHeapSize: jvmMaxHeap ?? 0
     });
 
     if (DEBUG) {

@@ -15,9 +15,10 @@ import {
 } from '../constants';
 
 export class FrameStateUtil {
-  // Given the log line, already split into fields, return the computed frame name.
+  /** Given the log line, already split into fields, return the computed frame name
+   * the minimum number of fields is 2.*/
   public static computeFrameName(fields: string[]): string {
-    const sig = fields[fields.length - 1];
+    const sig = fields.at(-1)!;
     const invokeMatch = ' invoke\\((.*)\\)';
     let frameName = '';
     switch (fields[1]) {
@@ -44,18 +45,18 @@ export class FrameStateUtil {
         // in the string.
         // First, take care of the case where there's an inner class. With the way this
         // is parsed, namespaces aren't an issue.
-        if (sig.lastIndexOf('.') >= 0) {
+        if (sig.includes('.')) {
           // In the case of MyClass.MyInnerClass the frame name would be MyClass.MyInnerClass.MyInnerClass
           // which would match live debugging
-          frameName = sig + '.' + sig.substr(sig.lastIndexOf('.') + 1);
+          frameName = `${sig}.${sig.substr(sig.lastIndexOf('.') + 1)}`;
           // Second take care of the case where there's no inner class but there is a namespace.
-        } else if (sig.lastIndexOf('/') >= 0) {
+        } else if (sig.includes('/')) {
           // In the case of MyNamespace/MyClass the frame name would be MyNamespace/MyClass.MyClass
-          frameName = sig + '.' + sig.substring(sig.lastIndexOf('/') + 1);
+          frameName = `${sig}.${sig.substring(sig.lastIndexOf('/') + 1)}`;
         } else {
           // The default case is just a single class in the typeref with no namespace which just
           // becomes MyClass.MyClass
-          frameName = sig + '.' + sig;
+          frameName = `${sig}.${sig}`;
         }
         break;
       case EVENT_VF_APEX_CALL_START:
@@ -67,11 +68,11 @@ export class FrameStateUtil {
         // worse then using the typeRef is going to be a good fallback, like in the case of
         // getters/setters where frames aren't quite correct in the logs due to over logging.
         frameName = sig;
-        const methodName = fields[fields.length - 2].match(invokeMatch);
+        const methodName = fields.at(-2)?.match(invokeMatch);
         // The match call can return null and temp[0] will end up being the full string which means that
         // any match that we want is going to end up being in temp[1]
         if (methodName != null && methodName.length >= 2) {
-          frameName += '.' + methodName[1];
+          frameName += `.${methodName[1]}`;
           if (!methodName[1].endsWith(')')) {
             frameName += '()';
           }

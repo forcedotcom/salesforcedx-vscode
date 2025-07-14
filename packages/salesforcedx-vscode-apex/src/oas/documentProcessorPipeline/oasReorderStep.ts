@@ -26,7 +26,7 @@ const reorderKeys = (obj: Record<string, any>, keyOrder: string[]): Record<strin
 export class OasReorderStep implements ProcessorStep {
   // OOPS: is async to satisfy the interface.
   // eslint-disable-next-line @typescript-eslint/require-await
-  async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+  public async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
     const oas = input.openAPIDoc;
 
     // Reorder info section in top level

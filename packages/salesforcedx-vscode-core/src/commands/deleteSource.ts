@@ -16,11 +16,10 @@ import {
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { telemetryService } from '../telemetry';
+import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 import { SfCommandlet } from './util/sfCommandlet';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
@@ -29,7 +28,7 @@ export class DeleteSourceExecutor extends SfCommandletExecutor<{
 }> {
   private isSourceTracked: boolean;
 
-  public constructor(isSourceTracked: boolean) {
+  constructor(isSourceTracked: boolean) {
     super();
     this.isSourceTracked = isSourceTracked;
   }
@@ -50,7 +49,7 @@ export class DeleteSourceExecutor extends SfCommandletExecutor<{
 class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
-  public constructor(uri: URI) {
+  constructor(uri: URI) {
     this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
@@ -74,7 +73,7 @@ class ConfirmationAndSourcePathGatherer implements ParametersGatherer<{ filePath
   private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
-  public constructor(uri: URI) {
+  constructor(uri: URI) {
     this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
@@ -89,28 +88,21 @@ class ConfirmationAndSourcePathGatherer implements ParametersGatherer<{ filePath
 }
 
 export const deleteSource = async (sourceUri: URI) => {
-  let isSourceTracked: boolean = false;
+  const resolved =
+    sourceUri ??
+    (await getUriFromActiveEditor({
+      message: 'delete_source_select_file_or_directory',
+      exceptionKey: 'project_delete_source'
+    }));
+  if (!resolved) {
+    return;
+  }
   const orgType = await workspaceContextUtils.getWorkspaceOrgType();
-  if (orgType === OrgType.SourceTracked) {
-    isSourceTracked = true;
-  }
-  if (!sourceUri) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-      sourceUri = editor.document.uri;
-    } else {
-      const errorMessage = nls.localize('delete_source_select_file_or_directory');
-      telemetryService.sendException('project_delete_source', errorMessage);
-      void notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-      return;
-    }
-  }
-  const manifestChecker = new ManifestChecker(sourceUri);
+  const isSourceTracked = orgType === OrgType.SourceTracked;
+  const manifestChecker = new ManifestChecker(resolved);
   const commandlet = new SfCommandlet(
     manifestChecker,
-    new ConfirmationAndSourcePathGatherer(sourceUri),
+    new ConfirmationAndSourcePathGatherer(resolved),
     new DeleteSourceExecutor(isSourceTracked)
   );
   await commandlet.run();

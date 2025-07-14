@@ -10,6 +10,7 @@ import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   Row,
+  SfWorkspaceChecker,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -22,7 +23,7 @@ import {
   TARGET_ORG_KEY
 } from '../constants';
 import { nls } from '../messages';
-import { SfCommandlet, SfWorkspaceChecker } from './util';
+import { SfCommandlet } from './util';
 
 class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
@@ -34,7 +35,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(_response: ContinueResponse<string>): Promise<boolean> {
     let result: boolean;
     let message: string | undefined;
     try {

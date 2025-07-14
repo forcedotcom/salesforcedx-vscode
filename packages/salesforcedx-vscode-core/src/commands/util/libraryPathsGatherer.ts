@@ -11,7 +11,7 @@ import type { URI } from 'vscode-uri';
 export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
   private uris: URI[];
 
-  public constructor(uris: URI[]) {
+  constructor(uris: URI[]) {
     this.uris = uris;
   }
 

@@ -8,13 +8,8 @@ on:
     types:
       - completed
 
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      automationBranch:
-        description: 'Set the branch to use for automation tests'
-        required: false
-        default: 'main'
-        type: string
       apexE2ETests:
         description: 'Apex E2E Tests'
         required: false
@@ -48,7 +43,49 @@ on:
       vscodeVersion:
         description: 'VSCode Version'
         required: false
-        default: '1.100.3'
+        default: 'latest'
+        type: string
+      runId:
+        description: 'Run ID of the workflow run that created the vsixes'
+        required: true
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      apexE2ETests:
+        description: 'Apex E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      coreE2ETests:
+        description: 'Core E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      deployAndRetrieveE2ETests:
+        description: 'Deploy and Retrieve E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      lspE2ETests:
+        description: 'LSP E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      lwcE2ETests:
+        description: 'LWC E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      soqlE2ETests:
+        description: 'SOQL E2E Tests'
+        required: false
+        default: true
+        type: boolean
+      vscodeVersion:
+        description: 'VSCode Version'
+        required: false
+        default: 'latest'
         type: string
       runId:
         description: 'Run ID of the workflow run that created the vsixes'
@@ -61,8 +98,7 @@ jobs:
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Core:
@@ -70,8 +106,7 @@ jobs:
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   DeployAndRetrieve:
@@ -79,8 +114,7 @@ jobs:
     uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LSP:
@@ -88,8 +122,7 @@ jobs:
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LWC:
@@ -97,8 +130,7 @@ jobs:
     uses: ./.github/workflows/lwcE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   SOQL:
@@ -106,8 +138,7 @@ jobs:
     uses: ./.github/workflows/soqlE2E.yml
     secrets: inherit
     with:
-      automationBranch: ${{ inputs.automationBranch || 'main' }}
-      vscodeVersion: ${{ inputs.vscodeVersion || '1.100.3' }}
+      vscodeVersion: ${{ inputs.vscodeVersion || 'latest' }}
       runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   Apex_min_vscode_version:
@@ -115,7 +146,6 @@ jobs:
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'main'
       vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
@@ -124,7 +154,6 @@ jobs:
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'main'
       vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
@@ -133,7 +162,6 @@ jobs:
     uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'main'
       vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
@@ -142,7 +170,6 @@ jobs:
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'main'
       vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
@@ -151,7 +178,6 @@ jobs:
     uses: ./.github/workflows/lwcE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'main'
       vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}
 
@@ -160,6 +186,5 @@ jobs:
     uses: ./.github/workflows/soqlE2E.yml
     secrets: inherit
     with:
-      automationBranch: 'main'
       vscodeVersion: '1.90.0'
       runId: ${{ github.event.workflow_run.id }}

@@ -12,9 +12,9 @@ export class DevUsernameChecker implements PreconditionChecker {
   public async check(): Promise<boolean> {
     const targetDevHubOrAlias = await OrgAuthInfo.getTargetDevHubOrAlias(true);
     if (isNullOrUndefined(targetDevHubOrAlias)) {
-      return Promise.resolve(false);
+      return false;
     }
 
-    return Promise.resolve(true);
+    return true;
   }
 }

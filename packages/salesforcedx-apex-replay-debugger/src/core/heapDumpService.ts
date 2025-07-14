@@ -36,7 +36,7 @@ import { LogContext } from './logContext';
 export class HeapDumpService {
   private logContext: LogContext;
 
-  public constructor(logContext: LogContext) {
+  constructor(logContext: LogContext) {
     this.logContext = logContext;
   }
 
@@ -367,10 +367,7 @@ export class HeapDumpService {
   ) {
     // The collection type in the extent is either set or null. The ApexVariableContainer doesn't
     // allow null for the type, if the type isn't set or is null then default it to the empty string
-    let valueCollectionType = '';
-    if (collectionType) {
-      valueCollectionType = collectionType;
-    }
+    const valueCollectionType = collectionType ?? '';
     let hasInnerRefs = false;
     // If the typename is a collection
     if (this.isCollectionType(refContainer.type)) {
@@ -378,7 +375,7 @@ export class HeapDumpService {
       if (extentValue.value.entry) {
         let entryNumber = 0;
         // get the map's key type and ensure key variables have their type set correctly
-        const mapKeyType = this.getKeyTypeForMap(refContainer.type, collectionType ? collectionType : '');
+        const mapKeyType = this.getKeyTypeForMap(refContainer.type, collectionType ?? '');
         for (const extentValueEntry of extentValue.value.entry) {
           let keyIsRef = this.isAddress(extentValueEntry.keyDisplayValue);
           let valueIsRef = this.isAddress(extentValueEntry.value.value);
@@ -551,7 +548,7 @@ export class HeapDumpService {
           // process the key
           const keyVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_KEY);
           let keyName = keyVarContainer!.value;
-          if (keyVarContainer && keyVarContainer.ref) {
+          if (keyVarContainer?.ref) {
             const keyRef = this.logContext.getRefsMap().get(keyVarContainer.ref);
             if (keyRef) {
               const updatedKeyVarContainer = this.createVariableFromReference(
@@ -574,7 +571,7 @@ export class HeapDumpService {
           // process the value
           const valueVarContainer = childVarContainer.variables.get(KEY_VALUE_PAIR_VALUE);
           let valueVal = valueVarContainer!.value;
-          if (valueVarContainer && valueVarContainer.ref) {
+          if (valueVarContainer?.ref) {
             const valueRef = this.logContext.getRefsMap().get(valueVarContainer.ref);
             if (valueRef) {
               const updatedValueVarContainer = this.createVariableFromReference(
@@ -653,7 +650,7 @@ export class HeapDumpService {
   //                 that when the type name is split that it's split correctly since, due to
   //                 potential nesting just splitting on the comma isn't good enough.
   private getKeyTypeForMap(typeName: string, collectionType: string): string {
-    const lastIndexOfValue = ',' + collectionType;
+    const lastIndexOfValue = `,${collectionType}`;
     const keyTypeName = typeName.substring(typeName.indexOf('<') + 1, typeName.lastIndexOf(lastIndexOfValue));
     return keyTypeName;
   }

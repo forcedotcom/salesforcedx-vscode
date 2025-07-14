@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import type { URI } from 'vscode-uri';
 import { getConflictMessagesFor } from '../conflict/messages';
@@ -12,7 +12,7 @@ import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './retrieveSourcePath';
-import { LibraryPathsGatherer, SfCommandlet, SfWorkspaceChecker } from './util';
+import { LibraryPathsGatherer, SfCommandlet } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 import { TimestampConflictChecker } from './util/timestampConflictChecker';
@@ -36,18 +36,17 @@ export const deploySourcePaths = async (
   uris: URI[] | undefined,
   isDeployOnSave?: boolean | undefined
 ) => {
-  if (!sourceUri) {
-    // When the source is deployed via the command palette, both sourceUri and uris are
-    // each undefined, and sourceUri needs to be obtained from the active text editor.
-    sourceUri = getUriFromActiveEditor({
+  // When the source is deployed via the command palette, both sourceUri and uris are
+  // each undefined, and sourceUri needs to be obtained from the active text editor.
+  const resolvedSourceUri =
+    sourceUri ??
+    (await getUriFromActiveEditor({
       message: 'deploy_select_file_or_directory',
       exceptionKey: 'deploy_with_sourcepath'
-    });
-    if (!sourceUri) {
-      return;
-    }
+    }));
+  if (!resolvedSourceUri) {
+    return;
   }
-
   // When a single file is selected and "Deploy Source from Org" is executed,
   // sourceUri is passed, and the uris array contains a single element, the same
   // path as sourceUri.
@@ -58,15 +57,11 @@ export const deploySourcePaths = async (
   //
   // When editing a file and "Deploy This Source from Org" is executed,
   // sourceUri is passed, but uris is undefined.
-  if (!uris || uris.length < 1) {
-    if (Array.isArray(sourceUri)) {
-      // When "Push-or-deploy-on-save" is enabled, the first parameter
-      // passed in (sourceUri) is actually an array and not a single URI.
-      uris = sourceUri;
-    } else {
-      uris = [sourceUri];
-    }
-  }
+
+  // When "Push-or-deploy-on-save" is enabled, the first parameter
+  // passed in (sourceUri) is actually an array and not a single URI.
+
+  const resolvedUris = uris?.length ? uris : Array.isArray(resolvedSourceUri) ? resolvedSourceUri : [resolvedSourceUri];
 
   const messages = getConflictMessagesFor('deploy_with_sourcepath');
 
@@ -75,7 +70,7 @@ export const deploySourcePaths = async (
 
     const commandlet = new SfCommandlet<string[]>(
       new SfWorkspaceChecker(),
-      new LibraryPathsGatherer(uris),
+      new LibraryPathsGatherer(resolvedUris),
       new LibraryDeploySourcePathExecutor(showOutputPanel),
       new CompositePostconditionChecker(new SourcePathChecker(), new TimestampConflictChecker(false, messages))
     );

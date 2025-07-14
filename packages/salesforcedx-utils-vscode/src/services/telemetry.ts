@@ -38,17 +38,15 @@ export class TelemetryBuilder {
   private measurements?: Measurements;
 
   public addProperty(key: string, value?: string): TelemetryBuilder {
-    this.properties = this.properties || {};
     if (value !== undefined) {
-      this.properties[key] = value;
+      this.properties = { ...this.properties, [key]: value };
     }
     return this;
   }
 
   public addMeasurement(key: string, value?: number): TelemetryBuilder {
-    this.measurements = this.measurements || {};
     if (value !== undefined) {
-      this.measurements[key] = value;
+      this.measurements = { ...this.measurements, [key]: value };
     }
     return this;
   }
@@ -66,7 +64,7 @@ export class TelemetryServiceProvider {
   public static instances = new Map<string, TelemetryService>(); // public only for unit test
   public static getInstance(extensionName?: string): TelemetryServiceInterface {
     // default if not present
-    const name = extensionName || SFDX_CORE_EXTENSION_NAME;
+    const name = extensionName ?? SFDX_CORE_EXTENSION_NAME;
     let service = TelemetryServiceProvider.instances.get(name);
     if (!service) {
       service = new TelemetryService();
@@ -118,7 +116,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         this.setCliTelemetryEnabled(this.isTelemetryExtensionConfigurationEnabled() && cliEnabled);
       })
       .catch(error => {
-        console.log('Error initializing telemetry service: ' + error);
+        console.log(`Error initializing telemetry service: ${error}`);
       });
 
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
@@ -168,7 +166,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
-    if (typeof this.cliAllowsTelemetryPromise !== 'undefined') {
+    if (this.cliAllowsTelemetryPromise !== undefined) {
       return this.cliAllowsTelemetryPromise;
     }
     this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();
@@ -207,11 +205,11 @@ export class TelemetryService implements TelemetryServiceInterface {
     const startupTime = markEndTime ?? this.getEndHRTime(hrstart);
     const properties = {
       extensionName: this.extensionName,
-      ...(telemetryData?.properties ? telemetryData.properties : {})
+      ...telemetryData?.properties
     };
     const measurements = {
       startupTime,
-      ...(telemetryData?.measurements ? telemetryData.measurements : {})
+      ...telemetryData?.measurements
     };
 
     this.validateTelemetry(() => {
@@ -247,7 +245,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
         let aggregatedMeasurements: Measurements | undefined;
         if (hrstart || measurements) {
-          aggregatedMeasurements = Object.assign({}, measurements);
+          aggregatedMeasurements = { ...measurements };
           if (hrstart) {
             aggregatedMeasurements.executionTime = this.getEndHRTime(hrstart);
           }
@@ -266,13 +264,8 @@ export class TelemetryService implements TelemetryServiceInterface {
           reporter.sendExceptionEvent(name, message);
         } catch {
           console.log(
-            'There was an error sending an exception report to: ' +
-              typeof reporter +
-              ' ' +
-              'name: ' +
-              name +
-              ' message: ' +
-              message
+            `There was an error sending an exception report to: ${typeof reporter} ` +
+              `name: ${name} message: ${message}`
           );
         }
       });

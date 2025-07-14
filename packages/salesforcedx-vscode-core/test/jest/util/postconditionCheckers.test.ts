@@ -4,19 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LocalComponent, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
-import { join } from 'node:path';
+import * as vscode from 'vscode';
 import { OverwriteComponentPrompt } from '../../../src/commands/util';
 
 describe('Postcondition Checkers', () => {
   describe('OverwriteComponentPrompt', () => {
-    let existsSyncSpy: jest.SpyInstance;
+    let statSpy: jest.SpyInstance;
     let promptOverwriteSpy: jest.SpyInstance;
     const checker = new OverwriteComponentPrompt();
 
     beforeEach(() => {
-      existsSyncSpy = jest.spyOn(fs, 'existsSync').mockImplementation(jest.fn());
+      statSpy = jest.spyOn(vscode.workspace.fs, 'stat');
       promptOverwriteSpy = jest.spyOn(checker, 'promptOverwrite').mockImplementation(jest.fn());
     });
 
@@ -25,29 +23,20 @@ describe('Postcondition Checkers', () => {
     });
 
     describe('Check Components Exist', () => {
-      const pathExists = (value: boolean, forComponent: LocalComponent, withExtension: string) => {
-        const path = join(
-          workspaceUtils.getRootWorkspacePath(),
-          `package/tests/${forComponent.fileName}${withExtension}`
-        );
-        existsSyncSpy.mockImplementation(inputPath => inputPath === path && value);
-      };
-
       it('Should prompt overwrite for LightningType components that exist', async () => {
-        existsSyncSpy.mockReturnValue(true);
+        statSpy.mockResolvedValue({ type: vscode.FileType.File } as vscode.FileStat);
         const data = {
           fileName: 'Test1',
           outputdir: 'package/tests',
           type: 'LightningTypeBundle',
           suffix: 'json'
         };
-        pathExists(true, data, '/schema.json');
         await checker.check({ type: 'CONTINUE', data });
         expect(promptOverwriteSpy).toHaveBeenCalledWith([data]);
       });
 
       it('Should not prompt overwrite for LightningType components that do not exist', async () => {
-        existsSyncSpy.mockReturnValue(false);
+        statSpy.mockRejectedValue(new Error('File not found'));
         const data = {
           fileName: 'Test1',
           outputdir: 'package/tests',

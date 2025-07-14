@@ -13,14 +13,17 @@ export {
   deleteFile,
   ensureCurrentWorkingDirIsProjectPath,
   fileOrFolderExists,
+  isDirectory,
+  isFile,
   readDirectory,
   readFile,
+  rename,
   safeDelete,
   stat,
   writeFile
 } from './fs';
 export { fileExtensionsMatch, getRelativeProjectPath, getTestResultsFolder, projectPaths, TOOLS } from './paths';
-export { TraceFlags } from './traceFlags';
+export { TraceFlags, showTraceFlagExpiration, disposeTraceFlagExpiration, getTraceFlagExpirationKey } from './traceFlags';
 export {
   difference,
   extractJson,

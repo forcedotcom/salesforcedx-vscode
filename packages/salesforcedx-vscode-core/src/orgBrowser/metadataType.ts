@@ -9,11 +9,12 @@ import {
   isNullOrUndefined,
   MISSING_LABEL_MSG,
   projectPaths,
-  workspaceUtils
+  workspaceUtils,
+  readFile,
+  fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { describeMetadata } from '../commands';
+import { describeMetadata, DescribeMetadataResult } from '../commands/describeMetadata';
 import { coerceMessageKey, nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
@@ -25,33 +26,30 @@ export type MetadataObject = {
   xmlName: string;
   label: string;
 };
+
 export class TypeUtils {
   public static readonly FOLDER_TYPES = new Set(['CustomObject', 'Dashboard', 'Document', 'EmailTemplate', 'Report']);
-
   public static readonly UNSUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
 
-  public async getTypesFolder(): Promise<string> {
+  public getTypesFolder(): string {
     if (!workspaceUtils.hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
       telemetryService.sendException('metadata_type_workspace', err);
       throw new Error(err);
     }
-    const metadataTypesPath = projectPaths.metadataFolder();
-    return metadataTypesPath;
+    return projectPaths.metadataFolder();
   }
 
   public async loadTypes(forceRefresh?: boolean): Promise<MetadataObject[]> {
-    const typesFolder = await this.getTypesFolder();
+    const typesFolder = this.getTypesFolder();
     const typesPath = path.join(typesFolder, 'metadataTypes.json');
 
-    let typesList: MetadataObject[];
-    if (forceRefresh || !fs.existsSync(typesPath)) {
-      const result = await describeMetadata(typesFolder);
-      typesList = buildTypesList({ metadataJSONContents: result });
-    } else {
-      typesList = buildTypesList({ metadataTypesPath: typesPath });
-    }
-    return typesList;
+    const describeResult =
+      forceRefresh || !(await fileOrFolderExists(typesPath))
+        ? await describeMetadata(typesFolder)
+        : // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          (JSON.parse(await readFile(typesPath)) as DescribeMetadataResult);
+    return buildTypesList(describeResult);
   }
 
   public getFolderForType(metadataType: string): string {
@@ -66,19 +64,16 @@ export class TypeUtils {
   }
 }
 
-const buildTypesList = (input: { metadataTypesPath: string } | { metadataJSONContents: string }): MetadataObject[] => {
+const buildTypesList = (describeResult: DescribeMetadataResult): MetadataObject[] => {
   try {
-    const jsonObject = JSON.parse(
-      'metadataJSONContents' in input ? input.metadataJSONContents : fs.readFileSync(input.metadataTypesPath, 'utf8')
-    );
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const metadataTypeObjects = (jsonObject.result.metadataObjects as MetadataObject[])
+    const metadataTypeObjects = describeResult.metadataObjects
       .filter(type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName))
       .map(mdTypeObject => ({
         ...mdTypeObject,
         label: nls.localize(coerceMessageKey(mdTypeObject.xmlName)).startsWith(MISSING_LABEL_MSG)
           ? mdTypeObject.xmlName
-          : nls.localize(coerceMessageKey(mdTypeObject.xmlName))
+          : nls.localize(coerceMessageKey(mdTypeObject.xmlName)),
+        suffix: mdTypeObject.suffix ?? undefined
       }))
       .sort((a, b) => (a.label > b.label ? 1 : -1));
     telemetryService.sendEventData('Metadata Types Quantity', undefined, {

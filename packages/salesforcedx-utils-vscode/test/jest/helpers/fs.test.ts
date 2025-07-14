@@ -15,7 +15,10 @@ import {
   readDirectory,
   stat,
   safeDelete,
-  ensureCurrentWorkingDirIsProjectPath
+  ensureCurrentWorkingDirIsProjectPath,
+  isDirectory,
+  isFile,
+  rename
 } from '../../../src/helpers/fs';
 
 jest.mock('vscode');
@@ -89,6 +92,72 @@ describe('file system utilities', () => {
 
       const result = await fileOrFolderExists('/test/path');
       expect(result).toBe(false);
+    });
+  });
+
+  describe('isDirectory', () => {
+    it('should return true when path is a directory', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.Directory });
+
+      const result = await isDirectory('/test/path');
+      expect(result).toBe(true);
+    });
+
+    it('should return false when path is a file', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.File });
+
+      const result = await isDirectory('/test/path');
+      expect(result).toBe(false);
+    });
+
+    it('should return false when path does not exist', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(mockError);
+
+      const result = await isDirectory('/test/path');
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isFile', () => {
+    it('should return true when path is a file', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.File });
+
+      const result = await isFile('/test/path');
+      expect(result).toBe(true);
+    });
+
+    it('should return false when path is a directory', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.Directory });
+
+      const result = await isFile('/test/path');
+      expect(result).toBe(false);
+    });
+
+    it('should return false when path does not exist', async () => {
+      (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(mockError);
+
+      const result = await isFile('/test/path');
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('rename', () => {
+    it('should rename file successfully', async () => {
+      (vscode.workspace.fs.rename as jest.Mock).mockResolvedValue(undefined);
+
+      await rename('/old/path/file.txt', '/new/path/file.txt');
+      expect(vscode.workspace.fs.rename).toHaveBeenCalledWith(
+        { fsPath: '/old/path/file.txt' },
+        { fsPath: '/new/path/file.txt' }
+      );
+    });
+
+    it('should throw error when rename fails', async () => {
+      (vscode.workspace.fs.rename as jest.Mock).mockRejectedValue(mockError);
+
+      await expect(rename('/old/path/file.txt', '/new/path/file.txt')).rejects.toThrow(
+        'Failed to rename /old/path/file.txt to /new/path/file.txt: Test error'
+      );
     });
   });
 

@@ -42,7 +42,7 @@ type ApexTestTemplateParameter = {
 
 export class FilePathGatherer implements ParametersGatherer<string> {
   private filePath: string;
-  public constructor(uri: URI) {
+  constructor(uri: URI) {
     this.filePath = uri.fsPath;
   }
 
@@ -91,7 +91,7 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   private maxFileNameLength: number;
 
   constructor(maxFileNameLength?: number) {
-    this.maxFileNameLength = maxFileNameLength || Infinity;
+    this.maxFileNameLength = maxFileNameLength ?? Infinity;
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string }>> {
@@ -144,7 +144,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
   public static readonly defaultOutput = path.join('main', 'default');
   public static readonly customDirOption = `$(file-directory) ${nls.localize('custom_output_directory')}`;
 
-  public constructor(typeDir: string, typeDirRequired?: boolean) {
+  constructor(typeDir: string, typeDirRequired?: boolean) {
     this.typeDir = typeDir;
     this.typeDirRequired = typeDirRequired;
   }

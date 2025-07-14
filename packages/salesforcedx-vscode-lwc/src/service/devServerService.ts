@@ -19,9 +19,7 @@ export class DevServerService {
   private static _instance: DevServerService;
 
   public static get instance() {
-    if (DevServerService._instance === undefined) {
-      DevServerService._instance = new DevServerService();
-    }
+    DevServerService._instance ??= new DevServerService();
     return DevServerService._instance;
   }
 

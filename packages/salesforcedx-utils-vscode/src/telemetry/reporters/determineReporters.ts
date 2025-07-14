@@ -33,7 +33,7 @@ export const determineReporters = (config: TelemetryReporterConfig) => {
   if (isDevMode) {
     addDevModeReporter(reporters, extName);
   } else {
-    addO11yReporter(reporters, extName);
+    addO11yReporter(reporters);
     addAppInsightsReporter(reporters, reporterName, version, aiKey, userId);
     addLogstreamReporter(reporters, extName);
   }
@@ -85,7 +85,7 @@ export const initializeO11yReporter = async (
   await initPromise;
 };
 
-const addO11yReporter = (reporters: TelemetryReporter[], extName: string): void => {
+const addO11yReporter = (reporters: TelemetryReporter[]): void => {
   if (o11yReporterInstance) {
     reporters.push(o11yReporterInstance);
     console.log('Added O11y reporter to reporters list');

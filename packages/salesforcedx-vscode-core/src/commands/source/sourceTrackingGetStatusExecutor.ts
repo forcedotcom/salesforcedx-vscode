@@ -21,13 +21,13 @@ export class SourceTrackingGetStatusExecutor extends LibraryCommandletExecutor<s
   }
 
   public async execute(): Promise<void> {
-    const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(this.options || {});
+    const sourceStatusSummary: string = await SourceTrackingService.getSourceStatusSummary(this.options ?? {});
     channelService.appendLine(nls.localize('source_status'));
     channelService.appendLine(sourceStatusSummary);
     channelService.showChannelOutput();
   }
 
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(_response: ContinueResponse<string>): Promise<boolean> {
     await this.execute();
     return true;
   }

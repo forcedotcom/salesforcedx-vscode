@@ -133,7 +133,8 @@ const getMockVSCode = () => {
         createDirectory: jest.fn(),
         delete: jest.fn(),
         readFile: jest.fn(),
-        readDirectory: jest.fn()
+        readDirectory: jest.fn(),
+        rename: jest.fn()
       },
       registerTextDocumentContentProvider: jest.fn(),
       registerFileSystemProvider: jest.fn()

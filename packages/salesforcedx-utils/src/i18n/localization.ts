@@ -11,11 +11,12 @@ import { Message } from './message';
 export class Localization implements LocalizationProvider {
   private readonly delegate: Message;
 
-  public constructor(delegate: Message) {
+  constructor(delegate: Message) {
     this.delegate = delegate;
   }
 
   public localize(label: string, ...args: any[]): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.delegate.localize(label, ...args);
   }
 }

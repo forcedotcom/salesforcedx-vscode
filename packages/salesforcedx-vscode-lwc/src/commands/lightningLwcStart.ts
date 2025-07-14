@@ -63,7 +63,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     );
   }
 
-  public execute(response: ContinueResponse<{}>): void {
+  public execute(_response: ContinueResponse<{}>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -96,7 +96,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
 
     // listen for server startup
     execution.stdoutSubject.subscribe(async data => {
-      if (!serverStarted && data && data.toString().includes('Server up')) {
+      if (!serverStarted && data?.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
         notificationService.showSuccessfulExecution(executionName, channelService).catch();

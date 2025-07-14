@@ -19,23 +19,23 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
       request: DEBUGGER_LAUNCH_TYPE,
-      logFile: logFile ? logFile : '${command:AskForLogFileName}',
+      logFile: logFile ?? '${command:AskForLogFileName}',
       stopOnEntry,
       trace: true
     };
   }
 
   public provideDebugConfigurations(
-    folder: vscode.WorkspaceFolder | undefined,
-    token?: vscode.CancellationToken
+    _folder: vscode.WorkspaceFolder | undefined,
+    _token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
     return [DebugConfigurationProvider.getConfig()];
   }
 
   public resolveDebugConfiguration(
-    folder: vscode.WorkspaceFolder | undefined,
+    _folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
-    token?: vscode.CancellationToken
+    _token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
     return this.asyncDebugConfig(config).catch(async err =>
       vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined)
@@ -46,7 +46,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
-    config.logFile = config.logFile || '${command:AskForLogFileName}';
+    config.logFile = config.logFile ?? '${command:AskForLogFileName}';
     if (config.stopOnEntry === undefined) {
       config.stopOnEntry = true;
     }
@@ -54,10 +54,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       config.trace = true;
     }
 
-    if (vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders[0]) {
+    if (vscode.workspace?.workspaceFolders?.[0]) {
       config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
-
     if (!this.salesforceApexExtension?.isActive) {
       await this.salesforceApexExtension?.activate();
     }

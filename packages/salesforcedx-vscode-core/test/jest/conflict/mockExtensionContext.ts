@@ -49,9 +49,7 @@ class MockMemento implements Memento {
     return Promise.resolve();
   }
 
-  public setKeysForSync(keys: readonly string[]): void {
-    return;
-  }
+  public setKeysForSync(keys: readonly string[]): void {}
 }
 
 class MockEnvironmentVariableCollection implements EnvironmentVariableCollection {
@@ -92,7 +90,7 @@ class MockEnvironmentVariableCollection implements EnvironmentVariableCollection
 
 export class MockExtensionContext implements ExtensionContext {
   constructor(mode?: ExtensionMode) {
-    this.extensionMode = mode || ExtensionMode.Test;
+    this.extensionMode = mode ?? ExtensionMode.Test;
     this.globalState = new MockMemento();
     this.workspaceState = new MockMemento();
     this.secrets = {

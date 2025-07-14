@@ -48,7 +48,7 @@ export const excludeUnrelatedMethods = (
   JSONPath({
     path: '$.paths.*', // Access each method under each path
     json: oas,
-    callback: (operation, type, fullPath) => {
+    callback: (operation, _type, _fullPath) => {
       for (const [method] of Object.entries(operation)) {
         if (method !== httpMethod) {
           delete operation[method];
@@ -109,18 +109,14 @@ export const combineYamlByMethod = (docs: string[], className: string) => {
       // Merge paths
       if (parsed.paths) {
         for (const [path, methods] of Object.entries(parsed.paths)) {
-          if (!combined.paths[path]) {
-            combined.paths[path] = {};
-          }
+          combined.paths[path] ??= {};
           Object.assign(combined.paths[path], methods);
         }
       }
       // Merge components
       if (parsed.components?.schemas && combined.components?.schemas) {
         for (const [schema, definition] of Object.entries(parsed.components.schemas)) {
-          if (!combined.components.schemas[schema]) {
-            combined.components.schemas[schema] = definition;
-          }
+          combined.components.schemas[schema] ??= definition;
         }
       }
     } catch (e) {

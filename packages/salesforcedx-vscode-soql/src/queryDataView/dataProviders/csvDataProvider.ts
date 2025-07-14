@@ -94,7 +94,7 @@ const flattenRecord = (record: any, colData: ColumnData): string[][] => {
     }
   });
 
-  if (subRecords.length) {
+  if (subRecords.length > 0) {
     subRecords.forEach(subRecordValues => {
       recordValues.push(queryRecord.concat(subRecordValues));
     });

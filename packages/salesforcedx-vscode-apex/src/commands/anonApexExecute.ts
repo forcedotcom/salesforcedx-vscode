@@ -209,7 +209,7 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
   ): vscode.Range {
     const lineOffset = selection ? selection.start.line : 0;
     const adjustedLine = lineNumber ? lineNumber + lineOffset : 1;
-    return getZeroBasedRange(adjustedLine, columnNumber || 1);
+    return getZeroBasedRange(adjustedLine, columnNumber ?? 1);
   }
 }
 
