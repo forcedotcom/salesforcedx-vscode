@@ -20,8 +20,8 @@ export const getUriFromActiveEditor = async ({
   exceptionKey: string;
 }): Promise<URI | undefined> => {
   const editor = vscode.window.activeTextEditor;
-  if (editor && editor?.document.languageId !== 'forcesourcemanifest') {
-    return editor?.document.uri;
+  if (editor) {
+    return editor.document.uri;
   }
 
   const errorMessage = nls.localize(message);

@@ -139,8 +139,8 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
     return {
       type: 'CONTINUE',
       data: {
-        alias: alias || DEFAULT_ALIAS,
-        loginUrl: loginUrl || PRODUCTION_URL
+        alias: alias ?? DEFAULT_ALIAS,
+        loginUrl: loginUrl ?? PRODUCTION_URL
       }
     };
   }
@@ -167,7 +167,7 @@ export class AccessTokenParamsGatherer implements ParametersGatherer<AccessToken
       type: 'CONTINUE',
       data: {
         accessToken,
-        alias: alias || DEFAULT_ALIAS,
+        alias: alias ?? DEFAULT_ALIAS,
         instanceUrl
       }
     };
@@ -181,7 +181,7 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
   ) {}
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    const prompt = nls.localize('org_logout_scratch_prompt', this.alias || this.username);
+    const prompt = nls.localize('org_logout_scratch_prompt', this.alias ?? this.username);
     const logoutResponse = nls.localize('org_logout_scratch_logout');
 
     const confirm = await vscode.window.showInformationMessage(prompt, { modal: true }, logoutResponse);

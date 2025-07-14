@@ -77,7 +77,7 @@ export class TelemetryService {
           extensionName: EXTENSION_NAME,
           subject,
           type,
-          qty: qty || '0'
+          qty: qty ?? '0'
         });
       });
     }

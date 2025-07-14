@@ -234,7 +234,7 @@ export class ExternalServiceRegistrationManager {
    */
   public extractInfoProperties(): ApexOASInfo {
     return {
-      description: this.oasSpec?.info?.description || ''
+      description: this.oasSpec?.info?.description ?? ''
     };
   }
 
