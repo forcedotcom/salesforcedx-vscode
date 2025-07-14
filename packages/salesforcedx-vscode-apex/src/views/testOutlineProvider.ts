@@ -50,7 +50,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   }
 
   public getHead(): TestNode {
-    return this.rootNode === null ? this.getAllApexTests() : this.rootNode;
+    return this.rootNode ?? this.getAllApexTests();
   }
 
   public getId(): string {
@@ -124,7 +124,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     const testRunId = await readFile(testRunIdFile);
     const testResultFilePath = path.join(
       apexTestPath,
-      !testRunId ? TEST_RESULT_JSON_FILE : `test-result-${testRunId}.json`
+      testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE
     );
 
     if (testResultFile === testResultFilePath) {
@@ -147,19 +147,14 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   }
 
   private getAllApexTests(): TestNode {
-    if (this.rootNode === null) {
-      // Starting Out
-      this.rootNode = new ApexTestGroupNode(APEX_TESTS, null);
-    }
+    this.rootNode ??= new ApexTestGroupNode(APEX_TESTS, null);
     this.rootNode.children = new Array<TestNode>();
     if (this.apexTestInfo) {
       this.apexTestInfo.forEach(test => {
-        let apexGroup = this.apexTestMap.get(test.definingType) as ApexTestGroupNode;
-        if (!apexGroup) {
-          const groupLocation = new vscode.Location(test.location.uri, APEX_GROUP_RANGE);
-          apexGroup = new ApexTestGroupNode(test.definingType, groupLocation);
-          this.apexTestMap.set(test.definingType, apexGroup);
-        }
+        const apexGroup =
+          (this.apexTestMap.get(test.definingType) as ApexTestGroupNode) ??
+          new ApexTestGroupNode(test.definingType, new vscode.Location(test.location.uri, APEX_GROUP_RANGE));
+        this.apexTestMap.set(test.definingType, apexGroup);
         const apexTest = new ApexTestNode(test.methodName, test.location);
 
         apexTest.name = `${apexGroup.label}.${apexTest.label}`;
@@ -204,8 +199,8 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
         apexTestNode.outcome = test.outcome;
         apexTestNode.updateOutcome();
         if (test.outcome.toString() === FAIL_RESULT) {
-          apexTestNode.errorMessage = test.message || '';
-          apexTestNode.stackTrace = test.stackTrace || '';
+          apexTestNode.errorMessage = test.message ?? '';
+          apexTestNode.stackTrace = test.stackTrace ?? '';
           apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
         }
       }

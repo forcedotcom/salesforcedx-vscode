@@ -48,7 +48,7 @@ describe('AppInsights', () => {
       appInsights.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(3);
+      expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock.mock.calls[0][0]).toMatchSnapshot();
     });
@@ -58,7 +58,7 @@ describe('AppInsights', () => {
       appInsights.sendExceptionEvent('Dummy Exception', 'a dummy exception occurred');
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(3);
+      expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
     });

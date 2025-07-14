@@ -46,10 +46,7 @@ const resolveAnyFoundOrphanLanguageServers = async (): Promise<void> => {
           showProcessTerminated(processInfo);
         } catch (err) {
           showTerminationFailed(processInfo, err);
-          telemetryService.sendException(
-            APEX_LSP_ORPHAN,
-            typeof err === 'string' ? err : err?.message ? err.message : 'unknown'
-          );
+          telemetryService.sendException(APEX_LSP_ORPHAN, typeof err === 'string' ? err : (err?.message ?? 'unknown'));
         }
       }
     } else {
