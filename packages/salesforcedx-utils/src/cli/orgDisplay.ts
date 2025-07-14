@@ -115,12 +115,12 @@ export class OrgDisplay {
             expirationDate: scratchOrgQuery.ExpirationDate,
             edition: scratchOrgQuery.Edition,
             orgName: scratchOrgQuery.OrgName,
-            password: authFields.password || ''
+            password: authFields.password ?? ''
           };
         }
       } catch {
         // If we can't get scratch org info, fall back to basic info
-        scratchOrgInfo.expirationDate = authFields.expirationDate || '';
+        scratchOrgInfo.expirationDate = authFields.expirationDate ?? '';
       }
     }
 
@@ -140,21 +140,21 @@ export class OrgDisplay {
 
     const orgInfo: OrgInfo = {
       username,
-      devHubId: authFields.devHubUsername || '',
-      id: authFields.orgId || orgQuery.Id,
+      devHubId: authFields.devHubUsername ?? '',
+      id: authFields.orgId ?? orgQuery.Id,
       createdBy: scratchOrgInfo.createdBy,
       createdDate: scratchOrgInfo.createdDate,
       expirationDate: scratchOrgInfo.expirationDate,
       status,
       edition,
       orgName: scratchOrgInfo.orgName,
-      accessToken: authFields.accessToken || '',
-      instanceUrl: authFields.instanceUrl || '',
-      clientId: authFields.clientId || '',
-      apiVersion: authFields.instanceApiVersion || '',
+      accessToken: authFields.accessToken ?? '',
+      instanceUrl: authFields.instanceUrl ?? '',
+      clientId: authFields.clientId ?? '',
+      apiVersion: authFields.instanceApiVersion ?? '',
       alias,
       connectionStatus,
-      password: scratchOrgInfo.password || ''
+      password: scratchOrgInfo.password ?? ''
     };
 
     return orgInfo;

@@ -45,7 +45,7 @@ describe('Manifest Builder', () => {
   it('Generate Manifest File', async () => {
     logTestStart(testSetup, 'Generate Manifest File');
     // Normally we would want to run the 'SFDX: Generate Manifest File' command here, but it is only
-    // accessible via a context menu, and wdio-vscode-service isn't able to interact with
+    // accessible via a context menu, and vscode-extension-tester isn't able to interact with
     // context menus, so instead the manifest file is manually created:
 
     // update testSetup.testDataFolderPath to be the path to the salesforcedx-vscode-automation-tests package
@@ -126,9 +126,7 @@ describe('Manifest Builder', () => {
     }
   });
 
-  // This test seems to failing due to bug in command palette command: SFDX: Deploy Source in Manifest to Org.
-  // TODO: Re-enable with WI-19015026: https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002HzT7qYAF/view
-  it.skip('SFDX: Deploy Source in Manifest to Org', async () => {
+  it('SFDX: Deploy Source in Manifest to Org', async () => {
     logTestStart(testSetup, 'SFDX: Deploy Source in Manifest to Org');
     log(`Deploy: Current platform is: ${process.platform}`);
 
@@ -235,9 +233,7 @@ describe('Manifest Builder', () => {
     log('Deploy: Command validation completed');
   });
 
-  // This test seems to failing due to bug in command palette command: SFDX: Deploy Source in Manifest to Org.
-  // TODO: Re-enable with WI-19015026: https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002HzT7qYAF/view
-  it.skip('SFDX: Retrieve Source in Manifest from Org', async () => {
+  it('SFDX: Retrieve Source in Manifest from Org', async () => {
     logTestStart(testSetup, 'SFDX: Retrieve Source in Manifest from Org');
 
     // Clear output before running the command

@@ -80,7 +80,7 @@ const LSP_RESTART_OPTIONS: LspRestartOptions[] = [
 const findReleaseDir = (): string => {
   const entries = fs.readdirSync(PATHS.tools);
   const match = entries.find(entry => /^\d{3}$/.test(entry));
-  return match || '254';
+  return match ?? '254';
 };
 
 const verifyLspStatus = async (expectedStatus: string): Promise<WebElement> => {
