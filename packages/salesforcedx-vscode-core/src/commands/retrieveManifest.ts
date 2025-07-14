@@ -47,7 +47,7 @@ export const retrieveManifest = async (explorerPath: URI): Promise<void> => {
 
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
-    new FilePathGatherer(explorerPath),
+    new FilePathGatherer(resolved),
     new LibraryRetrieveManifestExecutor()
   );
   await commandlet.run();

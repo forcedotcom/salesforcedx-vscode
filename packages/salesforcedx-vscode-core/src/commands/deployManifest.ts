@@ -51,7 +51,7 @@ export const deployManifest = async (manifestUri: URI) => {
   if (messages) {
     const commandlet = new SfCommandlet(
       new SfWorkspaceChecker(),
-      new FilePathGatherer(manifestUri),
+      new FilePathGatherer(resolved),
       new LibraryDeployManifestExecutor(),
       new TimestampConflictChecker(true, messages)
     );
