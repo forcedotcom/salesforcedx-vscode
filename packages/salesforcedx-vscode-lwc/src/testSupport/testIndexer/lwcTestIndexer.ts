@@ -116,10 +116,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   public async indexTestCases(testUri: URI) {
     // parse
     const { fsPath: testFsPath } = testUri;
-    let testFileInfo = this.testFileInfoMap.get(testFsPath);
-    if (!testFileInfo) {
-      testFileInfo = this.indexTestFile(testFsPath);
-    }
+    const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
     return this.parseTestFileAndMergeTestResults(testFileInfo);
   }
 
@@ -131,14 +128,9 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   public async findTestInfoFromLwcJestTestFile(testUri: URI): Promise<TestCaseInfo[]> {
     // parse
     const { fsPath: testFsPath } = testUri;
-    let testFileInfo = this.testFileInfoMap.get(testFsPath);
-    if (!testFileInfo) {
-      testFileInfo = this.indexTestFile(testFsPath);
-    }
-    if (testFileInfo.testCasesInfo) {
-      return testFileInfo.testCasesInfo;
-    }
-    return this.parseTestFileAndMergeTestResults(testFileInfo);
+    const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
+
+    return testFileInfo.testCasesInfo ?? this.parseTestFileAndMergeTestResults(testFileInfo);
   }
 
   private parseTestFileAndMergeTestResults(testFileInfo: TestFileInfo): TestCaseInfo[] {
@@ -151,7 +143,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       const parseResults = parse(testFsPath) as IExtendedParseResults;
       populateAncestorTitles(parseResults);
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const itBlocks = (parseResults.itBlocksWithAncestorTitles ||
+      const itBlocks = (parseResults.itBlocksWithAncestorTitles ??
         parseResults.itBlocks) as ItBlockWithAncestorTitles[];
       const testCasesInfo: TestCaseInfo[] = itBlocks.map(itBlock => {
         const { name, nameRange, ancestorTitles } = itBlock;
@@ -192,10 +184,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     const lwcJestTestFiles = await vscode.workspace.findFiles(LWC_TEST_GLOB_PATTERN, '**/node_modules/**');
     const allTestFileInfo = lwcJestTestFiles.map(lwcJestTestFile => {
       const { fsPath } = lwcJestTestFile;
-      let testFileInfo = this.testFileInfoMap.get(fsPath);
-      if (!testFileInfo) {
-        testFileInfo = this.indexTestFile(fsPath);
-      }
+      const testFileInfo = this.testFileInfoMap.get(fsPath) ?? this.indexTestFile(fsPath);
       return testFileInfo;
     });
     this.hasIndexedTestFiles = true;
@@ -223,7 +212,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     const rawTestResultsByTitle = new Map<string, RawTestResult[]>();
     rawTestResults.forEach(rawTestResult => {
       const { title } = rawTestResult;
-      rawTestResultsByTitle.set(title, [...(rawTestResultsByTitle.get(title) || []), rawTestResult]);
+      rawTestResultsByTitle.set(title, [...(rawTestResultsByTitle.get(title) ?? []), rawTestResult]);
     });
 
     testCasesInfo.forEach(testCaseInfo => {
@@ -257,12 +246,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     testResults.testResults.forEach(testResult => {
       const { name, status: testFileStatus, assertionResults } = testResult;
       const testFsPath = URI.file(name).fsPath;
-      let testFileInfo = this.testFileInfoMap.get(testFsPath);
-      if (!testFileInfo) {
-        // If testFileInfo not found index it by fsPath.
-        // it should be handled by file watcher on creating file, but just in case.
-        testFileInfo = this.indexTestFile(testFsPath);
-      }
+      const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
       let testFileResultStatus: TestResultStatus = TestResultStatus.UNKNOWN;
       if (testFileStatus === 'passed') {
         testFileResultStatus = TestResultStatus.PASSED;
@@ -279,7 +263,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
         if (failureMessages && failureMessages.length > 0) {
           const failureMessage = sanitizeFailureMessage(failureMessages[0]);
           const failurePosition =
-            extractPositionFromFailureMessage(testFsPath, failureMessage) ||
+            extractPositionFromFailureMessage(testFsPath, failureMessage) ??
             new vscode.Position(location.line - 1, location.column - 1);
           const diagnostic = new vscode.Diagnostic(new vscode.Range(failurePosition, failurePosition), failureMessage);
           diagnosticsResult.push(diagnostic);

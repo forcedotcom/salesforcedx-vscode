@@ -131,7 +131,7 @@ export class MetadataCacheService {
   }
 
   public async createRetrieveOperation(comps?: ComponentSet): Promise<MetadataApiRetrieve> {
-    const components = comps || (await this.getSourceComponents());
+    const components = comps ?? (await this.getSourceComponents());
     await this.clearDirectory(this.cachePath, true);
 
     await componentSetUtils.setApiVersion(components);
@@ -245,7 +245,7 @@ export class MetadataCacheService {
   }
 
   private getRelativePath(comp: SourceComponent, baseDir: string): string {
-    const compPath = comp.content || comp.xml;
+    const compPath = comp.content ?? comp.xml;
     if (compPath) {
       const compDir = path.dirname(compPath);
       return compDir.substring(baseDir.length + path.sep.length);

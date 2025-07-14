@@ -22,10 +22,10 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.show();
 
     WorkspaceContext.getInstance().onOrgChange((orgInfo: OrgUserInfo) =>
-      this.displayTargetOrg(orgInfo.alias || orgInfo.username)
+      this.displayTargetOrg(orgInfo.alias ?? orgInfo.username)
     );
     const { username, alias } = WorkspaceContext.getInstance();
-    void this.displayTargetOrg(alias || username);
+    void this.displayTargetOrg(alias ?? username);
   }
 
   private displayTargetOrg(targetOrgOrAlias?: string) {

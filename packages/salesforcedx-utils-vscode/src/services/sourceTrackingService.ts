@@ -94,7 +94,7 @@ class SourceStatusSummary {
    */
   private resultConverter = (input: StatusOutputRow): StatusResult => {
     const { fullName, type, ignored, filePath, conflict } = input;
-    const origin = SourceStatusSummary.originMap.get(input.origin) || 'Local';
+    const origin = SourceStatusSummary.originMap.get(input.origin) ?? 'Local';
     const actualState = SourceStatusSummary.stateMap.get(input.state);
     return {
       fullName,
@@ -159,7 +159,7 @@ class StatusResultsTable {
   private convertToTableRow(result: StatusResult): FormattedStatusResult {
     return Object.assign(result, {
       ignored: result.ignored ? 'true' : 'false',
-      filePath: result.filePath ? result.filePath : ''
+      filePath: result.filePath ?? ''
     });
   }
 }
