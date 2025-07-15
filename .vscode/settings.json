@@ -38,6 +38,7 @@
   "cSpell.words": [
     "barexception",
     "breakpointid",
+    "commandlet",
     "debugadapter",
     "debugprotocol",
     "defaultusername",
@@ -45,6 +46,7 @@
     "Gack",
     "HOTSWAP",
     "instanceurl",
+    "interactable",
     "LIVESHARE",
     "QUEUEABLE",
     "salesforcedx",
