@@ -112,7 +112,7 @@ export class O11yService {
     if (O11yService.sharedO11yModules) {
       const { collectorsModule } = O11yService.sharedO11yModules;
       O11yService.sharedProtoEncoderFunc = encodeCoreEnvelopeContentsRawSchem.parse(
-        collectorsModule.default || collectorsModule
+        collectorsModule.default ?? collectorsModule
       ).encodeCoreEnvelopeContentsRaw;
     }
   }

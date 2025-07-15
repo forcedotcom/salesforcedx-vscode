@@ -64,7 +64,7 @@ export class TelemetryServiceProvider {
   public static instances = new Map<string, TelemetryService>(); // public only for unit test
   public static getInstance(extensionName?: string): TelemetryServiceInterface {
     // default if not present
-    const name = extensionName || SFDX_CORE_EXTENSION_NAME;
+    const name = extensionName ?? SFDX_CORE_EXTENSION_NAME;
     if (!extensionName) {
       console.log(`[TelemetryServiceProvider] No extensionName provided. Defaulting to "${SFDX_CORE_EXTENSION_NAME}".`);
     }
@@ -268,7 +268,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         } catch {
           console.log(
             `There was an error sending an exception report to: ${typeof reporter} ` +
-              `name: ${name} message: ${message}`
+              `name: ${String(name)} message: ${String(message)}`
           );
         }
       });

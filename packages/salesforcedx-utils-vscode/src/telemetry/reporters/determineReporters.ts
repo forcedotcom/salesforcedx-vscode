@@ -21,7 +21,7 @@ const setO11yInitializationPromise = (extName: string, promise: Promise<void>) =
 };
 
 const getO11yInitializationPromise = (extName: string): Promise<void> | null =>
-  o11yInitializationPromises.get(extName) || null;
+  o11yInitializationPromises.get(extName) ?? null;
 
 const clearO11yInitializationPromise = (extName: string) => {
   o11yInitializationPromises.delete(extName);
