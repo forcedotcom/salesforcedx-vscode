@@ -17,7 +17,8 @@ import {
   executeQuickPick,
   getWorkbench,
   getTextEditor,
-  reloadWindow
+  reloadWindow,
+  moveCursorWithFallback
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
@@ -51,7 +52,7 @@ describe('LWC LSP', () => {
     const textEditor = await getTextEditor(workbench, 'lwc1.js');
 
     // Move cursor to the middle of "LightningElement"
-    await textEditor.moveCursor(3, 40);
+    await moveCursorWithFallback(textEditor, 3, 40);
 
     // Go to definition through F12
     await executeQuickPick('Go to Definition', Duration.seconds(2));
@@ -71,7 +72,7 @@ describe('LWC LSP', () => {
       const textEditor = await getTextEditor(workbench, 'lwc1.html');
 
       // Move cursor to the middle of "greeting"
-      await textEditor.moveCursor(3, 58);
+      await moveCursorWithFallback(textEditor, 3, 58);
 
       // Go to definition through F12
       await executeQuickPick('Go to Definition', Duration.seconds(2));
