@@ -13,8 +13,14 @@ I want to replicate the UI
 1. everything should use Effect library
 2. Let's do as much functional-style programming as possible with effect
 3. anything that's a "service" (getting a connection, etc) should go in the Services package's exports and be called from here
-4. we'll store our files in orgs/<orgId>/.sf/metadata. The format should match the describe results, not the existing files
+4. we'll store our files in .sf/orgs/<orgId>/metadata. The format should match the describe results, not the existing files
 5. this must not use any node: apis...it needs to run as a web and desktop extension
+
+## Guidelines
+
+- no direct (runtime) dependencies on salesforcedx-vscode-services repo
+  - you can have a devDep (only using its types, with the `type` annotation)
+  - you an have an indirect "runtime" dependency via vscode's extensionDependencies (packages use the vscode-services package's API and can depend on it being running)
 
 ## Clarifying Questions
 

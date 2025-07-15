@@ -7,6 +7,7 @@
 
 import { Effect } from 'effect';
 import * as vscode from 'vscode';
+import { ConfigService, ConfigServiceLive } from './core/configService';
 import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
@@ -25,6 +26,8 @@ export type SalesforceVSCodeServicesApi = {
     WorkspaceServiceLive: typeof WorkspaceServiceLive;
     FsService: typeof FsService;
     FsServiceLive: typeof FsServiceLive;
+    ConfigService: typeof ConfigService;
+    ConfigServiceLive: typeof ConfigServiceLive;
   };
 };
 
@@ -57,7 +60,9 @@ export const activate = async (
       WorkspaceService,
       WorkspaceServiceLive,
       FsService,
-      FsServiceLive
+      FsServiceLive,
+      ConfigService,
+      ConfigServiceLive
     }
   };
 
