@@ -6,6 +6,7 @@
  */
 
 import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core-bundle';
+import { messages } from '../i18n/i18n';
 import { OrgInfo, OrgQueryResult, ScratchOrgQueryResult, ScratchOrgInfo } from '../types/orgInfo';
 
 export class OrgDisplay {
@@ -36,7 +37,7 @@ export class OrgDisplay {
     }
 
     if (!usernameOrAlias) {
-      throw new Error('No username provided and no default username found in project config or state');
+      throw new Error(messages.no_username_provided);
     }
 
     // Resolve alias to actual username if needed
