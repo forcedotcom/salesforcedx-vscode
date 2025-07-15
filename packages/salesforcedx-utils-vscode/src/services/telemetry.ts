@@ -20,6 +20,7 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
+import { TimingUtils } from '../helpers/timingUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
@@ -82,6 +83,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   private version: string = '';
   public isInternal: boolean = false;
   public isDevMode: boolean = false;
+  private activationStartTime: number = TimingUtils.getCurrentTime();
 
   /**
    * Retrieve Telemetry Service according to the extension name.
@@ -199,7 +201,9 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public sendExtensionActivationEvent(hrstart?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
-    const startupTime = markEndTime ?? (hrstart !== undefined ? this.getEndHRTime(hrstart) : 0);
+    // Use the stored activation start time if hrstart is 0 (indicating auto-timing), otherwise use the provided value
+    const effectiveStartTime = !hrstart || hrstart === 0 ? this.activationStartTime : hrstart;
+    const startupTime = markEndTime ?? TimingUtils.getElapsedTime(effectiveStartTime);
     const properties = {
       extensionName: this.extensionName,
       ...(telemetryData?.properties ? telemetryData.properties : {})
@@ -244,7 +248,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         if (hrstart || measurements) {
           aggregatedMeasurements = { ...measurements };
           if (hrstart) {
-            aggregatedMeasurements.executionTime = this.getEndHRTime(hrstart);
+            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTimeOrZero(hrstart);
           }
         }
         this.reporters.forEach(reporter => {
@@ -288,7 +292,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public getEndHRTime(hrstart: number): number {
-    return globalThis.performance.now() - hrstart;
+    return TimingUtils.getElapsedTime(hrstart);
   }
 
   /**

@@ -8,6 +8,7 @@
 import { ActivationInfo, TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { ExtensionContext } from 'vscode';
 import { getExtensionInfo } from './activationTrackerUtils';
+import { TimingUtils } from './timingUtils';
 
 export class ActivationTracker {
   private extensionContext: ExtensionContext;
@@ -18,7 +19,7 @@ export class ActivationTracker {
     this.extensionContext = extensionContext;
     this.telemetryService = telemetryService;
     this._activationInfo = {
-      startActivateHrTime: globalThis.performance.now(),
+      startActivateHrTime: TimingUtils.getCurrentTime(),
       activateStartDate: new Date(),
       extensionActivationTime: 0
     };

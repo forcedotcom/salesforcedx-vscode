@@ -50,7 +50,7 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
   sendActivationEventInfo(activationInfo: ActivationInfo): void {
     // No-op implementation
   }
-  sendExtensionActivationEvent(hrstart: number, markEndTime?: number, telemetryData?: TelemetryData): void {
+  sendExtensionActivationEvent(hrstart?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
     // No-op implementation
   }
   sendExtensionDeactivationEvent(): void {
