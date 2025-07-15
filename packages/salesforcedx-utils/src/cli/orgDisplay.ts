@@ -15,7 +15,7 @@ export class OrgDisplay {
     this.username = username;
   }
 
-  public async getUsername(): Promise<string> {
+  public async getUsername(salesforceProject?: string): Promise<string> {
     let usernameOrAlias: string | undefined;
 
     if (this.username) {
@@ -24,7 +24,9 @@ export class OrgDisplay {
 
     // Try to get username from project config
     try {
-      const configAggregator: ConfigAggregator = await ConfigAggregator.create();
+      const configAggregator: ConfigAggregator = await ConfigAggregator.create({
+        projectPath: salesforceProject
+      });
       const configUsernameOrAlias = configAggregator.getPropertyValue<string>('target-org');
       if (configUsernameOrAlias && typeof configUsernameOrAlias === 'string') {
         usernameOrAlias = configUsernameOrAlias;
@@ -48,8 +50,8 @@ export class OrgDisplay {
     }
   }
 
-  public async getOrgInfo(): Promise<OrgInfo> {
-    const username = await this.getUsername();
+  public async getOrgInfo(salesforceProject?: string): Promise<OrgInfo> {
+    const username = await this.getUsername(salesforceProject);
     const authInfo = await AuthInfo.create({ username });
     const connection = await Connection.create({ authInfo });
     const org = await Org.create({ connection });

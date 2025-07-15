@@ -82,7 +82,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     if (vscode.workspace.workspaceFolders?.[0]) {
       this.salesforceProject = URI.file(vscode.workspace.workspaceFolders[0].uri.fsPath).fsPath;
       try {
-        this.orgInfo = await new OrgDisplay().getOrgInfo();
+        this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
       } catch (error) {
         let errorMessage: string;
 
