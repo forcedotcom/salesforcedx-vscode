@@ -22,6 +22,7 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
+  moveCursorWithFallback,
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
@@ -92,7 +93,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     // Get open text editor
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'AccountService.cls');
-    await textEditor.moveCursor(8, 5);
+    await moveCursorWithFallback(textEditor, 8, 5);
     await pause(Duration.seconds(1));
 
     // Run SFDX: Toggle Checkpoint.

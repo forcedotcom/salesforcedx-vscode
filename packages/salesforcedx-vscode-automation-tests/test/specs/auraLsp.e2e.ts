@@ -13,7 +13,8 @@ import {
   getOutputViewText,
   getTextEditor,
   getWorkbench,
-  reloadWindow
+  reloadWindow,
+  moveCursorWithFallback
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
@@ -65,7 +66,7 @@ describe('Aura LSP', () => {
     const textEditor = await getTextEditor(workbench, 'aura1.cmp');
 
     // Move cursor to the middle of "simpleNewContact"
-    await textEditor.moveCursor(8, 15);
+    await moveCursorWithFallback(textEditor, 8, 15);
 
     // Go to definition through F12
     await executeQuickPick('Go to Definition', Duration.seconds(2));
