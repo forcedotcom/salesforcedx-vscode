@@ -7,13 +7,17 @@ name: Dependabot Auto-Merge
 # 3. All checks have completed and none failed (skipped may not have run)
 
 on:
+  # Trigger when checks complete
+  check_suite:
+    types: [completed]
+
+  # Manual trigger for testing/debugging
   workflow_dispatch:
-  schedule:
-    # Run every 3 hours during business hours
-    - cron: '0 9,12,15,18 * * 1-5'
 
 jobs:
   automerge:
+    # Only run for dependabot PRs (when checks complete) or manual triggers
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
     uses: salesforcecli/github-workflows/.github/workflows/automerge.yml@main
     secrets: inherit
     with:
