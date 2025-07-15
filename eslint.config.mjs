@@ -407,6 +407,7 @@ export default [
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
+      'packages/salesforcedx-apex-replay-debugger/**',
       'packages/salesforcedx-vscode-soql/**'
     ],
     rules: {

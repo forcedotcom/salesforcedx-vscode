@@ -49,9 +49,9 @@ describe('Frame entry event', () => {
     getStaticMapStub.mockRestore();
   });
 
-  it('Should add a frame', async () => {
+  it('Should add a frame', () => {
     const state = new FrameEntryState(['signature']);
-    const context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(state.handle(context)).toBe(false);
@@ -73,9 +73,9 @@ describe('Frame entry event', () => {
     expect(context.getStaticVariablesClassMap().get('signature')!.size).toBe(0);
   });
 
-  it('Should parse the class name from method signature and add it to static variable map', async () => {
+  it('Should parse the class name from method signature and add it to static variable map', () => {
     const state = new FrameEntryState(['className.method']);
-    const context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(state.handle(context)).toBe(false);
@@ -97,9 +97,9 @@ describe('Frame entry event', () => {
     expect(context.getStaticVariablesClassMap().get('className')!.size).toBe(0);
   });
 
-  it('Should use existing static variables when the entry is for a class that was seen earlier', async () => {
+  it('Should use existing static variables when the entry is for a class that was seen earlier', () => {
     const state = new FrameEntryState(['previousClass.seenBefore']);
-    const context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(state.handle(context)).toBe(false);

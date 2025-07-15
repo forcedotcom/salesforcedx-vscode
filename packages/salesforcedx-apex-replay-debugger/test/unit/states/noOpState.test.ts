@@ -20,8 +20,8 @@ import { LogContext } from '../../../src/core';
 import { NoOpState } from '../../../src/states';
 
 describe('NoOp event', () => {
-  it('Should handle event', async () => {
-    const context = await LogContext.create(
+  it('Should handle event', () => {
+    const context = new LogContext(
       {
         logFile: '/path/foo.log',
         trace: true

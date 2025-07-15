@@ -15,7 +15,6 @@
   ],
   "dependencies": {
     "@salesforce/salesforcedx-utils": "64.5.0",
-    "@salesforce/salesforcedx-utils-vscode": "64.5.0",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "vscode-uri": "^3.1.0"
@@ -31,7 +30,7 @@
     "ts-jest": "^29.1.1"
   },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/adapter/apexReplayDebug.ts --bundle --outfile=dist/apexreplaydebug.js --format=cjs --platform=node --minify --external:vscode",
+    "bundle:debugger": "esbuild ./src/adapter/apexReplayDebug.ts --bundle --outfile=dist/apexreplaydebug.js --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",

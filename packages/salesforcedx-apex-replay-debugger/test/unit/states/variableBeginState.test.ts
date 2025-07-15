@@ -50,9 +50,9 @@ describe('Variable begin scope event', () => {
     getStaticMapStub.mockRestore();
   });
 
-  it('Should add static variable to frame', async () => {
+  it('Should add static variable to frame', () => {
     const entryState = new VariableBeginState(STATIC_VARIABLE_LOG_LINE.split('|'));
-    const context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(entryState.handle(context)).toBe(false);
@@ -61,9 +61,9 @@ describe('Variable begin scope event', () => {
     expect(context.getStaticVariablesClassMap().get('fakeClass')?.has('staticInteger')).toBe(true);
   });
 
-  it('Should add local variable to frame', async () => {
+  it('Should add local variable to frame', () => {
     const state = new FrameEntryState(['signature']);
-    const context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(state.handle(context)).toBe(false);
@@ -94,9 +94,9 @@ describe('Variable begin scope event', () => {
     });
   });
 
-  it('Should create class entry in static variable map when class has not been seen before', async () => {
+  it('Should create class entry in static variable map when class has not been seen before', () => {
     const entryState = new VariableBeginState(STATIC_VARIABLE_LOG_LINE.split('|'));
-    const context = await LogContext.create(launchRequestArgs, new ApexReplayDebug());
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
     expect(entryState.handle(context)).toBe(false);

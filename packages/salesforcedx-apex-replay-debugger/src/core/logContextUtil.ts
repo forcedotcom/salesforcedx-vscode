@@ -5,22 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { readFile, stat } from '@salesforce/salesforcedx-utils-vscode';
+// eslint-disable-next-line no-restricted-imports
+import * as fs from 'node:fs';
 
 export class LogContextUtil {
-  public async getFileSize(filePath: string): Promise<number> {
+  public getFileSize(filePath: string): number {
     try {
-      const stats = await stat(filePath);
+      const stats = fs.statSync(filePath);
       return stats.size;
     } catch {
       return 0;
     }
   }
 
-  public async readLogFile(logFilePath: string): Promise<string[]> {
+  public readLogFile(logFilePath: string): string[] {
     try {
-      const content = await readFile(logFilePath);
-      return content.trim().split(/\r?\n/);
+      return fs.readFileSync(logFilePath, 'utf-8').trim().split(/\r?\n/);
     } catch {
       return [];
     }

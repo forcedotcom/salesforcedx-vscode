@@ -23,15 +23,15 @@ describe('LogEntry event', () => {
   let readLogFileStub: jest.SpyInstance;
 
   beforeEach(() => {
-    readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockResolvedValue(['line1', 'line2']);
+    readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
   });
 
   afterEach(() => {
     readLogFileStub.mockRestore();
   });
 
-  it('Should handle event', async () => {
-    const context = await LogContext.create(
+  it('Should handle event', () => {
+    const context = new LogContext(
       {
         logFile: '/path/foo.log',
         stopOnEntry: true,
