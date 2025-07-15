@@ -20,6 +20,7 @@ import {
   SEND_METRIC_LAUNCH_EVENT,
   breakpointUtil
 } from '@salesforce/salesforcedx-apex-replay-debugger';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
@@ -132,29 +133,23 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
       if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
         const metricLaunchArgs = event.body as MetricLaunch;
-        if (salesforceCoreExtension?.exports?.telemetryService) {
-          salesforceCoreExtension.exports.telemetryService.sendEventData('apexReplayDebugger.launch', {
-            logSize: metricLaunchArgs.logSize.toString(),
-            errorSubject: metricLaunchArgs.error.subject
-          });
-        }
+        TelemetryService.getInstance().sendEventData('apexReplayDebugger.launch', {
+          logSize: metricLaunchArgs.logSize.toString(),
+          errorSubject: metricLaunchArgs.error.subject
+        });
       } else if (event.event === SEND_METRIC_ERROR_EVENT && event.body) {
         const metricErrorArgs = event.body as MetricError;
-        if (salesforceCoreExtension?.exports?.telemetryService) {
-          salesforceCoreExtension.exports.telemetryService.sendEventData('apexReplayDebugger.error', {
-            subject: metricErrorArgs.subject,
-            callstack: metricErrorArgs.callstack
-          });
-        }
+        TelemetryService.getInstance().sendEventData('apexReplayDebugger.error', {
+          subject: metricErrorArgs.subject,
+          callstack: metricErrorArgs.callstack
+        });
       } else if (event.event === SEND_METRIC_GENERAL_EVENT && event.body) {
         const metricGeneralArgs = event.body as MetricGeneral;
-        if (salesforceCoreExtension?.exports?.telemetryService) {
-          salesforceCoreExtension.exports.telemetryService.sendEventData('apexReplayDebugger.general', {
-            subject: metricGeneralArgs.subject,
-            type: metricGeneralArgs.type,
-            qty: metricGeneralArgs.qty?.toString() ?? 'undefined'
-          });
-        }
+        TelemetryService.getInstance().sendEventData('apexReplayDebugger.general', {
+          subject: metricGeneralArgs.subject,
+          type: metricGeneralArgs.type,
+          qty: metricGeneralArgs.qty?.toString() ?? 'undefined'
+        });
       }
     }
   });
@@ -201,12 +196,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   );
 
   // Telemetry - using shared service directly
-  if (salesforceCoreExtension?.exports?.telemetryService) {
-    const telemetryService = salesforceCoreExtension.exports.telemetryService;
-    telemetryService.sendExtensionActivationEvent();
-  } else {
-    console.warn('Salesforce Core Extension not available - telemetry will not be initialized');
-  }
+  TelemetryService.getInstance().sendExtensionActivationEvent();
 };
 
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
@@ -280,8 +270,6 @@ export const writeToDebuggerOutputWindow = (
 
 export const deactivate = () => {
   console.log('Apex Replay Debugger Extension Deactivated');
-  // Send deactivation event using shared service if available
-  if (salesforceCoreExtension?.exports?.telemetryService) {
-    salesforceCoreExtension.exports.telemetryService.sendExtensionDeactivationEvent();
-  }
+  // Send deactivation event using shared service
+  TelemetryService.getInstance().sendExtensionDeactivationEvent();
 };

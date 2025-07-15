@@ -18,8 +18,7 @@ import {
   OVERLAY_ACTION_DELETE_URL
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
-import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
+import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
@@ -469,14 +468,9 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
       }
       // Send checkpoint event using shared telemetry service
-      const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-        'salesforce.salesforcedx-vscode-core'
-      );
-      if (salesforceCoreExtension?.exports?.telemetryService) {
-        salesforceCoreExtension.exports.telemetryService.sendEventData('apexReplayDebugger.checkpoint', {
-          errorMessage: errorMsg
-        });
-      }
+      TelemetryService.getInstance().sendEventData('apexReplayDebugger.checkpoint', {
+        errorMessage: errorMsg
+      });
       creatingCheckpoints = false;
     }
     if (updateError) {

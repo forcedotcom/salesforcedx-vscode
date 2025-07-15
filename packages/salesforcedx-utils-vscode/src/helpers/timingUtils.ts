@@ -31,10 +31,14 @@ export class TimingUtils {
 
   /**
    * Calculate elapsed time from a start timestamp
-   * @param startTime The start timestamp (from getCurrentTime())
-   * @returns Elapsed time in milliseconds, or 0 if invalid
+   * @param startTime The start timestamp (from getCurrentTime()), can be undefined/null
+   * @returns Elapsed time in milliseconds, or 0 if invalid/undefined
    */
-  public static getElapsedTime(startTime: number): number {
+  public static getElapsedTime(startTime?: number): number {
+    if (startTime === undefined || startTime === null) {
+      return 0;
+    }
+
     if (typeof startTime !== 'number' || isNaN(startTime) || startTime < 0) {
       console.warn('Invalid start time provided to getElapsedTime:', startTime);
       return 0;
@@ -55,18 +59,5 @@ export class TimingUtils {
     }
 
     return elapsed;
-  }
-
-  /**
-   * Safely get elapsed time, with fallback to 0 if start time is undefined
-   * @param startTime The start timestamp (optional)
-   * @returns Elapsed time in milliseconds, or 0 if startTime is undefined/invalid
-   */
-  public static getElapsedTimeOrZero(startTime?: number): number {
-    if (startTime === undefined || startTime === null) {
-      return 0;
-    }
-
-    return TimingUtils.getElapsedTime(startTime);
   }
 }

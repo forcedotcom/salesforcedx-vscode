@@ -246,7 +246,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         if (hrstart || measurements) {
           aggregatedMeasurements = { ...measurements };
           if (hrstart) {
-            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTimeOrZero(hrstart);
+            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTime(hrstart);
           }
         }
         this.reporters.forEach(reporter => {
