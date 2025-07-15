@@ -4,14 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Properties,
-  Measurements,
-  TelemetryData,
-  TelemetryServiceInterface,
-  TelemetryReporter,
-  ActivationInfo
-} from '@salesforce/vscode-service-provider';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { z } from 'zod';
 import {
@@ -25,6 +17,14 @@ import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConf
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
+import {
+  Properties,
+  Measurements,
+  TelemetryData,
+  TelemetryServiceInterface,
+  TelemetryReporter,
+  ActivationInfo
+} from '../types';
 import { UserService } from './userService';
 
 type CommandMetric = {

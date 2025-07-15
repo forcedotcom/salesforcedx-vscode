@@ -11,9 +11,10 @@ import {
   CommandExecution,
   ContinueResponse,
   workspaceUtils,
-  ProgressNotification
+  ProgressNotification,
+  Properties,
+  Measurements
 } from '@salesforce/salesforcedx-utils-vscode';
-import { Properties, Measurements } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
@@ -51,12 +52,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public logMetric(
-    logName: string | undefined,
-    hrstart: number,
-    properties?: Properties,
-    measurements?: Measurements
-  ) {
+  public logMetric(logName: string | undefined, hrstart: number, properties?: Properties, measurements?: Measurements) {
     telemetryService.sendCommandEvent(logName, hrstart, properties, measurements);
   }
 
