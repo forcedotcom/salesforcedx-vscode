@@ -29,6 +29,6 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest --coverage",
-    "test:integration": "jest --coverage -c ./jest.integration.config.js"
+    "test:integration": "jest --coverage -c ./jest.integration.config.js --passWithNoTests"
   }
 }

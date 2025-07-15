@@ -49,7 +49,7 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest --coverage --forceExit",
-    "test:integration": "jest --coverage --forceExit -c ./jest.integration.config.js"
+    "test:integration": "jest --coverage --forceExit -c ./jest.integration.config.js --passWithNoTests"
   },
   "nyc": {
     "reporter": [
