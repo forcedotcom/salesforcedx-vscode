@@ -104,7 +104,9 @@ describe('Replay debugger adapter - unit', () => {
       adapter = new MockApexReplayDebug();
       response = adapter.getDefaultResponse();
       args = {
-        logFile: logFilePath,
+        logFileContents: 'test log content',
+        logFilePath,
+        logFileName,
         stopOnEntry: true,
         trace: false,
         projectPath
@@ -126,7 +128,9 @@ describe('Replay debugger adapter - unit', () => {
         // Call the original implementation for non-output events
         return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
       });
-      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
+      readLogFileStub = jest
+        .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+        .mockReturnValue(['line1', 'line2']);
       getLogSizeStub = jest.spyOn(LogContext.prototype, 'getLogSize').mockReturnValue(123);
     });
 
@@ -313,7 +317,9 @@ describe('Replay debugger adapter - unit', () => {
     let response: DebugProtocol.ConfigurationDoneResponse;
     const args: DebugProtocol.ConfigurationDoneArguments = {};
     const launchRequestArgs: LaunchRequestArguments = {
-      logFile: logFilePath,
+      logFileContents: 'test log content',
+      logFilePath,
+      logFileName,
       trace: true,
       projectPath
     };
@@ -421,7 +427,9 @@ describe('Replay debugger adapter - unit', () => {
     let response: DebugProtocol.ThreadsResponse;
     let readLogFileStub: jest.SpyInstance;
     const launchRequestArgs: LaunchRequestArguments = {
-      logFile: logFilePath,
+      logFileContents: 'test log content',
+      logFilePath,
+      logFileName,
       trace: true,
       projectPath
     };
@@ -432,7 +440,9 @@ describe('Replay debugger adapter - unit', () => {
         body: { threads: [] }
       });
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
+      readLogFileStub = jest
+        .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+        .mockReturnValue(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
     });
 
@@ -460,7 +470,9 @@ describe('Replay debugger adapter - unit', () => {
     let readLogFileStub: jest.SpyInstance;
     let getFramesStub: jest.SpyInstance;
     const launchRequestArgs: LaunchRequestArguments = {
-      logFile: logFilePath,
+      logFileContents: 'test log content',
+      logFilePath,
+      logFileName,
       trace: true,
       projectPath
     };
@@ -490,7 +502,9 @@ describe('Replay debugger adapter - unit', () => {
         threadId: ApexReplayDebug.THREAD_ID
       };
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = jest.spyOn(LogContextUtil.prototype, 'readLogFile').mockReturnValue(['line1', 'line2']);
+      readLogFileStub = jest
+        .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+        .mockReturnValue(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
       getFramesStub = jest.spyOn(LogContext.prototype, 'getFrames').mockReturnValue(sampleStackFrames);
     });
@@ -520,7 +534,9 @@ describe('Replay debugger adapter - unit', () => {
     let response: DebugProtocol.ContinueResponse;
     let args: DebugProtocol.ContinueArguments;
     const launchRequestArgs: LaunchRequestArguments = {
-      logFile: logFilePath,
+      logFileContents: 'test log content',
+      logFilePath,
+      logFileName,
       trace: true,
       projectPath
     };
@@ -748,7 +764,9 @@ describe('Replay debugger adapter - unit', () => {
     let response: DebugProtocol.SetBreakpointsResponse;
     let args: DebugProtocol.SetBreakpointsArguments;
     const launchRequestArgs: LaunchRequestArguments = {
-      logFile: logFilePath,
+      logFileContents: 'test log content',
+      logFilePath,
+      logFileName,
       trace: true,
       projectPath
     };
@@ -937,7 +955,11 @@ describe('Replay debugger adapter - unit', () => {
       });
 
       it('Should handle undefined args', async () => {
-        await adapter.launchRequest(initializedResponse, {} as LaunchRequestArguments);
+        await adapter.launchRequest(initializedResponse, {
+          logFileContents: 'test log content',
+          logFilePath,
+          logFileName
+        } as LaunchRequestArguments);
         expect(createMappingsFromLineBreakpointInfo).toHaveBeenCalledTimes(0);
         expect(initializedResponse.message).toEqual(nls.localize('session_language_server_error_text'));
         expect(sendEventSpy).toHaveBeenCalledTimes(4);
@@ -948,7 +970,9 @@ describe('Replay debugger adapter - unit', () => {
       it('Should handle empty line breakpoint info', async () => {
         const config = {
           lineBreakpointInfo: [],
-          logFile: 'someTestLogFile.log',
+          logFileContents: 'test log content',
+          logFilePath,
+          logFileName,
           projectPath: undefined
         };
 
@@ -976,7 +1000,9 @@ describe('Replay debugger adapter - unit', () => {
         const config = {
           lineBreakpointInfo: info,
           projectPath: projectPathArg,
-          logFile: 'someTestLogFile.log'
+          logFileContents: 'test log content',
+          logFilePath,
+          logFileName
         };
         await adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
 
