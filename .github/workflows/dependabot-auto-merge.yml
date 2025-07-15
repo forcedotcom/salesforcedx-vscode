@@ -13,6 +13,12 @@ on:
 
   # Manual trigger for testing/debugging
   workflow_dispatch:
+    inputs:
+      skipCI:
+        description: 'Skip CI checks and merge immediately'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   automerge:
@@ -22,3 +28,4 @@ jobs:
     secrets: inherit
     with:
       mergeMethod: squash
+      skipCI: ${{ github.event.inputs.skipCI || false }}
