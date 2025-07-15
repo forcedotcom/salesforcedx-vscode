@@ -115,10 +115,10 @@ export class O11yService {
     const { simpleCollectorModule, collectorsModule } = o11yModules;
 
     this.protoEncoderFunc = encodeCoreEnvelopeContentsRawSchem.parse(
-      collectorsModule.default || collectorsModule
+      collectorsModule.default ?? collectorsModule
     ).encodeCoreEnvelopeContentsRaw;
 
-    const simpleCollector = new (simpleCollectorModule.default || simpleCollectorModule).SimpleCollector({
+    const simpleCollector = new (simpleCollectorModule.default ?? simpleCollectorModule).SimpleCollector({
       environment
     });
 

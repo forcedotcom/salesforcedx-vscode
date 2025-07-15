@@ -276,9 +276,23 @@ export class LogContext {
       }
     } catch (error) {
       success = false;
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const result = JSON.parse(error) as OrgInfoError;
-      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
+      let errorMessage: string;
+
+      // Check if error is already an Error object with a message
+      if (error instanceof Error) {
+        errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${error.message}`;
+      } else {
+        // Try to parse as JSON (for backwards compatibility)
+        try {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          const result = JSON.parse(error as string) as OrgInfoError;
+          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
+        } catch {
+          // If JSON parsing fails, treat as string
+          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${String(error)}`;
+        }
+      }
+
       this.session.errorToDebugConsole(errorMessage);
     }
     return success;
@@ -339,7 +353,7 @@ export class LogContext {
   }
 
   public getExecAnonScriptLocationInDebugLog(scriptLine: number): number {
-    return this.execAnonMapping.get(scriptLine) || 0;
+    return this.execAnonMapping.get(scriptLine) ?? 0;
   }
 
   public getExecAnonScriptMapping(): Map<number, number> {

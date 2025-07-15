@@ -15,6 +15,8 @@ export type ChannelService = {
 };
 export const ChannelService = Context.GenericTag<ChannelService>('ChannelService');
 
+const channelCache = new Map<string, vscode.OutputChannel>();
+
 /**
  * Factory for a Layer that provides a ChannelService for the given channel name.
  * Usage:
@@ -24,10 +26,14 @@ export const ChannelServiceLayer = (channelName: string): Layer.Layer<ChannelSer
   Layer.effect(
     ChannelService,
     Effect.sync((): ChannelService => {
-      const channel = vscode.window.createOutputChannel(channelName);
+      let channel = channelCache.get(channelName);
+      if (!channel) {
+        channel = vscode.window.createOutputChannel(channelName);
+        channelCache.set(channelName, channel);
+      }
       return {
-        getChannel: Effect.sync(() => channel),
-        appendToChannel: (message: string) => Effect.sync(() => channel.appendLine(message))
+        getChannel: Effect.sync(() => channel!),
+        appendToChannel: (message: string) => Effect.sync(() => channel!.appendLine(message))
       };
     })
   );

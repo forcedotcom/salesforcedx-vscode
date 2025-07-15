@@ -11,6 +11,8 @@ import { activateEffect, deactivateEffect } from '../../src/index';
 import { ExtensionProviderService } from '../../src/services/extensionProvider';
 import { ConnectionService, ConnectionServiceLive } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ProjectService, ProjectServiceLive } from 'salesforcedx-vscode-services/src/core/projectService';
+import { WorkspaceService, WorkspaceServiceLive } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import { FsService, FsServiceLive } from 'salesforcedx-vscode-services/src/vscode/fsService';
 
 // 1. Full OutputChannel mock
 const mockAppendLine = jest.fn();
@@ -48,7 +50,11 @@ const MockExtensionProviderServiceLive = Layer.effect(
         ProjectService: {} as typeof ProjectService,
         ProjectServiceLive: {} as typeof ProjectServiceLive,
         ChannelService: MockChannelService,
-        ChannelServiceLayer: MockChannelServiceLayer
+        ChannelServiceLayer: MockChannelServiceLayer,
+        WorkspaceService,
+        WorkspaceServiceLive,
+        FsService,
+        FsServiceLive
       }
     }))
   }))

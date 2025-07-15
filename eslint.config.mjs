@@ -144,6 +144,7 @@ export default [
       '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/prefer-for-of': 'warn',
       '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/unbound-method': ['warn', { ignoreStatic: true }],
       'prefer-arrow/prefer-arrow-functions': ['error', {}],
       '@typescript-eslint/consistent-type-definitions': 'off',
@@ -383,6 +384,18 @@ export default [
       'jest/unbound-method': 'error',
       'no-useless-constructor': 'off',
       'no-param-reassign': 'off'
+    }
+  },
+  {
+    // these have extensive copy-paste from an old version of msft language server
+    // this rule requires strict null checks to be enabled and that code does not support it
+    files: [
+      'packages/salesforcedx-visualforce-markup-language-server/**',
+      'packages/salesforcedx-visualforce-language-server/**',
+      'packages/salesforcedx-vscode-soql/**'
+    ],
+    rules: {
+      '@typescript-eslint/prefer-nullish-coalescing': 'off'
     }
   },
   {

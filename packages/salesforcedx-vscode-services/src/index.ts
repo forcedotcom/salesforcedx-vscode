@@ -10,6 +10,8 @@ import * as vscode from 'vscode';
 import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { FsService, FsServiceLive } from './vscode/fsService';
+import { WorkspaceService, WorkspaceServiceLive } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
   services: {
@@ -19,6 +21,10 @@ export type SalesforceVSCodeServicesApi = {
     ProjectServiceLive: typeof ProjectServiceLive;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
+    WorkspaceService: typeof WorkspaceService;
+    WorkspaceServiceLive: typeof WorkspaceServiceLive;
+    FsService: typeof FsService;
+    FsServiceLive: typeof FsServiceLive;
   };
 };
 
@@ -47,7 +53,11 @@ export const activate = async (
       ProjectService,
       ProjectServiceLive,
       ChannelService,
-      ChannelServiceLayer
+      ChannelServiceLayer,
+      WorkspaceService,
+      WorkspaceServiceLive,
+      FsService,
+      FsServiceLive
     }
   };
 

@@ -1,0 +1,41 @@
+openapi: 3.0.0
+servers:
+  - url: /services/apexrest
+info:
+  title: SimpleAccountResource
+  version: '1.0.0'
+  description: This is the ideal OpenAPI v3 specification for SimpleAccountResource.cls.
+paths:
+  /apex-rest-examples/v1/{accountId}:
+    description: The endpoint that contains the GET method.
+    get:
+      summary: Get Account
+      operationId: getAccount
+      description: Returns the Account that matches the ID specified in the URL
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: The ID of the Account to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The Account with the provided ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Id:
+                    type: string
+                    description: The ID of the Account
+                  Name:
+                    type: string
+                    description: The name of the Account
+                  Phone:
+                    type: string
+                    description: The phone number of the Account
+                  Website:
+                    type: string
+                    description: The website of the Account

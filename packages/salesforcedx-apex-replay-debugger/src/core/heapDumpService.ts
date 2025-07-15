@@ -367,10 +367,7 @@ export class HeapDumpService {
   ) {
     // The collection type in the extent is either set or null. The ApexVariableContainer doesn't
     // allow null for the type, if the type isn't set or is null then default it to the empty string
-    let valueCollectionType = '';
-    if (collectionType) {
-      valueCollectionType = collectionType;
-    }
+    const valueCollectionType = collectionType ?? '';
     let hasInnerRefs = false;
     // If the typename is a collection
     if (this.isCollectionType(refContainer.type)) {
@@ -378,7 +375,7 @@ export class HeapDumpService {
       if (extentValue.value.entry) {
         let entryNumber = 0;
         // get the map's key type and ensure key variables have their type set correctly
-        const mapKeyType = this.getKeyTypeForMap(refContainer.type, collectionType ? collectionType : '');
+        const mapKeyType = this.getKeyTypeForMap(refContainer.type, collectionType ?? '');
         for (const extentValueEntry of extentValue.value.entry) {
           let keyIsRef = this.isAddress(extentValueEntry.keyDisplayValue);
           let valueIsRef = this.isAddress(extentValueEntry.value.value);

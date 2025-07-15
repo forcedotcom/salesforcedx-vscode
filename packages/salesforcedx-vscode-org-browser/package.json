@@ -57,6 +57,57 @@
   "main": "./dist/index.js",
   "browser": "./dist/browser.js",
   "contributes": {
-    "commands": []
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "metadata",
+          "title": "Org Browser",
+          "icon": "resources/orgBrowserIcon.svg"
+        }
+      ]
+    },
+    "views": {
+      "metadata": [
+        {
+          "id": "sfdxOrgBrowser",
+          "name": "Salesforce Org Browser"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdxOrgBrowser.refresh",
+        "title": "Refresh Metadata Types",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdxOrgBrowser.refreshType",
+        "title": "Refresh Type",
+        "category": "Org Browser",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "sfdxOrgBrowser.refresh",
+          "when": "view == sfdxOrgBrowser",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser && viewItem == type",
+          "group": "inline"
+        }
+      ]
+    }
   }
 }

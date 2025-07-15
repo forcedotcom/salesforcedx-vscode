@@ -2,7 +2,9 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "out"
+    "outDir": "out",
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM"]
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": ["src/**/*.ts", "test/**/*.ts"],
