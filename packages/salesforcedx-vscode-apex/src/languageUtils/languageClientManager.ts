@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
-import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
+import { hasRootWorkspace, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { execSync } from 'node:child_process';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -318,7 +318,7 @@ export class LanguageClientManager {
         });
 
         await languageClient.start();
-        const startTime = telemetryService.getEndHRTime(langClientHRStart);
+        const startTime = TimingUtils.getElapsedTime(langClientHRStart);
         telemetryService.sendEventData('apexLSPStartup', undefined, {
           activationTime: startTime
         });

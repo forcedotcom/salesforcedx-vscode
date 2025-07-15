@@ -152,7 +152,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
           salesforceCoreExtension.exports.telemetryService.sendEventData('apexReplayDebugger.general', {
             subject: metricGeneralArgs.subject,
             type: metricGeneralArgs.type,
-            qty: metricGeneralArgs.qty?.toString() || 'undefined'
+            qty: metricGeneralArgs.qty?.toString() ?? 'undefined'
           });
         }
       }

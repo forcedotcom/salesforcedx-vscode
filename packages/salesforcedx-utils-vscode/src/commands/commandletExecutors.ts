@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Command } from '@salesforce/salesforcedx-utils';
-import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { CliCommandExecutor, CommandExecution } from '../cli';
 import { TimingUtils } from '../helpers/timingUtils';
 import { TelemetryBuilder, TelemetryService } from '../index';
 import { nls } from '../messages';
 import { SettingsService } from '../settings';
-import { CommandletExecutor, ContinueResponse } from '../types';
+import { Properties, Measurements, TelemetryData, CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
 import { ProgressNotification, notificationService } from './index';
