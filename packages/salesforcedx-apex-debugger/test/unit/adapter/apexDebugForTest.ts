@@ -30,9 +30,9 @@ export class ApexDebugForTest extends ApexDebug {
   ) {
     super();
     this.myRequestService = requestService;
-    this.mySessionService = sessionService ? sessionService : new SessionService(requestService);
-    this.myStreamingService = streamingService ? streamingService : new StreamingService();
-    this.myBreakpointService = breakpointService ? breakpointService : new BreakpointService(requestService);
+    this.mySessionService = sessionService ?? new SessionService(requestService);
+    this.myStreamingService = streamingService ?? new StreamingService();
+    this.myBreakpointService = breakpointService ?? new BreakpointService(requestService);
   }
 
   public getBreakpointService(): BreakpointService {

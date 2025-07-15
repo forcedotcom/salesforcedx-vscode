@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
-  "version": "64.4.0",
+  "version": "64.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "out/src",
@@ -13,7 +13,8 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "64.4.0",
+    "@salesforce/core-bundle": "^8.18.1",
+    "@salesforce/salesforcedx-utils": "64.5.0",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
@@ -40,7 +41,7 @@
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/adapter/apexDebug.ts  --bundle --outfile=dist/apexdebug.js --format=cjs --platform=node --minify",
+    "bundle:debugger": "esbuild ./src/adapter/apexDebug.ts --bundle --outfile=dist/apexDebug.js --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",

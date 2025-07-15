@@ -148,7 +148,7 @@ export class O11yService {
 
     const { simpleCollectorModule } = o11yModules;
 
-    const simpleCollector = new (simpleCollectorModule.default || simpleCollectorModule).SimpleCollector({
+    const simpleCollector = new (simpleCollectorModule.default ?? simpleCollectorModule).SimpleCollector({
       environment
     });
 

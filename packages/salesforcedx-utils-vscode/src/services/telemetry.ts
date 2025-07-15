@@ -38,17 +38,15 @@ export class TelemetryBuilder {
   private measurements?: Measurements;
 
   public addProperty(key: string, value?: string): TelemetryBuilder {
-    this.properties = this.properties || {};
     if (value !== undefined) {
-      this.properties[key] = value;
+      this.properties = { ...this.properties, [key]: value };
     }
     return this;
   }
 
   public addMeasurement(key: string, value?: number): TelemetryBuilder {
-    this.measurements = this.measurements || {};
     if (value !== undefined) {
-      this.measurements[key] = value;
+      this.measurements = { ...this.measurements, [key]: value };
     }
     return this;
   }
@@ -171,7 +169,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
-    if (typeof this.cliAllowsTelemetryPromise !== 'undefined') {
+    if (this.cliAllowsTelemetryPromise !== undefined) {
       return this.cliAllowsTelemetryPromise;
     }
     this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();
@@ -210,11 +208,11 @@ export class TelemetryService implements TelemetryServiceInterface {
     const startupTime = markEndTime ?? this.getEndHRTime(hrstart);
     const properties = {
       extensionName: this.extensionName,
-      ...(telemetryData?.properties ? telemetryData.properties : {})
+      ...telemetryData?.properties
     };
     const measurements = {
       startupTime,
-      ...(telemetryData?.measurements ? telemetryData.measurements : {})
+      ...telemetryData?.measurements
     };
 
     this.validateTelemetry(() => {

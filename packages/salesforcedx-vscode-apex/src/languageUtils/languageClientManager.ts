@@ -411,7 +411,7 @@ export class LanguageClientManager {
         } catch (err) {
           telemetryService.sendException(
             'apex_lsp_orphan',
-            typeof err === 'string' ? err : err?.message ? err.message : 'unknown'
+            typeof err === 'string' ? err : (err?.message ?? 'unknown')
           );
           processInfo.orphaned = true;
         }

@@ -25,13 +25,38 @@
   "eslint.experimental.useFlatConfig": true,
   "eslint.validate": ["typescript", "javascript"],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "always"
+    "source.fixAll.eslint": "explicit"
   },
+  "eslint.validate": ["javascript", "typescript"],
   "prettier.singleQuote": true,
   "prettier.trailingComma": "none",
   "prettier.tabWidth": 2,
   "prettier.useTabs": false,
   "prettier.printWidth": 120,
   "prettier.arrowParens": "avoid",
-  "editor.rulers": [120]
+  "editor.rulers": [120],
+  "cSpell.words": [
+    "barexception",
+    "breakpointid",
+    "commandlet",
+    "debugadapter",
+    "debugprotocol",
+    "fooexception",
+    "Gack",
+    "HOTSWAP",
+    "instanceurl",
+    "interactable",
+    "LIVESHARE",
+    "QUEUEABLE",
+    "salesforcedx",
+    "sfdx",
+    "sobject",
+    "stackframes",
+    "STREAMINGAPI",
+    "testsupport",
+    "typeref",
+    "typerefs",
+    "VISUALFORCE",
+    "vscodeignore"
+  ]
 }

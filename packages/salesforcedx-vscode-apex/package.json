@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.4.0",
+  "version": "64.5.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -26,10 +26,10 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "^8.2.0",
+    "@salesforce/apex-node-bundle": "^8.2.2",
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/salesforcedx-utils": "64.4.0",
-    "@salesforce/salesforcedx-utils-vscode": "64.4.0",
+    "@salesforce/salesforcedx-utils": "64.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.5.0",
     "@salesforce/vscode-service-provider": "^1.4.0",
     "@stoplight/spectral-core": "1.20.0",
     "@stoplight/spectral-functions": "1.9.3",
@@ -45,7 +45,7 @@
     "yaml": "2.6.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.12.0",
+    "@salesforce/core": "^8.18.1",
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "@types/node": "^20.0.0",
@@ -53,7 +53,7 @@
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
     "openapi-types": "12.1.3",
-    "salesforcedx-vscode-core": "64.4.0"
+    "salesforcedx-vscode-core": "64.5.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
