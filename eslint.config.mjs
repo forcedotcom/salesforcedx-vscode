@@ -310,8 +310,7 @@ export default [
         'error',
         {
           selector: "MemberExpression[object.name='process'][property.name='hrtime']",
-
-          message: 'Do not use globalThis.performance.now(). Use globalThis.performance.now() instead.'
+          message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
         }
       ],
       'no-shadow': 'off',
