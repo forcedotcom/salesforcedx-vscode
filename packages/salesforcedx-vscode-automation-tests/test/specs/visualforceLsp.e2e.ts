@@ -23,6 +23,7 @@ import {
   executeQuickPick,
   getTextEditor,
   getWorkbench,
+  moveCursorWithFallback,
   verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
@@ -83,7 +84,7 @@ describe('Visualforce LSP', () => {
     // Get open text editor
     const workbench = await getWorkbench();
     const textEditor = await getTextEditor(workbench, 'FooPage.page');
-    await textEditor.moveCursor(1, 25);
+    await moveCursorWithFallback(textEditor, 1, 25);
 
     // Go to definition through F12
     await executeQuickPick('Go to Definition', Duration.seconds(2));

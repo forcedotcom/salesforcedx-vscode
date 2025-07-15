@@ -27,6 +27,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, InputBox, after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 
 describe('Authentication', () => {
   let scratchOrgAliasName: string;
@@ -51,6 +52,7 @@ describe('Authentication', () => {
   });
 
   it('Run SFDX: Authorize a Dev Hub', async () => {
+    logTestStart(testSetup, 'Running SFDX: Authorize a Dev Hub');
     // In the initial state, the org picker button should be set to "No Default Org Set".
     const noDefaultOrgSetItem = await getStatusBarItemWhichIncludes('No Default Org Set');
     expect(noDefaultOrgSetItem).to.not.be.undefined;
@@ -60,6 +62,7 @@ describe('Authentication', () => {
   });
 
   it('Run SFDX: Set a Default Org', async () => {
+    logTestStart(testSetup, 'Running SFDX: Set a Default Org');
     // This is "SFDX: Set a Default Org", using the button in the status bar.
     // Could also run the command, "SFDX: Set a Default Org" but this exercises more UI elements.
 
@@ -125,6 +128,7 @@ describe('Authentication', () => {
   });
 
   it('Run SFDX: Create a Default Scratch Org', async () => {
+    logTestStart(testSetup, 'Running SFDX: Create a Default Scratch Org');
     try {
       const orgAlias = await createDefaultScratchOrg();
       expect(orgAlias).to.be.a('string');
@@ -135,6 +139,7 @@ describe('Authentication', () => {
   });
 
   it('Run SFDX: Set the Scratch Org As the Default Org', async () => {
+    logTestStart(testSetup, 'Running SFDX: Set the Scratch Org As the Default Org');
     const inputBox = await executeQuickPick('SFDX: Set a Default Org', Duration.seconds(10));
 
     const scratchOrgQuickPickItemWasFound = await findQuickPickItem(inputBox, scratchOrgAliasName, false, true);
