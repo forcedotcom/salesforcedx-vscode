@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org, Config, StateAggregator, ConfigAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core-bundle';
 import { OrgDisplay } from '../../../src';
 
 // Mock the Salesforce Core classes
@@ -18,10 +18,6 @@ jest.mock('@salesforce/core-bundle', () => ({
   },
   Org: {
     create: jest.fn()
-  },
-  Config: {
-    create: jest.fn(),
-    getDefaultOptions: jest.fn()
   },
   StateAggregator: {
     getInstance: jest.fn()
@@ -36,7 +32,6 @@ describe('OrgDisplay unit tests.', () => {
   let mockAuthInfo: any;
   let mockConnection: any;
   let mockOrg: any;
-  let mockConfig: any;
   let mockStateAggregator: any;
   let mockConfigAggregator: any;
 
@@ -77,11 +72,6 @@ describe('OrgDisplay unit tests.', () => {
       getDevHubOrg: jest.fn()
     };
 
-    // Setup mock Config
-    mockConfig = {
-      get: jest.fn()
-    };
-
     // Setup mock StateAggregator
     mockStateAggregator = {
       aliases: {
@@ -98,8 +88,6 @@ describe('OrgDisplay unit tests.', () => {
     jest.mocked(AuthInfo).create.mockResolvedValue(mockAuthInfo);
     jest.mocked(Connection).create.mockResolvedValue(mockConnection);
     jest.mocked(Org).create.mockResolvedValue(mockOrg);
-    jest.mocked(Config).create.mockResolvedValue(mockConfig);
-    jest.mocked(Config).getDefaultOptions.mockReturnValue({});
     jest.mocked(StateAggregator).getInstance.mockResolvedValue(mockStateAggregator);
     jest.mocked(ConfigAggregator).create.mockResolvedValue(mockConfigAggregator);
   });
