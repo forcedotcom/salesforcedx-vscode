@@ -19,6 +19,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/workbench';
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
+import { logTestStart } from '../utils/loggingHelper';
 /*
 anInitialSuite.e2e.ts is a special case.  We want to validate that the Salesforce extensions and
 most SFDX commands are not present at start up.
@@ -45,6 +46,8 @@ describe('An Initial Suite', () => {
   let testSetup: TestSetup;
   describe('Verify our extensions are not initially loaded', () => {
     it('Verify our extensions are not initially loaded', async () => {
+      log('--------------------------------');
+      log('AnInitialSuite: Verifying our extensions are not initially loaded');
       await pause(Duration.seconds(20));
       await zoom('Out', 4, Duration.seconds(1));
 
@@ -63,6 +66,8 @@ describe('An Initial Suite', () => {
     });
 
     it('Verify the default SFDX commands are present when no project is loaded', async () => {
+      log('--------------------------------');
+      log('AnInitialSuite: Verifying the default SFDX commands are present when no project is loaded');
       const workbench = getWorkbench();
       const prompt = await openCommandPromptWithCommand(workbench, 'SFDX:');
 
@@ -104,6 +109,7 @@ describe('An Initial Suite', () => {
     });
 
     it('Verify that SFDX commands are present after an SFDX project has been created', async () => {
+      logTestStart(testSetup, 'Verifying that SFDX commands are present after an SFDX project has been created');
       const workbench = getWorkbench();
       const prompt = await openCommandPromptWithCommand(workbench, 'SFDX:');
       const quickPicks = await prompt.getQuickPicks();
