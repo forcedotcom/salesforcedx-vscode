@@ -13,6 +13,7 @@ import { ConnectionService, ConnectionServiceLive } from 'salesforcedx-vscode-se
 import { ProjectService, ProjectServiceLive } from 'salesforcedx-vscode-services/src/core/projectService';
 import { WorkspaceService, WorkspaceServiceLive } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import { FsService, FsServiceLive } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { ConfigService, ConfigServiceLive } from 'salesforcedx-vscode-services/src/core/configService';
 
 // 1. Full OutputChannel mock
 const mockAppendLine = jest.fn();
@@ -54,7 +55,9 @@ const MockExtensionProviderServiceLive = Layer.effect(
         WorkspaceService,
         WorkspaceServiceLive,
         FsService,
-        FsServiceLive
+        FsServiceLive,
+        ConfigService,
+        ConfigServiceLive
       }
     }))
   }))
