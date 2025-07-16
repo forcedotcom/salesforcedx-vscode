@@ -211,7 +211,7 @@
       {
         "type": "apex-replay",
         "label": "Apex Replay Debugger",
-        "program": "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+        "program": "./dist/apexreplaydebug.js",
         "runtime": "node",
         "languages": [
           "apex"

@@ -29,7 +29,9 @@ describe('Variable assignment event', () => {
   const logFilePath = `path/${logFileName}`;
   const uriFromSignature = 'file:///path/foo.cls';
   const launchRequestArgs: LaunchRequestArguments = {
-    logFile: logFilePath,
+    logFileContents: 'test log content',
+    logFilePath,
+    logFileName,
     trace: true,
     projectPath: undefined
   };

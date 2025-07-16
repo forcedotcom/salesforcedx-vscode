@@ -7,6 +7,7 @@
 
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { DebugProtocol } from '@vscode/debugprotocol/lib/debugProtocol';
+// eslint-disable-next-line no-restricted-imports
 import * as fs from 'node:fs';
 
 export class GoldFileUtil {
