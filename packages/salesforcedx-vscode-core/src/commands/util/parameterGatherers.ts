@@ -91,7 +91,7 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   private maxFileNameLength: number;
 
   constructor(maxFileNameLength?: number) {
-    this.maxFileNameLength = maxFileNameLength || Infinity;
+    this.maxFileNameLength = maxFileNameLength ?? Infinity;
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<{ fileName: string }>> {

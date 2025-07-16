@@ -19,31 +19,29 @@ let cachedModules: Promise<{
 }> | null = null;
 
 export const loadO11yModules = async (): Promise<Awaited<typeof cachedModules>> => {
-  if (!cachedModules) {
-    cachedModules = (async () => {
-      const [o11yClient, o11ySchema, a4dInstrumentationModule, simpleCollectorModule, collectorsModule] =
-        await Promise.all([
-          import('o11y/client'),
-          import('o11y_schema/version'),
-          import('o11y_schema/sf_a4dInstrumentation'),
-          import('o11y/simple_collector'),
-          import('o11y/collectors')
-        ]);
+  cachedModules ??= (async () => {
+    const [o11yClient, o11ySchema, a4dInstrumentationModule, simpleCollectorModule, collectorsModule] =
+      await Promise.all([
+        import('o11y/client'),
+        import('o11y_schema/version'),
+        import('o11y_schema/sf_a4dInstrumentation'),
+        import('o11y/simple_collector'),
+        import('o11y/collectors')
+      ]);
 
-      const { registerInstrumentedApp, ConsoleCollector, _version: o11yClientVersion, getInstrumentation } = o11yClient;
-      const { version: o11ySchemaVersion } = o11ySchema;
+    const { registerInstrumentedApp, ConsoleCollector, _version: o11yClientVersion, getInstrumentation } = o11yClient;
+    const { version: o11ySchemaVersion } = o11ySchema;
 
-      return {
-        o11yClientVersion,
-        getInstrumentation,
-        o11ySchemaVersion,
-        registerInstrumentedApp,
-        ConsoleCollector,
-        a4d_instrumentation: a4dInstrumentationModule.a4dInstrumentationSchema,
-        simpleCollectorModule,
-        collectorsModule
-      };
-    })();
-  }
+    return {
+      o11yClientVersion,
+      getInstrumentation,
+      o11ySchemaVersion,
+      registerInstrumentedApp,
+      ConsoleCollector,
+      a4d_instrumentation: a4dInstrumentationModule.a4dInstrumentationSchema,
+      simpleCollectorModule,
+      collectorsModule
+    };
+  })();
   return cachedModules;
 };

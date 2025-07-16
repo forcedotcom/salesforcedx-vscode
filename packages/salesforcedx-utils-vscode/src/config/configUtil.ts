@@ -24,10 +24,8 @@ export class ConfigUtil {
     switch (configSource) {
       case ConfigAggregator.Location.LOCAL:
         return ConfigSource.Local;
-        break;
       case ConfigAggregator.Location.GLOBAL:
         return ConfigSource.Global;
-        break;
       default:
         return ConfigSource.None;
     }
@@ -140,7 +138,7 @@ export class ConfigUtil {
    */
   public static async getUsernameFor(usernameOrAlias: string) {
     const info = await StateAggregator.getInstance();
-    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
+    return info.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
   }
 
   public static async unsetTargetOrg(): Promise<void> {

@@ -52,7 +52,7 @@ class OasDocumentChecker {
             throw nls.localize('invalid_file_for_generating_oas_doc');
           }
 
-          const fullPath = sourceUri ? sourceUri.fsPath : vscode.window.activeTextEditor?.document.uri.fsPath || '';
+          const fullPath = sourceUri ? sourceUri.fsPath : (vscode.window.activeTextEditor?.document.uri.fsPath ?? '');
 
           // Step 1: Validate eligibility
           if (!(await this.isFilePathEligible(fullPath))) {

@@ -21,22 +21,22 @@ export class SessionService {
   }
 
   public withUserFilter(filter?: string): SessionService {
-    this.userFilter = filter || '';
+    this.userFilter = filter ?? '';
     return this;
   }
 
   public withRequestFilter(filter?: string): SessionService {
-    this.requestFilter = filter || '';
+    this.requestFilter = filter ?? '';
     return this;
   }
 
   public withEntryFilter(filter?: string): SessionService {
-    this.entryFilter = filter || '';
+    this.entryFilter = filter ?? '';
     return this;
   }
 
   public forProject(project?: string): SessionService {
-    this.project = project || '';
+    this.project = project ?? '';
     return this;
   }
 

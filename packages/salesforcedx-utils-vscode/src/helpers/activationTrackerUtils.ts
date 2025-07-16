@@ -110,8 +110,8 @@ export const getExtensionHostLogActivationRecords = async (
 
   const pid =
     sessionStartMatches.groups &&
-      'pid' in sessionStartMatches.groups &&
-      typeof sessionStartMatches.groups.pid === 'string'
+    'pid' in sessionStartMatches.groups &&
+    typeof sessionStartMatches.groups.pid === 'string'
       ? sessionStartMatches.groups.pid
       : undefined;
 
@@ -171,7 +171,7 @@ const getExtensionsInfo = async (extensionContext: ExtensionContext): Promise<Ex
     return {
       ...ei,
       [key]: {
-        isActive: extension?.isActive || false,
+        isActive: extension?.isActive ?? false,
         path: extension?.extensionPath,
         kind: extension?.extensionKind,
         uri: extension?.extensionUri,

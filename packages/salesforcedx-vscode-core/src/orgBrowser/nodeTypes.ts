@@ -36,7 +36,7 @@ export class BrowserNode extends vscode.TreeItem implements RetrieveMetadataTrig
     super(label);
     this.type = type;
     this.contextValue = type;
-    this.fullName = fullName || label;
+    this.fullName = fullName ?? label;
     this.metadataObject = metadataObject;
     switch (this.type) {
       case NodeType.Org:
