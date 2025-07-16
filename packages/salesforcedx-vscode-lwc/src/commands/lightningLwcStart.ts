@@ -94,12 +94,13 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
       progress.asObservable()
     );
 
-    // listen for server startup
+    // listen for server startup.  Promise seems to be legal and work for rxjs subscriptions
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     execution.stdoutSubject.subscribe(async data => {
       if (!serverStarted && data?.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
-        notificationService.showSuccessfulExecution(executionName, channelService).catch();
+        await notificationService.showSuccessfulExecution(executionName, channelService).catch();
 
         DevServerService.instance.setBaseUrlFromDevServerUpMessage(data.toString());
 
@@ -115,7 +116,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
       }
     });
 
-    execution.stderrSubject.subscribe(async data => {
+    execution.stderrSubject.subscribe(data => {
       if (!printedError && data) {
         let errorCode = -1;
         if (data.toString().includes(errorHints.SERVER_STARTUP_FAILED)) {
@@ -135,7 +136,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
       }
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(exitCode => {
       if (!printedError) {
         this.handleErrors(cancellationToken, serverHandler, serverStarted, exitCode);
         printedError = true;
