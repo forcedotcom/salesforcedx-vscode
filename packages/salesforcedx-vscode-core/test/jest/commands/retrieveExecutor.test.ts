@@ -7,7 +7,7 @@
 import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
-import { RetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
+import { RetrieveExecutor } from '../../../src/commands/retrieveExecutor';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { salesforceCoreSettings } from '../../../src/settings';

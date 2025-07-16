@@ -13,6 +13,7 @@ export {
   deleteFile,
   ensureCurrentWorkingDirIsProjectPath,
   fileOrFolderExists,
+  isEmptyDirectory,
   isDirectory,
   isFile,
   readDirectory,
