@@ -6,7 +6,7 @@
  */
 
 import { ConfigAggregator } from '@salesforce/core';
-import { Context, Effect, Layer } from 'effect';
+import { Context, Effect, Layer, pipe } from 'effect';
 import * as Option from 'effect/Option';
 import { WorkspaceService } from '../vscode/workspaceService';
 
@@ -20,15 +20,20 @@ export const ConfigService = Context.GenericTag<ConfigService>('ConfigService');
 export const ConfigServiceLive = Layer.effect(
   ConfigService,
   Effect.sync(() => ({
-    getConfigAggregator: Effect.gen(function* () {
-      const ws = yield* WorkspaceService;
-      const maybePath = yield* ws.getWorkspacePath;
-      if (Option.isNone(maybePath)) return yield* Effect.fail(new Error('No workspace project path found'));
-      const projectPath = maybePath.value;
-      return yield* Effect.tryPromise({
-        try: () => ConfigAggregator.create({ projectPath }),
-        catch: (error: unknown) => new Error(`Failed to get ConfigAggregator: ${String(error)}`)
-      });
-    })
+    getConfigAggregator: pipe(
+      WorkspaceService,
+      Effect.flatMap(ws => ws.getWorkspacePath),
+      Effect.flatMap(maybePath =>
+        Option.isNone(maybePath)
+          ? Effect.fail(new Error('No workspace project path found'))
+          : Effect.succeed(maybePath.value)
+      ),
+      Effect.flatMap(projectPath =>
+        Effect.tryPromise({
+          try: () => ConfigAggregator.create({ projectPath }),
+          catch: (error: unknown) => new Error(`Failed to get ConfigAggregator: ${String(error)}`)
+        })
+      )
+    )
   }))
 );

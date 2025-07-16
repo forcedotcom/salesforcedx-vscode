@@ -26,14 +26,19 @@ export const ChannelServiceLayer = (channelName: string): Layer.Layer<ChannelSer
   Layer.effect(
     ChannelService,
     Effect.sync((): ChannelService => {
-      let channel = channelCache.get(channelName);
-      if (!channel) {
-        channel = vscode.window.createOutputChannel(channelName);
-        channelCache.set(channelName, channel);
-      }
+      const channel = getFromCacheOrCreate(channelName);
       return {
-        getChannel: Effect.sync(() => channel!),
-        appendToChannel: (message: string) => Effect.sync(() => channel!.appendLine(message))
+        getChannel: Effect.sync(() => channel),
+        appendToChannel: (message: string) => Effect.sync(() => channel.appendLine(message))
       };
     })
   );
+
+const getFromCacheOrCreate = (channelName: string): vscode.OutputChannel => {
+  const existingChannel = channelCache.get(channelName);
+  if (!existingChannel) {
+    const newChannel = vscode.window.createOutputChannel(channelName);
+    channelCache.set(channelName, newChannel);
+  }
+  return channelCache.get(channelName)!;
+};

@@ -18,6 +18,7 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
+import functional from 'eslint-plugin-functional';
 
 import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
 
@@ -65,7 +66,8 @@ export default [
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
       local: { rules: localRules },
-      'barrel-files': eslintPluginBarrelFiles
+      'barrel-files': eslintPluginBarrelFiles,
+      functional: functional
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
@@ -409,11 +411,14 @@ export default [
     }
   },
   {
-    // Effect-specific rules for services package
+    // Effect-specific rules for new Effect services-baesd packages
     files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
     rules: {
       'barrel-files/avoid-barrel-files': 'error',
       'barrel-files/avoid-re-export-all': 'error',
+      'functional/no-throw-statements': 'error',
+      'functional/no-try-statements': 'error',
+      'functional/no-let': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       // Effect code should always handle promises properly

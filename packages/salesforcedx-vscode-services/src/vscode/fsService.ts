@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Context, Effect, Layer } from 'effect';
+import { Context, Effect, Layer, pipe } from 'effect';
 import * as S from 'effect/Schema';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
@@ -37,6 +37,7 @@ export type FsService = {
 export const FsService = Context.GenericTag<FsService>('FsService');
 
 /**
+ * Wrappers around the vscode.workspace.fs API.
  * FsServiceLive requires ChannelService to be provided as a dependency.
  * Use: Effect.provide(ChannelServiceLayer('Your Channel Name'))
  */
@@ -148,18 +149,27 @@ export const FsServiceLive: Layer.Layer<FsService, never, ChannelService> = Laye
           catch: e => new Error(`Failed to get file stats for ${filePath}: ${String(e)}`)
         }),
       safeDelete: (filePath: string, options = {}): Effect.Effect<void, Error, never> =>
-        Effect.tryPromise({
-          try: async () => {
-            const uri = URI.file(filePath);
-            try {
+        pipe(
+          Effect.tryPromise({
+            try: async () => {
+              const uri = URI.file(filePath);
               await fs.stat(uri);
-              await fs.delete(uri, options);
-            } catch {
-              // File doesn't exist or can't be accessed, do nothing
-            }
-          },
-          catch: e => new Error(String(e))
-        }).pipe(Effect.catchAll(() => Effect.succeed(undefined))),
+              return uri;
+            },
+            catch: () => undefined
+          }),
+          Effect.flatMap(uri =>
+            uri
+              ? Effect.tryPromise({
+                  try: async () => {
+                    await fs.delete(uri, options);
+                  },
+                  catch: e => new Error(String(e))
+                })
+              : Effect.succeed(undefined)
+          ),
+          Effect.catchAll(() => Effect.succeed(undefined))
+        ),
       rename: (oldPath: string, newPath: string): Effect.Effect<void, Error, never> =>
         Effect.tryPromise({
           try: async () => {
@@ -170,22 +180,21 @@ export const FsServiceLive: Layer.Layer<FsService, never, ChannelService> = Laye
           catch: e => new Error(`Failed to rename ${oldPath} to ${newPath}: ${String(e)}`)
         }),
       readJSON: <A>(filePath: string, schema: S.Schema<A>): Effect.Effect<A, Error, ChannelService> =>
-        Effect.gen(function* () {
-          const text = yield* readFile(filePath);
-          return yield* Effect.try({
-            try: () => JSON.parse(text),
-            catch: (e: unknown) => new Error(`Failed to parse JSON in ${filePath}: ${String(e)}`)
-          }).pipe(
-            Effect.flatMap((obj: unknown) =>
-              S.decodeUnknown(schema)(obj).pipe(
-                Effect.mapError((e: unknown) => new Error(`Failed to decode JSON in ${filePath}: ${String(e)}`)),
-                Effect.catchAll((e: unknown) =>
-                  Effect.fail(new Error(`Failed to decode JSON in ${filePath}: ${String(e)}`))
-                )
-              )
+        pipe(
+          readFile(filePath),
+          Effect.flatMap(text =>
+            Effect.try({
+              try: () => JSON.parse(text),
+              catch: (e: unknown) => new Error(`Failed to parse JSON in ${filePath}: ${String(e)}`)
+            })
+          ),
+          Effect.flatMap((obj: unknown) =>
+            pipe(
+              S.decodeUnknown(schema)(obj),
+              Effect.mapError((e: unknown) => new Error(`Failed to decode JSON in ${filePath}: ${String(e)}`))
             )
-          );
-        })
+          )
+        )
     };
   })
 );
