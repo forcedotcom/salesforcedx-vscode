@@ -13,7 +13,8 @@ import {
   Table,
   Column,
   Row,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
 
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -50,7 +51,8 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
 
       // Use the shared OrgDisplay class from utils
       const orgDisplayUtil = new OrgDisplay(targetUsername);
-      const orgInfo = await orgDisplayUtil.getOrgInfo();
+      const projectPath = getRootWorkspacePath();
+      const orgInfo = await orgDisplayUtil.getOrgInfo(projectPath);
 
       // Display warning about sensitive information
       const warning =

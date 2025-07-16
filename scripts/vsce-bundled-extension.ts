@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync, unlinkSync } from 'fs';
 import { tmpdir } from 'os';
 import { execSync } from 'child_process';
 
@@ -87,6 +87,14 @@ logger(`Now in ${cwd}`);
 logger('executing npm install');
 execSync('npm install', { stdio: 'inherit', cwd });
 
+// Clean up any existing VSIX files from previous builds
+logger('cleaning up existing VSIX files');
+const existingVsixFiles = readdirSync(cwd).filter(f => f.endsWith('.vsix'));
+for (const vsixFile of existingVsixFiles) {
+  logger(`removing existing VSIX file: ${vsixFile}`);
+  unlinkSync(`${cwd}/${vsixFile}`);
+}
+
 // Run the vsce package command
 logger(`Execute vsce from ${cwd}`);
 execSync('vsce package', { stdio: 'inherit', cwd });
@@ -94,8 +102,10 @@ execSync('vsce package', { stdio: 'inherit', cwd });
 // copy the vsix back to the extension directory
 logger('copy vsix back to extension directory');
 const vsixFiles = readdirSync(cwd).filter(f => f.endsWith('.vsix'));
+logger('Found VSIX files:', vsixFiles);
+
 if (vsixFiles.length !== 1) {
-  console.error('unabled to find generated vsix file.');
+  console.error(`Unable to find generated vsix file. Found ${vsixFiles.length} .vsix files:`, vsixFiles);
   process.exit(2);
 }
 

@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org, Config, StateAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core-bundle';
+import { messages } from '../i18n/i18n';
 import { OrgInfo, OrgQueryResult, ScratchOrgQueryResult, ScratchOrgInfo } from '../types/orgInfo';
 
 export class OrgDisplay {
@@ -15,39 +16,43 @@ export class OrgDisplay {
     this.username = username;
   }
 
-  public async getUsername(): Promise<string> {
+  public async getUsername(salesforceProject?: string): Promise<string> {
+    let usernameOrAlias: string | undefined;
+
     if (this.username) {
       return this.username;
     }
 
     // Try to get username from project config
     try {
-      const config = await Config.create(Config.getDefaultOptions());
-      const username = config.get('target-org');
-      if (username && typeof username === 'string') {
-        return username;
+      const configAggregator: ConfigAggregator = await ConfigAggregator.create({
+        projectPath: salesforceProject
+      });
+      const configUsernameOrAlias = configAggregator.getPropertyValue<string>('target-org');
+      if (configUsernameOrAlias && typeof configUsernameOrAlias === 'string') {
+        usernameOrAlias = configUsernameOrAlias;
       }
     } catch {
       // Ignore config errors
     }
 
-    // Try to get from state aggregator
-    try {
-      const stateAggregator = await StateAggregator.getInstance();
-      const aliases = stateAggregator.aliases.getAll();
-      const defaultAlias = aliases['defaultusername'];
-      if (defaultAlias && typeof defaultAlias === 'string') {
-        return defaultAlias;
-      }
-    } catch {
-      // Ignore state errors
+    if (!usernameOrAlias) {
+      throw new Error(messages.no_username_provided);
     }
 
-    throw new Error('No username provided and no default username found in project config or state');
+    // Resolve alias to actual username if needed
+    try {
+      const stateAggregator = await StateAggregator.getInstance();
+      const actualUsername = stateAggregator.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
+      return actualUsername;
+    } catch {
+      // If we can't resolve, return what we have
+      return usernameOrAlias;
+    }
   }
 
-  public async getOrgInfo(): Promise<OrgInfo> {
-    const username = await this.getUsername();
+  public async getOrgInfo(salesforceProject?: string): Promise<OrgInfo> {
+    const username = await this.getUsername(salesforceProject);
     const authInfo = await AuthInfo.create({ username });
     const connection = await Connection.create({ authInfo });
     const org = await Org.create({ connection });
