@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import {
   DebugSession,
   Event,
@@ -33,6 +34,7 @@ const TRACE_CATEGORY_PROTOCOL = 'protocol';
 const TRACE_CATEGORY_LOGFILE = 'logfile';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
+
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
   protected logContext!: LogContext;
@@ -42,11 +44,13 @@ export class ApexReplayDebug extends LoggingDebugSession {
   private initializedResponse!: DebugProtocol.InitializeResponse;
   protected breakpoints: Map<string, number[]> = new Map();
   protected projectPath: string | undefined;
+
   constructor() {
     super('apex-replay-debug-adapter.log');
     this.setDebuggerLinesStartAt1(true);
     this.setDebuggerPathFormat('uri');
   }
+
   public initializeRequest(
     response: DebugProtocol.InitializeResponse,
     _args: DebugProtocol.InitializeRequestArguments
@@ -161,6 +165,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       logger.setup(Logger.LogLevel.Stop, false);
     }
   }
+
   public configurationDoneRequest(
     _response: DebugProtocol.ConfigurationDoneResponse,
     _args: DebugProtocol.ConfigurationDoneArguments
@@ -183,6 +188,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       })
     );
   }
+
   public disconnectRequest(response: DebugProtocol.DisconnectResponse, _args: DebugProtocol.DisconnectArguments): void {
     this.printToDebugConsole(nls.localize('session_terminated_text'));
     response.success = true;
@@ -194,6 +200,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       })
     );
   }
+
   public threadsRequest(response: DebugProtocol.ThreadsResponse): void {
     response.body = {
       threads: [new Thread(ApexReplayDebug.THREAD_ID, '')]
@@ -201,6 +208,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response.success = true;
     this.sendResponse(response);
   }
+
   public stackTraceRequest(response: DebugProtocol.StackTraceResponse, _args: DebugProtocol.StackTraceArguments): void {
     response.body = {
       stackFrames: this.logContext.getFrames().slice().reverse()
@@ -232,6 +240,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         this.logContext.resetLastSeenHeapDumpLogLine();
       }
     }
+
     response.success = true;
     const frameInfo = this.logContext.getFrameHandler().get(args.frameId);
     if (!frameInfo) {
@@ -290,6 +299,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.sendResponse(response);
     }
   }
+
   protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
     response.body = {
       result: args.expression,
@@ -298,18 +308,23 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response.success = true;
     this.sendResponse(response);
   }
+
   public continueRequest(response: DebugProtocol.ContinueResponse, _args: DebugProtocol.ContinueArguments): void {
     this.executeStep(response, 'Run');
   }
+
   public nextRequest(response: DebugProtocol.NextResponse, _args: DebugProtocol.NextArguments): void {
     this.executeStep(response, 'Over');
   }
+
   public stepInRequest(response: DebugProtocol.StepInResponse, _args: DebugProtocol.StepInArguments): void {
     this.executeStep(response, 'In');
   }
+
   public stepOutRequest(response: DebugProtocol.StepOutResponse, _args: DebugProtocol.StepOutArguments): void {
     this.executeStep(response, 'Out');
   }
+
   protected executeStep(response: DebugProtocol.Response, stepType: Step): void {
     response.success = true;
     this.sendResponse(response);
@@ -341,6 +356,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       throw error;
     }
   }
+
   protected shouldStopForBreakpoint(): boolean {
     const topFrame = this.logContext.getTopFrame();
     const sourcePath = topFrame?.source?.path ?? null;
@@ -348,6 +364,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     if (sourcePath && topFrameLine) {
       const topFrameUri = this.convertClientPathToDebugger(sourcePath);
       const topFrameLineDebugger = this.convertClientLineToDebugger(topFrameLine);
+
       const breakpointsForUri = this.breakpoints.get(topFrameUri) ?? []; // Use empty array if breakpoints for the URI are undefined
       if (breakpointsForUri.includes(topFrameLineDebugger)) {
         this.sendEvent(new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID));
@@ -356,6 +373,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     }
     return false;
   }
+
   public setBreakPointsRequest(
     response: DebugProtocol.SetBreakpointsResponse,
     args: DebugProtocol.SetBreakpointsArguments
@@ -412,14 +430,17 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response.success = true;
     this.sendResponse(response);
   }
+
   public log(traceCategory: TraceCategory, message: string) {
     if (this.trace && (this.traceAll || this.trace.includes(traceCategory))) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
+
   public shouldTraceLogFile(): boolean {
     return this.traceAll || this.trace.includes(TRACE_CATEGORY_LOGFILE);
   }
+
   public printToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number, category = 'stdout'): void {
     if (msg?.length !== 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(`${msg}${EOL}`, category);
@@ -429,14 +450,18 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.sendEvent(event);
     }
   }
+
   public warnToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number): void {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'console');
   }
+
   public errorToDebugConsole(msg: string, sourceFile?: Source, sourceLine?: number): void {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
   }
+
   public getProjectPath(): string | undefined {
     return this.projectPath;
   }
 }
+
 DebugSession.run(ApexReplayDebug);
