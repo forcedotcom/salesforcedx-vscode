@@ -6,7 +6,25 @@ I want to replicate the UI
 
 ## Phases
 
-1. read-only metadata list/describe (no ability to retrieve anything)
+1. read-only metadata list/describe (no ability to retrieve anything) [done, could use some refactoring and tests]`
+
+2. retrieve
+
+- let's build a metadata-retrieve service in the services package
+- it should do SDR/STL
+- retrieve at the file level
+- retrieve at the type level
+- retrieve and open at the file level
+
+3. e2e tests
+
+- can I run some kind of e2e against the web ui?
+- can I create/clone a project and auth so I don't have to use my local sample project?
+
+4. UI enhancements
+
+- can we show remote/local change status?
+- can we show "stuff in local that's not in the org"
 
 ## Differences from existing
 
@@ -21,6 +39,7 @@ I want to replicate the UI
 - no direct (runtime) dependencies on salesforcedx-vscode-services repo
   - you can have a devDep (only using its types, with the `type` annotation)
   - you an have an indirect "runtime" dependency via vscode's extensionDependencies (packages use the vscode-services package's API and can depend on it being running)
+- make sure you are using Effect https://effect.website/docs and not inserting nonsensical references to ZIO or fp-ts
 
 ## Clarifying Questions
 
@@ -71,4 +90,8 @@ metadata api
 ## Future features
 
 effect/caching https://effect.website/docs/caching/caching-effects/
+
+- what if we didn't cache describe results using fs
+
 l18n of all text and pjson text
+Can we filter the orgBrowser (ex: a search box)

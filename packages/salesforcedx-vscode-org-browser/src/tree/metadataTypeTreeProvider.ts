@@ -4,24 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Effect } from 'effect';
-import { ConfigServiceLive } from 'salesforcedx-vscode-services/src/core/configService';
-import { ConnectionService, ConnectionServiceLive } from 'salesforcedx-vscode-services/src/core/connectionService';
-import { ChannelServiceLayer } from 'salesforcedx-vscode-services/src/vscode/channelService';
-import { FsServiceLive } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { WorkspaceService, WorkspaceServiceLive } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import { pipe, Effect, Layer } from 'effect';
 import * as vscode from 'vscode';
-import { MetadataDescribeService } from '../services/metadataDescribeService';
+import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
+import { MetadataDescribeService, MetadataDescribeServiceLive } from '../services/metadataDescribeService';
 import { OrgBrowserNode } from './orgBrowserNode';
 
 export const toTreeItem = (node: OrgBrowserNode): vscode.TreeItem => node;
-
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserNode> {
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserNode | undefined | void> = new vscode.EventEmitter();
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserNode | undefined | void> =
     this._onDidChangeTreeData.event;
-
-  constructor(private readonly describeService: MetadataDescribeService) {}
 
   public refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -32,7 +25,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
    */
   public refreshType(typeName: string): Effect.Effect<void, Error, never> {
     return Effect.sync(() => {
-      this._onDidChangeTreeData.fire(new OrgBrowserNode('type', typeName));
+      const kind = OrgBrowserNode.isFolderType(typeName) ? 'folderType' : 'type';
+      this._onDidChangeTreeData.fire(new OrgBrowserNode(kind, typeName));
     });
   }
 
@@ -41,89 +35,93 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return element;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public async getChildren(element?: OrgBrowserNode): Promise<OrgBrowserNode[]> {
-    // Root: show all types
-    if (!element) {
-      const types = Array.from(
-        await Effect.runPromise(
-          this.describeService
-            .describeAndStore(false)
-            .pipe(
-              Effect.provide(FsServiceLive),
-              Effect.provide(ChannelServiceLayer('Salesforce Org Browser')),
-              Effect.provide(ConfigServiceLive),
-              Effect.provideService(WorkspaceService, WorkspaceServiceLive),
-              Effect.provideService(ConnectionService, ConnectionServiceLive)
-            )
-        )
-      );
-      return types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(t => new OrgBrowserNode('type', t.xmlName));
-    }
-    // Type node: show folders or components
-    if (element.kind === 'type') {
-      const types = Array.from(
-        await Effect.runPromise(
-          this.describeService
-            .describeAndStore(false)
-            .pipe(
-              Effect.provide(FsServiceLive),
-              Effect.provide(ChannelServiceLayer('Salesforce Org Browser')),
-              Effect.provide(ConfigServiceLive),
-              Effect.provideService(WorkspaceService, WorkspaceServiceLive),
-              Effect.provideService(ConnectionService, ConnectionServiceLive)
-            )
-        )
-      );
-      const type = types.find(t => t.xmlName === element.xmlName);
-      if (!type) return [];
-      if (type.inFolder) {
-        // List folders for this type
-        const folders = await Effect.runPromise(
-          this.describeService
-            .listMetadata(`${type.xmlName}Folder`)
-            .pipe(
-              Effect.provide(FsServiceLive),
-              Effect.provideService(ConnectionService, ConnectionServiceLive),
-              Effect.provideService(WorkspaceService, WorkspaceServiceLive),
-              Effect.provide(ConfigServiceLive),
-              Effect.provide(ChannelServiceLayer('Salesforce Org Browser'))
-            )
-        );
-        return folders.map(f => new OrgBrowserNode('folder', type.xmlName, f.fullName));
-      } else {
-        // List components for this type
-        const components = await Effect.runPromise(
-          this.describeService
-            .listMetadata(type.xmlName)
-            .pipe(
-              Effect.provide(FsServiceLive),
-              Effect.provideService(ConnectionService, ConnectionServiceLive),
-              Effect.provideService(WorkspaceService, WorkspaceServiceLive),
-              Effect.provide(ConfigServiceLive),
-              Effect.provide(ChannelServiceLayer('Salesforce Org Browser'))
-            )
-        );
-        return components.map(c => new OrgBrowserNode('component', type.xmlName, undefined, c.fullName));
-      }
-    }
-    // Folder node: show components in folder
-    if (element.kind === 'folder') {
-      const { xmlName, folderName } = element;
-      if (!xmlName || !folderName) return [];
-      const components = await Effect.runPromise(
-        this.describeService
-          .listMetadata(xmlName, folderName)
-          .pipe(
-            Effect.provide(FsServiceLive),
-            Effect.provideService(ConnectionService, ConnectionServiceLive),
-            Effect.provideService(WorkspaceService, WorkspaceServiceLive),
-            Effect.provide(ConfigServiceLive),
-            Effect.provide(ChannelServiceLayer('Salesforce Org Browser'))
-          )
-      );
-      return components.map(c => new OrgBrowserNode('component', xmlName, folderName, c.fullName));
-    }
-    // No children for component nodes
-    return [];
+    const program = pipe(
+      Effect.flatMap(ExtensionProviderService, svcProvider =>
+        Effect.flatMap(svcProvider.getServicesApi, api => {
+          const fsWithChannel = Layer.provideMerge(
+            api.services.FsServiceLive,
+            api.services.ChannelServiceLayer('Salesforce Org Browser')
+          );
+          const allLayers = Layer.mergeAll(
+            MetadataDescribeServiceLive,
+            api.services.ConnectionServiceLive,
+            api.services.ConfigServiceLive,
+            api.services.WorkspaceServiceLive,
+            fsWithChannel
+          );
+          return Effect.flatMap(MetadataDescribeService, describeService => {
+            if (!element) {
+              return describeService.describe(false).pipe(
+                Effect.map(types =>
+                  Array.from(types)
+                    .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))
+                    .map(
+                      t => new OrgBrowserNode(OrgBrowserNode.isFolderType(t.xmlName) ? 'folderType' : 'type', t.xmlName)
+                    )
+                )
+              );
+            }
+            if (element.kind === 'type') {
+              return describeService.describe(false).pipe(
+                Effect.flatMap(types => {
+                  const arr = Array.from(types);
+                  const type = arr.find(t => t.xmlName === element.xmlName);
+                  if (!type) return Effect.succeed([]);
+                  if (type.inFolder) {
+                    return describeService
+                      .listMetadata(`${type.xmlName}Folder`)
+                      .pipe(
+                        Effect.map(folders => folders.map(f => new OrgBrowserNode('folder', type.xmlName, f.fullName)))
+                      );
+                  } else {
+                    return describeService.listMetadata(type.xmlName).pipe(
+                      Effect.map(components =>
+                        components.map(c => {
+                          const n = new OrgBrowserNode('component', type.xmlName, undefined, c.fullName);
+                          n.collapsibleState = vscode.TreeItemCollapsibleState.None;
+                          return n;
+                        })
+                      )
+                    );
+                  }
+                })
+              );
+            }
+            if (element.kind === 'folderType') {
+              return describeService.describe(false).pipe(
+                Effect.flatMap(types => {
+                  const arr = Array.from(types);
+                  const type = arr.find(t => t.xmlName === element.xmlName);
+                  if (!type) return Effect.succeed([]);
+                  // For folder types, always show folders
+                  return describeService
+                    .listMetadata(`${type.xmlName}Folder`)
+                    .pipe(
+                      Effect.map(folders => folders.map(f => new OrgBrowserNode('folder', type.xmlName, f.fullName)))
+                    );
+                })
+              );
+            }
+            if (element.kind === 'folder') {
+              const { xmlName, folderName } = element;
+              if (!xmlName || !folderName) return Effect.succeed([]);
+              return describeService
+                .listMetadata(xmlName, folderName)
+                .pipe(
+                  Effect.map(components =>
+                    components.map(c => new OrgBrowserNode('component', xmlName, folderName, c.fullName))
+                  )
+                );
+            }
+
+            return Effect.succeed([]);
+          }).pipe(Effect.provide(allLayers));
+        })
+      ),
+      Effect.provide(ExtensionProviderServiceLive)
+    );
+    return await Effect.runPromise(program);
   }
 }

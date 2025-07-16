@@ -9,6 +9,7 @@ import { Effect } from 'effect';
 import * as vscode from 'vscode';
 import { ConfigService, ConfigServiceLive } from './core/configService';
 import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
+import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { FsService, FsServiceLive } from './vscode/fsService';
@@ -28,11 +29,16 @@ export type SalesforceVSCodeServicesApi = {
     FsServiceLive: typeof FsServiceLive;
     ConfigService: typeof ConfigService;
     ConfigServiceLive: typeof ConfigServiceLive;
+    MetadataRetrieveService: typeof MetadataRetrieveService;
+    MetadataRetrieveServiceLive: typeof MetadataRetrieveServiceLive;
   };
 };
 
-/** Activates the Salesforce Services extension and returns API for other extensions to consume */
-
+/**
+ * Activates the Salesforce Services extension and returns API for other extensions to consume
+ * Both service tags/types and their default Live implementations are exported.
+ * Consumers should get both from the API, not via direct imports.
+ */
 export const activate = async (
   context: vscode.ExtensionContext,
   channelServiceLayer = ChannelServiceLayer('Salesforce Services')
@@ -62,7 +68,9 @@ export const activate = async (
       FsService,
       FsServiceLive,
       ConfigService,
-      ConfigServiceLive
+      ConfigServiceLive,
+      MetadataRetrieveService,
+      MetadataRetrieveServiceLive
     }
   };
 

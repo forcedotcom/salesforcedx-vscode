@@ -21,7 +21,9 @@ export const commonConfigBrowser = {
     'graceful-fs': 'memfs',
     jsonwebtoken: 'jsonwebtoken-esm',
     '@jsforce/jsforce-node': 'jsforce/browser',
-    '@jsforce/jsforce-node/lib': 'jsforce/browser'
+    '@jsforce/jsforce-node/lib': 'jsforce/browser',
+    'node:path/posix': 'path-browserify',
+    'node:path': 'path-browserify'
   },
   plugins: [
     polyfillNode({

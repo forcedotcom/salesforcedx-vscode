@@ -25,10 +25,13 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.18.1",
+    "@salesforce/source-deploy-retrieve": "^12.21.4",
+    "@salesforce/source-tracking": "^7.4.8",
     "effect": "^3.16.12",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "path-browserify": "^1.0.1",
     "@types/node": "^20.0.0",
     "esbuild": "0.25.0",
     "nyc": "^15"

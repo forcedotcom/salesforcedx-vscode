@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Context, Effect, Layer } from 'effect';
+import { Context, Effect, Layer, pipe } from 'effect';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 
@@ -19,20 +19,22 @@ export const ExtensionProviderService = Context.GenericTag<ExtensionProviderServ
 const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeServicesApi =>
   api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
 
+const getServicesApi = pipe(
+  Effect.sync(() => vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')),
+  Effect.flatMap(extension =>
+    extension ? Effect.succeed(extension) : Effect.fail(new Error('Services extension not found'))
+  ),
+  Effect.flatMap(extension =>
+    extension.isActive ? Effect.sync(() => extension.exports) : Effect.tryPromise(() => extension.activate())
+  ),
+  Effect.flatMap(api =>
+    isSalesforceVSCodeServicesApi(api) ? Effect.succeed(api) : Effect.fail(new Error('Invalid Services API'))
+  )
+);
+
 export const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
   Effect.sync(() => ({
-    getServicesApi: Effect.gen(function* () {
-      const extension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
-      if (!extension) return yield* Effect.fail(new Error('Services extension not found'));
-      if (!extension.isActive) {
-        const api = yield* Effect.tryPromise(() => extension.activate());
-        if (!isSalesforceVSCodeServicesApi(api)) return yield* Effect.fail(new Error('Invalid Services API'));
-        return api;
-      }
-      if (!isSalesforceVSCodeServicesApi(extension.exports))
-        return yield* Effect.fail(new Error('Invalid Services API'));
-      return extension.exports;
-    })
+    getServicesApi
   }))
 );

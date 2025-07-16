@@ -6,7 +6,18 @@
  */
 import * as vscode from 'vscode';
 
-export type OrgBrowserNodeKind = 'type' | 'folder' | 'component';
+export type OrgBrowserNodeKind =
+  /** a normal metadata type */
+  | 'type'
+  /** a metadata type that has a folder (Dashboard, Document, EmailTemplate, Report) */
+  | 'folderType'
+  /** a folder in one of the folder types*/
+  | 'folder'
+  /** a component that can be retrieved*/
+  | 'component';
+
+// Types that have folders (Dashboard, Document, EmailTemplate, Report)
+const FOLDER_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 
 export class OrgBrowserNode extends vscode.TreeItem {
   constructor(
@@ -16,17 +27,25 @@ export class OrgBrowserNode extends vscode.TreeItem {
     public readonly componentName?: string
   ) {
     super(
-      kind === 'type' ? xmlName : kind === 'folder' ? folderName! : componentName!,
+      kind === 'type' || kind === 'folderType' ? xmlName : kind === 'folder' ? folderName! : componentName!,
       kind === 'component' ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed
     );
+
+    // Set context value for menu contributions
     this.contextValue = kind;
+
     this.id =
-      kind === 'type'
+      kind === 'type' || kind === 'folderType'
         ? xmlName
         : kind === 'folder'
           ? `${xmlName}:${folderName}`
           : folderName
             ? `${xmlName}:${folderName}:${componentName}`
             : `${xmlName}:${componentName}`;
+  }
+
+  /** Check if a metadata type is a folder type */
+  public static isFolderType(xmlName: string): boolean {
+    return FOLDER_TYPES.has(xmlName);
   }
 }

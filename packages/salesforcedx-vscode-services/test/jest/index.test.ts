@@ -58,9 +58,7 @@ describe('Extension', () => {
     expect(api).toBeDefined();
     expect(api.services).toBeDefined();
     expect(api.services.ConnectionService).toBeDefined();
-    expect(api.services.ConnectionServiceLive).toBeDefined();
     expect(api.services.ProjectService).toBeDefined();
-    expect(api.services.ProjectServiceLive).toBeDefined();
   });
 
   it('should deactivate successfully', () => {

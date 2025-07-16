@@ -1,0 +1,96 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import type { MetadataMember, RetrieveResult, FileResponse } from '@salesforce/source-deploy-retrieve';
+import { Context, Effect, Layer, Option, pipe } from 'effect';
+import * as vscode from 'vscode';
+import { ExtensionProviderService } from './extensionProvider';
+
+export type MetadataRetrieveService = {
+  /**
+   * Retrieve metadata components and optionally open them in the editor
+   * @param members - Array of MetadataMember to retrieve
+   * @param openInEditor - Whether to open retrieved files in the editor
+   * @returns Effect that resolves to the retrieve result
+   */
+  readonly retrieve: (
+    members: MetadataMember[],
+    openInEditor?: boolean
+  ) => Effect.Effect<RetrieveResult, Error, ExtensionProviderService>;
+};
+
+export const MetadataRetrieveService = Context.GenericTag<MetadataRetrieveService>('MetadataRetrieveService');
+
+const retrieve = (
+  members: MetadataMember[],
+  openInEditor = false
+): Effect.Effect<RetrieveResult, Error, ExtensionProviderService> =>
+  pipe(
+    Effect.flatMap(ExtensionProviderService, svc => svc.getServicesApi),
+    Effect.flatMap(api => {
+      const allLayers = Layer.mergeAll(
+        api.services.MetadataRetrieveServiceLive,
+        api.services.ConnectionServiceLive,
+        api.services.ConfigServiceLive,
+        api.services.WorkspaceServiceLive,
+        api.services.ProjectServiceLive,
+        api.services.ChannelServiceLayer('Salesforce Org Browser')
+      );
+
+      return pipe(
+        Effect.provide(
+          Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)),
+          allLayers
+        ),
+        Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`)),
+        Effect.tap(result =>
+          openInEditor
+            ? pipe(
+                Effect.sync(() => findFirstSuccessfulFile(result)),
+                Effect.flatMap(fileOption =>
+                  Option.match(fileOption, {
+                    onNone: () => Effect.succeed(undefined),
+                    onSome: filePath => openFileInEditor(filePath)
+                  })
+                ),
+                Effect.catchAll(e => Effect.sync(() => console.log(`Could not open file: ${String(e)}`)))
+              )
+            : Effect.succeed(undefined)
+        )
+      );
+    })
+  );
+
+const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> => {
+  const fileResponses = result.getFileResponses();
+  if (!fileResponses || fileResponses.length === 0) return Option.none();
+
+  const successFile = fileResponses.find(
+    (file: FileResponse) =>
+      // we don't want to import all of SDR just because this is an enum and we need to compare.  Too bad it wasn't a string union type
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      file.state === 'Created' || file.state === 'Changed'
+  );
+
+  return successFile?.filePath ? Option.some(successFile.filePath) : Option.none();
+};
+
+const openFileInEditor = (filePath: string): Effect.Effect<void, Error, never> =>
+  pipe(
+    Effect.tryPromise({
+      try: () => vscode.workspace.openTextDocument(filePath),
+      catch: e => new Error(`Failed to open document: ${String(e)}`)
+    }),
+    Effect.flatMap(document =>
+      Effect.tryPromise({
+        try: () => vscode.window.showTextDocument(document),
+        catch: e => new Error(`Failed to show document: ${String(e)}`)
+      })
+    ),
+    Effect.map(() => undefined)
+  );
+
+export const MetadataRetrieveServiceLive = Layer.effect(MetadataRetrieveService, Effect.succeed({ retrieve }));

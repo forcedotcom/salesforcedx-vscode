@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { Context, Effect, pipe } from 'effect';
+import { Context, Effect, Layer, pipe } from 'effect';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 
@@ -20,7 +20,7 @@ export type ConnectionService = {
 
 export const ConnectionService = Context.GenericTag<ConnectionService>('ConnectionService');
 
-export const ConnectionServiceLive = ConnectionService.of({
+export const ConnectionServiceLive = Layer.succeed(ConnectionService, {
   getConnection: pipe(
     ConfigService,
     Effect.flatMap(configService => configService.getConfigAggregator),

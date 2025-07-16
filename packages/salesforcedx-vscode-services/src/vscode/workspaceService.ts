@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Context, Effect } from 'effect';
+import { Context, Effect, Layer } from 'effect';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 
@@ -16,7 +16,7 @@ export type WorkspaceService = {
 
 export const WorkspaceService = Context.GenericTag<WorkspaceService>('WorkspaceService');
 
-export const WorkspaceServiceLive = WorkspaceService.of({
+export const WorkspaceServiceLive = Layer.succeed(WorkspaceService, {
   getWorkspacePath: Effect.sync(() => {
     const folders = vscode.workspace.workspaceFolders;
     return folders && folders.length > 0 ? Option.some(folders[0].uri.fsPath) : Option.none();

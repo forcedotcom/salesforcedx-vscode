@@ -8,14 +8,16 @@ It will need to run on the web and the desktop extension.
 
 services from sfdx-core (exports as services/core)
 
-- [ ] get a Connection
-- [ ] get a Project
+- [x] get a Connection
+- [x] get a Project
+- [x] retrieve some metadata using SDR
+- [x] get Config
 
 services from vscode (export as services/vscode)
 
-- [ ] fs (helpers for the fs api, basically what's in `fs.ts`)
-- [ ] WorkspaceContextUtil
-- [ ] Telemetry
+- [x] fs (helpers for the fs api, basically what's in `fs.ts`)
+- [x] Workspace (getWorkspacePath)
+- [x] get the vscode outputChannel for an extension and write to it
 
 ## Stack
 

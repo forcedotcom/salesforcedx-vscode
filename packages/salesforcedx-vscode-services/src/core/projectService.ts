@@ -6,7 +6,8 @@
  */
 
 import { SfProject } from '@salesforce/core';
-import { Context, Effect } from 'effect';
+import { Context, Effect, Layer } from 'effect';
+import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
 import { WorkspaceService } from '../vscode/workspaceService';
 
@@ -19,23 +20,41 @@ export type ProjectService = {
 
 export const ProjectService = Context.GenericTag<ProjectService>('ProjectService');
 
-export const ProjectServiceLive = ProjectService.of({
-  getSfProject: Effect.gen(function* () {
-    const ws = yield* WorkspaceService;
-    const maybePath = yield* ws.getWorkspacePath;
-    if (Option.isNone(maybePath)) return yield* Effect.fail(new Error('No workspace open'));
-    return yield* Effect.tryPromise({
-      try: () => SfProject.resolve(maybePath.value),
-      catch: error => new Error(`Not a Salesforce project: ${String(error)}`)
-    });
-  }),
-
-  isSalesforceProject: Effect.flatMap(
-    Effect.sync(() => ProjectServiceLive.getSfProject),
-    effect =>
-      effect.pipe(
-        Effect.as(true),
-        Effect.catchAll(() => Effect.succeed(false))
+export const ProjectServiceLive = Layer.effect(
+  ProjectService,
+  Effect.gen(function* () {
+    const getSfProject = pipe(
+      WorkspaceService,
+      Effect.flatMap(ws => ws.getWorkspacePath),
+      Effect.flatMap(maybePath =>
+        Option.isNone(maybePath)
+          ? Effect.fail(new Error('No workspace open'))
+          : Effect.tryPromise({
+              try: () => SfProject.resolve(maybePath.value),
+              catch: error => new Error(`Not a Salesforce project: ${String(error)}`)
+            })
       )
-  )
-});
+    );
+
+    const isSalesforceProject = pipe(
+      WorkspaceService,
+      Effect.flatMap(ws => ws.getWorkspacePath),
+      Effect.flatMap(maybePath =>
+        Option.isNone(maybePath)
+          ? Effect.succeed(false)
+          : Effect.tryPromise({
+              try: () => SfProject.resolve(maybePath.value),
+              catch: () => false
+            }).pipe(
+              Effect.map(() => true),
+              Effect.catchAll(() => Effect.succeed(false))
+            )
+      )
+    );
+
+    return {
+      getSfProject,
+      isSalesforceProject
+    };
+  })
+);

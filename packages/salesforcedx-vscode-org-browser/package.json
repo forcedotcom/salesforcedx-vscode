@@ -91,6 +91,14 @@
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
         }
+      },
+      {
+        "command": "orgBrowser.retrieveMetadata",
+        "title": "Retrieve Metadata",
+        "icon": {
+          "dark": "resources/dark/retrieve.svg",
+          "light": "resources/light/retrieve.svg"
+        }
       }
     ],
     "menus": {
@@ -105,6 +113,26 @@
         {
           "command": "sfdxOrgBrowser.refreshType",
           "when": "view == sfdxOrgBrowser && viewItem == type",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser && viewItem == folderType",
+          "group": "inline"
+        },
+        {
+          "command": "orgBrowser.retrieveMetadata",
+          "when": "view == sfdxOrgBrowser && viewItem == type",
+          "group": "inline"
+        },
+        {
+          "command": "orgBrowser.retrieveMetadata",
+          "when": "view == sfdxOrgBrowser && viewItem == folder",
+          "group": "inline"
+        },
+        {
+          "command": "orgBrowser.retrieveMetadata",
+          "when": "view == sfdxOrgBrowser && viewItem == component",
           "group": "inline"
         }
       ]
