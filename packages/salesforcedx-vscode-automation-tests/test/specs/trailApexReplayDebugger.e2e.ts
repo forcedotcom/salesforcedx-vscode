@@ -87,8 +87,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
-  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
-  it.skip('Set Breakpoints and Checkpoints', async () => {
+  it('Set Breakpoints and Checkpoints', async () => {
     logTestStart(testSetup, 'Set Breakpoints and Checkpoints');
     // Get open text editor
     const workbench = getWorkbench();
@@ -157,8 +156,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
-  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
-  it.skip('SFDX: Get Apex Debug Logs', async () => {
+  it('SFDX: Get Apex Debug Logs', async () => {
     logTestStart(testSetup, 'SFDX: Get Apex Debug Logs');
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
@@ -195,8 +193,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(executionFinished).to.be.greaterThan(0);
   });
 
-  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
-  it.skip('Replay an Apex Debug Log', async () => {
+  it('Replay an Apex Debug Log', async () => {
     logTestStart(testSetup, 'Replay an Apex Debug Log');
     // Run SFDX: Launch Apex Replay Debugger with Current File
     await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(30));
