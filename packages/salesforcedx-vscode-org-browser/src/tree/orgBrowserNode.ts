@@ -18,7 +18,7 @@ export type OrgBrowserNodeKind =
 
 // Types that have folders (Dashboard, Document, EmailTemplate, Report)
 const FOLDER_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
-
+export const isFolderType = (xmlName: string): boolean => FOLDER_TYPES.has(xmlName);
 export class OrgBrowserNode extends vscode.TreeItem {
   constructor(
     public readonly kind: OrgBrowserNodeKind,
@@ -42,10 +42,5 @@ export class OrgBrowserNode extends vscode.TreeItem {
           : folderName
             ? `${xmlName}:${folderName}:${componentName}`
             : `${xmlName}:${componentName}`;
-  }
-
-  /** Check if a metadata type is a folder type */
-  public static isFolderType(xmlName: string): boolean {
-    return FOLDER_TYPES.has(xmlName);
   }
 }

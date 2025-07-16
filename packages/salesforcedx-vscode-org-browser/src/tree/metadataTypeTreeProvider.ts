@@ -8,7 +8,7 @@ import { pipe, Effect, Layer } from 'effect';
 import * as vscode from 'vscode';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { MetadataDescribeService, MetadataDescribeServiceLive } from '../services/metadataDescribeService';
-import { OrgBrowserNode } from './orgBrowserNode';
+import { isFolderType, OrgBrowserNode } from './orgBrowserNode';
 
 export const toTreeItem = (node: OrgBrowserNode): vscode.TreeItem => node;
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserNode> {
@@ -25,7 +25,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
    */
   public refreshType(typeName: string): Effect.Effect<void, Error, never> {
     return Effect.sync(() => {
-      const kind = OrgBrowserNode.isFolderType(typeName) ? 'folderType' : 'type';
+      const kind = isFolderType(typeName) ? 'folderType' : 'type';
       this._onDidChangeTreeData.fire(new OrgBrowserNode(kind, typeName));
     });
   }
@@ -57,52 +57,35 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
                 Effect.map(types =>
                   Array.from(types)
                     .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))
-                    .map(
-                      t => new OrgBrowserNode(OrgBrowserNode.isFolderType(t.xmlName) ? 'folderType' : 'type', t.xmlName)
-                    )
+                    .map(t => new OrgBrowserNode(isFolderType(t.xmlName) ? 'folderType' : 'type', t.xmlName))
                 )
               );
             }
             if (element.kind === 'type') {
-              return describeService.describe(false).pipe(
-                Effect.flatMap(types => {
-                  const arr = Array.from(types);
-                  const type = arr.find(t => t.xmlName === element.xmlName);
-                  if (!type) return Effect.succeed([]);
-                  if (type.inFolder) {
-                    return describeService
-                      .listMetadata(`${type.xmlName}Folder`)
-                      .pipe(
-                        Effect.map(folders => folders.map(f => new OrgBrowserNode('folder', type.xmlName, f.fullName)))
-                      );
-                  } else {
-                    return describeService.listMetadata(type.xmlName).pipe(
-                      Effect.map(components =>
-                        components.map(c => {
-                          const n = new OrgBrowserNode('component', type.xmlName, undefined, c.fullName);
-                          n.collapsibleState = vscode.TreeItemCollapsibleState.None;
-                          return n;
-                        })
-                      )
-                    );
-                  }
-                })
-              );
+              if (isFolderType(element.xmlName)) {
+                return describeService
+                  .listMetadata(`${element.xmlName}Folder`)
+                  .pipe(
+                    Effect.map(folders => folders.map(f => new OrgBrowserNode('folder', element.xmlName, f.fullName)))
+                  );
+              } else {
+                return describeService.listMetadata(element.xmlName).pipe(
+                  Effect.map(components =>
+                    components.map(c => {
+                      const n = new OrgBrowserNode('component', element.xmlName, undefined, c.fullName);
+                      n.collapsibleState = vscode.TreeItemCollapsibleState.None;
+                      return n;
+                    })
+                  )
+                );
+              }
             }
             if (element.kind === 'folderType') {
-              return describeService.describe(false).pipe(
-                Effect.flatMap(types => {
-                  const arr = Array.from(types);
-                  const type = arr.find(t => t.xmlName === element.xmlName);
-                  if (!type) return Effect.succeed([]);
-                  // For folder types, always show folders
-                  return describeService
-                    .listMetadata(`${type.xmlName}Folder`)
-                    .pipe(
-                      Effect.map(folders => folders.map(f => new OrgBrowserNode('folder', type.xmlName, f.fullName)))
-                    );
-                })
-              );
+              return describeService
+                .listMetadata(`${element.xmlName}Folder`)
+                .pipe(
+                  Effect.map(folders => folders.map(f => new OrgBrowserNode('folder', element.xmlName, f.fullName)))
+                );
             }
             if (element.kind === 'folder') {
               const { xmlName, folderName } = element;

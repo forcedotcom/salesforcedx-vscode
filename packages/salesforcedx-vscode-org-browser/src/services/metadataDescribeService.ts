@@ -15,6 +15,8 @@ import { DescribeMetadataObject } from '../schemas/describeMetadataObject';
 import { FilePropertiesSchema, FileProperties } from '../schemas/fileProperties';
 import { ExtensionProviderService } from './extensionProvider';
 
+type DescribeContext = ConnectionService | ConfigService | WorkspaceService | ChannelService;
+
 export type MetadataDescribeService = {
   /**
    * Performs a Metadata API describe and returns the result.
@@ -22,11 +24,7 @@ export type MetadataDescribeService = {
    */
   readonly describe: (
     forceRefresh?: boolean
-  ) => Effect.Effect<
-    readonly DescribeMetadataObject[],
-    Error,
-    ConnectionService | ConfigService | WorkspaceService | ChannelService
-  >;
+  ) => Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext>;
   /**
    * Calls the Metadata API list method for a given type and optional folder.
    * Returns the list of metadata components for that type.
@@ -34,11 +32,7 @@ export type MetadataDescribeService = {
   readonly listMetadata: (
     type: string,
     folder?: string
-  ) => Effect.Effect<
-    readonly FileProperties[],
-    Error,
-    ConnectionService | ConfigService | WorkspaceService | ChannelService
-  >;
+  ) => Effect.Effect<readonly FileProperties[], Error, DescribeContext>;
 };
 
 export const MetadataDescribeService = Context.GenericTag<MetadataDescribeService>('MetadataDescribeService');
@@ -54,11 +48,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
 
     const describe = (
       _forceRefresh: boolean = false
-    ): Effect.Effect<
-      readonly DescribeMetadataObject[],
-      Error,
-      ConnectionService | ConfigService | WorkspaceService | ChannelService
-    > =>
+    ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
       pipe(
         Effect.flatMap(ConnectionService, svc => svc.getConnection),
         Effect.flatMap(conn =>
@@ -75,11 +65,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
     const listMetadata = (
       type: string,
       folder?: string
-    ): Effect.Effect<
-      readonly FileProperties[],
-      Error,
-      ConnectionService | ConfigService | WorkspaceService | ChannelService
-    > =>
+    ): Effect.Effect<readonly FileProperties[], Error, DescribeContext> =>
       pipe(
         Effect.flatMap(ConnectionService, svc => svc.getConnection),
         Effect.flatMap(conn =>

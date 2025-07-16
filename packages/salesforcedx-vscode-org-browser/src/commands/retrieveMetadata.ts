@@ -21,8 +21,10 @@ export const registerRetrieveMetadataCommand = (context: vscode.ExtensionContext
         Effect.flatMap(MetadataRetrieveService, svc => svc.retrieve([target], node.kind === 'component')),
         Effect.tap(() =>
           Effect.sync(() => {
-            const message = getRetrieveMessage(node);
-            vscode.window.showInformationMessage(message);
+            // Only show notifications for bulk operations (type and folder)
+            if (node.kind !== 'component') {
+              vscode.window.showInformationMessage(getRetrieveMessage(node));
+            }
           })
         ),
         Effect.catchAll(error =>
@@ -64,10 +66,6 @@ const getRetrieveMessage = (node: OrgBrowserNode): string => {
 
   if (node.kind === 'folder' && node.folderName) {
     return `Retrieved all ${node.xmlName} components in ${node.folderName}`;
-  }
-
-  if (node.kind === 'component' && node.componentName) {
-    return `Retrieved ${node.componentName}`;
   }
 
   return 'Retrieve completed';
