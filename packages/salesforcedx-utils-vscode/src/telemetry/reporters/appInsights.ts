@@ -46,7 +46,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
-        this.dispose();
+        void this.dispose();
       }
     }
   }

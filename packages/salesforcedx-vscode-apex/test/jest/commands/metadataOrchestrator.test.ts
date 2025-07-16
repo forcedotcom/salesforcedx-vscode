@@ -104,7 +104,7 @@ describe('MetadataOrchestrator', () => {
       expect(response).toBeUndefined();
     });
 
-    it('should handle errors and throw a localized error', () => {
+    it('should handle errors and throw a localized error', async () => {
       const mockLanguageClient = {
         sendRequest: jest.fn().mockRejectedValue(new Error('Some error'))
       } as unknown as ApexLanguageClient;
@@ -113,7 +113,7 @@ describe('MetadataOrchestrator', () => {
 
       const mockUri = { path: '/hello/world.cls' } as URI;
 
-      expect(orchestrator.gatherContext(mockUri)).rejects.toThrow(nls.localize('cannot_gather_context'));
+      await expect(orchestrator.gatherContext(mockUri)).rejects.toThrow(nls.localize('cannot_gather_context'));
     });
   });
 
@@ -154,7 +154,7 @@ describe('MetadataOrchestrator', () => {
     it('should throw an error when method is selected but the active editor is not available', async () => {
       (vscode.window as any).activeTextEditor = undefined;
       const uri = URI.file('/hello/world.js');
-      expect(async () => await orchestrator.validateEligibility(uri, true)).rejects.toThrow();
+      await expect(async () => await orchestrator.validateEligibility(uri, true)).rejects.toThrow();
     });
 
     it('should throw an error when method is selected but the active editor is not on an apex source file', async () => {
@@ -170,7 +170,7 @@ describe('MetadataOrchestrator', () => {
 
       (vscode.window as any).activeTextEditor = mockEditor;
       const uri = URI.file('/hello/world.js');
-      expect(async () => await orchestrator.validateEligibility(uri, true)).rejects.toThrow();
+      await expect(async () => await orchestrator.validateEligibility(uri, true)).rejects.toThrow();
     });
 
     it('should call eligibilityDelegate with expected parameter when there is single request', async () => {

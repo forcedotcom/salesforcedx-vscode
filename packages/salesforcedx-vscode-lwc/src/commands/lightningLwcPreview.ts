@@ -113,7 +113,7 @@ const androidSuccessString = 'Launching... Opening Browser';
 
 export const lightningLwcPreview = async (sourceUri: URI) => {
   const preview = getPreview();
-  preview(sourceUri);
+  await preview(sourceUri);
 };
 
 export const getPreview = () => {
@@ -518,7 +518,7 @@ const executeMobilePreview = async (
         : nls.localize('lightning_lwc_ios_failure', targetDevice);
       showError(new Error(message), logName, commandName);
     } else if (!isAndroid) {
-      notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
+      await notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
       vscode.window.showInformationMessage(nls.localize('lightning_lwc_ios_start', targetDevice));
     }
   });
@@ -528,7 +528,7 @@ const executeMobilePreview = async (
   if (isAndroid) {
     previewExecution.stdoutSubject.subscribe(async data => {
       if (data?.toString().includes(androidSuccessString)) {
-        notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
+        await notificationService.showSuccessfulExecution(previewExecution.command.toString(), channelService).catch();
         vscode.window.showInformationMessage(nls.localize('lightning_lwc_android_start', targetDevice));
       }
     });

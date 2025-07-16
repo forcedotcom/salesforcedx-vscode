@@ -28,14 +28,18 @@ describe('Debug console', () => {
 
   describe('Logger', () => {
     let args: LaunchRequestArguments = {
-      logFile: logFilePath,
+      logFileContents: 'test log content',
+      logFilePath,
+      logFileName,
       projectPath: undefined
     };
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
       args = {
-        logFile: logFilePath,
+        logFileContents: 'test log content',
+        logFilePath,
+        logFileName,
         projectPath: undefined
       };
     });

@@ -8,10 +8,10 @@
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
     {
-      "path": "../salesforcedx-utils-vscode"
+      "path": "../salesforcedx-utils"
     },
     {
-      "path": "../salesforcedx-utils"
+      "path": "../salesforcedx-utils-vscode"
     },
     {
       "path": "../salesforcedx-vscode-core"

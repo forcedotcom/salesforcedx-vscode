@@ -11,7 +11,9 @@ export type Step = 'Over' | 'In' | 'Out' | 'Run';
 export type ScopeType = 'local' | 'static' | 'global';
 
 export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
-  logFile: string;
+  logFileContents: string; // File contents (for web compatibility)
+  logFilePath: string;
+  logFileName: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
   lineBreakpointInfo?: import('@salesforce/salesforcedx-utils').LineBreakpointInfo[];

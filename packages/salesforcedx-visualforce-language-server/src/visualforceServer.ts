@@ -193,7 +193,7 @@ documents.onDidChangeContent(change => {
 // a document has closed: clear all diagnostics
 documents.onDidClose(event => {
   cleanPendingValidation(event.document);
-  connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
+  void connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
 });
 
 const cleanPendingValidation = (textDocument: TextDocument): void => {
@@ -209,7 +209,7 @@ const triggerValidation = (textDocument: TextDocument): void => {
   pendingValidationRequests[textDocument.uri] = setTimeout(() => {
     delete pendingValidationRequests[textDocument.uri];
 
-    validateTextDocument(textDocument);
+    void validateTextDocument(textDocument);
   }, validationDelayMs);
 };
 
@@ -235,7 +235,7 @@ const validateTextDocument = async (textDocument: TextDocument) => {
       }
     });
   }
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 };
 
 connection.onCompletion(async (textDocumentPosition: CompletionParams): Promise<CompletionList | CompletionItem[]> => {

@@ -25,7 +25,7 @@ export class OrgList implements vscode.Disposable {
       this.displayTargetOrg(orgInfo.alias ?? orgInfo.username)
     );
     const { username, alias } = WorkspaceContext.getInstance();
-    this.displayTargetOrg(alias ?? username);
+    void this.displayTargetOrg(alias ?? username);
   }
 
   private displayTargetOrg(targetOrgOrAlias?: string) {
