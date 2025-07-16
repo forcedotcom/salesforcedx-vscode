@@ -46,7 +46,8 @@ export const MetadataDescribeServiceLive = Layer.effect(
     const api = yield* svcProvider.getServicesApi;
     const ConnectionService = api.services.ConnectionService;
 
-    const describe = (
+    // a task that can be cached
+    const describeTask = (
       _forceRefresh: boolean = false
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
       pipe(
@@ -57,10 +58,25 @@ export const MetadataDescribeServiceLive = Layer.effect(
               try: () => conn.metadata.describe(),
               catch: e => new Error(`Describe failed: ${String(e)}`)
             }),
-            Effect.map(result => result.metadataObjects.filter(obj => !NON_SUPPORTED_TYPES.has(obj.xmlName)))
+            Effect.map(result => result.metadataObjects.filter(obj => !NON_SUPPORTED_TYPES.has(obj.xmlName))),
+            Effect.tap(result =>
+              pipe(
+                Effect.flatMap(api.services.ChannelService, channel =>
+                  channel.appendToChannel(`Metadata describe call completed. Found ${result.length} metadata types.`)
+                ),
+                Effect.catchAll(() => Effect.succeed(void 0))
+              )
+            )
           )
         )
       );
+
+    const cachedDescribe = yield* Effect.cachedFunction(describeTask);
+
+    const describe = (
+      forceRefresh = false
+    ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
+      forceRefresh ? describeTask(true) : cachedDescribe(false);
 
     const listMetadata = (
       type: string,

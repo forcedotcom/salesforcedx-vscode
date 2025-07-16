@@ -51,9 +51,6 @@
     "test": "npm run test:unit",
     "test:unit": "jest --coverage"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
   "main": "./dist/index.js",
   "browser": "./dist/browser.js",
   "contributes": {

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { MetadataMember, RetrieveResult, FileResponse } from '@salesforce/source-deploy-retrieve';
+import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import { Context, Effect, Layer, Option, pipe } from 'effect';
 import * as vscode from 'vscode';
 import { ExtensionProviderService } from './extensionProvider';
@@ -42,7 +42,23 @@ const retrieve = (
 
       return pipe(
         Effect.provide(
-          Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)),
+          pipe(
+            Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)),
+            Effect.tap(result => {
+              const fileResponses = result.getFileResponses();
+              const fileCount = fileResponses?.length || 0;
+              return Effect.flatMap(api.services.ChannelService, channel =>
+                pipe(
+                  channel.appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`),
+                  Effect.tap(() =>
+                    fileCount > 0
+                      ? channel.appendToChannel(`Retrieved files: ${fileResponses!.map(f => f.filePath).join(', ')}`)
+                      : Effect.fail(new Error('No files retrieved'))
+                  )
+                )
+              );
+            })
+          ),
           allLayers
         ),
         Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`)),
@@ -64,19 +80,8 @@ const retrieve = (
     })
   );
 
-const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> => {
-  const fileResponses = result.getFileResponses();
-  if (!fileResponses || fileResponses.length === 0) return Option.none();
-
-  const successFile = fileResponses.find(
-    (file: FileResponse) =>
-      // we don't want to import all of SDR just because this is an enum and we need to compare.  Too bad it wasn't a string union type
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-      file.state === 'Created' || file.state === 'Changed'
-  );
-
-  return successFile?.filePath ? Option.some(successFile.filePath) : Option.none();
-};
+const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
+  Option.fromNullable(result.getFileResponses()?.[0]?.filePath);
 
 const openFileInEditor = (filePath: string): Effect.Effect<void, Error, never> =>
   pipe(

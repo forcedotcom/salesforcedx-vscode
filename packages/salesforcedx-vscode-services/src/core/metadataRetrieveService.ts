@@ -52,28 +52,23 @@ const retrieve = (
     Effect.flatMap(([connection, project, maybePath, channelService]) =>
       Option.isNone(maybePath)
         ? Effect.fail(new Error('No workspace path found'))
-        : Effect.flatMap(channelService, channel => {
+        : Effect.flatMap(channelService, _channel => {
             const output = project.getDefaultPackage().fullPath;
-            return pipe(
-              channel.appendToChannel(`Retrieving metadata to: ${output}`),
-              Effect.flatMap(() =>
-                Effect.tryPromise({
-                  try: async () => {
-                    const componentSet = new ComponentSet(members);
-                    const retrieveOperation = new MetadataApiRetrieve({
-                      usernameOrConnection: connection,
-                      components: componentSet,
-                      output,
-                      format: 'source',
-                      merge: true
-                    });
-                    await retrieveOperation.start();
-                    return await retrieveOperation.pollStatus();
-                  },
-                  catch: e => e
-                })
-              )
-            );
+            return Effect.tryPromise({
+              try: async () => {
+                const componentSet = new ComponentSet(members);
+                const retrieveOperation = new MetadataApiRetrieve({
+                  usernameOrConnection: connection,
+                  components: componentSet,
+                  output,
+                  format: 'source',
+                  merge: true
+                });
+                await retrieveOperation.start();
+                return await retrieveOperation.pollStatus();
+              },
+              catch: e => e
+            });
           })
     )
   );

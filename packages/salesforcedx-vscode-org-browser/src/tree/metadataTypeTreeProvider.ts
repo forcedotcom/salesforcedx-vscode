@@ -15,8 +15,10 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserNode | undefined | void> = new vscode.EventEmitter();
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserNode | undefined | void> =
     this._onDidChangeTreeData.event;
+  private _forceRefresh = false;
 
   public refresh(): void {
+    this._forceRefresh = true;
     this._onDidChangeTreeData.fire();
   }
 
@@ -35,7 +37,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return element;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   public async getChildren(element?: OrgBrowserNode): Promise<OrgBrowserNode[]> {
     const program = pipe(
       Effect.flatMap(ExtensionProviderService, svcProvider =>
@@ -53,7 +54,9 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
           );
           return Effect.flatMap(MetadataDescribeService, describeService => {
             if (!element) {
-              return describeService.describe(false).pipe(
+              const forceRefresh = this._forceRefresh;
+              this._forceRefresh = false; // Reset the flag after using it, dang that's ugly
+              return describeService.describe(forceRefresh).pipe(
                 Effect.map(types =>
                   Array.from(types)
                     .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))
