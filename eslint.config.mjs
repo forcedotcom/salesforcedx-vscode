@@ -419,6 +419,8 @@ export default [
       'functional/no-throw-statements': 'error',
       'functional/no-try-statements': 'error',
       'functional/no-let': 'error',
+      'functional/no-loop-statements': 'error',
+      'functional/prefer-property-signatures': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       // Effect code should always handle promises properly
