@@ -12,7 +12,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Run Apex test class file parsing bug ([PR #6405](https://github.com/forcedotcom/salesforcedx-vscode/pull/6405))
+- We fixed a bug that was causing Apex test diagnostics to appear under an "unknown" label in the Problems Tab. ([PR #6405](https://github.com/forcedotcom/salesforcedx-vscode/pull/6405))
 
 #### salesforcedx-vscode-core
 
@@ -20,7 +20,7 @@
 
 - [W-19015026]  deploy/retrieve works on manifests in command palette ([PR #6412](https://github.com/forcedotcom/salesforcedx-vscode/pull/6412))
 
-- Manifest generation is cancelled when escaping ([PR #6391](https://github.com/forcedotcom/salesforcedx-vscode/pull/6391))
+- We fixed a bug where unsaved manifests were being created when the **SFDX: Generate Manifest File** command is escaped. ([PR #6391](https://github.com/forcedotcom/salesforcedx-vscode/pull/6391))
 
 - We made an improvement to the user experience in the org browser.  Users no longer need to click the SFDX: Refresh Types button every time they switch between orgs; the metadata types for the new org are now populated automatically. ([PR #6401](https://github.com/forcedotcom/salesforcedx-vscode/pull/6401))
 
