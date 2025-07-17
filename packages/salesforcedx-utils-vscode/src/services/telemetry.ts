@@ -81,7 +81,6 @@ export class TelemetryService implements TelemetryServiceInterface {
   private version: string = '';
   public isInternal: boolean = false;
   public isDevMode: boolean = false;
-  private activationStartTime: number = TimingUtils.getCurrentTime();
 
   /**
    * Retrieve Telemetry Service according to the extension name.
@@ -199,9 +198,24 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public sendExtensionActivationEvent(hrstart?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
-    // Use the stored activation start time if hrstart is 0 (indicating auto-timing), otherwise use the provided value
-    const effectiveStartTime = !hrstart || hrstart === 0 ? this.activationStartTime : hrstart;
-    const startupTime = markEndTime ?? TimingUtils.getElapsedTime(effectiveStartTime);
+    // Calculate startup time:
+    // - If hrstart is provided and > 0, use it as the start time
+    // - If markEndTime is provided, use it as the end time, otherwise calculate elapsed time from hrstart
+    // - If neither hrstart nor markEndTime are provided, this indicates a timing error - use a fallback
+    let startupTime: number;
+
+    if (hrstart && hrstart > 0) {
+      // Valid start time provided - calculate elapsed time
+      startupTime = markEndTime ?? TimingUtils.getElapsedTime(hrstart);
+    } else if (markEndTime) {
+      // Only end time provided - use it directly
+      startupTime = markEndTime;
+    } else {
+      // No valid timing provided - indicate this is an error case
+      startupTime = 0;
+      console.warn(`Extension ${this.extensionName}: No valid timing data provided for activation event`);
+    }
+
     const properties = {
       extensionName: this.extensionName,
       ...telemetryData?.properties

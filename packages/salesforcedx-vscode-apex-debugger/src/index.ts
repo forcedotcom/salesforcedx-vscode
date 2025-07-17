@@ -24,6 +24,7 @@ import {
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
+import { ActivationTracker, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
@@ -266,9 +267,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       }
     }
 
-    // Telemetry - using shared service directly
-    const telemetryService = salesforceCoreExtension.exports.telemetryService;
-    telemetryService.sendExtensionActivationEvent();
+    // Telemetry
+    const telemetryService = TelemetryService.getInstance();
+    await telemetryService.initializeService(extensionContext);
+    const activationTracker = new ActivationTracker(extensionContext, telemetryService);
+    await activationTracker.markActivationStop();
   } else {
     console.warn('Salesforce Core Extension not available - telemetry will not be initialized');
   }

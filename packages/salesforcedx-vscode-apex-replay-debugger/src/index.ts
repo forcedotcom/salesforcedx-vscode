@@ -20,7 +20,7 @@ import {
   SEND_METRIC_LAUNCH_EVENT,
   breakpointUtil
 } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import { ActivationTracker, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
@@ -158,7 +158,6 @@ const registerDebugHandlers = (): vscode.Disposable => {
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
-  console.log('Apex Replay Debugger Extension Activated');
   extContext = extensionContext;
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
@@ -195,8 +194,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
     debugTest
   );
 
-  // Telemetry - using shared service directly
-  TelemetryService.getInstance().sendExtensionActivationEvent();
+  // Telemetry
+  const telemetryService = TelemetryService.getInstance();
+  await telemetryService.initializeService(extensionContext);
+  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
+  await activationTracker.markActivationStop();
 };
 
 export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
