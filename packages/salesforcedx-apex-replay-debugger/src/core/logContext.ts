@@ -7,7 +7,6 @@
 
 import { OrgDisplay, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import { StackFrame } from '@vscode/debugadapter';
-import * as path from 'node:path';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../adapter/types';
@@ -68,7 +67,6 @@ export class LogContext {
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
   private execAnonMapping: Map<number, number> = new Map();
-
   private apexHeapDumps: ApexHeapDump[] = [];
   private lastSeenHeapDumpClass = '';
   private lastSeenHeapDumpLine = -1;
@@ -81,8 +79,8 @@ export class LogContext {
   constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
     this.session = session;
-    this.logLines = this.util.readLogFile(launchArgs.logFile);
-    this.logSize = this.util.getFileSize(launchArgs.logFile);
+    this.logLines = this.util.readLogFileFromContents(launchArgs.logFileContents);
+    this.logSize = this.util.getFileSizeFromContents(launchArgs.logFileContents);
   }
 
   public getUtil(): LogContextUtil {
@@ -235,7 +233,7 @@ export class LogContext {
   public async fetchOverlayResultsForApexHeapDumps(): Promise<boolean> {
     let success = true;
     try {
-      const orgInfo = await new OrgDisplay().getOrgInfo();
+      const orgInfo = await new OrgDisplay().getOrgInfo(this.launchArgs.projectPath);
       const requestService = new RequestService();
       requestService.instanceUrl = orgInfo.instanceUrl;
       requestService.accessToken = orgInfo.accessToken;
@@ -299,11 +297,11 @@ export class LogContext {
   }
 
   public getLogFileName(): string {
-    return path.basename(this.launchArgs.logFile);
+    return this.launchArgs.logFileName;
   }
 
   public getLogFilePath(): string {
-    return this.launchArgs.logFile;
+    return this.launchArgs.logFilePath;
   }
 
   public getLogLinePosition(): number {

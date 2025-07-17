@@ -23,8 +23,12 @@ describe('NoOp event', () => {
   it('Should handle event', () => {
     const context = new LogContext(
       {
-        logFile: '/path/foo.log',
-        trace: true
+        logFileContents: 'test log content',
+        logFilePath: '/path/foo.log',
+        logFileName: 'foo.log',
+        stopOnEntry: true,
+        trace: true,
+        projectPath: undefined
       } as LaunchRequestArguments,
       new ApexReplayDebug()
     );
