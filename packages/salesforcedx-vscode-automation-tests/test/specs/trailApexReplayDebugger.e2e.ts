@@ -175,6 +175,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
         expect(quickPicks).to.not.be.undefined;
         expect(quickPicks.length).to.be.greaterThan(0);
         await prompt.selectQuickPick('User User - ApexTestHandler');
+        await pause(Duration.seconds(2));
       },
       3,
       'Failed to select log file from quick picks'
