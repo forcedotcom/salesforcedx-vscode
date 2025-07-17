@@ -185,7 +185,7 @@ export class ApexActionController {
     } catch (error: any) {
       void this.handleError(error, `OASDocumentFor${type}CreationFailed`);
     }
-    this.gil.writeLogs();
+    await this.gil.writeLogs();
   };
 
   /**
@@ -196,7 +196,7 @@ export class ApexActionController {
   private handleError = async (error: any, telemetryEvent: string): Promise<void> => {
     const telemetryService = getTelemetryService();
     const errorMessage = error instanceof Error ? error.message : String(error);
-    notificationService.showErrorMessage(`${nls.localize('create_openapi_doc_failed')}: ${errorMessage}`);
+    await notificationService.showErrorMessage(`${nls.localize('create_openapi_doc_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);
   };
 

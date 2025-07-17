@@ -130,7 +130,7 @@ export default [
           }
         }
       ],
-      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'warn',
       '@typescript-eslint/no-misused-spread': 'error',
       '@typescript-eslint/no-unsafe-argument': 'warn',
@@ -287,6 +287,18 @@ export default [
         }
       ],
       'import/no-self-import': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['node:fs', 'fs-extra'],
+              message:
+                "Use VSCode's fs API instead of Node.js fs for web extension compatibility. See https://code.visualstudio.com/api/references/vscode-api#FileSystem for documentation."
+            }
+          ]
+        }
+      ],
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-indentation': 'error',
       'jsdoc/newline-after-description': 'off',
@@ -359,7 +371,11 @@ export default [
     }
   },
   {
-    files: ['packages/salesforcedx**/test/jest/**/*', 'packages/salesforcedx**/test/unit/**/*'],
+    files: [
+      'packages/salesforcedx**/test/jest/**/*',
+      'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx-vscode-automation-tests/**/*'
+    ],
     plugins: {
       '@typescript-eslint': typescriptEslint,
       jest: eslintPluginJest
@@ -388,6 +404,7 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
       'no-useless-constructor': 'off',
+      'no-restricted-imports': 'off',
       'no-param-reassign': 'off'
     }
   },
@@ -397,6 +414,7 @@ export default [
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
+      'packages/salesforcedx-apex-replay-debugger/**',
       'packages/salesforcedx-vscode-soql/**'
     ],
     rules: {
