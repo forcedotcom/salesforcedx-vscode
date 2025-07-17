@@ -11,7 +11,10 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createApexClassWithBugs } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { continueDebugging } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
@@ -166,10 +169,16 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
     await pause(Duration.seconds(2));
     // Select a log file
-    const quickPicks = await prompt.getQuickPicks();
-    expect(quickPicks).to.not.be.undefined;
-    expect(quickPicks.length).to.be.greaterThan(0);
-    await prompt.selectQuickPick('User User - ApexTestHandler');
+    await retryOperation(
+      async () => {
+        const quickPicks = await prompt.getQuickPicks();
+        expect(quickPicks).to.not.be.undefined;
+        expect(quickPicks.length).to.be.greaterThan(0);
+        await prompt.selectQuickPick('User User - ApexTestHandler');
+      },
+      3,
+      'Failed to select log file from quick picks'
+    );
 
     await verifyNotificationWithRetry(/SFDX: Get Apex Debug Logs successfully ran/, Duration.TEN_MINUTES);
 
