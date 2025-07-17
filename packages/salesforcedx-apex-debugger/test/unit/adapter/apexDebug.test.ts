@@ -1131,8 +1131,8 @@ describe('Interactive debugger adapter - unit', () => {
 
   describe('Custom request', () => {
     describe('Hotswap warning', () => {
-      it('Should log warning to debug console', () => {
-        adapter.customRequest(HOTSWAP_REQUEST, {} as DebugProtocol.Response, undefined);
+      it('Should log warning to debug console', async () => {
+        await adapter.customRequest(HOTSWAP_REQUEST, {} as DebugProtocol.Response, undefined);
 
         expect(adapter.getEvents().length).to.equal(1);
         expect(adapter.getEvents()[0].event).to.equal('output');
@@ -1373,8 +1373,8 @@ describe('Interactive debugger adapter - unit', () => {
       streamingSubscribeSpy.restore();
     });
 
-    it('Should call streaming service subscribe', () => {
-      adapter.connectStreaming('foo');
+    it('Should call streaming service subscribe', async () => {
+      await adapter.connectStreaming('foo');
 
       expect(streamingSubscribeSpy.calledOnce).to.equal(true);
       expect(streamingSubscribeSpy.getCall(0).args.length).to.equal(4);
