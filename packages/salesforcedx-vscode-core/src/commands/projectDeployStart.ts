@@ -49,22 +49,16 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
         }
 
         // Filter for local changes that are not ignored
-        const localChanges = statusResponse.filter(
-          (component: any) => !component.ignored && component.origin === 'local'
-        );
+        const localChanges = statusResponse.filter(component => !component.ignored && component.origin === 'local');
 
         if (localChanges.length === 0) {
           // No local changes found, return empty ComponentSet
           return new ComponentSet();
         }
 
-        // Get the specific file paths for the changed components
-        const changedFilePaths: string[] = [];
-        for (const component of localChanges) {
-          if (component.filePath) {
-            changedFilePaths.push(component.filePath);
-          }
-        }
+        const changedFilePaths: string[] = localChanges
+          .map(component => component.filePath)
+          .filter((path): path is string => !!path);
 
         if (changedFilePaths.length === 0) {
           // No file paths found, return empty ComponentSet
@@ -72,9 +66,7 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
         }
 
         // Create ComponentSet from specific file paths
-        const localSourceComponents = ComponentSet.fromSource(changedFilePaths);
-
-        return localSourceComponents;
+        return ComponentSet.fromSource(changedFilePaths);
       } catch (error) {
         // If source tracking fails, fall back to all source (old behavior)
         console.warn('Source tracking failed, falling back to all source:', error);
