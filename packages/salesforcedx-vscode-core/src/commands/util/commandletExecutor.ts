@@ -10,5 +10,5 @@ import * as vscode from 'vscode';
 
 export type CommandletExecutor<T> = {
   execute(response: ContinueResponse<T>): void | Promise<void>;
-  readonly onDidFinishExecution?: vscode.Event<[number, number]>;
+  readonly onDidFinishExecution?: vscode.Event<number>;
 };

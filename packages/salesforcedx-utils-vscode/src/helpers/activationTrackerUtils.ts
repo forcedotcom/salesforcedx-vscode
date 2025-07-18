@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionInfo, ExtensionsInfo } from '@salesforce/vscode-service-provider';
 import { EOL } from 'node:os';
 import { join, sep } from 'node:path';
-import { ExtensionContext, extensions, Uri } from 'vscode';
+import { extensions, ExtensionContext, Uri } from 'vscode';
 import { z } from 'zod';
+import { ExtensionInfo, ExtensionsInfo } from '../types';
 import { readFile } from './fs';
 
 type ParsedLog = {

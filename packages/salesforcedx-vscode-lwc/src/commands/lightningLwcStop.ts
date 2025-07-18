@@ -16,7 +16,7 @@ const logName = 'lightning_lwc_stop';
 const commandName = nls.localize('lightning_lwc_stop_text');
 
 export const lightningLwcStop = async () => {
-  const startTime = process.hrtime();
+  const startTime = globalThis.performance.now();
 
   try {
     if (DevServerService.instance.isServerHandlerRegistered()) {

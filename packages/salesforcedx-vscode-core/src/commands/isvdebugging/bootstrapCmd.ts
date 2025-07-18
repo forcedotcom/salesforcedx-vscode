@@ -328,7 +328,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): Promise<string> {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     // do not inherit global env because we are setting our own auth
     const execution = new CliCommandExecutor(command, options, false).execute(cancellationToken);
 

@@ -18,7 +18,7 @@ export class SfCommandlet<T> {
   private readonly postchecker: PostconditionChecker<T>;
   private readonly gatherer: ParametersGatherer<T>;
   private readonly executor: CommandletExecutor<T>;
-  public readonly onDidFinishExecution?: vscode.Event<[number, number]>;
+  public readonly onDidFinishExecution?: vscode.Event<number>;
 
   constructor(
     checker: PreconditionChecker,

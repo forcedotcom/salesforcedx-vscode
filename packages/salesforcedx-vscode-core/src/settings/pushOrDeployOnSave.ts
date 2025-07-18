@@ -26,7 +26,7 @@ export class DeployQueue {
   private readonly queue = new Set<URI>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private locked = false;
-  private deployWaitStart?: [number, number];
+  private deployWaitStart?: number;
 
   private constructor() {}
 
@@ -127,7 +127,7 @@ export class DeployQueue {
       }
       this.deployWaitStart = undefined;
     } else if (this.locked && !this.deployWaitStart) {
-      this.deployWaitStart = process.hrtime();
+      this.deployWaitStart = globalThis.performance.now();
     }
   }
 }

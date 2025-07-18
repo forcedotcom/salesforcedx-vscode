@@ -11,7 +11,7 @@ import { BUILDER_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { telemetryService } from '../telemetry';
 
 export const soqlOpenNew = async (): Promise<void> => {
-  telemetryService.sendCommandEvent('soql_builder_open_new', process.hrtime());
+  telemetryService.sendCommandEvent('soql_builder_open_new', globalThis.performance.now());
 
   if (vscode.workspace) {
     const fileName = 'untitled.soql';

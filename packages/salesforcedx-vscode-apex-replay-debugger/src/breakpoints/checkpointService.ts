@@ -18,7 +18,7 @@ import {
   OVERLAY_ACTION_DELETE_URL
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
-import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
+import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
@@ -39,7 +39,6 @@ import {
 } from '../commands/queryExistingOverlayActionIdsCommand';
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
 
 // below dependencies must be required for bundling to work properly
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -468,7 +467,10 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         );
         writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
       }
-      telemetryService.sendCheckpointEvent(errorMsg);
+      // Send checkpoint event using shared telemetry service
+      TelemetryService.getInstance().sendEventData('apexReplayDebugger.checkpoint', {
+        errorMessage: errorMsg
+      });
       creatingCheckpoints = false;
     }
     if (updateError) {

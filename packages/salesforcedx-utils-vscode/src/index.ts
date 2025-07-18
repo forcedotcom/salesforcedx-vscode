@@ -27,6 +27,7 @@ export { TelemetryService, TelemetryBuilder } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
+export { TimingUtils } from './helpers/timingUtils';
 export { AppInsights } from './telemetry/reporters/appInsights';
 export { hasRootWorkspace, getRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces';
 export * from './cli';

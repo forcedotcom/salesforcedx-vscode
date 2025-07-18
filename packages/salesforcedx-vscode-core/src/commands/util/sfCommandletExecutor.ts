@@ -11,9 +11,10 @@ import {
   CommandExecution,
   ContinueResponse,
   workspaceUtils,
-  ProgressNotification
+  ProgressNotification,
+  Properties,
+  Measurements
 } from '@salesforce/salesforcedx-utils-vscode';
-import { Properties, Measurements } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
@@ -27,8 +28,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('push-errors');
   protected showChannelOutput = true;
   protected executionCwd = workspaceUtils.getRootWorkspacePath();
-  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<[number, number]>();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this.onDidFinishExecutionEventEmitter.event;
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<number>();
+  public readonly onDidFinishExecution: vscode.Event<number> = this.onDidFinishExecutionEventEmitter.event;
 
   protected attachExecution(
     execution: CommandExecution,
@@ -51,17 +52,12 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public logMetric(
-    logName: string | undefined,
-    hrstart: [number, number],
-    properties?: Properties,
-    measurements?: Measurements
-  ) {
+  public logMetric(logName: string | undefined, hrstart: number, properties?: Properties, measurements?: Measurements) {
     telemetryService.sendCommandEvent(logName, hrstart, properties, measurements);
   }
 
   public execute(response: ContinueResponse<T>): void | Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {

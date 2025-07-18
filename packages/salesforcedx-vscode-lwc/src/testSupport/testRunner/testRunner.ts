@@ -168,7 +168,7 @@ export class TestRunner {
       const taskName = this.getTaskName();
       const sfTask = taskService.createTask(this.testRunId, taskName, workspaceFolder, command, args);
       if (this.logName) {
-        const startTime = process.hrtime();
+        const startTime = globalThis.performance.now();
         sfTask.onDidEnd(() => {
           telemetryService.sendCommandEvent(this.logName, startTime, {
             workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()

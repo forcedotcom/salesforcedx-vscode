@@ -369,6 +369,7 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
+  const activationStartTime = globalThis.performance.now();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
@@ -415,7 +416,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       telemetryService
     };
 
-    telemetryService.sendExtensionActivationEvent(activateTracker.activationInfo.startActivateHrTime);
+    telemetryService.sendExtensionActivationEvent(activationStartTime);
     MetricsReporter.extensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
     return internalApi;

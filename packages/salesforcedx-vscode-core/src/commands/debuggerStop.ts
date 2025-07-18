@@ -76,7 +76,7 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 

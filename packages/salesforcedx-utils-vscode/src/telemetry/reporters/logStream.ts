@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
 import { Disposable, Uri, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
+import { TelemetryReporter } from '../../types';
 
 /**
  * Represents a telemetry reporter that logs telemetry events to a file.

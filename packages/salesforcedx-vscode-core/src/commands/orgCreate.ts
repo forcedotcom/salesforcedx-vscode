@@ -59,7 +59,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   }
 
   public async execute(response: ContinueResponse<AliasAndFileSelection>): Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = globalThis.performance.now();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
