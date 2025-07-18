@@ -25,10 +25,12 @@ import { ConflictDetectionMessages } from './conflictDetectionMessages';
 export class TimestampConflictChecker implements PostconditionChecker<string> {
   private isManifest: boolean;
   private messages: ConflictDetectionMessages;
+  private isPushOperation: boolean;
 
-  constructor(isManifest: boolean, messages: ConflictDetectionMessages) {
+  constructor(isManifest: boolean, messages: ConflictDetectionMessages, isPushOperation: boolean = false) {
     this.messages = messages;
     this.isManifest = isManifest;
+    this.isPushOperation = isPushOperation;
   }
 
   public async check(
@@ -104,7 +106,9 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
       } else {
         channelService.appendLine(
-          nls.localize('conflict_detect_command_hint', this.messages.commandHint(componentPath))
+          this.isPushOperation
+            ? nls.localize('conflict_detect_command_hint_push')
+            : nls.localize('conflict_detect_command_hint', this.messages.commandHint(componentPath))
         );
 
         const doReveal = choice === nls.localize('conflict_detect_show_conflicts');

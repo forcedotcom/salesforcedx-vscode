@@ -669,6 +669,8 @@ export const messages = {
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
   conflict_detect_conflict_header_timestamp: 'Conflicts:\n    Found %d file(s) in conflict:\n',
   conflict_detect_command_hint: '\nRun the following command to overwrite the conflicts:\n  %s',
+  conflict_detect_command_hint_push:
+    '\nRun the following command to overwrite the conflicts:\n SFDX: Push Source to Default Org and Ignore Conflicts\n',
   conflict_detect_no_target_org: 'No target org for this project',
   conflict_detect_no_default_package_dir: 'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',

@@ -12,23 +12,121 @@ import {
   workspaceUtils,
   SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle';
+import * as nodePath from 'node:path';
+import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { getConflictMessagesFor } from '../conflict/messages';
-import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
+import { PROJECT_DEPLOY_START_LOG_NAME, TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
+import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { salesforceCoreSettings } from '../settings';
+import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './deployExecutor';
-import { SfCommandlet } from './util';
+import { SfCommandlet, createComponentCount, formatException } from './util';
 import { TimestampConflictChecker } from './util/timestampConflictChecker';
 
 export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
   private isPushOp: boolean;
+  private changedFilePaths: string[] = [];
+  private ignoreConflicts: boolean;
 
-  constructor(showChannelOutput: boolean = true) {
+  constructor(showChannelOutput: boolean = true, ignoreConflicts: boolean = false) {
     super(nls.localize('project_deploy_start_default_org_text'), PROJECT_DEPLOY_START_LOG_NAME);
     this.showChannelOutput = showChannelOutput;
     this.isPushOp = true;
+    this.ignoreConflicts = ignoreConflicts;
+  }
+
+  public getChangedFilePaths(): string[] {
+    return this.changedFilePaths;
+  }
+
+  public async run(
+    response: ContinueResponse<{}>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean> {
+    // Get components to determine changed files
+    const components = await this.getComponents(response);
+
+    // If conflict detection is enabled, ignoreConflicts is false, and we have changed files, check for conflicts
+    if (
+      !this.ignoreConflicts &&
+      salesforceCoreSettings.getConflictDetectionEnabled() &&
+      this.changedFilePaths.length > 0
+    ) {
+      const conflictResult = await this.checkConflictsForChangedFiles();
+      if (!conflictResult) {
+        return false; // Conflict detection failed or was cancelled
+      }
+    }
+
+    // Continue with the normal deployment process using the components we already have
+    return this.performDeployment(components, token);
+  }
+
+  private async performDeployment(components: ComponentSet, token?: vscode.CancellationToken): Promise<boolean> {
+    let result: any;
+
+    try {
+      // Set API versions
+      await componentSetUtils.setApiVersion(components);
+      await componentSetUtils.setSourceApiVersion(components);
+
+      // Add telemetry
+      this.telemetry.addProperty(TELEMETRY_METADATA_COUNT, JSON.stringify(createComponentCount(components)));
+
+      // Perform the operation
+      result = await this.doOperation(components, token ?? new vscode.CancellationTokenSource().token);
+
+      // If result is undefined, it means no components were processed (empty ComponentSet)
+      // This is considered a successful operation since there's nothing to do
+      if (result === undefined) {
+        return true;
+      }
+
+      const status = result?.response.status;
+
+      return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
+    } catch (e) {
+      throw formatException(e);
+    } finally {
+      await this.postOperation(result);
+    }
+  }
+
+  private async checkConflictsForChangedFiles(): Promise<boolean> {
+    try {
+      const messages = getConflictMessagesFor('deploy_with_sourcepath');
+      if (!messages) {
+        return true; // No conflict messages available, continue
+      }
+
+      const timestampChecker = new TimestampConflictChecker(false, messages, true);
+
+      // Check conflicts for each changed file
+      for (const filePath of this.changedFilePaths) {
+        const fileInput = { type: 'CONTINUE' as const, data: filePath };
+        const result = await timestampChecker.check(fileInput);
+
+        if (result.type === 'CANCEL') {
+          return false; // Conflict detected, cancel deployment
+        }
+      }
+
+      return true; // No conflicts detected
+    } catch (error) {
+      console.error('Error during conflict detection:', error);
+      const errorMsg = nls.localize('conflict_detect_error', error.toString());
+      channelService.appendLine(errorMsg);
+      telemetryService.sendException('ConflictDetectionException', errorMsg);
+      return false; // Error occurred, cancel deployment
+    }
   }
 
   protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
@@ -58,12 +156,19 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
 
         const changedFilePaths: string[] = localChanges
           .map(component => component.filePath)
-          .filter((path): path is string => !!path);
+          .filter((filePath): filePath is string => !!filePath)
+          .map(filePath =>
+            // Ensure the file path is absolute and exists in the current workspace
+            nodePath.isAbsolute(filePath) ? filePath : nodePath.resolve(projectPath, filePath)
+          );
 
         if (changedFilePaths.length === 0) {
           // No file paths found, return empty ComponentSet
           return new ComponentSet();
         }
+
+        // Store the changed file paths for conflict detection
+        this.changedFilePaths = changedFilePaths;
 
         // Create ComponentSet from specific file paths
         return ComponentSet.fromSource(changedFilePaths);
@@ -88,10 +193,8 @@ const parameterGatherer = new EmptyParametersGatherer();
 
 export const projectDeployStart = async (isDeployOnSave: boolean, ignoreConflicts = false) => {
   const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
-  const executor = new ProjectDeployStartExecutor(showOutputPanel);
-  const messages = getConflictMessagesFor('deploy_with_sourcepath');
-  const checker = ignoreConflicts || !messages ? undefined : new TimestampConflictChecker(false, messages);
+  const executor = new ProjectDeployStartExecutor(showOutputPanel, ignoreConflicts);
 
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor, checker);
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
   await commandlet.run();
 };
