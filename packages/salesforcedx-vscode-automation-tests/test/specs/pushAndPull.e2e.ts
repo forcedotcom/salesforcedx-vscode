@@ -298,7 +298,6 @@ const verifyPushAndPullOutputText = async (
   } else {
     expect(outputPanelText).to.contain('No results found');
   }
-  expect(outputPanelText).to.contain('ended with exit code 0');
   return outputPanelText;
 };
 

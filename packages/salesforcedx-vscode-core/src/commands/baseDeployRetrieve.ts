@@ -55,6 +55,12 @@ export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecuto
 
       result = await this.doOperation(components, token);
 
+      // If result is undefined, it means no components were processed (empty ComponentSet)
+      // This is considered a successful operation since there's nothing to do
+      if (result === undefined) {
+        return true;
+      }
+
       const status = result?.response.status;
 
       return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
@@ -79,6 +85,10 @@ export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecuto
     token?: vscode.CancellationToken
   ): Promise<DeployRetrieveResult | undefined>;
   protected abstract postOperation(result: DeployRetrieveResult | undefined): Promise<void>;
+
+  protected isPushOperation(): boolean {
+    return false; // Default to deploy operation
+  }
 }
 
 export const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
@@ -141,9 +151,16 @@ export const createOutputTable = (
     output += table.createTable(failures, config.failureColumns, config.failureTitle);
   }
 
-  // Handle case where there are no results
-  if (output === '' && config.noResultsMessage) {
-    output = `${config.noResultsMessage}\n`;
+  // Handle case where there are no results - show empty table with title for deploy/push operations
+  if (output === '') {
+    if (config.noResultsMessage) {
+      // For retrieve operations, use the noResultsMessage
+      output = `${config.noResultsMessage}\n`;
+    } else {
+      // For deploy/push operations, show empty table with title (like old CLI behavior)
+      output = table.createTable([], config.successColumns, config.successTitle);
+      output += `\n${nls.localize('table_no_results_found')}\n`;
+    }
   }
 
   return output;

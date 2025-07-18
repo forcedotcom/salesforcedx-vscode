@@ -9,11 +9,13 @@ import {
   ContinueResponse,
   EmptyParametersGatherer,
   SfWorkspaceChecker,
-  workspaceUtils
+  workspaceUtils,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { DeployExecutor } from './deployExecutor';
@@ -30,8 +32,57 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
   }
 
   protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
-    // For project deploy start, we deploy all source in the project
     const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
+    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+
+    if (sourceTrackingEnabled) {
+      try {
+        const connection = await WorkspaceContext.getInstance().getConnection();
+        const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+
+        // Get only the changed components from source tracking
+        const statusResponse = await sourceTracking.getStatus({ local: true, remote: false });
+
+        if (statusResponse.length === 0) {
+          // No changes found, return empty ComponentSet
+          return new ComponentSet();
+        }
+
+        // Filter for local changes that are not ignored
+        const localChanges = statusResponse.filter(
+          (component: any) => !component.ignored && component.origin === 'local'
+        );
+
+        if (localChanges.length === 0) {
+          // No local changes found, return empty ComponentSet
+          return new ComponentSet();
+        }
+
+        // Get the specific file paths for the changed components
+        const changedFilePaths: string[] = [];
+        for (const component of localChanges) {
+          if (component.filePath) {
+            changedFilePaths.push(component.filePath);
+          }
+        }
+
+        if (changedFilePaths.length === 0) {
+          // No file paths found, return empty ComponentSet
+          return new ComponentSet();
+        }
+
+        // Create ComponentSet from specific file paths
+        const localSourceComponents = ComponentSet.fromSource(changedFilePaths);
+
+        return localSourceComponents;
+      } catch (error) {
+        // If source tracking fails, fall back to all source (old behavior)
+        console.warn('Source tracking failed, falling back to all source:', error);
+        return ComponentSet.fromSource(projectPath);
+      }
+    }
+
+    // If source tracking is disabled, deploy all source
     return ComponentSet.fromSource(projectPath);
   }
 

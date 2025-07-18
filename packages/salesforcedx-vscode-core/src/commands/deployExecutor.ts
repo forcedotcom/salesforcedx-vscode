@@ -18,13 +18,15 @@ import { DeployRetrieveExecutor, createDeployOrPushOutput } from './baseDeployRe
 import { SfCommandletExecutor } from './util';
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
-  protected isPushOperation(): boolean {
-    return false; // Default to deploy operation
-  }
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
+    // If no components to deploy, skip the actual deployment but still allow postOperation to run
+    if (components.size === 0) {
+      return undefined;
+    }
+
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     components.projectDirectory = projectPath;
@@ -64,6 +66,16 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
           DeployRetrieveExecutor.errorCollection.clear();
           SfCommandletExecutor.errorCollection.clear();
         }
+      } else {
+        // Handle case where no components were deployed (empty ComponentSet)
+        const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
+        const operationType = this.isPushOperation() ? 'push' : 'deploy';
+        const output = createDeployOrPushOutput([], relativePackageDirs, true, operationType);
+        channelService.appendLine(output);
+
+        // Clear any existing errors since this is a successful "no changes" scenario
+        DeployRetrieveExecutor.errorCollection.clear();
+        SfCommandletExecutor.errorCollection.clear();
       }
     } finally {
       await DeployQueue.get().unlock();
