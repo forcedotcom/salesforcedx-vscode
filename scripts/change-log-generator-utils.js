@@ -195,11 +195,9 @@ function getPackageHeaders(filesChanged) {
  */
 function writeChangeLog(textToInsert) {
   logger(`\nStep 5: Adding changelog to: ${constants.CHANGE_LOG_PATH}`);
-  let data = fs.readFileSync(constants.CHANGE_LOG_PATH);
   let fd = fs.openSync(constants.CHANGE_LOG_PATH, 'w+');
   let buffer = Buffer.from(textToInsert.toString());
   fs.writeSync(fd, buffer, 0, buffer.length, 0);
-  fs.writeSync(fd, data, 0, data.length, buffer.length);
   fs.closeSync(fd);
 }
 
