@@ -29,7 +29,7 @@
     "@salesforce/salesforcedx-utils": "64.5.1",
     "@salesforce/salesforcedx-utils-vscode": "64.5.1",
     "@salesforce/schemas": "1.9.0",
-    "@salesforce/source-deploy-retrieve-bundle": "^12.21.1",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.21.5",
     "@salesforce/templates": "^64.2.0",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-service-provider": "^1.4.0",

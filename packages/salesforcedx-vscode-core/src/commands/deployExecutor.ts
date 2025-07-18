@@ -14,10 +14,13 @@ import { WorkspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../settings';
-import { DeployRetrieveExecutor, createDeployOutput } from './baseDeployRetrieve';
+import { DeployRetrieveExecutor, createDeployOrPushOutput } from './baseDeployRetrieve';
 import { SfCommandletExecutor } from './util';
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
+  protected isPushOperation(): boolean {
+    return false; // Default to deploy operation
+  }
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
@@ -74,6 +77,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   private createOutput(result: DeployResult, relativePackageDirs: string[]): string {
     const isSuccess =
       result.response.status === RequestStatus.Succeeded || result.response.status === RequestStatus.SucceededPartial;
-    return createDeployOutput(result.getFileResponses(), relativePackageDirs, isSuccess);
+
+    const operationType = this.isPushOperation() ? 'push' : 'deploy';
+    return createDeployOrPushOutput(result.getFileResponses(), relativePackageDirs, isSuccess, operationType);
   }
 }

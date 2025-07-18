@@ -152,7 +152,7 @@ export const createOutputTable = (
 /**
  * Operation type for output configuration
  */
-export type OperationType = 'deploy' | 'retrieve';
+export type OperationType = 'deploy' | 'retrieve' | 'push';
 
 /**
  * Create output for deploy or retrieve operations
@@ -163,15 +163,25 @@ export const createOperationOutput = (
   operationType: OperationType,
   isSuccess?: boolean
 ): string => {
+  // Base configuration for all operations
+  const baseSuccessColumns = [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.filePath];
+  const baseFailureColumns = [COMMON_COLUMNS.filePath, COMMON_COLUMNS.error];
+
   const configs: Record<OperationType, OutputTableConfig> = {
     deploy: {
-      successColumns: [COMMON_COLUMNS.state, COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.filePath],
-      failureColumns: [COMMON_COLUMNS.filePath, COMMON_COLUMNS.error],
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: baseFailureColumns,
       successTitle: nls.localize('table_title_deployed_source'),
       failureTitle: nls.localize('table_title_deploy_errors')
     },
+    push: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: baseFailureColumns,
+      successTitle: nls.localize('table_title_pushed_source'),
+      failureTitle: nls.localize('table_title_push_errors')
+    },
     retrieve: {
-      successColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.filePath],
+      successColumns: baseSuccessColumns,
       failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
       successTitle: nls.localize('lib_retrieve_result_title'),
       failureTitle: nls.localize('lib_retrieve_message_title'),
@@ -180,22 +190,25 @@ export const createOperationOutput = (
   };
 
   const responses =
-    operationType === 'deploy' && isSuccess === false ? fileResponses.filter(isSdrFailure) : fileResponses;
+    (operationType === 'deploy' || operationType === 'push') && isSuccess === false
+      ? fileResponses.filter(isSdrFailure)
+      : fileResponses;
 
   return createOutputTable(responses, relativePackageDirs, configs[operationType]);
 };
-
-/**
- * Create output for deploy operations
- */
-export const createDeployOutput = (
-  fileResponses: FileResponse[],
-  relativePackageDirs: string[],
-  isSuccess: boolean
-): string => createOperationOutput(fileResponses, relativePackageDirs, 'deploy', isSuccess);
 
 /**
  * Create output for retrieve operations
  */
 export const createRetrieveOutput = (fileResponses: FileResponse[], relativePackageDirs: string[]): string =>
   createOperationOutput(fileResponses, relativePackageDirs, 'retrieve');
+
+/**
+ * Create output for deploy or push operations
+ */
+export const createDeployOrPushOutput = (
+  fileResponses: FileResponse[],
+  relativePackageDirs: string[],
+  isSuccess: boolean,
+  operationType: 'deploy' | 'push'
+): string => createOperationOutput(fileResponses, relativePackageDirs, operationType, isSuccess);

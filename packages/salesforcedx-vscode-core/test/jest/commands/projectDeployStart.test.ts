@@ -5,14 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '@salesforce/salesforcedx-utils-vscode/src/messages';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { channelService } from '../../../src/channels';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
-import { ProjectDeployStartExecutor } from '../../../src/commands/projectDeployStart';
-import { SfCommandletExecutor } from '../../../src/commands/util';
+import { ProjectDeployStartExecutor, projectDeployStart } from '../../../src/commands/projectDeployStart';
+import { SfCommandletExecutor, SfCommandlet } from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
 import SalesforcePackageDirectories from '../../../src/salesforceProject/salesforcePackageDirectories';
 import SalesforceProjectConfig from '../../../src/salesforceProject/salesforceProjectConfig';
+import { salesforceCoreSettings } from '../../../src/settings';
 
 describe('ProjectDeployStartExecutor', () => {
   describe('postOperation', () => {
@@ -45,7 +48,7 @@ describe('ProjectDeployStartExecutor', () => {
       // Mock the result with success status
       const mockResult = {
         response: { status: 'Succeeded' },
-        getFileResponses: () => []
+        getFileResponses: (): any[] => []
       };
 
       // Act
@@ -98,5 +101,103 @@ describe('ProjectDeployStartExecutor', () => {
       expect(output).toContain('TestClass');
       expect(output).toContain('Compilation failed');
     });
+  });
+
+  describe('getComponents', () => {
+    beforeEach(() => {
+      jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('/test/project/path');
+      jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(new ComponentSet());
+    });
+
+    it('should return ComponentSet from project source', async () => {
+      // Arrange
+      const executor = new ProjectDeployStartExecutor();
+      const mockResponse = {} as any;
+
+      // Act
+      const result = await (executor as any).getComponents(mockResponse);
+
+      // Assert
+      expect(workspaceUtils.getRootWorkspacePath).toHaveBeenCalled();
+      expect(ComponentSet.fromSource).toHaveBeenCalledWith('/test/project/path');
+      expect(result).toBeInstanceOf(ComponentSet);
+    });
+
+    it('should handle empty project path gracefully', async () => {
+      // Arrange
+      jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('');
+      const executor = new ProjectDeployStartExecutor();
+      const mockResponse = {} as any;
+
+      // Act
+      const result = await (executor as any).getComponents(mockResponse);
+
+      // Assert
+      expect(ComponentSet.fromSource).toHaveBeenCalledWith('');
+      expect(result).toBeInstanceOf(ComponentSet);
+    });
+  });
+
+  describe('isPushOperation', () => {
+    it('should return true for push operations', () => {
+      // Arrange
+      const executor = new ProjectDeployStartExecutor();
+
+      // Act
+      const result = (executor as any).isPushOperation();
+
+      // Assert
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('constructor', () => {
+    it('should initialize as push operation', () => {
+      // Arrange & Act
+      const executor = new ProjectDeployStartExecutor();
+
+      // Assert
+      expect((executor as any).isPushOperation()).toBe(true);
+    });
+
+    it('should set showChannelOutput correctly', () => {
+      // Arrange & Act
+      const executor = new ProjectDeployStartExecutor(false);
+
+      // Assert
+      expect((executor as any).showChannelOutput).toBe(false);
+    });
+  });
+});
+
+describe('projectDeployStart function', () => {
+  beforeEach(() => {
+    jest.spyOn(salesforceCoreSettings, 'getDeployOnSaveShowOutputPanel').mockReturnValue(true);
+    // Mock the channel service to prevent actual execution
+    jest.spyOn(channelService, 'clear').mockImplementation(() => {});
+    jest.spyOn(channelService, 'appendLine').mockImplementation(() => {});
+    jest.spyOn(channelService, 'showChannelOutput').mockImplementation(() => {});
+    // Mock the SfCommandlet to prevent actual execution
+    jest.spyOn(SfCommandlet.prototype, 'run').mockResolvedValue(undefined);
+  });
+
+  it('should handle different parameter combinations', async () => {
+    // Test that the function can be called with different parameters without throwing
+    await expect(projectDeployStart(false, false)).resolves.not.toThrow();
+    await expect(projectDeployStart(true, false)).resolves.not.toThrow();
+    await expect(projectDeployStart(false, true)).resolves.not.toThrow();
+    await expect(projectDeployStart(true, true)).resolves.not.toThrow();
+  });
+
+  it('should call getDeployOnSaveShowOutputPanel when isDeployOnSave is true', async () => {
+    // Arrange
+    const isDeployOnSave = true;
+    const ignoreConflicts = false;
+
+    // Act
+    await projectDeployStart(isDeployOnSave, ignoreConflicts);
+
+    // Assert
+    expect(salesforceCoreSettings.getDeployOnSaveShowOutputPanel).toHaveBeenCalled();
   });
 });
