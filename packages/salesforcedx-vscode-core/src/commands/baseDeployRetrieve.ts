@@ -16,6 +16,7 @@ import {
   ComponentStatus,
   FileResponse,
   FileResponseFailure,
+  MetadataTransferResult,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import * as vscode from 'vscode';
@@ -25,10 +26,10 @@ import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { createComponentCount, formatException } from './util';
 
-type DeployRetrieveResult = any; // This will be imported from the specific executor files
-type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
-
-export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecutor<T> {
+export abstract class DeployRetrieveExecutor<
+  T,
+  R extends MetadataTransferResult
+> extends LibraryCommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
 
@@ -44,7 +45,7 @@ export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecuto
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    let result: DeployRetrieveResult | undefined;
+    let result: R | undefined;
 
     try {
       const components = await this.getComponents(response);
@@ -71,7 +72,7 @@ export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecuto
     }
   }
 
-  protected setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+  protected setupCancellation(operation: MetadataApiDeploy | MetadataApiRetrieve | undefined, token?: vscode.CancellationToken) {
     if (token && operation) {
       token.onCancellationRequested(async () => {
         await operation.cancel();
@@ -80,11 +81,8 @@ export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecuto
   }
 
   protected abstract getComponents(response: ContinueResponse<T>): Promise<ComponentSet>;
-  protected abstract doOperation(
-    components: ComponentSet,
-    token?: vscode.CancellationToken
-  ): Promise<DeployRetrieveResult | undefined>;
-  protected abstract postOperation(result: DeployRetrieveResult | undefined): Promise<void>;
+  protected abstract doOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<R | undefined>;
+  protected abstract postOperation(result: R | undefined): Promise<void>;
 
   protected isPushOperation(): boolean {
     return false; // Default to deploy operation

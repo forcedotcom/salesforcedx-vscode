@@ -17,7 +17,7 @@ import { salesforceCoreSettings } from '../settings';
 import { DeployRetrieveExecutor, createRetrieveOutput } from './baseDeployRetrieve';
 import { SfCommandletExecutor } from './util';
 
-export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
+export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, RetrieveResult> {
   private sourceTracking?: SourceTrackingType;
 
   protected async doOperation(

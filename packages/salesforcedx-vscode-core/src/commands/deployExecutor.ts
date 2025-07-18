@@ -17,7 +17,7 @@ import { DeployQueue, salesforceCoreSettings } from '../settings';
 import { DeployRetrieveExecutor, createDeployOrPushOutput } from './baseDeployRetrieve';
 import { SfCommandletExecutor } from './util';
 
-export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
+export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, DeployResult> {
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
@@ -82,7 +82,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     }
   }
 
-  protected unsuccessfulOperationHandler(result: DeployResult, errorCollection: any) {
+  protected unsuccessfulOperationHandler(result: DeployResult, errorCollection: vscode.DiagnosticCollection) {
     handleDeployDiagnostics(result, errorCollection);
   }
 
