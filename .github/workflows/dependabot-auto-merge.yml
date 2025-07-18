@@ -1,0 +1,37 @@
+name: Dependabot Auto-Merge
+
+# Uses the battle-tested automerge workflow from salesforcecli/github-workflows
+# This automatically merges dependabot PRs that are:
+# 1. Up to date with main/develop
+# 2. Mergeable (per GitHub)
+# 3. All checks have completed and none failed (skipped may not have run)
+
+on:
+  # Manual trigger for testing/debugging
+  workflow_dispatch:
+    inputs:
+      skipCI:
+        description: 'Skip CI checks and merge immediately'
+        required: false
+        default: false
+        type: boolean
+
+  # Schedule trigger - runs every hour during business hours
+  schedule:
+    - cron: '10 13-23,0 * * *' # Run 10 minutes after each hour from 6am to 4pm Pacific Time
+
+permissions:
+  contents: write # Required to merge PRs
+  pull-requests: write # Required to manage PRs
+  checks: read # Required to read check statuses
+  actions: read # Required to read workflow run information
+
+jobs:
+  automerge:
+    # Only run for dependabot PRs (when checks complete), manual triggers, or scheduled runs
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    uses: salesforcecli/github-workflows/.github/workflows/automerge.yml@main
+    secrets: inherit
+    with:
+      mergeMethod: squash
+      skipCI: ${{ github.event.inputs.skipCI == 'true' }}
