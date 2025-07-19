@@ -100,35 +100,6 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     }
   }
 
-  private async checkConflictsForChangedFiles(): Promise<boolean> {
-    try {
-      const messages = getConflictMessagesFor('deploy_with_sourcepath');
-      if (!messages) {
-        return true; // No conflict messages available, continue
-      }
-
-      const timestampChecker = new TimestampConflictChecker(false, messages, true);
-
-      // Check conflicts for each changed file
-      for (const filePath of this.changedFilePaths) {
-        const fileInput = { type: 'CONTINUE' as const, data: filePath };
-        const result = await timestampChecker.check(fileInput);
-
-        if (result.type === 'CANCEL') {
-          return false; // Conflict detected, cancel deployment
-        }
-      }
-
-      return true; // No conflicts detected
-    } catch (error) {
-      console.error('Error during conflict detection:', error);
-      const errorMsg = nls.localize('conflict_detect_error', error.toString());
-      channelService.appendLine(errorMsg);
-      telemetryService.sendException('ConflictDetectionException', errorMsg);
-      return false; // Error occurred, cancel deployment
-    }
-  }
-
   protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
     const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
@@ -185,6 +156,56 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
 
   protected isPushOperation(): boolean {
     return this.isPushOp;
+  }
+
+  private async checkConflictsForChangedFiles(): Promise<boolean> {
+    try {
+      const messages = getConflictMessagesFor('deploy_with_sourcepath');
+      if (!messages) {
+        return true; // No conflict messages available, continue
+      }
+
+      // Show channel output and log conflict detection start once for the entire operation
+      channelService.showChannelOutput();
+      channelService.showCommandWithTimestamp(
+        `${nls.localize('channel_starting_message')}${nls.localize('conflict_detect_execution_name')}\n`
+      );
+
+      const { username } = WorkspaceContext.getInstance();
+      if (!username) {
+        const errorMsg = nls.localize('conflict_detect_no_target_org');
+        channelService.appendLine(errorMsg);
+        return false;
+      }
+
+      // Create a single TimestampConflictChecker instance for all files
+      const timestampChecker = new TimestampConflictChecker(false, messages, true);
+
+      // Check conflicts for each changed file
+      for (const filePath of this.changedFilePaths) {
+        const success = await timestampChecker.checkFileWithoutLogging(filePath, username);
+        if (!success) {
+          // Log conflict detection end and return false
+          channelService.showCommandWithTimestamp(
+            `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`
+          );
+          return false; // Conflict detected or error occurred, cancel deployment
+        }
+      }
+
+      // Log conflict detection end
+      channelService.showCommandWithTimestamp(
+        `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`
+      );
+
+      return true; // No conflicts detected or all conflicts were overridden
+    } catch (error) {
+      console.error('Error during conflict detection:', error);
+      const errorMsg = nls.localize('conflict_detect_error', error.toString());
+      channelService.appendLine(errorMsg);
+      telemetryService.sendException('ConflictDetectionException', errorMsg);
+      return false; // Error occurred, cancel deployment
+    }
   }
 }
 

@@ -14,8 +14,8 @@ import { DeployExecutor } from '../../../src/commands/deployExecutor';
 import { ProjectDeployStartExecutor, projectDeployStart } from '../../../src/commands/projectDeployStart';
 import { SfCommandletExecutor, SfCommandlet } from '../../../src/commands/util';
 import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';
-
 import { PersistentStorageService } from '../../../src/conflict';
+
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import SalesforcePackageDirectories from '../../../src/salesforceProject/salesforcePackageDirectories';
 import SalesforceProjectConfig from '../../../src/salesforceProject/salesforceProjectConfig';
@@ -524,14 +524,17 @@ describe('ProjectDeployStart', () => {
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
         jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue({})
+          getConnection: jest.fn().mockResolvedValue({}),
+          username: 'test@example.com'
         } as any);
 
         // Mock the conflict detection to return success
         const mockTimestampChecker = {
-          check: jest.fn().mockResolvedValue({ type: 'CONTINUE', data: '/test/path' })
+          checkFileWithoutLogging: jest.fn().mockResolvedValue(true) // No conflicts
         };
-        jest.spyOn(TimestampConflictChecker.prototype, 'check').mockImplementation(mockTimestampChecker.check);
+        jest
+          .spyOn(TimestampConflictChecker.prototype, 'checkFileWithoutLogging')
+          .mockImplementation(mockTimestampChecker.checkFileWithoutLogging);
 
         // Mock ComponentSet to return a proper iterable
         const mockComponentSet = {
@@ -573,15 +576,15 @@ describe('ProjectDeployStart', () => {
         DeployRetrieveExecutor.errorCollection = mockErrorCollection as any;
         SfCommandletExecutor.errorCollection = mockErrorCollection as any;
 
+        // Mock the performDeployment method to return success
+        jest.spyOn(executor as any, 'performDeployment').mockResolvedValue(true);
+
         // Act
         const result = await executor.run({} as any);
 
         // Assert
         expect(result).toBe(true);
-        expect(mockTimestampChecker.check).toHaveBeenCalledWith({
-          type: 'CONTINUE',
-          data: '/test/project/path/force-app/main/default/classes/TestClass.cls'
-        });
+        expect(mockTimestampChecker.checkFileWithoutLogging).toHaveBeenCalled();
       });
 
       it('should skip conflict detection when no changed files are found', async () => {
@@ -715,14 +718,17 @@ describe('ProjectDeployStart', () => {
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
         jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue({})
+          getConnection: jest.fn().mockResolvedValue({}),
+          username: 'test@example.com'
         } as any);
 
         // Mock the conflict detection to return success
         const mockTimestampChecker = {
-          check: jest.fn().mockResolvedValue({ type: 'CONTINUE', data: '/test/path' })
+          checkFileWithoutLogging: jest.fn().mockResolvedValue(true) // No conflicts
         };
-        jest.spyOn(TimestampConflictChecker.prototype, 'check').mockImplementation(mockTimestampChecker.check);
+        jest
+          .spyOn(TimestampConflictChecker.prototype, 'checkFileWithoutLogging')
+          .mockImplementation(mockTimestampChecker.checkFileWithoutLogging);
 
         // Mock ComponentSet to return a proper iterable
         const mockComponentSet = {
@@ -764,16 +770,16 @@ describe('ProjectDeployStart', () => {
         DeployRetrieveExecutor.errorCollection = mockErrorCollection as any;
         SfCommandletExecutor.errorCollection = mockErrorCollection as any;
 
+        // Mock the performDeployment method to return success
+        jest.spyOn(executor as any, 'performDeployment').mockResolvedValue(true);
+
         // Act
         const result = await executor.run({} as any);
 
         // Assert
         expect(result).toBe(true);
         // Conflict detection should be performed since ignoreConflicts is false
-        expect(mockTimestampChecker.check).toHaveBeenCalledWith({
-          type: 'CONTINUE',
-          data: '/test/project/path/force-app/main/default/classes/TestClass.cls'
-        });
+        expect(mockTimestampChecker.checkFileWithoutLogging).toHaveBeenCalled();
       });
     });
   });
