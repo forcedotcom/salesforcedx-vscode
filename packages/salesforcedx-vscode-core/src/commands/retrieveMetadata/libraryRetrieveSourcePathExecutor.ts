@@ -12,7 +12,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
-import { RetrieveExecutor } from '../baseDeployRetrieve';
+import { RetrieveExecutor } from '../retrieveExecutor';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<LocalComponent[]> {
   private openAfterRetrieve: boolean;

@@ -131,7 +131,10 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
   const deploySourcePathCmd = vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths);
   const projectRetrieveStartCmd = vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart);
-  const projectDeployStartCmd = vscode.commands.registerCommand('sf.project.deploy.start', projectDeployStart);
+  const projectDeployStartCmd = vscode.commands.registerCommand(
+    'sf.project.deploy.start',
+    async (isDeployOnSave: boolean) => projectDeployStart(isDeployOnSave, false)
+  );
   const projectRetrieveStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sf.project.retrieve.start.ignore.conflicts',
     projectRetrieveStart,
@@ -139,8 +142,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
   const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sf.project.deploy.start.ignore.conflicts',
-    projectDeployStart,
-    flagIgnoreConflicts
+    async (isDeployOnSave: boolean) => projectDeployStart(isDeployOnSave, true)
   );
   const retrieveCmd = vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths);
   const retrieveCurrentFileCmd = vscode.commands.registerCommand(
