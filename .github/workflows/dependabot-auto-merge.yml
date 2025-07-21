@@ -31,7 +31,8 @@ jobs:
     # Only run for dependabot PRs (when checks complete), manual triggers, or scheduled runs
     if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     uses: salesforcecli/github-workflows/.github/workflows/automerge.yml@main
-    secrets: inherit
+    secrets:
+      SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     with:
       mergeMethod: squash
       skipCI: ${{ github.event.inputs.skipCI == 'true' }}
