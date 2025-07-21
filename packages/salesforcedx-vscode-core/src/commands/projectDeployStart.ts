@@ -10,7 +10,8 @@ import {
   EmptyParametersGatherer,
   SfWorkspaceChecker,
   workspaceUtils,
-  SourceTrackingService
+  SourceTrackingService,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle';
 import * as nodePath from 'node:path';
@@ -201,7 +202,7 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
       return true; // No conflicts detected or all conflicts were overridden
     } catch (error) {
       console.error('Error during conflict detection:', error);
-      const errorMsg = nls.localize('conflict_detect_error', error.toString());
+      const errorMsg = nls.localize('conflict_detect_error', errorToString(error));
       channelService.appendLine(errorMsg);
       telemetryService.sendException('ConflictDetectionException', errorMsg);
       return false; // Error occurred, cancel deployment

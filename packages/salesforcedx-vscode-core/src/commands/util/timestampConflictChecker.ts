@@ -9,7 +9,8 @@ import {
   CancelResponse,
   ContinueResponse,
   PostconditionChecker,
-  workspaceUtils
+  workspaceUtils,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import { basename, normalize } from 'node:path';
 import { channelService } from '../../channels';
@@ -72,7 +73,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         return await this.handleConflicts(inputs.data, username, diffs);
       } catch (error) {
         console.error(error);
-        const errorMsg = nls.localize('conflict_detect_error', error.toString());
+        const errorMsg = nls.localize('conflict_detect_error', errorToString(error));
         channelService.appendLine(errorMsg);
         telemetryService.sendException('ConflictDetectionException', errorMsg);
         await DeployQueue.get().unlock();
@@ -139,7 +140,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       return true; // No conflicts found
     } catch (error) {
       console.error(`Error checking conflicts for file ${filePath}:`, error);
-      const errorMsg = nls.localize('conflict_detect_error', error.toString());
+      const errorMsg = nls.localize('conflict_detect_error', errorToString(error));
       channelService.appendLine(errorMsg);
       telemetryService.sendException('ConflictDetectionException', errorMsg);
       return false; // Error occurred, cancel deployment
