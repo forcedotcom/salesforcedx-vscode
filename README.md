@@ -15,8 +15,6 @@ Currently, we have the following extensions:
   This extension interacts with the Salesforce CLI to provide basic Salesforce DX functionality.
 - [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)
   This extension uses the Apex Language Server to provide features such as syntax highlighting and code completion.
-- [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)
-  This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs and to use ISV Customer Debugger with your subscribers' sandbox orgs.
 - [salesforcedx-vscode-apex-replay-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)
   This extension enables VS Code to replay Apex execution from Apex debug logs.
 - [salesforcedx-vscode-lightning](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)
@@ -25,6 +23,9 @@ Currently, we have the following extensions:
   This extension supports Visualforce pages and components. It uses the HTML language server from VS Code.
 - [salesforcedx-vscode-soql](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql)
   This extension enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
+- [salesforcedx-vscode-slds](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds) This extension simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting, and validation with recommended tokens and utility classes.
+- [salesforcedx-einstein-gpt](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) This extension uses generative AI to make Salesforce development in Visual Studio Code richer with features such as a Dev Assistant that helps with writing, documenting, and understanding code. It also provides inline autocompletion, and test case generation for Apex and LWC code.
+- [sfdx-code-analyzer-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.sfdx-code-analyzer-vscode) This extension scans your code using multiple rule engines to produce lists of violations that you can use to improve your code. v5 also includes all the functionality of the ESLint and Apex PMD extensions. Now, the Salesforce Code Analyzer extension statically analyzes both your Apex and JavaScript code to quickly find problems.
 
 ## Be an Efficient Salesforce Developer with VS Code
 
