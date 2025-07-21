@@ -41,3 +41,4 @@ export {
   isNullOrUndefined
 } from './utils';
 export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
+export { errorToString, isError, isErrorString, getErrorMessage, getErrorStack } from './errorUtils';
