@@ -161,7 +161,7 @@ jobs:
         with:
           max_attempts: 5
           command: bash download-vscode.sh "${{ matrix.vscodeVersion }}"
-          retry_wait_seconds: 30
+          retry_wait_seconds: 300
 
       - name: Windows-specific setup
         if: runner.os == 'Windows'
@@ -195,7 +195,7 @@ jobs:
       - name: Setup project directories
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -e
           export MSYS_NO_PATHCONV=1
@@ -208,13 +208,39 @@ jobs:
           # Create extensions directory
           mkdir -p ./extensions
 
-          # Download extension vsixes
-          pwd
-          gh run download ${{ inputs.runId }} -D ./extensions
+          # Create artifact download script
+          cat > download-artifacts.sh << 'EOF'
+          #!/bin/bash
+          set -e
+
+          if [ $# -ne 1 ]; then
+            echo "Usage: $0 <run_id>"
+            echo "Example: $0 123456"
+            exit 1
+          fi
+
+          RUN_ID="$1"
+          echo "Downloading artifacts from run $RUN_ID..."
+
+          # Download artifacts using GH_TOKEN
+          gh run download "$RUN_ID" -D ./extensions
+          echo "Download successful"
+          EOF
+
+          chmod +x download-artifacts.sh
 
           # Move downloaded files to extensions root
           find ./extensions -mindepth 2 -type f -exec mv {} ./extensions/ \; 2>/dev/null || true
           find ./extensions -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+
+      - name: Download artifacts with retry
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 5
+          command: bash -c "cd salesforcedx-vscode && bash download-artifacts.sh '${{ inputs.runId }}'"
+          retry_wait_seconds: 300
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Create retry scripts
         shell: bash
@@ -283,14 +309,14 @@ jobs:
         with:
           max_attempts: 3
           command: bash install-dependencies.sh
-          retry_wait_seconds: 30
+          retry_wait_seconds: 300
 
       - name: Install Salesforce CLI with retry
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
           command: bash install-salesforce-cli.sh
-          retry_wait_seconds: 30
+          retry_wait_seconds: 300
 
       - name: Verify CLI and setup environment
         shell: bash
@@ -325,7 +351,7 @@ jobs:
         with:
           max_attempts: 3
           command: bash run-e2e-test.sh ${{ format('packages/salesforcedx-vscode-automation-tests/lib/test/specs/{0}', inputs.testToRun) }}
-          retry_wait_seconds: 30
+          retry_wait_seconds: 300
         env:
           GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
