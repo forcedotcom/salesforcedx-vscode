@@ -53,7 +53,7 @@ jobs:
           sf data delete bulk \
             --sobject ScratchOrgInfo \
             --where "Status = 'Deleted'" \
-            --target-org cleanup-org \
+            --target-org vscodeOrg \
             --wait 10
           echo "✅ Successfully deleted scratch org records"
 
