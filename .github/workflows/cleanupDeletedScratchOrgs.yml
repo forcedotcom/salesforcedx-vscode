@@ -39,21 +39,38 @@ jobs:
         id: query-deleted
         run: |
           echo "Querying for deleted scratch orgs..."
-          DELETED_COUNT=$(sf data query \
-            --query "SELECT COUNT() FROM ScratchOrgInfo WHERE Status = 'Deleted'" \
+          DELETED_RECORDS=$(sf data query \
+            --query "SELECT Id FROM ScratchOrgInfo WHERE Status = 'Deleted'" \
             --target-org vscodeOrg \
-            --json | jq -r '.result.totalSize')
+            --json)
+          DELETED_COUNT=$(echo "$DELETED_RECORDS" | jq -r '.result.totalSize')
           echo "Found $DELETED_COUNT deleted scratch org records to clean up"
           echo "deleted_count=$DELETED_COUNT" >> $GITHUB_OUTPUT
+          echo "deleted_records<<EOF" >> $GITHUB_OUTPUT
+          echo "$DELETED_RECORDS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Delete scratch org records
+      - name: Export and delete scratch org records
         if: steps.query-deleted.outputs.deleted_count > 0
         run: |
+          echo "Exporting ${{ steps.query-deleted.outputs.deleted_count }} deleted scratch org records to CSV..."
+
+          # Write records to CSV file
+          echo '${{ steps.query-deleted.outputs.deleted_records }}' | \
+            jq -r '.result.records[] | [.Id] | @csv' > deleted_scratch_orgs.csv
+
+          # Add CSV header
+          sed -i '1i"Id"' deleted_scratch_orgs.csv
+
+          echo "✅ Exported records to deleted_scratch_orgs.csv"
+          echo "CSV file contents:"
+          cat deleted_scratch_orgs.csv
+
           echo "Deleting ${{ steps.query-deleted.outputs.deleted_count }} deleted scratch org records..."
           sf data delete bulk \
             --sobject ScratchOrgInfo \
-            --where "Status = 'Deleted'" \
             --target-org vscodeOrg \
+            --file deleted_scratch_orgs.csv \
             --wait 10
           echo "✅ Successfully deleted scratch org records"
 
