@@ -72,7 +72,7 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
   }
 
   private async performDeployment(components: ComponentSet, token?: vscode.CancellationToken): Promise<boolean> {
-    let result: any;
+    let result: DeployResult | undefined;
 
     try {
       // Set API versions
