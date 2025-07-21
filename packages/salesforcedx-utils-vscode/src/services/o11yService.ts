@@ -43,7 +43,7 @@ export class O11yService {
   private static sharedProtoEncoderFunc: ProtoEncoderFuncType | null = null;
 
   // Extension-specific properties
-  private extensionName: string = '';
+  private extensionName?: string;
 
   private constructor() {}
 
