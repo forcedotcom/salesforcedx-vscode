@@ -37,6 +37,12 @@ describe('Miscellaneous', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it.skip('Use out-of-the-box Apex Snippets', async () => {
     logTestStart(testSetup, 'Use Apex Snippets');
     const workbench = await getWorkbench();

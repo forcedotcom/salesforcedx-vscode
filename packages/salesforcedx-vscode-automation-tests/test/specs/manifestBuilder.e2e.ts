@@ -42,6 +42,12 @@ describe('Manifest Builder', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('Generate Manifest File', async () => {
     logTestStart(testSetup, 'Generate Manifest File');
     // Normally we would want to run the 'SFDX: Generate Manifest File' command here, but it is only

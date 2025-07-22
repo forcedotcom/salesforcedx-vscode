@@ -90,6 +90,12 @@ describe('Run Apex Tests', () => {
     );
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('Verify LSP finished indexing', async () => {
     logTestStart(testSetup, 'Verify LSP finished indexing');
 
@@ -412,7 +418,7 @@ describe('Run Apex Tests', () => {
     // Use different selector depending on VSCode version
     const selector =
       EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
-      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
+        semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
         ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
         : 'input.quick-input-list-checkbox';
     const checkbox = await prompt.findElement(By.css(selector));
@@ -437,7 +443,7 @@ describe('Run Apex Tests', () => {
     // Use different selector depending on VSCode version
     const selector =
       EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
-      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
+        semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
         ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
         : 'input.quick-input-list-checkbox';
 

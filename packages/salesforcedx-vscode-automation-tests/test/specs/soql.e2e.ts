@@ -36,6 +36,12 @@ describe('SOQL', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('SFDX: Create Query in SOQL Builder', async () => {
     logTestStart(testSetup, 'SFDX: Create Query in SOQL Builder');
     await pause(Duration.seconds(20));

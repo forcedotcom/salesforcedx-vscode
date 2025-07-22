@@ -51,6 +51,12 @@ describe('SObjects Definitions', () => {
     await createCustomObjects(testSetup);
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it("Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder", async () => {
     logTestStart(testSetup, "Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder");
     const workbench = await getWorkbench();

@@ -79,6 +79,12 @@ describe('Visualforce LSP', () => {
     expect(fileContent).to.contain('</apex:page>');
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it.skip('Go to Definition', async () => {
     logTestStart(testSetup, 'Go to Definition');
     // Get open text editor

@@ -62,6 +62,12 @@ describe('Run LWC Tests', () => {
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('SFDX: Run All Lightning Web Component Tests from Command Palette', async () => {
     logTestStart(testSetup, 'SFDX: Run All Lightning Web Component Tests from Command Palette');
 
