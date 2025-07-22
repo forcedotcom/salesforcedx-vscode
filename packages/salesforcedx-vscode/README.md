@@ -44,8 +44,6 @@ The Salesforce Extension Pack installs these extensions.
   This extension (`salesforcedx-vscode-core`) interacts with Salesforce CLI to provide core functionality.
 - [Apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)
   This extension (`salesforcedx-vscode-apex`) uses the Apex Language Server to provide features such as syntax highlighting and code completion.
-- [Apex Interactive Debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)
-  This extension (`salesforcedx-vscode-apex-debugger`) enables VS Code to use the real-time Apex Debugger with your scratch orgs or to use ISV Customer Debugger for your subscribers’ orgs.
 - [Apex Replay Debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)
   This extension (`salesforcedx-vscode-apex-replay-debugger`) enables VS Code to replay Apex execution from Apex debug logs.
 - [Lightning Web Components](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lwc)
