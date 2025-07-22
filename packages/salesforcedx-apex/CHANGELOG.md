@@ -1,3 +1,12 @@
+## [8.2.4](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.3...8.2.4) (2025-07-22)
+
+
+### Bug Fixes
+
+* **deps:** bump form-data from 4.0.2 to 4.0.4 ([b21c035](https://github.com/forcedotcom/salesforcedx-apex/commit/b21c035a4fa93b3919a305f56d40c9d5a48367d3))
+
+
+
 ## [8.2.3](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.2...8.2.3) (2025-07-13)
 
 
