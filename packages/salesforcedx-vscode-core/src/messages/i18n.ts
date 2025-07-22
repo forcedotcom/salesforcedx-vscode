@@ -321,6 +321,9 @@ export const messages = {
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
+  error_source_tracking_connection_failed: 'Failed to establish connection to the org for source tracking.',
+  error_source_tracking_service_failed: 'Failed to initialize source tracking service.',
+  error_source_tracking_components_failed: 'Failed to get components using source tracking',
   list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',

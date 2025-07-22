@@ -121,29 +121,4 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
     }
     return { type: 'CONTINUE', data: componentPath };
   }
-
-  /**
-   * Check conflicts for a single file without logging start/end messages
-   * This is used when checking multiple files to avoid duplicate logging
-   */
-  public async checkFileWithoutLogging(filePath: string, username: string): Promise<boolean> {
-    try {
-      const cacheService = new MetadataCacheService(username);
-      const result = await cacheService.loadCache(filePath, workspaceUtils.getRootWorkspacePath(), this.isManifest);
-      const detector = new TimestampConflictDetector();
-      const diffs = await detector.createDiffs(result);
-
-      if (diffs.different.size > 0) {
-        const conflictResult = await this.handleConflicts(filePath, username, diffs);
-        return conflictResult.type === 'CONTINUE';
-      }
-      return true; // No conflicts found
-    } catch (error) {
-      console.error(`Error checking conflicts for file ${filePath}:`, error);
-      const errorMsg = nls.localize('conflict_detect_error', errorToString(error));
-      channelService.appendLine(errorMsg);
-      telemetryService.sendException('ConflictDetectionException', errorMsg);
-      return false; // Error occurred, cancel deployment
-    }
-  }
 }

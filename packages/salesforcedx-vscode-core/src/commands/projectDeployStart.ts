@@ -13,11 +13,14 @@ import {
   SourceTrackingService,
   errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle';
 import * as nodePath from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { TimestampFileProperties } from '../conflict/directoryDiffer';
 import { getConflictMessagesFor } from '../conflict/messages';
+import { MetadataCacheService } from '../conflict/metadataCacheService';
+import { TimestampConflictDetector } from '../conflict/timestampConflictDetector';
 import { PROJECT_DEPLOY_START_LOG_NAME, TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
@@ -55,12 +58,8 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     // Get components to determine changed files
     const components = await this.getComponents(response);
 
-    // If conflict detection is enabled, ignoreConflicts is false, and we have changed files, check for conflicts
-    if (
-      !this.ignoreConflicts &&
-      salesforceCoreSettings.getConflictDetectionEnabled() &&
-      this.changedFilePaths.length > 0
-    ) {
+    // If conflict detection is enabled, ignoreConflicts is false, and we have components to deploy, check for conflicts
+    if (!this.ignoreConflicts && salesforceCoreSettings.getConflictDetectionEnabled() && components.size > 0) {
       const conflictResult = await this.checkConflictsForChangedFiles();
       if (!conflictResult) {
         return false; // Conflict detection failed or was cancelled
@@ -108,7 +107,13 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     if (sourceTrackingEnabled) {
       try {
         const connection = await WorkspaceContext.getInstance().getConnection();
+        if (!connection) {
+          throw new Error(nls.localize('error_source_tracking_connection_failed'));
+        }
         const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+        if (!sourceTracking) {
+          throw new Error(nls.localize('error_source_tracking_service_failed'));
+        }
 
         // Get only the changed components from source tracking
         const statusResponse = await sourceTracking.getStatus({ local: true, remote: false });
@@ -145,9 +150,9 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
         // Create ComponentSet from specific file paths
         return ComponentSet.fromSource(changedFilePaths);
       } catch (error) {
-        // If source tracking fails, fall back to all source (old behavior)
-        console.warn('Source tracking failed, falling back to all source:', error);
-        return ComponentSet.fromSource(projectPath);
+        // If source tracking fails, let the error bubble up
+        console.error('Source tracking failed:', error);
+        throw new Error(`${nls.localize('error_source_tracking_components_failed')}: ${error}`);
       }
     }
 
@@ -179,18 +184,49 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
         return false;
       }
 
-      // Create a single TimestampConflictChecker instance for all files
-      const timestampChecker = new TimestampConflictChecker(false, messages, true);
+      // Use a single MetadataCacheService operation for all changed files
+      const cacheService = new MetadataCacheService(username);
+      const projectPath = workspaceUtils.getRootWorkspacePath();
 
-      // Check conflicts for each changed file
-      for (const filePath of this.changedFilePaths) {
-        const success = await timestampChecker.checkFileWithoutLogging(filePath, username);
-        if (!success) {
-          // Log conflict detection end and return false
+      // Create a single cache operation for all changed files
+      const result = await cacheService.loadCache(projectPath, projectPath, false);
+      if (!result) {
+        console.warn('No cache result available for conflict detection');
+        return true; // Continue with deployment
+      }
+
+      const detector = new TimestampConflictDetector();
+      const diffs = await detector.createDiffs(result);
+
+      if (diffs.different.size > 0) {
+        // Filter conflicts to only include our changed files
+        const relevantConflicts = new Set<TimestampFileProperties>();
+        for (const conflict of diffs.different) {
+          const conflictPath = nodePath.resolve(projectPath, conflict.localRelPath);
+          // If we have changedFilePaths (source tracking enabled), only check those files
+          // If we don't have changedFilePaths (source tracking disabled), check all conflicts
+          if (this.changedFilePaths.length === 0 || this.changedFilePaths.includes(conflictPath)) {
+            relevantConflicts.add(conflict);
+          }
+        }
+
+        if (relevantConflicts.size > 0) {
+          // Create a new diffs object with only relevant conflicts
+          const filteredDiffs = {
+            ...diffs,
+            different: relevantConflicts
+          };
+
+          // Create a TimestampConflictChecker to handle the conflicts
+          const timestampChecker = new TimestampConflictChecker(false, messages, true);
+          const conflictResult = await timestampChecker.handleConflicts(projectPath, username, filteredDiffs);
+
+          // Log conflict detection end
           channelService.showCommandWithTimestamp(
             `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`
           );
-          return false; // Conflict detected or error occurred, cancel deployment
+
+          return conflictResult.type === 'CONTINUE';
         }
       }
 
@@ -199,7 +235,7 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
         `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`
       );
 
-      return true; // No conflicts detected or all conflicts were overridden
+      return true; // No conflicts detected
     } catch (error) {
       console.error('Error during conflict detection:', error);
       const errorMsg = nls.localize('conflict_detect_error', errorToString(error));

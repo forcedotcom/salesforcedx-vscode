@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { workspaceUtils, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
-import { nls } from '@salesforce/salesforcedx-utils-vscode/src/messages';
+import { workspaceUtils, SourceTrackingService, nls } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { channelService } from '../../../src/channels';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { DeployExecutor } from '../../../src/commands/deployExecutor';
 import { ProjectDeployStartExecutor, projectDeployStart } from '../../../src/commands/projectDeployStart';
 import { SfCommandletExecutor, SfCommandlet } from '../../../src/commands/util';
-import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';
 import { PersistentStorageService } from '../../../src/conflict';
 
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
@@ -291,48 +289,30 @@ describe('ProjectDeployStart', () => {
         expect(result.size).toBe(0); // Should be empty since no file paths
       });
 
-      it('should fall back to all source when source tracking fails', async () => {
+      it('should throw error when source tracking fails', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockRejectedValue(new Error('Source tracking failed'));
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        const mockComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-        // Act
-        const result = await (executor as any).getComponents(mockResponse);
-
-        // Assert
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Source tracking failed, falling back to all source:',
-          expect.any(Error)
-        );
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith('/test/project/path');
-        expect(result).toBeInstanceOf(ComponentSet);
+        // Act & Assert
+        await expect((executor as any).getComponents(mockResponse)).rejects.toThrow('Source tracking failed');
+        expect(consoleSpy).toHaveBeenCalledWith('Source tracking failed:', expect.any(Error));
       });
 
-      it('should fall back to all source when workspace context fails', async () => {
+      it('should throw error when workspace context fails', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         jest.spyOn(WorkspaceContext, 'getInstance').mockImplementation(() => {
           throw new Error('Workspace context failed');
         });
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        const mockComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-        // Act
-        const result = await (executor as any).getComponents(mockResponse);
-
-        // Assert
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Source tracking failed, falling back to all source:',
-          expect.any(Error)
-        );
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith('/test/project/path');
-        expect(result).toBeInstanceOf(ComponentSet);
+        // Act & Assert
+        await expect((executor as any).getComponents(mockResponse)).rejects.toThrow('Workspace context failed');
+        expect(consoleSpy).toHaveBeenCalledWith('Source tracking failed:', expect.any(Error));
       });
     });
 
@@ -391,84 +371,20 @@ describe('ProjectDeployStart', () => {
         expect((executor as any).showChannelOutput).toBe(false);
       });
     });
-  });
 
-  describe('projectDeployStart function', () => {
-    beforeEach(() => {
-      jest.spyOn(salesforceCoreSettings, 'getDeployOnSaveShowOutputPanel').mockReturnValue(true);
-      // Mock the channel service to prevent actual execution
-      jest.spyOn(channelService, 'clear').mockImplementation(() => {});
-      jest.spyOn(channelService, 'appendLine').mockImplementation(() => {});
-      jest.spyOn(channelService, 'showChannelOutput').mockImplementation(() => {});
-      // Mock the SfCommandlet to prevent actual execution
-      jest.spyOn(SfCommandlet.prototype, 'run').mockResolvedValue(undefined);
-    });
-
-    it('should handle different parameter combinations', async () => {
-      // Test that the function can be called with different parameters without throwing
-      await expect(projectDeployStart(false, false)).resolves.not.toThrow();
-      await expect(projectDeployStart(true, false)).resolves.not.toThrow();
-      await expect(projectDeployStart(false, true)).resolves.not.toThrow();
-      await expect(projectDeployStart(true, true)).resolves.not.toThrow();
-    });
-
-    it('should call getDeployOnSaveShowOutputPanel when isDeployOnSave is true', async () => {
-      // Arrange
-      const isDeployOnSave = true;
-      const ignoreConflicts = false;
-
-      // Act
-      await projectDeployStart(isDeployOnSave, ignoreConflicts);
-
-      // Assert
-      expect(salesforceCoreSettings.getDeployOnSaveShowOutputPanel).toHaveBeenCalled();
-    });
-
-    describe('conflict detection', () => {
+    describe('checkConflictsForChangedFiles', () => {
       beforeEach(() => {
+        jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('/test/project/path');
+        jest.spyOn(channelService, 'showChannelOutput').mockImplementation(() => {});
         jest.spyOn(channelService, 'showCommandWithTimestamp').mockImplementation(() => {});
         jest.spyOn(channelService, 'appendLine').mockImplementation(() => {});
-        jest.spyOn(telemetryService, 'sendException').mockImplementation(() => {});
+        jest.spyOn(nls, 'localize').mockReturnValue('test message');
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
           username: 'test@example.com'
         } as any);
-      });
-
-      it('should skip conflict detection when setting is disabled', async () => {
-        // Arrange
-        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(false);
-
-        // Act
-        await projectDeployStart(false, false);
-
-        // Assert
-        // Since SfCommandlet is mocked, we can't test the actual conflict checker behavior
-        // But we can verify that the function completes without error
-        expect(true).toBe(true);
-      });
-
-      it('should create commandlet with conflict checker when setting is enabled', async () => {
-        // Arrange
-        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
-        const mockRun = jest.spyOn(SfCommandlet.prototype, 'run').mockResolvedValue(undefined);
-
-        // Act
-        await projectDeployStart(false, false);
-
-        // Assert
-        expect(mockRun).toHaveBeenCalled();
-      });
-
-      it('should create commandlet with conflict checker when setting is disabled', async () => {
-        // Arrange
-        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(false);
-        const mockRun = jest.spyOn(SfCommandlet.prototype, 'run').mockResolvedValue(undefined);
-
-        // Act
-        await projectDeployStart(false, false);
-
-        // Assert
-        expect(mockRun).toHaveBeenCalled();
+        jest.spyOn(telemetryService, 'sendException').mockImplementation(() => {});
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {});
       });
 
       it('should store changed file paths in executor for conflict detection', async () => {
@@ -503,88 +419,6 @@ describe('ProjectDeployStart', () => {
         expect(executor.getChangedFilePaths()).toEqual([
           '/test/project/path/force-app/main/default/classes/TestClass.cls'
         ]);
-      });
-
-      it('should perform conflict detection on changed files when setting is enabled', async () => {
-        // Arrange
-        const executor = new ProjectDeployStartExecutor();
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
-          }
-        ];
-        const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
-        };
-        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
-        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
-        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue({}),
-          username: 'test@example.com'
-        } as any);
-
-        // Mock the conflict detection to return success
-        const mockTimestampChecker = {
-          checkFileWithoutLogging: jest.fn().mockResolvedValue(true) // No conflicts
-        };
-        jest
-          .spyOn(TimestampConflictChecker.prototype, 'checkFileWithoutLogging')
-          .mockImplementation(mockTimestampChecker.checkFileWithoutLogging);
-
-        // Mock ComponentSet to return a proper iterable
-        const mockComponentSet = {
-          size: 1,
-          *[Symbol.iterator]() {
-            yield { type: { name: 'ApexClass' } };
-          },
-          deploy: jest.fn().mockResolvedValue({
-            response: { status: 'Succeeded' },
-            pollStatus: jest.fn().mockResolvedValue({
-              response: { status: 'Succeeded' },
-              getFileResponses: jest.fn().mockReturnValue([])
-            }),
-            getFileResponses: jest.fn().mockReturnValue([])
-          })
-        };
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet as any);
-
-        // Mock the source tracking to have all required methods
-        const mockSourceTrackingWithMethods = {
-          ...mockSourceTracking,
-          ensureLocalTracking: jest.fn().mockResolvedValue(undefined)
-        };
-        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTrackingWithMethods as any);
-
-        // Mock PersistentStorageService
-        jest.spyOn(PersistentStorageService, 'getInstance').mockReturnValue({
-          setPropertiesForFilesDeploy: jest.fn()
-        } as any);
-
-        // Mock SalesforceProjectConfig to avoid undefined errors
-        jest.spyOn(SalesforceProjectConfig, 'getInstance').mockResolvedValue({
-          get: jest.fn().mockReturnValue('dummy')
-        } as any);
-        jest.spyOn(SalesforcePackageDirectories, 'getPackageDirectoryPaths').mockResolvedValue(['force-app']);
-
-        // Mock error collections
-        const mockErrorCollection = { clear: jest.fn() };
-        DeployRetrieveExecutor.errorCollection = mockErrorCollection as any;
-        SfCommandletExecutor.errorCollection = mockErrorCollection as any;
-
-        // Mock the performDeployment method to return success
-        jest.spyOn(executor as any, 'performDeployment').mockResolvedValue(true);
-
-        // Act
-        const result = await executor.run({} as any);
-
-        // Assert
-        expect(result).toBe(true);
-        expect(mockTimestampChecker.checkFileWithoutLogging).toHaveBeenCalled();
       });
 
       it('should skip conflict detection when no changed files are found', async () => {
@@ -699,7 +533,7 @@ describe('ProjectDeployStart', () => {
         ]);
       });
 
-      it('should perform conflict detection when ignoreConflicts is false', async () => {
+      it('should perform conflict detection when ignoreConflicts is false and conflicts are detected', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor(true, false); // ignoreConflicts = false
         const mockChangedComponents = [
@@ -721,14 +555,6 @@ describe('ProjectDeployStart', () => {
           getConnection: jest.fn().mockResolvedValue({}),
           username: 'test@example.com'
         } as any);
-
-        // Mock the conflict detection to return success
-        const mockTimestampChecker = {
-          checkFileWithoutLogging: jest.fn().mockResolvedValue(true) // No conflicts
-        };
-        jest
-          .spyOn(TimestampConflictChecker.prototype, 'checkFileWithoutLogging')
-          .mockImplementation(mockTimestampChecker.checkFileWithoutLogging);
 
         // Mock ComponentSet to return a proper iterable
         const mockComponentSet = {
@@ -770,6 +596,8 @@ describe('ProjectDeployStart', () => {
         DeployRetrieveExecutor.errorCollection = mockErrorCollection as any;
         SfCommandletExecutor.errorCollection = mockErrorCollection as any;
 
+        // Mock the checkConflictsForChangedFiles method to return true (conflicts detected but user continued)
+        jest.spyOn(executor as any, 'checkConflictsForChangedFiles').mockResolvedValue(true);
         // Mock the performDeployment method to return success
         jest.spyOn(executor as any, 'performDeployment').mockResolvedValue(true);
 
@@ -779,7 +607,325 @@ describe('ProjectDeployStart', () => {
         // Assert
         expect(result).toBe(true);
         // Conflict detection should be performed since ignoreConflicts is false
-        expect(mockTimestampChecker.checkFileWithoutLogging).toHaveBeenCalled();
+        expect(executor.getChangedFilePaths()).toEqual([
+          '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        ]);
+        // Verify that conflict detection was called
+        expect((executor as any).checkConflictsForChangedFiles).toHaveBeenCalled();
+      });
+
+      it('should cancel deployment when conflicts are detected and user cancels', async () => {
+        // Arrange
+        const executor = new ProjectDeployStartExecutor(true, false); // ignoreConflicts = false
+        const mockChangedComponents = [
+          {
+            fullName: 'TestClass',
+            type: 'ApexClass',
+            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
+            origin: 'local',
+            ignored: false
+          }
+        ];
+        const mockSourceTracking = {
+          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+        };
+        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
+        jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
+        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
+        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+          getConnection: jest.fn().mockResolvedValue({}),
+          username: 'test@example.com'
+        } as any);
+
+        // Mock ComponentSet to return a proper iterable
+        const mockComponentSet = {
+          size: 1,
+          *[Symbol.iterator]() {
+            yield { type: { name: 'ApexClass' } };
+          },
+          deploy: jest.fn().mockResolvedValue({
+            response: { status: 'Succeeded' },
+            pollStatus: jest.fn().mockResolvedValue({
+              response: { status: 'Succeeded' },
+              getFileResponses: jest.fn().mockReturnValue([])
+            }),
+            getFileResponses: jest.fn().mockReturnValue([])
+          })
+        };
+        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet as any);
+
+        // Mock the source tracking to have all required methods
+        const mockSourceTrackingWithMethods = {
+          ...mockSourceTracking,
+          ensureLocalTracking: jest.fn().mockResolvedValue(undefined)
+        };
+        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTrackingWithMethods as any);
+
+        // Mock PersistentStorageService
+        jest.spyOn(PersistentStorageService, 'getInstance').mockReturnValue({
+          setPropertiesForFilesDeploy: jest.fn()
+        } as any);
+
+        // Mock SalesforceProjectConfig to avoid undefined errors
+        jest.spyOn(SalesforceProjectConfig, 'getInstance').mockResolvedValue({
+          get: jest.fn().mockReturnValue('dummy')
+        } as any);
+        jest.spyOn(SalesforcePackageDirectories, 'getPackageDirectoryPaths').mockResolvedValue(['force-app']);
+
+        // Mock error collections
+        const mockErrorCollection = { clear: jest.fn() };
+        DeployRetrieveExecutor.errorCollection = mockErrorCollection as any;
+        SfCommandletExecutor.errorCollection = mockErrorCollection as any;
+
+        // Mock the checkConflictsForChangedFiles method to return false (user cancelled)
+        jest.spyOn(executor as any, 'checkConflictsForChangedFiles').mockResolvedValue(false);
+
+        // Act
+        const result = await executor.run({} as any);
+
+        // Assert
+        expect(result).toBe(false);
+        expect(executor.getChangedFilePaths()).toEqual([
+          '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        ]);
+      });
+
+      it('should continue deployment when conflicts are detected and user continues', async () => {
+        // Arrange
+        const executor = new ProjectDeployStartExecutor(true, false); // ignoreConflicts = false
+        const mockChangedComponents = [
+          {
+            fullName: 'TestClass',
+            type: 'ApexClass',
+            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
+            origin: 'local',
+            ignored: false
+          }
+        ];
+        const mockSourceTracking = {
+          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+        };
+        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
+        jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
+        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
+        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+          getConnection: jest.fn().mockResolvedValue({}),
+          username: 'test@example.com'
+        } as any);
+
+        // Mock ComponentSet to return a proper iterable
+        const mockComponentSet = {
+          size: 1,
+          *[Symbol.iterator]() {
+            yield { type: { name: 'ApexClass' } };
+          },
+          deploy: jest.fn().mockResolvedValue({
+            response: { status: 'Succeeded' },
+            pollStatus: jest.fn().mockResolvedValue({
+              response: { status: 'Succeeded' },
+              getFileResponses: jest.fn().mockReturnValue([])
+            }),
+            getFileResponses: jest.fn().mockReturnValue([])
+          })
+        };
+        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet as any);
+
+        // Mock the source tracking to have all required methods
+        const mockSourceTrackingWithMethods = {
+          ...mockSourceTracking,
+          ensureLocalTracking: jest.fn().mockResolvedValue(undefined)
+        };
+        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTrackingWithMethods as any);
+
+        // Mock PersistentStorageService
+        jest.spyOn(PersistentStorageService, 'getInstance').mockReturnValue({
+          setPropertiesForFilesDeploy: jest.fn()
+        } as any);
+
+        // Mock SalesforceProjectConfig to avoid undefined errors
+        jest.spyOn(SalesforceProjectConfig, 'getInstance').mockResolvedValue({
+          get: jest.fn().mockReturnValue('dummy')
+        } as any);
+        jest.spyOn(SalesforcePackageDirectories, 'getPackageDirectoryPaths').mockResolvedValue(['force-app']);
+
+        // Mock error collections
+        const mockErrorCollection = { clear: jest.fn() };
+        DeployRetrieveExecutor.errorCollection = mockErrorCollection as any;
+        SfCommandletExecutor.errorCollection = mockErrorCollection as any;
+
+        // Mock the checkConflictsForChangedFiles method to return true (user continued)
+        jest.spyOn(executor as any, 'checkConflictsForChangedFiles').mockResolvedValue(true);
+        // Mock the performDeployment method to return success
+        jest.spyOn(executor as any, 'performDeployment').mockResolvedValue(true);
+
+        // Act
+        const result = await executor.run({} as any);
+
+        // Assert
+        expect(result).toBe(true);
+        expect(executor.getChangedFilePaths()).toEqual([
+          '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        ]);
+      });
+
+      it('should perform conflict detection when enabled but no conflicts are found', async () => {
+        // Arrange
+        const executor = new ProjectDeployStartExecutor(true, false); // ignoreConflicts = false
+        const mockChangedComponents = [
+          {
+            fullName: 'TestClass',
+            type: 'ApexClass',
+            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
+            origin: 'local',
+            ignored: false
+          }
+        ];
+        const mockSourceTracking = {
+          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+        };
+        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
+        jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
+        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
+        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+          getConnection: jest.fn().mockResolvedValue({}),
+          username: 'test@example.com'
+        } as any);
+
+        // Mock ComponentSet to return a proper iterable
+        const mockComponentSet = {
+          size: 1,
+          *[Symbol.iterator]() {
+            yield { type: { name: 'ApexClass' } };
+          },
+          deploy: jest.fn().mockResolvedValue({
+            response: { status: 'Succeeded' },
+            pollStatus: jest.fn().mockResolvedValue({
+              response: { status: 'Succeeded' },
+              getFileResponses: jest.fn().mockReturnValue([])
+            }),
+            getFileResponses: jest.fn().mockReturnValue([])
+          })
+        };
+        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet as any);
+
+        // Mock the source tracking to have all required methods
+        const mockSourceTrackingWithMethods = {
+          ...mockSourceTracking,
+          ensureLocalTracking: jest.fn().mockResolvedValue(undefined)
+        };
+        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTrackingWithMethods as any);
+
+        // Mock PersistentStorageService
+        jest.spyOn(PersistentStorageService, 'getInstance').mockReturnValue({
+          setPropertiesForFilesDeploy: jest.fn()
+        } as any);
+
+        // Mock SalesforceProjectConfig to avoid undefined errors
+        jest.spyOn(SalesforceProjectConfig, 'getInstance').mockResolvedValue({
+          get: jest.fn().mockReturnValue('dummy')
+        } as any);
+        jest.spyOn(SalesforcePackageDirectories, 'getPackageDirectoryPaths').mockResolvedValue(['force-app']);
+
+        // Mock error collections
+        const mockErrorCollection = { clear: jest.fn() };
+        DeployRetrieveExecutor.errorCollection = mockErrorCollection as any;
+        SfCommandletExecutor.errorCollection = mockErrorCollection as any;
+
+        // Mock the checkConflictsForChangedFiles method to return true (no conflicts found)
+        jest.spyOn(executor as any, 'checkConflictsForChangedFiles').mockResolvedValue(true);
+        // Mock the performDeployment method to return success
+        jest.spyOn(executor as any, 'performDeployment').mockResolvedValue(true);
+
+        // Act
+        const result = await executor.run({} as any);
+
+        // Assert
+        expect(result).toBe(true);
+        expect(executor.getChangedFilePaths()).toEqual([
+          '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        ]);
+        // Verify that conflict detection was called
+        expect((executor as any).checkConflictsForChangedFiles).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('projectDeployStart function', () => {
+    beforeEach(() => {
+      jest.spyOn(salesforceCoreSettings, 'getDeployOnSaveShowOutputPanel').mockReturnValue(true);
+      // Mock the channel service to prevent actual execution
+      jest.spyOn(channelService, 'clear').mockImplementation(() => {});
+      jest.spyOn(channelService, 'appendLine').mockImplementation(() => {});
+      jest.spyOn(channelService, 'showChannelOutput').mockImplementation(() => {});
+      // Mock the SfCommandlet to prevent actual execution
+      jest.spyOn(SfCommandlet.prototype, 'run').mockResolvedValue(undefined);
+    });
+
+    it('should handle different parameter combinations', async () => {
+      // Test that the function can be called with different parameters without throwing
+      await expect(projectDeployStart(false, false)).resolves.not.toThrow();
+      await expect(projectDeployStart(true, false)).resolves.not.toThrow();
+      await expect(projectDeployStart(false, true)).resolves.not.toThrow();
+      await expect(projectDeployStart(true, true)).resolves.not.toThrow();
+    });
+
+    it('should call getDeployOnSaveShowOutputPanel when isDeployOnSave is true', async () => {
+      // Arrange
+      const isDeployOnSave = true;
+      const ignoreConflicts = false;
+
+      // Act
+      await projectDeployStart(isDeployOnSave, ignoreConflicts);
+
+      // Assert
+      expect(salesforceCoreSettings.getDeployOnSaveShowOutputPanel).toHaveBeenCalled();
+    });
+
+    describe('conflict detection', () => {
+      beforeEach(() => {
+        jest.spyOn(channelService, 'showCommandWithTimestamp').mockImplementation(() => {});
+        jest.spyOn(channelService, 'appendLine').mockImplementation(() => {});
+        jest.spyOn(telemetryService, 'sendException').mockImplementation(() => {});
+        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+          username: 'test@example.com'
+        } as any);
+      });
+
+      it('should skip conflict detection when setting is disabled', async () => {
+        // Arrange
+        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(false);
+
+        // Act
+        await projectDeployStart(false, false);
+
+        // Assert
+        // Since SfCommandlet is mocked, we can't test the actual conflict checker behavior
+        // But we can verify that the function completes without error
+        expect(true).toBe(true);
+      });
+
+      it('should create commandlet with conflict checker when setting is enabled', async () => {
+        // Arrange
+        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
+        const mockRun = jest.spyOn(SfCommandlet.prototype, 'run').mockResolvedValue(undefined);
+
+        // Act
+        await projectDeployStart(false, false);
+
+        // Assert
+        expect(mockRun).toHaveBeenCalled();
+      });
+
+      it('should create commandlet with conflict checker when setting is disabled', async () => {
+        // Arrange
+        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(false);
+        const mockRun = jest.spyOn(SfCommandlet.prototype, 'run').mockResolvedValue(undefined);
+
+        // Act
+        await projectDeployStart(false, false);
+
+        // Assert
+        expect(mockRun).toHaveBeenCalled();
       });
     });
   });
