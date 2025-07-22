@@ -1,0 +1,93 @@
+name: Cleanup Deleted Scratch Orgs
+
+on:
+  workflow_dispatch: # Allow manual trigger
+  schedule:
+    - cron: '0 2 * * *' # Run at 2 AM UTC (10 PM EST) every day
+
+jobs:
+  cleanup-scratch-orgs:
+    runs-on: ubuntu-latest
+
+    env:
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          cache: npm
+
+      - name: Install Salesforce CLI
+        run: |
+          npm install -g @salesforce/cli
+          sf --version
+
+      - name: Authenticate with Salesforce
+        run: |
+          echo "Authenticating with Salesforce org..."
+          sf org login sfdx-url \
+            --sfdx-url-file <(echo "$SFDX_AUTH_URL") \
+            --alias vscodeOrg \
+            --set-default
+
+      - name: Query existing deleted scratch orgs
+        id: query-deleted
+        run: |
+          echo "Querying for deleted scratch orgs..."
+          DELETED_RECORDS=$(sf data query \
+            --query "SELECT Id FROM ScratchOrgInfo WHERE Status = 'Deleted'" \
+            --target-org vscodeOrg \
+            --json)
+          DELETED_COUNT=$(echo "$DELETED_RECORDS" | jq -r '.result.totalSize')
+          echo "Found $DELETED_COUNT deleted scratch org records to clean up"
+          echo "deleted_count=$DELETED_COUNT" >> $GITHUB_OUTPUT
+          echo "deleted_records<<EOF" >> $GITHUB_OUTPUT
+          echo "$DELETED_RECORDS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Export and delete scratch org records
+        if: steps.query-deleted.outputs.deleted_count > 0
+        run: |
+          echo "Exporting ${{ steps.query-deleted.outputs.deleted_count }} deleted scratch org records to CSV..."
+
+          # Write records to CSV file
+          echo '${{ steps.query-deleted.outputs.deleted_records }}' | \
+            jq -r '.result.records[] | [.Id] | @csv' > deleted_scratch_orgs.csv
+
+          # Add CSV header
+          sed -i '1i"Id"' deleted_scratch_orgs.csv
+
+          echo "✅ Exported records to deleted_scratch_orgs.csv"
+          echo "CSV file contents:"
+          cat deleted_scratch_orgs.csv
+
+          echo "Deleting ${{ steps.query-deleted.outputs.deleted_count }} deleted scratch org records..."
+          sf data delete bulk \
+            --sobject ScratchOrgInfo \
+            --target-org vscodeOrg \
+            --file deleted_scratch_orgs.csv \
+            --wait 10
+          echo "✅ Successfully deleted scratch org records"
+
+      - name: No records to delete
+        if: steps.query-deleted.outputs.deleted_count == 0
+        run: |
+          echo "ℹ️ No deleted scratch org records found to clean up"
+
+      - name: Logout from Salesforce
+        if: always()
+        run: |
+          sf org logout --target-org vscodeOrg --no-prompt || true
+
+      - name: Workflow summary
+        if: always()
+        run: |
+          echo "## Scratch Org Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deleted Records:** ${{ steps.query-deleted.outputs.deleted_count || '0' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
