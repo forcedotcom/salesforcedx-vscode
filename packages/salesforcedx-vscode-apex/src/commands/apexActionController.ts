@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, TimingUtils, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
@@ -48,11 +48,10 @@ export class ApexActionController {
     let eligibilityResult;
     let context;
     let name: string = 'Should Never Be Empty';
-    let generationHrStart: number = -1;
     let overwrite = true;
     const telemetryService = getTelemetryService();
     this.gil.clear();
-    const hrStart = globalThis.performance.now();
+    const startTime = TimingUtils.getCurrentTime();
     let props: OASGenerationCommandProperties = {
       isClass: `${isClass}`,
       overwrite: 'false',
@@ -119,9 +118,9 @@ export class ApexActionController {
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
 
           // Step 7: Use the strategy to generate the OAS
-          generationHrStart = globalThis.performance.now();
+          const generationStartTime = TimingUtils.getCurrentTime();
           const openApiDocument = await strategy.generateOAS();
-          const generationHrDuration = globalThis.performance.now() - generationHrStart;
+          const generationHrDuration = TimingUtils.getCurrentTime() - generationStartTime;
           this.gil.addPostGenDoc(openApiDocument);
           this.gil.addGenerationStrategy(this.getBidRule() ?? 'MANUAL');
           this.gil.addOutputTokenLimit(strategy!.outputTokenLimit);
@@ -170,7 +169,7 @@ export class ApexActionController {
       if (overwrite) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));
-        telemetryService.sendCommandEvent(createdMessage, hrStart, props, measures);
+        telemetryService.sendCommandEvent(createdMessage, startTime, props, measures);
       } else {
         // Case 2: User decided to manually merge the original and new ESR files
         const message = nls.localize(
@@ -180,7 +179,7 @@ export class ApexActionController {
           name
         );
         await notificationService.showInformationMessage(message);
-        telemetryService.sendCommandEvent(createdMessage, hrStart, props, measures);
+        telemetryService.sendCommandEvent(createdMessage, startTime, props, measures);
       }
     } catch (error: any) {
       void this.handleError(error, `OASDocumentFor${type}CreationFailed`);

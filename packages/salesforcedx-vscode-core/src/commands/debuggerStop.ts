@@ -12,7 +12,8 @@ import {
   EmptyParametersGatherer,
   ParametersGatherer,
   ProgressNotification,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -76,7 +77,7 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
-    const startTime = globalThis.performance.now();
+    const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 

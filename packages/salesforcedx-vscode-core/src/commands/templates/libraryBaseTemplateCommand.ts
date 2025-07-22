@@ -5,7 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil, workspaceUtils, ContinueResponse, Properties } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  workspaceUtils,
+  ContinueResponse,
+  Properties,
+  TimingUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateOptions, TemplateService, TemplateType } from '@salesforce/templates';
 import * as path from 'node:path';
 import { ProgressLocation, window, workspace } from 'vscode';
@@ -52,7 +58,7 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
   protected telemetryProperties: Properties = {};
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    const startTime = globalThis.performance.now();
+    const startTime = TimingUtils.getCurrentTime();
     const commandName = this.executionName;
     channelService.showCommandWithTimestamp(`Starting ${commandName}`);
     const result: ExecutionResult = await window.withProgress(

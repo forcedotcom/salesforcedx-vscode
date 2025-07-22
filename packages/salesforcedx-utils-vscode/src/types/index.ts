@@ -172,9 +172,14 @@ export interface TelemetryServiceInterface {
   isTelemetryExtensionConfigurationEnabled(): boolean;
   setCliTelemetryEnabled(isEnabled: boolean): void;
   sendActivationEventInfo(activationInfo: ActivationInfo): void;
-  sendExtensionActivationEvent(hrstart?: number, markEndTime?: number, telemetryData?: TelemetryData): void;
+  sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void;
   sendExtensionDeactivationEvent(): void;
-  sendCommandEvent(commandName?: string, hrstart?: number, properties?: Properties, measurements?: Measurements): void;
+  sendCommandEvent(
+    commandName?: string,
+    startTime?: number,
+    properties?: Properties,
+    measurements?: Measurements
+  ): void;
   sendException(name: string, message: string): void;
   sendEventData(
     eventName: string,
@@ -186,5 +191,4 @@ export interface TelemetryServiceInterface {
     }
   ): void;
   dispose(): void;
-  getEndHRTime(hrstart: number): number;
 }

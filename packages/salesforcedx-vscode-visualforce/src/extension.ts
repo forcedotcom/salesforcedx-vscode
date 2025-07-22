@@ -4,6 +4,7 @@
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 
@@ -56,7 +57,7 @@ export const activate = async (context: ExtensionContext) => {
   }
   telemetryService = salesforceCoreExtension?.exports?.services?.TelemetryService.getInstance();
   await telemetryService?.initializeService(context);
-  const extensionHRStart = globalThis.performance.now();
+  const extensionStartTime = TimingUtils.getCurrentTime();
   const toDispose = context.subscriptions;
 
   // The server is implemented in node
@@ -148,7 +149,7 @@ export const activate = async (context: ExtensionContext) => {
     disposable = activateTagClosing(tagRequestor, { visualforce: true }, 'visualforce.autoClosingTags');
     toDispose.push(disposable);
   } catch {
-    telemetryService?.sendExtensionActivationEvent(extensionHRStart);
+    telemetryService?.sendExtensionActivationEvent(extensionStartTime);
   }
   languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
@@ -200,7 +201,7 @@ export const activate = async (context: ExtensionContext) => {
     ]
   });
 
-  telemetryService?.sendExtensionActivationEvent(extensionHRStart);
+  telemetryService?.sendExtensionActivationEvent(extensionStartTime);
 };
 
 export const deactivate = () => {

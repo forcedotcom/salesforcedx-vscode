@@ -17,6 +17,7 @@ export class TimingUtils {
 
   /**
    * Get the current high-resolution timestamp
+   *
    * @returns Current timestamp in milliseconds
    */
   public static getCurrentTime(): number {

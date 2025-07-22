@@ -301,7 +301,7 @@ export class LanguageClientManager {
   ): Promise<void> {
     const telemetryService = getTelemetryService();
     try {
-      const langClientHRStart = globalThis.performance.now();
+      const langClientStartTime = TimingUtils.getCurrentTime();
       this.setClientInstance(await languageServer.createLanguageServer(extensionContext));
 
       const languageClient = this.getClientInstance();
@@ -318,7 +318,7 @@ export class LanguageClientManager {
         });
 
         await languageClient.start();
-        const startTime = TimingUtils.getElapsedTime(langClientHRStart);
+        const startTime = TimingUtils.getElapsedTime(langClientStartTime);
         telemetryService.sendEventData('apexLSPStartup', undefined, {
           activationTime: startTime
         });

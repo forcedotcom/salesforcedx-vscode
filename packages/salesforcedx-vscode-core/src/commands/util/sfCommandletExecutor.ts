@@ -13,7 +13,8 @@ import {
   workspaceUtils,
   ProgressNotification,
   Properties,
-  Measurements
+  Measurements,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
@@ -52,12 +53,17 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public logMetric(logName: string | undefined, hrstart: number, properties?: Properties, measurements?: Measurements) {
-    telemetryService.sendCommandEvent(logName, hrstart, properties, measurements);
+  public logMetric(
+    logName: string | undefined,
+    startTime: number,
+    properties?: Properties,
+    measurements?: Measurements
+  ) {
+    telemetryService.sendCommandEvent(logName, startTime, properties, measurements);
   }
 
   public execute(response: ContinueResponse<T>): void | Promise<void> {
-    const startTime = globalThis.performance.now();
+    const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {

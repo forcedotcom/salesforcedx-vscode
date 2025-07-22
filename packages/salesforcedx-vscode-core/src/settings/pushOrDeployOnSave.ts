@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode/src/helpers/timingUtils';
 import * as path from 'node:path';
 import { setTimeout } from 'node:timers';
 import * as vscode from 'vscode';
@@ -108,7 +109,7 @@ export class DeployQueue {
           },
           {
             documentsToDeploy: toDeploy.length,
-            waitTimeForLastDeploy: this.deployWaitStart ? telemetryService.getEndHRTime(this.deployWaitStart) : 0
+            waitTimeForLastDeploy: this.deployWaitStart ? TimingUtils.getElapsedTime(this.deployWaitStart) : 0
           }
         );
       } catch (e) {
@@ -127,7 +128,7 @@ export class DeployQueue {
       }
       this.deployWaitStart = undefined;
     } else if (this.locked && !this.deployWaitStart) {
-      this.deployWaitStart = globalThis.performance.now();
+      this.deployWaitStart = TimingUtils.getCurrentTime();
     }
   }
 }

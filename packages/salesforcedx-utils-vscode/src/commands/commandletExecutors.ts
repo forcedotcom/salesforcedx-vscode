@@ -44,8 +44,13 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
     ProgressNotification.show(execution, cancellationTokenSource);
   }
 
-  public logMetric(logName: string | undefined, hrstart: number, properties?: Properties, measurements?: Measurements) {
-    TelemetryService.getInstance().sendCommandEvent(logName, hrstart, properties, measurements);
+  public logMetric(
+    logName: string | undefined,
+    startTime: number,
+    properties?: Properties,
+    measurements?: Measurements
+  ) {
+    TelemetryService.getInstance().sendCommandEvent(logName, startTime, properties, measurements);
   }
 
   public execute(response: ContinueResponse<T>): void {

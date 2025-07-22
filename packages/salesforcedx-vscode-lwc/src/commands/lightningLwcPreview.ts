@@ -19,7 +19,8 @@ import {
   SfWorkspaceChecker,
   stat as getFileStats,
   readFile,
-  fileOrFolderExists
+  fileOrFolderExists,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -130,7 +131,7 @@ const lwcPreviewContainerMode = () => {
 };
 
 const lwcPreview = async (sourceUri: URI) => {
-  const startTime = globalThis.performance.now();
+  const startTime = TimingUtils.getCurrentTime();
 
   const resolved =
     sourceUri ?? (vscode.window.activeTextEditor ? URI.from(vscode.window.activeTextEditor.document.uri) : undefined);

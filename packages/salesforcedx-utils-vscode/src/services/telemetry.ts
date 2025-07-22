@@ -197,16 +197,16 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, telemetryData);
   }
 
-  public sendExtensionActivationEvent(hrstart?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
+  public sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
     // Calculate startup time:
-    // - If hrstart is provided and > 0, use it as the start time
-    // - If markEndTime is provided, use it as the end time, otherwise calculate elapsed time from hrstart
-    // - If neither hrstart nor markEndTime are provided, this indicates a timing error - use a fallback
+    // - If startTime is provided and > 0, use it as the start time
+    // - If markEndTime is provided, use it as the end time, otherwise calculate elapsed time from startTime
+    // - If neither startTime nor markEndTime are provided, this indicates a timing error - use a fallback
     let startupTime: number;
 
-    if (hrstart && hrstart > 0) {
+    if (startTime && startTime > 0) {
       // Valid start time provided - calculate elapsed time
-      startupTime = markEndTime ?? TimingUtils.getElapsedTime(hrstart);
+      startupTime = markEndTime ?? TimingUtils.getElapsedTime(startTime);
     } else if (markEndTime) {
       // Only end time provided - use it directly
       startupTime = markEndTime;
@@ -244,7 +244,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   public sendCommandEvent(
     commandName?: string,
-    hrstart?: number,
+    startTime?: number,
     properties?: Properties,
     measurements?: Measurements
   ): void {
@@ -257,10 +257,10 @@ export class TelemetryService implements TelemetryServiceInterface {
         const aggregatedProps = Object.assign(baseProperties, properties);
 
         let aggregatedMeasurements: Measurements | undefined;
-        if (hrstart || measurements) {
+        if (startTime || measurements) {
           aggregatedMeasurements = { ...measurements };
-          if (hrstart) {
-            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTime(hrstart);
+          if (startTime) {
+            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTime(startTime);
           }
         }
         this.reporters.forEach(reporter => {
@@ -301,10 +301,6 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.reporters.forEach(reporter => {
       reporter.dispose().catch(err => console.log(err));
     });
-  }
-
-  public getEndHRTime(hrstart: number): number {
-    return TimingUtils.getElapsedTime(hrstart);
   }
 
   /**

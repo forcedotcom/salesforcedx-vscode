@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
@@ -100,7 +101,7 @@ export const lwcTestDebugActiveTextEditorTest = async () => {
 export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
-  const startTime = globalThis.performance.now();
+  const startTime = TimingUtils.getCurrentTime();
   debugSessionStartTimes.set(sfDebugSessionId, startTime);
 };
 
