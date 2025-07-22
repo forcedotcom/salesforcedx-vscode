@@ -24,6 +24,9 @@ export const ConnectionServiceLive = Layer.succeed(ConnectionService, {
   getConnection: pipe(
     ConfigService,
     Effect.flatMap(configService => configService.getConfigAggregator),
+    Effect.tap(configAggregator =>
+      console.log('ConfigAggregator', JSON.stringify(configAggregator.getConfig(), null, 2))
+    ),
     Effect.flatMap(configAggregator => {
       const rawUsername = configAggregator.getPropertyValue('target-org');
       const username = typeof rawUsername === 'string' ? rawUsername : undefined;

@@ -11,6 +11,8 @@ import { ConfigService, ConfigServiceLive } from './core/configService';
 import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
+import { fsPrefix } from './virtualFsProvider/constants';
+import { FsProvider } from './virtualFsProvider/fileSystemProvider';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { FsService, FsServiceLive } from './vscode/fsService';
 import { WorkspaceService, WorkspaceServiceLive } from './vscode/workspaceService';
@@ -54,6 +56,8 @@ export const activate = async (
     )
   );
 
+  await fileSystemSetup(context);
+
   // Return API for other extensions to consume
   const api: SalesforceVSCodeServicesApi = {
     services: {
@@ -81,4 +85,53 @@ export const activate = async (
 /** Deactivates the Salesforce Services extension */
 export const deactivate = (): void => {
   console.log('Salesforce Services extension is now deactivated!');
+};
+
+const fileSystemSetup = async (
+  context: vscode.ExtensionContext,
+  channelServiceLayer = ChannelServiceLayer('Salesforce Services')
+): Promise<void> => {
+  // Check if workspace is virtual file system
+  await Effect.runPromise(
+    Effect.provide(
+      Effect.flatMap(WorkspaceService, ws => ws.isVirtualFs),
+      WorkspaceServiceLive
+    ).pipe(
+      Effect.flatMap(workspaceIsVirtual => {
+        if (workspaceIsVirtual) {
+          return Effect.tryPromise({
+            try: async () => {
+              const fsProvider = await new FsProvider().init();
+              context.subscriptions.push(
+                vscode.workspace.registerFileSystemProvider(fsPrefix, fsProvider, {
+                  isCaseSensitive: true
+                })
+              );
+              // replace the existing workspace with ours.
+              vscode.workspace.updateWorkspaceFolders((vscode.workspace.workspaceFolders ?? []).length, 0, {
+                name: 'Code Builder',
+                uri: vscode.Uri.parse(`${fsPrefix}:/`)
+              });
+            },
+            catch: (error: unknown) => new Error(`Failed to initialize fsProvider: ${String(error)}`)
+          });
+        }
+        return Effect.succeed(undefined);
+      })
+    )
+  );
+
+  //TODO: red the files from workspace, if there is one
+  //TODO put the memfs instance into core library
+  //TODO: re-instantiate the memfs from browser storage, if there is
+  //TODO: init the project if there is not one
+  await Effect.runPromise(
+    Effect.provide(
+      Effect.gen(function* () {
+        const svc = yield* ChannelService;
+        yield* svc.appendToChannel(`Registered ${fsPrefix} file system provider`);
+      }),
+      channelServiceLayer
+    )
+  );
 };

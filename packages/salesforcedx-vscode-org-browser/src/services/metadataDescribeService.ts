@@ -91,6 +91,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
               catch: e => new Error(`listMetadata failed for type ${type}: ${String(e)}`)
             }),
             Effect.map(ensureArray),
+            Effect.map(arr => arr.sort((a, b) => a.fullName.localeCompare(b.fullName))),
             Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
             Effect.mapError(e => new Error(`Failed to decode FileProperties: ${String(e)}`))
           )

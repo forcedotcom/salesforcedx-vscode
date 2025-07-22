@@ -41,6 +41,7 @@
         "^bundle:extension"
       ],
       "inputs": [
+        "{workspaceRoot}/scripts/bundling/**",
         "{projectRoot}/esbuild.config.mjs",
         "{projectRoot}/esbuild.config.js",
         "{projectRoot}/out/**",

@@ -21,5 +21,6 @@ await build({
   ...commonConfigBrowser,
   external: ['vscode'],
   entryPoints: ['./out/src/index.js'],
-  outfile: './dist/browser.js'
+  outfile: './dist/browser.js',
+  mainFields: ['browser', 'module', 'main']
 });

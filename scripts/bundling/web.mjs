@@ -2,11 +2,11 @@ import { polyfillNode } from 'esbuild-plugin-polyfill-node';
 
 export const commonConfigBrowser = {
   bundle: true,
-  format: 'esm',
+  format: 'cjs',
   platform: 'browser',
   external: ['vscode'],
   // TODO: we need a way to turn this off for debugging and local dev
-  minify: true,
+  minify: false,
   sourcemap: true,
   keepNames: true,
   logOverride: {
@@ -14,10 +14,12 @@ export const commonConfigBrowser = {
   },
   define: {
     // this prevents the logger from writing to any files, obviating the need for pino-bundling stuff
-    'process.env.SF_DISABLE_LOG_FILE': "'true'"
+    'process.env.SF_DISABLE_LOG_FILE': "'true'",
+    // Ensure global is available for Node.js modules
+    global: 'globalThis'
   },
   alias: {
-    // proper-lockfile uses graceful-fs
+    // proper-lockfile and SDR use graceful-fs
     'graceful-fs': 'memfs',
     jsonwebtoken: 'jsonwebtoken-esm',
     '@jsforce/jsforce-node': 'jsforce/browser',

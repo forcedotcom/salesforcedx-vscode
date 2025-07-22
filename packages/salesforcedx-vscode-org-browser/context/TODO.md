@@ -95,3 +95,4 @@ effect/caching https://effect.website/docs/caching/caching-effects/
 
 l18n of all text and pjson text
 Can we filter the orgBrowser (ex: a search box)
+remove `componentSet.apiVersion = '64.0'` and get that dynamically (from connService probably)

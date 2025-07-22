@@ -4,13 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-// @ts-ignore: SDR types may not be available in this workspace, but are required at runtime
-import {
-  ComponentSet,
-  MetadataApiRetrieve,
-  RetrieveResult,
-  type MetadataMember
-} from '@salesforce/source-deploy-retrieve';
+
+import { type RetrieveResult, type MetadataMember } from '@salesforce/source-deploy-retrieve';
+
 import { Context, Effect, Layer, Option, pipe } from 'effect';
 import { ChannelService } from '../vscode/channelService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -56,7 +52,9 @@ const retrieve = (
             const output = project.getDefaultPackage().fullPath;
             return Effect.tryPromise({
               try: async () => {
+                const { ComponentSet, MetadataApiRetrieve } = await import('@salesforce/source-deploy-retrieve');
                 const componentSet = new ComponentSet(members);
+                componentSet.apiVersion = '64.0';
                 const retrieveOperation = new MetadataApiRetrieve({
                   usernameOrConnection: connection,
                   components: componentSet,
