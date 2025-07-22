@@ -25,7 +25,9 @@ describe('Frame exit event', () => {
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const launchRequestArgs: LaunchRequestArguments = {
-    logFile: logFilePath,
+    logFileContents: 'test log content',
+    logFilePath,
+    logFileName,
     trace: true,
     projectPath: undefined
   };

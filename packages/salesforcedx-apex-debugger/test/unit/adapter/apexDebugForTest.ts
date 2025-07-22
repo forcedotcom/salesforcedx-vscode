@@ -30,9 +30,9 @@ export class ApexDebugForTest extends ApexDebug {
   ) {
     super();
     this.myRequestService = requestService;
-    this.mySessionService = sessionService ? sessionService : new SessionService(requestService);
-    this.myStreamingService = streamingService ? streamingService : new StreamingService();
-    this.myBreakpointService = breakpointService ? breakpointService : new BreakpointService(requestService);
+    this.mySessionService = sessionService ?? new SessionService(requestService);
+    this.myStreamingService = streamingService ?? new StreamingService();
+    this.myBreakpointService = breakpointService ?? new BreakpointService(requestService);
   }
 
   public getBreakpointService(): BreakpointService {
@@ -100,21 +100,21 @@ export class ApexDebugForTest extends ApexDebug {
   }
 
   public async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
-    super.nextRequest(response, args);
+    await super.nextRequest(response, args);
   }
 
   public async stepInRequest(
     response: DebugProtocol.StepInResponse,
     args: DebugProtocol.StepInArguments
   ): Promise<void> {
-    super.stepInRequest(response, args);
+    await super.stepInRequest(response, args);
   }
 
   public async stepOutRequest(
     response: DebugProtocol.StepOutResponse,
     args: DebugProtocol.StepOutArguments
   ): Promise<void> {
-    super.stepOutRequest(response, args);
+    await super.stepOutRequest(response, args);
   }
 
   public threadsReq(response: DebugProtocol.ThreadsResponse): void {

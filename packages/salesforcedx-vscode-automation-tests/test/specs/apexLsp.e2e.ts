@@ -20,7 +20,8 @@ import {
   getWorkbench,
   getStatusBarItemWhichIncludes,
   getTextEditor,
-  getOutputViewText
+  getOutputViewText,
+  moveCursorWithFallback
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import {
   executeQuickPick,
@@ -79,7 +80,7 @@ const LSP_RESTART_OPTIONS: LspRestartOptions[] = [
 const findReleaseDir = (): string => {
   const entries = fs.readdirSync(PATHS.tools);
   const match = entries.find(entry => /^\d{3}$/.test(entry));
-  return match || '254';
+  return match ?? '254';
 };
 
 const verifyLspStatus = async (expectedStatus: string): Promise<WebElement> => {
@@ -126,7 +127,7 @@ const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
   const workbench = getWorkbench();
   const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
 
-  await textEditor.moveCursor(6, 20);
+  await moveCursorWithFallback(textEditor, 6, 20);
   // Allow time for LSP to process cursor movement and prepare definition lookup
   await pause(Duration.seconds(2));
   // Wait for quick pick to appear and be clickable

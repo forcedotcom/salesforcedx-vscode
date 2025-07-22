@@ -131,8 +131,8 @@ export class MetadataCacheService {
   }
 
   public async createRetrieveOperation(comps?: ComponentSet): Promise<MetadataApiRetrieve> {
-    const components = comps || (await this.getSourceComponents());
-    this.clearDirectory(this.cachePath, true);
+    const components = comps ?? (await this.getSourceComponents());
+    await this.clearDirectory(this.cachePath, true);
 
     await componentSetUtils.setApiVersion(components);
     const connection = await WorkspaceContext.getInstance().getConnection();
@@ -245,7 +245,7 @@ export class MetadataCacheService {
   }
 
   private getRelativePath(comp: SourceComponent, baseDir: string): string {
-    const compPath = comp.content || comp.xml;
+    const compPath = comp.content ?? comp.xml;
     if (compPath) {
       const compDir = path.dirname(compPath);
       return compDir.substring(baseDir.length + path.sep.length);
@@ -352,11 +352,6 @@ export class MetadataCacheService {
 
   public getPropsPath(): string {
     return path.join(this.cachePath, ...MetadataCacheService.PROPERTIES_FOLDER);
-  }
-
-  public clearCache(throwErrorOnFailure: boolean = false): string {
-    this.clearDirectory(this.cachePath, throwErrorOnFailure);
-    return this.cachePath;
   }
 
   private async clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {

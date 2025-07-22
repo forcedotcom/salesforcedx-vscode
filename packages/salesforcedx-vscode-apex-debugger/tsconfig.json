@@ -10,10 +10,10 @@
       "path": "../salesforcedx-apex-debugger"
     },
     {
-      "path": "../salesforcedx-utils-vscode"
+      "path": "../salesforcedx-utils"
     },
     {
-      "path": "../salesforcedx-utils"
+      "path": "../salesforcedx-utils-vscode"
     },
     {
       "path": "../salesforcedx-vscode-apex"

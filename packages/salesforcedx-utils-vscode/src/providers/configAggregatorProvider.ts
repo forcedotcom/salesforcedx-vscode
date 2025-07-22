@@ -24,9 +24,7 @@ export class ConfigAggregatorProvider {
   private static instance?: ConfigAggregatorProvider;
 
   public static getInstance() {
-    if (ConfigAggregatorProvider.instance === undefined) {
-      ConfigAggregatorProvider.instance = new ConfigAggregatorProvider();
-    }
+    ConfigAggregatorProvider.instance ??= new ConfigAggregatorProvider();
     return ConfigAggregatorProvider.instance;
   }
 

@@ -46,7 +46,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
-        this.dispose();
+        void this.dispose();
       }
     }
   }
@@ -87,7 +87,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
   private getCommonProperties(): CommonProperties {
     const commonProperties: CommonProperties = {
       'common.os': os.platform(),
-      'common.platformversion': (os.release() || '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
+      'common.platformversion': (os.release() ?? '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
       'common.systemmemory': `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`,
       'common.extname': this.extensionId,
       'common.extversion': this.extensionVersion
@@ -124,19 +124,16 @@ export class AppInsights extends Disposable implements TelemetryReporter {
 
   public sendTelemetryEvent(
     eventName: string,
-    properties?: { [key: string]: string },
+    properties: { [key: string]: string } = {},
     measurements?: { [key: string]: number }
   ): void {
     if (this.userOptIn && eventName && this.appInsightsClient) {
-      const orgId = WorkspaceContextUtil.getInstance().orgId;
-      const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
-      const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
-      let props = properties ? properties : {};
-      props = this.applyTelemetryTag(orgId ? { ...props, orgId, orgShape, devHubId } : props);
+      const baseProps = getBaseProps();
+      const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties });
 
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        properties: props,
+        properties: finalProps,
         measurements
       });
     }
@@ -148,18 +145,15 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     measurements?: { [key: string]: number }
   ): void {
     if (this.userOptIn && exceptionMessage && this.appInsightsClient) {
-      const error = new Error();
+      const error = new Error(exceptionMessage);
       error.name = `${this.extensionId}/${exceptionName}`;
-      error.message = exceptionMessage;
       error.stack = 'DEPRECATED';
+      const baseProps = getBaseProps();
 
-      const orgId = WorkspaceContextUtil.getInstance().orgId || '';
-      const orgShape = WorkspaceContextUtil.getInstance().orgShape || '';
-      const devHubId = WorkspaceContextUtil.getInstance().devHubId || '';
-      const properties = this.applyTelemetryTag({ orgId, orgShape, devHubId });
+      const finalProps = this.applyTelemetryTag(baseProps);
       this.appInsightsClient.trackException({
         exception: error,
-        properties,
+        properties: finalProps,
         measurements
       });
     }
@@ -188,7 +182,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
    */
   private setTelemetryTag(): void {
     const config = workspace.getConfiguration();
-    this.telemetryTag = config?.get('salesforcedx-vscode-core.telemetry-tag') || undefined;
+    this.telemetryTag = config?.get('salesforcedx-vscode-core.telemetry-tag');
   }
 
   /**
@@ -204,3 +198,9 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     return this.telemetryTag ? { ...properties, telemetryTag: this.telemetryTag } : properties;
   }
 }
+
+const getBaseProps = (): Record<string, string> => {
+  const context = WorkspaceContextUtil.getInstance();
+  const { orgId = '', orgShape = '', devHubId = '' } = context;
+  return orgId ? { orgId, orgShape, devHubId } : {};
+};

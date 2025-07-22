@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.4.0",
+  "version": "64.6.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -30,7 +30,6 @@
   ],
   "extensionPack": [
     "salesforce.salesforcedx-vscode-apex",
-    "salesforce.salesforcedx-vscode-apex-debugger",
     "salesforce.salesforcedx-vscode-apex-replay-debugger",
     "salesforce.salesforcedx-einstein-gpt",
     "salesforce.salesforcedx-vscode-core",

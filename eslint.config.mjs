@@ -130,7 +130,7 @@ export default [
           }
         }
       ],
-      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'warn',
       '@typescript-eslint/no-misused-spread': 'error',
       '@typescript-eslint/no-unsafe-argument': 'warn',
@@ -142,6 +142,7 @@ export default [
       '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/prefer-for-of': 'warn',
       '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/unbound-method': ['warn', { ignoreStatic: true }],
       'prefer-arrow/prefer-arrow-functions': ['error', {}],
       '@typescript-eslint/consistent-type-definitions': 'off',
@@ -286,6 +287,18 @@ export default [
         }
       ],
       'import/no-self-import': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['node:fs', 'fs-extra'],
+              message:
+                "Use VSCode's fs API instead of Node.js fs for web extension compatibility. See https://code.visualstudio.com/api/references/vscode-api#FileSystem for documentation."
+            }
+          ]
+        }
+      ],
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-indentation': 'error',
       'jsdoc/newline-after-description': 'off',
@@ -351,7 +364,11 @@ export default [
     }
   },
   {
-    files: ['packages/salesforcedx**/test/jest/**/*', 'packages/salesforcedx**/test/unit/**/*'],
+    files: [
+      'packages/salesforcedx**/test/jest/**/*',
+      'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx-vscode-automation-tests/**/*'
+    ],
     plugins: {
       '@typescript-eslint': typescriptEslint,
       jest: eslintPluginJest
@@ -380,7 +397,21 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
       'no-useless-constructor': 'off',
+      'no-restricted-imports': 'off',
       'no-param-reassign': 'off'
+    }
+  },
+  {
+    // these have extensive copy-paste from an old version of msft language server
+    // this rule requires strict null checks to be enabled and that code does not support it
+    files: [
+      'packages/salesforcedx-visualforce-markup-language-server/**',
+      'packages/salesforcedx-visualforce-language-server/**',
+      'packages/salesforcedx-apex-replay-debugger/**',
+      'packages/salesforcedx-vscode-soql/**'
+    ],
+    rules: {
+      '@typescript-eslint/prefer-nullish-coalescing': 'off'
     }
   },
   {

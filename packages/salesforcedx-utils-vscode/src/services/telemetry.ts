@@ -38,17 +38,15 @@ export class TelemetryBuilder {
   private measurements?: Measurements;
 
   public addProperty(key: string, value?: string): TelemetryBuilder {
-    this.properties = this.properties || {};
     if (value !== undefined) {
-      this.properties[key] = value;
+      this.properties = { ...this.properties, [key]: value };
     }
     return this;
   }
 
   public addMeasurement(key: string, value?: number): TelemetryBuilder {
-    this.measurements = this.measurements || {};
     if (value !== undefined) {
-      this.measurements[key] = value;
+      this.measurements = { ...this.measurements, [key]: value };
     }
     return this;
   }
@@ -66,7 +64,7 @@ export class TelemetryServiceProvider {
   public static instances = new Map<string, TelemetryService>(); // public only for unit test
   public static getInstance(extensionName?: string): TelemetryServiceInterface {
     // default if not present
-    const name = extensionName || SFDX_CORE_EXTENSION_NAME;
+    const name = extensionName ?? SFDX_CORE_EXTENSION_NAME;
     let service = TelemetryServiceProvider.instances.get(name);
     if (!service) {
       service = new TelemetryService();
@@ -207,11 +205,11 @@ export class TelemetryService implements TelemetryServiceInterface {
     const startupTime = markEndTime ?? this.getEndHRTime(hrstart);
     const properties = {
       extensionName: this.extensionName,
-      ...(telemetryData?.properties ? telemetryData.properties : {})
+      ...telemetryData?.properties
     };
     const measurements = {
       startupTime,
-      ...(telemetryData?.measurements ? telemetryData.measurements : {})
+      ...telemetryData?.measurements
     };
 
     this.validateTelemetry(() => {

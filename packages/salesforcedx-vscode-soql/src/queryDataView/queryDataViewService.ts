@@ -113,7 +113,7 @@ export class QueryDataViewService {
         this.updateWebviewWith(this.queryData);
         break;
       case 'save_records':
-        this.handleSaveRecords(format);
+        void this.handleSaveRecords(format);
         break;
       default:
         channelService.appendLine(nls.localize('error_unknown_error', type));
@@ -122,10 +122,10 @@ export class QueryDataViewService {
     }
   }
 
-  protected handleSaveRecords(format: FileFormat): void {
+  protected async handleSaveRecords(format: FileFormat): Promise<void> {
     try {
       const fileService = new FileService(this.queryText, this.queryData, format, this.document);
-      fileService.save();
+      await fileService.save();
     } catch {
       const message = nls.localize('error_data_view_save');
       vscode.window.showErrorMessage(message);

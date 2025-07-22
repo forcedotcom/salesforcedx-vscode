@@ -586,7 +586,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo();
+        const orgInfo = await new OrgDisplay().getOrgInfo(args.salesforceProject);
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }
@@ -1253,7 +1253,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
       }
     } catch {
-      response.message = response.message || nls.localize('unexpected_error_help_text');
+      response.message = response.message ?? nls.localize('unexpected_error_help_text');
       this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
     }
   }
@@ -1351,7 +1351,7 @@ export class ApexDebug extends LoggingDebugSession {
   public logEvent(message: DebuggerMessage): void {
     let eventDescriptionSourceFile: Source | undefined;
     let eventDescriptionSourceLine: number | undefined;
-    let logMessage = message.event.createdDate === null ? new Date().toUTCString() : message.event.createdDate;
+    let logMessage = message.event.createdDate ?? new Date().toUTCString();
     logMessage += ` | ${message.sobject.Type}`;
     if (message.sobject.RequestId) {
       logMessage += ` | Request: ${message.sobject.RequestId}`;
