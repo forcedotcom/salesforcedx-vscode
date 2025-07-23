@@ -7,6 +7,7 @@
 
 import { workspaceUtils, SourceTrackingService, nls } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import * as path from 'node:path';
 import { channelService } from '../../../src/channels';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { DeployExecutor } from '../../../src/commands/deployExecutor';
@@ -1199,15 +1200,18 @@ describe('ProjectDeployStart', () => {
         const mockHandleConflicts = jest.fn().mockResolvedValue({ type: 'CONTINUE' });
         jest.spyOn(TimestampConflictChecker.prototype, 'handleConflicts').mockImplementation(mockHandleConflicts);
 
-        // Set up changed file paths (source tracking enabled)
-        mockExecutor['changedFilePaths'] = [
-          '/Users/peter.hale/git/dreamhouse-lwc/force-app/main/default/classes/MyClass.cls'
-        ];
+        // Set up changed file paths (source tracking enabled) - use path.join for cross-platform compatibility
+        const projectPath = '/Users/peter.hale/git/dreamhouse-lwc';
+        const changedFilePath = path.join(projectPath, 'force-app/main/default/classes/MyClass.cls');
+        mockExecutor['changedFilePaths'] = [changedFilePath];
 
         // Mock workspace context
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
           username: 'test@example.com'
         } as any);
+
+        // Mock workspaceUtils.getRootWorkspacePath to return the project path
+        jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(projectPath);
 
         // Act
         const result = await mockExecutor['checkConflictsForChangedFiles']();
