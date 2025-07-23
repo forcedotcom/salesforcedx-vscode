@@ -7,6 +7,7 @@
 
 import * as fsUtils from '@salesforce/salesforcedx-utils-vscode';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as conflictModule from '../../../src/conflict';
 import { diffFolder, diffMultipleFiles, diffOneFile } from '../../../src/conflict/directoryDiffer';
@@ -24,9 +25,9 @@ jest.mock('../../../src/conflict', () => ({
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
   readDirectory: jest.fn().mockResolvedValue(['TestClass1.cls', 'TestClass1.cls-meta.xml']),
-  isDirectory: jest.fn().mockImplementation((path: string) =>
+  isDirectory: jest.fn().mockImplementation((filePath: string) =>
     // Return false for files, true for directories
-    Promise.resolve(!path.includes('.cls') && !path.includes('.xml') && !path.includes('.txt'))
+    Promise.resolve(!filePath.includes('.cls') && !filePath.includes('.xml') && !filePath.includes('.txt'))
   )
 }));
 
@@ -47,8 +48,8 @@ describe('directoryDiffer', () => {
     jest.spyOn(fsUtils, 'readDirectory').mockResolvedValue(['TestClass1.cls', 'TestClass1.cls-meta.xml']);
     jest
       .spyOn(fsUtils, 'isDirectory')
-      .mockImplementation((path: string) =>
-        Promise.resolve(!path.includes('.cls') && !path.includes('.xml') && !path.includes('.txt'))
+      .mockImplementation((filePath: string) =>
+        Promise.resolve(!filePath.includes('.cls') && !filePath.includes('.xml') && !filePath.includes('.txt'))
       );
     jest.spyOn(fsUtils, 'readFile').mockResolvedValue('test content');
   });
@@ -57,16 +58,16 @@ describe('directoryDiffer', () => {
     it('should call visualizeDifferences with correct parameters', async () => {
       // Arrange
       const mockCache: MetadataCacheResult = {
-        selectedPath: '/test/project',
+        selectedPath: path.join('test', 'project'),
         selectedType: PathType.Folder,
         cache: {
-          baseDirectory: '/cache/dir',
-          commonRoot: 'main/default',
+          baseDirectory: path.join('cache', 'dir'),
+          commonRoot: path.join('main', 'default'),
           components: []
         },
         project: {
-          baseDirectory: '/project/dir',
-          commonRoot: 'main/default',
+          baseDirectory: path.join('project', 'dir'),
+          commonRoot: path.join('main', 'default'),
           components: []
         },
         properties: []
@@ -89,15 +90,15 @@ describe('directoryDiffer', () => {
     it('should handle cache with different common roots', async () => {
       // Arrange
       const mockCache: MetadataCacheResult = {
-        selectedPath: '/test/project',
+        selectedPath: path.join('test', 'project'),
         selectedType: PathType.Folder,
         cache: {
-          baseDirectory: '/cache/dir',
+          baseDirectory: path.join('cache', 'dir'),
           commonRoot: 'classes',
           components: []
         },
         project: {
-          baseDirectory: '/project/dir',
+          baseDirectory: path.join('project', 'dir'),
           commonRoot: 'classes',
           components: []
         },
@@ -117,30 +118,33 @@ describe('directoryDiffer', () => {
     it('should process multiple files and call visualizeDifferences', async () => {
       // Arrange
       const username = 'test@example.com';
-      const selectedPaths = ['/project/dir/classes/TestClass1.cls', '/project/dir/classes/TestClass2.cls'];
+      const selectedPaths = [
+        path.join('project', 'dir', 'classes', 'TestClass1.cls'),
+        path.join('project', 'dir', 'classes', 'TestClass2.cls')
+      ];
       const mockCache: MetadataCacheResult = {
         selectedPath: selectedPaths,
         selectedType: PathType.Multiple,
         cache: {
-          baseDirectory: '/cache/dir',
+          baseDirectory: path.join('cache', 'dir'),
           commonRoot: 'classes',
           components: [
             {
-              content: '/cache/dir/classes/TestClass1.cls',
-              xml: '/cache/dir/classes/TestClass1.cls-meta.xml',
+              content: path.join('cache', 'dir', 'classes', 'TestClass1.cls'),
+              xml: path.join('cache', 'dir', 'classes', 'TestClass1.cls-meta.xml'),
               type: { name: 'ApexClass' },
               fullName: 'TestClass1'
             } as SourceComponent,
             {
-              content: '/cache/dir/classes/TestClass2.cls',
-              xml: '/cache/dir/classes/TestClass2.cls-meta.xml',
+              content: path.join('cache', 'dir', 'classes', 'TestClass2.cls'),
+              xml: path.join('cache', 'dir', 'classes', 'TestClass2.cls-meta.xml'),
               type: { name: 'ApexClass' },
               fullName: 'TestClass2'
             } as SourceComponent
           ]
         },
         project: {
-          baseDirectory: '/project/dir',
+          baseDirectory: path.join('project', 'dir'),
           commonRoot: 'classes',
           components: []
         },
@@ -157,8 +161,8 @@ describe('directoryDiffer', () => {
         true,
         expect.objectContaining({
           different: expect.any(Set),
-          localRoot: '/project/dir',
-          remoteRoot: '/cache/dir',
+          localRoot: path.join('project', 'dir'),
+          remoteRoot: path.join('cache', 'dir'),
           scannedLocal: 2,
           scannedRemote: 2
         }),
@@ -174,12 +178,12 @@ describe('directoryDiffer', () => {
         selectedPath: selectedPaths,
         selectedType: PathType.Multiple,
         cache: {
-          baseDirectory: '/cache/dir',
+          baseDirectory: path.join('cache', 'dir'),
           commonRoot: 'classes',
           components: []
         },
         project: {
-          baseDirectory: '/project/dir',
+          baseDirectory: path.join('project', 'dir'),
           commonRoot: 'classes',
           components: []
         },
@@ -196,8 +200,8 @@ describe('directoryDiffer', () => {
         true,
         expect.objectContaining({
           different: expect.any(Set),
-          localRoot: '/project/dir',
-          remoteRoot: '/cache/dir',
+          localRoot: path.join('project', 'dir'),
+          remoteRoot: path.join('cache', 'dir'),
           scannedLocal: 0,
           scannedRemote: 0
         }),
@@ -209,27 +213,27 @@ describe('directoryDiffer', () => {
       // Arrange
       const username = 'test@example.com';
       const selectedPaths = [
-        '/project/dir/classes/TestClass1.cls',
-        '/project/dir/classes/TestClass2.cls',
-        '/project/dir/classes/TestClass3.cls'
+        path.join('project', 'dir', 'classes', 'TestClass1.cls'),
+        path.join('project', 'dir', 'classes', 'TestClass2.cls'),
+        path.join('project', 'dir', 'classes', 'TestClass3.cls')
       ];
       const mockCache: MetadataCacheResult = {
         selectedPath: selectedPaths,
         selectedType: PathType.Multiple,
         cache: {
-          baseDirectory: '/cache/dir',
+          baseDirectory: path.join('cache', 'dir'),
           commonRoot: 'classes',
           components: [
             {
-              content: '/cache/dir/classes/TestClass1.cls',
-              xml: '/cache/dir/classes/TestClass1.cls-meta.xml',
+              content: path.join('cache', 'dir', 'classes', 'TestClass1.cls'),
+              xml: path.join('cache', 'dir', 'classes', 'TestClass1.cls-meta.xml'),
               type: { name: 'ApexClass' },
               fullName: 'TestClass1'
             } as SourceComponent
           ]
         },
         project: {
-          baseDirectory: '/project/dir',
+          baseDirectory: path.join('project', 'dir'),
           commonRoot: 'classes',
           components: []
         },
@@ -246,8 +250,8 @@ describe('directoryDiffer', () => {
         true,
         expect.objectContaining({
           different: expect.any(Set),
-          localRoot: '/project/dir',
-          remoteRoot: '/cache/dir',
+          localRoot: path.join('project', 'dir'),
+          remoteRoot: path.join('cache', 'dir'),
           scannedLocal: 3,
           scannedRemote: 1
         }),
@@ -259,14 +263,14 @@ describe('directoryDiffer', () => {
   describe('diffOneFile', () => {
     it('should execute diff command for matching file', async () => {
       // Arrange
-      const localFile = '/project/dir/classes/TestClass.cls';
+      const localFile = path.join('project', 'dir', 'classes', 'TestClass.cls');
       const targetOrgorAlias = 'test@example.com';
       const mockRemoteComponent: SourceComponent = {
-        content: '/cache/dir/classes/TestClass.cls',
-        xml: '/cache/dir/classes/TestClass.cls-meta.xml',
+        content: path.join('cache', 'dir', 'classes', 'TestClass.cls'),
+        xml: path.join('cache', 'dir', 'classes', 'TestClass.cls-meta.xml'),
         type: { name: 'ApexClass' },
         fullName: 'TestClass',
-        walkContent: jest.fn().mockReturnValue(['/cache/dir/classes/TestClass.cls'])
+        walkContent: jest.fn().mockReturnValue([path.join('cache', 'dir', 'classes', 'TestClass.cls')])
       } as any;
 
       // Act
@@ -275,22 +279,22 @@ describe('directoryDiffer', () => {
       // Assert
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
         'vscode.diff',
-        expect.objectContaining({ fsPath: '/cache/dir/classes/TestClass.cls' }),
-        expect.objectContaining({ fsPath: localFile }),
+        expect.objectContaining({ fsPath: path.join('/', 'cache', 'dir', 'classes', 'TestClass.cls') }),
+        expect.objectContaining({ fsPath: path.join('/', 'project', 'dir', 'classes', 'TestClass.cls') }),
         'test@example.com//TestClass.cls ↔ local//TestClass.cls'
       );
     });
 
     it('should handle component with xml file', async () => {
       // Arrange
-      const localFile = '/project/dir/classes/TestClass.cls-meta.xml';
+      const localFile = path.join('project', 'dir', 'classes', 'TestClass.cls-meta.xml');
       const targetOrgorAlias = 'test@example.com';
       const mockRemoteComponent: SourceComponent = {
-        content: '/cache/dir/classes/TestClass.cls',
-        xml: '/cache/dir/classes/TestClass.cls-meta.xml',
+        content: path.join('cache', 'dir', 'classes', 'TestClass.cls'),
+        xml: path.join('cache', 'dir', 'classes', 'TestClass.cls-meta.xml'),
         type: { name: 'ApexClass' },
         fullName: 'TestClass',
-        walkContent: jest.fn().mockReturnValue(['/cache/dir/classes/TestClass.cls-meta.xml'])
+        walkContent: jest.fn().mockReturnValue([path.join('cache', 'dir', 'classes', 'TestClass.cls-meta.xml')])
       } as any;
 
       // Act
@@ -299,23 +303,23 @@ describe('directoryDiffer', () => {
       // Assert
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
         'vscode.diff',
-        expect.objectContaining({ fsPath: '/cache/dir/classes/TestClass.cls-meta.xml' }),
-        expect.objectContaining({ fsPath: localFile }),
+        expect.objectContaining({ fsPath: path.join('/', 'cache', 'dir', 'classes', 'TestClass.cls-meta.xml') }),
+        expect.objectContaining({ fsPath: path.join('/', 'project', 'dir', 'classes', 'TestClass.cls-meta.xml') }),
         'test@example.com//TestClass.cls-meta.xml ↔ local//TestClass.cls-meta.xml'
       );
     });
 
     it('should handle diff command error', async () => {
       // Arrange
-      const localFile = '/project/dir/classes/TestClass.cls';
+      const localFile = path.join('project', 'dir', 'classes', 'TestClass.cls');
       const targetOrgorAlias = 'test@example.com';
       const mockError = new Error('Diff command failed');
       const mockRemoteComponent: SourceComponent = {
-        content: '/cache/dir/classes/TestClass.cls',
-        xml: '/cache/dir/classes/TestClass.cls-meta.xml',
+        content: path.join('cache', 'dir', 'classes', 'TestClass.cls'),
+        xml: path.join('cache', 'dir', 'classes', 'TestClass.cls-meta.xml'),
         type: { name: 'ApexClass' },
         fullName: 'TestClass',
-        walkContent: jest.fn().mockReturnValue(['/cache/dir/classes/TestClass.cls'])
+        walkContent: jest.fn().mockReturnValue([path.join('cache', 'dir', 'classes', 'TestClass.cls')])
       } as any;
 
       jest.spyOn(vscode.commands, 'executeCommand').mockRejectedValue(mockError);
@@ -329,7 +333,7 @@ describe('directoryDiffer', () => {
 
     it('should handle component without matching file', async () => {
       // Arrange
-      const localFile = '/project/dir/classes/TestClass.cls';
+      const localFile = path.join('project', 'dir', 'classes', 'TestClass.cls');
       const targetOrgorAlias = 'test@example.com';
       const mockRemoteComponent: SourceComponent = {
         content: null,
@@ -348,7 +352,7 @@ describe('directoryDiffer', () => {
 
     it('should handle component with null content and xml', async () => {
       // Arrange
-      const localFile = '/project/dir/classes/TestClass.cls';
+      const localFile = path.join('project', 'dir', 'classes', 'TestClass.cls');
       const targetOrgorAlias = 'test@example.com';
       const mockRemoteComponent: SourceComponent = {
         content: null,
@@ -371,26 +375,26 @@ describe('directoryDiffer', () => {
       // Arrange
       const username = 'test@example.com';
       const selectedPaths = [
-        'C:\\\\project\\\\dir\\\\classes\\\\TestClass1.cls',
-        'C:\\\\project\\\\dir\\\\classes\\\\TestClass2.cls'
+        path.join('C:', 'project', 'dir', 'classes', 'TestClass1.cls'),
+        path.join('C:', 'project', 'dir', 'classes', 'TestClass2.cls')
       ];
       const mockCache: MetadataCacheResult = {
         selectedPath: selectedPaths,
         selectedType: PathType.Multiple,
         cache: {
-          baseDirectory: 'C:\\\\cache\\\\dir',
+          baseDirectory: path.join('C:', 'cache', 'dir'),
           commonRoot: 'classes',
           components: [
             {
-              content: 'C:\\\\cache\\\\dir\\\\classes\\\\TestClass1.cls',
-              xml: 'C:\\\\cache\\\\dir\\\\classes\\\\TestClass1.cls-meta.xml',
+              content: path.join('C:', 'cache', 'dir', 'classes', 'TestClass1.cls'),
+              xml: path.join('C:', 'cache', 'dir', 'classes', 'TestClass1.cls-meta.xml'),
               type: { name: 'ApexClass' },
               fullName: 'TestClass1'
             } as SourceComponent
           ]
         },
         project: {
-          baseDirectory: 'C:\\\\project\\\\dir',
+          baseDirectory: path.join('C:', 'project', 'dir'),
           commonRoot: 'classes',
           components: []
         },
@@ -406,8 +410,8 @@ describe('directoryDiffer', () => {
         username,
         true,
         expect.objectContaining({
-          localRoot: 'C:\\\\project\\\\dir',
-          remoteRoot: 'C:\\\\cache\\\\dir'
+          localRoot: path.join('C:', 'project', 'dir'),
+          remoteRoot: path.join('C:', 'cache', 'dir')
         }),
         true
       );
@@ -416,24 +420,27 @@ describe('directoryDiffer', () => {
     it('should handle Unix paths correctly', async () => {
       // Arrange
       const username = 'test@example.com';
-      const selectedPaths = ['/project/dir/classes/TestClass1.cls', '/project/dir/classes/TestClass2.cls'];
+      const selectedPaths = [
+        path.join('project', 'dir', 'classes', 'TestClass1.cls'),
+        path.join('project', 'dir', 'classes', 'TestClass2.cls')
+      ];
       const mockCache: MetadataCacheResult = {
         selectedPath: selectedPaths,
         selectedType: PathType.Multiple,
         cache: {
-          baseDirectory: '/cache/dir',
+          baseDirectory: path.join('cache', 'dir'),
           commonRoot: 'classes',
           components: [
             {
-              content: '/cache/dir/classes/TestClass1.cls',
-              xml: '/cache/dir/classes/TestClass1.cls-meta.xml',
+              content: path.join('cache', 'dir', 'classes', 'TestClass1.cls'),
+              xml: path.join('cache', 'dir', 'classes', 'TestClass1.cls-meta.xml'),
               type: { name: 'ApexClass' },
               fullName: 'TestClass1'
             } as SourceComponent
           ]
         },
         project: {
-          baseDirectory: '/project/dir',
+          baseDirectory: path.join('project', 'dir'),
           commonRoot: 'classes',
           components: []
         },
@@ -449,8 +456,8 @@ describe('directoryDiffer', () => {
         username,
         true,
         expect.objectContaining({
-          localRoot: '/project/dir',
-          remoteRoot: '/cache/dir'
+          localRoot: path.join('project', 'dir'),
+          remoteRoot: path.join('cache', 'dir')
         }),
         true
       );
