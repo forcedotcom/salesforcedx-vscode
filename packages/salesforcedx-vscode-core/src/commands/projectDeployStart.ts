@@ -9,9 +9,9 @@ import {
   ContinueResponse,
   EmptyParametersGatherer,
   SfWorkspaceChecker,
-  workspaceUtils,
   SourceTrackingService,
-  errorToString
+  errorToString,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle';
 import * as nodePath from 'node:path';

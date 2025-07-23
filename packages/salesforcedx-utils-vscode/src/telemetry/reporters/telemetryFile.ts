@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
 import { Uri, workspace } from 'vscode';
 import { getRootWorkspacePath } from '../..';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
+import { TelemetryReporter } from '../../types';
 
 /**
  * Represents a telemetry file that logs telemetry events by appending to a local file.

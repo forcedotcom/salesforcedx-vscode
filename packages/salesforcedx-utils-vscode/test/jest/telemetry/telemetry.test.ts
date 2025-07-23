@@ -4,9 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { workspace } from 'vscode';
-import { TelemetryService } from '../../../src';
+import { TelemetryService, TelemetryServiceInterface } from '../../../src';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryServiceProvider } from '../../../src/services/telemetry';
 

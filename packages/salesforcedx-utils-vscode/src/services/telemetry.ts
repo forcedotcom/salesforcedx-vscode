@@ -4,15 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Properties,
-  Measurements,
-  TelemetryData,
-  TelemetryServiceInterface,
-  TelemetryReporter,
-  ActivationInfo
-} from '@salesforce/vscode-service-provider';
-import * as util from 'node:util';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { z } from 'zod';
 import {
@@ -21,10 +12,19 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
+import { TimingUtils } from '../helpers/timingUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
+import {
+  Properties,
+  Measurements,
+  TelemetryData,
+  TelemetryServiceInterface,
+  TelemetryReporter,
+  ActivationInfo
+} from '../types';
 import { UserService } from './userService';
 
 type CommandMetric = {
@@ -194,15 +194,28 @@ export class TelemetryService implements TelemetryServiceInterface {
       .addProperty('loadStartDate', activationInfo.loadStartDate?.toISOString())
       .addMeasurement('extensionActivationTime', activationInfo.extensionActivationTime)
       .build();
-    this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, telemetryData);
+    this.sendExtensionActivationEvent(activationInfo.activateStartTime, activationInfo.markEndTime, telemetryData);
   }
 
-  public sendExtensionActivationEvent(
-    hrstart: [number, number],
-    markEndTime?: number,
-    telemetryData?: TelemetryData
-  ): void {
-    const startupTime = markEndTime ?? this.getEndHRTime(hrstart);
+  public sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
+    // Calculate startup time:
+    // - If startTime is provided and > 0, use it as the start time
+    // - If markEndTime is provided, use it as the end time, otherwise calculate elapsed time from startTime
+    // - If neither startTime nor markEndTime are provided, this indicates a timing error - use a fallback
+    let startupTime: number;
+
+    if (startTime && startTime > 0) {
+      // Valid start time provided - calculate elapsed time
+      startupTime = markEndTime ?? TimingUtils.getElapsedTime(startTime);
+    } else if (markEndTime) {
+      // Only end time provided - use it directly
+      startupTime = markEndTime;
+    } else {
+      // No valid timing provided - indicate this is an error case
+      startupTime = 0;
+      console.warn(`Extension ${this.extensionName}: No valid timing data provided for activation event`);
+    }
+
     const properties = {
       extensionName: this.extensionName,
       ...telemetryData?.properties
@@ -231,7 +244,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   public sendCommandEvent(
     commandName?: string,
-    hrstart?: [number, number],
+    startTime?: number,
     properties?: Properties,
     measurements?: Measurements
   ): void {
@@ -244,10 +257,10 @@ export class TelemetryService implements TelemetryServiceInterface {
         const aggregatedProps = Object.assign(baseProperties, properties);
 
         let aggregatedMeasurements: Measurements | undefined;
-        if (hrstart || measurements) {
+        if (startTime || measurements) {
           aggregatedMeasurements = { ...measurements };
-          if (hrstart) {
-            aggregatedMeasurements.executionTime = this.getEndHRTime(hrstart);
+          if (startTime) {
+            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTime(startTime);
           }
         }
         this.reporters.forEach(reporter => {
@@ -288,15 +301,6 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.reporters.forEach(reporter => {
       reporter.dispose().catch(err => console.log(err));
     });
-  }
-
-  public getEndHRTime(hrstart: [number, number]): number {
-    const hrend = process.hrtime(hrstart);
-    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
-  }
-
-  public hrTimeToMilliseconds(hrtime: [number, number]): number {
-    return hrtime[0] * 1000 + hrtime[1] / 1000000;
   }
 
   /**
