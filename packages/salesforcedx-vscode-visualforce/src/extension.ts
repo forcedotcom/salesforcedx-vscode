@@ -56,7 +56,7 @@ export const activate = async (context: ExtensionContext) => {
   }
   telemetryService = salesforceCoreExtension?.exports?.services?.TelemetryService.getInstance();
   await telemetryService?.initializeService(context);
-  const extensionHRStart = process.hrtime();
+  const extensionStartTime = globalThis.performance.now();
   const toDispose = context.subscriptions;
 
   // The server is implemented in node
@@ -148,7 +148,7 @@ export const activate = async (context: ExtensionContext) => {
     disposable = activateTagClosing(tagRequestor, { visualforce: true }, 'visualforce.autoClosingTags');
     toDispose.push(disposable);
   } catch {
-    telemetryService?.sendExtensionActivationEvent(extensionHRStart);
+    telemetryService?.sendExtensionActivationEvent(extensionStartTime);
   }
   languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
@@ -200,7 +200,7 @@ export const activate = async (context: ExtensionContext) => {
     ]
   });
 
-  telemetryService?.sendExtensionActivationEvent(extensionHRStart);
+  telemetryService?.sendExtensionActivationEvent(extensionStartTime);
 };
 
 export const deactivate = () => {

@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import { TelemetryService, TelemetryServiceInterface } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
 const getTelemetryServiceForKey = (key: string | undefined): Promise<TelemetryServiceInterface> => {

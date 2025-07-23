@@ -18,7 +18,8 @@ import {
   ParametersGatherer,
   SfWorkspaceChecker,
   workspaceUtils,
-  ProgressNotification
+  ProgressNotification,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -59,7 +60,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   }
 
   public async execute(response: ContinueResponse<AliasAndFileSelection>): Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {

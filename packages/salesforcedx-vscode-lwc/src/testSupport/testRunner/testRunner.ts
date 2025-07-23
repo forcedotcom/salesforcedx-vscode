@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'node:path';
 import * as uuid from 'uuid';
@@ -168,7 +169,7 @@ export class TestRunner {
       const taskName = this.getTaskName();
       const sfTask = taskService.createTask(this.testRunId, taskName, workspaceFolder, command, args);
       if (this.logName) {
-        const startTime = process.hrtime();
+        const startTime = TimingUtils.getCurrentTime();
         sfTask.onDidEnd(() => {
           telemetryService.sendCommandEvent(this.logName, startTime, {
             workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()

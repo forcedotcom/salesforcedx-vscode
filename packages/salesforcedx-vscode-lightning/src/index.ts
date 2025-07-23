@@ -6,7 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import { code2ProtocolConverter, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { ExtensionContext, ProgressLocation, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
@@ -20,7 +20,7 @@ const getActivationMode = (): string => {
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
-  const extensionHRStart = process.hrtime();
+  const extensionStartTime = TimingUtils.getCurrentTime();
   console.log(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
@@ -134,7 +134,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   extensionContext.subscriptions.push(client);
 
   // Notify telemetry that our extension is now active
-  TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);
+  TelemetryService.getInstance().sendExtensionActivationEvent(extensionStartTime);
 };
 
 let indexingResolve: any;

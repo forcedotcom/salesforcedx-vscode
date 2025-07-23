@@ -110,7 +110,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
     languageClientManager
   };
 
-  void activationTracker.markActivationStop(new Date());
+  void activationTracker.markActivationStop();
 
   setImmediate(() => {
     // Resolve any found orphan language servers in the background

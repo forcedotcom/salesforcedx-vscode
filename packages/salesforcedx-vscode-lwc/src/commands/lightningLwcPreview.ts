@@ -19,7 +19,8 @@ import {
   SfWorkspaceChecker,
   stat as getFileStats,
   readFile,
-  fileOrFolderExists
+  fileOrFolderExists,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -130,7 +131,7 @@ const lwcPreviewContainerMode = () => {
 };
 
 const lwcPreview = async (sourceUri: URI) => {
-  const startTime = process.hrtime();
+  const startTime = TimingUtils.getCurrentTime();
 
   const resolved =
     sourceUri ?? (vscode.window.activeTextEditor ? URI.from(vscode.window.activeTextEditor.document.uri) : undefined);
@@ -177,7 +178,7 @@ const lwcPreview = async (sourceUri: URI) => {
  * @param componentName name of the lwc
  * @param resourcePath path to the lwc
  */
-const executePreview = async (startTime: [number, number], componentName: string, resourcePath: string) => {
+const executePreview = async (startTime: number, componentName: string, resourcePath: string) => {
   const commandCancelledMessage = nls.localize('lightning_lwc_operation_cancelled');
 
   // 1. Prompt user to select a platform
@@ -239,7 +240,7 @@ const executePreview = async (startTime: [number, number], componentName: string
  * @param componentName name of the component to preview
  * @param startTime start time of the preview command
  */
-const startServer = async (isDesktop: boolean, componentName: string, startTime: [number, number]) => {
+const startServer = async (isDesktop: boolean, componentName: string, startTime: number) => {
   if (!DevServerService.instance.isServerHandlerRegistered()) {
     console.log(`${logName}: server was not running, starting...`);
     const preconditionChecker = new SfWorkspaceChecker();
@@ -479,7 +480,7 @@ const executeMobilePreview = async (
   projectDir: string | undefined,
   configFile: string | undefined,
   componentName: string,
-  startTime: [number, number]
+  startTime: number
 ) => {
   const isAndroid = platformSelection.id === PreviewPlatformType.Android;
 

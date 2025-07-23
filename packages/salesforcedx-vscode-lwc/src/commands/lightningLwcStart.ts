@@ -14,7 +14,8 @@ import {
   SfCommandlet,
   SfCommandletExecutor,
   SfWorkspaceChecker,
-  ContinueResponse
+  ContinueResponse,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
@@ -64,7 +65,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(_response: ContinueResponse<{}>): void {
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 

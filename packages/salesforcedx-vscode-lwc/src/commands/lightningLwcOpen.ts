@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
@@ -15,7 +16,7 @@ const logName = 'lightning_lwc_open';
 const commandName = nls.localize('lightning_lwc_open_text');
 
 export const lightningLwcOpen = async () => {
-  const startTime = process.hrtime();
+  const startTime = TimingUtils.getCurrentTime();
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
     try {

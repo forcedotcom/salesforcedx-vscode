@@ -4,70 +4,100 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  TelemetryServiceInterface,
+  TelemetryService,
   ActivationInfo,
-  TelemetryData,
-  Properties,
   Measurements,
-  TelemetryReporter
-} from '@salesforce/vscode-service-provider';
-import { ExtensionContext, ExtensionMode } from 'vscode';
+  Properties,
+  TelemetryData,
+  TelemetryReporter,
+  TelemetryServiceInterface
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionContext } from 'vscode';
 
 export class MockTelemetryService extends TelemetryService implements TelemetryServiceInterface {
-  initializeService(extensionContext: ExtensionContext): Promise<void> {
-    return Promise.resolve();
-  }
-  initializeServiceWithAttributes(
-    name: string,
-    apiKey?: string,
-    version?: string,
-    extensionMode?: ExtensionMode
-  ): Promise<void> {
-    return Promise.resolve();
-  }
-  getReporters(): TelemetryReporter[] {
-    return [];
-  }
-  isTelemetryEnabled(): Promise<boolean> {
-    return Promise.resolve(true);
-  }
-  checkCliTelemetry(): Promise<boolean> {
-    return Promise.resolve(true);
-  }
-  isTelemetryExtensionConfigurationEnabled(): boolean {
+  public sentEvents: {
+    eventName: string;
+    properties?: { [key: string]: string };
+    measurements?: { [key: string]: number };
+  }[] = [];
+
+  public sentExceptions: {
+    exceptionName: string;
+    exceptionMessage: string;
+    measurements?: { [key: string]: number };
+  }[] = [];
+
+  public isTelemetryExtensionConfigurationEnabled(): boolean {
     return true;
   }
-  setCliTelemetryEnabled(isEnabled: boolean): void {
-    // No-op implementation
+
+  public checkCliTelemetry(): Promise<boolean> {
+    return Promise.resolve(true);
   }
-  sendActivationEventInfo(activationInfo: ActivationInfo): void {
-    // No-op implementation
+
+  public isTelemetryEnabled(): Promise<boolean> {
+    return Promise.resolve(true);
   }
-  sendExtensionActivationEvent(hrstart: [number, number], markEndTime?: number, telemetryData?: TelemetryData): void {
-    // No-op implementation
+
+  public setCliTelemetryEnabled(_isEnabled: boolean): void {
+    // Mock implementation
   }
-  sendExtensionDeactivationEvent(): void {
-    // No-op implementation
+
+  public getReporters(): TelemetryReporter[] {
+    return [];
   }
-  sendCommandEvent(
+
+  public getTelemetryReporterName(): string {
+    return 'mockTelemetryReporter';
+  }
+
+  public sendActivationEventInfo(activationInfo: ActivationInfo): void {
+    // Mock implementation - use local ActivationInfo type
+  }
+
+  public sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
+    // Mock implementation
+  }
+
+  public sendExtensionDeactivationEvent(): void {
+    // Mock implementation
+  }
+
+  public sendCommandEvent(
     commandName?: string,
-    hrstart?: [number, number],
+    startTime?: number,
     properties?: Properties,
     measurements?: Measurements
   ): void {
-    // No-op implementation
+    // Mock implementation
   }
-  sendException(name: string, message: string): void {
-    // No-op implementation
+
+  public sendEventData(
+    eventName: string,
+    properties?: { [key: string]: string },
+    measures?: { [key: string]: number }
+  ): void {
+    this.sentEvents.push({
+      eventName,
+      properties,
+      measurements: measures
+    });
   }
-  sendEventData(eventName: string, properties?: { [key: string]: string }, measures?: { [key: string]: number }): void {
-    // No-op implementation
+
+  public sendException(name: string, message: string): void {
+    this.sentExceptions.push({
+      exceptionName: name,
+      exceptionMessage: message
+    });
   }
-  dispose(): void {
-    // No-op implementation
+
+  public dispose(): void {
+    // Mock implementation
+  }
+
+  public initializeService(_extensionContext: ExtensionContext): Promise<void> {
+    return Promise.resolve();
   }
 }

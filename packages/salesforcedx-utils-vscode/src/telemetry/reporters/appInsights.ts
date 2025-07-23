@@ -3,11 +3,11 @@
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
 
-import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as appInsights from 'applicationinsights';
 import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
+import { TelemetryReporter } from '../../types';
 import { isInternalHost } from '../utils/isInternal';
 import { CommonProperties, InternalProperties } from './loggingProperties';
 

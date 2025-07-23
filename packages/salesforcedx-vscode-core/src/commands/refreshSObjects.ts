@@ -27,6 +27,7 @@ import {
   projectPaths,
   SfCommandlet,
   SfWorkspaceChecker,
+  TimingUtils,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
@@ -101,7 +102,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
       await vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'));
       return;
     }
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     RefreshSObjectsExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
