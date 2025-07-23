@@ -22,6 +22,7 @@ import { getConflictMessagesFor } from '../conflict/messages';
 import { MetadataCacheService } from '../conflict/metadataCacheService';
 import { TimestampConflictDetector } from '../conflict/timestampConflictDetector';
 import { PROJECT_DEPLOY_START_LOG_NAME, TELEMETRY_METADATA_COUNT } from '../constants';
+import { workspaceContextUtils } from '../context';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
@@ -131,16 +132,31 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
 
         if (statusResponse.length === 0) {
           // No changes found - this could be a new org with no existing metadata
-          // Check if this is a "first deployment" scenario by looking for any source files
-          const allSourceComponents = ComponentSet.fromSource(projectPath);
-          if (allSourceComponents && allSourceComponents.size > 0) {
-            // This is likely a first deployment to a new org - deploy all source
-            console.log(
-              'No source tracking changes found, but source files exist. This appears to be a first deployment to a new org. Deploying all source files.'
-            );
-            return allSourceComponents;
+          // Check if this is a "first deployment" scenario by checking if the org has any existing metadata
+          try {
+            const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+            if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
+              // For source-tracked orgs, check if there's any remote metadata
+              const remoteStatusResponse = await sourceTracking.getStatus({ local: false, remote: true });
+              if (remoteStatusResponse.length === 0) {
+                // No remote metadata found - this is likely a first deployment
+                // Check if there are source files to deploy
+                const allSourceComponents = ComponentSet.fromSource(projectPath);
+                if (allSourceComponents && allSourceComponents.size > 0) {
+                  console.log(
+                    'No source tracking changes found and no remote metadata exists. This appears to be a first deployment to a new org. Deploying all source files.'
+                  );
+                  return allSourceComponents;
+                }
+              }
+            }
+          } catch {
+            // If we can't determine org type or get remote status, be conservative and return empty
+            console.log('Could not determine if this is a first deployment scenario, returning empty ComponentSet');
           }
-          // No source files exist, return empty ComponentSet
+
+          // No changes found and not a first deployment - return empty ComponentSet
+          // This will result in "No results found" output
           return new ComponentSet();
         }
 
@@ -231,7 +247,8 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
         // Filter conflicts to only include our changed files
         const relevantConflicts = new Set<TimestampFileProperties>();
         for (const conflict of diffs.different) {
-          const conflictPath = nodePath.resolve(projectPath, conflict.localRelPath);
+          // Construct the full path by joining the local root (which includes project path) with the relative path
+          const conflictPath = nodePath.join(diffs.localRoot, conflict.localRelPath);
           // If we have changedFilePaths (source tracking enabled), only check those files
           // If we don't have changedFilePaths (source tracking disabled), check all conflicts
           if (this.changedFilePaths.length === 0 || this.changedFilePaths.includes(conflictPath)) {
