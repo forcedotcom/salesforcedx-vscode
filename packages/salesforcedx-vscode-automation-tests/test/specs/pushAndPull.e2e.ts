@@ -135,27 +135,9 @@ describe('Push and Pull', () => {
     // Check the output.
     const outputPanelText = await verifyPushAndPullOutputText('Push', 'to', 'Changed');
 
+    expect(outputPanelText).to.contain(path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls'));
     expect(outputPanelText).to.contain(
-      path.join(
-        'e2e-temp',
-        'TempProject-PushAndPull',
-        'force-app',
-        'main',
-        'default',
-        'classes',
-        'ExampleApexClass1.cls'
-      )
-    );
-    expect(outputPanelText).to.contain(
-      path.join(
-        'e2e-temp',
-        'TempProject-PushAndPull',
-        'force-app',
-        'main',
-        'default',
-        'classes',
-        'ExampleApexClass1.cls-meta.xml'
-      )
+      path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls-meta.xml')
     );
   });
 
