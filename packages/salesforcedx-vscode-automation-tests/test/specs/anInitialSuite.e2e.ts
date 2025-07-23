@@ -40,7 +40,29 @@ describe('An Initial Suite', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'AnInitialSuite'
+    testSuiteSuffixName: 'AnInitialSuite',
+    extensionConfigs: [
+      {
+        extensionId: 'salesforcedx-vscode-core',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-apex',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-lightning',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-lwc',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      }
+    ]
   };
 
   let testSetup: TestSetup;

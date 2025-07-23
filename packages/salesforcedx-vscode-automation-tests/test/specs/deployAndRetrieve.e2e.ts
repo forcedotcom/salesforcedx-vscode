@@ -53,7 +53,29 @@ describe('Deploy and Retrieve', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'DeployAndRetrieve'
+    testSuiteSuffixName: 'DeployAndRetrieve',
+    extensionConfigs: [
+      {
+        extensionId: 'salesforcedx-vscode-core',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-apex',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-lightning',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-lwc',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      }
+    ]
   };
   before('Set up the testing environment', async () => {
     log('Deploy and Retrieve - Set up the testing environment');

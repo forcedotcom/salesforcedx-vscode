@@ -38,7 +38,29 @@ describe('Push and Pull', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'PushAndPull'
+    testSuiteSuffixName: 'PushAndPull',
+    extensionConfigs: [
+      {
+        extensionId: 'salesforcedx-vscode-core',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-apex',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-lightning',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-lwc',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      }
+    ]
   };
 
   before('Set up the testing environment', async () => {
@@ -233,7 +255,29 @@ describe('Push and Pull', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'ViewChanges'
+    testSuiteSuffixName: 'ViewChanges',
+    extensionConfigs: [
+      {
+        extensionId: 'salesforcedx-vscode-core',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-apex',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-lightning',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      },
+      {
+        extensionId: 'salesforcedx-vscode-lwc',
+        shouldVerifyActivation: true,
+        shouldInstall: 'always'
+      }
+    ]
   };
 
   it('SFDX: View Changes in Default Org', async () => {
