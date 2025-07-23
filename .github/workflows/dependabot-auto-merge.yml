@@ -16,9 +16,9 @@ on:
         default: false
         type: boolean
 
-  # Schedule trigger - runs every hour during business hours
+  # Schedule trigger - runs every hour during off-hours
   schedule:
-    - cron: '10 13-23,0 * * *' # Run 10 minutes after each hour from 6am to 4pm Pacific Time
+    - cron: '0 2-12 * * *' # Run on the hour from 6pm to 5am Pacific Time
 
 permissions:
   contents: write # Required to merge PRs
