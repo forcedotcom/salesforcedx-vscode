@@ -86,6 +86,12 @@ describe('Deploy and Retrieve', () => {
     expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('Verify Source Tracking Setting is enabled', async () => {
     logTestStart(testSetup, 'Verify Source Tracking Setting is enabled');
     expect(await isBooleanSettingEnabled(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE));
@@ -515,13 +521,6 @@ describe('Deploy and Retrieve', () => {
         Duration.seconds(5)
       );
       expect(accepted).to.equal(true);
-
-      const successNotificationWasFound = await verifyNotificationWithRetry(
-        /SFDX: Delete from Project and Org successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-
       // TODO: see how the test can accommodate the new output from CLI.
       // Verify Output tab
       const outputPanelText = await attemptToFindOutputPanelText(
@@ -530,6 +529,12 @@ describe('Deploy and Retrieve', () => {
         10
       );
       log(`Output panel text is: ${outputPanelText}`);
+
+      const successNotificationWasFound = await verifyNotificationWithRetry(
+        /SFDX: Delete from Project and Org successfully ran/,
+        Duration.TEN_MINUTES
+      );
+      expect(successNotificationWasFound).to.equal(true);
 
       const pathToClassDeleteFromProjectAndOrg = path.join(
         'force-app',
