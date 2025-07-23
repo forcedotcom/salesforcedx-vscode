@@ -194,7 +194,7 @@ export class TelemetryService implements TelemetryServiceInterface {
       .addProperty('loadStartDate', activationInfo.loadStartDate?.toISOString())
       .addMeasurement('extensionActivationTime', activationInfo.extensionActivationTime)
       .build();
-    this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, telemetryData);
+    this.sendExtensionActivationEvent(activationInfo.activateStartTime, activationInfo.markEndTime, telemetryData);
   }
 
   public sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void {

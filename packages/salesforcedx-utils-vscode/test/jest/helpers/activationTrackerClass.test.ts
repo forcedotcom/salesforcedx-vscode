@@ -45,8 +45,7 @@ describe('ActivationTracker', () => {
 
     telemetryService = {
       sendActivationEventInfo: jest.fn(),
-      sendExtensionActivationEvent: jest.fn(),
-      getEndHRTime: jest.fn(() => 3.141)
+      sendExtensionActivationEvent: jest.fn()
     } as unknown as TelemetryService;
 
     // Set up default mock return values for TimingUtils
@@ -67,7 +66,7 @@ describe('ActivationTracker', () => {
 
     expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(
       expect.objectContaining({
-        startActivateHrTime: expect.any(Number),
+        activateStartTime: expect.any(Number),
         activateStartDate: expect.any(Date),
         activateEndDate: expect.any(Date),
         extensionActivationTime: expect.any(Number),

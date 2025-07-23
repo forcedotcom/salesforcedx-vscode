@@ -4,7 +4,6 @@
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 
@@ -57,7 +56,7 @@ export const activate = async (context: ExtensionContext) => {
   }
   telemetryService = salesforceCoreExtension?.exports?.services?.TelemetryService.getInstance();
   await telemetryService?.initializeService(context);
-  const extensionStartTime = TimingUtils.getCurrentTime();
+  const extensionStartTime = globalThis.performance.now();
   const toDispose = context.subscriptions;
 
   // The server is implemented in node

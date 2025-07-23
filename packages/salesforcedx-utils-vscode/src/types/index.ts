@@ -146,7 +146,7 @@ export type ExtensionsInfo = {
 };
 
 export type ActivationInfo = Partial<ExtensionInfo> & {
-  startActivateHrTime: number; // Changed from [number, number] to number
+  activateStartTime: number;
   activateStartDate: Date;
   activateEndDate?: Date;
   extensionActivationTime: number;

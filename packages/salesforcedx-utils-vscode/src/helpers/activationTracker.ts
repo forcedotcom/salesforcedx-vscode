@@ -42,7 +42,7 @@ export class ActivationTracker {
     }
 
     const activationInfo: ActivationInfo = {
-      startActivateHrTime: this.startTime,
+      activateStartTime: this.startTime,
       activateStartDate: this.activateStartDate,
       activateEndDate,
       extensionActivationTime: TimingUtils.getElapsedTime(this.startTime),

@@ -57,8 +57,8 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
     // Mock implementation - use local ActivationInfo type
   }
 
-  public sendExtensionActivationEvent(hrstart?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
-    // Mock implementation - uses number instead of [number, number]
+  public sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
+    // Mock implementation
   }
 
   public sendExtensionDeactivationEvent(): void {
@@ -67,11 +67,11 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
 
   public sendCommandEvent(
     commandName?: string,
-    hrstart?: number,
+    startTime?: number,
     properties?: Properties,
     measurements?: Measurements
   ): void {
-    // Mock implementation - uses number instead of [number, number]
+    // Mock implementation
   }
 
   public sendEventData(
@@ -91,11 +91,6 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
       exceptionName: name,
       exceptionMessage: message
     });
-  }
-
-  public getEndHRTime(hrstart: number): number {
-    // Mock implementation - uses number instead of [number, number]
-    return 100;
   }
 
   public dispose(): void {
