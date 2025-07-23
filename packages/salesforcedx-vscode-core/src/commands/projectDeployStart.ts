@@ -58,8 +58,19 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     // Get components to determine changed files
     const components = await this.getComponents(response);
 
-    // If conflict detection is enabled, ignoreConflicts is false, and we have components to deploy, check for conflicts
-    if (!this.ignoreConflicts && salesforceCoreSettings.getConflictDetectionEnabled() && components.size > 0) {
+    // Only do conflict detection if:
+    // 1. Conflict detection is enabled
+    // 2. We're not ignoring conflicts (SFDX: Push Source to Default Org command)
+    // 3. We have components to deploy
+    // 4. Source tracking is enabled (changedFilePaths is not empty)
+    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    if (
+      !this.ignoreConflicts &&
+      salesforceCoreSettings.getConflictDetectionEnabled() &&
+      components.size > 0 &&
+      sourceTrackingEnabled &&
+      this.changedFilePaths.length > 0
+    ) {
       const conflictResult = await this.checkConflictsForChangedFiles();
       if (!conflictResult) {
         return false; // Conflict detection failed or was cancelled
@@ -119,7 +130,17 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
         const statusResponse = await sourceTracking.getStatus({ local: true, remote: false });
 
         if (statusResponse.length === 0) {
-          // No changes found, return empty ComponentSet
+          // No changes found - this could be a new org with no existing metadata
+          // Check if this is a "first deployment" scenario by looking for any source files
+          const allSourceComponents = ComponentSet.fromSource(projectPath);
+          if (allSourceComponents && allSourceComponents.size > 0) {
+            // This is likely a first deployment to a new org - deploy all source
+            console.log(
+              'No source tracking changes found, but source files exist. This appears to be a first deployment to a new org. Deploying all source files.'
+            );
+            return allSourceComponents;
+          }
+          // No source files exist, return empty ComponentSet
           return new ComponentSet();
         }
 
@@ -152,7 +173,7 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
       } catch (error) {
         // If source tracking fails, let the error bubble up
         console.error('Source tracking failed:', error);
-        throw new Error(`${nls.localize('error_source_tracking_components_failed')}: ${error}`);
+        throw new Error(nls.localize('error_source_tracking_components_failed', error));
       }
     }
 
@@ -189,7 +210,15 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
       const projectPath = workspaceUtils.getRootWorkspacePath();
 
       // Create a single cache operation for all changed files
-      const result = await cacheService.loadCache(projectPath, projectPath, false);
+      // If we have changedFilePaths (source tracking enabled), use those specific files
+      // If we don't have changedFilePaths (source tracking disabled), use the entire project
+      const componentPath =
+        this.changedFilePaths.length > 0
+          ? this.changedFilePaths.length === 1
+            ? this.changedFilePaths[0]
+            : this.changedFilePaths
+          : projectPath;
+      const result = await cacheService.loadCache(componentPath, projectPath, false);
       if (!result) {
         console.warn('No cache result available for conflict detection');
         return true; // Continue with deployment
