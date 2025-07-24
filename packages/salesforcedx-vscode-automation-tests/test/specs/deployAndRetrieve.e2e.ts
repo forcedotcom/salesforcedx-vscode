@@ -36,6 +36,7 @@ import {
   executeQuickPick,
   getTextEditor,
   reloadWindow,
+  replaceLineInFile,
   verifyOutputPanelText,
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
@@ -117,14 +118,15 @@ describe('Deploy and Retrieve', () => {
 
   it('Modify the file and deploy again - ST enabled', async () => {
     logTestStart(testSetup, 'Modify the file and deploy again - ST enabled');
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by adding a comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-    await textEditor.save();
+    await replaceLineInFile(myClassPath, 2, '\t//say hello to a given name');
+    await pause(Duration.seconds(2));
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Changed  ');
@@ -195,15 +197,18 @@ describe('Deploy and Retrieve', () => {
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by changing the comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//modified comment');
-    await textEditor.save();
+    await replaceLineInFile(myClassPath, 2, '\t//modified comment');
+    await pause(Duration.seconds(2));
 
     // Retrieve running SFDX: Retrieve This Source from Org
 
     await runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
     // Retrieve operation will overwrite the file, hence the the comment will remain as before the modification
+    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
     const textAfterRetrieve = await textEditor.getText();
     expect(textAfterRetrieve).to.not.contain('modified comment');
   });
@@ -258,7 +263,6 @@ describe('Deploy and Retrieve', () => {
 
   it('Prefer Deploy on Save when `Push or deploy on save` is enabled', async () => {
     logTestStart(testSetup, "Prefer Deploy on Save when 'Push or deploy on save' is enabled");
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
@@ -272,10 +276,12 @@ describe('Deploy and Retrieve', () => {
 
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
+
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file and save to trigger deploy
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, "\t// let's trigger deploy");
-    await textEditor.save();
+    await replaceLineInFile(myClassPath, 2, "\t// let's trigger deploy");
     await pause(Duration.seconds(5));
 
     // At this point there should be no conflicts since this is a new class.
@@ -317,14 +323,15 @@ describe('Deploy and Retrieve', () => {
 
   it('Modify the file and deploy again - ST disabled', async () => {
     logTestStart(testSetup, 'Modify the file and deploy again - ST disabled');
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by adding a comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-    await textEditor.save();
+    await replaceLineInFile(myClassPath, 2, '\t//say hello to a given name');
+    await pause(Duration.seconds(2));
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
