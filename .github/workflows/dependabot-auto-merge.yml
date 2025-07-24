@@ -18,7 +18,7 @@ on:
 
   # Schedule trigger - runs every hour during off-hours
   schedule:
-    - cron: '0 2-12 * * *' # Run on the hour from 6pm to 5am Pacific Time
+    - cron: '30 2-11 * * *' # Run 30 minutes after each hour from 6pm to 4:30am Pacific Time
 
 permissions:
   contents: write # Required to merge PRs

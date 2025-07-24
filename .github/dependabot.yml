@@ -13,10 +13,48 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/' # Location of package manifests
     schedule:
-      # After the weekly release branch cut-off on Monday
-      interval: 'weekly'
-      day: 'wednesday'
-      time: '06:00'
+      # Run 4 times daily between 6pm and 5am PST to align with automerge schedule
+      interval: 'daily'
+      time: '18:00'
+      timezone: 'America/Los_Angeles'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/vscode'
+    open-pull-requests-limit: 3
+    rebase-strategy: auto
+    versioning-strategy: increase
+  - package-ecosystem: 'npm'
+    directory: '/' # Location of package manifests
+    schedule:
+      interval: 'daily'
+      time: '21:00'
+      timezone: 'America/Los_Angeles'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/vscode'
+    open-pull-requests-limit: 3
+    rebase-strategy: auto
+    versioning-strategy: increase
+  - package-ecosystem: 'npm'
+    directory: '/' # Location of package manifests
+    schedule:
+      interval: 'daily'
+      time: '00:00'
+      timezone: 'America/Los_Angeles'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/vscode'
+    open-pull-requests-limit: 3
+    rebase-strategy: auto
+    versioning-strategy: increase
+  - package-ecosystem: 'npm'
+    directory: '/' # Location of package manifests
+    schedule:
+      interval: 'daily'
+      time: '03:00'
       timezone: 'America/Los_Angeles'
     ignore:
       - dependency-name: '*'
