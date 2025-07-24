@@ -24,6 +24,7 @@ import {
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
@@ -112,9 +113,8 @@ describe('Manifest Builder', () => {
       await inputBox.confirm();
       await inputBox.confirm();
       await inputBox.confirm();
+      await pause(Duration.seconds(1));
 
-      const workbench = getWorkbench();
-      const textEditor = await getTextEditor(workbench, 'manifest.xml');
       const content = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<Package xmlns="http://soap.sforce.com/2006/04/metadata">',
@@ -126,8 +126,8 @@ describe('Manifest Builder', () => {
         '</Package>'
       ].join('\n');
 
-      await textEditor.setText(content);
-      await textEditor.save();
+      const manifestPath = path.join(testSetup.projectFolderPath!, 'manifest', 'manifest.xml');
+      await fs.writeFile(manifestPath, content, 'utf8');
       await pause(Duration.seconds(1));
     }
   });
