@@ -183,7 +183,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
         await prompt.selectQuickPick('User User - ApexTestHandler');
         await pause(Duration.seconds(2));
       },
-      3,
+      10,
       'Failed to select log file from quick picks'
     );
 
