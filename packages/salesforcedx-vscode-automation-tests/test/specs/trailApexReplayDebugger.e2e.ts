@@ -26,6 +26,7 @@ import {
   getTextEditor,
   getWorkbench,
   moveCursorWithFallback,
+  replaceLineInFile,
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
@@ -221,11 +222,12 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
   it('Push Fixed Metadata to Org', async () => {
     if (process.platform === 'darwin') {
       logTestStart(testSetup, 'Push Fixed Metadata to Org');
-      // Get open text editor
-      const workbench = getWorkbench();
-      const textEditor = await getTextEditor(workbench, 'AccountService.cls');
-      await textEditor.setTextAtLine(6, '\t\t\tTickerSymbol = tickerSymbol');
-      await textEditor.save();
+
+      // Get the path to AccountService.cls file
+      const accountServicePath = `${testSetup.projectFolderPath}/force-app/main/default/classes/AccountService.cls`;
+
+      // Replace line 6 using fs operations instead of textEditor.setTextAtLine()
+      await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');
       await pause(Duration.seconds(2));
 
       // Push source to org
