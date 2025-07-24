@@ -45,7 +45,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.18.1",
+    "@salesforce/core": "^8.18.4",
     "@salesforce/salesforcedx-utils": "64.6.1",
     "@salesforce/ts-types": "2.0.12",
     "@types/node": "^20.0.0",

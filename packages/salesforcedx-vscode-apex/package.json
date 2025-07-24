@@ -26,11 +26,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "^8.2.2",
+    "@salesforce/apex-node-bundle": "^8.2.5",
     "@salesforce/apex-tmlanguage": "1.8.1",
     "@salesforce/salesforcedx-utils": "64.6.1",
     "@salesforce/salesforcedx-utils-vscode": "64.6.1",
-    "@salesforce/vscode-service-provider": "^1.4.0",
+    "@salesforce/vscode-service-provider": "^1.4.1",
     "@stoplight/spectral-core": "1.20.0",
     "@stoplight/spectral-functions": "1.10.1",
     "@stoplight/spectral-rulesets": "1.22.0",
@@ -45,7 +45,7 @@
     "yaml": "2.6.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.18.1",
+    "@salesforce/core": "^8.18.4",
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "@types/node": "^20.0.0",

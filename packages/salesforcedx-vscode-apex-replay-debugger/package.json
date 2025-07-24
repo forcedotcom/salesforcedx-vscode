@@ -24,7 +24,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "^8.2.2",
+    "@salesforce/apex-node-bundle": "^8.2.5",
     "@salesforce/salesforcedx-apex-replay-debugger": "64.6.1",
     "@salesforce/salesforcedx-utils": "64.6.1",
     "@salesforce/salesforcedx-utils-vscode": "64.6.1",
@@ -32,7 +32,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.18.1",
+    "@salesforce/core": "^8.18.4",
     "@types/async-lock": "1.4.2",
     "@types/node": "^20.0.0",
     "cross-env": "5.2.0",
