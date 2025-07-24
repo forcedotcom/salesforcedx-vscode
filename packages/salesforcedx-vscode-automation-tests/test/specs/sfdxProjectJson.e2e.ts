@@ -40,7 +40,13 @@ describe('Customize sfdx-project.json', () => {
   });
 
   it('Verify our extensions are loaded after updating sfdx-project.json', async () => {
-    expect(await verifyExtensionsAreRunning(getExtensionsToVerifyActive())).to.equal(true);
+    expect(
+      await verifyExtensionsAreRunning(
+        getExtensionsToVerifyActive(ext =>
+          defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
+        )
+      )
+    ).to.equal(true);
   });
 
   after('Tear down and clean up the testing environment', async () => {
