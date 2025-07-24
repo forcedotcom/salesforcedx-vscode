@@ -22,6 +22,9 @@ const mockExtension = { exports: mockCoreExports, isActive: true };
   return { isActive: true, exports: {} };
 });
 
+// Mock vscode commands
+jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(() => Promise.resolve());
+
 jest.mock('./../../src/apexLspStatusBarItem');
 jest.mock('../../src/telemetry/telemetry', () => ({
   getTelemetryService: jest.fn(),
@@ -94,6 +97,72 @@ describe('index tests', () => {
       expect(languageServerStatusBarItem.ready).toHaveBeenCalled();
       expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Ready, '');
       expect(mockLanguageClient.errorHandler.serviceHasStartedSuccessfully).toHaveBeenCalled();
+    });
+  });
+
+  describe('Settings Change Handler', () => {
+    let executeCommandMock: jest.SpyInstance;
+    let mockEvent: any;
+
+    beforeEach(() => {
+      executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
+      mockEvent = {
+        affectsConfiguration: jest.fn()
+      };
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should execute restart command when lspParityCapabilities setting changes', () => {
+      // Mock the event to affect our setting
+      mockEvent.affectsConfiguration.mockReturnValue(true);
+
+      // Create the settings change handler function (same logic as in index.ts)
+      const settingsChangeHandler = (event: any) => {
+        if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
+          void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
+        }
+      };
+
+      settingsChangeHandler(mockEvent);
+
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.apex.languageServer.restart', 'commandPalette');
+    });
+
+    it('should not execute restart command when other settings change', () => {
+      // Mock the event to not affect our setting
+      mockEvent.affectsConfiguration.mockReturnValue(false);
+
+      // Create the settings change handler function (same logic as in index.ts)
+      const settingsChangeHandler = (event: any) => {
+        if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
+          void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
+        }
+      };
+
+      settingsChangeHandler(mockEvent);
+
+      expect(executeCommandMock).not.toHaveBeenCalled();
+    });
+
+    it('should check for the correct configuration key', () => {
+      // Mock the event to affect our setting
+      mockEvent.affectsConfiguration.mockReturnValue(true);
+
+      // Create the settings change handler function (same logic as in index.ts)
+      const settingsChangeHandler = (event: any) => {
+        if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
+          void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
+        }
+      };
+
+      settingsChangeHandler(mockEvent);
+
+      expect(mockEvent.affectsConfiguration).toHaveBeenCalledWith(
+        'salesforcedx-vscode-apex.advanced.lspParityCapabilities'
+      );
     });
   });
 

@@ -2,6 +2,7 @@
   "anon_apex_execute_document_text": "SFDX: Execute Anonymous Apex with Editor Contents",
   "anon_apex_execute_selection_text": "SFDX: Execute Anonymous Apex with Currently Selected Text",
   "apex_code_completion_stats_description": "Allow the Apex Language Server to collect telemetry on code completion usage",
+  "apex_lsp_parity_capabilities_description": "Enable LSP parity capabilities.",
   "apex_code_disable-warnings-for-missing-coverage": "Disable UI warning when Apex test coverage is missing.",
   "apex_log_get_text": "SFDX: Get Apex Debug Logs",
   "apex_language_server_restart": "SFDX: Restart Apex Language Server",
