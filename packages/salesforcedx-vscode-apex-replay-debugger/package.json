@@ -32,7 +32,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.18.1",
+    "@salesforce/core": "^8.18.4",
     "@types/async-lock": "1.4.2",
     "@types/node": "^20.0.0",
     "cross-env": "5.2.0",
