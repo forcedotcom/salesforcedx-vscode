@@ -13,9 +13,9 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/' # Location of package manifests
     schedule:
-      # Run 4 times daily between 6pm and 5am PST to align with automerge schedule
-      interval: 'cron'
-      cronjob: '0 18,21,0,3 * * *'
+      # Run daily at 6pm Pacific time to align with automerge schedule
+      interval: 'daily'
+      time: '18:00'
       timezone: 'America/Los_Angeles'
     ignore:
       - dependency-name: '*'
