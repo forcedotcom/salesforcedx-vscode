@@ -23,7 +23,7 @@
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.11.0",
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
-    "@salesforce/dev-config": "^3.1.0",
+    "@salesforce/dev-config": "^4.3.1",
     "@salesforce/salesforcedx-vscode-test-tools": "*",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.1.2",
