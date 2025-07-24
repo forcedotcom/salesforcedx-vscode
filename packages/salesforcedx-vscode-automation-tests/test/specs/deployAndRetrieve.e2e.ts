@@ -338,6 +338,12 @@ describe('Deploy and Retrieve', () => {
     // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
 
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
+
     // Clear the Output view first.
     await clearOutputView();
 
