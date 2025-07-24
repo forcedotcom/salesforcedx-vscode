@@ -36,6 +36,7 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
+  replaceLineInFile,
   verifyOutputPanelText,
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
@@ -330,7 +331,6 @@ describe('Run Apex Tests', () => {
     await createApexClassWithBugs();
 
     // Push source to org
-    const workbench = getWorkbench();
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
@@ -360,9 +360,8 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(outputPanelText, expectedTexts);
 
     // Fix test
-    const textEditor = await getTextEditor(workbench, 'AccountService.cls');
-    await textEditor.setTextAtLine(6, '\t\t\tTickerSymbol = tickerSymbol');
-    await textEditor.save();
+    const accountServicePath = `${testSetup.projectFolderPath}/force-app/main/default/classes/AccountService.cls`;
+    await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');
     await pause(Duration.seconds(1));
 
     // Push source to org

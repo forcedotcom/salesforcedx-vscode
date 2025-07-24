@@ -226,7 +226,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       // Get the path to AccountService.cls file
       const accountServicePath = `${testSetup.projectFolderPath}/force-app/main/default/classes/AccountService.cls`;
 
-      // Replace line 6 using fs operations instead of textEditor.setTextAtLine()
+      // Fix the test
       await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');
       await pause(Duration.seconds(2));
 
