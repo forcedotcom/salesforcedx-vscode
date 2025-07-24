@@ -23,14 +23,14 @@ import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
-describe('Miscellaneous', () => {
+describe('Snippets', () => {
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'Miscellaneous'
+    testSuiteSuffixName: 'Snippets'
   };
 
   before('Set up the testing environment', async () => {
