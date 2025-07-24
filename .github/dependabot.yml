@@ -13,9 +13,10 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/' # Location of package manifests
     schedule:
-      # Run daily at 6pm Pacific time to align with automerge schedule
-      interval: 'daily'
-      time: '18:00'
+      # After the weekly release branch cut-off on Monday
+      interval: 'weekly'
+      day: 'wednesday'
+      time: '06:00'
       timezone: 'America/Los_Angeles'
     ignore:
       - dependency-name: '*'
