@@ -145,9 +145,7 @@ describe('Deploy and Retrieve', () => {
 
       await validateCommand('Deploy', 'to', 'ST', 'ApexClass', ['MyClass'], 'Unchanged  ');
     });
-  }
 
-  if (process.platform !== 'darwin') {
     it('Deploy with context menu from explorer view', async () => {
       logTestStart(testSetup, 'Deploy with context menu from explorer view');
       // Clear the Output view first.
@@ -283,11 +281,15 @@ describe('Deploy and Retrieve', () => {
     await validateCommand('Deploy', 'to', 'on save', 'ApexClass', ['MyClass']);
   });
 
-  it('Disable Source Tracking Setting', async () => {
-    logTestStart(testSetup, 'Disable Source Tracking Setting');
+  it('Disable Source Tracking and Deploy On Save Settings', async () => {
+    logTestStart(testSetup, 'Disable Source Tracking and Deploy On Save Settings');
     await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
 
     expect(await disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
+    await pause(Duration.seconds(3));
+    expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_ENABLED)).to.equal(false);
+    await pause(Duration.seconds(3));
+    expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_PREFER_DEPLOY_ON_SAVE)).to.equal(false);
 
     // Reload window to update cache and get the setting behavior to work
     await reloadWindow();
@@ -338,7 +340,7 @@ describe('Deploy and Retrieve', () => {
     // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
     await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view first.
@@ -407,7 +409,7 @@ describe('Deploy and Retrieve', () => {
       // Push source to org
       await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
-      // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+      // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
       await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
     });
 
