@@ -16,7 +16,9 @@ export { OrgCreateErrorResult, OrgCreateResultParser, OrgCreateSuccessResult } f
 export { OrgOpenContainerResultParser, OrgOpenErrorResult, OrgOpenSuccessResult } from './orgOpenContainerResultParser';
 export {
   ProjectRetrieveStartResultParser,
-  ProjectRetrieveStartResult
+  ProjectRetrieveStartResult,
+  ProjectRetrieveStartErrorResponse,
+  ProjectRetrieveStartSuccessResponse
 } from './parsers/projectRetrieveStartResultParser';
 export {
   CONFLICT_ERROR_NAME,
