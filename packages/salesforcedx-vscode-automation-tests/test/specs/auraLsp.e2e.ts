@@ -62,7 +62,7 @@ describe('Aura LSP', () => {
   it('Go to Definition', async () => {
     logTestStart(testSetup, 'Go to Definition');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'aura1.cmp');
 
     // Move cursor to the middle of "simpleNewContact"
@@ -80,7 +80,7 @@ describe('Aura LSP', () => {
   it('Autocompletion', async () => {
     logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'aura1.cmp');
     await textEditor.typeTextAt(2, 1, '<aura:appl');
     await pause(Duration.seconds(1));

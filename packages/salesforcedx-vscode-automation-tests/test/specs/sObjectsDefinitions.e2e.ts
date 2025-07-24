@@ -59,7 +59,7 @@ describe('SObjects Definitions', () => {
 
   it("Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder", async () => {
     logTestStart(testSetup, "Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder");
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const sidebar = await workbench.getSideBar().wait();
     const content = await sidebar.getContent().wait();
 
@@ -120,7 +120,7 @@ describe('SObjects Definitions', () => {
 
     await verifyOutputPanelTxt('Custom sObjects', 2);
 
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const treeViewSection = await verifySObjectFolders(workbench, projectName, 'customObjects');
 
     // Verify if custom Objects Customer__c and Product__c are within 'customObjects' folder
@@ -136,7 +136,7 @@ describe('SObjects Definitions', () => {
 
     await verifyOutputPanelTxt('Standard sObjects');
 
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const treeViewSection = await verifySObjectFolders(workbench, projectName, 'standardObjects');
 
     const accountSObject = await treeViewSection.findItem('Account.cls');

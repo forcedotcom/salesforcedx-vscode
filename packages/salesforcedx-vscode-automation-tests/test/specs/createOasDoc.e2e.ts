@@ -423,8 +423,8 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Use context menu for Windows and Ubuntu, command palette for Mac
       if (process.platform !== 'darwin') {
         log('Not Mac - can use context menu');
-        const wrkbench = getWorkbench();
-        const textEditor = await getTextEditor(wrkbench, 'SimpleAccountResource.cls');
+        const workbench = getWorkbench();
+        const textEditor = await getTextEditor(workbench, 'SimpleAccountResource.cls');
         const contextMenu = await textEditor.openContextMenu();
         const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
         // Wait for the command palette prompt to appear
@@ -504,12 +504,12 @@ describe('Create OpenAPI v3 Specifications', () => {
       await pause(Duration.seconds(5));
 
       // Use context menu for Windows and Ubuntu, command palette for Mac
+      const workbench = getWorkbench();
       if (process.platform !== 'darwin') {
         log('Not Mac - can use context menu');
         await executeQuickPick('File: Focus on Files Explorer');
         await pause(Duration.seconds(2));
-        const wrkbench = getWorkbench();
-        const workbenchSidebar = await wrkbench.getSideBar().wait();
+        const workbenchSidebar = await workbench.getSideBar().wait();
         const cont = await workbenchSidebar.getContent().wait();
         const treeViewSection = await cont.getSection(testSetup.tempProjectName);
         if (!treeViewSection) {
@@ -549,7 +549,6 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       // Verify the generated OAS doc and the diff editor are both open in the Editor View
       await executeQuickPick('View: Open First Editor in Group');
-      const workbench = getWorkbench();
       await executeQuickPick('Explorer: Focus on Open Editors View');
       const sidebar = await workbench.getSideBar().wait();
       const content = await sidebar.getContent().wait();

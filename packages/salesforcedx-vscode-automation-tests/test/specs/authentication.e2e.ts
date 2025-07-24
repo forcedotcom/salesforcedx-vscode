@@ -67,7 +67,7 @@ describe('Authentication', () => {
     // Could also run the command, "SFDX: Set a Default Org" but this exercises more UI elements.
 
     // Click on "No default Org Set" (in the bottom bar).
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const changeDefaultOrgSetItem = await getStatusBarItemWhichIncludes('No Default Org Set');
     expect(changeDefaultOrgSetItem).to.not.be.undefined;
     await changeDefaultOrgSetItem.click();

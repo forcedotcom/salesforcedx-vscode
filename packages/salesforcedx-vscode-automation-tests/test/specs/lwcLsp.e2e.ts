@@ -54,7 +54,7 @@ describe('LWC LSP', () => {
   it('Go to Definition (JavaScript)', async () => {
     logTestStart(testSetup, 'Go to Definition (Javascript)');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.js');
 
     // Move cursor to the middle of "LightningElement"
@@ -74,7 +74,7 @@ describe('LWC LSP', () => {
     if (process.platform !== 'win32') {
       logTestStart(testSetup, 'Go to Definition (HTML)');
       // Get open text editor
-      const workbench = await getWorkbench();
+      const workbench = getWorkbench();
       const textEditor = await getTextEditor(workbench, 'lwc1.html');
 
       // Move cursor to the middle of "greeting"
@@ -94,7 +94,7 @@ describe('LWC LSP', () => {
   it('Autocompletion', async () => {
     logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
-    const workbench = await getWorkbench().wait();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.html');
     await textEditor.typeTextAt(5, 1, '<lightnin');
     await pause(Duration.seconds(1));

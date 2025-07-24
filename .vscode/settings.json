@@ -36,6 +36,7 @@
   "prettier.arrowParens": "avoid",
   "editor.rulers": [120],
   "cSpell.words": [
+    "Agentforce",
     "barexception",
     "breakpointid",
     "commandlet",

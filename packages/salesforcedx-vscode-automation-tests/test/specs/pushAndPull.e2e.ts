@@ -227,7 +227,7 @@ describe('Push and Pull', () => {
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
     await textEditor.save();
 
-    // An now pull the changes.
+    // And now pull the changes.
     await executeQuickPick('SFDX: Pull Source from Default Org', Duration.seconds(5));
     await verifyPullSuccess();
     // Check the output.

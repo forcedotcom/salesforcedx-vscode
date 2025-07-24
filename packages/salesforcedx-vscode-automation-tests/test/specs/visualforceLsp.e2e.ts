@@ -72,7 +72,7 @@ describe('Visualforce LSP', () => {
     await verifyOutputPanelText(outputPanelText, expectedTexts);
 
     // Get open text editor and verify file content
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'FooPage.page');
     const fileContent = await textEditor.getText();
     expect(fileContent).to.contain('<apex:page controller="myController" tabStyle="Account">');
@@ -88,7 +88,7 @@ describe('Visualforce LSP', () => {
   it.skip('Go to Definition', async () => {
     logTestStart(testSetup, 'Go to Definition');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'FooPage.page');
     await moveCursorWithFallback(textEditor, 1, 25);
 
@@ -107,7 +107,7 @@ describe('Visualforce LSP', () => {
   it('Autocompletion', async () => {
     logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'FooPage.page');
     await textEditor.typeTextAt(3, 1, '\t\t<apex:pageM');
     await pause(Duration.seconds(1));

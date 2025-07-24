@@ -45,7 +45,7 @@ describe('Miscellaneous', () => {
 
   it.skip('Use out-of-the-box Apex Snippets', async () => {
     logTestStart(testSetup, 'Use Apex Snippets');
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const apexSnippet = 'String.isBlank(inputString)';
 
     // Create anonymous apex file
@@ -59,14 +59,14 @@ describe('Miscellaneous', () => {
     await inputBox.confirm();
     await textEditor.save();
     const fileContent = await textEditor.getText();
-    await expect(fileContent).to.contain(apexSnippet);
+    expect(fileContent).to.contain(apexSnippet);
   });
 
   it.skip('Use Custom Apex Snippets', async () => {
     logTestStart(testSetup, 'Use Apex Snippets');
 
     // Using the Command palette, run Snippets: Configure Snippets
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     await createGlobalSnippetsFile(testSetup);
 
     // Create anonymous apex file
@@ -89,7 +89,7 @@ describe('Miscellaneous', () => {
 
   it.skip('Use out-of-the-box LWC Snippets - HTML', async () => {
     logTestStart(testSetup, 'Use out-of-the-box LWC Snippets - HTML');
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
 
     const lwcSnippet = [
       '<lightning-button',
@@ -120,12 +120,12 @@ describe('Miscellaneous', () => {
       .map(line => line.trimEnd())
       .join('\n');
 
-    await expect(fileContentWithoutTrailingSpaces).to.contain(lwcSnippet);
+    expect(fileContentWithoutTrailingSpaces).to.contain(lwcSnippet);
   });
 
   it('Use out-of-the-box LWC Snippets - JS', async () => {
     logTestStart(testSetup, 'Use out-of-the-box LWC Snippets - JS');
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
 
     const lwcSnippet = 'this.dispatchEvent(new CustomEvent("event-name"));';
 
@@ -148,7 +148,7 @@ describe('Miscellaneous', () => {
     await textEditor.save();
     const fileContent = await textEditor.getText();
 
-    await expect(fileContent).to.contain(lwcSnippet);
+    expect(fileContent).to.contain(lwcSnippet);
   });
 
   after('Tear down and clean up the testing environment', async () => {
