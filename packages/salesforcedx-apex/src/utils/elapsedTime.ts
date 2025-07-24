@@ -62,7 +62,7 @@ export function elapsedTime(
     const className = target.constructor.name;
     descriptor.value = function (...args: any[]) {
       const logger = Logger.childFromRoot(loggerName);
-      const start = process.hrtime();
+      const start = globalThis.performance.now();
 
       log(level, logger, `${className}.${propertyKey} - enter`);
 
@@ -76,8 +76,7 @@ export function elapsedTime(
       }
 
       const handleResult = () => {
-        const diff = process.hrtime(start);
-        const elapsedTime = diff[0] * 1e3 + diff[1] / 1e6;
+        const elapsedTime = globalThis.performance.now() - start;
         log(level, logger, `${className}.${propertyKey} - exit`, {
           elapsedTime
         });

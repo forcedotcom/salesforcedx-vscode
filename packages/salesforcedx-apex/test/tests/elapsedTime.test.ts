@@ -41,13 +41,13 @@ class RejectingTestClassWithPromise {
 }
 
 describe('elapsedTime', () => {
-  let hrtimeStub: sinon.SinonStub;
+  let performanceNowStub: sinon.SinonStub;
   let loggerStub: sinon.SinonStubbedInstance<Logger>;
 
   beforeEach(() => {
-    hrtimeStub = sinon.stub(process, 'hrtime');
-    hrtimeStub.onCall(0).returns([0, 0]);
-    hrtimeStub.onCall(1).returns([1, 0]);
+    performanceNowStub = sinon.stub(globalThis.performance, 'now');
+    performanceNowStub.onCall(0).returns(0);
+    performanceNowStub.onCall(1).returns(1000);
     loggerStub = sinon.createStubInstance(Logger);
     sinon
       .stub(Logger, 'childFromRoot')
