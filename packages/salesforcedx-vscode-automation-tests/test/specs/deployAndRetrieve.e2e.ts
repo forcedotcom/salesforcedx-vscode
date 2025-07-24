@@ -86,6 +86,12 @@ describe('Deploy and Retrieve', () => {
     expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('Verify Source Tracking Setting is enabled', async () => {
     logTestStart(testSetup, 'Verify Source Tracking Setting is enabled');
     expect(await isBooleanSettingEnabled(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE));
@@ -139,9 +145,7 @@ describe('Deploy and Retrieve', () => {
 
       await validateCommand('Deploy', 'to', 'ST', 'ApexClass', ['MyClass'], 'Unchanged  ');
     });
-  }
 
-  if (process.platform !== 'darwin') {
     it('Deploy with context menu from explorer view', async () => {
       logTestStart(testSetup, 'Deploy with context menu from explorer view');
       // Clear the Output view first.
@@ -277,11 +281,15 @@ describe('Deploy and Retrieve', () => {
     await validateCommand('Deploy', 'to', 'on save', 'ApexClass', ['MyClass']);
   });
 
-  it('Disable Source Tracking Setting', async () => {
-    logTestStart(testSetup, 'Disable Source Tracking Setting');
+  it('Disable Source Tracking and Deploy On Save Settings', async () => {
+    logTestStart(testSetup, 'Disable Source Tracking and Deploy On Save Settings');
     await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
 
     expect(await disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
+    await pause(Duration.seconds(3));
+    expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_ENABLED)).to.equal(false);
+    await pause(Duration.seconds(3));
+    expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_PREFER_DEPLOY_ON_SAVE)).to.equal(false);
 
     // Reload window to update cache and get the setting behavior to work
     await reloadWindow();
@@ -331,6 +339,9 @@ describe('Deploy and Retrieve', () => {
 
     // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view first.
     await clearOutputView();
@@ -398,11 +409,8 @@ describe('Deploy and Retrieve', () => {
       // Push source to org
       await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
-      // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-      await verifyNotificationWithRetry(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
+      // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+      await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
     });
 
     it('SFDX: Delete This from Project and Org - Right click from editor view', async () => {
@@ -515,13 +523,6 @@ describe('Deploy and Retrieve', () => {
         Duration.seconds(5)
       );
       expect(accepted).to.equal(true);
-
-      const successNotificationWasFound = await verifyNotificationWithRetry(
-        /SFDX: Delete from Project and Org successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
-
       // TODO: see how the test can accommodate the new output from CLI.
       // Verify Output tab
       const outputPanelText = await attemptToFindOutputPanelText(
@@ -530,6 +531,12 @@ describe('Deploy and Retrieve', () => {
         10
       );
       log(`Output panel text is: ${outputPanelText}`);
+
+      const successNotificationWasFound = await verifyNotificationWithRetry(
+        /SFDX: Delete from Project and Org successfully ran/,
+        Duration.TEN_MINUTES
+      );
+      expect(successNotificationWasFound).to.equal(true);
 
       const pathToClassDeleteFromProjectAndOrg = path.join(
         'force-app',

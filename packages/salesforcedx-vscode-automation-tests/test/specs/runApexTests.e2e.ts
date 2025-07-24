@@ -90,6 +90,12 @@ describe('Run Apex Tests', () => {
     );
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('Verify LSP finished indexing', async () => {
     logTestStart(testSetup, 'Verify LSP finished indexing');
 
@@ -299,12 +305,7 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(
-      workbench,
-      'Apex Tests',
-      'validateSayHello',
-      'Run Single Test'
-    );
+    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'validateSayHello', 'Run Single Test');
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',

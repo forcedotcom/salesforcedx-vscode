@@ -12,7 +12,7 @@ import { TimestampConflictChecker } from '../commands/util/timestampConflictChec
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { SalesforcePackageDirectories } from '../salesforceProject';
-import { DeployExecutor } from './baseDeployRetrieve';
+import { DeployExecutor } from './deployExecutor';
 import { FilePathGatherer, SfCommandlet } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 

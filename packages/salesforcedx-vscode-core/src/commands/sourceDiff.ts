@@ -76,8 +76,20 @@ export const sourceFolderDiff = async (explorerPath?: URI) => {
 
 const handleCacheResults = async (username: string, cache?: MetadataCacheResult): Promise<void> => {
   if (cache) {
-    if (cache.selectedType === PathType.Individual && cache.cache.components) {
+    if (
+      cache.selectedType === PathType.Individual &&
+      cache.cache.components &&
+      typeof cache.selectedPath === 'string'
+    ) {
+      // If selectedPath is a string, diff the single file
       await differ.diffOneFile(cache.selectedPath, cache.cache.components[0], username);
+    } else if (
+      cache.selectedType === PathType.Multiple &&
+      cache.cache.components &&
+      Array.isArray(cache.selectedPath)
+    ) {
+      // If selectedPath is an array, use the diffMultipleFiles function from directoryDiffer
+      await differ.diffMultipleFiles(username, cache.selectedPath, cache);
     } else if (cache.selectedType === PathType.Folder) {
       await differ.diffFolder(cache, username);
     }

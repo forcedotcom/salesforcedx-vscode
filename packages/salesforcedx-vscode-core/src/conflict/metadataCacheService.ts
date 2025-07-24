@@ -22,7 +22,7 @@ import {
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
+import { RetrieveExecutor } from '../commands/retrieveExecutor';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
@@ -36,12 +36,13 @@ type MetadataContext = {
 export const enum PathType {
   Folder = 'folder',
   Individual = 'individual',
+  Multiple = 'multiple',
   Manifest = 'manifest',
   Unknown = 'unknown'
 }
 
 export type MetadataCacheResult = {
-  selectedPath: string;
+  selectedPath: string | string[];
   selectedType: PathType;
 
   cachePropPath?: string;
@@ -69,7 +70,7 @@ export class MetadataCacheService {
   private static PROPERTIES_FILE = 'file-props.json';
 
   private cachePath: string;
-  private componentPath?: string;
+  private componentPath?: string | string[];
   private projectPath?: string;
   private isManifest: boolean = false;
   private sourceComponents: ComponentSet;
@@ -80,12 +81,13 @@ export class MetadataCacheService {
   }
 
   /**
-   * Specify the base project path and a component path that will define the metadata to cache for the project.
+   * Specify the base project path and component path(s) that will define the metadata to cache for the project.
    *
-   * @param componentPath A path referring to a project folder or an individual component resource
+   * @param componentPath A path referring to a project folder, an individual component resource, or an array of component paths
    * @param projectPath The base path of a SFDX Project
+   * @param isManifest Whether the componentPath references a manifest file (only applicable when componentPath is a string)
    */
-  public initialize(componentPath: string, projectPath: string, isManifest: boolean = false): void {
+  public initialize(componentPath: string | string[], projectPath: string, isManifest: boolean = false): void {
     this.componentPath = componentPath;
     this.projectPath = projectPath;
     this.isManifest = isManifest;
@@ -94,14 +96,14 @@ export class MetadataCacheService {
   /**
    * Load a metadata cache based on a project path that defines a set of components.
    *
-   * @param componentPath A path referring to a project folder, an individual component resource
-   * or a manifest file
+   * @param componentPath A path referring to a project folder, an individual component resource,
+   * a manifest file, or an array of component paths
    * @param projectPath The base path of a SFDX Project
-   * @param isManifest Whether the componentPath references a manifest file
+   * @param isManifest Whether the componentPath references a manifest file (only applicable when componentPath is a string)
    * @returns MetadataCacheResult describing the project and cache folders
    */
   public async loadCache(
-    componentPath: string,
+    componentPath: string | string[],
     projectPath: string,
     isManifest: boolean = false
   ): Promise<MetadataCacheResult | undefined> {
@@ -118,13 +120,21 @@ export class MetadataCacheService {
   public async getSourceComponents(): Promise<ComponentSet> {
     if (this.componentPath && this.projectPath) {
       const packageDirs = await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
-      this.sourceComponents = this.isManifest
-        ? await ComponentSet.fromManifest({
-            manifestPath: this.componentPath,
-            resolveSourcePaths: packageDirs,
-            forceAddWildcards: true
-          })
-        : ComponentSet.fromSource(this.componentPath);
+
+      if (this.isManifest && typeof this.componentPath === 'string') {
+        this.sourceComponents = await ComponentSet.fromManifest({
+          manifestPath: this.componentPath,
+          resolveSourcePaths: packageDirs,
+          forceAddWildcards: true
+        });
+      } else {
+        // ComponentSet.fromSource can handle both string and string[]
+        if (Array.isArray(this.componentPath)) {
+          this.sourceComponents = ComponentSet.fromSource(this.componentPath);
+        } else {
+          this.sourceComponents = ComponentSet.fromSource(this.componentPath);
+        }
+      }
       return this.sourceComponents;
     }
     return new ComponentSet();
@@ -160,7 +170,9 @@ export class MetadataCacheService {
       const projCommon = this.findLongestCommonDir(sourceComps, this.projectPath);
 
       let selectedType = PathType.Unknown;
-      if (await isDirectory(this.componentPath)) {
+      if (Array.isArray(this.componentPath)) {
+        selectedType = PathType.Multiple;
+      } else if (await isDirectory(this.componentPath)) {
         selectedType = PathType.Folder;
       } else if (this.isManifest) {
         selectedType = PathType.Manifest;

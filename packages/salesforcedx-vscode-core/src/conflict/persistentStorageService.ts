@@ -57,9 +57,12 @@ export class PersistentStorageService {
 
   public setPropertiesForFilesDeploy(result: DeployResult) {
     const fileResponses = result.getFileResponses();
+    // Use current timestamp for successful deployments to ensure cache is up-to-date
+    // This prevents false conflicts when the same files are modified again
+    const currentTimestamp = new Date().toISOString();
     for (const file of fileResponses) {
       this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
-        lastModifiedDate: String(result.response.lastModifiedDate)
+        lastModifiedDate: currentTimestamp
       });
     }
   }

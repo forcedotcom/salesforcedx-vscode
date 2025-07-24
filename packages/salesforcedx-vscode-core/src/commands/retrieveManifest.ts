@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { SalesforcePackageDirectories } from '../salesforceProject';
-import { RetrieveExecutor } from './baseDeployRetrieve';
+import { RetrieveExecutor } from './retrieveExecutor';
 import { FilePathGatherer, SfCommandlet } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
