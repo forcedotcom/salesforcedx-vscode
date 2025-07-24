@@ -21,6 +21,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 
 // In future we will merge the test together with deployAndRetrieve
 describe('metadata mdDeployRetrieve', () => {
@@ -31,7 +32,8 @@ describe('metadata mdDeployRetrieve', () => {
       githubRepoUrl: 'https://github.com/mingxuanzhangsfdx/DeployInv.git'
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'mdDeployRetrieve'
+    testSuiteSuffixName: 'mdDeployRetrieve',
+    extensionConfigs: defaultExtensionConfigs
   };
   let mdPath: string;
   let textV1: string;

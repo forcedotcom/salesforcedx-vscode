@@ -20,6 +20,7 @@ import { getTextEditor, getWorkbench } from '@salesforce/salesforcedx-vscode-tes
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 
 describe('Customize sfdx-project.json', () => {
   let testSetup: TestSetup;
@@ -28,7 +29,8 @@ describe('Customize sfdx-project.json', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'sfdxProjectJson'
+    testSuiteSuffixName: 'sfdxProjectJson',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {

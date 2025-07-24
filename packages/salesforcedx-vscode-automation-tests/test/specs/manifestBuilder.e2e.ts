@@ -26,6 +26,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Manifest Builder', () => {
@@ -35,7 +36,8 @@ describe('Manifest Builder', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'ManifestBuilder'
+    testSuiteSuffixName: 'ManifestBuilder',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {

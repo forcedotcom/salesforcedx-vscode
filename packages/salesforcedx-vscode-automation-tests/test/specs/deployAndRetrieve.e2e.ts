@@ -43,6 +43,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Deploy and Retrieve', () => {
@@ -54,28 +55,7 @@ describe('Deploy and Retrieve', () => {
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'DeployAndRetrieve',
-    extensionConfigs: [
-      {
-        extensionId: 'salesforcedx-vscode-core',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-apex',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-lightning',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-lwc',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      }
-    ]
+    extensionConfigs: defaultExtensionConfigs
   };
   before('Set up the testing environment', async () => {
     log('Deploy and Retrieve - Set up the testing environment');

@@ -33,6 +33,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Apex Replay Debugger', () => {
@@ -45,7 +46,8 @@ describe('Apex Replay Debugger', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'ApexReplayDebugger'
+    testSuiteSuffixName: 'ApexReplayDebugger',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {

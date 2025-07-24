@@ -18,6 +18,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Aura LSP', () => {
@@ -28,7 +29,8 @@ describe('Aura LSP', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'AuraLsp'
+    testSuiteSuffixName: 'AuraLsp',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {

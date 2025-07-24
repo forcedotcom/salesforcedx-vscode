@@ -19,6 +19,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/workbench';
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 /*
 anInitialSuite.e2e.ts is a special case.  We want to validate that the Salesforce extensions and
@@ -41,28 +42,7 @@ describe('An Initial Suite', () => {
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'AnInitialSuite',
-    extensionConfigs: [
-      {
-        extensionId: 'salesforcedx-vscode-core',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-apex',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-lightning',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-lwc',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      }
-    ]
+    extensionConfigs: defaultExtensionConfigs
   };
 
   let testSetup: TestSetup;
@@ -118,6 +98,7 @@ describe('An Initial Suite', () => {
       }
 
       expect(expectedSfdxCommandsFound).to.be.equal(3);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(unexpectedSfdxCommandWasFound).to.be.false;
 
       // Escape out of the pick list.

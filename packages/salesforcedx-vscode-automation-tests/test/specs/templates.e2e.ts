@@ -27,6 +27,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -38,7 +39,8 @@ describe('Templates', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'Templates'
+    testSuiteSuffixName: 'Templates',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   // Set up

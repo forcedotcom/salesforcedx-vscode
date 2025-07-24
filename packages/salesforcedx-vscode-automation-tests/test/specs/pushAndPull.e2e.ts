@@ -28,6 +28,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Push and Pull', () => {
@@ -39,28 +40,7 @@ describe('Push and Pull', () => {
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'PushAndPull',
-    extensionConfigs: [
-      {
-        extensionId: 'salesforcedx-vscode-core',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-apex',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-lightning',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-lwc',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      }
-    ]
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
@@ -256,28 +236,7 @@ describe('Push and Pull', () => {
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'ViewChanges',
-    extensionConfigs: [
-      {
-        extensionId: 'salesforcedx-vscode-core',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-apex',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-lightning',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      },
-      {
-        extensionId: 'salesforcedx-vscode-lwc',
-        shouldVerifyActivation: true,
-        shouldInstall: 'always'
-      }
-    ]
+    extensionConfigs: defaultExtensionConfigs
   };
 
   it('SFDX: View Changes in Default Org', async () => {

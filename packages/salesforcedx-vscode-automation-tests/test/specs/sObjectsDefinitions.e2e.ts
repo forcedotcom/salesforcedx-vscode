@@ -23,6 +23,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { DefaultTreeItem, TreeItem, Workbench } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('SObjects Definitions', () => {
@@ -32,7 +33,8 @@ describe('SObjects Definitions', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'sObjectsDefinitions'
+    testSuiteSuffixName: 'sObjectsDefinitions',
+    extensionConfigs: defaultExtensionConfigs
   };
   let projectName: string;
 

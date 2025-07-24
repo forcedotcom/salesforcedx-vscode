@@ -42,6 +42,7 @@ import {
 import { expect } from 'chai';
 import * as semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Run Apex Tests', () => {
@@ -52,7 +53,8 @@ describe('Run Apex Tests', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'RunApexTests'
+    testSuiteSuffixName: 'RunApexTests',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
@@ -299,12 +301,7 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(
-      workbench,
-      'Apex Tests',
-      'validateSayHello',
-      'Run Single Test'
-    );
+    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'validateSayHello', 'Run Single Test');
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',

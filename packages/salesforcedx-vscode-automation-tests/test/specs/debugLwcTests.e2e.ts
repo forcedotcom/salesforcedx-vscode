@@ -35,6 +35,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { SideBarView, TreeItem, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Debug LWC Tests', () => {
@@ -44,7 +45,8 @@ describe('Debug LWC Tests', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'DebugLWCTests'
+    testSuiteSuffixName: 'DebugLWCTests',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
