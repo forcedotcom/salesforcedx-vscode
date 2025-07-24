@@ -9,7 +9,6 @@ import {
   TestReqConfig,
   ProjectShapeOption,
   pause,
-  createCommand,
   openFile,
   Duration
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
@@ -116,7 +115,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
     // Create an ineligible Apex class (the default Apex class from the template is a good example)
     await retryOperation(
-      () => createCommand('Apex Class', 'IneligibleApexClass', 'classes', 'cls'),
+      () => createApexClass('IneligibleApexClass'),
       2,
       'CreateOASDoc - Error creating Apex class IneligibleApexClass'
     );

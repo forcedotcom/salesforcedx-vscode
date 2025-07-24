@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  createCommand,
   Duration,
   log,
   pause,
@@ -395,8 +394,8 @@ describe('Deploy and Retrieve', () => {
       logTestStart(testSetup, 'Create and push 2 apex classes');
 
       // Create the Apex Classes.
-      await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
-      await createCommand('Apex Class', 'ExampleApexClass2', 'classes', 'cls');
+      await createApexClass('ExampleApexClass1');
+      await createApexClass('ExampleApexClass2');
 
       // Reload the VSCode window to allow the LWC to be indexed by the Apex Language Server
       await reloadWindow(Duration.seconds(20));

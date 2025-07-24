@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "19.5.0",
-    "@salesforce/salesforcedx-vscode-test-tools": "1.0.1-dev.133",
+    "@salesforce/salesforcedx-vscode-test-tools": "1.0.1-dev.134",
     "@types/chai": "^4.3.17",
     "@types/cross-spawn": "^6.0.6",
     "@types/mocha": "^10.0.9",

@@ -6,7 +6,6 @@
  */
 
 import {
-  createCommand,
   Duration,
   log,
   pause,
@@ -14,6 +13,7 @@ import {
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import { createApexClass } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { runCliCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
@@ -64,7 +64,7 @@ describe('Push and Pull', () => {
   it('Create an Apex class', async () => {
     logTestStart(testSetup1, 'Push And Pull - Create an Apex class');
     // Create an Apex Class.
-    await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
+    await createApexClass('ExampleApexClass1');
   });
 
   it('SFDX: View Local Changes', async () => {
