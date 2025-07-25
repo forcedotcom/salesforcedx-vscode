@@ -21,6 +21,7 @@ import {
   moveCursorWithFallback
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -39,7 +40,7 @@ describe('LWC LSP', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Lightning Web Component
-    await createLwc('lwc1');
+    await createLwc('lwc1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'lwc'));
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));

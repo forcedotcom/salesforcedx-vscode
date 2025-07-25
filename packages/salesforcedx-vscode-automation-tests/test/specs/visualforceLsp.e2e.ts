@@ -51,7 +51,7 @@ describe('Visualforce LSP', () => {
     // Clear output before running the command
     await clearOutputView();
     log(`${testSetup.testSuiteSuffixName} - calling createVisualforcePage()`);
-    await createVisualforcePage();
+    await createVisualforcePage(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages'));
 
     const pathToPagesFolder = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages');
     const pathToPage = path.join('force-app', 'main', 'default', 'pages', 'FooPage.page');

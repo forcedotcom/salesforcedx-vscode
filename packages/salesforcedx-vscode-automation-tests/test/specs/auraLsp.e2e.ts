@@ -17,6 +17,7 @@ import {
   moveCursorWithFallback
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -36,7 +37,7 @@ describe('Aura LSP', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Aura Component
-    await createAura('aura1');
+    await createAura('aura1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'aura'));
 
     // Reload the VSCode window to allow the Aura Component to be indexed by the Aura Language Server
     await reloadWindow(Duration.seconds(20));

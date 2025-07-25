@@ -54,10 +54,10 @@ describe('Debug LWC Tests', () => {
     await closeAllEditors();
 
     // Create LWC1 and test
-    await createLwc('lwc1');
+    await createLwc('lwc1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'lwc'));
 
     // Create LWC2 and test
-    await createLwc('lwc2');
+    await createLwc('lwc2', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'lwc'));
 
     // Install Jest unit testing tools for LWC
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
