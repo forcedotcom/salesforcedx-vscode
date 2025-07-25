@@ -81,6 +81,9 @@ describe('Create OpenAPI v3 Specifications', () => {
     log('\nCreateOASDoc - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
+    // Hide chat copilot
+    await tryToHideCopilot();
+
     // Set SF_LOG_LEVEL to 'debug' to get the logs in the 'llm_logs' folder when the OAS doc is generated
     await setSettingValue('salesforcedx-vscode-core.SF_LOG_LEVEL', 'debug', true);
 
@@ -126,9 +129,6 @@ describe('Create OpenAPI v3 Specifications', () => {
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
-
-    // Hide chat copilot
-    await tryToHideCopilot();
 
     await verifyNotificationWithRetry(
       /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,

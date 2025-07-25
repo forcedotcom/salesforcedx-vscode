@@ -22,6 +22,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 
 // In future we will merge the test together with deployAndRetrieve
 describe('metadata mdDeployRetrieve', () => {
@@ -43,6 +44,10 @@ describe('metadata mdDeployRetrieve', () => {
   before('Set up the testing environment', async () => {
     log('mdDeployRetrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
+
     mdPath = path.join(
       testSetup.projectFolderPath!,
       'force-app/main/default/objects/Account/fields/Deploy_Test__c.field-meta.xml'

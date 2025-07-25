@@ -29,6 +29,7 @@ import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import * as analyticsTemplate from '../testData/sampleAnalyticsTemplateData';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Templates', () => {
@@ -47,6 +48,10 @@ describe('Templates', () => {
   before('Set up the testing environment', async () => {
     log('Templates - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
+
     projectName = testSetup.tempProjectName;
   });
 

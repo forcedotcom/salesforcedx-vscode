@@ -20,6 +20,7 @@ import {
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 /*
 anInitialSuite.e2e.ts is a special case.  We want to validate that the Salesforce extensions and
@@ -109,6 +110,9 @@ describe('An Initial Suite', () => {
   describe('Verify that SFDX commands are present after an SFDX project has been created', () => {
     before('Set up the testing environment', async () => {
       testSetup = await TestSetup.setUp(testReqConfig);
+
+      // Hide copilot
+      await tryToHideCopilot();
     });
 
     it('Verify that SFDX commands are present after an SFDX project has been created', async () => {

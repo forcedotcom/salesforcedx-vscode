@@ -21,6 +21,7 @@ import {
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('SOQL', () => {
@@ -36,6 +37,9 @@ describe('SOQL', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it('SFDX: Create Query in SOQL Builder', async () => {

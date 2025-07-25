@@ -29,6 +29,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Push and Pull', () => {
@@ -46,6 +47,9 @@ describe('Push and Pull', () => {
   before('Set up the testing environment', async () => {
     log('Push And Pull - Set up the testing environment');
     testSetup1 = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it('SFDX: View All Changes (Local and in Default Org)', async () => {
@@ -244,6 +248,10 @@ describe('Push and Pull', () => {
     // Create second Project to then view Remote Changes
     // The new project will connect to the scratch org automatically on GHA, but does not work locally
     testSetup2 = await TestSetup.setUp(testReqConfig2);
+
+    // Hide copilot
+    await tryToHideCopilot();
+
     await runCliCommand('config set', `target-org=${testSetup1.scratchOrgAliasName}`);
 
     // Run SFDX: View Changes in Default Org command to view remote changes

@@ -32,6 +32,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 // Types
@@ -229,6 +230,10 @@ describe('Apex LSP', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
+
     await setupTestEnvironment();
   });
 

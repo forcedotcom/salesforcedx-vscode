@@ -27,6 +27,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Manifest Builder', () => {
@@ -42,6 +43,9 @@ describe('Manifest Builder', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it('Generate Manifest File', async () => {

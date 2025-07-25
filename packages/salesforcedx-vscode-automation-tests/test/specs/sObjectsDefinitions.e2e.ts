@@ -24,6 +24,7 @@ import {
 import { expect } from 'chai';
 import { DefaultTreeItem, TreeItem, Workbench } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('SObjects Definitions', () => {
@@ -41,6 +42,9 @@ describe('SObjects Definitions', () => {
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     projectName = testSetup.tempProjectName;
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     log(`${testSetup.testSuiteSuffixName} - calling createCustomObjects()`);
 

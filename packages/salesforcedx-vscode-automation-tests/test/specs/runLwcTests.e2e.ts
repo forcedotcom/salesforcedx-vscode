@@ -35,6 +35,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Run LWC Tests', () => {
@@ -50,6 +51,9 @@ describe('Run LWC Tests', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     // Close both Welcome and Running Extensions tabs
     await closeAllEditors();
