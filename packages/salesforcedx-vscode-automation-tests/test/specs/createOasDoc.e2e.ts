@@ -131,7 +131,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
 
     // Get Apex LSP Status Bar
-    const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+    const statusBar = await retryOperation(async () => await getStatusBarItemWhichIncludes('Editor Language Status'));
     await statusBar.click();
     expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
