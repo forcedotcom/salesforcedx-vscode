@@ -30,6 +30,7 @@ import {
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import path from 'node:path';
 import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -54,7 +55,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Apex class AccountService
-    await createApexClassWithBugs();
+    await createApexClassWithBugs(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));

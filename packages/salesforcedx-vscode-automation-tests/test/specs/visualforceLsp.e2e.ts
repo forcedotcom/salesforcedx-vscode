@@ -46,7 +46,7 @@ describe('Visualforce LSP', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
 
     // Create Apex controller for the Visualforce Page
-    await createApexController();
+    await createApexController(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
     // Clear output before running the command
     await clearOutputView();

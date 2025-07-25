@@ -31,6 +31,7 @@ import {
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -50,14 +51,14 @@ describe('Debug Apex Tests', () => {
 
     // Create Apex class 1 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass1'),
+      () => createApexClassWithTest('ExampleApexClass1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
       2,
       'DebugApexTests - Error creating Apex class ExampleApexClass1'
     );
 
     // Create Apex class 2 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass2'),
+      () => createApexClassWithTest('ExampleApexClass2', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
       2,
       'DebugApexTests - Error creating Apex class ExampleApexClass2'
     );

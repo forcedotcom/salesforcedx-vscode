@@ -115,7 +115,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
     // Create an ineligible Apex class (the default Apex class from the template is a good example)
     await retryOperation(
-      () => createApexClass('IneligibleApexClass'),
+      () => createApexClass('IneligibleApexClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
       2,
       'CreateOASDoc - Error creating Apex class IneligibleApexClass'
     );

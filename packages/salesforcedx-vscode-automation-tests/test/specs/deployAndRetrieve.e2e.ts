@@ -401,8 +401,8 @@ describe('Deploy and Retrieve', () => {
       logTestStart(testSetup, 'Create and push 2 apex classes');
 
       // Create the Apex Classes.
-      await createApexClass('ExampleApexClass1');
-      await createApexClass('ExampleApexClass2');
+      await createApexClass('ExampleApexClass1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+      await createApexClass('ExampleApexClass2', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
       // Reload the VSCode window to allow the LWC to be indexed by the Apex Language Server
       await reloadWindow(Duration.seconds(20));

@@ -64,7 +64,7 @@ describe('Push and Pull', () => {
   it('Create an Apex class', async () => {
     logTestStart(testSetup1, 'Push And Pull - Create an Apex class');
     // Create an Apex Class.
-    await createApexClass('ExampleApexClass1');
+    await createApexClass('ExampleApexClass1', path.join(testSetup1.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
   });
 
   it('SFDX: View Local Changes', async () => {

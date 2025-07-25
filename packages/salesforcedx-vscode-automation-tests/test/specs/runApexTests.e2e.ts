@@ -41,6 +41,7 @@ import {
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import path from 'node:path';
 import * as semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
@@ -62,21 +63,21 @@ describe('Run Apex Tests', () => {
 
     // Create Apex class 1 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass1'),
+      () => createApexClassWithTest('ExampleApexClass1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
       2,
       'RunApexTests - Error creating Apex class 1 and test'
     );
 
     // Create Apex class 2 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass2'),
+      () => createApexClassWithTest('ExampleApexClass2', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
       2,
       'RunApexTests - Error creating Apex class 2 and test'
     );
 
     // Create Apex class 3 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass3'),
+      () => createApexClassWithTest('ExampleApexClass3', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
       2,
       'RunApexTests - Error creating Apex class 3 and test'
     );
@@ -328,7 +329,7 @@ describe('Run Apex Tests', () => {
   it('Run a test that fails and fix it', async () => {
     logTestStart(testSetup, 'Run a test that fails and fix it');
     // Create Apex class AccountService
-    await createApexClassWithBugs();
+    await createApexClassWithBugs(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));

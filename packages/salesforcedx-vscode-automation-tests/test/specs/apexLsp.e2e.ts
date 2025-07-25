@@ -109,7 +109,7 @@ const setupTestEnvironment = async (): Promise<void> => {
   log(`ApexLsp - JAVA_HOME: ${EnvironmentSettings.getInstance().javaHome}`);
   // Allow time for VSCode to fully initialize and load extensions
   await pause(Duration.seconds(10));
-  await createApexClassWithTest('ExampleClass');
+  await createApexClassWithTest('ExampleClass', PATHS.apexClass);
 };
 
 const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {

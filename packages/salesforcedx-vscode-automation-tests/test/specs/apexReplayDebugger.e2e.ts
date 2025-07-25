@@ -54,7 +54,7 @@ describe('Apex Replay Debugger', () => {
     projectFolderPath = testSetup.projectFolderPath!;
 
     // Create Apex class file
-    await createApexClassWithTest('ExampleApexClass');
+    await createApexClassWithTest('ExampleApexClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
