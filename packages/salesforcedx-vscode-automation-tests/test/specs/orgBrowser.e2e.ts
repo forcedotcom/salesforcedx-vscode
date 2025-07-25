@@ -27,6 +27,7 @@ import {
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import path from 'node:path';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -103,7 +104,7 @@ describe('Org Browser', () => {
       '\t}',
       '}'
     ].join('\n');
-    await createApexClass('MyClass', classText);
+    await createApexClass('MyClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), classText);
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Created  ');
 
     await closeCurrentEditor();
