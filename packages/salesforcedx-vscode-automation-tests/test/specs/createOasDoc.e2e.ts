@@ -54,6 +54,7 @@ import {
   ExtensionsViewItem,
   DefaultTreeItem
 } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import {
   getIdealCaseManagerOASDoc,
   getSfdxProjectJson,
@@ -61,6 +62,7 @@ import {
   getIdealSimpleAccountResourceXml
 } from '../testData/oasDocs';
 import { caseManagerClassText, simpleAccountResourceClassText } from '../testData/sampleClassData';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Create OpenAPI v3 Specifications', () => {
@@ -71,12 +73,16 @@ describe('Create OpenAPI v3 Specifications', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'CreateOASDoc'
+    testSuiteSuffixName: 'CreateOASDoc',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     log('\nCreateOASDoc - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide chat copilot
+    await tryToHideCopilot();
 
     // Set SF_LOG_LEVEL to 'debug' to get the logs in the 'llm_logs' folder when the OAS doc is generated
     await setSettingValue('salesforcedx-vscode-core.SF_LOG_LEVEL', 'debug', true);
@@ -144,7 +150,11 @@ describe('Create OpenAPI v3 Specifications', () => {
     );
     if (process.platform === 'win32') {
       await reloadWindow();
-      await verifyExtensionsAreRunning(getExtensionsToVerifyActive());
+      await verifyExtensionsAreRunning(
+        getExtensionsToVerifyActive(ext =>
+          defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
+        )
+      );
       const workbench = getWorkbench();
       await getTextEditor(workbench, 'IneligibleApexClass.cls');
     } else {

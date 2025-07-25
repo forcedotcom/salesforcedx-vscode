@@ -19,6 +19,8 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/workbench';
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 /*
 anInitialSuite.e2e.ts is a special case.  We want to validate that the Salesforce extensions and
@@ -40,7 +42,8 @@ describe('An Initial Suite', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'AnInitialSuite'
+    testSuiteSuffixName: 'AnInitialSuite',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   let testSetup: TestSetup;
@@ -96,6 +99,7 @@ describe('An Initial Suite', () => {
       }
 
       expect(expectedSfdxCommandsFound).to.be.equal(3);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(unexpectedSfdxCommandWasFound).to.be.false;
 
       // Escape out of the pick list.
@@ -106,6 +110,9 @@ describe('An Initial Suite', () => {
   describe('Verify that SFDX commands are present after an SFDX project has been created', () => {
     before('Set up the testing environment', async () => {
       testSetup = await TestSetup.setUp(testReqConfig);
+
+      // Hide copilot
+      await tryToHideCopilot();
     });
 
     it('Verify that SFDX commands are present after an SFDX project has been created', async () => {

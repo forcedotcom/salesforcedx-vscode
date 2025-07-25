@@ -55,7 +55,7 @@
     "watch": "tsc -watch -p ."
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
+    "workspaceContains:**/aura/**",
     "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",

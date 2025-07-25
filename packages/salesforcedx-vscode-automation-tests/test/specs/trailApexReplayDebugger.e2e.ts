@@ -30,6 +30,8 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 /**
@@ -45,7 +47,8 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'TrailApexReplayDebugger'
+    testSuiteSuffixName: 'TrailApexReplayDebugger',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
@@ -62,6 +65,9 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
       Duration.TEN_MINUTES
     );
+
+    // Hide chat copilot
+    await tryToHideCopilot();
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -163,19 +169,21 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     logTestStart(testSetup, 'SFDX: Get Apex Debug Logs');
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
-    prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
 
-    // Wait for the command to execute
-    await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
-    await pause(Duration.seconds(2));
     // Select a log file
     await retryOperation(
       async () => {
+        prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
+
+        // Wait for the command to execute
+        await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
+        await pause(Duration.seconds(5));
+
         const quickPicks = await prompt.getQuickPicks();
-        expect(quickPicks).to.not.be.undefined;
-        expect(quickPicks.length).to.be.greaterThan(0);
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(quickPicks, 'quickPicks undefined').to.not.be.undefined;
+        expect(quickPicks.length, 'No quick picks found').to.be.greaterThan(0);
         await prompt.selectQuickPick('User User - ApexTestHandler');
-        await pause(Duration.seconds(2));
       },
       3,
       'Failed to select log file from quick picks'
