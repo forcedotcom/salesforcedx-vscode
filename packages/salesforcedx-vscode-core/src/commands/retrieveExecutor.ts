@@ -14,7 +14,7 @@ import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { salesforceCoreSettings } from '../settings';
-import { DeployRetrieveExecutor, createRetrieveOutput } from './baseDeployRetrieve';
+import { DeployRetrieveExecutor, createRetrieveOrPullOutput } from './baseDeployRetrieve';
 import { SfCommandletExecutor } from './util';
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, RetrieveResult> {
@@ -66,10 +66,21 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
       if (result?.response?.fileProperties !== undefined) {
         PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
       }
+    } else {
+      // Handle case where no components were deployed (empty ComponentSet)
+      const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
+      const operationType = this.isPullOperation() ? 'pull' : 'retrieve';
+      const output = createRetrieveOrPullOutput([], relativePackageDirs, operationType);
+      channelService.appendLine(output);
+
+      // Clear any existing errors since this is a successful "no changes" scenario
+      DeployRetrieveExecutor.errorCollection.clear();
+      SfCommandletExecutor.errorCollection.clear();
     }
   }
 
   private createOutput(result: RetrieveResult, relativePackageDirs: string[]): string {
-    return createRetrieveOutput(result.getFileResponses(), relativePackageDirs);
+    const operationType = this.isPullOperation() ? 'pull' : 'retrieve';
+    return createRetrieveOrPullOutput(result.getFileResponses(), relativePackageDirs, operationType);
   }
 }

@@ -26,10 +26,7 @@ import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { createComponentCount, formatException } from './util';
 
-export abstract class DeployRetrieveExecutor<
-  T,
-  R extends MetadataTransferResult
-> extends LibraryCommandletExecutor<T> {
+export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult> extends LibraryCommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
 
@@ -72,7 +69,10 @@ export abstract class DeployRetrieveExecutor<
     }
   }
 
-  protected setupCancellation(operation: MetadataApiDeploy | MetadataApiRetrieve | undefined, token?: vscode.CancellationToken) {
+  protected setupCancellation(
+    operation: MetadataApiDeploy | MetadataApiRetrieve | undefined,
+    token?: vscode.CancellationToken
+  ) {
     if (token && operation) {
       token.onCancellationRequested(async () => {
         await operation.cancel();
@@ -86,6 +86,10 @@ export abstract class DeployRetrieveExecutor<
 
   protected isPushOperation(): boolean {
     return false; // Default to deploy operation
+  }
+
+  protected isPullOperation(): boolean {
+    return false; // Default to retrieve operation
   }
 }
 
@@ -167,7 +171,7 @@ export const createOutputTable = (
 /**
  * Operation type for output configuration
  */
-export type OperationType = 'deploy' | 'retrieve' | 'push';
+export type OperationType = 'deploy' | 'retrieve' | 'push' | 'pull';
 
 /**
  * Create output for deploy or retrieve operations
@@ -201,6 +205,12 @@ export const createOperationOutput = (
       successTitle: nls.localize('lib_retrieve_result_title'),
       failureTitle: nls.localize('lib_retrieve_message_title'),
       noResultsMessage: nls.localize('lib_retrieve_no_results')
+    },
+    pull: {
+      successColumns: baseSuccessColumns,
+      failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
+      successTitle: nls.localize('table_title_pulled_source'),
+      failureTitle: nls.localize('table_title_pull_errors')
     }
   };
 
@@ -215,8 +225,11 @@ export const createOperationOutput = (
 /**
  * Create output for retrieve operations
  */
-export const createRetrieveOutput = (fileResponses: FileResponse[], relativePackageDirs: string[]): string =>
-  createOperationOutput(fileResponses, relativePackageDirs, 'retrieve');
+export const createRetrieveOrPullOutput = (
+  fileResponses: FileResponse[],
+  relativePackageDirs: string[],
+  operationType: 'retrieve' | 'pull'
+): string => createOperationOutput(fileResponses, relativePackageDirs, operationType);
 
 /**
  * Create output for deploy or push operations
