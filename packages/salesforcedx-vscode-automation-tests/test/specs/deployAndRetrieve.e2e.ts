@@ -38,7 +38,8 @@ import {
   getTextEditor,
   reloadWindow,
   verifyOutputPanelText,
-  getWorkbench
+  getWorkbench,
+  overrideTextInFile
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
@@ -87,6 +88,7 @@ describe('Deploy and Retrieve', () => {
       'Finished SFDX: Create Apex Class',
       10
     );
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain(`${pathToClass}.cls`);
     expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
@@ -124,8 +126,13 @@ describe('Deploy and Retrieve', () => {
 
     // Modify the file by adding a comment.
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-    await textEditor.save();
+    const newText = `public with sharing class MyClass {
+      // say hello to a given name
+      public static void SayHello(string name){
+        System.debug('Hello, ' + name + '!');
+      }
+    }`;
+    await overrideTextInFile(textEditor, newText);
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Changed  ');
@@ -198,8 +205,13 @@ describe('Deploy and Retrieve', () => {
 
     // Modify the file by changing the comment.
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//modified comment');
-    await textEditor.save();
+    const newText = `public with sharing class MyClass {
+      // modified comment
+      public static void SayHello(string name){
+        System.debug('Hello, ' + name + '!');
+      }
+    }`;
+    await overrideTextInFile(textEditor, newText);
 
     // Retrieve running SFDX: Retrieve This Source from Org
 
@@ -275,6 +287,8 @@ describe('Deploy and Retrieve', () => {
     await clearOutputView(Duration.seconds(2));
     // Modify the file and save to trigger deploy
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+    // overrideTextInFile writes via fs write, hence file save operation & deploy operation are NOT triggered
+    // textEditor.setTextAtLine(2, "\t// let's trigger deploy") can be finicky on local machine
     await textEditor.setTextAtLine(2, "\t// let's trigger deploy");
     await textEditor.save();
     await pause(Duration.seconds(5));
@@ -291,7 +305,12 @@ describe('Deploy and Retrieve', () => {
 
     // Reload window to update cache and get the setting behavior to work
     await reloadWindow();
-    await verifyExtensionsAreRunning(getExtensionsToVerifyActive(), Duration.seconds(100));
+    await verifyExtensionsAreRunning(
+      getExtensionsToVerifyActive(ext =>
+        defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
+      ),
+      Duration.seconds(100)
+    );
   });
 
   it('Deploy with SFDX: Deploy This Source to Org - ST disabled', async () => {
@@ -324,8 +343,13 @@ describe('Deploy and Retrieve', () => {
 
     // Modify the file by adding a comment.
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-    await textEditor.save();
+    const newText = `public with sharing class MyClass {
+      // say hello to a given name - updated
+      public static void SayHello(string name){
+        System.debug('Hello, ' + name + '!');
+      }
+    }`;
+    await overrideTextInFile(textEditor, newText);
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
