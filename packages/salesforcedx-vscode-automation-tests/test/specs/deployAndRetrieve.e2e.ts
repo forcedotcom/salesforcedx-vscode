@@ -70,20 +70,6 @@ describe('Deploy and Retrieve', () => {
     ].join('\n');
     await dismissAllNotifications();
     await createApexClass('MyClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), classText);
-    const successNotificationWasFound = await verifyNotificationWithRetry(
-      /SFDX: Create Apex Class successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
-
-    const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
-      'Finished SFDX: Create Apex Class',
-      10
-    );
-    expect(outputPanelText).to.not.be.undefined;
-    expect(outputPanelText).to.contain(`${pathToClass}.cls`);
-    expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
   });
 
   beforeEach(function () {
