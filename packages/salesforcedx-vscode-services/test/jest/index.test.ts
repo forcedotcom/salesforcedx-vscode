@@ -9,6 +9,7 @@ import { activate, deactivate } from '../../src/index';
 import { ChannelService } from '../../src/vscode/channelService';
 import { Layer, Effect as EffectFn } from 'effect';
 import type { Effect } from 'effect/Effect';
+import { projectFiles } from '../../src/virtualFsProvider/projectInit';
 
 // Create a mock ChannelService
 const mockChannelService = {
@@ -64,5 +65,25 @@ describe('Extension', () => {
   it('should deactivate successfully', () => {
     deactivate();
     expect(true).toBe(true);
+  });
+
+  it('should handle homedir correctly in web environment', async () => {
+    // Mock the fsProvider with all required methods
+    const mockFsProvider = {
+      exists: jest.fn().mockReturnValue(false),
+      createDirectory: jest.fn(),
+      writeFile: jest.fn(),
+      readFile: jest.fn(),
+      delete: jest.fn(),
+      rename: jest.fn(),
+      stat: jest.fn(),
+      readDirectory: jest.fn(),
+      watch: jest.fn(),
+      onDidChangeFile: jest.fn()
+    };
+
+    // Test that projectFiles can be called without throwing an error
+    // This verifies that the homedir fix works
+    await expect(projectFiles(mockFsProvider)).resolves.not.toThrow();
   });
 });

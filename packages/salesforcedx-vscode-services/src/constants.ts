@@ -6,3 +6,4 @@
  */
 
 export const EXTENSION_NAME = 'salesforcedx-vscode-services';
+export const sampleProjectName = 'MyProject';

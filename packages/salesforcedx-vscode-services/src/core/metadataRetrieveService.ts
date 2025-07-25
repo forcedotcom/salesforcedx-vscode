@@ -7,7 +7,7 @@
 
 import { type RetrieveResult, type MetadataMember } from '@salesforce/source-deploy-retrieve';
 
-import { Context, Effect, Layer, Option, pipe } from 'effect';
+import { Context, Effect, Layer, pipe } from 'effect';
 import { ChannelService } from '../vscode/channelService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
@@ -42,11 +42,11 @@ const retrieve = (
     Effect.all([
       Effect.flatMap(ConnectionService, service => service.getConnection),
       Effect.flatMap(ProjectService, service => service.getSfProject),
-      Effect.flatMap(WorkspaceService, service => service.getWorkspacePath),
+      Effect.flatMap(WorkspaceService, service => service.getWorkspaceDescription),
       Effect.succeed(ChannelService)
     ]),
-    Effect.flatMap(([connection, project, maybePath, channelService]) =>
-      Option.isNone(maybePath)
+    Effect.flatMap(([connection, project, workspaceDescription, channelService]) =>
+      workspaceDescription.isEmpty
         ? Effect.fail(new Error('No workspace path found'))
         : Effect.flatMap(channelService, _channel => {
             const output = project.getDefaultPackage().fullPath;

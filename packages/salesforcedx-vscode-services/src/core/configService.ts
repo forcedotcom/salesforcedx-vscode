@@ -7,9 +7,9 @@
 
 import { ConfigAggregator } from '@salesforce/core';
 import { Context, Effect, Layer, pipe } from 'effect';
-import * as Option from 'effect/Option';
-import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+// import * as vscode from 'vscode';
+// import { URI } from 'vscode-uri';
+import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 
 export type ConfigService = {
@@ -24,19 +24,13 @@ export const ConfigServiceLive = Layer.effect(
   Effect.sync(() => ({
     getConfigAggregator: pipe(
       WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspacePath),
-      Effect.flatMap(maybePath =>
-        Option.isNone(maybePath)
+      Effect.flatMap(ws => ws.getWorkspaceDescription),
+      Effect.flatMap(workspaceDescription =>
+        workspaceDescription.isEmpty
           ? Effect.fail(new Error('No workspace project path found'))
-          : Effect.succeed(maybePath.value)
+          : Effect.succeed(workspaceDescription.path.replace(fsPrefix, '').replace(':/', ''))
       ),
       Effect.tap(projectPath => console.log('WSPath', JSON.stringify(projectPath, null, 2))),
-      Effect.tap(async projectPath =>
-        console.log(
-          'WSContents',
-          JSON.stringify(await vscode.workspace.fs.readDirectory(URI.parse(projectPath)), null, 2)
-        )
-      ),
       Effect.flatMap(projectPath =>
         Effect.tryPromise({
           try: () => ConfigAggregator.create({ projectPath }),

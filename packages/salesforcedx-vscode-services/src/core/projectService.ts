@@ -8,7 +8,6 @@
 import { SfProject } from '@salesforce/core';
 import { Context, Effect, Layer } from 'effect';
 import { pipe } from 'effect/Function';
-import * as Option from 'effect/Option';
 import { WorkspaceService } from '../vscode/workspaceService';
 
 export type ProjectService = {
@@ -25,12 +24,12 @@ export const ProjectServiceLive = Layer.effect(
   Effect.gen(function* () {
     const getSfProject = pipe(
       WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspacePath),
-      Effect.flatMap(maybePath =>
-        Option.isNone(maybePath)
+      Effect.flatMap(ws => ws.getWorkspaceDescription),
+      Effect.flatMap(workspaceDescription =>
+        workspaceDescription.isEmpty
           ? Effect.fail(new Error('No workspace open'))
           : Effect.tryPromise({
-              try: () => SfProject.resolve(maybePath.value),
+              try: () => SfProject.resolve(workspaceDescription.path),
               catch: error => new Error(`Not a Salesforce project: ${String(error)}`)
             })
       )
@@ -38,12 +37,12 @@ export const ProjectServiceLive = Layer.effect(
 
     const isSalesforceProject = pipe(
       WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspacePath),
-      Effect.flatMap(maybePath =>
-        Option.isNone(maybePath)
+      Effect.flatMap(ws => ws.getWorkspaceDescription),
+      Effect.flatMap(workspaceDescription =>
+        workspaceDescription.isEmpty
           ? Effect.succeed(false)
           : Effect.tryPromise({
-              try: () => SfProject.resolve(maybePath.value),
+              try: () => SfProject.resolve(workspaceDescription.path),
               catch: () => false
             }).pipe(
               Effect.map(() => true),

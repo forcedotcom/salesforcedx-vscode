@@ -5,34 +5,41 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import { Context, Effect, Layer } from 'effect';
-import * as Option from 'effect/Option';
+import * as os from 'node:os';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 
 export type WorkspaceService = {
-  /** Get the root workspace path, or none if not in a workspace */
-  readonly getWorkspacePath: Effect.Effect<Option.Option<string>, never, never>;
-  /** Whether the workspace is a virtual file system */
-  readonly isVirtualFs: Effect.Effect<boolean, never, never>;
+  /** Get info about the workspace */
+  readonly getWorkspaceDescription: Effect.Effect<WorkspaceDescription, never, never>;
 };
 
 export const WorkspaceService = Context.GenericTag<WorkspaceService>('WorkspaceService');
 
+type WorkspaceDescription = {
+  path: string;
+  isEmpty: boolean;
+  isVirtualFs: boolean;
+};
+
 export const WorkspaceServiceLive = Layer.succeed(WorkspaceService, {
-  getWorkspacePath: Effect.sync(() => {
+  getWorkspaceDescription: Effect.sync(() => {
     const folders = vscode.workspace.workspaceFolders;
-    console.log('Workspace folders:', folders);
-    console.log('Workspace folders length:', folders?.length);
-    console.log('Workspace name:', vscode.workspace.name);
-    console.log('Workspace URI:', vscode.workspace);
-    console.log('First folder URI:', folders?.[0]?.uri);
+    console.log(`Workspace folders: ${JSON.stringify(folders, null, 2)}`);
+    console.log(`Workspace folders length: ${folders?.length}`);
+    console.log(`Workspace name: ${vscode.workspace.name}`);
+    console.log(`First folder URI: ${JSON.stringify(folders?.[0]?.uri ?? '', null, 2)}`);
     console.log('First folder fsPath:', folders?.[0]?.uri.fsPath);
-    return folders && folders.length > 0
-      ? Option.some(folders[0].uri.toString()) // Use the full URI
-      : Option.none();
-  }),
-  isVirtualFs: Effect.sync(() => isVirtualFs(vscode.workspace.workspaceFolders?.[0]?.uri ?? URI.parse('')))
+    console.log(`PathWithSchema: ${getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse(''))}`);
+    console.log(`home is ${os.homedir()}`);
+    console.log(`isWeb: ${Global.isWeb}`);
+    return {
+      path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),
+      isEmpty: folders?.length === 0,
+      isVirtualFs: folders?.[0]?.uri.scheme !== 'file'
+    };
+  })
 });
 
-const isVirtualFs = (uri: URI): boolean => uri.scheme !== 'file';
+const getPathWithSchema = (uri: vscode.Uri): string => (uri.scheme === 'file' ? uri.fsPath : uri.toString());

@@ -7,12 +7,14 @@
 
 import { Effect } from 'effect';
 import * as vscode from 'vscode';
+import { sampleProjectName } from './constants';
 import { ConfigService, ConfigServiceLive } from './core/configService';
 import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
 import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
+import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { FsService, FsServiceLive } from './vscode/fsService';
 import { WorkspaceService, WorkspaceServiceLive } from './vscode/workspaceService';
@@ -94,11 +96,11 @@ const fileSystemSetup = async (
   // Check if workspace is virtual file system
   await Effect.runPromise(
     Effect.provide(
-      Effect.flatMap(WorkspaceService, ws => ws.isVirtualFs),
+      Effect.flatMap(WorkspaceService, ws => ws.getWorkspaceDescription),
       WorkspaceServiceLive
     ).pipe(
-      Effect.flatMap(workspaceIsVirtual => {
-        if (workspaceIsVirtual) {
+      Effect.flatMap(workspaceDescription => {
+        if (workspaceDescription) {
           return Effect.tryPromise({
             try: async () => {
               const fsProvider = await new FsProvider().init();
@@ -107,10 +109,47 @@ const fileSystemSetup = async (
                   isCaseSensitive: true
                 })
               );
+              if (workspaceDescription.isEmpty) {
+                await Effect.runPromise(
+                  Effect.provide(
+                    Effect.gen(function* () {
+                      const svc = yield* ChannelService;
+                      yield* svc.appendToChannel('initializing workspace with standard files');
+                    }),
+                    channelServiceLayer
+                  )
+                );
+                // if the workspace is empty, init the standard files
+                await projectFiles(fsProvider);
+              } else {
+                await Effect.runPromise(
+                  Effect.provide(
+                    Effect.gen(function* () {
+                      const svc = yield* ChannelService;
+                      yield* svc.appendToChannel('Workspace is not empty, copying files to virtual file system');
+                    }),
+                    channelServiceLayer
+                  )
+                );
+                // TODO: make this actually work.  It's kinda sketchy fighting against he vscode internal fs ext
+                // get all the files from the existing workspace and put them in the memfs
+                await Promise.all(
+                  fsProvider
+                    .readDirectory(vscode.Uri.parse(workspaceDescription.path))
+                    .filter(([, fileType]) => fileType === vscode.FileType.File)
+                    .map(([file]) => {
+                      const content = fsProvider.readFile(vscode.Uri.parse(`${workspaceDescription.path}/${file}`));
+                      return fsProvider.writeFile(vscode.Uri.parse(`${fsPrefix}:/${file}`), content, {
+                        create: true,
+                        overwrite: true
+                      });
+                    })
+                );
+              }
               // replace the existing workspace with ours.
-              vscode.workspace.updateWorkspaceFolders((vscode.workspace.workspaceFolders ?? []).length, 0, {
-                name: 'Code Builder',
-                uri: vscode.Uri.parse(`${fsPrefix}:/`)
+              vscode.workspace.updateWorkspaceFolders(0, 0, {
+                name: 'Code Builder 12:35',
+                uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
               });
             },
             catch: (error: unknown) => new Error(`Failed to initialize fsProvider: ${String(error)}`)

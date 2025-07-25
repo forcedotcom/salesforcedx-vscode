@@ -9,14 +9,14 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable functional/no-throw-statements */
 
-import { fs } from '@salesforce/core';
+import { fs } from '@salesforce/core/fs';
 import { Effect, Layer, pipe } from 'effect';
 import { Buffer } from 'node:buffer';
 import { Dirent } from 'node:fs';
 import * as vscode from 'vscode';
 import { ChannelServiceLayer } from '../vscode/channelService';
 import { IndexedDBStorageService, IndexedDBStorageServiceLive } from './indexedDbStorage';
-import { startWatch, emitter } from './memfsWatcher';
+import { emitter } from './memfsWatcher';
 
 const dependencies = Layer.provideMerge(IndexedDBStorageServiceLive, ChannelServiceLayer('Salesforce Services'));
 /**
@@ -35,7 +35,6 @@ export class FsProvider implements vscode.FileSystemProvider {
 
     await Effect.runPromise(program);
 
-    await startWatch();
     return this;
   }
 
@@ -107,7 +106,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
-    fs.rmSync(uri.fsPath, { recursive: options.recursive, force: true });
+    await fs.promises.rm(uri.fsPath, { recursive: options.recursive, force: true });
 
     const program = pipe(
       IndexedDBStorageService,

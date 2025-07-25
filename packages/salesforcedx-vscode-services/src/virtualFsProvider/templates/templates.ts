@@ -13,8 +13,11 @@ import { prettierrc } from './prettierrc';
 import { readme } from './readme';
 import { sfdxProjectJson } from './sfdxProject';
 import { tsconfig } from './tsconfig';
+import { vscodeSettings } from './vscodeSettings';
 
+/** map of file name to file content */
 export const TEMPLATES = {
+  '.vscode/settings.json': vscodeSettings,
   '.forceignore': forceignore,
   '.gitignore': gitignore,
   'sfdx-project.json': sfdxProjectJson,

@@ -38,7 +38,8 @@
   ],
   "scripts": {
     "bundle:extension": "npm run compile && node ./esbuild.config.mjs",
-    "run:web": "npx vscode-test-web --browserType=chromium --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools ~/eng/repros/ext-qa",
+    "run:web:bak": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools ~/eng/repros/ext-qa",
+    "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "npm run bundle:extension && vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

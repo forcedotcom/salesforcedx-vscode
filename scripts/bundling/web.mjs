@@ -1,6 +1,15 @@
-import { polyfillNode } from 'esbuild-plugin-polyfill-node';
+import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const emptyPolyfillsPath = join(__dirname, 'empty-polyfills.js');
+const processGlobalPath = join(__dirname, 'process-global.js');
+const bufferGlobalPath = join(__dirname, 'buffer-global.js');
 
 export const commonConfigBrowser = {
+  mainFields: ['browser', 'module', 'main'],
   bundle: true,
   format: 'cjs',
   platform: 'browser',
@@ -12,56 +21,72 @@ export const commonConfigBrowser = {
   logOverride: {
     'unsupported-dynamic-import': 'error'
   },
+  inject: [processGlobalPath, bufferGlobalPath],
   define: {
     // this prevents the logger from writing to any files, obviating the need for pino-bundling stuff
     'process.env.SF_DISABLE_LOG_FILE': "'true'",
     // Ensure global is available for Node.js modules
-    global: 'globalThis'
+    global: 'globalThis',
+    // Other global polyfills
+    __dirname: '""',
+    __filename: '""'
   },
   alias: {
     // proper-lockfile and SDR use graceful-fs
-    'graceful-fs': 'memfs',
+    'graceful-fs': '@salesforce/core/fs',
     jsonwebtoken: 'jsonwebtoken-esm',
-    '@jsforce/jsforce-node': 'jsforce/browser',
-    '@jsforce/jsforce-node/lib': 'jsforce/browser',
+    // Node.js built-in module polyfills
+    'node:path': 'path-browserify',
+    'node:fs': 'memfs',
+    'node:os': 'os-browserify',
+    'node:buffer': 'buffer',
+    'node:stream': 'stream-browserify',
+    'node:util': 'util',
+    'node:events': 'events',
+    'node:url': 'url',
+    'node:crypto': 'crypto-browserify',
+    'node:http': 'stream-http',
+    'node:https': 'https-browserify',
+    'node:querystring': 'querystring-es3',
+    'node:assert': 'assert',
     'node:path/posix': 'path-browserify',
-    'node:path': 'path-browserify'
-  },
-  plugins: [
-    polyfillNode({
-      globals: {
-        global: true,
-        buffer: true,
-        process: true
-      },
-      polyfills: {
-        _stream_duplex: true,
-        _stream_passthrough: true,
-        _stream_readable: true,
-        _stream_transform: true,
-        _stream_writable: true,
-        'assert/strict': true,
-        assert: true,
-        buffer: true,
-        child_process: 'empty',
-        crypto: true,
-        dns: 'empty',
-        events: true,
-        http: true,
-        https: true,
-        net: 'empty',
-        os: true,
-        path: true,
-        perf_hooks: true,
-        process: true,
-        querystring: true,
-        stream: true,
-        timers: true,
-        tls: 'empty',
-        url: true,
-        util: true,
-        fs: true
-      }
-    })
-  ]
+    'node:assert/strict': 'assert',
+    // Empty polyfills for modules that can't be polyfilled
+    'node:child_process': emptyPolyfillsPath,
+    'node:dns': emptyPolyfillsPath,
+    'node:net': emptyPolyfillsPath,
+    'node:tls': emptyPolyfillsPath,
+    'node:http2': emptyPolyfillsPath,
+    'node:fs/promises': emptyPolyfillsPath,
+    // Standard Node.js modules (without node: prefix)
+    path: 'path-browserify',
+    fs: 'memfs',
+    os: 'os-browserify',
+    buffer: 'buffer',
+    stream: 'stream-browserify',
+    util: 'util',
+    events: 'events',
+    url: 'url',
+    crypto: 'crypto-browserify',
+    http: 'stream-http',
+    https: 'https-browserify',
+    querystring: 'querystring-es3',
+    assert: 'assert',
+    zlib: 'browserify-zlib',
+    timers: 'timers-browserify',
+    tty: 'tty-browserify',
+    string_decoder: 'string_decoder',
+    punycode: 'punycode',
+    domain: 'domain-browser',
+    constants: 'constants-browserify',
+    console: 'console-browserify',
+    vm: 'vm-browserify',
+    diagnostics_channel: 'diagnostics_channel',
+    // Empty polyfills for modules that can't be polyfilled
+    child_process: emptyPolyfillsPath,
+    dns: emptyPolyfillsPath,
+    net: emptyPolyfillsPath,
+    tls: emptyPolyfillsPath,
+    http2: emptyPolyfillsPath
+  }
 };
