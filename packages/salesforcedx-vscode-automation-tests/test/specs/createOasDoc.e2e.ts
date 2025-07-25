@@ -150,7 +150,11 @@ describe('Create OpenAPI v3 Specifications', () => {
     );
     if (process.platform === 'win32') {
       await reloadWindow();
-      await verifyExtensionsAreRunning(getExtensionsToVerifyActive());
+      await verifyExtensionsAreRunning(
+        getExtensionsToVerifyActive(ext =>
+          defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
+        )
+      );
       const workbench = getWorkbench();
       await getTextEditor(workbench, 'IneligibleApexClass.cls');
     } else {

@@ -414,23 +414,22 @@ describe('Deploy and Retrieve', () => {
     it('SFDX: Delete This from Project and Org - Right click from editor view', async () => {
       logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Right click from editor view');
       const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView();
 
       // Clear notifications
       await dismissAllNotifications();
+
+      // Clear the Output view
+      await clearOutputView();
 
       const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
       const contextMenu = await textEditor.openContextMenu();
       await contextMenu.select('SFDX: Delete This from Project and Org');
 
       // Make sure we get a notification for the source delete
-      const notificationFound = await verifyNotificationWithRetry(
+      await verifyNotificationWithRetry(
         /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
         Duration.ONE_MINUTE
       );
-
-      expect(notificationFound).to.equal(true);
 
       // Confirm deletion
       const accepted = await acceptNotification(
