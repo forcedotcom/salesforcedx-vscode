@@ -69,7 +69,7 @@ describe('Deploy and Retrieve', () => {
       '}'
     ].join('\n');
     await dismissAllNotifications();
-    await createApexClass('MyClass', classText);
+    await createApexClass('MyClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), classText);
     const successNotificationWasFound = await verifyNotificationWithRetry(
       /SFDX: Create Apex Class successfully ran/,
       Duration.TEN_MINUTES
