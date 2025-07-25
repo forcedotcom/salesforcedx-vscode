@@ -101,14 +101,14 @@ describe('Create OpenAPI v3 Specifications', () => {
 
     // Create the Apex class which the decomposed OAS doc will be generated from
     await retryOperation(
-      () => createApexClass('CaseManager', caseManagerClassText),
+      () => createApexClass('CaseManager', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), caseManagerClassText),
       2,
       'CreateOASDoc - Error creating Apex class CaseManager'
     );
 
     // Create the Apex class which the composed OAS doc will be generated from
     await retryOperation(
-      () => createApexClass('SimpleAccountResource', simpleAccountResourceClassText),
+      () => createApexClass('SimpleAccountResource', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), simpleAccountResourceClassText),
       2,
       'CreateOASDoc - Error creating Apex class SimpleAccountResource'
     );
