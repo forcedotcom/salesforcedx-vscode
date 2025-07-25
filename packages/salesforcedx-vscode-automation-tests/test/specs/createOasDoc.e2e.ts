@@ -62,6 +62,7 @@ import {
   getIdealSimpleAccountResourceXml
 } from '../testData/oasDocs';
 import { caseManagerClassText, simpleAccountResourceClassText } from '../testData/sampleClassData';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Create OpenAPI v3 Specifications', () => {
@@ -125,6 +126,9 @@ describe('Create OpenAPI v3 Specifications', () => {
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+
+    // Hide chat copilot
+    await tryToHideCopilot();
 
     await verifyNotificationWithRetry(
       /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
