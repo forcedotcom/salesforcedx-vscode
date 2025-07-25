@@ -66,7 +66,7 @@ export class TypeUtils {
 
 const buildTypesList = (describeResult: DescribeMetadataResult): MetadataObject[] => {
   try {
-    const metadataTypeObjects = describeResult.metadataObjects
+    const metadataTypeObjects = describeResult.result.metadataObjects
       .filter(type => !isNullOrUndefined(type.xmlName) && !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName))
       .map(mdTypeObject => ({
         ...mdTypeObject,
