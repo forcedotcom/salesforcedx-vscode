@@ -10,13 +10,13 @@
   ],
   "main": "out/src",
   "dependencies": {
-    "@salesforce/core-bundle": "^8.18.1",
+    "@salesforce/core-bundle": "^8.18.4",
     "@salesforce/salesforcedx-utils": "64.6.1",
-    "@salesforce/source-tracking-bundle": "^7.4.7",
-    "@salesforce/vscode-service-provider": "^1.4.0",
+    "@salesforce/source-tracking-bundle": "^7.4.9",
+    "@salesforce/vscode-service-provider": "^1.4.1",
     "applicationinsights": "1.0.7",
     "cross-spawn": "7.0.6",
-    "o11y": "250.12.0",
+    "o11y": "250.14.0",
     "o11y_schema": "254.77.0",
     "rxjs": "^5.4.1",
     "tree-kill": "^1.1.0",
@@ -24,7 +24,7 @@
     "zod": "3.24.4"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve-bundle": "^12.21.1",
+    "@salesforce/source-deploy-retrieve-bundle": "^12.21.6",
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^29.5.5",
     "@types/node": "^20.0.0",
