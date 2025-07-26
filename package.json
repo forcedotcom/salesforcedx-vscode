@@ -11,6 +11,7 @@
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
+    "@salesforce/vscode-service-provider": "1.4.2",
     "a": "3.0.1",
     "node": "^20.17.0",
     "npm": "^10",

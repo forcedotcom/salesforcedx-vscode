@@ -16,7 +16,7 @@ export {
   CLIENT_ID,
   SFDX_FOLDER
 } from './constants';
-import { Event, ExtensionContext, Uri, ExtensionKind } from 'vscode';
+import { Event } from 'vscode';
 
 // Precondition checking
 ////////////////////////
@@ -97,98 +97,15 @@ export type LocalComponent = DirFileNameSelection & {
 
 export { MessageArgs } from '@salesforce/salesforcedx-utils';
 
-// Telemetry types
-//////////////////
+// Re-export telemetry types from vscode-service-provider
+export {
+  TelemetryReporter,
+  Measurements,
+  Properties,
+  TelemetryData,
+  ExtensionInfo,
+  ExtensionsInfo
+} from '@salesforce/vscode-service-provider';
 
-export interface TelemetryReporter {
-  sendTelemetryEvent(
-    eventName: string,
-    properties?: {
-      [key: string]: string;
-    },
-    measurements?: {
-      [key: string]: number;
-    }
-  ): void;
-  sendExceptionEvent(
-    exceptionName: string,
-    exceptionMessage: string,
-    measurements?: {
-      [key: string]: number;
-    }
-  ): void;
-  dispose(): Promise<void>;
-}
-
-export type Measurements = {
-  [key: string]: number;
-};
-
-export type Properties = {
-  [key: string]: string;
-};
-
-export type TelemetryData = {
-  properties?: Properties;
-  measurements?: Measurements;
-};
-
-export type ExtensionInfo = {
-  isActive: boolean;
-  path: string;
-  kind: ExtensionKind;
-  uri: Uri;
-  loadStartDate: Date;
-};
-
-export type ExtensionsInfo = {
-  [extensionId: string]: ExtensionInfo;
-};
-
-export type ActivationInfo = Partial<ExtensionInfo> & {
-  activateStartTime: number;
-  activateStartDate: Date;
-  activateEndDate?: Date;
-  extensionActivationTime: number;
-  markEndTime?: number;
-};
-
-export interface TelemetryServiceInterface {
-  /**
-   * Initialize Telemetry Service during extension activation.
-   * @param extensionContext extension context
-   */
-  initializeService(extensionContext: ExtensionContext): Promise<void>;
-  /**
-   * Helper to get the name for telemetryReporter
-   * if the extension from extension pack, use salesforcedx-vscode
-   * otherwise use the extension name
-   * exported only for unit test
-   */
-  getTelemetryReporterName(): string;
-  getReporters(): TelemetryReporter[];
-  isTelemetryEnabled(): Promise<boolean>;
-  checkCliTelemetry(): Promise<boolean>;
-  isTelemetryExtensionConfigurationEnabled(): boolean;
-  setCliTelemetryEnabled(isEnabled: boolean): void;
-  sendActivationEventInfo(activationInfo: ActivationInfo): void;
-  sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void;
-  sendExtensionDeactivationEvent(): void;
-  sendCommandEvent(
-    commandName?: string,
-    startTime?: number,
-    properties?: Properties,
-    measurements?: Measurements
-  ): void;
-  sendException(name: string, message: string): void;
-  sendEventData(
-    eventName: string,
-    properties?: {
-      [key: string]: string;
-    },
-    measures?: {
-      [key: string]: number;
-    }
-  ): void;
-  dispose(): void;
-}
+// Export our simplified telemetry interface and types
+export { TelemetryServiceInterface, ActivationInfo } from '../services/telemetry';

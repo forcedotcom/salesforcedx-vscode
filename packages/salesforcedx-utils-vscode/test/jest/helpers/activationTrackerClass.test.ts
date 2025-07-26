@@ -8,7 +8,7 @@ import { ExtensionContext } from 'vscode';
 import { ActivationTracker } from '../../../src/helpers/activationTracker';
 import { getExtensionInfo } from '../../../src/helpers/activationTrackerUtils';
 import { TimingUtils } from '../../../src/helpers/timingUtils';
-import { TelemetryService } from '../../../src/services/telemetry';
+import { TelemetryServiceInterface } from '../../../src/types';
 
 jest.mock('../../../src/helpers/timingUtils', () => ({
   TimingUtils: {
@@ -33,7 +33,7 @@ jest.mock('vscode', () => ({
 
 describe('ActivationTracker', () => {
   let extensionContext: ExtensionContext;
-  let telemetryService: TelemetryService;
+  let telemetryService: TelemetryServiceInterface;
   let tracker: ActivationTracker;
 
   beforeEach(() => {
@@ -46,7 +46,7 @@ describe('ActivationTracker', () => {
     telemetryService = {
       sendActivationEventInfo: jest.fn(),
       sendExtensionActivationEvent: jest.fn()
-    } as unknown as TelemetryService;
+    } as unknown as TelemetryServiceInterface;
 
     // Set up default mock return values for TimingUtils
     (TimingUtils.getCurrentTime as jest.Mock).mockReturnValue(Date.now());

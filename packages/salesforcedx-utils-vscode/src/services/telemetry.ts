@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Properties, Measurements, TelemetryData, TelemetryReporter } from '@salesforce/vscode-service-provider';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { z } from 'zod';
 import {
@@ -17,15 +18,40 @@ import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConf
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
-import {
-  Properties,
-  Measurements,
-  TelemetryData,
-  TelemetryServiceInterface,
-  TelemetryReporter,
-  ActivationInfo
-} from '../types';
 import { UserService } from './userService';
+
+// Our simplified interface - uses service provider types but keeps our method signatures
+export interface TelemetryServiceInterface {
+  initializeService(extensionContext: ExtensionContext): Promise<void>;
+  getTelemetryReporterName(): string;
+  getReporters(): TelemetryReporter[];
+  isTelemetryEnabled(): Promise<boolean>;
+  checkCliTelemetry(): Promise<boolean>;
+  isTelemetryExtensionConfigurationEnabled(): boolean;
+  setCliTelemetryEnabled(isEnabled: boolean): void;
+  sendActivationEventInfo(activationInfo: ActivationInfo): void;
+  sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void;
+  sendExtensionDeactivationEvent(): void;
+  sendCommandEvent(
+    commandName?: string,
+    startTime?: number,
+    properties?: Properties,
+    measurements?: Measurements
+  ): void;
+  sendException(name: string, message: string): void;
+  sendEventData(eventName: string, properties?: { [key: string]: string }, measures?: { [key: string]: number }): void;
+  dispose(): void;
+}
+
+// Our ActivationInfo type - compatible with existing code
+export type ActivationInfo = {
+  activateStartTime: number;
+  activateStartDate: Date;
+  activateEndDate?: Date;
+  extensionActivationTime: number;
+  markEndTime?: number;
+  loadStartDate?: Date;
+};
 
 type CommandMetric = {
   extensionName: string;
