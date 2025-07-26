@@ -38,9 +38,10 @@ describe('SOQL', () => {
 
   it('SFDX: Create Query in SOQL Builder', async () => {
     logTestStart(testSetup, 'SFDX: Create Query in SOQL Builder');
-    await pause(Duration.seconds(20));
     // Run SFDX: Create Query in SOQL Builder
     await executeQuickPick('SFDX: Create Query in SOQL Builder', Duration.seconds(3));
+    // wait for the soql builder
+    await pause(Duration.seconds(20));
 
     // Verify the command took us to the soql builder
     const workbench = await getWorkbench();
