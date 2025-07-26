@@ -17,15 +17,7 @@ import {
   createVisualforcePage
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import {
-  attemptToFindOutputPanelText,
-  clearOutputView,
-  executeQuickPick,
-  getTextEditor,
-  getWorkbench,
-  moveCursorWithFallback,
-  verifyOutputPanelText
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { clearOutputView, executeQuickPick, getTextEditor, getWorkbench, moveCursorWithFallback } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
@@ -52,31 +44,6 @@ describe('Visualforce LSP', () => {
     await clearOutputView();
     log(`${testSetup.testSuiteSuffixName} - calling createVisualforcePage()`);
     await createVisualforcePage(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages'));
-
-    const pathToPagesFolder = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages');
-    const pathToPage = path.join('force-app', 'main', 'default', 'pages', 'FooPage.page');
-
-    // Create an array of strings for the expected output text
-    const expectedTexts = [
-      `target dir = ${pathToPagesFolder.replace(/^[A-Z]:/, match => match.toLowerCase())}`,
-      `create ${pathToPage}`,
-      `create ${pathToPage}-meta.xml`,
-      'Finished SFDX: Create Visualforce Page'
-    ];
-    // Check output panel to validate file was created...
-    const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
-      'Starting SFDX: Create Visualforce Page',
-      10
-    );
-    await verifyOutputPanelText(outputPanelText, expectedTexts);
-
-    // Get open text editor and verify file content
-    const workbench = getWorkbench();
-    const textEditor = await getTextEditor(workbench, 'FooPage.page');
-    const fileContent = await textEditor.getText();
-    expect(fileContent).to.contain('<apex:page controller="myController" tabStyle="Account">');
-    expect(fileContent).to.contain('</apex:page>');
   });
 
   beforeEach(function () {

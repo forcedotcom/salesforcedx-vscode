@@ -134,7 +134,7 @@ describe('Push and Pull', () => {
     // Don't save the file just yet.
     await overrideTextInFile(textEditor, newText, false);
 
-    // An now push the changes.
+    // And now push the changes.
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
 
     await verifyPushSuccess();
