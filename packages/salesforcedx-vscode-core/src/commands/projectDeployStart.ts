@@ -38,7 +38,10 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
   private ignoreConflicts: boolean;
 
   constructor(showChannelOutput: boolean = true, ignoreConflicts: boolean = false) {
-    super(nls.localize('project_deploy_start_default_org_text'), PROJECT_DEPLOY_START_LOG_NAME);
+    const localizedCommandName = ignoreConflicts
+      ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
+      : nls.localize('project_deploy_start_default_org_text');
+    super(localizedCommandName, PROJECT_DEPLOY_START_LOG_NAME);
     this.showChannelOutput = showChannelOutput;
     this.isPushOp = true;
     this.ignoreConflicts = ignoreConflicts;
