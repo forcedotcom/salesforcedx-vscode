@@ -131,8 +131,8 @@ describe('Push and Pull', () => {
     // Clear the Output view again.
     await clearOutputView(Duration.seconds(2));
 
-    // Don't save the file just yet.
-    await overrideTextInFile(textEditor, newText, false);
+    // Override the file with the new text.
+    await overrideTextInFile(textEditor, newText);
 
     // And now push the changes.
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
@@ -204,8 +204,9 @@ describe('Push and Pull', () => {
           // sample comment for the pull test
       }
     }`;
-    // Don't save the file just yet.
-    await overrideTextInFile(textEditor, newText, false);
+
+    // Override the file with the new text.
+    await overrideTextInFile(textEditor, newText);
 
     // Wait for editor to stabilize before continuing
     await pause(Duration.seconds(1));
