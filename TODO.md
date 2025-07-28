@@ -5,6 +5,7 @@ SDR retrieve in org browser
 core PR/self-review
 clean up /scripts/bundling folder for unused polyfills
 is EMS-style `* from 'foo'` not ok? If not ok, block with a lint rule
+should the fs stuff be its own extension that activates only in web scenario? If so, how to do that.
 
 ## docs
 
@@ -19,3 +20,7 @@ is EMS-style `* from 'foo'` not ok? If not ok, block with a lint rule
 ## CI
 
 make sure web bundle runs on any changes
+
+## jsforce
+
+use a web-compatible solution for res.body.pipe and possibly the resulting stream type (to use web streams?)

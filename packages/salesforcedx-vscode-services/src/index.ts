@@ -47,18 +47,24 @@ export const activate = async (
   context: vscode.ExtensionContext,
   channelServiceLayer = ChannelServiceLayer('Salesforce Services')
 ): Promise<SalesforceVSCodeServicesApi> => {
-  // Output activation message using ChannelService
-  await Effect.runPromise(
-    Effect.provide(
-      Effect.gen(function* () {
-        const svc = yield* ChannelService;
-        yield* svc.appendToChannel('Salesforce Services extension is activating!');
-      }),
-      channelServiceLayer
-    )
+  console.log('🚀 [Services] Starting activation...');
+
+  const activationEffect = Effect.gen(function* () {
+    // Output activation message using ChannelService
+    console.log('🔍 [Services] Setting up channel service...');
+    const svc = yield* ChannelService;
+    yield* svc.appendToChannel('Salesforce Services extension is activating!');
+    console.log('✅ [Services] Channel service setup complete');
+
+    console.log('🔍 [Services] Starting file system setup...');
+    yield* Effect.promise(() => fileSystemSetup(context));
+    console.log('✅ [Services] File system setup complete');
+  }).pipe(
+    Effect.provide(channelServiceLayer),
+    Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error)))
   );
 
-  await fileSystemSetup(context);
+  await Effect.runPromise(activationEffect);
 
   // Return API for other extensions to consume
   const api: SalesforceVSCodeServicesApi = {
@@ -148,7 +154,7 @@ const fileSystemSetup = async (
               }
               // replace the existing workspace with ours.
               vscode.workspace.updateWorkspaceFolders(0, 0, {
-                name: 'Code Builder 7:48',
+                name: 'Code Builder 8:07',
                 uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
               });
             },

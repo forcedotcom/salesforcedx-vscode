@@ -23,8 +23,83 @@ const platform = 'browser';
 // Process ID - return 1 for browser
 const pid = 1;
 
-// Event handling - no-op for browser
-const on = () => {};
+// EventEmitter-like implementation for browser compatibility
+// Initialize event storage
+let _events = {};
+let _maxListeners = 10;
+
+// EventEmitter method implementations
+const on = (type, listener) => {
+  if (!_events[type]) _events[type] = [];
+  _events[type].push(listener);
+  return process;
+};
+
+const addListener = on;
+
+const once = (type, listener) => {
+  const wrapper = (...args) => {
+    removeListener(type, wrapper);
+    listener.apply(process, args);
+  };
+  return on(type, wrapper);
+};
+
+const off = (type, listener) => removeListener(type, listener);
+
+const removeListener = (type, listener) => {
+  if (_events[type]) {
+    const index = _events[type].indexOf(listener);
+    if (index !== -1) {
+      _events[type].splice(index, 1);
+    }
+  }
+  return process;
+};
+
+const removeAllListeners = type => {
+  if (type !== undefined) {
+    delete _events[type];
+  } else {
+    _events = {};
+  }
+  return process;
+};
+
+const emit = (type, ...args) => {
+  if (_events[type]) {
+    _events[type].forEach(listener => {
+      try {
+        listener.apply(process, args);
+      } catch (err) {
+        // Emit error on next tick to avoid breaking the current execution
+        setTimeout(() => {
+          throw err;
+        }, 0);
+      }
+    });
+    return true;
+  }
+  return false;
+};
+
+const prependListener = (type, listener) => {
+  if (!_events[type]) _events[type] = [];
+  _events[type].unshift(listener);
+  return process;
+};
+
+const prependOnceListener = (type, listener) => {
+  const wrapper = (...args) => {
+    removeListener(type, wrapper);
+    listener.apply(process, args);
+  };
+  return prependListener(type, wrapper);
+};
+
+const listeners = type => {
+  return _events[type] ? [..._events[type]] : [];
+};
 
 // Next tick - use setTimeout with 0 delay
 const nextTick = callback => setTimeout(callback, 0);
@@ -35,15 +110,32 @@ const exit = () => {};
 // Command line arguments - return empty array for browser
 const argv = [];
 
-// Export the process object
-module.exports = {
+// The process object with complete EventEmitter API
+const process = {
   env,
   hrtime,
   cwd,
   platform,
   pid,
+  // EventEmitter methods
   on,
+  addListener,
+  once,
+  off,
+  removeListener,
+  removeAllListeners,
+  emit,
+  prependListener,
+  prependOnceListener,
+  listeners,
+  // Process methods
   nextTick,
   exit,
-  argv
+  argv,
+  // EventEmitter properties
+  _events,
+  _maxListeners
 };
+
+// Export the process object
+module.exports = process;

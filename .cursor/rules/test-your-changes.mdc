@@ -9,3 +9,11 @@ when you changes a file, you should run relevant compile, linters then unit test
 If there are errors with those, you don't have a valid proposal. Iterate until you succeed, or are stuck and then propose a solution that could work.
 
 don't change both /src and /test unless it's to refactor imports or rename. "real changes" should be one or the other.
+
+If you're testing bundles, you'll need to run `npx lerna run bundle:extension` to recreate the bundled code that'l used for the browser test. You can do this for the entire project if you need to bundle multiple ext (ex: orgBrowser AND services)
+
+- if you need to trigger a rebuild of the services extension, you can increment its Index.ts (ex: name: 'Code Builder 7:48',
+  )
+- if you need to trigger a rebuild of the orgBrowser extension, you can increment `Salesforce Org Browser extension is now active!` with a similar timestamp
+
+run all tests from the 'salesforcedx-vscode' project level

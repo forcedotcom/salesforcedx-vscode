@@ -471,7 +471,12 @@ export default [
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
-      'import/order': 'off'
+      'import/order': 'off',
+      'functional/no-throw-statements': 'off',
+      'functional/no-try-statements': 'off',
+      'functional/no-let': 'off',
+      'functional/no-loop-statements': 'off',
+      'functional/prefer-property-signatures': 'off'
     }
   },
   eslintConfigPrettier

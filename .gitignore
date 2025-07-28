@@ -118,8 +118,9 @@ tsconfig.tsbuildinfo
 
 #Extensions folder for local E2E Testing
 extensions/
-/test-results
+**/test-results
 /.codegenie
 e2e-temp/
 test-resources/
 .nx/cache
+**/playwright-report/
