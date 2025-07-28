@@ -59,21 +59,19 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    // Get components to determine changed files
     const components = await this.getComponents(response);
 
     // Only do conflict detection if:
-    // 1. Conflict detection is enabled
-    // 2. We're not ignoring conflicts (SFDX: Push Source to Default Org command)
-    // 3. We have components to deploy
-    // 4. Source tracking is enabled (changedFilePaths is not empty)
+    // 1. We're not ignoring conflicts, AND
+    // 2. Conflict detection is enabled, AND
+    // 3. Either:
+    //    a) We have changed files to deploy (source tracking enabled with changes), OR
+    //    b) Source tracking is disabled
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (
       !this.ignoreConflicts &&
       salesforceCoreSettings.getConflictDetectionEnabled() &&
-      components.size > 0 &&
-      sourceTrackingEnabled &&
-      this.changedFilePaths.length > 0
+      (this.changedFilePaths.length > 0 || !sourceTrackingEnabled)
     ) {
       const conflictResult = await this.checkConflictsForChangedFiles();
       if (!conflictResult) {
@@ -130,11 +128,22 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
           throw new Error(nls.localize('error_source_tracking_service_failed'));
         }
 
-        // Get only the changed components from source tracking
-        const statusResponse = await sourceTracking.getStatus({ local: true, remote: false });
+        // Get local changes for deployment and conflict detection
+        const localStatusResponse = await sourceTracking.getStatus({ local: true, remote: false });
+        const localChanges = localStatusResponse.filter(
+          component => !component.ignored && component.origin === 'local'
+        );
 
-        if (statusResponse.length === 0) {
-          // No changes found - this could be a new org with no existing metadata
+        // Get file paths for local changes (used for both conflict detection and deployment)
+        const changedFilePaths: string[] = localChanges
+          .map(component => component.filePath)
+          .filter((filePath): filePath is string => !!filePath)
+          .map(filePath => (nodePath.isAbsolute(filePath) ? filePath : nodePath.resolve(projectPath, filePath)));
+
+        // Populate changedFilePaths for conflict detection
+        this.changedFilePaths = changedFilePaths;
+        if (localChanges.length === 0) {
+          // No local changes found - this could be a new org with no existing metadata
           // Check if this is a "first deployment" scenario by checking if the org has any existing metadata
           try {
             const orgType = await workspaceContextUtils.getWorkspaceOrgType();
@@ -163,36 +172,16 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
           return new ComponentSet();
         }
 
-        // Filter for local changes that are not ignored
-        const localChanges = statusResponse.filter(component => !component.ignored && component.origin === 'local');
-
-        if (localChanges.length === 0) {
-          // No local changes found, return empty ComponentSet
-          return new ComponentSet();
-        }
-
-        const changedFilePaths: string[] = localChanges
-          .map(component => component.filePath)
-          .filter((filePath): filePath is string => !!filePath)
-          .map(filePath =>
-            // Ensure the file path is absolute and exists in the current workspace
-            nodePath.isAbsolute(filePath) ? filePath : nodePath.resolve(projectPath, filePath)
-          );
-
         if (changedFilePaths.length === 0) {
           // No file paths found, return empty ComponentSet
           return new ComponentSet();
         }
 
-        // Store the changed file paths for conflict detection
-        this.changedFilePaths = changedFilePaths;
-
-        // Create ComponentSet from specific file paths
         return ComponentSet.fromSource(changedFilePaths);
       } catch (error) {
         // If source tracking fails, let the error bubble up
         console.error('Source tracking failed:', error);
-        throw new Error(nls.localize('error_source_tracking_components_failed', error));
+        throw new Error(nls.localize('error_source_tracking_components_failed', errorToString(error)));
       }
     }
 
