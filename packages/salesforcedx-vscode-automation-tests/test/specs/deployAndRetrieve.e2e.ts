@@ -268,6 +268,9 @@ describe('Deploy and Retrieve', () => {
 
     // Modify the file and save to trigger deploy
     await replaceLineInFile(myClassPath, 2, "\t// let's trigger deploy");
+    const workbench = getWorkbench();
+    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+    await textEditor.save();
     await pause(Duration.seconds(5));
 
     // At this point there should be no conflicts since this is a new class.
