@@ -200,6 +200,7 @@ export const messages = {
   project_generate_empty_template: 'Empty project template',
   project_generate_analytics_template: 'Analytics project template',
   apex_generate_trigger_text: 'SFDX: Create Apex Trigger',
+  long_command_end: 'Ended',
   start_apex_debug_logging: 'SFDX: Turn On Apex Debug Log for Replay Debugger',
   stop_apex_debug_logging: 'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_create_project: 'SFDX: ISV Debugger Setup, Step 1 of 5: Creating project',
