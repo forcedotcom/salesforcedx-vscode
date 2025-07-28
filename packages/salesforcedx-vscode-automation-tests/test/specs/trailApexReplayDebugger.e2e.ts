@@ -171,7 +171,9 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     logTestStart(testSetup, 'SFDX: Get Apex Debug Logs');
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
-    prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
+    prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(1));
+    await prompt.confirm();
+    await pause(Duration.seconds(1));
 
     // Wait for the command to execute
     await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
