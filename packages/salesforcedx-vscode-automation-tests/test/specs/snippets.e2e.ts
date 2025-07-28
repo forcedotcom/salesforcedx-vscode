@@ -20,6 +20,7 @@ import {
   executeQuickPick
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -49,7 +50,7 @@ describe('Snippets', () => {
     const apexSnippet = 'String.isBlank(inputString)';
 
     // Create anonymous apex file
-    await createAnonymousApexFile();
+    await createAnonymousApexFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
     // Type snippet "isb" in a new line and check it inserted the expected string
     const textEditor = await getTextEditor(workbench, 'Anonymous.apex');
@@ -70,7 +71,7 @@ describe('Snippets', () => {
     await createGlobalSnippetsFile(testSetup);
 
     // Create anonymous apex file
-    await createAnonymousApexFile();
+    await createAnonymousApexFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
     // Type snippet "soql" and check it inserted the expected query
     const textEditor = await getTextEditor(workbench, 'Anonymous.apex');

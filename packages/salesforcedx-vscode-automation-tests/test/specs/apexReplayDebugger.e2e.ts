@@ -243,7 +243,7 @@ describe('Apex Replay Debugger', () => {
     await clearOutputView();
 
     // Create anonymous apex file
-    await createAnonymousApexFile();
+    await createAnonymousApexFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
     // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
     await executeQuickPick('SFDX: Execute Anonymous Apex with Editor Contents', Duration.seconds(10));
