@@ -4,14 +4,22 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionContext, ExtensionKind, Uri } from 'vscode';
+import { ExtensionContext } from 'vscode';
 import { ActivationTracker } from '../../../src/helpers/activationTracker';
 import { getExtensionInfo } from '../../../src/helpers/activationTrackerUtils';
+import { TimingUtils } from '../../../src/helpers/timingUtils';
 import { TelemetryService } from '../../../src/services/telemetry';
 
-jest.mock('../../../src/helpers/activationTrackerUtils', () => ({
-  getExtensionInfo: jest.fn()
+jest.mock('../../../src/helpers/timingUtils', () => ({
+  TimingUtils: {
+    getCurrentTime: jest.fn(),
+    getElapsedTime: jest.fn()
+  }
 }));
+
+jest.mock('../../../src/helpers/activationTrackerUtils');
+
+const mockGetExtensionInfo = getExtensionInfo as jest.Mock;
 
 jest.mock('vscode', () => ({
   ExtensionKind: {
@@ -37,72 +45,101 @@ describe('ActivationTracker', () => {
 
     telemetryService = {
       sendActivationEventInfo: jest.fn(),
-      sendExtensionActivationEvent: jest.fn(),
-      getEndHRTime: jest.fn(() => 3.141)
+      sendExtensionActivationEvent: jest.fn()
     } as unknown as TelemetryService;
+
+    // Set up default mock return values for TimingUtils
+    (TimingUtils.getCurrentTime as jest.Mock).mockReturnValue(Date.now());
+    (TimingUtils.getElapsedTime as jest.Mock).mockReturnValue(100);
+
+    // Mock getExtensionInfo to return undefined (simulating when extension info can't be retrieved)
+    mockGetExtensionInfo.mockResolvedValue(undefined);
   });
 
-  it('should create activation info on construction', () => {
-    tracker = new ActivationTracker(extensionContext, telemetryService);
-    expect(tracker.activationInfo).toBeDefined();
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('should update activation info on markActivationStop', async () => {
-    const mockExtensionInfo = {
-      isActive: true,
-      path: '/path/to/extension',
-      kind: ExtensionKind.Workspace,
-      uri: Uri.parse('file:///path/to/extension'),
-      loadStartDate: new Date()
-    };
-
-    (getExtensionInfo as jest.Mock).mockResolvedValue(mockExtensionInfo);
+  it('should call sendActivationEventInfo on markActivationStop', async () => {
     tracker = new ActivationTracker(extensionContext, telemetryService);
     await tracker.markActivationStop();
 
-    expect(tracker.activationInfo).toEqual({
-      startActivateHrTime: expect.arrayContaining([expect.any(Number), expect.any(Number)]),
-      activateStartDate: expect.any(Date),
-      activateEndDate: expect.any(Date),
-      extensionActivationTime: expect.any(Number),
-      markEndTime: expect.any(Number),
-      ...mockExtensionInfo
+    expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activateStartTime: expect.any(Number),
+        activateStartDate: expect.any(Date),
+        activateEndDate: expect.any(Date),
+        extensionActivationTime: expect.any(Number),
+        markEndTime: expect.any(Number),
+        loadStartDate: undefined
+      })
+    );
+  });
+
+  it('should calculate elapsed time correctly', async () => {
+    // Mock TimingUtils before creating tracker
+    const mockGetCurrentTime = jest
+      .fn()
+      .mockReturnValueOnce(1000) // start time
+      .mockReturnValueOnce(2000); // end time
+    const mockGetElapsedTime = jest.fn().mockReturnValue(1000);
+
+    (TimingUtils.getCurrentTime as jest.Mock) = mockGetCurrentTime;
+    (TimingUtils.getElapsedTime as jest.Mock) = mockGetElapsedTime;
+
+    tracker = new ActivationTracker(extensionContext, telemetryService);
+    await tracker.markActivationStop();
+
+    expect(mockGetCurrentTime).toHaveBeenCalledTimes(2);
+    expect(mockGetElapsedTime).toHaveBeenCalledWith(1000);
+    expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extensionActivationTime: 1000
+      })
+    );
+  });
+
+  it('should include loadStartDate when extension info is available', async () => {
+    const mockLoadStartDate = new Date('2024-01-01T00:00:00Z');
+    mockGetExtensionInfo.mockResolvedValue({
+      loadStartDate: mockLoadStartDate,
+      isActive: true,
+      path: '/test/path',
+      kind: 1,
+      uri: { scheme: 'file', path: '/test/path' }
     });
 
-    expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(tracker.activationInfo);
-  });
-  it('should not sendActivationEventInfo when loadStartDate is undefined', async () => {
-    const loadStartDate: Date | undefined = undefined;
-    const mockExtensionInfo = {
-      isActive: true,
-      path: '/path/to/extension',
-      kind: ExtensionKind.Workspace,
-      uri: Uri.parse('file:///path/to/extension'),
-      loadStartDate
-    };
-
-    (getExtensionInfo as jest.Mock).mockResolvedValue(mockExtensionInfo);
     tracker = new ActivationTracker(extensionContext, telemetryService);
     await tracker.markActivationStop();
 
-    expect(telemetryService.sendActivationEventInfo).not.toHaveBeenCalled();
+    expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loadStartDate: mockLoadStartDate
+      })
+    );
   });
-  it('should not sendActivationEventInfo when loadStartDate is after activateEndDate', async () => {
-    const dateOneMonthFromNow = new Date();
-    dateOneMonthFromNow.setMonth(dateOneMonthFromNow.getMonth() + 1);
 
-    const mockExtensionInfo = {
-      isActive: true,
-      path: '/path/to/extension',
-      kind: ExtensionKind.Workspace,
-      uri: Uri.parse('file:///path/to/extension'),
-      loadStartDate: dateOneMonthFromNow
-    };
-
-    (getExtensionInfo as jest.Mock).mockResolvedValue(mockExtensionInfo);
+  it('should use real dates instead of performance.now() timestamps', async () => {
+    const startTime = Date.now();
     tracker = new ActivationTracker(extensionContext, telemetryService);
+
+    // Small delay to ensure different times
+    await new Promise(resolve => setTimeout(resolve, 10));
     await tracker.markActivationStop();
 
-    expect(telemetryService.sendActivationEventInfo).not.toHaveBeenCalled();
+    const call = (telemetryService.sendActivationEventInfo as jest.Mock).mock.calls[0][0] as {
+      activateStartDate: Date;
+      activateEndDate: Date;
+    };
+
+    // Verify dates are actual Date objects and reasonable
+    expect(call.activateStartDate).toBeInstanceOf(Date);
+    expect(call.activateEndDate).toBeInstanceOf(Date);
+    expect(call.activateStartDate.getTime()).toBeGreaterThanOrEqual(startTime);
+    expect(call.activateEndDate.getTime()).toBeGreaterThan(call.activateStartDate.getTime());
+
+    // Verify dates are NOT in 1970 (which would indicate using performance.now())
+    expect(call.activateStartDate.getFullYear()).toBeGreaterThan(2020);
+    expect(call.activateEndDate.getFullYear()).toBeGreaterThan(2020);
   });
 });
