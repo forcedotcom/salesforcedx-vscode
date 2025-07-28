@@ -20,7 +20,7 @@ import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporte
 import { isInternalHost } from '../telemetry/utils/isInternal';
 import { UserService } from './userService';
 
-// Our simplified interface - uses service provider types but keeps our method signatures
+// Our simplified interface - uses service provider types with backwards compatibility
 export interface TelemetryServiceInterface {
   initializeService(extensionContext: ExtensionContext): Promise<void>;
   getTelemetryReporterName(): string;
@@ -30,14 +30,21 @@ export interface TelemetryServiceInterface {
   isTelemetryExtensionConfigurationEnabled(): boolean;
   setCliTelemetryEnabled(isEnabled: boolean): void;
   sendActivationEventInfo(activationInfo: ActivationInfo): void;
-  sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void;
+
+  // Backwards compatible - supports both number and [number, number] for timing
+  sendExtensionActivationEvent(
+    startTime?: number | [number, number],
+    markEndTime?: number,
+    telemetryData?: TelemetryData
+  ): void;
   sendExtensionDeactivationEvent(): void;
   sendCommandEvent(
     commandName?: string,
-    startTime?: number,
+    startTime?: number | [number, number],
     properties?: Properties,
     measurements?: Measurements
   ): void;
+
   sendException(name: string, message: string): void;
   sendEventData(eventName: string, properties?: { [key: string]: string }, measures?: { [key: string]: number }): void;
   dispose(): void;
@@ -121,6 +128,30 @@ export class TelemetryService implements TelemetryServiceInterface {
    */
   private cliAllowsTelemetryPromise?: Promise<boolean> = undefined;
   public extensionName: string = 'unknown';
+
+  /**
+   * Convert timing parameter to number for backwards compatibility
+   * @param timing Either a number (milliseconds) or hrtime tuple [seconds, nanoseconds]
+   * @returns number in milliseconds, or undefined if input is undefined
+   */
+  private convertTimingToNumber(timing?: number | [number, number]): number | undefined {
+    if (timing === undefined) {
+      return undefined;
+    }
+
+    if (typeof timing === 'number') {
+      return timing;
+    }
+
+    if (Array.isArray(timing) && timing.length === 2) {
+      // Convert hrtime [seconds, nanoseconds] to milliseconds since epoch
+      const [seconds, nanoseconds] = timing;
+      return seconds * 1000 + nanoseconds / 1000000;
+    }
+
+    console.warn('Invalid timing format provided:', timing);
+    return undefined;
+  }
 
   /**
    * Initialize Telemetry Service during extension activation.
@@ -223,16 +254,23 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.sendExtensionActivationEvent(activationInfo.activateStartTime, activationInfo.markEndTime, telemetryData);
   }
 
-  public sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
+  public sendExtensionActivationEvent(
+    startTime?: number | [number, number],
+    markEndTime?: number,
+    telemetryData?: TelemetryData
+  ): void {
     // Calculate startup time:
+    // - Convert timing to number for backwards compatibility (supports both number and hrtime)
     // - If startTime is provided and > 0, use it as the start time
     // - If markEndTime is provided, use it as the end time, otherwise calculate elapsed time from startTime
     // - If neither startTime nor markEndTime are provided, this indicates a timing error - use a fallback
     let startupTime: number;
 
-    if (startTime && startTime > 0) {
+    const convertedStartTime = this.convertTimingToNumber(startTime);
+
+    if (convertedStartTime && convertedStartTime > 0) {
       // Valid start time provided - calculate elapsed time
-      startupTime = markEndTime ?? TimingUtils.getElapsedTime(startTime);
+      startupTime = markEndTime ?? TimingUtils.getElapsedTime(convertedStartTime);
     } else if (markEndTime) {
       // Only end time provided - use it directly
       startupTime = markEndTime;
@@ -270,7 +308,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   public sendCommandEvent(
     commandName?: string,
-    startTime?: number,
+    startTime?: number | [number, number],
     properties?: Properties,
     measurements?: Measurements
   ): void {
@@ -282,11 +320,13 @@ export class TelemetryService implements TelemetryServiceInterface {
         };
         const aggregatedProps = Object.assign(baseProperties, properties);
 
+        const convertedStartTime = this.convertTimingToNumber(startTime);
+
         let aggregatedMeasurements: Measurements | undefined;
-        if (startTime || measurements) {
+        if (convertedStartTime || measurements) {
           aggregatedMeasurements = { ...measurements };
-          if (startTime) {
-            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTime(startTime);
+          if (convertedStartTime) {
+            aggregatedMeasurements.executionTime = TimingUtils.getElapsedTime(convertedStartTime);
           }
         }
         this.reporters.forEach(reporter => {
