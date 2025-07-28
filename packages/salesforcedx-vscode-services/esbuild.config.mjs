@@ -12,15 +12,12 @@ import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 await build({
   ...commonConfigNode,
   entryPoints: ['./out/src/index.js'],
-  outdir: './dist',
-  plugins: [...(commonConfigNode.plugins ?? [])]
+  outdir: './dist'
 });
 
 // Browser build (browser environment)
 await build({
   ...commonConfigBrowser,
-  external: ['vscode'],
   entryPoints: ['./out/src/index.js'],
-  outfile: './dist/browser.js',
-  mainFields: ['browser', 'module', 'main']
+  outfile: './dist/browser.js'
 });

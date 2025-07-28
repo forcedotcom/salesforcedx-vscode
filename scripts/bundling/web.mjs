@@ -37,7 +37,6 @@ export const commonConfigBrowser = {
     jsonwebtoken: 'jsonwebtoken-esm',
     // Node.js built-in module polyfills
     'node:path': 'path-browserify',
-    'node:fs': 'memfs',
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',
     'node:stream': 'stream-browserify',
@@ -57,10 +56,8 @@ export const commonConfigBrowser = {
     'node:net': emptyPolyfillsPath,
     'node:tls': emptyPolyfillsPath,
     'node:http2': emptyPolyfillsPath,
-    'node:fs/promises': emptyPolyfillsPath,
     // Standard Node.js modules (without node: prefix)
     path: 'path-browserify',
-    fs: 'memfs',
     os: 'os-browserify',
     buffer: 'buffer',
     stream: 'stream-browserify',
@@ -88,5 +85,6 @@ export const commonConfigBrowser = {
     net: emptyPolyfillsPath,
     tls: emptyPolyfillsPath,
     http2: emptyPolyfillsPath
-  }
+  },
+  plugins: [nodeModulesPolyfillPlugin()]
 };
