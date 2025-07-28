@@ -10,13 +10,15 @@ import { connectToCDPBrowser, reportConsoleCapture, CDPConnection } from './shar
 /**
  * Test suite for Salesforce Org Browser web extension
  * Tests run against VS Code web served by vscode-test-web
- * Uses CDP (Chrome DevTools Protocol) for real browser console access
+ *
+ * REQUIRES CDP (Chrome DevTools Protocol) connection - no Playwright fallback
+ * Prerequisites: VS Code web server MUST be running (npm run run:web)
  */
-test.describe('Org Browser Web Extension', () => {
+test.describe('Org Browser Web Extension (CDP Required)', () => {
   let cdpConnection: CDPConnection | null = null;
 
-  test.beforeEach(async ({ page }) => {
-    // Try to connect via CDP first for more realistic testing
+  test.beforeEach(async ({ page: _page }) => {
+    // CDP connection is REQUIRED - no fallback to Playwright
     try {
       cdpConnection = await connectToCDPBrowser(9222);
       console.log('✅ Using CDP connection for test');
@@ -28,13 +30,29 @@ test.describe('Org Browser Web Extension', () => {
 
       // Wait for VS Code to fully load
       await cdpConnection.page.waitForSelector('.monaco-workbench', { timeout: 60000 });
-    } catch (cdpError) {
-      console.log('⚠️ CDP connection failed, falling back to Playwright page:', cdpError);
-      cdpConnection = null;
 
-      // Fallback to regular Playwright page
-      await page.goto('/');
-      await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+      // Assert that files are loaded in the file explorer and sfdx-project.json exists
+      await cdpConnection.page.waitForSelector('.explorer-folders-view', { timeout: 10000 });
+      const fileTreeItems = await cdpConnection.page.locator('.explorer-folders-view .monaco-list-row').all();
+
+      if (fileTreeItems.length === 0) {
+        throw new Error('No files found in file explorer - workspace may not be properly loaded');
+      }
+
+      // Look for sfdx-project.json specifically
+      const sfdxProjectExists = await cdpConnection.page
+        .locator('.explorer-folders-view')
+        .getByText('sfdx-project.json')
+        .isVisible();
+      if (!sfdxProjectExists) {
+        throw new Error('sfdx-project.json not found in file explorer - this may not be a valid Salesforce project');
+      }
+
+      console.log(`✅ Workspace loaded with ${fileTreeItems.length} files, including sfdx-project.json`);
+    } catch (cdpError) {
+      console.log('❌ CDP connection REQUIRED but failed:', cdpError);
+      console.log('💡 Start VS Code web manually first: npm run run:web');
+      throw new Error(`CDP connection required but failed: ${cdpError.message}`);
     }
   });
 
@@ -52,8 +70,9 @@ test.describe('Org Browser Web Extension', () => {
     }
   });
 
-  // Helper to get the current page (CDP or Playwright)
-  const getCurrentPage = ({ page }: { page: any }) => cdpConnection?.page || page;
+  // Helper to get the current page (CDP only now)
+  const getCurrentPage = ({ page }: { page: import('@playwright/test').Page }): import('@playwright/test').Page =>
+    cdpConnection?.page ?? page;
 
   test('should load VS Code web with org browser extension', async ({ page }) => {
     const currentPage = getCurrentPage({ page });
@@ -588,9 +607,9 @@ test.describe('Org Browser Web Extension', () => {
     try {
       // Try to connect to existing Chrome instance first (more realistic)
       console.log('🔍 Attempting CDP connection to existing browser...');
-      const cdpConnection = await connectToCDPBrowser(9222);
-      cdpPage = cdpConnection.page;
-      capture = cdpConnection.capture;
+      const localCdpConnection = await connectToCDPBrowser(9222);
+      cdpPage = localCdpConnection.page;
+      capture = localCdpConnection.capture;
       usingCDP = true;
       console.log('✅ Successfully connected via CDP - using realistic browser environment');
     } catch (cdpError) {
