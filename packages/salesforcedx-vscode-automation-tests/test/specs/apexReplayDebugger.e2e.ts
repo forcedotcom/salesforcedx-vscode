@@ -103,7 +103,7 @@ describe('Apex Replay Debugger', () => {
       10
     );
     expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger');
-    expect(outputPanelText).to.contain('ended with exit code 0');
+    expect(outputPanelText).to.contain('Ended SFDX: Turn On Apex Debug Log for Replay Debugger');
   });
 
   it('Run the Anonymous Apex Debugger with Currently Selected Text', async () => {
@@ -278,7 +278,7 @@ describe('Apex Replay Debugger', () => {
       'Starting SFDX: Turn Off Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.contain('ended with exit code 0');
+    expect(outputPanelText).to.contain('Ended SFDX: Turn On Apex Debug Log for Replay Debugger');
   });
 
   after('Tear down and clean up the testing environment', async () => {

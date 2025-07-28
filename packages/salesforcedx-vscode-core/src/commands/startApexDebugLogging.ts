@@ -12,8 +12,11 @@ import {
   TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { WorkspaceContext } from '../context';
-import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
+import { coerceMessageKey, nls } from '../messages';
+import { telemetryService } from '../telemetry';
+import { handleStartCommand } from '../utils/channelUtils';
 
 const command = 'start_apex_debug_logging';
 
@@ -38,7 +41,12 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
     extensionContext.workspaceState.update(userSpecificKey, expirationDate);
     showTraceFlagExpiration(expirationDate);
 
-    await handleFinishCommand(command, true);
+    channelService.showCommandWithTimestamp(
+      `${nls.localize(coerceMessageKey('long_command_end'))} ${nls.localize(coerceMessageKey(command))}`
+    );
+
+    await notificationService.showInformationMessage(`${nls.localize(coerceMessageKey(command))} successfully ran`);
+    telemetryService.sendCommandEvent(command);
   } catch {
     const expirationDate = extensionContext.workspaceState.get<Date>(userSpecificKey);
     if (expirationDate) {
