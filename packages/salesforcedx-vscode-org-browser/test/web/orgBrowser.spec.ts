@@ -31,22 +31,34 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
       // Wait for VS Code to fully load
       await cdpConnection.page.waitForSelector('.monaco-workbench', { timeout: 60000 });
 
-      // Assert that files are loaded in the file explorer and sfdx-project.json exists
-      await cdpConnection.page.waitForSelector('.explorer-folders-view', { timeout: 10000 });
+      // Wait for Services extension to create the workspace and files to appear
+      // This mimics the manual loading experience where files appear automatically
+      await cdpConnection.page.waitForFunction(
+        () => {
+          // Look for the Explorer view and files within it
+          const explorerView = document.querySelector('.explorer-folders-view');
+          if (!explorerView) return false;
+          const fileItems = explorerView.querySelectorAll('.monaco-list-row');
+          return fileItems.length > 0;
+        },
+        { timeout: 30000 }
+      );
+      console.log('✅ Workspace loaded with files visible in Explorer');
+
+      // Wait specifically for sfdx-project.json to appear (it loads after other files)
+      await cdpConnection.page.waitForFunction(
+        () => {
+          const explorerView = document.querySelector('.explorer-folders-view');
+          if (!explorerView) return false;
+          // Look for sfdx-project.json specifically in the file tree
+          const textContent = explorerView.textContent ?? '';
+          return textContent.includes('sfdx-project.json');
+        },
+        { timeout: 15000 }
+      );
+      console.log('✅ sfdx-project.json found in Explorer');
+
       const fileTreeItems = await cdpConnection.page.locator('.explorer-folders-view .monaco-list-row').all();
-
-      if (fileTreeItems.length === 0) {
-        throw new Error('No files found in file explorer - workspace may not be properly loaded');
-      }
-
-      // Look for sfdx-project.json specifically
-      const sfdxProjectExists = await cdpConnection.page
-        .locator('.explorer-folders-view')
-        .getByText('sfdx-project.json')
-        .isVisible();
-      if (!sfdxProjectExists) {
-        throw new Error('sfdx-project.json not found in file explorer - this may not be a valid Salesforce project');
-      }
 
       console.log(`✅ Workspace loaded with ${fileTreeItems.length} files, including sfdx-project.json`);
     } catch (cdpError) {
