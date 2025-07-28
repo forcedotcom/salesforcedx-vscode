@@ -5,48 +5,89 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { test, expect, Locator } from '@playwright/test';
-import { connectToCDPBrowser, reportConsoleCapture } from './shared/cdp-utils';
+import { connectToCDPBrowser, reportConsoleCapture, CDPConnection } from './shared/cdp-utils';
 
 /**
  * Test suite for Salesforce Org Browser web extension
  * Tests run against VS Code web served by vscode-test-web
+ * Uses CDP (Chrome DevTools Protocol) for real browser console access
  */
 test.describe('Org Browser Web Extension', () => {
+  let cdpConnection: CDPConnection | null = null;
+
   test.beforeEach(async ({ page }) => {
-    // Navigate to VS Code web instance
-    await page.goto('/');
+    // Try to connect via CDP first for more realistic testing
+    try {
+      cdpConnection = await connectToCDPBrowser(9222);
+      console.log('✅ Using CDP connection for test');
 
-    // Wait for VS Code to fully load
-    await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+      // Navigate to VS Code if not already there
+      if (!cdpConnection.page.url().includes('localhost:3000')) {
+        await cdpConnection.page.goto('http://localhost:3000/');
+      }
 
-    // Wait for extensions to activate
-    await page.waitForTimeout(5000);
+      // Wait for VS Code to fully load
+      await cdpConnection.page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+    } catch (cdpError) {
+      console.log('⚠️ CDP connection failed, falling back to Playwright page:', cdpError);
+      cdpConnection = null;
+
+      // Fallback to regular Playwright page
+      await page.goto('/');
+      await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+    }
   });
 
+  test.afterEach(async () => {
+    // Report console capture if we used CDP
+    if (cdpConnection) {
+      console.log('\n📊 Test Console Report:');
+      reportConsoleCapture(cdpConnection.capture);
+
+      // Check for critical errors
+      if (cdpConnection.capture.removeAllListenersErrors.length > 0) {
+        console.log('🚨 CRITICAL: removeAllListeners errors detected!');
+        cdpConnection.capture.removeAllListenersErrors.forEach(error => console.log(`  ❌ ${error}`));
+      }
+    }
+  });
+
+  // Helper to get the current page (CDP or Playwright)
+  const getCurrentPage = ({ page }: { page: any }) => cdpConnection?.page || page;
+
   test('should load VS Code web with org browser extension', async ({ page }) => {
+    const currentPage = getCurrentPage({ page });
+
     // Verify VS Code workbench is loaded
-    await expect(page.locator('.monaco-workbench')).toBeVisible();
+    await expect(currentPage.locator('.monaco-workbench')).toBeVisible();
 
     // Check that the activity bar is present
-    const activityBar = page.locator('.activitybar');
+    const activityBar = currentPage.locator('.activitybar');
     await expect(activityBar).toBeVisible();
   });
 
   test('should show org browser in activity bar when extension is loaded', async ({ page }) => {
+    const currentPage = getCurrentPage({ page });
+
     // Look for the org browser icon in the activity bar - be more specific to avoid strict mode violations
-    const orgBrowserAction = page.locator('.activitybar a[aria-label*="Org Browser"]');
+    const orgBrowserAction = currentPage.locator('.activitybar a[aria-label*="Org Browser"]');
 
     // Wait for the extension to load and show in activity bar
     await expect(orgBrowserAction).toBeVisible({ timeout: 30000 });
   });
 
   test('should open org browser sidebar when clicked', async ({ page }) => {
+    const currentPage = getCurrentPage({ page });
+
     // Click on the org browser activity bar item
-    const orgBrowserAction = page.locator('.activitybar a[aria-label*="Org Browser"]');
+    const orgBrowserAction = currentPage.locator('.activitybar a[aria-label*="Org Browser"]');
     await orgBrowserAction.click();
 
-    // Wait for the sidebar to open
-    await page.waitForTimeout(2000);
+    // Wait for the sidebar to open by checking for sidebar content
+    await currentPage.waitForSelector('.sidebar[role="complementary"]', { timeout: 10000 }).catch(() => {
+      console.log('⚠️ Sidebar not detected with role=complementary, checking for .sidebar');
+      return currentPage.waitForSelector('.sidebar', { timeout: 5000 });
+    });
 
     // Verify the org browser panel is visible
     // You'll need to adjust this selector based on your extension's actual structure
@@ -59,7 +100,11 @@ test.describe('Org Browser Web Extension', () => {
     const orgBrowserAction = page.locator('.activitybar a[aria-label*="Org Browser"]');
     await orgBrowserAction.click();
 
-    await page.waitForTimeout(2000);
+    // Wait for the sidebar to open by checking for sidebar content
+    await page.waitForSelector('.sidebar[role="complementary"]', { timeout: 10000 }).catch(() => {
+      console.log('⚠️ Sidebar not detected with role=complementary, checking for .sidebar');
+      return page.waitForSelector('.sidebar', { timeout: 5000 });
+    });
 
     // Check for connection status or setup prompts
     // This will depend on your extension's UI when no org is connected
@@ -313,8 +358,13 @@ test.describe('Org Browser Web Extension', () => {
       await orgBrowserIcon.click();
       console.log('✅ Clicked Org Browser activity bar item');
 
-      // Wait for the extension to load and show tree items
-      await page.waitForTimeout(5000);
+      // Wait for the sidebar to open and tree items to load
+      await page.waitForSelector('.sidebar', { timeout: 10000 });
+      await page
+        .waitForSelector('[role="treeitem"], .tree-container, .org-browser-tree', { timeout: 15000 })
+        .catch(() => {
+          console.log('⚠️ Tree elements not found, extension may still be loading');
+        });
 
       // Look for tree items
       const treeItems = await page.locator('[role="treeitem"]').all();
@@ -339,8 +389,19 @@ test.describe('Org Browser Web Extension', () => {
         }
       }
 
-      // Wait for any async operations to complete
-      await page.waitForTimeout(5000);
+      // Wait for any async tree operations to complete by checking for stable tree state
+      await page
+        .waitForFunction(
+          () => {
+            const treeContainer = document.querySelector('[role="tree"], .tree-container, .org-browser-tree');
+            return treeContainer && !treeContainer.getAttribute('aria-busy');
+          },
+          { timeout: 15000 }
+        )
+        .catch(() => {
+          // Fallback if tree state indicators aren't available
+          console.log('⚠️ Tree state not detectable, using short fallback wait');
+        });
 
       // Report console results
       reportConsoleCapture(capture);
@@ -396,9 +457,16 @@ test.describe('Org Browser Web Extension', () => {
     await orgBrowserIcon.click();
     console.log('✅ Clicked Org Browser activity bar item');
 
-    // Wait for extension to load
-    await page.waitForTimeout(5000);
-    console.log('⏳ Waited for extension loading...');
+    // Wait for sidebar to open and extension to load
+    await page.waitForSelector('.sidebar', { timeout: 10000 });
+    console.log('⏳ Sidebar opened, waiting for tree content...');
+
+    // Wait for tree content to appear
+    await page
+      .waitForSelector('[role="tree"], [role="treeitem"], .tree-container, .org-browser-tree', { timeout: 15000 })
+      .catch(() => {
+        console.log('⚠️ Tree content not detected, proceeding with test...');
+      });
 
     // Look for ANY tree-like elements
     console.log('🔍 Searching for tree elements...');
@@ -572,7 +640,10 @@ test.describe('Org Browser Web Extension', () => {
 
     // Wait for VS Code to load before testing Org Browser switch
     console.log('⏳ Waiting for VS Code to fully load...');
-    await cdpPage.waitForTimeout(5000);
+    await cdpPage.waitForSelector('.monaco-workbench', { timeout: 30000 });
+
+    // Wait for activity bar to be ready
+    await cdpPage.waitForSelector('.activitybar a[aria-label*="Org Browser"]', { timeout: 15000 });
 
     // Now click on the Org Browser tab
     console.log('🔍 Looking for Org Browser activity bar item...');

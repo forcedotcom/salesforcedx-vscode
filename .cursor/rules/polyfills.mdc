@@ -1,0 +1,41 @@
+---
+description: browser polyfills
+globs:
+alwaysApply: false
+---
+
+# Browser Polyfills Strategy
+
+## Environment Detection
+
+- Use `Global.isWeb` from salesforce/core - the correct way to check browser context
+- Don't use `typeof window` - VSCode extensions run in web-worker context, not window context
+
+## EventEmitter Polyfills
+
+- The `events` npm package DOES include `removeAllListeners` - it's not missing
+- Problems arise from bundling/polyfilling that breaks the prototype chain
+- Apply EventEmitter patches at MULTIPLE stages:
+  1. **Build-time**: Fix minified/noop assignments in bundled code
+  2. **Runtime**: Patch prototype immediately when bundle loads
+  3. **Instance-level**: Patch individual objects that bypass prototype
+
+## Common EventEmitter Issues
+
+- `removeAllListeners is not a function` - usually means bundler replaced method with noop
+- jsforce cache objects expect full EventEmitter interface
+- Effect-TS and other libraries may create EventEmitter-like objects without full prototype
+
+## Polyfill Application Strategy
+
+- **Early**: Apply in runtime polyfill at bundle start
+- **Defensive**: Check for missing methods before calling them
+- **Context-aware**: Handle both Node.js-like and browser environments
+- **Error-resistant**: Don't fail if polyfill can't be applied
+
+## Debugging Polyfill Issues
+
+- Check bundled output for `noop` assignments to EventEmitter methods
+- Use CDP (Chrome DevTools Protocol) to capture real browser console errors
+- Test both isolated Playwright context AND real browser environment
+- Look for timing issues - polyfills may apply after errors occur

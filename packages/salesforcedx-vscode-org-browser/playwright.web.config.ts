@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright configuration for testing VS Code web extensions
  * Uses vscode-test-web to serve VS Code in browser with our extensions loaded
+ * Now with CDP (Chrome DevTools Protocol) support for real console access
  */
 export default defineConfig({
   testDir: './test/web',
@@ -26,8 +27,12 @@ export default defineConfig({
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor',
         '--allow-running-insecure-content',
-        '--disable-site-isolation-trials'
-      ]
+        '--disable-site-isolation-trials',
+        '--remote-debugging-port=9222', // Enable CDP access like manual test
+        '--no-first-run',
+        '--no-default-browser-check'
+      ],
+      devtools: true // Open DevTools like manual test
     }
   },
 
