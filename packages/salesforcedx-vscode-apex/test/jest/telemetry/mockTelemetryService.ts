@@ -57,7 +57,11 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
     // Mock implementation - use local ActivationInfo type
   }
 
-  public sendExtensionActivationEvent(startTime?: number, markEndTime?: number, telemetryData?: TelemetryData): void {
+  public sendExtensionActivationEvent(
+    hrstart?: number | [number, number],
+    markEndTime?: number,
+    telemetryData?: TelemetryData
+  ): void {
     // Mock implementation
   }
 
@@ -67,7 +71,7 @@ export class MockTelemetryService extends TelemetryService implements TelemetryS
 
   public sendCommandEvent(
     commandName?: string,
-    startTime?: number,
+    startTime?: number | [number, number],
     properties?: Properties,
     measurements?: Measurements
   ): void {
