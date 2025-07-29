@@ -25,9 +25,9 @@ export const handleFinishCommand = async (
   isSuccess: boolean,
   error: string = 'Command failed'
 ): Promise<void> => {
-  const exitCode = isSuccess ? '0' : '1';
-  channelService.showCommandWithTimestamp(nls.localize(coerceMessageKey(command)));
-  channelService.appendLine(` ${nls.localize('channel_end_with_exit_code', exitCode)}`);
+  channelService.showCommandWithTimestamp(
+    `${nls.localize(coerceMessageKey('channel_end'))} ${nls.localize(coerceMessageKey(command))}`
+  );
 
   if (isSuccess) {
     await notificationService.showInformationMessage(`${nls.localize(coerceMessageKey(command))} successfully ran`);

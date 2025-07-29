@@ -12,11 +12,8 @@ import {
   TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { WorkspaceContext } from '../context';
-import { coerceMessageKey, nls } from '../messages';
-import { telemetryService } from '../telemetry';
-import { handleStartCommand } from '../utils/channelUtils';
+import { handleFinishCommand, handleStartCommand } from '../utils/channelUtils';
 
 const command = 'start_apex_debug_logging';
 
@@ -33,6 +30,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
   // Get user-specific key for storing expiration date
   const userSpecificKey = getTraceFlagExpirationKey(userId);
 
+  let success = false;
   try {
     const debugLevelResultId = await traceFlags.getOrCreateDebugLevel();
     const expirationDate = traceFlags.calculateExpirationDate(new Date());
@@ -40,13 +38,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
 
     extensionContext.workspaceState.update(userSpecificKey, expirationDate);
     showTraceFlagExpiration(expirationDate);
-
-    channelService.showCommandWithTimestamp(
-      `${nls.localize(coerceMessageKey('long_command_end'))} ${nls.localize(coerceMessageKey(command))}`
-    );
-
-    await notificationService.showInformationMessage(`${nls.localize(coerceMessageKey(command))} successfully ran`);
-    telemetryService.sendCommandEvent(command);
+    success = true;
   } catch {
     const expirationDate = extensionContext.workspaceState.get<Date>(userSpecificKey);
     if (expirationDate) {
@@ -55,5 +47,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
         `Trace flag already exists. It will expire at ${expirationDateValidated.toLocaleTimeString()}.`
       );
     }
+  } finally {
+    void handleFinishCommand(command, success);
   }
 };

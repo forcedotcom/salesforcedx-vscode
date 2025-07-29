@@ -12,11 +12,8 @@ import {
   getTraceFlagExpirationKey
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { WorkspaceContext } from '../context';
-import { coerceMessageKey, nls } from '../messages';
-import { telemetryService } from '../telemetry';
-import { handleStartCommand } from '../utils/channelUtils';
+import { handleFinishCommand, handleStartCommand } from '../utils/channelUtils';
 
 const command = 'stop_apex_debug_logging';
 
@@ -38,14 +35,8 @@ export const turnOffLogging = async (extensionContext: vscode.ExtensionContext):
     extensionContext.workspaceState.update(userSpecificKey, undefined);
 
     disposeTraceFlagExpiration();
-
-    channelService.showCommandWithTimestamp(
-      `${nls.localize(coerceMessageKey('long_command_end'))} ${nls.localize(coerceMessageKey(command))}`
-    );
-
-    await notificationService.showInformationMessage(`${nls.localize(coerceMessageKey(command))} successfully ran`);
-    telemetryService.sendCommandEvent(command);
   } else {
     await notificationService.showInformationMessage('No active trace flag found.');
   }
+  void handleFinishCommand(command, true);
 };
