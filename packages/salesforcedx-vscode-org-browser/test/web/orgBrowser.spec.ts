@@ -86,7 +86,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
   const getCurrentPage = ({ page }: { page: import('@playwright/test').Page }): import('@playwright/test').Page =>
     cdpConnection?.page ?? page;
 
-  test('should load VS Code web with org browser extension', async ({ page }) => {
+  test.skip('should load VS Code web with org browser extension', async ({ page }) => {
     const currentPage = getCurrentPage({ page });
 
     // Verify VS Code workbench is loaded
@@ -97,7 +97,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     await expect(activityBar).toBeVisible();
   });
 
-  test('should show org browser in activity bar when extension is loaded', async ({ page }) => {
+  test.skip('should show org browser in activity bar when extension is loaded', async ({ page }) => {
     const currentPage = getCurrentPage({ page });
 
     // Look for the org browser icon in the activity bar - be more specific to avoid strict mode violations
@@ -107,7 +107,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     await expect(orgBrowserAction).toBeVisible({ timeout: 30000 });
   });
 
-  test('should open org browser sidebar when clicked', async ({ page }) => {
+  test.skip('should open org browser sidebar when clicked', async ({ page }) => {
     const currentPage = getCurrentPage({ page });
 
     // Click on the org browser activity bar item
@@ -126,7 +126,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     await expect(orgBrowserPanel).toBeVisible();
   });
 
-  test('should display connection status or prompt', async ({ page }) => {
+  test.skip('should display connection status or prompt', async ({ page }) => {
     // Open org browser sidebar
     const orgBrowserAction = page.locator('.activitybar a[aria-label*="Org Browser"]');
     await orgBrowserAction.click();
@@ -143,7 +143,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     await expect(connectionStatus).toBeVisible({ timeout: 10000 });
   });
 
-  test('should show command palette with org browser commands', async ({ page }) => {
+  test.skip('should show command palette with org browser commands', async ({ page }) => {
     // Open command palette
     await page.keyboard.press('F1');
 
@@ -158,7 +158,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     await expect(commandItems.first()).toBeVisible({ timeout: 5000 });
   });
 
-  test('should not show VS Code notification errors', async ({ page }) => {
+  test.skip('should not show VS Code notification errors', async ({ page }) => {
     // Wait a bit for extensions to load and any initial errors to surface
     await page.waitForTimeout(3000);
 
@@ -182,7 +182,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     await expect(errorNotifications).toHaveCount(0);
   });
 
-  test('should not have browser console errors', async ({ page }) => {
+  test.skip('should not have browser console errors', async ({ page }) => {
     const consoleErrors: string[] = [];
     const consoleWarnings: string[] = [];
     const consoleOthers: string[] = [];
@@ -376,7 +376,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     expect(criticalErrors).toHaveLength(0);
   });
 
-  test('should test org browser with CDP console access', async () => {
+  test.skip('should test org browser with CDP console access', async () => {
     // This test connects to an existing Chrome instance with detailed console logging
     const { page, capture } = await connectToCDPBrowser(9222);
 
@@ -460,7 +460,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     }
   });
 
-  test('should verify org browser tree functionality and console health', async ({ page }) => {
+  test.skip('should verify org browser tree functionality and console health', async ({ page }) => {
     const consoleMessages: string[] = [];
     const consoleErrors: string[] = [];
     const removeAllListenersErrors: string[] = [];

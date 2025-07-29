@@ -16,4 +16,6 @@ If you're testing bundles, you'll need to run `npx lerna run bundle:extension` t
   )
 - if you need to trigger a rebuild of the orgBrowser extension, you can increment `Salesforce Org Browser extension is now active!` with a similar timestamp
 
+check to see if a browser is already running on 3000/CDP in case the human has one open for manual testing.
+
 run all tests from the 'salesforcedx-vscode' project level

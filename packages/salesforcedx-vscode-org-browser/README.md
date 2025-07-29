@@ -18,12 +18,6 @@ npm run compile
 # Run web extension tests (headless)
 npm run test:web
 
-# Run tests with browser visible
-npm run test:web:headed
-
-# Debug tests step by step
-npm run test:web:debug
-
 # Start VS Code web manually for development/debugging
 npm run run:web
 ```

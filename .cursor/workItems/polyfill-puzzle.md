@@ -19,3 +19,13 @@ If you want to blame another library (jsforce, Effect, salesforce/core, etc) you
 The bundle in question is in the services package. Most of the "services" are there, like jsforce,core Connection, etc. The "org-browser" package is trying to be lightweight on purpose.
 
 currently, salesforce/core is npm-linked. If you do any `npm install` you'll need to run `npm link @salesforce/core` afterward.
+
+Please do not change code in the services package (exception: debug-only changes are allowable). This is a polyfill problem, not a services problem.
+
+## Investigation Progress
+
+### Current Status (2025-01-29)
+The original `removeAllListeners` error has been masked by stream-related errors that occur during authentication. The extension now fails with stream errors like `Cannot read properties of undefined (reading 'read')`.
+
+### Root Cause Identified
+The bundle contains **three separate copies** of `readable-stream` from different `node_modules` paths, creating three separate `require_stream_readable` variables. When different parts of the code try to use `readable-stream`, they get different instances with different prototypes, causing the stream errors.
