@@ -30,7 +30,6 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
   // Get user-specific key for storing expiration date
   const userSpecificKey = getTraceFlagExpirationKey(userId);
 
-  let success = false;
   try {
     const debugLevelResultId = await traceFlags.getOrCreateDebugLevel();
     const expirationDate = traceFlags.calculateExpirationDate(new Date());
@@ -38,7 +37,6 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
 
     extensionContext.workspaceState.update(userSpecificKey, expirationDate);
     showTraceFlagExpiration(expirationDate);
-    success = true;
   } catch {
     const expirationDate = extensionContext.workspaceState.get<Date>(userSpecificKey);
     if (expirationDate) {
@@ -48,6 +46,6 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
       );
     }
   } finally {
-    void handleFinishCommand(command, success);
+    void handleFinishCommand(command, true);
   }
 };
