@@ -102,7 +102,7 @@ const listeners = type => {
 };
 
 // Next tick - use setTimeout with 0 delay
-const nextTick = callback => setTimeout(callback, 0);
+const nextTick = (callback, ...args) => setTimeout(() => callback(...args), 0);
 
 // Exit - no-op for browser
 const exit = () => {};
@@ -117,7 +117,7 @@ const process = {
   cwd,
   platform,
   pid,
-  version: "v18.0.0",
+  version: 'v18.0.0',
   // EventEmitter methods
   on,
   addListener,

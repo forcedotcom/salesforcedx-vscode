@@ -8,18 +8,20 @@ This extension includes comprehensive Playwright tests for web extension functio
 
 #### Quick Test Commands
 
+Run from project level (salesforcedx-vscode directory) using `-w` flag:
+
 ```bash
 # Install dependencies (includes Playwright)
 npm install
 
 # Compile the extension
-npm run compile
+npm run compile -w salesforcedx-vscode-org-browser
 
-# Run web extension tests (headless)
-npm run test:web
+# Start VS Code web test server with an example of running a single test
+npm run test:web -w salesforcedx-vscode-org-browser -- --grep "should verify org browser"
 
 # Start VS Code web manually for development/debugging
-npm run run:web
+npm run run:web -w salesforcedx-vscode-org-browser
 ```
 
 #### Manual Testing for Debugging

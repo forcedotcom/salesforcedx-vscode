@@ -81,14 +81,14 @@ export const commonConfigBrowser = {
   minify: false,
   sourcemap: true,
   keepNames: true,
+  resolveExtensions: ['.js', '.ts', '.json'],
+  inject: [processGlobalPath, processPolyfillPath, bufferGlobalPath],
   logOverride: {
     'unsupported-dynamic-import': 'error'
   },
-  inject: [processGlobalPath, bufferGlobalPath],
   define: {
-    // this prevents the logger from writing to any files, obviating the need for pino-bundling stuff
     'process.env.SF_DISABLE_LOG_FILE': "'true'",
-    // Ensure global is available for Node.js modules
+    "process.env.FORCE_MEMFS": "'true'", // Added this line    // Ensure global is available for Node.js modules
     global: 'globalThis',
     // Other global polyfills
     __dirname: '""',
@@ -105,7 +105,8 @@ export const commonConfigBrowser = {
     // Redirect jsforce-node to browser-compatible jsforce.  This is important, it won't auth without it but I don't understand why.
     // Force use of our custom process polyfill instead of esbuild's built-in
     process: processPolyfillPath,
-    // Node.js built-in module polyfills
+    // Force all readable-stream imports to use the main one to avoid duplication
+    "readable-stream": "readable-stream",    // Node.js built-in module polyfills
     'node:path': 'path-browserify',
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',

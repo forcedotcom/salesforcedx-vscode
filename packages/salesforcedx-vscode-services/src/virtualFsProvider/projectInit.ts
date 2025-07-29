@@ -86,13 +86,21 @@ export const projectFiles = async (memfs: fsProvider): Promise<void> => {
 };
 
 // Helper function for web authentication attempt
-const attemptWebAuth = async (webAuthUrl: string, memfs: fsProvider): Promise<boolean> => {
-  const webOauth2Options = AuthInfo.parseSfdxAuthUrl(webAuthUrl);
-
+const attemptWebAuth = async (memfs: fsProvider): Promise<boolean> => {
   const createAuth = async (): Promise<AuthInfo | undefined> => {
     console.log('Attempting AuthInfo.create in web environment...');
-    return AuthInfo.create({ oauth2Options: webOauth2Options }).catch(error => {
+    // TODO: define in web env
+    const accessTokenOptions = {
+      accessToken:
+        '00DD30000001cA5!ARsAQAWsC0ok8cEtfE18lQmwfnWWdJ5t.rUUa4UcNpOtFYZBVB2pNJ41CsuJAHDh2vyW6ypT9mbAHqot8Eb35bTZIuHvbEH7',
+      loginUrl: 'https://efficiency-data-8147-dev-ed.scratch.my.salesforce.com'
+    };
+    const username = 'test-ybpyiui8xxjf@example.com';
+    return AuthInfo.create({ accessTokenOptions, username }).catch(error => {
       console.log('AuthInfo.create failed in web environment:', error);
+      console.log('options:', accessTokenOptions);
+      console.error(`AuthInfo.create error details: ${error.name} ${error.message} ${error.stack}`);
+
       return undefined;
     });
   };
@@ -135,12 +143,8 @@ const auth = (memfs: fsProvider): Effect.Effect<void, Error> => {
   // Use sfdx-core's Global.isWeb to detect web environment
   if (Global.isWeb) {
     console.log('Web environment detected - real auth MUST succeed');
-
-    const webAuthUrl =
-      'force://PlatformCLI::5Aep861K4Pn8q4vWqPOgyp58bt0al7ZV8zn2amWmhbDOGNNLbalCDFv52t7BPfkBV1mqs3DKgRtrqIGDPbk.ZUu@efficiency-data-8147-dev-ed.scratch.my.salesforce.com ';
-
     return Effect.tryPromise({
-      try: () => attemptWebAuth(webAuthUrl, memfs),
+      try: () => attemptWebAuth(memfs),
       catch: error => {
         console.error('❌ Web auth attempt failed:', error);
         return new Error(`Web authentication failed - no fallback allowed: ${error}`);
@@ -155,33 +159,5 @@ const auth = (memfs: fsProvider): Effect.Effect<void, Error> => {
     );
   }
 
-  // Desktop environment - use real authentication
-  const authUrl =
-    'force://PlatformCLI::5Aep861K4Pn8q4vWqPOgyp58bt0al7ZV8zn2amWmhbDOGNNLbalCDFv52t7BPfkBV1mqs3DKgRtrqIGDPbk.ZUu@efficiency-data-8147-dev-ed.scratch.my.salesforce.com ';
-  const oauth2Options = AuthInfo.parseSfdxAuthUrl(authUrl);
-
-  return Effect.tryPromise({
-    try: async () => {
-      console.log('🔍 Starting desktop auth...');
-      const authInfo = await AuthInfo.create({ oauth2Options });
-      console.log('✅ AuthInfo created for desktop.');
-
-      await authInfo.save();
-      console.log('✅ authInfo saved');
-
-      await memfs.writeFile(
-        vscode.Uri.parse(`${sampleProjectPath}/.sf/config.json`),
-        Buffer.from(JSON.stringify({ 'target-org': authInfo.getUsername() }, null, 2)),
-        {
-          create: true,
-          overwrite: true
-        }
-      );
-      console.log('✅ Desktop auth completed successfully');
-    },
-    catch: error => {
-      console.error('❌ Desktop authentication failed:', error);
-      return new Error(`Desktop authentication failed: ${error}`);
-    }
-  });
+  return Effect.fail(new Error('Desktop authentication not supported in web environment'));
 };

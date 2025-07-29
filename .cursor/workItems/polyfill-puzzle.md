@@ -25,7 +25,39 @@ Please do not change code in the services package (exception: debug-only changes
 ## Investigation Progress
 
 ### Current Status (2025-01-29)
-The original `removeAllListeners` error has been masked by stream-related errors that occur during authentication. The extension now fails with stream errors like `Cannot read properties of undefined (reading 'read')`.
+
+We've made significant progress in resolving the polyfill issues:
+
+1. Fixed stream duplication by adding a direct alias for `readable-stream` in `web.mjs`
+2. Fixed process polyfill injection by adding the correct `inject` array in `web.mjs`
+3. Fixed `process.nextTick` implementation to properly pass arguments to callbacks
+
+The original stream errors (`Cannot read properties of undefined (reading 'read')`) have been resolved. The error was occurring in the `nReadingNextTick` function in `_stream_readable.js` when it tried to call `self.read(0)`, but `self` was undefined because our `process.nextTick` implementation wasn't properly passing arguments to the callback.
+
+### Current Error
+
+Now we're getting an authentication-specific error:
+
+```
+RefreshTokenAuthError: Error authenticating with the refresh token due to: grant type not supported
+```
+
+This is not a polyfill issue but rather an authentication flow issue. The auth flow is working correctly up to the point where it tries to use the refresh token, but the OAuth2 server is rejecting the grant type.
 
 ### Root Cause Identified
-The bundle contains **three separate copies** of `readable-stream` from different `node_modules` paths, creating three separate `require_stream_readable` variables. When different parts of the code try to use `readable-stream`, they get different instances with different prototypes, causing the stream errors.
+
+1. **Stream Duplication**: The bundle contained multiple copies of `readable-stream` from different `node_modules` paths, creating separate instances with different prototypes.
+2. **Process.nextTick**: The implementation in `process-polyfill.js` wasn't preserving arguments passed to callbacks:
+
+   ```javascript
+   // Incorrect implementation
+   const nextTick = callback => setTimeout(callback, 0);
+
+   // Fixed implementation
+   const nextTick = (callback, ...args) => setTimeout(() => callback(...args), 0);
+   ```
+
+### Next Steps
+
+1. Investigate the OAuth2 authentication error
+2. Check if the original `removeAllListeners` error is still present but masked by the auth errors
