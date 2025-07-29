@@ -31,16 +31,15 @@ alwaysApply: false
 - jsforce cache objects expect full EventEmitter interface
 - Effect-TS and other libraries may create EventEmitter-like objects without full prototype
 
-## Polyfill Application Strategy
-
-- **Early**: Apply in runtime polyfill at bundle start
-- **Defensive**: Check for missing methods before calling them
-- **Context-aware**: Handle both Node.js-like and browser environments
-- **Error-resistant**: Don't fail if polyfill can't be applied
-
 ## Debugging Polyfill Issues
 
 - Check bundled output for `noop` assignments to EventEmitter methods
 - Use CDP (Chrome DevTools Protocol) to capture real browser console errors
 - Test both isolated Playwright context AND real browser environment
 - Look for timing issues - polyfills may apply after errors occur
+
+## Use 3rd-party polyfills when possible
+
+- choose custom as a last resort
+- try to use ones that are already used by packages (ex: jsforce)
+- polyfills go in devDependencies

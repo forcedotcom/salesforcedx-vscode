@@ -8,7 +8,6 @@ const emptyPolyfillsPath = join(__dirname, 'empty-polyfills.js');
 const processGlobalPath = join(__dirname, 'process-global.js');
 const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
-
 // Enhanced plugin to transform body.pipe() to browser-compatible pipeTo with stream conversion
 const pipeTransformPlugin = () => ({
   name: 'pipe-transform',
@@ -98,9 +97,12 @@ export const commonConfigBrowser = {
   alias: {
     // proper-lockfile and SDR use graceful-fs
     'graceful-fs': '@salesforce/core/fs',
+    fs: '@salesforce/core/fs',
+    'node:process': processPolyfillPath,
+    'node:fs': '@salesforce/core/fs',
+    'node:fs/promises': '@salesforce/core/fs',
     jsonwebtoken: 'jsonwebtoken-esm',
     // Redirect jsforce-node to browser-compatible jsforce.  This is important, it won't auth without it but I don't understand why.
-    '@jsforce/jsforce-node': 'jsforce',
     // Force use of our custom process polyfill instead of esbuild's built-in
     process: processPolyfillPath,
     // Node.js built-in module polyfills
@@ -111,7 +113,7 @@ export const commonConfigBrowser = {
     'node:util': 'util',
     'node:events': 'events',
     events: 'events',
-    'node:url': 'url',
+    'node:url': '/Users/shane.mclaughlin/eng/forcedotcom/salesforcedx-vscode/scripts/bundling/url-polyfill.js',
     'node:crypto': 'crypto-browserify',
     'node:http': 'stream-http',
     'node:https': 'https-browserify',
@@ -134,8 +136,7 @@ export const commonConfigBrowser = {
     buffer: 'buffer',
     stream: 'stream-browserify',
     util: 'util',
-    events: 'events',
-    url: 'url',
+    url: '/Users/shane.mclaughlin/eng/forcedotcom/salesforcedx-vscode/scripts/bundling/url-polyfill.js',
     crypto: 'crypto-browserify',
     http: 'stream-http',
     https: 'https-browserify',
@@ -150,13 +151,23 @@ export const commonConfigBrowser = {
     constants: 'constants-browserify',
     console: 'console-browserify',
     vm: 'vm-browserify',
-    diagnostics_channel: 'diagnostics_channel',
-    // Empty polyfills for modules that can't be polyfilled
-    child_process: emptyPolyfillsPath,
-    dns: emptyPolyfillsPath,
-    net: emptyPolyfillsPath,
-    tls: emptyPolyfillsPath,
-    http2: emptyPolyfillsPath
+    diagnostics_channel: 'diagnostics_channel'
   },
-  plugins: [pipeTransformPlugin(), nodeModulesPolyfillPlugin()]
+  plugins: [
+    pipeTransformPlugin(),
+    nodeModulesPolyfillPlugin({
+      modules: {
+        // Empty polyfills for modules that can't be polyfilled
+        child_process: 'empty',
+        dns: 'empty',
+        net: 'empty',
+        tls: 'empty',
+        http2: 'empty'
+      },
+      globals: {
+        process: false,
+        Buffer: false
+      }
+    })
+  ]
 };

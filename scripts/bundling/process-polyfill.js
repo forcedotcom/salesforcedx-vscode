@@ -117,6 +117,7 @@ const process = {
   cwd,
   platform,
   pid,
+  version: "v18.0.0",
   // EventEmitter methods
   on,
   addListener,

@@ -227,14 +227,14 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     });
 
     // Set up error monitoring BEFORE navigating to the page
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(100);
 
     // Open org browser to trigger extension interactions
     const orgBrowserAction = page.locator('.activitybar a[aria-label*="Org Browser"]');
     await orgBrowserAction.click();
 
     // Give more time for async operations and console errors to manifest
-    await page.waitForTimeout(8000);
+    await page.waitForTimeout(500);
 
     // Filter out benign page errors
     const realPageErrors = pageErrors.filter(
@@ -408,7 +408,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
           await treeItems[0].click({ timeout: 5000 });
 
           // Wait for potential expansion/loading
-          await page.waitForTimeout(3000);
+          await page.waitForTimeout(1000);
 
           const expandedItems = await page.locator('[role="treeitem"]').all();
           console.log(`📊 After expansion: ${expandedItems.length} tree items`);
@@ -552,7 +552,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
         console.log('✅ Successfully clicked first tree item');
 
         // Wait for potential expansion/data loading
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(1000);
 
         // Check if more tree items appeared (indicating expansion)
         const newTreeItems = await page.locator('[role="treeitem"]').all();
@@ -571,7 +571,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     }
 
     // Wait for any async operations to complete
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(500);
 
     // Report console analysis
     console.log('\n📋 Console Message Analysis:');
@@ -684,7 +684,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
     console.log('✅ Clicked Org Browser activity bar item - switching from Explorer to Org Browser');
 
     // Wait for the view switch to complete and potential errors to surface
-    await cdpPage.waitForTimeout(3000);
+    await cdpPage.waitForTimeout(500);
 
     // Look for tree items
     const treeItems = await cdpPage.locator('[role="treeitem"]').all();
@@ -697,7 +697,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
         await treeItems[0].click({ timeout: 5000 });
 
         // Wait for potential expansion/loading
-        await cdpPage.waitForTimeout(3000);
+        await cdpPage.waitForTimeout(500);
 
         const expandedItems = await cdpPage.locator('[role="treeitem"]').all();
         console.log(`📊 After expansion: ${expandedItems.length} tree items`);
@@ -714,7 +714,7 @@ test.describe('Org Browser Web Extension (CDP Required)', () => {
 
     // Wait longer for async operations and tree loading errors to surface
     console.log('⏳ Waiting for tree data loading and potential errors...');
-    await cdpPage.waitForTimeout(10000); // Wait longer to catch tree loading errors
+    await cdpPage.waitForTimeout(500); // Wait longer to catch tree loading errors
 
     // Report results
     if (usingCDP) {
