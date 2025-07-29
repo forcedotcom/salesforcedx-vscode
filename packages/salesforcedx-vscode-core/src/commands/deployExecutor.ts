@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getRootWorkspacePath, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
+import { getRootWorkspacePath, SourceTrackingService, SourceTrackingType } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve-bundle';
 import { ComponentStatus, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
-import { WorkspaceContext } from '../context';
+import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../settings';
@@ -18,6 +18,8 @@ import { DeployRetrieveExecutor, createDeployOrPushOutput } from './baseDeployRe
 import { SfCommandletExecutor } from './util';
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, DeployResult> {
+  private sourceTracking?: SourceTrackingType;
+
   protected async doOperation(
     components: ComponentSet,
     token: vscode.CancellationToken
@@ -32,8 +34,11 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     components.projectDirectory = projectPath;
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
-      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
-      await sourceTracking.ensureLocalTracking();
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+      if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
+        this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+        await this.sourceTracking.ensureLocalTracking();
+      }
     }
 
     const operation = await components.deploy({
@@ -42,7 +47,14 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
 
     this.setupCancellation(operation, token);
 
-    return operation.pollStatus();
+    const result = await operation.pollStatus();
+    if (sourceTrackingEnabled) {
+      const status = result?.response?.status;
+      if ((status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) && this.sourceTracking) {
+        await SourceTrackingService.updateSourceTrackingAfterDeploy(this.sourceTracking, result);
+      }
+    }
+    return result;
   }
 
   protected async postOperation(result: DeployResult | undefined): Promise<void> {
@@ -68,9 +80,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
         }
       } else {
         // Handle case where no components were deployed (empty ComponentSet)
-        const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
         const operationType = this.isPushOperation() ? 'push' : 'deploy';
-        const output = createDeployOrPushOutput([], relativePackageDirs, true, operationType);
+        const output = createDeployOrPushOutput([], [], true, operationType);
         channelService.appendLine(output);
 
         // Clear any existing errors since this is a successful "no changes" scenario

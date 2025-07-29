@@ -6,7 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core-bundle';
-import type { RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
+import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
 import type { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking-bundle';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
@@ -29,6 +29,10 @@ export class SourceTrackingService {
 
   public static async updateSourceTrackingAfterRetrieve(sourceTracking: SourceTracking, result: RetrieveResult) {
     await sourceTracking.updateTrackingFromRetrieve(result);
+  }
+
+  public static async updateSourceTrackingAfterDeploy(sourceTracking: SourceTracking, result: DeployResult) {
+    await sourceTracking.updateTrackingFromDeploy(result);
   }
 
   public static async getSourceStatusSummary({ local = true, remote = true }): Promise<string> {
