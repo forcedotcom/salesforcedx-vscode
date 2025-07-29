@@ -200,16 +200,28 @@ describe('Apex Replay Debugger', () => {
     // Get file path from open text editor
     const activeTab = await editorView.getActiveTab();
     expect(activeTab).to.not.be.undefined;
+
     const title = await activeTab?.getTitle();
     if (title) logFileTitle = title;
     const logFilePath = path.join(projectFolderPath, '.sfdx', 'tools', 'debug', 'logs', logFileTitle);
-    console.log(`*** logFilePath = ${logFilePath}`);
+    log(`logFilePath: ${logFilePath}`);
 
     // Run SFDX: Launch Apex Replay Debugger with Last Log File
-    prompt = await executeQuickPick('SFDX: Launch Apex Replay Debugger with Last Log File', Duration.seconds(1));
-    await prompt.setText(logFilePath);
-    await prompt.confirm();
-    await pause();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        prompt = await executeQuickPick('SFDX: Launch Apex Replay Debugger with Last Log File', Duration.seconds(1));
+
+        if (!prompt) {
+          throw new Error('Failed to get prompt from executeQuickPick');
+        }
+
+        await prompt.setText(logFilePath);
+        await prompt.confirm();
+      },
+      3,
+      'Failed to launch Apex Replay Debugger with Last Log File'
+    );
 
     // Continue with the debug session
     await continueDebugging(2, 30);

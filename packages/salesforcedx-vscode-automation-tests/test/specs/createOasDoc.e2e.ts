@@ -427,18 +427,26 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Use context menu for Windows and Ubuntu, command palette for Mac
       if (process.platform !== 'darwin') {
         log('Not Mac - can use context menu');
-        const wrkbench = getWorkbench();
-        const textEditor = await getTextEditor(wrkbench, 'SimpleAccountResource.cls');
-        const contextMenu = await textEditor.openContextMenu();
-        const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
-        // Wait for the command palette prompt to appear
-        if (menu) {
-          const result = await getQuickOpenBoxOrInputBox();
-          if (!result) {
-            throw new Error('Failed to get QuickOpenBox or InputBox');
-          }
-          prompt = result;
-        }
+        await retryOperation(
+          async () => {
+            const wrkbench = getWorkbench();
+            const textEditor = await getTextEditor(wrkbench, 'SimpleAccountResource.cls');
+            const contextMenu = await textEditor.openContextMenu();
+            const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
+
+            if (menu) {
+              const result = await getQuickOpenBoxOrInputBox();
+              if (!result) {
+                throw new Error('Failed to get QuickOpenBox or InputBox');
+              }
+              prompt = result;
+            } else {
+              throw new Error('Context menu selection failed - no menu returned');
+            }
+          },
+          3,
+          'CreateOASDoc - Error with context menu operation'
+        );
       } else {
         log('Mac - must use command palette');
         prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
@@ -527,17 +535,24 @@ describe('Create OpenAPI v3 Specifications', () => {
         if (!(simpleAccountResourceFile instanceof DefaultTreeItem)) {
           throw new Error(`Expected DefaultTreeItem but got different item type: ${typeof simpleAccountResourceFile}`);
         }
-        const contextMenu = await simpleAccountResourceFile.openContextMenu();
-        const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
+        await retryOperation(
+          async () => {
+            const contextMenu = await simpleAccountResourceFile.openContextMenu();
+            const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
 
-        // Wait for the command palette prompt to appear
-        if (menu) {
-          const result = await getQuickOpenBoxOrInputBox();
-          if (!result) {
-            throw new Error('Failed to get QuickOpenBox or InputBox');
-          }
-          prompt = result;
-        }
+            if (menu) {
+              const result = await getQuickOpenBoxOrInputBox();
+              if (!result) {
+                throw new Error('Failed to get QuickOpenBox or InputBox');
+              }
+              prompt = result;
+            } else {
+              throw new Error('Context menu selection failed - no menu returned');
+            }
+          },
+          3,
+          'CreateOASDoc - Error with context menu operation in Explorer View'
+        );
       } else {
         log('Mac - must use command palette');
         prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
