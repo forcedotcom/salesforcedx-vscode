@@ -529,6 +529,13 @@ describe('Deploy and Retrieve', () => {
         Duration.seconds(5)
       );
       expect(accepted).to.equal(true);
+
+      const successNotificationWasFound = await verifyNotificationWithRetry(
+        /SFDX: Delete from Project and Org successfully ran/,
+        Duration.TEN_MINUTES
+      );
+      expect(successNotificationWasFound).to.equal(true);
+
       // TODO: see how the test can accommodate the new output from CLI.
       // Verify Output tab
       const outputPanelText = await attemptToFindOutputPanelText(
@@ -537,12 +544,6 @@ describe('Deploy and Retrieve', () => {
         10
       );
       log(`Output panel text is: ${outputPanelText}`);
-
-      const successNotificationWasFound = await verifyNotificationWithRetry(
-        /SFDX: Delete from Project and Org successfully ran/,
-        Duration.TEN_MINUTES
-      );
-      expect(successNotificationWasFound).to.equal(true);
 
       const pathToClassDeleteFromProjectAndOrg = path.join(
         'force-app',
