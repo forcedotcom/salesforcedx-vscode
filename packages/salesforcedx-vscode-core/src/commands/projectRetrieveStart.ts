@@ -57,7 +57,8 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
     // Check for conflicts if:
     // 1. We're not ignoring conflicts
     // 2. Conflict detection is enabled
-    if (!this.ignoreConflicts && salesforceCoreSettings.getConflictDetectionEnabled()) {
+    // 3. There are components to check for conflicts
+    if (!this.ignoreConflicts && salesforceCoreSettings.getConflictDetectionEnabled() && components.size > 0) {
       const conflictResult = await this.checkConflictsForChangedFiles();
       if (!conflictResult) {
         return false; // Conflict detection failed or was cancelled
@@ -124,40 +125,29 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
           throw new Error(nls.localize('error_source_tracking_service_failed'));
         }
 
-        // Get both local and remote changes for conflict detection
-        const localStatusResponse = await sourceTracking.getStatus({ local: true, remote: false });
-        const remoteStatusResponse = await sourceTracking.getStatus({ local: false, remote: true });
+        // Get local changes for conflict detection using the proper method
+        const localComponentSets = await sourceTracking.localChangesAsComponentSet();
+        const localComponentSet = localComponentSets.length > 0 ? localComponentSets[0] : new ComponentSet();
 
-        // Get local changes for conflict detection
-        const localChanges = localStatusResponse.filter(
-          component => !component.ignored && component.origin === 'local'
-        );
+        this.changedFilePaths = [];
+        for (const component of localComponentSet.getSourceComponents()) {
+          if (component.content) {
+            const filePath = nodePath.isAbsolute(component.content)
+              ? component.content
+              : nodePath.resolve(projectPath, component.content);
+            this.changedFilePaths.push(filePath);
+          }
+        }
 
-        // Get remote changes for retrieval
-        const remoteChanges = remoteStatusResponse.filter(
-          component => !component.ignored && component.origin === 'remote' && component.state !== 'delete'
-        );
-
-        // Populate changedFilePaths with local changes for conflict detection
-        const localChangedFilePaths: string[] = localChanges
-          .map(component => component.filePath)
-          .filter((filePath): filePath is string => !!filePath)
-          .map(filePath => (nodePath.isAbsolute(filePath) ? filePath : nodePath.resolve(projectPath, filePath)));
-
-        this.changedFilePaths = localChangedFilePaths;
-
-        if (remoteChanges.length === 0) {
+        // Get remote changes for retrieval using the proper method
+        const remoteComponentSet = await sourceTracking.remoteNonDeletesAsComponentSet({ applyIgnore: true });
+        if (remoteComponentSet.size === 0) {
           // No remote changes found, return empty ComponentSet
           return new ComponentSet();
         }
 
-        // Get file paths for remote changes to retrieve
-        const remoteChangedFilePaths: string[] = remoteChanges
-          .map(component => component.filePath)
-          .filter((filePath): filePath is string => !!filePath)
-          .map(filePath => (nodePath.isAbsolute(filePath) ? filePath : nodePath.resolve(projectPath, filePath)));
-
-        return ComponentSet.fromSource(remoteChangedFilePaths);
+        // Return the remote component set directly - it already handles all the filtering
+        return remoteComponentSet;
       } catch (error) {
         // If source tracking fails, let the error bubble up
         console.error('Source tracking failed:', error);

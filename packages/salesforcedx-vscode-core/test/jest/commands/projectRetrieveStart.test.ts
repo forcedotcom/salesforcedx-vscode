@@ -105,7 +105,9 @@ describe('ProjectRetrieveStart', () => {
           getConnection: jest.fn().mockResolvedValue({})
         } as any);
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue({
-          getStatus: jest.fn().mockResolvedValue([])
+          getStatus: jest.fn().mockResolvedValue([]),
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(new ComponentSet())
         } as any);
       });
 
@@ -114,7 +116,9 @@ describe('ProjectRetrieveStart', () => {
         const executor = new ProjectRetrieveStartExecutor();
         const mockResponse = {} as any;
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([])
+          getStatus: jest.fn().mockResolvedValue([]),
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(new ComponentSet())
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         // Mock ComponentSet.fromSource to return undefined (no source files exist)
@@ -124,7 +128,7 @@ describe('ProjectRetrieveStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: false, remote: true });
+        expect(mockSourceTracking.remoteNonDeletesAsComponentSet).toHaveBeenCalledWith({ applyIgnore: true });
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -134,7 +138,9 @@ describe('ProjectRetrieveStart', () => {
         const executor = new ProjectRetrieveStartExecutor();
         const mockResponse = {} as any;
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([]) // remote status - no changes
+          getStatus: jest.fn().mockResolvedValue([]), // remote status - no changes
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(new ComponentSet())
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
 
@@ -142,7 +148,7 @@ describe('ProjectRetrieveStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: false, remote: true });
+        expect(mockSourceTracking.remoteNonDeletesAsComponentSet).toHaveBeenCalledWith({ applyIgnore: true });
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -160,20 +166,22 @@ describe('ProjectRetrieveStart', () => {
             ignored: false
           }
         ];
+        const mockComponentSet = new ComponentSet();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          getStatus: jest.fn().mockResolvedValue(mockChangedComponents),
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(mockComponentSet)
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        const mockComponentSet = new ComponentSet();
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: false, remote: true });
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith([testFilePath]);
+        expect(mockSourceTracking.remoteNonDeletesAsComponentSet).toHaveBeenCalledWith({ applyIgnore: true });
         expect(result).toBeInstanceOf(ComponentSet);
+        expect(result.size).toBe(mockComponentSet.size);
       });
 
       it('should filter out ignored components', async () => {
@@ -189,18 +197,20 @@ describe('ProjectRetrieveStart', () => {
             ignored: true // This should be filtered out
           }
         ];
+        const mockComponentSet = new ComponentSet();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          getStatus: jest.fn().mockResolvedValue(mockChangedComponents),
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(mockComponentSet)
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        const mockComponentSet = new ComponentSet();
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(ComponentSet.fromSource).not.toHaveBeenCalled(); // Should not be called when no components
+        expect(mockSourceTracking.remoteNonDeletesAsComponentSet).toHaveBeenCalledWith({ applyIgnore: true });
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -218,18 +228,20 @@ describe('ProjectRetrieveStart', () => {
             ignored: false
           }
         ];
+        const mockComponentSet = new ComponentSet();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          getStatus: jest.fn().mockResolvedValue(mockChangedComponents),
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(mockComponentSet)
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        const mockComponentSet = new ComponentSet();
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(ComponentSet.fromSource).not.toHaveBeenCalled(); // Should not be called when no components
+        expect(mockSourceTracking.remoteNonDeletesAsComponentSet).toHaveBeenCalledWith({ applyIgnore: true });
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -248,18 +260,20 @@ describe('ProjectRetrieveStart', () => {
             state: 'delete' // This should be filtered out
           }
         ];
+        const mockComponentSet = new ComponentSet();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          getStatus: jest.fn().mockResolvedValue(mockChangedComponents),
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(mockComponentSet)
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        const mockComponentSet = new ComponentSet();
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(ComponentSet.fromSource).not.toHaveBeenCalled(); // Should not be called when no components
+        expect(mockSourceTracking.remoteNonDeletesAsComponentSet).toHaveBeenCalledWith({ applyIgnore: true });
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -326,11 +340,17 @@ describe('ProjectRetrieveStart', () => {
             ignored: false
           }
         ];
+        const mockLocalComponentSet = {
+          getSourceComponents: jest.fn().mockReturnValue([{ content: testFilePath }])
+        };
+        const mockRemoteComponentSet = new ComponentSet();
         const mockSourceTracking = {
           getStatus: jest
             .fn()
             .mockResolvedValueOnce(mockLocalChanges) // First call for local changes
-            .mockResolvedValueOnce(mockRemoteChanges) // Second call for remote changes
+            .mockResolvedValueOnce(mockRemoteChanges), // Second call for remote changes
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockLocalComponentSet]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(mockRemoteComponentSet)
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -352,8 +372,11 @@ describe('ProjectRetrieveStart', () => {
       it('should skip conflict detection when no changed files are found', async () => {
         // Arrange
         const executor = new ProjectRetrieveStartExecutor();
+        const mockRemoteComponentSet = new ComponentSet();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([])
+          getStatus: jest.fn().mockResolvedValue([]),
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(mockRemoteComponentSet)
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -381,7 +404,7 @@ describe('ProjectRetrieveStart', () => {
         const result = await executor.run({} as any);
 
         // Assert
-        expect(result).toBe(false);
+        expect(result).toBe(true);
         expect(executor.getChangedFilePaths()).toEqual([]);
       });
 
@@ -406,11 +429,17 @@ describe('ProjectRetrieveStart', () => {
             ignored: false
           }
         ];
+        const mockLocalComponentSet = {
+          getSourceComponents: jest.fn().mockReturnValue([{ content: testFilePath }])
+        };
+        const mockRemoteComponentSet = new ComponentSet();
         const mockSourceTracking = {
           getStatus: jest
             .fn()
             .mockResolvedValueOnce(mockLocalChanges) // First call for local changes
-            .mockResolvedValueOnce(mockRemoteChanges) // Second call for remote changes
+            .mockResolvedValueOnce(mockRemoteChanges), // Second call for remote changes
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockLocalComponentSet]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(mockRemoteComponentSet)
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -469,11 +498,17 @@ describe('ProjectRetrieveStart', () => {
             ignored: false
           }
         ];
+        const mockLocalComponentSet = {
+          getSourceComponents: jest.fn().mockReturnValue([{ content: testFilePath }])
+        };
+        const mockRemoteComponentSet = new ComponentSet();
         const mockSourceTracking = {
           getStatus: jest
             .fn()
             .mockResolvedValueOnce(mockLocalChanges) // First call for local changes
-            .mockResolvedValueOnce(mockRemoteChanges) // Second call for remote changes
+            .mockResolvedValueOnce(mockRemoteChanges), // Second call for remote changes
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockLocalComponentSet]),
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(mockRemoteComponentSet)
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
