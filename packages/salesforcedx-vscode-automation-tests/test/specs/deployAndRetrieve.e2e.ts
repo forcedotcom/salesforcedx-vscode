@@ -338,10 +338,13 @@ describe('Deploy and Retrieve', () => {
     const workbench = getWorkbench();
 
     // Run SFDX: Push Source to Default Org to be in sync with remote
-    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(10));
+    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
 
     // Clear the Output view first.
     await clearOutputView();

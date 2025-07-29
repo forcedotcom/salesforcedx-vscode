@@ -20,6 +20,7 @@ import { channelService } from '../channels';
 import { TimestampFileProperties } from '../conflict/directoryDiffer';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { MetadataCacheService } from '../conflict/metadataCacheService';
+import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TimestampConflictDetector } from '../conflict/timestampConflictDetector';
 import { PROJECT_DEPLOY_START_LOG_NAME, TELEMETRY_METADATA_COUNT } from '../constants';
 import { workspaceContextUtils } from '../context';
@@ -282,8 +283,17 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
       return false; // Error occurred, cancel deployment
     }
   }
-}
 
+  /**
+   * Pass the deploy result to PersistentStorageService for
+   * updating of timestamps, so that conflict detection will behave as expected
+   * @param deployResult that comes from the deploy operation
+   */
+  protected updateCacheForDeploy(deployResult: DeployResult): void {
+    const instance = PersistentStorageService.getInstance();
+    instance.setPropertiesForFilesDeploy(deployResult);
+  }
+}
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
