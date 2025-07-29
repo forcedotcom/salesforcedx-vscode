@@ -80,6 +80,9 @@ describe('Run Apex Tests', () => {
       'RunApexTests - Error creating Apex class 3 and test'
     );
 
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
+
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 

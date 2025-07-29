@@ -21,6 +21,7 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
+  dismissAllNotifications,
   executeQuickPick,
   getStatusBarItemWhichIncludes,
   getTextEditor,
@@ -54,6 +55,9 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
     // Create Apex class AccountService
     await createApexClassWithBugs();
+
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
