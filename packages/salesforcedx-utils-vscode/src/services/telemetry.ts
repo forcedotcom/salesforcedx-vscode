@@ -102,18 +102,15 @@ export class TelemetryService implements TelemetryServiceInterface {
    * @returns number in milliseconds, or undefined if input is undefined
    */
   public hrTimeToMilliseconds(hrTime?: number | [number, number]): number {
-public hrTimeToMilliseconds(hrTime?: number | [number, number]): number {
-    if (typeof hrTime === 'number') {
-      return hrTime;
-    }
     if (!hrTime) {
       return 0;
+    } else if (typeof hrTime === 'number') {
+      return hrTime;
+    } else {
+      // Convert hrtime [seconds, nanoseconds] to milliseconds since epoch
+      const [seconds, nanoseconds] = hrTime;
+      return seconds * 1000 + nanoseconds / 1000000;
     }
-
-    // Convert hrtime [seconds, nanoseconds] to milliseconds since epoch
-    const [seconds, nanoseconds] = hrTime;
-    return seconds * 1000 + nanoseconds / 1000000;
-  }
   }
 
   public getEndHRTime(hrstart: [number, number]): number {
