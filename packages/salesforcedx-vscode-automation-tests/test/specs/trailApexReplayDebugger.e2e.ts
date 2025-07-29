@@ -56,12 +56,9 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     await createApexClassWithBugs();
 
     // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
   });
 
   beforeEach(function () {
@@ -229,12 +226,9 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       await pause(Duration.seconds(2));
 
       // Push source to org
-      await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+      await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(10));
 
-      await verifyNotificationWithRetry(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
+      await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
     }
   });
 

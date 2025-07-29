@@ -337,14 +337,11 @@ describe('Deploy and Retrieve', () => {
     logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Command Palette');
     const workbench = getWorkbench();
 
-    // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+    // Run SFDX: Push Source to Default Org to be in sync with remote
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(10));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view first.
     await clearOutputView();
@@ -410,13 +407,10 @@ describe('Deploy and Retrieve', () => {
       await reloadWindow(Duration.seconds(20));
 
       // Push source to org
-      await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+      await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-      // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-      await verifyNotificationWithRetry(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
+      // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+      await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
     });
 
     it('SFDX: Delete This from Project and Org - Right click from editor view', async () => {

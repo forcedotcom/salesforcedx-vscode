@@ -57,12 +57,9 @@ describe('Apex Replay Debugger', () => {
     await createApexClassWithTest('ExampleApexClass');
 
     // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org/, Duration.TEN_MINUTES);
   });
 
   // Since tests are sequential, we need to skip the rest of the tests if one fails
