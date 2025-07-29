@@ -11,6 +11,11 @@ alwaysApply: false
 - Use `Global.isWeb` from salesforce/core - the correct way to check browser context
 - Don't use `typeof window` - VSCode extensions run in web-worker context, not window context
 
+## We want to use like jsforce and its consumers "as-is"
+
+- we don't want the /browser version of jsforce, use /lib
+- assume none of jsforce is polyfilled and we'll have to do it ourselves when our extensions are bundled
+
 ## EventEmitter Polyfills
 
 - The `events` npm package DOES include `removeAllListeners` - it's not missing

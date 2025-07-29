@@ -154,7 +154,7 @@ const fileSystemSetup = async (
               }
               // replace the existing workspace with ours.
               vscode.workspace.updateWorkspaceFolders(0, 0, {
-                name: 'Code Builder 8:07',
+                name: 'Code Builder 2025-07-29 8:46:00',
                 uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
               });
             },
