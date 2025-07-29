@@ -419,10 +419,23 @@ describe('Create OpenAPI v3 Specifications', () => {
         'Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite'
       );
       await executeQuickPick('View: Close All Editors');
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'SimpleAccountResource.cls')
+      await retryOperation(
+        async () => {
+          await openFile(
+            path.join(
+              testSetup.projectFolderPath!,
+              'force-app',
+              'main',
+              'default',
+              'classes',
+              'SimpleAccountResource.cls'
+            )
+          );
+          await pause(Duration.seconds(5));
+        },
+        3,
+        'CreateOASDoc - Error with openFile() operation'
       );
-      await pause(Duration.seconds(5));
 
       // Use context menu for Windows and Ubuntu, command palette for Mac
       if (process.platform !== 'darwin') {
@@ -510,10 +523,23 @@ describe('Create OpenAPI v3 Specifications', () => {
         'Generate OAS doc from a valid Apex class using context menu in Explorer View - Decomposed mode, manual merge'
       );
       await executeQuickPick('View: Close All Editors');
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'SimpleAccountResource.cls')
+      await retryOperation(
+        async () => {
+          await openFile(
+            path.join(
+              testSetup.projectFolderPath!,
+              'force-app',
+              'main',
+              'default',
+              'classes',
+              'SimpleAccountResource.cls'
+            )
+          );
+          await pause(Duration.seconds(5));
+        },
+        3,
+        'CreateOASDoc - Error with openFile() operation'
       );
-      await pause(Duration.seconds(5));
 
       // Use context menu for Windows and Ubuntu, command palette for Mac
       if (process.platform !== 'darwin') {
@@ -640,23 +666,35 @@ describe('Create OpenAPI v3 Specifications', () => {
       await executeQuickPick('View: Close All Editors');
       await reloadWindow(Duration.seconds(5));
 
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
+      await retryOperation(
+        async () => {
+          await openFile(
+            path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
+          );
+          await pause(Duration.seconds(5));
+        },
+        3,
+        'CreateOASDoc - Error with openFile() operation'
       );
-      await pause(Duration.seconds(5));
       expect(await isCommandAvailable('SFDX: Create OpenAPI Document from This Class (Beta)')).to.equal(false);
 
-      await openFile(
-        path.join(
-          testSetup.projectFolderPath!,
-          'force-app',
-          'main',
-          'default',
-          'externalServiceRegistrations',
-          'SimpleAccountResource.yaml'
-        )
+      await retryOperation(
+        async () => {
+          await openFile(
+            path.join(
+              testSetup.projectFolderPath!,
+              'force-app',
+              'main',
+              'default',
+              'externalServiceRegistrations',
+              'SimpleAccountResource.yaml'
+            )
+          );
+          await pause(Duration.seconds(5));
+        },
+        3,
+        'CreateOASDoc - Error with openFile() operation'
       );
-      await pause(Duration.seconds(5));
       expect(await isCommandAvailable('SFDX: Validate OpenAPI Document (Beta)')).to.equal(false);
     });
   });
