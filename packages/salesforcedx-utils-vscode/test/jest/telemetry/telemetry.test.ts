@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { workspace } from 'vscode';
 import { TelemetryService, TelemetryServiceInterface } from '../../../src';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
@@ -352,42 +354,22 @@ describe('Telemetry', () => {
       });
     });
 
-    describe('convertTimingToNumber helper method', () => {
+    describe('hrTimeToMilliseconds helper method', () => {
       it('should convert number correctly', () => {
         const startTime = Date.now();
-        const result = (instance as any).convertTimingToNumber(startTime);
+        const result = (instance as any).hrTimeToMilliseconds(startTime);
         expect(result).toBe(startTime);
       });
 
       it('should convert hrtime tuple correctly', () => {
         const hrtime: [number, number] = [1000, 500000000]; // 1000 seconds + 500ms
-        const result = (instance as any).convertTimingToNumber(hrtime);
+        const result = (instance as any).hrTimeToMilliseconds(hrtime);
         expect(result).toBe(1000500); // 1000 seconds * 1000 + 500ms
       });
 
-      it('should handle undefined correctly', () => {
-        const result = (instance as any).convertTimingToNumber(undefined);
-        expect(result).toBeUndefined();
-      });
-
-      it('should warn and return undefined for invalid formats', () => {
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-        const result = (instance as any).convertTimingToNumber('invalid' as any);
-        expect(result).toBeUndefined();
-        expect(consoleSpy).toHaveBeenCalledWith('Invalid timing format provided:', 'invalid');
-
-        consoleSpy.mockRestore();
-      });
-
-      it('should handle malformed arrays correctly', () => {
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-        const result = (instance as any).convertTimingToNumber([1, 2, 3] as any);
-        expect(result).toBeUndefined();
-        expect(consoleSpy).toHaveBeenCalledWith('Invalid timing format provided:', [1, 2, 3]);
-
-        consoleSpy.mockRestore();
+      it('should handle undefined by defaulting to [0, 0]', () => {
+        const result = (instance as any).hrTimeToMilliseconds(undefined);
+        expect(result).toBe(0); // [0, 0] converts to 0 milliseconds
       });
     });
   });

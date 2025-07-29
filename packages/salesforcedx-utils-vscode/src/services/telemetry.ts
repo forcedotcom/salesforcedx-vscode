@@ -4,7 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Properties, Measurements, TelemetryData, TelemetryReporter } from '@salesforce/vscode-service-provider';
+import {
+  Properties,
+  Measurements,
+  TelemetryData,
+  TelemetryReporter,
+  TelemetryServiceInterface,
+  ActivationInfo
+} from '@salesforce/vscode-service-provider';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { z } from 'zod';
 import {
@@ -19,46 +26,6 @@ import { determineReporters, initializeO11yReporter } from '../telemetry/reporte
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 import { UserService } from './userService';
-
-// Our simplified interface - uses service provider types with backwards compatibility
-export interface TelemetryServiceInterface {
-  initializeService(extensionContext: ExtensionContext): Promise<void>;
-  getTelemetryReporterName(): string;
-  getReporters(): TelemetryReporter[];
-  isTelemetryEnabled(): Promise<boolean>;
-  checkCliTelemetry(): Promise<boolean>;
-  isTelemetryExtensionConfigurationEnabled(): boolean;
-  setCliTelemetryEnabled(isEnabled: boolean): void;
-  sendActivationEventInfo(activationInfo: ActivationInfo): void;
-
-  // Backwards compatible - supports both number and [number, number] for timing
-  sendExtensionActivationEvent(
-    startTime?: number | [number, number],
-    markEndTime?: number,
-    telemetryData?: TelemetryData
-  ): void;
-  sendExtensionDeactivationEvent(): void;
-  sendCommandEvent(
-    commandName?: string,
-    startTime?: number | [number, number],
-    properties?: Properties,
-    measurements?: Measurements
-  ): void;
-
-  sendException(name: string, message: string): void;
-  sendEventData(eventName: string, properties?: { [key: string]: string }, measures?: { [key: string]: number }): void;
-  dispose(): void;
-}
-
-// Our ActivationInfo type - compatible with existing code
-export type ActivationInfo = {
-  activateStartTime: number;
-  activateStartDate: Date;
-  activateEndDate?: Date;
-  extensionActivationTime: number;
-  markEndTime?: number;
-  loadStartDate?: Date;
-};
 
 type CommandMetric = {
   extensionName: string;
@@ -134,23 +101,20 @@ export class TelemetryService implements TelemetryServiceInterface {
    * @param timing Either a number (milliseconds) or hrtime tuple [seconds, nanoseconds]
    * @returns number in milliseconds, or undefined if input is undefined
    */
-  private convertTimingToNumber(timing?: number | [number, number]): number | undefined {
-    if (timing === undefined) {
-      return undefined;
-    }
-
+  public hrTimeToMilliseconds(hrTime?: number | [number, number]): number {
+    const timing = hrTime ?? [0, 0];
     if (typeof timing === 'number') {
       return timing;
     }
+    // Convert hrtime [seconds, nanoseconds] to milliseconds since epoch
+    const [seconds, nanoseconds] = timing;
+    return seconds * 1000 + nanoseconds / 1000000;
+  }
 
-    if (Array.isArray(timing) && timing.length === 2) {
-      // Convert hrtime [seconds, nanoseconds] to milliseconds since epoch
-      const [seconds, nanoseconds] = timing;
-      return seconds * 1000 + nanoseconds / 1000000;
-    }
-
-    console.warn('Invalid timing format provided:', timing);
-    return undefined;
+  public getEndHRTime(hrstart: [number, number]): number {
+    const endTime = performance.now();
+    const startTimeMs = this.hrTimeToMilliseconds(hrstart);
+    return startTimeMs ? endTime - startTimeMs : -1;
   }
 
   /**
@@ -251,7 +215,7 @@ export class TelemetryService implements TelemetryServiceInterface {
       .addProperty('loadStartDate', activationInfo.loadStartDate?.toISOString())
       .addMeasurement('extensionActivationTime', activationInfo.extensionActivationTime)
       .build();
-    this.sendExtensionActivationEvent(activationInfo.activateStartTime, activationInfo.markEndTime, telemetryData);
+    this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, telemetryData);
   }
 
   public sendExtensionActivationEvent(
@@ -266,7 +230,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     // - If neither startTime nor markEndTime are provided, this indicates a timing error - use a fallback
     let startupTime: number;
 
-    const convertedStartTime = this.convertTimingToNumber(startTime);
+    const convertedStartTime = this.hrTimeToMilliseconds(startTime);
 
     if (convertedStartTime && convertedStartTime > 0) {
       // Valid start time provided - calculate elapsed time
@@ -320,7 +284,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         };
         const aggregatedProps = Object.assign(baseProperties, properties);
 
-        const convertedStartTime = this.convertTimingToNumber(startTime);
+        const convertedStartTime = this.hrTimeToMilliseconds(startTime);
 
         let aggregatedMeasurements: Measurements | undefined;
         if (convertedStartTime || measurements) {

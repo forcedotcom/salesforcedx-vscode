@@ -104,8 +104,7 @@ export {
   Properties,
   TelemetryData,
   ExtensionInfo,
-  ExtensionsInfo
+  ExtensionsInfo,
+  ActivationInfo,
+  TelemetryServiceInterface
 } from '@salesforce/vscode-service-provider';
-
-// Export our simplified telemetry interface and types
-export { TelemetryServiceInterface, ActivationInfo } from '../services/telemetry';

@@ -66,7 +66,7 @@ describe('ActivationTracker', () => {
 
     expect(telemetryService.sendActivationEventInfo).toHaveBeenCalledWith(
       expect.objectContaining({
-        activateStartTime: expect.any(Number),
+        startActivateHrTime: expect.any(Number),
         activateStartDate: expect.any(Date),
         activateEndDate: expect.any(Date),
         extensionActivationTime: expect.any(Number),
