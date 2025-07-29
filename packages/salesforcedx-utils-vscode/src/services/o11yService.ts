@@ -28,59 +28,93 @@
 import { z } from 'zod';
 import { loadO11yModules } from '../telemetry/utils/o11yLoader';
 
-const O11Y_UPLOAD_THRESHOLD_BYTES = 50_000;
 export class O11yService {
-  private o11yUploadEndpoint: string | undefined;
-  private instrumentation: Instrumentation;
-  private _instrApp: InstrumentedAppMethods;
-  private protoEncoderFunc: ProtoEncoderFuncType | null = null;
-  private a4dO11ySchema: unknown;
-  private readonly environment: Record<string, string> = {};
-  private o11yModules: Awaited<ReturnType<typeof loadO11yModules>> | null = null;
-  private static instance: O11yService | null = null;
+  public static readonly O11Y_UPLOAD_THRESHOLD_BYTES = 50000;
+  public o11yUploadEndpoint?: string;
+  public instrumentation?: any;
+  public a4dO11ySchema?: any;
+  public environment: Record<string, string> = {};
+  private static instances: Map<string, O11yService> = new Map();
+
+  // Shared instrumentation and app across all extensions
+  private static sharedInstrumentation: Instrumentation | null = null;
+  private static sharedInstrApp: InstrumentedAppMethods | null = null;
+  private static sharedO11yModules: Awaited<ReturnType<typeof loadO11yModules>> | null = null;
+  private static sharedProtoEncoderFunc: ProtoEncoderFuncType | null = null;
+
+  // Extension-specific properties
+  private extensionName?: string;
 
   private constructor() {}
 
-  public static getInstance(): O11yService {
-    if (!O11yService.instance) {
+  public static getInstance(extensionId: string): O11yService {
+    if (!O11yService.instances.has(extensionId)) {
       const instance = new O11yService();
-      O11yService.instance = instance;
+      O11yService.instances.set(extensionId, instance);
     }
-    return O11yService.instance;
+    return O11yService.instances.get(extensionId)!;
   }
 
   public async initialize(extensionName: string, o11yUploadEndpoint: string) {
+    this.extensionName = extensionName;
     this.o11yUploadEndpoint = o11yUploadEndpoint;
-    // Ensure modules are loaded before using them
-    this.o11yModules = await loadO11yModules();
 
-    const { o11yClientVersion, o11ySchemaVersion, getInstrumentation, registerInstrumentedApp, a4d_instrumentation } =
-      this.o11yModules!;
+    // Initialize shared resources if not already done
+    if (!O11yService.sharedInstrApp) {
+      await this.initializeSharedResources();
+    }
 
-    this.instrumentation = getInstrumentation(`${extensionName}-instrumentation`);
-    this.a4dO11ySchema = a4d_instrumentation;
+    // Set up instance-specific references to shared resources
+    this.instrumentation = O11yService.sharedInstrumentation!;
+    this.a4dO11ySchema = O11yService.sharedO11yModules!.a4d_instrumentation;
+
+    const { o11yClientVersion, o11ySchemaVersion } = O11yService.sharedO11yModules!;
 
     Object.assign(this.environment, {
-      appName: `${extensionName}-extension`,
+      appName: 'salesforce-vscode-extensions', // Single shared app name
+      extensionName: this.extensionName, // Extension-specific identifier
       o11ySchemaVersion,
       sdkVersion: `${o11yClientVersion}:${o11ySchemaVersion}`
     });
+  }
 
-    // STEP 1: Register the app
-    this._instrApp = registerInstrumentedApp(`${extensionName}-extension`, {
+  private async initializeSharedResources() {
+    // Ensure modules are loaded before using them
+    O11yService.sharedO11yModules = await loadO11yModules();
+
+    const { o11yClientVersion, o11ySchemaVersion, getInstrumentation, registerInstrumentedApp } =
+      O11yService.sharedO11yModules!;
+
+    // Create a single shared instrumentation
+    const sharedInstrumentationName = 'salesforce-vscode-extensions-instrumentation';
+    O11yService.sharedInstrumentation = getInstrumentation(sharedInstrumentationName);
+
+    // Create a single shared app
+    const sharedAppName = 'salesforce-vscode-extensions';
+
+    // STEP 1: Register the shared app
+    O11yService.sharedInstrApp = registerInstrumentedApp(sharedAppName, {
       isProduction: false,
       enableBuffering: true
     });
 
-    // STEP 2: Register a metrics collector
-    this._instrApp.simpleCollector = this.initSimpleCollector(
-      this._instrApp,
+    // STEP 2: Register a metrics collector on the shared app
+    O11yService.sharedInstrApp.simpleCollector = this.initSimpleCollector(
+      O11yService.sharedInstrApp,
       {
-        appName: this.environment.appName,
-        sdkVersion: this.environment.sdkVersion
+        appName: sharedAppName,
+        sdkVersion: `${o11yClientVersion}:${o11ySchemaVersion}`
       },
-      this.o11yModules
+      O11yService.sharedO11yModules
     );
+
+    // Set up shared proto encoder
+    if (O11yService.sharedO11yModules) {
+      const { collectorsModule } = O11yService.sharedO11yModules;
+      O11yService.sharedProtoEncoderFunc = encodeCoreEnvelopeContentsRawSchem.parse(
+        collectorsModule.default ?? collectorsModule
+      ).encodeCoreEnvelopeContentsRaw;
+    }
   }
 
   public logEvent(properties?: { [key: string]: any }): void {
@@ -112,11 +146,7 @@ export class O11yService {
       throw new Error('o11yModules is null');
     }
 
-    const { simpleCollectorModule, collectorsModule } = o11yModules;
-
-    this.protoEncoderFunc = encodeCoreEnvelopeContentsRawSchem.parse(
-      collectorsModule.default ?? collectorsModule
-    ).encodeCoreEnvelopeContentsRaw;
+    const { simpleCollectorModule } = o11yModules;
 
     const simpleCollector = new (simpleCollectorModule.default ?? simpleCollectorModule).SimpleCollector({
       environment
@@ -130,18 +160,18 @@ export class O11yService {
   private uploadAsNeededAsync(ignoreThreshold = false): Promise<PromiseSettledResult<Response>[]> {
     const promises: Promise<Response>[] = [];
 
-    if (!this.protoEncoderFunc) {
-      console.error('protoEncoderFunc is not initialized');
+    if (!O11yService.sharedProtoEncoderFunc) {
+      console.error('sharedProtoEncoderFunc is not initialized');
       return Promise.resolve([]); // Prevents the function from throwing an error
     }
 
-    const simpleCollector = this._instrApp.simpleCollector;
+    const simpleCollector = O11yService.sharedInstrApp?.simpleCollector;
     if (
       simpleCollector?.hasData &&
-      (ignoreThreshold || simpleCollector.estimatedByteSize >= O11Y_UPLOAD_THRESHOLD_BYTES)
+      (ignoreThreshold || simpleCollector.estimatedByteSize >= O11yService.O11Y_UPLOAD_THRESHOLD_BYTES)
     ) {
       const rawContents = simpleCollector.getRawContentsOfCoreEnvelope();
-      const binary = this.protoEncoderFunc(rawContents);
+      const binary = O11yService.sharedProtoEncoderFunc(rawContents);
       promises.push(this.uploadToFalconAsync(binary));
     }
 

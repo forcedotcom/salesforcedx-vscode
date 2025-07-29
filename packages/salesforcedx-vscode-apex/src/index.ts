@@ -57,7 +57,8 @@ export const activate = async (context: vscode.ExtensionContext) => {
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
 
   // Telemetry
-  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance();
+  const { name } = context.extension.packageJSON;
+  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance(name);
   await telemetryService.initializeService(context);
   if (!telemetryService) {
     throw new Error('Could not fetch a telemetry service instance');

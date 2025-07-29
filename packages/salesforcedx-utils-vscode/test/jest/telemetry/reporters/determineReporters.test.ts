@@ -5,6 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable import/extensions */
+/* eslint-disable import/no-unresolved */
+// @ts-nocheck
+
+/**
+ * NOTE:
+ * This test file uses dynamic imports to allow Jest to properly mock VS Code dependencies.
+ * Due to TypeScript's ESM + moduleResolution=node16/nodenext behavior, dynamic imports require `.js` extensions,
+ * but Jest cannot resolve TypeScript sources with `.js` in the path.
+ *
+ * We suppress TS and ESLint rules here to enable working dynamic imports *without* breaking the test runtime.
+ * This is a known limitation in the TS + Jest ecosystem.
+ */
+
 import * as vscode from 'vscode';
 import { AppInsights } from '../../../../src';
 import * as Settings from '../../../../src/settings';
@@ -92,5 +106,98 @@ describe('determineReporters', () => {
       expect(reporters[0]).toBeInstanceOf(AppInsights);
       expect(reporters[1]).toBeInstanceOf(LogStream);
     });
+  });
+});
+
+describe('initializeO11yReporter', () => {
+  const extName = 'test-ext';
+  const o11yUploadEndpoint = 'https://o11y.salesforce.com/upload';
+  const userId = 'user-abc';
+  const version = '2.0.0';
+  let O11yReporterMock: jest.Mock;
+  let initializeMock: jest.Mock;
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+    // Mock O11yReporter and its initialize method
+    initializeMock = jest.fn().mockResolvedValue(undefined);
+    O11yReporterMock = jest.fn().mockImplementation(() => ({
+      initialize: initializeMock
+    }));
+    jest.doMock('../../../../src/telemetry/reporters/o11yReporter', () => ({
+      O11yReporter: O11yReporterMock
+    }));
+    // Clear the require cache for determineReporters to pick up the new mock
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+  });
+
+  it('should initialize and add an O11yReporter instance', async () => {
+    const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    expect(O11yReporterMock).toHaveBeenCalledWith(extName, version, o11yUploadEndpoint, userId);
+    expect(initializeMock).toHaveBeenCalledWith(extName);
+  });
+
+  it('should not re-initialize if already initialized', async () => {
+    const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    O11yReporterMock.mockClear();
+    initializeMock.mockClear();
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    expect(O11yReporterMock).not.toHaveBeenCalled();
+    expect(initializeMock).not.toHaveBeenCalled();
+  });
+
+  it('should wait for in-progress initialization if called concurrently', async () => {
+    const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    let resolveInit: (() => void) | undefined;
+    initializeMock.mockImplementation(
+      () =>
+        new Promise<void>(res => {
+          resolveInit = res;
+        })
+    );
+    const p1 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    const p2 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    if (resolveInit) {
+      resolveInit();
+    }
+    await Promise.all([p1, p2]);
+    expect(O11yReporterMock).toHaveBeenCalledTimes(1);
+    expect(initializeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should clean up if initialization fails', async () => {
+    const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    initializeMock.mockRejectedValue(new Error('fail!'));
+    await expect(initializeO11yReporter(extName, o11yUploadEndpoint, userId, version)).resolves.toBeUndefined();
+    // Try again, should attempt to re-initialize
+    initializeMock.mockResolvedValue(undefined);
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    expect(O11yReporterMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('should add O11yReporter to reporters if initialized', async () => {
+    const { initializeO11yReporter, determineReporters: reImportedDetermineReporters } = await import(
+      '../../../../src/telemetry/reporters/determineReporters'
+    );
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    const config = {
+      extName,
+      version,
+      aiKey: 'ai-key',
+      userId,
+      reporterName: 'test-reporter',
+      isDevMode: false
+    };
+    const reporters = reImportedDetermineReporters(config);
+    // Should include the O11yReporter instance
+    expect(reporters.some((r: any) => r && r.initialize === initializeMock)).toBe(true);
   });
 });
