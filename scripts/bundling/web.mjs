@@ -88,7 +88,7 @@ export const commonConfigBrowser = {
   },
   define: {
     'process.env.SF_DISABLE_LOG_FILE': "'true'",
-    "process.env.FORCE_MEMFS": "'true'", // Added this line    // Ensure global is available for Node.js modules
+    'process.env.FORCE_MEMFS': "'true'", // Added this line    // Ensure global is available for Node.js modules
     global: 'globalThis',
     // Other global polyfills
     __dirname: '""',
@@ -106,7 +106,7 @@ export const commonConfigBrowser = {
     // Force use of our custom process polyfill instead of esbuild's built-in
     process: processPolyfillPath,
     // Force all readable-stream imports to use the main one to avoid duplication
-    "readable-stream": "readable-stream",    // Node.js built-in module polyfills
+    'readable-stream': 'readable-stream', // Node.js built-in module polyfills
     'node:path': 'path-browserify',
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',

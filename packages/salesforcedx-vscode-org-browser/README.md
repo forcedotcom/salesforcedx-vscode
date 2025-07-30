@@ -20,7 +20,7 @@ npm run compile -w salesforcedx-vscode-org-browser
 # Start VS Code web test server with an example of running a single test
 npm run test:web -w salesforcedx-vscode-org-browser -- --grep "should verify org browser"
 
-# Start VS Code web manually for development/debugging
+# Start VS Code web manually for development/debugging.  LLMs can't use this, ever
 npm run run:web -w salesforcedx-vscode-org-browser
 ```
 
@@ -29,7 +29,7 @@ npm run run:web -w salesforcedx-vscode-org-browser
 For interactive debugging and reproducing issues:
 
 ```bash
-# Start VS Code web with real Chrome browser + debugging tools
+# Start VS Code web with real Chrome browser + debugging tools LLMs can't use this, ever
 npm run run:web
 
 # This opens:
