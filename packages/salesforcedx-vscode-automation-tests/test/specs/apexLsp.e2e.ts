@@ -113,8 +113,10 @@ const setupTestEnvironment = async (): Promise<void> => {
   await pause(Duration.seconds(10));
   await createApexClassWithTest('ExampleClass', PATHS.apexClass);
 
-  // Reload window to get the language server to recognize the new classes
-  await reloadWindow();
+  // Reload window to get the language server to recognize the new classes (Windows only)
+  if (process.platform === 'win32') {
+    await reloadWindow(Duration.seconds(20));
+  }
 };
 
 const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
