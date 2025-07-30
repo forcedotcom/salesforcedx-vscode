@@ -125,7 +125,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -157,7 +157,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -191,7 +191,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
       'ExampleApexClass3Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -221,7 +221,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
@@ -263,7 +263,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
       'ExampleApexClass3Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
 
@@ -287,7 +287,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
@@ -299,12 +299,7 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(
-      workbench,
-      'Apex Tests',
-      'validateSayHello',
-      'Run Single Test'
-    );
+    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'validateSayHello', 'Run Single Test');
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -312,7 +307,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
@@ -391,7 +386,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'AccountServiceTest.should_create_account  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -475,14 +470,13 @@ describe('Run Apex Tests', () => {
     const expectedTexts = [
       '=== Test Summary',
       'TEST NAME',
-      'ended SFDX: Run Apex Tests',
       'Outcome              Passed',
       'Tests Ran            2',
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
