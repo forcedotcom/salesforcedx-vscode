@@ -12,8 +12,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage",
-    "test:unit": "jest --coverage",
-    "coverage": "jest --coverage"
+    "test": "jest --coverage"
   },
   "dependencies": {
     "@salesforce/core-bundle": "^8.18.4",

@@ -26,8 +26,7 @@
     "copy:files": "shx cp src/beautify/beautify-* out/src/beautify",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "test": "npm run test:unit",
-    "test:unit": "jest --coverage",
+    "test": "jest --coverage",
     "watch": "tsc -watch -p ."
   }
 }
