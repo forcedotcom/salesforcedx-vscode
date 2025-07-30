@@ -123,7 +123,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain(
       'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation'
     );
-    expect(outputPanelText).to.contain('Ending SFDX: Update Checkpoints in Org');
+    expect(outputPanelText).to.contain('Ended SFDX: Update Checkpoints in Org');
   });
 
   it('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
@@ -144,8 +144,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger');
-    expect(outputPanelText).to.contain('ended with exit code 0');
+    expect(outputPanelText).to.contain('Ended SFDX: Turn On Apex Debug Log for Replay Debugger');
   });
 
   it('Run Apex Tests', async () => {
@@ -194,7 +193,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
-    expect(outputPanelText).to.contain('ended SFDX: Get Apex Debug Logs');
+    expect(outputPanelText).to.contain('Ended SFDX: Get Apex Debug Logs');
 
     // Verify content on log file
     const editorView = workbench.getEditorView();

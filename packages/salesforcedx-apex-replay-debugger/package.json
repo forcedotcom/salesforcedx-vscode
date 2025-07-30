@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-replay-debugger",
   "displayName": "Apex Replay Debug Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
-  "version": "64.7.0",
+  "version": "64.7.1",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -14,13 +14,13 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "64.7.0",
+    "@salesforce/salesforcedx-utils": "64.7.1",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/vscode-service-provider": "^1.4.1",
+    "@salesforce/vscode-service-provider": "^1.5.0",
     "@types/jest": "^29.5.5",
     "@types/node": "^20.0.0",
     "@vscode/debugadapter-testsupport": "1.68.0",
