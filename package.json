@@ -91,7 +91,7 @@
     "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix",
-    "test": "lerna run test:unit",
+    "test": "lerna run test",
     "test:download-vscode": "node scripts/download-vscode",
     "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
     "coverage:merge": "node scripts/mergeCoverageJson.mjs",
