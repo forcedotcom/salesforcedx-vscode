@@ -50,18 +50,12 @@ npm run run:web
 
 #### Automated Testing Architecture
 
-**Standard Playwright Tests:**
+**Playwright Tests with CDP Support:**
 
-- Isolated browser context for predictable testing
-- Extension loaded in clean environment
-- UI automation and console error capture
-
-**CDP (Chrome DevTools Protocol) Tests:**
-
-- Connects to existing Chrome browser (started manually)
-- More realistic testing environment
-- Better for debugging complex interaction issues
-- Captures console errors from real browser session
+- Tests attempt CDP connection to existing Chrome browser first
+- Falls back to isolated Playwright if CDP unavailable
+- More realistic testing with CDP, predictable testing with fallback
+- Captures console errors from browser session
 
 **Test Flow:**
 
@@ -75,7 +69,6 @@ npm run run:web
 ```text
 test/web/
 ├── orgBrowser.spec.ts       # Main extension functionality tests
-├── cdpConnect.spec.ts      # CDP connection testing
 ├── shared/
 │   └── cdpUtils.ts         # Shared CDP utilities
 └── playwright.web.config.ts # Playwright configuration
