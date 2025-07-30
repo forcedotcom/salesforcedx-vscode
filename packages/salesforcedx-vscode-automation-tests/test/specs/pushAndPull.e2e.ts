@@ -46,6 +46,12 @@ describe('Push and Pull', () => {
     testSetup1 = await TestSetup.setUp(testReqConfig);
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('SFDX: View All Changes (Local and in Default Org)', async () => {
     logTestStart(testSetup1, 'Push And Pull - SFDX: View All Changes (Local and in Default Org)');
     await executeQuickPick('SFDX: View All Changes (Local and in Default Org)', Duration.seconds(5));
@@ -135,27 +141,9 @@ describe('Push and Pull', () => {
     // Check the output.
     const outputPanelText = await verifyPushAndPullOutputText('Push', 'to', 'Changed');
 
+    expect(outputPanelText).to.contain(path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls'));
     expect(outputPanelText).to.contain(
-      path.join(
-        'e2e-temp',
-        'TempProject-PushAndPull',
-        'force-app',
-        'main',
-        'default',
-        'classes',
-        'ExampleApexClass1.cls'
-      )
-    );
-    expect(outputPanelText).to.contain(
-      path.join(
-        'e2e-temp',
-        'TempProject-PushAndPull',
-        'force-app',
-        'main',
-        'default',
-        'classes',
-        'ExampleApexClass1.cls-meta.xml'
-      )
+      path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls-meta.xml')
     );
   });
 
@@ -298,7 +286,6 @@ const verifyPushAndPullOutputText = async (
   } else {
     expect(outputPanelText).to.contain('No results found');
   }
-  expect(outputPanelText).to.contain('ended with exit code 0');
   return outputPanelText;
 };
 

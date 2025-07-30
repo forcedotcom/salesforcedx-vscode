@@ -29,6 +29,20 @@ describe('Source Tracking Service', () => {
     });
   });
 
+  describe('updateSourceTrackingAfterDeploy', () => {
+    const updateTrackingFromDeploySpy = jest.fn();
+    const dummySourceTracking = {
+      updateTrackingFromDeploy: updateTrackingFromDeploySpy
+    } as any;
+
+    it('Should update an instance of SourceTracking using the deploy result', async () => {
+      const dummyDeployResult = {} as any;
+      await SourceTrackingService.updateSourceTrackingAfterDeploy(dummySourceTracking, dummyDeployResult);
+
+      expect(updateTrackingFromDeploySpy).toHaveBeenCalledWith(dummyDeployResult);
+    });
+  });
+
   describe('getSourceStatusSummary', () => {
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),

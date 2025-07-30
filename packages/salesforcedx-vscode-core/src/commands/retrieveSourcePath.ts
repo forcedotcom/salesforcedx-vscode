@@ -17,7 +17,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
-import { RetrieveExecutor } from './baseDeployRetrieve';
+import { RetrieveExecutor } from './retrieveExecutor';
 import { LibraryPathsGatherer, SfCommandlet } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 

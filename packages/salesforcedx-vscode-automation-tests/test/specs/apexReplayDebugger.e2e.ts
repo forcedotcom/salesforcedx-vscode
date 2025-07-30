@@ -28,7 +28,8 @@ import {
   clearOutputView,
   attemptToFindOutputPanelText,
   getTextEditor,
-  waitForNotificationToGoAway
+  waitForNotificationToGoAway,
+  dismissAllNotifications
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
@@ -56,13 +57,13 @@ describe('Apex Replay Debugger', () => {
     // Create Apex class file
     await createApexClassWithTest('ExampleApexClass');
 
-    // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
+
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
   });
 
   // Since tests are sequential, we need to skip the rest of the tests if one fails

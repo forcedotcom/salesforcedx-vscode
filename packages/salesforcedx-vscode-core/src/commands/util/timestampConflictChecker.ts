@@ -9,7 +9,8 @@ import {
   CancelResponse,
   ContinueResponse,
   PostconditionChecker,
-  workspaceUtils
+  workspaceUtils,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import { basename, normalize } from 'node:path';
 import { channelService } from '../../channels';
@@ -25,10 +26,12 @@ import { ConflictDetectionMessages } from './conflictDetectionMessages';
 export class TimestampConflictChecker implements PostconditionChecker<string> {
   private isManifest: boolean;
   private messages: ConflictDetectionMessages;
+  private isPushOperation: boolean;
 
-  constructor(isManifest: boolean, messages: ConflictDetectionMessages) {
+  constructor(isManifest: boolean, messages: ConflictDetectionMessages, isPushOperation: boolean = false) {
     this.messages = messages;
     this.isManifest = isManifest;
+    this.isPushOperation = isPushOperation;
   }
 
   public async check(
@@ -70,7 +73,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         return await this.handleConflicts(inputs.data, username, diffs);
       } catch (error) {
         console.error(error);
-        const errorMsg = nls.localize('conflict_detect_error', error.toString());
+        const errorMsg = nls.localize('conflict_detect_error', errorToString(error));
         channelService.appendLine(errorMsg);
         telemetryService.sendException('ConflictDetectionException', errorMsg);
         await DeployQueue.get().unlock();
@@ -104,7 +107,9 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
       } else {
         channelService.appendLine(
-          nls.localize('conflict_detect_command_hint', this.messages.commandHint(componentPath))
+          this.isPushOperation
+            ? nls.localize('conflict_detect_command_hint_push')
+            : nls.localize('conflict_detect_command_hint', this.messages.commandHint(componentPath))
         );
 
         const doReveal = choice === nls.localize('conflict_detect_show_conflicts');

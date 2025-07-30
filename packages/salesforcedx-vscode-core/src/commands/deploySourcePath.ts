@@ -10,7 +10,7 @@ import type { URI } from 'vscode-uri';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
-import { DeployExecutor } from './baseDeployRetrieve';
+import { DeployExecutor } from './deployExecutor';
 import { SourcePathChecker } from './retrieveSourcePath';
 import { LibraryPathsGatherer, SfCommandlet } from './util';
 import { CompositePostconditionChecker } from './util/compositePostconditionChecker';
