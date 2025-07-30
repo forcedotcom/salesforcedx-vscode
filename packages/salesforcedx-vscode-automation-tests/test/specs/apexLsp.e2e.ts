@@ -130,17 +130,17 @@ const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
     const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
     await pause(Duration.seconds(2));
     await moveCursorWithFallback(textEditor, 6, 20);
-  }, 2, 'Go to Definition - Error getting ExampleClassTest.cls or moving cursor');
 
-  // Allow time for LSP to process cursor movement and prepare definition lookup
-  await pause(Duration.seconds(2));
-  // Wait for quick pick to appear and be clickable
-  await executeQuickPick('Go to Definition', Duration.seconds(3));
+    // Allow time for LSP to process cursor movement and prepare definition lookup
+    await pause(Duration.seconds(2));
+    // Wait for quick pick to appear and be clickable
+    await executeQuickPick('Go to Definition', Duration.seconds(3));
 
-  const editorView = workbench.getEditorView();
-  const activeTab = await editorView.getActiveTab();
-  const title = await activeTab?.getTitle();
-  expect(title).to.equal('ExampleClass.cls');
+    const editorView = workbench.getEditorView();
+    const activeTab = await editorView.getActiveTab();
+    const title = await activeTab?.getTitle();
+    expect(title).to.equal('ExampleClass.cls');
+  }, 3, 'Go to Definition - Error switching to ExampleClass.cls');
 };
 
 const testAutocompletion = async (testSetup: TestSetup): Promise<void> => {
