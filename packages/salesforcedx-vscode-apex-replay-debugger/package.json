@@ -24,7 +24,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "^8.2.5",
+    "@salesforce/apex-node-bundle": "^8.2.6",
     "@salesforce/salesforcedx-apex-replay-debugger": "64.7.1",
     "@salesforce/salesforcedx-utils": "64.7.1",
     "@salesforce/salesforcedx-utils-vscode": "64.7.1",
