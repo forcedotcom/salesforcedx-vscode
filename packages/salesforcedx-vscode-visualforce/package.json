@@ -47,7 +47,7 @@
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "test": "jest --coverage",
+    "test": "jest --coverage --passWithNoTests",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
