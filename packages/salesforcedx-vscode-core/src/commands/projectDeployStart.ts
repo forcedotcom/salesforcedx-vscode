@@ -142,32 +142,6 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
           }
         }
 
-        if (localComponentSet.size === 0) {
-          // No local changes found - this could be a new org with no existing metadata
-          // Check if this is a "first deployment" scenario by checking if the org has any existing metadata
-          try {
-            const remoteComponentSet = await sourceTracking.remoteNonDeletesAsComponentSet({ applyIgnore: true });
-            if (remoteComponentSet.size === 0) {
-              // No remote metadata found - this is likely a first deployment
-              // Check if there are source files to deploy
-              const allSourceComponents = ComponentSet.fromSource(projectPath);
-              if (allSourceComponents && allSourceComponents.size > 0) {
-                console.log(
-                  'No source tracking changes found and no remote metadata exists. This appears to be a first deployment to a new org. Deploying all source files.'
-                );
-                return allSourceComponents;
-              }
-            }
-          } catch {
-            // If we can't get remote status, be conservative and return empty
-            console.log('Could not determine if this is a first deployment scenario, returning empty ComponentSet');
-          }
-
-          // No changes found and not a first deployment - return empty ComponentSet
-          // This will result in "No results found" output
-          return new ComponentSet();
-        }
-
         return localComponentSet;
       } catch (error) {
         // If source tracking fails, let the error bubble up

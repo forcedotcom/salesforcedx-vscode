@@ -174,8 +174,7 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockSourceTracking = {
-          localChangesAsComponentSet: jest.fn().mockResolvedValue([]), // no changes
-          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue([]) // no remote metadata
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]) // no changes
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         // Mock ComponentSet.fromSource to return undefined (no source files exist)
@@ -206,32 +205,6 @@ describe('ProjectDeployStart', () => {
         expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
-      });
-
-      it('should return all source components for first deployment to source-tracked org with no remote metadata', async () => {
-        // Arrange
-        const executor = new ProjectDeployStartExecutor();
-        const mockResponse = {} as any;
-        const mockSourceTracking = {
-          localChangesAsComponentSet: jest.fn().mockResolvedValue([]), // no local changes
-          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(new ComponentSet()) // no remote metadata
-        };
-        jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-
-        // Mock ComponentSet.fromSource to return a ComponentSet with components (source files exist)
-        const mockAllSourceComponentSet = new ComponentSet();
-        jest.spyOn(mockAllSourceComponentSet, 'size', 'get').mockReturnValue(5); // Mock 5 components
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockAllSourceComponentSet);
-
-        // Act
-        const result = await (executor as any).getComponents(mockResponse);
-
-        // Assert
-        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
-        expect(mockSourceTracking.remoteNonDeletesAsComponentSet).toHaveBeenCalledWith({ applyIgnore: true });
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith(expect.any(String)); // projectPath
-        expect(result).toBe(mockAllSourceComponentSet);
-        expect(result.size).toBe(5);
       });
 
       it('should return empty ComponentSet when no changes are detected and source files exist but are empty', async () => {
