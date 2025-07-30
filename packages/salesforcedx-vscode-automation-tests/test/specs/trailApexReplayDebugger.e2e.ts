@@ -112,7 +112,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     await pause(Duration.seconds(1));
 
     // Run SFDX: Toggle Checkpoint.
-    prompt = await executeQuickPick('SFDX: Toggle Checkpoint', Duration.seconds(1));
+    prompt = await executeQuickPick('SFDX: Toggle Checkpoint', Duration.seconds(10));
 
     // Verify checkpoint is present
     const breakpoints = await workbench.findElements(By.css('div.codicon-debug-breakpoint-conditional'));
