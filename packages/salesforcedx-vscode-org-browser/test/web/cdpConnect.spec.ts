@@ -5,13 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { test } from '@playwright/test';
-import { connectToCDPBrowser, reportConsoleCapture } from './shared/cdpUtils';
+import { connectToCDPBrowser, injectSettings, reportConsoleCapture } from './shared/cdpUtils';
 
 test.describe('Org Browser Web Extension - CDP Connection', () => {
   test('should connect to existing browser and capture console errors', async () => {
     try {
       // Connect to the existing Chrome instance launched by vscode-test-web
       const { page, capture } = await connectToCDPBrowser(9222);
+
+      // Inject auth settings for web environment
+      await injectSettings(page, 'salesforcedx-vscode-settings', {
+        instanceUrl: process.env.VSCODE_SETTING_SALESFORCEDX_VSCODE_SETTINGS_INSTANCEURL,
+        accessToken: process.env.VSCODE_SETTING_SALESFORCEDX_VSCODE_SETTINGS_ACCESSTOKEN
+      });
 
       // Navigate to the Org Browser
       try {

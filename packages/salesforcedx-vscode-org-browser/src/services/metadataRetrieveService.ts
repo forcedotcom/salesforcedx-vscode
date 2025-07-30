@@ -37,7 +37,8 @@ const retrieve = (
         api.services.ConfigServiceLive,
         api.services.WorkspaceServiceLive,
         api.services.ProjectServiceLive,
-        api.services.ChannelServiceLayer('Salesforce Org Browser')
+        api.services.ChannelServiceLayer('Salesforce Org Browser'),
+        api.services.SettingsServiceLive
       );
 
       return pipe(

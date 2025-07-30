@@ -10,12 +10,13 @@ import * as S from 'effect/Schema';
 import type { ConfigService } from 'salesforcedx-vscode-services/src/core/configService';
 import type { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import type { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
+import type { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import type { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import { DescribeMetadataObject } from '../schemas/describeMetadataObject';
 import { FilePropertiesSchema, FileProperties } from '../schemas/fileProperties';
 import { ExtensionProviderService } from './extensionProvider';
 
-type DescribeContext = ConnectionService | ConfigService | WorkspaceService | ChannelService;
+type DescribeContext = ConnectionService | ConfigService | WorkspaceService | ChannelService | SettingsService;
 
 export type MetadataDescribeService = {
   /**

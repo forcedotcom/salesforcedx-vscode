@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Global } from '@salesforce/core';
 import { Effect } from 'effect';
 import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
+import { SettingsService, SettingsServiceLive } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { fsProvider } from './fsTypes';
 import { TEMPLATES, metadataDirs } from './templates/templates';
@@ -73,91 +73,25 @@ export const projectFiles = async (memfs: fsProvider): Promise<void> => {
     await createProjectStructure(memfs);
   } else {
   }
-  if (Global.isWeb) {
-    // always need to be recreated on web since we don't have fs watchers outside the vscode workspace.
-    console.log('🔍 Starting auth Effect for web...');
-    await Effect.runPromise(
-      auth(memfs).pipe(
-        Effect.tap(() => Effect.sync(() => console.log('✅ Auth Effect completed successfully'))),
-        Effect.tapError(error => Effect.sync(() => console.error('❌ Auth Effect failed:', error)))
-      )
-    );
-  }
+  const config = vscode.workspace.getConfiguration();
+  await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
+
+  // Run the Effect with the SettingsService layer
+  await Effect.runPromise(Effect.provide(setupCredentials, SettingsServiceLive));
 };
 
-// Helper function for web authentication attempt
-const attemptWebAuth = async (memfs: fsProvider): Promise<boolean> => {
-  const createAuth = async (): Promise<AuthInfo | undefined> => {
-    console.log('Attempting AuthInfo.create in web environment...');
-    // TODO: define in web env
-    const accessTokenOptions = {
-      accessToken:
-        '00DD30000001cA5!ARsAQAWsC0ok8cEtfE18lQmwfnWWdJ5t.rUUa4UcNpOtFYZBVB2pNJ41CsuJAHDh2vyW6ypT9mbAHqot8Eb35bTZIuHvbEH7',
-      loginUrl: 'https://efficiency-data-8147-dev-ed.scratch.my.salesforce.com'
-    };
-    const username = 'test-ybpyiui8xxjf@example.com';
-    return AuthInfo.create({ accessTokenOptions, username }).catch(error => {
-      console.log('AuthInfo.create failed in web environment:', error);
-      console.log('options:', accessTokenOptions);
-      console.error(`AuthInfo.create error details: ${error.name} ${error.message} ${error.stack}`);
+// Create Effect for setting up test credentials
+// TODO: delete this, or make it a separate extension that we don't ship, etc.  Some way to populate the test environment.
+const setupCredentials = Effect.gen(function* () {
+  const settingsService = yield* SettingsService;
 
-      return undefined;
-    });
-  };
+  console.log('Setting up test credentials for web environment');
+  const instanceUrl = 'https://efficiency-data-8147-dev-ed.scratch.my.salesforce.com';
+  const accessToken =
+    '00DD30000001cA5!ARsAQKKTg3MpzHMvK2agU6QiMNFMlFM7lpotdlp8grRp2Fm2uHHQDybzmCazO_nRJFZQicaHaDq_Gi6ZPKMI5yICXwmElPcu';
 
-  const saveAuth = async (webAuth: AuthInfo): Promise<AuthInfo | undefined> => {
-    console.log('AuthInfo.create succeeded, attempting save...');
-    return webAuth
-      .save()
-      .then(() => {
-        console.log('authInfo.save() succeeded in web environment');
-        return webAuth;
-      })
-      .catch(error => {
-        console.log('authInfo.save() failed in web environment:', error);
-        return undefined;
-      });
-  };
+  yield* settingsService.setInstanceUrl(instanceUrl);
+  yield* settingsService.setAccessToken(accessToken);
 
-  const writeConfig = async (finalAuth: AuthInfo): Promise<void> => {
-    await memfs.writeFile(
-      vscode.Uri.parse(`${sampleProjectPath}/.sf/config.json`),
-      Buffer.from(JSON.stringify({ 'target-org': finalAuth.getUsername() }, null, 2)),
-      { create: true, overwrite: true }
-    );
-    console.log('Real auth flow completed successfully in web environment');
-  };
-
-  const createdAuth = await createAuth();
-  if (!createdAuth) return false;
-
-  const savedAuth = await saveAuth(createdAuth);
-  if (!savedAuth) return false;
-
-  await writeConfig(savedAuth);
-  return true;
-};
-
-// TODO: auth a in a legit way
-const auth = (memfs: fsProvider): Effect.Effect<void, Error> => {
-  // Use sfdx-core's Global.isWeb to detect web environment
-  if (Global.isWeb) {
-    console.log('Web environment detected - real auth MUST succeed');
-    return Effect.tryPromise({
-      try: () => attemptWebAuth(memfs),
-      catch: error => {
-        console.error('❌ Web auth attempt failed:', error);
-        return new Error(`Web authentication failed - no fallback allowed: ${error}`);
-      }
-    }).pipe(
-      Effect.flatMap(authSuccess => {
-        console.log('🔍 Web auth result:', authSuccess);
-        return authSuccess
-          ? Effect.succeed(console.log('✅ Web auth succeeded'))
-          : Effect.fail(new Error('Web authentication returned false - no fallback allowed'));
-      })
-    );
-  }
-
-  return Effect.fail(new Error('Desktop authentication not supported in web environment'));
-};
+  return { instanceUrl, accessToken };
+});

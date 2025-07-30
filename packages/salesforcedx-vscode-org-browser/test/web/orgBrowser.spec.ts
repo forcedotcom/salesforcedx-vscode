@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { test, expect, Locator } from '@playwright/test';
-import { connectToCDPBrowser, reportConsoleCapture, CDPConnection } from './shared/cdp-utils';
+import { connectToCDPBrowser, reportConsoleCapture, CDPConnection } from './shared/cdpUtils';
 
 /**
  * Test suite for Salesforce Org Browser web extension

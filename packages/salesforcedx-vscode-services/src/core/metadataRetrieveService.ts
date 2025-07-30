@@ -9,6 +9,7 @@ import { type RetrieveResult, type MetadataMember } from '@salesforce/source-dep
 
 import { Context, Effect, Layer, pipe } from 'effect';
 import { ChannelService } from '../vscode/channelService';
+import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
@@ -25,7 +26,7 @@ export type MetadataRetrieveService = {
   ) => Effect.Effect<
     RetrieveResult,
     unknown,
-    ConnectionService | ProjectService | WorkspaceService | ConfigService | ChannelService
+    ConnectionService | ProjectService | WorkspaceService | ConfigService | ChannelService | SettingsService
   >;
 };
 
@@ -36,7 +37,7 @@ const retrieve = (
 ): Effect.Effect<
   RetrieveResult,
   unknown,
-  ConnectionService | ProjectService | WorkspaceService | ConfigService | ChannelService
+  ConnectionService | ProjectService | WorkspaceService | ConfigService | ChannelService | SettingsService
 > =>
   pipe(
     Effect.all([

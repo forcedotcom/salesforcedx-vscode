@@ -72,6 +72,21 @@
   "types": "out/src/index.d.ts",
   "browser": "./dist/browser.js",
   "contributes": {
+    "configuration": {
+      "title": "Salesforce Services Configuration",
+      "properties": {
+        "salesforcedx-vscode-code-builder-web.instanceUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Salesforce instance URL for web extensions"
+        },
+        "salesforcedx-vscode-code-builder-web.accessToken": {
+          "type": "string",
+          "default": "",
+          "description": "Salesforce access token for web extensions"
+        }
+      }
+    },
     "commands": []
   },
   "sideEffects": true

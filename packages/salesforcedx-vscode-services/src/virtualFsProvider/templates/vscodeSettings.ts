@@ -5,9 +5,4 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const vscodeSettings = [
-  '{',
-  '"salesforcedx-vscode-core.enable-sobject-refresh-on-startup": true,',
-  '"workbench.colorTheme": "Default Dark+"',
-  '}'
-];
+export const vscodeSettings = ['{', '"salesforcedx-vscode-core.enable-sobject-refresh-on-startup": true,', '}'];

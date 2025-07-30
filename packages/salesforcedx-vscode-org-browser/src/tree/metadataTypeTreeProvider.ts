@@ -50,6 +50,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
             api.services.ConnectionServiceLive,
             api.services.ConfigServiceLive,
             api.services.WorkspaceServiceLive,
+            api.services.SettingsServiceLive,
             fsWithChannel
           );
           return Effect.flatMap(MetadataDescribeService, describeService => {

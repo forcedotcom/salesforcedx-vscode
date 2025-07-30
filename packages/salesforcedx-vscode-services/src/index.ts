@@ -17,6 +17,7 @@ import { FsProvider } from './virtualFsProvider/fileSystemProvider';
 import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { FsService, FsServiceLive } from './vscode/fsService';
+import { SettingsService, SettingsServiceLive } from './vscode/settingsService';
 import { WorkspaceService, WorkspaceServiceLive } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
@@ -35,6 +36,8 @@ export type SalesforceVSCodeServicesApi = {
     ConfigServiceLive: typeof ConfigServiceLive;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     MetadataRetrieveServiceLive: typeof MetadataRetrieveServiceLive;
+    SettingsService: typeof SettingsService;
+    SettingsServiceLive: typeof SettingsServiceLive;
   };
 };
 
@@ -82,7 +85,9 @@ export const activate = async (
       ConfigService,
       ConfigServiceLive,
       MetadataRetrieveService,
-      MetadataRetrieveServiceLive
+      MetadataRetrieveServiceLive,
+      SettingsService,
+      SettingsServiceLive
     }
   };
 

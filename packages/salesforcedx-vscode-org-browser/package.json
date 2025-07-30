@@ -41,11 +41,8 @@
   "scripts": {
     "bundle:extension": "npm run compile && node ./esbuild.config.mjs",
     "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools",
-    "start:web:test": "npx vscode-test-web --browserType=chromium --port=3000 --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services",
+    "start:web:test": "npx vscode-test-web --browserType=chromium --port=3000 --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --browserOption=--disable-features=IsolateOrigins,site-per-process",
     "test:web": "playwright test --config=playwright.web.config.ts",
-    "test:web:cdp": "npm run run:web & sleep 15 && npm run test:web -- --grep 'CDP console access' && pkill -f 'vscode-test-web'",
-    "test:web:debug": "playwright test --config=playwright.web.config.ts --debug",
-    "test:web:headed": "playwright test --config=playwright.web.config.ts --headed",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "npm run bundle:extension && vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

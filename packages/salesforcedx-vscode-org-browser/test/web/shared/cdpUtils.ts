@@ -44,7 +44,7 @@ export const connectToCDPBrowser = async (port: number = 9222): Promise<CDPConne
   }
 
   // Find the VS Code page (usually the one with localhost:3000)
-  const page = pages.find(p => p.url().includes('localhost:3000')) || pages[0];
+  const page = pages.find(p => p.url().includes('localhost:3000')) ?? pages[0];
   console.log(`Connected to page: ${page.url()}`);
 
   // Set up console message tracking
@@ -96,6 +96,48 @@ export const connectToCDPBrowser = async (port: number = 9222): Promise<CDPConne
   });
 
   return { browser, context, page, capture };
+};
+
+/**
+ * Inject settings into VSCode via CDP
+ */
+export const injectSettings = async (page: Page, section: string, settings: Record<string, unknown>): Promise<void> => {
+  console.log(`Injecting settings for section: ${section}`, settings);
+
+  await page.evaluate(
+    ({ section, settings }) => {
+      // Access the VSCode API through acquireVsCodeApi()
+      const vscode = (window as any).acquireVsCodeApi();
+
+      // Create a message to update settings
+      vscode.postMessage({
+        command: 'updateSettings',
+        section,
+        settings
+      });
+
+      // Also try to directly modify the configuration if accessible
+      try {
+        if ((window as any).vscode?.workspace) {
+          const config = (window as any).vscode.workspace.getConfiguration(section);
+
+          // Update each setting
+          Object.entries(settings).forEach(([key, value]) => {
+            config.update(key, value, true);
+          });
+
+          console.log(`Settings for ${section} updated via direct configuration API`);
+        }
+      } catch (error) {
+        console.error('Failed to update settings via direct API:', error);
+      }
+    },
+    { section, settings }
+  );
+
+  // Wait a moment for settings to be applied
+  await page.waitForTimeout(1000);
+  console.log('Settings injection completed');
 };
 
 /**

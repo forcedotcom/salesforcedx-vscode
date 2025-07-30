@@ -24,3 +24,5 @@ make sure web bundle runs on any changes
 ## jsforce
 
 use a web-compatible solution for res.body.pipe and possibly the resulting stream type (to use web streams?)
+
+test environment (see projectInit.setupCredentials)
