@@ -66,7 +66,6 @@ import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Create OpenAPI v3 Specifications', () => {
-  let prompt: QuickOpenBox | InputBox;
   let testSetup: TestSetup;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -180,8 +179,8 @@ describe('Create OpenAPI v3 Specifications', () => {
         path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
       );
       await pause(Duration.seconds(5));
-      prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-      await prompt.confirm();
+      const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+      await quickPickPrompt.confirm();
 
       await verifyNotificationWithRetry(/OpenAPI Document created for class: CaseManager\./);
 
@@ -251,8 +250,8 @@ describe('Create OpenAPI v3 Specifications', () => {
         path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
       );
       await pause(Duration.seconds(5));
-      prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-      await prompt.confirm();
+      const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+      await quickPickPrompt.confirm();
 
       // Click the Manual Merge button on the popup
       await clickButtonOnModalDialog('Manually merge with existing ESR');
@@ -309,8 +308,8 @@ describe('Create OpenAPI v3 Specifications', () => {
         path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'SimpleAccountResource.cls')
       );
       await pause(Duration.seconds(5));
-      prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
-      await prompt.confirm();
+      const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+      await quickPickPrompt.confirm();
 
       await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
@@ -445,26 +444,23 @@ describe('Create OpenAPI v3 Specifications', () => {
             const wrkbench = getWorkbench();
             const textEditor = await getTextEditor(wrkbench, 'SimpleAccountResource.cls');
             const contextMenu = await textEditor.openContextMenu();
-            const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
+            await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
 
-            if (menu) {
-              const result = await getQuickOpenBoxOrInputBox();
-              if (!result) {
-                throw new Error('Failed to get QuickOpenBox or InputBox');
-              }
-              prompt = result;
-            } else {
-              throw new Error('Context menu selection failed - no menu returned');
+            const result = await getQuickOpenBoxOrInputBox();
+            if (!result) {
+              throw new Error('Failed to get QuickOpenBox or InputBox');
             }
+            const contextMenuPrompt = result;
+            await contextMenuPrompt.confirm();
           },
           3,
           'CreateOASDoc - Error with context menu operation'
         );
       } else {
         log('Mac - must use command palette');
-        prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        const macQuickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        await macQuickPickPrompt.confirm();
       }
-      await prompt.confirm();
 
       // Click the Overwrite button on the popup
       await clickButtonOnModalDialog('Overwrite');
@@ -542,7 +538,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       );
 
       // Use context menu for Windows and Ubuntu, command palette for Mac
-      if (process.platform !== 'darwin') {
+      if (process.platform === 'darwin') {
         log('Not Mac - can use context menu');
         await executeQuickPick('File: Focus on Files Explorer');
         await pause(Duration.seconds(2));
@@ -564,26 +560,25 @@ describe('Create OpenAPI v3 Specifications', () => {
         await retryOperation(
           async () => {
             const contextMenu = await simpleAccountResourceFile.openContextMenu();
-            const menu = await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
+            await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
 
-            if (menu) {
-              const result = await getQuickOpenBoxOrInputBox();
-              if (!result) {
-                throw new Error('Failed to get QuickOpenBox or InputBox');
-              }
-              prompt = result;
-            } else {
-              throw new Error('Context menu selection failed - no menu returned');
+            const result = await getQuickOpenBoxOrInputBox();
+            if (!result) {
+              throw new Error('Failed to get QuickOpenBox or InputBox');
             }
+            const explorerContextMenuPrompt = result;
+            await explorerContextMenuPrompt.confirm();
           },
           3,
           'CreateOASDoc - Error with context menu operation in Explorer View'
         );
       } else {
         log('Mac - must use command palette');
-        prompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
+        const explorerMacQuickPickPrompt = await executeQuickPick(
+          'SFDX: Create OpenAPI Document from This Class (Beta)'
+        );
+        await explorerMacQuickPickPrompt.confirm();
       }
-      await prompt.confirm();
 
       // Click the Manual Merge button on the popup
       await clickButtonOnModalDialog('Manually merge with existing ESR');
