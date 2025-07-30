@@ -24,10 +24,6 @@ import {
   enableBooleanSetting,
   isBooleanSettingEnabled
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
-import {
-  getExtensionsToVerifyActive,
-  verifyExtensionsAreRunning
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   acceptNotification,
@@ -283,17 +279,12 @@ describe('Deploy and Retrieve', () => {
 
   it('Disable Source Tracking and Deploy On Save Settings', async () => {
     logTestStart(testSetup, 'Disable Source Tracking and Deploy On Save Settings');
-    await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
 
     expect(await disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
     await pause(Duration.seconds(3));
     expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_ENABLED)).to.equal(false);
     await pause(Duration.seconds(3));
     expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_PREFER_DEPLOY_ON_SAVE)).to.equal(false);
-
-    // Reload window to update cache and get the setting behavior to work
-    await reloadWindow();
-    await verifyExtensionsAreRunning(getExtensionsToVerifyActive(), Duration.seconds(100));
   });
 
   it('Deploy with SFDX: Deploy This Source to Org - ST disabled', async () => {
@@ -333,9 +324,18 @@ describe('Deploy and Retrieve', () => {
     await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
   });
 
+  it('Re-enable Source Tracking', async () => {
+    logTestStart(testSetup, 'Re-enable Source Tracking');
+
+    expect(await enableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(true);
+    await pause(Duration.seconds(3));
+  });
+
   it('SFDX: Delete This from Project and Org - Command Palette', async () => {
     logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Command Palette');
     const workbench = getWorkbench();
+    // Close all notifications
+    await dismissAllNotifications();
 
     // Run SFDX: Push Source to Default Org to be in sync with remote
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
