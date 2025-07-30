@@ -13,6 +13,7 @@ import {
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
+import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { getFolderName, removeFolder } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
@@ -125,9 +126,12 @@ const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
 const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
   logTestStart(testSetup, 'Go to Definition');
   const workbench = getWorkbench();
-  const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
+  await retryOperation(async () => {
+    const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
+    await pause(Duration.seconds(2));
+    await moveCursorWithFallback(textEditor, 6, 20);
+  }, 2, 'Go to Definition - Error getting ExampleClassTest.cls or moving cursor');
 
-  await moveCursorWithFallback(textEditor, 6, 20);
   // Allow time for LSP to process cursor movement and prepare definition lookup
   await pause(Duration.seconds(2));
   // Wait for quick pick to appear and be clickable
