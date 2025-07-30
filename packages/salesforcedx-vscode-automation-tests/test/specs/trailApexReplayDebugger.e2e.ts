@@ -215,6 +215,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     log('I');
 
     // Verify content on log file
+    await executeQuickPick('View: Focus Active Editor Group', Duration.seconds(1));
     const editorView = workbench.getEditorView();
     log('J');
     const activeTab = await editorView.getActiveTab();
