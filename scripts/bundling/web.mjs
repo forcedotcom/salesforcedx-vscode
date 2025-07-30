@@ -103,6 +103,8 @@ export const commonConfigBrowser = {
     'node:fs/promises': '@salesforce/core/fs',
     jsonwebtoken: 'jsonwebtoken-esm',
     // Redirect jsforce-node to browser-compatible jsforce.  This is important, it won't auth without it but I don't understand why.
+    '@jsforce/jsforce-node': 'jsforce/browser',
+    '@jsforce/jsforce-node/lib': 'jsforce/browser',
     // Force use of our custom process polyfill instead of esbuild's built-in
     process: processPolyfillPath,
     // Force all readable-stream imports to use the main one to avoid duplication

@@ -48,7 +48,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
     const ConnectionService = api.services.ConnectionService;
 
     // a task that can be cached
-    const describeTask = (
+    const cacheableDescribe = (
       _forceRefresh: boolean = false
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
       pipe(
@@ -72,12 +72,12 @@ export const MetadataDescribeServiceLive = Layer.effect(
         )
       );
 
-    const cachedDescribe = yield* Effect.cachedFunction(describeTask);
+    const cachedDescribe = yield* Effect.cachedFunction(cacheableDescribe);
 
     const describe = (
       forceRefresh = false
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
-      forceRefresh ? describeTask(true) : cachedDescribe(false);
+      forceRefresh ? cacheableDescribe(true) : cachedDescribe(false);
 
     const listMetadata = (
       type: string,
