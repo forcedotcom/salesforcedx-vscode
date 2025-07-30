@@ -22,7 +22,8 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getOutputViewText,
-  moveCursorWithFallback
+  moveCursorWithFallback,
+  reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import {
   executeQuickPick,
@@ -111,6 +112,9 @@ const setupTestEnvironment = async (): Promise<void> => {
   // Allow time for VSCode to fully initialize and load extensions
   await pause(Duration.seconds(10));
   await createApexClassWithTest('ExampleClass', PATHS.apexClass);
+
+  // Reload window to get the language server to recognize the new classes
+  await reloadWindow();
 };
 
 const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
