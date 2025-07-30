@@ -32,7 +32,6 @@ import {
   dismissAllNotifications,
   executeQuickPick,
   getTextEditor,
-  reloadWindow,
   verifyOutputPanelText,
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
@@ -406,8 +405,11 @@ describe('Deploy and Retrieve', () => {
       await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
       await createCommand('Apex Class', 'ExampleApexClass2', 'classes', 'cls');
 
-      // Reload the VSCode window to allow the LWC to be indexed by the Apex Language Server
-      await reloadWindow(Duration.seconds(20));
+      // Close all notifications
+      await dismissAllNotifications();
+
+      // Clear the Output view
+      await clearOutputView();
 
       // Push source to org
       await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
