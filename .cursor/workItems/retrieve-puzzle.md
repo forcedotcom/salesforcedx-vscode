@@ -9,6 +9,9 @@ You can run the test via npm run test:web -w salesforcedx-vscode-org-browser (ex
 1. let's add a step to our orgBrowser test that will do a retrieve of a piece of metadata. a CustomObject is fine since we're already opening that.
    The test should assert that the file opens when we retrieve it.
 
+no fallbacks, if you can find an element that should be there, we want the test to fail!
+the goal is not to get the test to pass, via skips and fallbacks. The goal is to get the test to fail if anything is wrong with the UI.
+
 ## Error text
 
 Error:

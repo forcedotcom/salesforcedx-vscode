@@ -35,9 +35,17 @@ export class OrgBrowserPage {
     // Tree elements
     this.treeItems = page.locator('[role="treeitem"], .monaco-list-row, .monaco-tree-row');
 
-    // Notification elements
+    // Notification elements - use broader selectors to catch all possible notifications
     this.errorNotifications = page.locator(
-      '.notifications-container .notification-list-item.error, .notifications-container .notification-list-item-message[class*="error"]'
+      [
+        // Standard notification selectors
+        '.notifications-container .notification-list-item.error',
+        '.notifications-container .notification-list-item-message[class*="error"]',
+        // Additional selectors for better coverage
+        '.monaco-workbench .notifications-toasts .notification-toast-container .notification-list-item',
+        '.monaco-workbench .notifications-center .notification-list-item',
+        '.notification-list-item-message'
+      ].join(',')
     );
   }
 
@@ -118,10 +126,59 @@ export class OrgBrowserPage {
       console.log(`Found ${errorCount} error notification(s):`);
 
       for (let i = 0; i < errorCount; i++) {
-        const errorText = await this.errorNotifications.nth(i).textContent();
+        const notification = this.errorNotifications.nth(i);
+
+        // Try to get text content
+        const errorText = await notification.textContent();
         if (errorText) {
           errorTexts.push(errorText);
+          console.log(`  Notification ${i + 1}: "${errorText}"`);
         }
+
+        // Also try to get aria-label which might contain the error message
+        const ariaLabel = await notification.getAttribute('aria-label');
+        if (ariaLabel && !errorTexts.includes(ariaLabel)) {
+          errorTexts.push(ariaLabel);
+          console.log(`  Notification ${i + 1} aria-label: "${ariaLabel}"`);
+        }
+      }
+    } else {
+      console.log('No error notifications found with standard selectors');
+
+      // Try to find notifications using JavaScript evaluation for more coverage
+      const jsErrorTexts = await this.page.evaluate(() => {
+        const errors: string[] = [];
+
+        // Try various selectors that might contain error messages
+        const selectors = [
+          '.monaco-workbench .notification-list-item',
+          '.monaco-workbench .notification-list-item-message',
+          '.monaco-workbench .notifications-list-container .monaco-list-row',
+          '.notification-toast .notification-list-item',
+          '[role="alert"]'
+        ];
+
+        for (const selector of selectors) {
+          const elements = document.querySelectorAll(selector);
+          elements.forEach(element => {
+            if (element.textContent) {
+              errors.push(element.textContent);
+            }
+          });
+        }
+
+        return errors;
+      });
+
+      // Add any errors found via JavaScript
+      for (const text of jsErrorTexts) {
+        if (!errorTexts.includes(text)) {
+          errorTexts.push(text);
+        }
+      }
+
+      if (jsErrorTexts.length > 0) {
+        console.log(`Found ${jsErrorTexts.length} notifications via JavaScript evaluation`);
       }
     }
 
