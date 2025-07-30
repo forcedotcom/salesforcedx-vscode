@@ -2,15 +2,8 @@
 
 ## Fixed
 
-#### salesforcedx-utils-vscode
+#### salesforcedx-vscode
+#### salesforcedx-vscode-expanded
 
-- @W-18793417 - modify o11yService to support extension specific telemetry configuration ([PR #6354](https://github.com/forcedotcom/salesforcedx-vscode/pull/6354))
-
-#### salesforcedx-vscode-apex
-
-- @W-18793417 - modify o11yService to support extension specific telemetry configuration ([PR #6354](https://github.com/forcedotcom/salesforcedx-vscode/pull/6354))
-
-#### salesforcedx-vscode-core
-
-- Launch extensions was not working ([PR #6436](https://github.com/forcedotcom/salesforcedx-vscode/pull/6436))
+- We have removed the **Apex Interactive Debugger** extension from the **Salesforce Extension Pack** and **Salesforce Extension Pack Expanded**.  Users who want to use this extension should install it separately from the Microsoft Marketplace or Open VSX Registry.
 
