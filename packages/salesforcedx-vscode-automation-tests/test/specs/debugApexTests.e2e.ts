@@ -62,14 +62,20 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error creating Apex class ExampleApexClass2'
     );
 
-    // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+  });
+
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
   });
 
   it('Verify LSP finished indexing', async () => {
