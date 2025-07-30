@@ -72,12 +72,12 @@ npm run run:web
 
 #### File Structure
 
-```
+```text
 test/web/
 ├── orgBrowser.spec.ts       # Main extension functionality tests
-├── cdp-connect.spec.ts      # CDP connection testing
+├── cdpConnect.spec.ts      # CDP connection testing
 ├── shared/
-│   └── cdp-utils.ts         # Shared CDP utilities
+│   └── cdpUtils.ts         # Shared CDP utilities
 └── playwright.web.config.ts # Playwright configuration
 ```
 

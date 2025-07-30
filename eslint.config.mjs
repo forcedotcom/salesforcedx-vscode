@@ -467,7 +467,9 @@ export default [
     // Relaxed rules for test files in services and org-browser packages
     files: [
       'packages/salesforcedx-vscode-services/test/**/*.ts',
-      'packages/salesforcedx-vscode-org-browser/test/**/*.ts'
+      'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
+      'packages/salesforcedx-vscode-services/playwright*.ts',
+      'packages/salesforcedx-vscode-org-browser/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
@@ -476,7 +478,8 @@ export default [
       'functional/no-try-statements': 'off',
       'functional/no-let': 'off',
       'functional/no-loop-statements': 'off',
-      'functional/prefer-property-signatures': 'off'
+      'functional/prefer-property-signatures': 'off',
+      'import/no-extraneous-dependencies': 'off'
     }
   },
   eslintConfigPrettier

@@ -7,7 +7,7 @@
     "lib": ["ES2023", "DOM"]
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.web.config.ts"],
   "references": [
     {
       "path": "../salesforcedx-vscode-services"
