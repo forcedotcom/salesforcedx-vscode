@@ -87,6 +87,7 @@ describe('LWC LSP', () => {
         await executeQuickPick('Go to Definition', Duration.seconds(3));
 
         // Verify 'Go to definition' took us to the definition file
+        await executeQuickPick('View: Focus Active Editor Group', Duration.seconds(1));
         const editorView = workbench.getEditorView();
         const activeTab = await editorView.getActiveTab();
         const title = await activeTab?.getTitle();
