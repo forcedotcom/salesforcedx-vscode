@@ -21,6 +21,7 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
+  dismissAllNotifications,
   executeQuickPick,
   getStatusBarItemWhichIncludes,
   getTextEditor,
@@ -55,19 +56,25 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     log('TrailApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
+    // Hide chat copilot
+    await tryToHideCopilot();
+
     // Create Apex class AccountService
     await createApexClassWithBugs();
 
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
+
     // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+  });
 
-    // Hide chat copilot
-    await tryToHideCopilot();
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -122,7 +129,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain(
       'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation'
     );
-    expect(outputPanelText).to.contain('Ending SFDX: Update Checkpoints in Org');
+    expect(outputPanelText).to.contain('Ended SFDX: Update Checkpoints in Org');
   });
 
   it('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
@@ -143,8 +150,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger');
-    expect(outputPanelText).to.contain('ended with exit code 0');
+    expect(outputPanelText).to.contain('Ended SFDX: Turn On Apex Debug Log for Replay Debugger');
   });
 
   it('Run Apex Tests', async () => {
@@ -195,7 +201,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
-    expect(outputPanelText).to.contain('ended SFDX: Get Apex Debug Logs');
+    expect(outputPanelText).to.contain('Ended SFDX: Get Apex Debug Logs');
 
     // Verify content on log file
     const editorView = workbench.getEditorView();
@@ -231,12 +237,9 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       await pause(Duration.seconds(2));
 
       // Push source to org
-      await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+      await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(10));
 
-      await verifyNotificationWithRetry(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
+      await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
     }
   });
 

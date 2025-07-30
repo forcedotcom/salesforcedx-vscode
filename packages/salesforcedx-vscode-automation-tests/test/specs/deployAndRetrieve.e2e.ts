@@ -24,10 +24,6 @@ import {
   enableBooleanSetting,
   isBooleanSettingEnabled
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
-import {
-  getExtensionsToVerifyActive,
-  verifyExtensionsAreRunning
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   acceptNotification,
@@ -36,7 +32,6 @@ import {
   dismissAllNotifications,
   executeQuickPick,
   getTextEditor,
-  reloadWindow,
   verifyOutputPanelText,
   getWorkbench,
   overrideTextInFile
@@ -92,6 +87,12 @@ describe('Deploy and Retrieve', () => {
     expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain(`${pathToClass}.cls`);
     expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
+  });
+
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
   });
 
   it('Verify Source Tracking Setting is enabled', async () => {
@@ -152,9 +153,7 @@ describe('Deploy and Retrieve', () => {
 
       await validateCommand('Deploy', 'to', 'ST', 'ApexClass', ['MyClass'], 'Unchanged  ');
     });
-  }
 
-  if (process.platform !== 'darwin') {
     it('Deploy with context menu from explorer view', async () => {
       logTestStart(testSetup, 'Deploy with context menu from explorer view');
       // Clear the Output view first.
@@ -297,20 +296,14 @@ describe('Deploy and Retrieve', () => {
     await validateCommand('Deploy', 'to', 'on save', 'ApexClass', ['MyClass']);
   });
 
-  it('Disable Source Tracking Setting', async () => {
-    logTestStart(testSetup, 'Disable Source Tracking Setting');
-    await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
+  it('Disable Source Tracking and Deploy On Save Settings', async () => {
+    logTestStart(testSetup, 'Disable Source Tracking and Deploy On Save Settings');
 
     expect(await disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
-
-    // Reload window to update cache and get the setting behavior to work
-    await reloadWindow();
-    await verifyExtensionsAreRunning(
-      getExtensionsToVerifyActive(ext =>
-        defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
-      ),
-      Duration.seconds(100)
-    );
+    await pause(Duration.seconds(3));
+    expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_ENABLED)).to.equal(false);
+    await pause(Duration.seconds(3));
+    expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_PREFER_DEPLOY_ON_SAVE)).to.equal(false);
   });
 
   it('Deploy with SFDX: Deploy This Source to Org - ST disabled', async () => {
@@ -355,12 +348,27 @@ describe('Deploy and Retrieve', () => {
     await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
   });
 
+  it('Re-enable Source Tracking', async () => {
+    logTestStart(testSetup, 'Re-enable Source Tracking');
+
+    expect(await enableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(true);
+    await pause(Duration.seconds(3));
+  });
+
   it('SFDX: Delete This from Project and Org - Command Palette', async () => {
     logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Command Palette');
     const workbench = getWorkbench();
+    // Close all notifications
+    await dismissAllNotifications();
 
-    // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
+    // Run SFDX: Push Source to Default Org to be in sync with remote
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
 
     // Clear the Output view first.
     await clearOutputView();
@@ -422,8 +430,11 @@ describe('Deploy and Retrieve', () => {
       await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
       await createCommand('Apex Class', 'ExampleApexClass2', 'classes', 'cls');
 
-      // Reload the VSCode window to allow the LWC to be indexed by the Apex Language Server
-      await reloadWindow(Duration.seconds(20));
+      // Close all notifications
+      await dismissAllNotifications();
+
+      // Clear the Output view
+      await clearOutputView();
 
       // Push source to org
       await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));

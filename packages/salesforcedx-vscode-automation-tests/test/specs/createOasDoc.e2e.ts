@@ -142,6 +142,12 @@ describe('Create OpenAPI v3 Specifications', () => {
     expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
 
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('Try to generate OAS doc from an ineligible Apex class', async () => {
     logTestStart(testSetup, 'Try to generate OAS doc from an ineligible Apex class');
     await openFile(
