@@ -64,25 +64,13 @@ export const connectToCDPBrowser = async (port: number = 9222): Promise<CDPConne
     capture.allLogs.push(`[${msg.type()}] ${text}`);
 
     // Track auth-related logs
-    if (
-      text.includes('🔍') ||
-      text.includes('✅') ||
-      text.includes('❌') ||
-      text.includes('auth') ||
-      text.includes('Auth') ||
-      text.includes('Effect')
-    ) {
+    const authMarkers = ['🔍', '✅', '❌', 'auth', 'Auth', 'Effect'];
+    if (authMarkers.some(marker => text.includes(marker))) {
       capture.authLogs.push(text);
     }
 
-    if (
-      msg.type() === 'error' ||
-      text.includes('TypeError') ||
-      text.includes('Error:') ||
-      text.includes('Uncaught') ||
-      text.includes('removeAllListeners') ||
-      text.includes('FiberFailure')
-    ) {
+    const errorMarkers = ['TypeError', 'Error:', 'Uncaught', 'removeAllListeners', 'FiberFailure'];
+    if (msg.type() === 'error' || errorMarkers.some(marker => text.includes(marker))) {
       capture.consoleErrors.push(text);
 
       if (text.includes('removeAllListeners')) {
@@ -105,28 +93,31 @@ export const injectSettings = async (page: Page, section: string, settings: Reco
   console.log(`Injecting settings for section: ${section}`, settings);
 
   await page.evaluate(
-    ({ section, settings }) => {
+    params => {
       // Access the VSCode API through acquireVsCodeApi()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
       const vscode = (window as any).acquireVsCodeApi();
 
       // Create a message to update settings
       vscode.postMessage({
         command: 'updateSettings',
-        section,
-        settings
+        section: params.section,
+        settings: params.settings
       });
 
       // Also try to directly modify the configuration if accessible
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
         if ((window as any).vscode?.workspace) {
-          const config = (window as any).vscode.workspace.getConfiguration(section);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
+          const config = (window as any).vscode.workspace.getConfiguration(params.section);
 
           // Update each setting
-          Object.entries(settings).forEach(([key, value]) => {
+          Object.entries(params.settings).forEach(([key, value]) => {
             config.update(key, value, true);
           });
 
-          console.log(`Settings for ${section} updated via direct configuration API`);
+          console.log(`Settings for ${params.section} updated via direct configuration API`);
         }
       } catch (error) {
         console.error('Failed to update settings via direct API:', error);
