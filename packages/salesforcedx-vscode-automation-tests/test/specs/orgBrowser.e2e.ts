@@ -98,6 +98,10 @@ describe('Org Browser', () => {
       '}'
     ].join('\n');
     await createApexClass('MyClass', classText);
+
+    // Close all notifications
+    await dismissAllNotifications();
+
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Created  ');
 
     await closeCurrentEditor();
@@ -118,6 +122,8 @@ describe('Org Browser', () => {
 
   it('Retrieve This Source from Org', async () => {
     logTestStart(testSetup, 'Retrieve This Source from Org');
+    // Close all notifications
+    await dismissAllNotifications();
     const myClassLabelEl = await findTypeInOrgBrowser('MyClass');
     expect(myClassLabelEl).to.not.be.undefined;
     await myClassLabelEl?.click();

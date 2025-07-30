@@ -80,14 +80,14 @@ describe('Run Apex Tests', () => {
       'RunApexTests - Error creating Apex class 3 and test'
     );
 
-    // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
   });
 
   beforeEach(function () {
@@ -326,13 +326,10 @@ describe('Run Apex Tests', () => {
 
     // Push source to org
     const workbench = getWorkbench();
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view.
     await dismissAllNotifications();
@@ -361,13 +358,10 @@ describe('Run Apex Tests', () => {
     await pause(Duration.seconds(1));
 
     // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view.
     await dismissAllNotifications();

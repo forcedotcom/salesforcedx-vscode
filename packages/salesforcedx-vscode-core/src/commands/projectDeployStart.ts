@@ -22,7 +22,6 @@ import { getConflictMessagesFor } from '../conflict/messages';
 import { MetadataCacheService } from '../conflict/metadataCacheService';
 import { TimestampConflictDetector } from '../conflict/timestampConflictDetector';
 import { PROJECT_DEPLOY_START_LOG_NAME, TELEMETRY_METADATA_COUNT } from '../constants';
-import { workspaceContextUtils } from '../context';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
@@ -128,42 +127,39 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
           throw new Error(nls.localize('error_source_tracking_service_failed'));
         }
 
-        // Get local changes for deployment and conflict detection
-        const localStatusResponse = await sourceTracking.getStatus({ local: true, remote: false });
-        const localChanges = localStatusResponse.filter(
-          component => !component.ignored && component.origin === 'local'
-        );
+        // Get local changes for deployment and conflict detection using the proper method
+        const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
+        const localComponentSet = localComponentSets.length > 0 ? localComponentSets[0] : new ComponentSet();
 
-        // Get file paths for local changes (used for both conflict detection and deployment)
-        const changedFilePaths: string[] = localChanges
-          .map(component => component.filePath)
-          .filter((filePath): filePath is string => !!filePath)
-          .map(filePath => (nodePath.isAbsolute(filePath) ? filePath : nodePath.resolve(projectPath, filePath)));
+        // Populate changedFilePaths for conflict detection from local changes
+        this.changedFilePaths = [];
+        for (const component of localComponentSet.getSourceComponents()) {
+          if (component.content) {
+            const filePath = nodePath.isAbsolute(component.content)
+              ? component.content
+              : nodePath.resolve(projectPath, component.content);
+            this.changedFilePaths.push(filePath);
+          }
+        }
 
-        // Populate changedFilePaths for conflict detection
-        this.changedFilePaths = changedFilePaths;
-        if (localChanges.length === 0) {
+        if (localComponentSet.size === 0) {
           // No local changes found - this could be a new org with no existing metadata
           // Check if this is a "first deployment" scenario by checking if the org has any existing metadata
           try {
-            const orgType = await workspaceContextUtils.getWorkspaceOrgType();
-            if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
-              // For source-tracked orgs, check if there's any remote metadata
-              const remoteStatusResponse = await sourceTracking.getStatus({ local: false, remote: true });
-              if (remoteStatusResponse.length === 0) {
-                // No remote metadata found - this is likely a first deployment
-                // Check if there are source files to deploy
-                const allSourceComponents = ComponentSet.fromSource(projectPath);
-                if (allSourceComponents && allSourceComponents.size > 0) {
-                  console.log(
-                    'No source tracking changes found and no remote metadata exists. This appears to be a first deployment to a new org. Deploying all source files.'
-                  );
-                  return allSourceComponents;
-                }
+            const remoteComponentSet = await sourceTracking.remoteNonDeletesAsComponentSet({ applyIgnore: true });
+            if (remoteComponentSet.size === 0) {
+              // No remote metadata found - this is likely a first deployment
+              // Check if there are source files to deploy
+              const allSourceComponents = ComponentSet.fromSource(projectPath);
+              if (allSourceComponents && allSourceComponents.size > 0) {
+                console.log(
+                  'No source tracking changes found and no remote metadata exists. This appears to be a first deployment to a new org. Deploying all source files.'
+                );
+                return allSourceComponents;
               }
             }
           } catch {
-            // If we can't determine org type or get remote status, be conservative and return empty
+            // If we can't get remote status, be conservative and return empty
             console.log('Could not determine if this is a first deployment scenario, returning empty ComponentSet');
           }
 
@@ -172,12 +168,7 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
           return new ComponentSet();
         }
 
-        if (changedFilePaths.length === 0) {
-          // No file paths found, return empty ComponentSet
-          return new ComponentSet();
-        }
-
-        return ComponentSet.fromSource(changedFilePaths);
+        return localComponentSet;
       } catch (error) {
         // If source tracking fails, let the error bubble up
         console.error('Source tracking failed:', error);
@@ -283,7 +274,6 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     }
   }
 }
-
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 

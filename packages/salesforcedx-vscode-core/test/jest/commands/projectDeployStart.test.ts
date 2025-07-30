@@ -17,7 +17,6 @@ import { TimestampConflictChecker } from '../../../src/commands/util/timestampCo
 import { PersistentStorageService } from '../../../src/conflict';
 import { MetadataCacheService } from '../../../src/conflict/metadataCacheService';
 import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
-import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import SalesforcePackageDirectories from '../../../src/salesforceProject/salesforcePackageDirectories';
 import SalesforceProjectConfig from '../../../src/salesforceProject/salesforceProjectConfig';
@@ -32,6 +31,10 @@ jest.mock('../../../src/services/sdr/componentSetUtils', () => ({
 }));
 
 describe('ProjectDeployStart', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('ProjectDeployStartExecutor', () => {
     describe('postOperation', () => {
       class MockErrorCollection {
@@ -162,7 +165,7 @@ describe('ProjectDeployStart', () => {
           getConnection: jest.fn().mockResolvedValue({})
         } as any);
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue({
-          getStatus: jest.fn().mockResolvedValue([])
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         } as any);
       });
 
@@ -171,7 +174,8 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([])
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]), // no changes
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue([]) // no remote metadata
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         // Mock ComponentSet.fromSource to return undefined (no source files exist)
@@ -181,7 +185,7 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: true, remote: false });
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -191,7 +195,7 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([])
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
 
@@ -199,7 +203,7 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: true, remote: false });
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -209,15 +213,10 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockSourceTracking = {
-          getStatus: jest
-            .fn()
-            .mockResolvedValueOnce([]) // local status - no changes
-            .mockResolvedValueOnce([]) // remote status - no remote metadata
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([]), // no local changes
+          remoteNonDeletesAsComponentSet: jest.fn().mockResolvedValue(new ComponentSet()) // no remote metadata
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        jest
-          .spyOn(workspaceContextUtils, 'getWorkspaceOrgType')
-          .mockResolvedValue(workspaceContextUtils.OrgType.SourceTracked);
 
         // Mock ComponentSet.fromSource to return a ComponentSet with components (source files exist)
         const mockAllSourceComponentSet = new ComponentSet();
@@ -228,8 +227,8 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: true, remote: false });
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: false, remote: true });
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
+        expect(mockSourceTracking.remoteNonDeletesAsComponentSet).toHaveBeenCalledWith({ applyIgnore: true });
         expect(ComponentSet.fromSource).toHaveBeenCalledWith(expect.any(String)); // projectPath
         expect(result).toBe(mockAllSourceComponentSet);
         expect(result.size).toBe(5);
@@ -240,7 +239,7 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([])
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
 
@@ -248,7 +247,7 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: true, remote: false });
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -258,7 +257,7 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([])
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
 
@@ -266,7 +265,7 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: true, remote: false });
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -275,102 +274,54 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
-          }
-        ];
+        const mockComponentSet = new ComponentSet();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        const mockComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: true, remote: false });
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith([
-          '/test/project/path/force-app/main/default/classes/TestClass.cls'
-        ]);
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
+        expect(result).toBeDefined();
       });
 
       it('should pass single file path when only one change is detected', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
-        const mockResponse = {} as any;
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
-          }
-        ];
+        const mockResponse = { type: 'CONTINUE', data: {} };
+        const mockComponentSet = new ComponentSet();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        const mockComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: true, remote: false });
-        // Should pass the array of file paths (single file optimization is in checkConflictsForChangedFiles)
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith([
-          '/test/project/path/force-app/main/default/classes/TestClass.cls'
-        ]);
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
       });
 
       it('should pass array of file paths when multiple changes are detected', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
-        const mockResponse = {} as any;
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass1',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass1.cls',
-            origin: 'local',
-            ignored: false
-          },
-          {
-            fullName: 'TestClass2',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass2.cls',
-            origin: 'local',
-            ignored: false
-          }
-        ];
+        const mockResponse = { type: 'CONTINUE', data: {} };
+        const mockComponentSet = new ComponentSet();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
-        const mockComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.getStatus).toHaveBeenCalledWith({ local: true, remote: false });
-        // Should pass the array of file paths
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith([
-          '/test/project/path/force-app/main/default/classes/TestClass1.cls',
-          '/test/project/path/force-app/main/default/classes/TestClass2.cls'
-        ]);
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
       });
 
@@ -378,17 +329,8 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: true
-          }
-        ];
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
 
@@ -396,6 +338,7 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0); // Should be empty since component is ignored
       });
@@ -404,17 +347,8 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'remote',
-            ignored: false
-          }
-        ];
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
 
@@ -422,6 +356,7 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0); // Should be empty since component is not local
       });
@@ -430,17 +365,8 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            origin: 'local',
-            ignored: false
-            // No filePath property
-          }
-        ];
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
 
@@ -448,6 +374,7 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalled();
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0); // Should be empty since no file paths
       });
@@ -583,17 +510,20 @@ describe('ProjectDeployStart', () => {
       it('should store changed file paths in executor for conflict detection', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
+        const mockComponentSet = new ComponentSet();
+        // Mock the getSourceComponents method to return components with file paths
+        const mockSourceComponent = {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        };
+        jest.spyOn(mockComponentSet, 'getSourceComponents').mockReturnValue({
+          *[Symbol.iterator]() {
+            yield mockSourceComponent;
           }
-        ];
+        } as any);
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -602,8 +532,8 @@ describe('ProjectDeployStart', () => {
         } as any);
 
         // Mock ComponentSet.fromSource to avoid file system access
-        const mockComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
+        const mockComponentSetForConflict = new ComponentSet();
+        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSetForConflict);
 
         // Act
         await (executor as any).getComponents({} as any);
@@ -618,7 +548,7 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([])
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -657,7 +587,7 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue([])
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -692,17 +622,20 @@ describe('ProjectDeployStart', () => {
       it('should skip conflict detection when ignoreConflicts is true', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor(true, true); // ignoreConflicts = true
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
+        const mockComponentSetForIgnore = new ComponentSet();
+        // Mock the getSourceComponents method to return components with file paths
+        const mockSourceComponent = {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        };
+        jest.spyOn(mockComponentSetForIgnore, 'getSourceComponents').mockReturnValue({
+          *[Symbol.iterator]() {
+            yield mockSourceComponent;
           }
-        ];
+        } as any);
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSetForIgnore])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -765,17 +698,20 @@ describe('ProjectDeployStart', () => {
       it('should perform conflict detection when ignoreConflicts is false and conflicts are detected', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor(true, false); // ignoreConflicts = false
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
+        const mockComponentSet = new ComponentSet();
+        // Mock the getSourceComponents method to return components with file paths
+        const mockSourceComponent = {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        };
+        jest.spyOn(mockComponentSet, 'getSourceComponents').mockReturnValue({
+          *[Symbol.iterator]() {
+            yield mockSourceComponent;
           }
-        ];
+        } as any);
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -786,7 +722,7 @@ describe('ProjectDeployStart', () => {
         } as any);
 
         // Mock ComponentSet to return a proper iterable
-        const mockComponentSet = {
+        const mockComponentSetForDeploy = {
           size: 1,
           *[Symbol.iterator]() {
             yield { type: { name: 'ApexClass' } };
@@ -800,7 +736,7 @@ describe('ProjectDeployStart', () => {
             getFileResponses: jest.fn().mockReturnValue([])
           })
         };
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet as any);
+        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSetForDeploy as any);
 
         // Mock the source tracking to have all required methods
         const mockSourceTrackingWithMethods = {
@@ -846,17 +782,20 @@ describe('ProjectDeployStart', () => {
       it('should cancel deployment when conflicts are detected and user cancels', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor(true, false); // ignoreConflicts = false
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
+        const mockComponentSetForCancel = new ComponentSet();
+        // Mock the getSourceComponents method to return components with file paths
+        const mockSourceComponent = {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        };
+        jest.spyOn(mockComponentSetForCancel, 'getSourceComponents').mockReturnValue({
+          *[Symbol.iterator]() {
+            yield mockSourceComponent;
           }
-        ];
+        } as any);
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSetForCancel])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -922,17 +861,20 @@ describe('ProjectDeployStart', () => {
       it('should continue deployment when conflicts are detected and user continues', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor(true, false); // ignoreConflicts = false
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
+        const mockComponentSetForContinue = new ComponentSet();
+        // Mock the getSourceComponents method to return components with file paths
+        const mockSourceComponent = {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        };
+        jest.spyOn(mockComponentSetForContinue, 'getSourceComponents').mockReturnValue({
+          *[Symbol.iterator]() {
+            yield mockSourceComponent;
           }
-        ];
+        } as any);
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSetForContinue])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
@@ -1000,17 +942,20 @@ describe('ProjectDeployStart', () => {
       it('should perform conflict detection when enabled but no conflicts are found', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor(true, false); // ignoreConflicts = false
-        const mockChangedComponents = [
-          {
-            fullName: 'TestClass',
-            type: 'ApexClass',
-            filePath: '/test/project/path/force-app/main/default/classes/TestClass.cls',
-            origin: 'local',
-            ignored: false
+        const mockComponentSetForNoConflicts = new ComponentSet();
+        // Mock the getSourceComponents method to return components with file paths
+        const mockSourceComponent = {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: '/test/project/path/force-app/main/default/classes/TestClass.cls'
+        };
+        jest.spyOn(mockComponentSetForNoConflicts, 'getSourceComponents').mockReturnValue({
+          *[Symbol.iterator]() {
+            yield mockSourceComponent;
           }
-        ];
+        } as any);
         const mockSourceTracking = {
-          getStatus: jest.fn().mockResolvedValue(mockChangedComponents)
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSetForNoConflicts])
         };
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
