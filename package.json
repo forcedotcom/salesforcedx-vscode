@@ -47,7 +47,7 @@
     "depcheck": "1.4.3",
     "esbuild": "0.25.0",
     "esbuild-plugin-copy": "2.1.1",
-    "eslint": "^9.25.0",
+    "eslint": "^9.32.0",
     "eslint-config-prettier": "10.1.5",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jest": "28.14.0",
