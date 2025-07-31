@@ -19,6 +19,8 @@ import {
   verifyProjectLoaded
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 
 describe('SFDX: Create Project', () => {
   let testSetup: TestSetup;
@@ -28,11 +30,15 @@ describe('SFDX: Create Project', () => {
       projectShape: ProjectShapeOption.NONE
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'sfdxCreateProject'
+    testSuiteSuffixName: 'sfdxCreateProject',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it('Execute command SFDX: Create Project', async () => {

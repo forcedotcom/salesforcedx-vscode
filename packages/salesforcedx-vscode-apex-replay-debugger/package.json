@@ -66,8 +66,7 @@
   },
   "activationEvents": [
     "onDebugResolve:apex",
-    "onCommand:extension.replay-debugger.getLogFileName",
-    "workspaceContains:sfdx-project.json"
+    "onCommand:extension.replay-debugger.getLogFileName"
   ],
   "main": "./out/src",
   "packaging": {
