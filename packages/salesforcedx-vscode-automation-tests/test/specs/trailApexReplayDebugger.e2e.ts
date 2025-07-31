@@ -190,6 +190,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
         log('2');
         expect(quickPicks).to.not.be.undefined;
         log('3');
+        log(JSON.stringify(quickPicks));
         expect(quickPicks.length).to.be.greaterThan(0);
         log('4');
         await prompt.selectQuickPick('User User - ApexTestHandler');
