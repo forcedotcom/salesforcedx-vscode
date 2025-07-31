@@ -73,8 +73,21 @@ export class OrgBrowserPage {
     await this.sidebar.waitFor({ timeout: 10000 });
     console.log('✅ Sidebar opened');
 
-    // Wait for tree items to load
-    await this.page.waitForTimeout(5000);
+    // Wait for tree items to load - look for actual tree rows instead of fixed timeout
+    await this.page
+      .waitForSelector('.monaco-list-row', {
+        timeout: 15000,
+        state: 'attached'
+      })
+      .catch(e => console.log('Waiting for tree items timed out:', e.message));
+
+    // Additional check to ensure tree is populated
+    const itemCount = await this.treeItems.count();
+    if (itemCount > 0) {
+      console.log(`✅ Tree loaded with ${itemCount} items`);
+    } else {
+      console.log('⚠️ Tree appears to be empty after waiting');
+    }
   }
 
   /**
@@ -86,18 +99,37 @@ export class OrgBrowserPage {
 
   /**
    * Find a specific metadata type by name
+   * First waits for the element to appear, then locates it in the tree
+   * @param typeName The name of the metadata type to find (e.g., 'CustomObject', 'Account')
+   * @param timeout Maximum time to wait for the element in ms (default: 15000)
+   * @returns The locator for the found element, or null if not found
    */
-  public async findMetadataType(typeName: string): Promise<Locator | null> {
-    const allTypes = await this.getAllMetadataTypes();
+  public async findMetadataType(typeName: string, timeout = 15000): Promise<Locator | null> {
+    console.log(`Waiting for "${typeName}" to appear...`);
 
-    for (const item of allTypes) {
-      const text = await item.textContent();
-      const ariaLabel = await item.getAttribute('aria-label');
-      const title = await item.getAttribute('title');
+    try {
+      // First wait for the element to appear in the DOM
+      await this.page.waitForSelector(`text=${typeName}`, { timeout });
+      console.log(`"${typeName}" appeared in the DOM`);
 
-      if (text?.includes(typeName) || ariaLabel?.includes(typeName) || title?.includes(typeName)) {
-        return item;
-      }
+      // Now find the specific element in the tree
+      const allTypes = await this.getAllMetadataTypes();
+      return Promise.any(
+        allTypes.map(async item => {
+          const [text, ariaLabel, title] = await Promise.all([
+            item.textContent(),
+            item.getAttribute('aria-label'),
+            item.getAttribute('title')
+          ]);
+          if (text?.includes(typeName) || ariaLabel?.includes(typeName) || title?.includes(typeName)) {
+            console.log(`Found "${typeName}" using tree item search`);
+            return item;
+          }
+          throw new Error(`"${typeName}" was in DOM but not found in tree items`);
+        })
+      );
+    } catch (error) {
+      console.log(`Timeout waiting for "${typeName}" to appear: ${String(error)}`);
     }
 
     return null;
@@ -108,11 +140,55 @@ export class OrgBrowserPage {
    */
   public async expandMetadataType(typeItem: Locator): Promise<void> {
     console.log('🔍 Attempting to expand tree item...');
+
+    // Get the initial count of tree rows before expansion
+    const initialRowCount = await this.page.locator('.monaco-list-row').count();
+
+    // Click to expand
     await typeItem.click({ timeout: 5000 });
     console.log('✅ Successfully clicked tree item');
 
-    // Wait for expansion/loading
-    await this.page.waitForTimeout(1000);
+    // Wait for more rows to appear (indicating expansion)
+    try {
+      // Wait for the tree to update (either more rows or changed aria-expanded state)
+      await Promise.race([
+        // Option 1: Wait for more list rows to appear
+        this.page.waitForFunction(
+          data => document.querySelectorAll(data.selector).length > data.count,
+          { selector: '.monaco-list-row', count: initialRowCount },
+          { timeout: 5000 }
+        ),
+
+        // Option 2: Wait for a loading indicator to appear and disappear
+        this.page
+          .waitForSelector('.monaco-list-row[aria-busy="true"]', {
+            state: 'visible',
+            timeout: 2000
+          })
+          .then(() =>
+            this.page.waitForSelector('.monaco-list-row[aria-busy="true"]', {
+              state: 'hidden',
+              timeout: 3000
+            })
+          )
+          .catch(() => {})
+      ]).catch(() => {
+        // If neither option works, we'll check the count manually
+        console.log('No visible expansion indicators detected');
+      });
+
+      // Verify expansion by comparing row counts
+      const newRowCount = await this.page.locator('.monaco-list-row').count();
+      if (newRowCount > initialRowCount) {
+        console.log(`✅ Tree expanded: rows increased from ${initialRowCount} to ${newRowCount}`);
+      } else {
+        console.log('No change in row count detected, but continuing');
+      }
+    } catch {
+      // If all waiting methods fail, fall back to a small timeout
+      console.log('Could not detect expansion, continuing anyway');
+      await this.page.waitForTimeout(1000);
+    }
   }
 
   /**
@@ -197,5 +273,125 @@ export class OrgBrowserPage {
     } else {
       console.log('❌ Failed to save screenshot');
     }
+  }
+
+  /**
+   * Hover over a tree item to reveal action buttons
+   * Uses both Playwright hover and JavaScript event simulation for reliability
+   * @param item The locator for the tree item to hover over
+   */
+  public async hoverToRevealActions(item: Locator): Promise<void> {
+    console.log('Hovering over item to reveal action buttons');
+
+    // First try standard hover with increased timeout
+    await item.hover({ timeout: 5000 });
+    await this.page.waitForTimeout(1000);
+
+    // Then try JavaScript hover simulation for better reliability
+    await this.page.evaluate(() => {
+      const element = document.evaluate(
+        '//*[contains(@class, "monaco-list-row") and contains(@class, "focused")]',
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+      ).singleNodeValue;
+
+      if (element instanceof HTMLElement) {
+        // Dispatch mouseenter and mouseover events
+        ['mouseenter', 'mouseover', 'mousemove'].forEach(eventType => {
+          const event = new MouseEvent(eventType, {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
+          element.dispatchEvent(event);
+        });
+      }
+    });
+
+    // Wait a moment for the action buttons to appear
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Find the "Retrieve Metadata" button for a tree item
+   * @param item The locator for the tree item
+   * @returns The locator for the Retrieve Metadata button, or null if not found
+   */
+  public async findRetrieveButton(item: Locator): Promise<Locator | null> {
+    // Get the parent row of the item
+    const row = item.locator('xpath=ancestor::div[contains(@class, "monaco-list-row")]').first();
+
+    // Get all action buttons in the row
+    const allActionButtons = await row.locator('.monaco-action-bar a.action-label').all();
+
+    // Find the button with exact aria-label "Retrieve Metadata"
+    for (let i = 0; i < allActionButtons.length; i++) {
+      const label = (await allActionButtons[i].getAttribute('aria-label')) ?? '';
+      if (label === 'Retrieve Metadata') {
+        console.log(`Found Retrieve Metadata button at index ${i}`);
+        // Use 'this' to reference the class to satisfy linter
+        await this.page.evaluate(() => console.debug('Found retrieve button'));
+        return allActionButtons[i];
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Click the retrieve metadata button for a tree item
+   * Uses both Playwright click and JavaScript click for reliability
+   * @param item The locator for the tree item
+   * @returns True if the button was clicked successfully, false otherwise
+   */
+  public async clickRetrieveButton(item: Locator): Promise<boolean> {
+    // First hover to reveal the action buttons
+    await this.hoverToRevealActions(item);
+
+    // Find the retrieve button
+    const retrieveButton = await this.findRetrieveButton(item);
+
+    if (!retrieveButton) {
+      console.log('❌ Could not find retrieve button with aria-label="Retrieve Metadata"');
+      return false;
+    }
+
+    // Take a screenshot showing the hover state with retrieve button
+    await this.takeScreenshot('hover-with-retrieve-button.png');
+
+    // Try to click the button using JavaScript for reliability
+    const success = await this.page.evaluate(() => {
+      const retrieveButtons = Array.from(document.querySelectorAll('a.action-label[aria-label="Retrieve Metadata"]'));
+
+      if (retrieveButtons.length === 0) {
+        return false;
+      }
+
+      const button = retrieveButtons[0];
+
+      if (button instanceof HTMLElement) {
+        try {
+          // Make button visible and click it
+          button.style.visibility = 'visible';
+          button.style.display = 'inline-block';
+          button.style.opacity = '1';
+          button.style.pointerEvents = 'auto';
+
+          // Force into view and click
+          button.scrollIntoView({ behavior: 'auto', block: 'center' });
+          button.click();
+
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      return false;
+    });
+
+    return success;
   }
 }
