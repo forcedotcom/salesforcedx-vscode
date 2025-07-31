@@ -60,7 +60,7 @@ export class OrgBrowserPage {
   /**
    * Open the Org Browser by clicking its activity bar item
    */
-  public async open(): Promise<void> {
+  public async openOrgBrowser(): Promise<void> {
     // Wait for activity bar to be ready
     await this.activityBarItem.waitFor({ timeout: 15000 });
     console.log('🔍 Looking for Org Browser activity bar item...');

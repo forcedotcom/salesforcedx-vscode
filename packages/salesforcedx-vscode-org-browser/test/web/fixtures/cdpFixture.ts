@@ -16,7 +16,6 @@ export type CDPFixtures = {
 
 // Define test configuration options
 export type TestConfig = {
-  requireCustomObject: boolean;
   screenshotOnFailure: boolean;
   timeouts: {
     vsCodeLoad: number;
@@ -128,7 +127,6 @@ export const test = base.extend<OrgBrowserFixtures>({
   testConfig: async ({}, use) => {
     // Default configuration
     const config: TestConfig = {
-      requireCustomObject: true,
       screenshotOnFailure: true,
       timeouts: {
         vsCodeLoad: 30000,
