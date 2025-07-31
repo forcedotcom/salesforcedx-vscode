@@ -2,15 +2,11 @@
 
 when I retrieve, I get an error saying Error: Not a Salesforce project: InvalidProjectWorkspaceError: memfs:/MyProject does not contain a valid Salesforce DX project.
 
-## Test Enhancement
+To solve, we probably need to know what's in the filesystem at the time and to make sure it's using the same memfs instance/volume/etc so that it sees the files in our project.
 
-You can run the test via npm run test:web -w salesforcedx-vscode-org-browser (executed from the top of the salesforcedx-vscode project).
+## browser test
 
-1. let's add a step to our orgBrowser test that will do a retrieve of a piece of metadata. a CustomObject is fine since we're already opening that.
-   The test should assert that the file opens when we retrieve it.
-
-no fallbacks, if you can find an element that should be there, we want the test to fail!
-the goal is not to get the test to pass, via skips and fallbacks. The goal is to get the test to fail if anything is wrong with the UI.
+You can run the test via `npm run test:web -w salesforcedx-vscode-org-browser -- --grep="should retrieve metadata and check for project error"` (executed from the top of the salesforcedx-vscode project).
 
 ## Error text
 
