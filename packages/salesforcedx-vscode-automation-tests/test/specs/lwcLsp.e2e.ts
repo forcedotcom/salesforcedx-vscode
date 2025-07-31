@@ -79,7 +79,6 @@ describe('LWC LSP', () => {
       const workbench = getWorkbench();
       await retryOperation(async () => {
         const textEditor = await getTextEditor(workbench, 'lwc1.html');
-        log(`*** current tab = ${await textEditor.getTitle()}`);
         await pause(Duration.seconds(2));
         await moveCursorWithFallback(textEditor, 3, 58);
 
