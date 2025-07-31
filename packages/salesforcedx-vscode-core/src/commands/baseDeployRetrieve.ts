@@ -181,7 +181,7 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
         const localComponentSet = localComponentSets.length > 0 ? localComponentSets[0] : new ComponentSet();
 
         // Populate changedFilePaths for conflict detection from local changes
-        changedFilePaths.length = 0; // Clear the array
+        changedFilePaths.length = 0;
         for (const component of localComponentSet.getSourceComponents()) {
           if (component.content) {
             const filePath = nodePath.isAbsolute(component.content)
@@ -196,8 +196,8 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
         throw new Error(`Source tracking setup failed: ${error}`);
       }
     }
-
-    return new ComponentSet();
+    // If source tracking is disabled, deploy all source
+    return ComponentSet.fromSource(projectPath);
   }
 }
 

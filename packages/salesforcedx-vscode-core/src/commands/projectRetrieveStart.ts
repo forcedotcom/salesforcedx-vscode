@@ -88,14 +88,13 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
           throw new Error(nls.localize('error_source_tracking_connection_failed'));
         }
 
+        // Clear the source tracking cache to ensure we get a fresh instance
+        SourceTrackingService.clearSourceTracking(projectPath, connection);
+
         const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
         if (!sourceTracking) {
           throw new Error(nls.localize('error_source_tracking_service_failed'));
         }
-
-        // Force remote tracking refresh to ensure we get the latest changes
-        // The 'true' parameter forces a refresh of remote tracking data
-        await sourceTracking.ensureRemoteTracking(true);
 
         // Use the same approach as CLI: apply remote deletes and get component set
         // This ensures proper state management and updates

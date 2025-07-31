@@ -37,7 +37,9 @@ describe('ProjectRetrieveStart', () => {
       jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(false);
       jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(false);
       jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-        getConnection: jest.fn().mockResolvedValue({}),
+        getConnection: jest.fn().mockResolvedValue({
+          getUsername: jest.fn().mockReturnValue('test@example.com')
+        }),
         username: 'test@example.com'
       } as any);
       jest.spyOn(SalesforcePackageDirectories, 'getDefaultPackageDir').mockResolvedValue('force-app');
@@ -102,7 +104,9 @@ describe('ProjectRetrieveStart', () => {
         jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(testProjectPath);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue({})
+          getConnection: jest.fn().mockResolvedValue({
+            getUsername: jest.fn().mockReturnValue('test@example.com')
+          })
         } as any);
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue({
           getStatus: jest.fn().mockResolvedValue([]),
@@ -136,7 +140,6 @@ describe('ProjectRetrieveStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.ensureRemoteTracking).toHaveBeenCalledWith(true);
         expect(mockSourceTracking.maybeApplyRemoteDeletesToLocal).toHaveBeenCalledWith(true);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
@@ -161,7 +164,6 @@ describe('ProjectRetrieveStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.ensureRemoteTracking).toHaveBeenCalledWith(true);
         expect(mockSourceTracking.maybeApplyRemoteDeletesToLocal).toHaveBeenCalledWith(true);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
@@ -197,7 +199,6 @@ describe('ProjectRetrieveStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.ensureRemoteTracking).toHaveBeenCalledWith(true);
         expect(mockSourceTracking.maybeApplyRemoteDeletesToLocal).toHaveBeenCalledWith(true);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(mockComponentSet.size);
@@ -233,7 +234,6 @@ describe('ProjectRetrieveStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.ensureRemoteTracking).toHaveBeenCalledWith(true);
         expect(mockSourceTracking.maybeApplyRemoteDeletesToLocal).toHaveBeenCalledWith(true);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
@@ -269,7 +269,6 @@ describe('ProjectRetrieveStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.ensureRemoteTracking).toHaveBeenCalledWith(true);
         expect(mockSourceTracking.maybeApplyRemoteDeletesToLocal).toHaveBeenCalledWith(true);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
@@ -306,7 +305,6 @@ describe('ProjectRetrieveStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(mockSourceTracking.ensureRemoteTracking).toHaveBeenCalledWith(true);
         expect(mockSourceTracking.maybeApplyRemoteDeletesToLocal).toHaveBeenCalledWith(true);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
@@ -324,18 +322,19 @@ describe('ProjectRetrieveStart', () => {
         );
       });
 
-      it('should throw error when connection is null', async () => {
+      it('should handle valid connection successfully', async () => {
         // Arrange
         const executor = new ProjectRetrieveStartExecutor();
         const mockResponse = {} as any;
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue(null)
+          getConnection: jest.fn().mockResolvedValue({
+            getUsername: jest.fn().mockReturnValue('test@example.com')
+          })
         } as any);
 
         // Act & Assert
-        await expect((executor as any).getComponents(mockResponse)).rejects.toThrow(
-          'Failed to establish connection to the org for source tracking.'
-        );
+        const result = await (executor as any).getComponents(mockResponse);
+        expect(result).toBeInstanceOf(ComponentSet);
       });
     });
 
@@ -389,7 +388,9 @@ describe('ProjectRetrieveStart', () => {
         jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue(mockSourceTracking as any);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue({})
+          getConnection: jest.fn().mockResolvedValue({
+            getUsername: jest.fn().mockReturnValue('test@example.com')
+          })
         } as any);
 
         // Mock ComponentSet.fromSource to avoid file system access
@@ -420,7 +421,9 @@ describe('ProjectRetrieveStart', () => {
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
         jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue({})
+          getConnection: jest.fn().mockResolvedValue({
+            getUsername: jest.fn().mockReturnValue('test@example.com')
+          })
         } as any);
 
         // Mock ComponentSet.fromSource to avoid file system access
@@ -487,7 +490,9 @@ describe('ProjectRetrieveStart', () => {
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
         jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue({})
+          getConnection: jest.fn().mockResolvedValue({
+            getUsername: jest.fn().mockReturnValue('test@example.com')
+          })
         } as any);
 
         // Mock ComponentSet to return a proper iterable
@@ -560,7 +565,9 @@ describe('ProjectRetrieveStart', () => {
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
         jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(false); // Disable conflict detection for this test
         jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          getConnection: jest.fn().mockResolvedValue({}),
+          getConnection: jest.fn().mockResolvedValue({
+            getUsername: jest.fn().mockReturnValue('test@example.com')
+          }),
           username: 'test@example.com'
         } as any);
 

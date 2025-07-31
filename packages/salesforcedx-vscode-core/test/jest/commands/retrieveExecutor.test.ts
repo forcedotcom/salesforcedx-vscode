@@ -22,7 +22,11 @@ describe('Retrieve Executor', () => {
     size: 1, // Ensure non-zero size to avoid early return
     retrieve: jest.fn()
   } as any;
-  const mockWorkspaceContext = { getConnection: jest.fn() } as any;
+  const mockWorkspaceContext = {
+    getConnection: jest.fn().mockResolvedValue({
+      getUsername: jest.fn().mockReturnValue('test@example.com')
+    })
+  } as any;
   const updateTrackingFromRetrieveMock = jest.fn().mockResolvedValue({});
   const dummySourceTracking = {
     updateTrackingFromRetrieve: updateTrackingFromRetrieveMock,

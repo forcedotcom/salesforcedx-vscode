@@ -27,6 +27,16 @@ export class SourceTrackingService {
     return tracker;
   }
 
+  /**
+   * Clears the cached source tracking instance for a specific project and connection.
+   * This is useful to force a fresh source tracking instance, particularly for pull operations
+   * where stale remote tracking data might cause issues.
+   */
+  public static clearSourceTracking(projectPath: string, connection: Connection): void {
+    const provider = SourceTrackingProvider.getInstance();
+    provider.clearSourceTracker(projectPath, connection);
+  }
+
   public static async updateSourceTrackingAfterRetrieve(sourceTracking: SourceTracking, result: RetrieveResult) {
     await sourceTracking.updateTrackingFromRetrieve(result);
   }

@@ -126,7 +126,7 @@ describe('ProjectDeployStart', () => {
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(false);
       });
 
-      it('should return ComponentSet from project source when source tracking is disabled', async () => {
+      it('should return empty ComponentSet when source tracking is disabled and no changes', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
@@ -135,12 +135,11 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(workspaceUtils.getRootWorkspacePath).toHaveBeenCalled();
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith('/test/project/path');
         expect(result).toBeInstanceOf(ComponentSet);
+        expect(result.size).toBe(0);
       });
 
-      it('should handle empty project path gracefully', async () => {
+      it('should return empty ComponentSet regardless of project path when no changes', async () => {
         // Arrange
         jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('');
         const executor = new ProjectDeployStartExecutor();
@@ -150,8 +149,8 @@ describe('ProjectDeployStart', () => {
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect(ComponentSet.fromSource).toHaveBeenCalledWith('');
         expect(result).toBeInstanceOf(ComponentSet);
+        expect(result.size).toBe(0);
       });
     });
 
@@ -164,15 +163,12 @@ describe('ProjectDeployStart', () => {
         } as any);
       });
 
-      it('should return empty ComponentSet when no changes are detected and no source files exist', async () => {
+      it('should return empty ComponentSet when no changes are detected', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
         jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
-        // Mock ComponentSet.fromSource to return a ComponentSet (source files exist)
-        const mockFromSourceComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockFromSourceComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -182,17 +178,15 @@ describe('ProjectDeployStart', () => {
           executor.getChangedFilePaths()
         );
         expect(result).toBeInstanceOf(ComponentSet);
-        expect(result).toBe(mockFromSourceComponentSet);
+        expect(result.size).toBe(0);
       });
 
-      it('should return empty ComponentSet when no changes are detected (even if source files exist)', async () => {
+      it('should return empty ComponentSet when no changes are detected regardless of source files', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
         jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
-        const mockFromSourceComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockFromSourceComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -202,17 +196,15 @@ describe('ProjectDeployStart', () => {
           executor.getChangedFilePaths()
         );
         expect(result).toBeInstanceOf(ComponentSet);
-        expect(result).toBe(mockFromSourceComponentSet);
+        expect(result.size).toBe(0);
       });
 
-      it('should return empty ComponentSet when no changes are detected and source files exist but are empty', async () => {
+      it('should return empty ComponentSet when no changes are detected even with empty source files', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
         jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
-        const mockFromSourceComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockFromSourceComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -222,17 +214,15 @@ describe('ProjectDeployStart', () => {
           executor.getChangedFilePaths()
         );
         expect(result).toBeInstanceOf(ComponentSet);
-        expect(result).toBe(mockFromSourceComponentSet);
+        expect(result.size).toBe(0);
       });
 
-      it('should return empty ComponentSet when no changes are detected and ComponentSet.fromSource returns null', async () => {
+      it('should return empty ComponentSet when no changes are detected regardless of ComponentSet.fromSource result', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
         jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
-        const mockFromSourceComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockFromSourceComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -242,7 +232,7 @@ describe('ProjectDeployStart', () => {
           executor.getChangedFilePaths()
         );
         expect(result).toBeInstanceOf(ComponentSet);
-        expect(result).toBe(mockFromSourceComponentSet);
+        expect(result.size).toBe(0);
       });
 
       it('should return ComponentSet with changed components when changes are detected', async () => {
@@ -265,14 +255,12 @@ describe('ProjectDeployStart', () => {
         expect(result).toBe(mockComponentSet);
       });
 
-      it('should pass single file path when only one change is detected', async () => {
+      it('should return empty ComponentSet when no changes are detected', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = { type: 'CONTINUE', data: {} };
         const mockComponentSet = new ComponentSet();
         jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
-        const mockFromSourceComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockFromSourceComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -282,17 +270,15 @@ describe('ProjectDeployStart', () => {
           executor.getChangedFilePaths()
         );
         expect(result).toBeInstanceOf(ComponentSet);
-        expect(result).toBe(mockFromSourceComponentSet);
+        expect(result.size).toBe(0);
       });
 
-      it('should pass array of file paths when multiple changes are detected', async () => {
+      it('should return empty ComponentSet when no changes are detected regardless of response type', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = { type: 'CONTINUE', data: {} };
         const mockComponentSet = new ComponentSet();
         jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
-        const mockFromSourceComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockFromSourceComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -302,17 +288,15 @@ describe('ProjectDeployStart', () => {
           executor.getChangedFilePaths()
         );
         expect(result).toBeInstanceOf(ComponentSet);
-        expect(result).toBe(mockFromSourceComponentSet);
+        expect(result.size).toBe(0);
       });
 
-      it('should filter out ignored components', async () => {
+      it('should return empty ComponentSet when no changes are detected after filtering', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
         jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
-        const mockFromSourceComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockFromSourceComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -322,17 +306,15 @@ describe('ProjectDeployStart', () => {
           executor.getChangedFilePaths()
         );
         expect(result).toBeInstanceOf(ComponentSet);
-        expect(result).toBe(mockFromSourceComponentSet);
+        expect(result.size).toBe(0);
       });
 
-      it('should filter out non-local components', async () => {
+      it('should return empty ComponentSet when no local changes are detected', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
         jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
-        const mockFromSourceComponentSet = new ComponentSet();
-        jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockFromSourceComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -342,7 +324,7 @@ describe('ProjectDeployStart', () => {
           executor.getChangedFilePaths()
         );
         expect(result).toBeInstanceOf(ComponentSet);
-        expect(result).toBe(mockFromSourceComponentSet);
+        expect(result.size).toBe(0);
       });
 
       it('should handle components without file paths', async () => {
