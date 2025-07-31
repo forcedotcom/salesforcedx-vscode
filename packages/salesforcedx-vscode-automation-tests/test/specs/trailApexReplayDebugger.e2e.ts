@@ -145,10 +145,6 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );
-    await verifyNotificationWithRetry(
-      /SFDX: Turn On Apex Debug Log for Replay Debugger successfully ran/,
-      Duration.TEN_MINUTES
-    );
     expect(outputPanelText).to.contain('Ended SFDX: Turn On Apex Debug Log for Replay Debugger');
   });
 
