@@ -73,12 +73,6 @@ describe('Deploy and Retrieve', () => {
     await createApexClass('MyClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), classText);
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Verify Source Tracking Setting is enabled', async () => {
     logTestStart(testSetup, 'Verify Source Tracking Setting is enabled');
     expect(await isBooleanSettingEnabled(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE));

@@ -115,12 +115,6 @@ describe('An Initial Suite', () => {
       await tryToHideCopilot();
     });
 
-    beforeEach(function () {
-      if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-        this.skip();
-      }
-    });
-
     it('Verify that SFDX commands are present after an SFDX project has been created', async () => {
       logTestStart(testSetup, 'Verifying that SFDX commands are present after an SFDX project has been created');
       const workbench = getWorkbench();

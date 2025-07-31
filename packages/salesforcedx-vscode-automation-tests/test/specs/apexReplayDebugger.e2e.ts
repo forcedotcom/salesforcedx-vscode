@@ -72,6 +72,13 @@ describe('Apex Replay Debugger', () => {
     await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
   });
 
+  // Since tests are sequential, we need to skip the rest of the tests if one fails
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
+  });
+
   it('Verify LSP finished indexing', async () => {
     logTestStart(testSetup, 'ApexReplayDebugger - Verify LSP finished indexing');
 

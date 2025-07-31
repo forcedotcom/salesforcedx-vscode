@@ -333,7 +333,7 @@ describe('Run Apex Tests', () => {
     await createApexClassWithBugs(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
     // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
     await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
