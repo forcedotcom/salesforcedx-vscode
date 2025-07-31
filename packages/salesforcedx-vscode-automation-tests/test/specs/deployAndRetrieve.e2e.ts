@@ -33,11 +33,14 @@ import {
   executeQuickPick,
   getTextEditor,
   verifyOutputPanelText,
-  getWorkbench
+  getWorkbench,
+  overrideTextInFile
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Deploy and Retrieve', () => {
@@ -48,11 +51,15 @@ describe('Deploy and Retrieve', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'DeployAndRetrieve'
+    testSuiteSuffixName: 'DeployAndRetrieve',
+    extensionConfigs: defaultExtensionConfigs
   };
   before('Set up the testing environment', async () => {
     log('Deploy and Retrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     // Create Apex Class
     const classText = [
@@ -76,6 +83,7 @@ describe('Deploy and Retrieve', () => {
       'Finished SFDX: Create Apex Class',
       10
     );
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(outputPanelText).to.not.be.undefined;
     expect(outputPanelText).to.contain(`${pathToClass}.cls`);
     expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
@@ -119,8 +127,13 @@ describe('Deploy and Retrieve', () => {
 
     // Modify the file by adding a comment.
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-    await textEditor.save();
+    const newText = `public with sharing class MyClass {
+      // say hello to a given name
+      public static void SayHello(string name){
+        System.debug('Hello, ' + name + '!');
+      }
+    }`;
+    await overrideTextInFile(textEditor, newText);
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Changed  ');
@@ -191,8 +204,13 @@ describe('Deploy and Retrieve', () => {
 
     // Modify the file by changing the comment.
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//modified comment');
-    await textEditor.save();
+    const newText = `public with sharing class MyClass {
+      // modified comment
+      public static void SayHello(string name){
+        System.debug('Hello, ' + name + '!');
+      }
+    }`;
+    await overrideTextInFile(textEditor, newText);
 
     // Retrieve running SFDX: Retrieve This Source from Org
 
@@ -268,6 +286,8 @@ describe('Deploy and Retrieve', () => {
     await clearOutputView(Duration.seconds(2));
     // Modify the file and save to trigger deploy
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
+    // overrideTextInFile writes via fs write, hence file save operation & deploy operation are NOT triggered
+    // textEditor.setTextAtLine(2, "\t// let's trigger deploy") can be finicky on local machine
     await textEditor.setTextAtLine(2, "\t// let's trigger deploy");
     await textEditor.save();
     await pause(Duration.seconds(5));
@@ -316,8 +336,13 @@ describe('Deploy and Retrieve', () => {
 
     // Modify the file by adding a comment.
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-    await textEditor.save();
+    const newText = `public with sharing class MyClass {
+      // say hello to a given name - updated
+      public static void SayHello(string name){
+        System.debug('Hello, ' + name + '!');
+      }
+    }`;
+    await overrideTextInFile(textEditor, newText);
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
@@ -424,23 +449,22 @@ describe('Deploy and Retrieve', () => {
     it('SFDX: Delete This from Project and Org - Right click from editor view', async () => {
       logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Right click from editor view');
       const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView();
 
       // Clear notifications
       await dismissAllNotifications();
+
+      // Clear the Output view
+      await clearOutputView();
 
       const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
       const contextMenu = await textEditor.openContextMenu();
       await contextMenu.select('SFDX: Delete This from Project and Org');
 
       // Make sure we get a notification for the source delete
-      const notificationFound = await verifyNotificationWithRetry(
+      await verifyNotificationWithRetry(
         /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
         Duration.ONE_MINUTE
       );
-
-      expect(notificationFound).to.equal(true);
 
       // Confirm deletion
       const accepted = await acceptNotification(
