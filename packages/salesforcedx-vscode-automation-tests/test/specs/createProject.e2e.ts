@@ -35,12 +35,6 @@ describe('SFDX: Create Project', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Execute command SFDX: Create Project', async () => {
     log('Starting command SFDX: Create Project...');
     const prompt = await executeQuickPick('SFDX: Create Project');

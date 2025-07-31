@@ -92,12 +92,6 @@ describe('Run Apex Tests', () => {
     );
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Verify LSP finished indexing', async () => {
     logTestStart(testSetup, 'Verify LSP finished indexing');
 

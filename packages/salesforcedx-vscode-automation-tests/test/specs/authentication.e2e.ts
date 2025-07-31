@@ -44,13 +44,6 @@ describe('Authentication', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
   });
 
-  // Since tests are sequential, we need to skip the rest of the tests if one fails
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Run SFDX: Authorize a Dev Hub', async () => {
     logTestStart(testSetup, 'Running SFDX: Authorize a Dev Hub');
     // In the initial state, the org picker button should be set to "No Default Org Set".

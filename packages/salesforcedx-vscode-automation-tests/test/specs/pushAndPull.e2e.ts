@@ -46,12 +46,6 @@ describe('Push and Pull', () => {
     testSetup1 = await TestSetup.setUp(testReqConfig);
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('SFDX: View All Changes (Local and in Default Org)', async () => {
     logTestStart(testSetup1, 'Push And Pull - SFDX: View All Changes (Local and in Default Org)');
     await executeQuickPick('SFDX: View All Changes (Local and in Default Org)', Duration.seconds(5));

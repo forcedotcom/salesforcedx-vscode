@@ -47,12 +47,6 @@ describe('LWC LSP', () => {
     await reloadWindow(Duration.seconds(20));
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Go to Definition (JavaScript)', async () => {
     logTestStart(testSetup, 'Go to Definition (Javascript)');
     // Get open text editor

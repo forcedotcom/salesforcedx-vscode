@@ -36,12 +36,6 @@ describe('Customize sfdx-project.json', () => {
     await reloadAndEnableExtensions();
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Verify our extensions are loaded after updating sfdx-project.json', async () => {
     expect(await verifyExtensionsAreRunning(getExtensionsToVerifyActive())).to.equal(true);
   });

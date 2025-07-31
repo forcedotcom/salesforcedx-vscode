@@ -47,12 +47,6 @@ describe('metadata mdDeployRetrieve', () => {
     );
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Open and deploy MD v1', async () => {
     log('mdDeployRetrieve - Open and deploy MD v1');
     await openFile(mdPath);

@@ -64,12 +64,6 @@ describe('Debug LWC Tests', () => {
     await reloadWindow(Duration.seconds(30));
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Debug All Tests on a LWC via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Debug All tests on a LWC via the Test Sidebar');
     const workbench = getWorkbench();

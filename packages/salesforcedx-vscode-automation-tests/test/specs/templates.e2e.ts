@@ -48,12 +48,6 @@ describe('Templates', () => {
     projectName = testSetup.tempProjectName;
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   // Apex Class
   it('Create an Apex Class', async () => {
     logTestStart(testSetup, 'Create an Apex Class');

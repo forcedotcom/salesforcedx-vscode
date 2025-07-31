@@ -46,12 +46,6 @@ describe('Visualforce LSP', () => {
     await createVisualforcePage(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages'));
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it.skip('Go to Definition', async () => {
     logTestStart(testSetup, 'Go to Definition');
     // Get open text editor

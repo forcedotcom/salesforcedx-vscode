@@ -65,13 +65,6 @@ describe('Apex Replay Debugger', () => {
     );
   });
 
-  // Since tests are sequential, we need to skip the rest of the tests if one fails
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Verify LSP finished indexing', async () => {
     logTestStart(testSetup, 'ApexReplayDebugger - Verify LSP finished indexing');
 
