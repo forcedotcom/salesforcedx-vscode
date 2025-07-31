@@ -11,7 +11,6 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
@@ -76,23 +75,21 @@ describe('LWC LSP', () => {
     if (process.platform !== 'win32') {
       logTestStart(testSetup, 'Go to Definition (HTML)');
       await executeQuickPick('View: Close All Editors', Duration.seconds(1));
+
       const workbench = getWorkbench();
-      await retryOperation(async () => {
-        const textEditor = await getTextEditor(workbench, 'lwc1.html');
-        await pause(Duration.seconds(2));
-        await moveCursorWithFallback(textEditor, 3, 58);
+      const textEditor = await getTextEditor(workbench, 'lwc1.html');
 
-        // Allow time for LSP to process cursor movement and prepare definition lookup
-        await pause(Duration.seconds(2));
-        // Go to definition through F12
-        await executeQuickPick('Go to Definition', Duration.seconds(3));
+      // Move cursor to the middle of "greeting"
+      await moveCursorWithFallback(textEditor, 3, 58);
 
-        // Verify 'Go to definition' took us to the definition file
-        const editorView = workbench.getEditorView();
-        const activeTab = await editorView.getActiveTab();
-        const title = await activeTab?.getTitle();
-        expect(title).to.equal('lwc1.js');
-      }, 3, 'Go to Definition (HTML) - Error switching to lwc1.js');
+      // Go to definition through F12
+      await executeQuickPick('Go to Definition', Duration.seconds(2));
+
+      // Verify 'Go to definition' took us to the definition file
+      const editorView = workbench.getEditorView();
+      const activeTab = await editorView.getActiveTab();
+      const title = await activeTab?.getTitle();
+      expect(title).to.equal('lwc1.js');
     }
   });
 

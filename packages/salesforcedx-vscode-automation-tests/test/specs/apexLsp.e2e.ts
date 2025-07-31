@@ -13,7 +13,6 @@ import {
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
-import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { getFolderName, removeFolder } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
@@ -134,21 +133,18 @@ const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
 const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
   logTestStart(testSetup, 'Go to Definition');
   const workbench = getWorkbench();
-  await retryOperation(async () => {
-    const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
-    await pause(Duration.seconds(2));
-    await moveCursorWithFallback(textEditor, 6, 20);
+  const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
 
-    // Allow time for LSP to process cursor movement and prepare definition lookup
-    await pause(Duration.seconds(2));
-    // Wait for quick pick to appear and be clickable
-    await executeQuickPick('Go to Definition', Duration.seconds(3));
+  await moveCursorWithFallback(textEditor, 6, 20);
+  // Allow time for LSP to process cursor movement and prepare definition lookup
+  await pause(Duration.seconds(2));
+  // Wait for quick pick to appear and be clickable
+  await executeQuickPick('Go to Definition', Duration.seconds(3));
 
-    const editorView = workbench.getEditorView();
-    const activeTab = await editorView.getActiveTab();
-    const title = await activeTab?.getTitle();
-    expect(title).to.equal('ExampleClass.cls');
-  }, 3, 'Go to Definition - Error switching to ExampleClass.cls');
+  const editorView = workbench.getEditorView();
+  const activeTab = await editorView.getActiveTab();
+  const title = await activeTab?.getTitle();
+  expect(title).to.equal('ExampleClass.cls');
 };
 
 const testAutocompletion = async (testSetup: TestSetup): Promise<void> => {

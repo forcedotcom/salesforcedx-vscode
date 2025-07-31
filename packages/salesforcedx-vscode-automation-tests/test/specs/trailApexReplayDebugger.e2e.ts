@@ -179,73 +179,47 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
-    await clearOutputView();
-    await pause(Duration.seconds(2));
-    log('A');
-    prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
-    log('B');
-
-    // Wait for the command to execute
-    await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
-    log('C');
-    await pause(Duration.seconds(2));
 
     // Select a log file
     await retryOperation(
       async () => {
-        log('1');
+        prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
+
+        // Wait for the command to execute
+        await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
+        await pause(Duration.seconds(5));
+
         const quickPicks = await prompt.getQuickPicks();
-        log('2');
-        expect(quickPicks).to.not.be.undefined;
-        log('3');
-        log(JSON.stringify(quickPicks));
-        expect(quickPicks.length).to.be.greaterThan(0);
-        log('4');
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(quickPicks, 'quickPicks undefined').to.not.be.undefined;
+        expect(quickPicks.length, 'No quick picks found').to.be.greaterThan(0);
         await prompt.selectQuickPick('User User - ApexTestHandler');
-        log('5');
         await pause(Duration.seconds(2));
       },
-      10,
+      3,
       'Failed to select log file from quick picks'
     );
-    log('D');
 
     await verifyNotificationWithRetry(/SFDX: Get Apex Debug Logs successfully ran/, Duration.TEN_MINUTES);
-    log('E');
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
-    log('F');
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
-    log('G');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
-    log('H');
     expect(outputPanelText).to.contain('Ended SFDX: Get Apex Debug Logs');
-    log('I');
 
     // Verify content on log file
-    await executeQuickPick('View: Focus Active Editor Group', Duration.seconds(1));
     const editorView = workbench.getEditorView();
-    log('J');
     const activeTab = await editorView.getActiveTab();
-    log('K');
     const title = await activeTab?.getTitle();
-    log('L');
     const textEditor = await editorView.openEditor(title!);
-    log('M');
     if (!(textEditor instanceof TextEditor)) {
-      log('N');
       throw new Error(`Expected TextEditor but got different editor type: ${typeof textEditor}`);
     }
-    log('O');
     const executionStarted = await textEditor.getLineOfText('|EXECUTION_STARTED');
-    log('P');
     const executionFinished = await textEditor.getLineOfText('|EXECUTION_FINISHED');
-    log('Q');
     expect(executionStarted).to.be.greaterThan(0);
-    log('R');
     expect(executionFinished).to.be.greaterThan(0);
-    log('S');
   });
 
   it('Replay an Apex Debug Log', async () => {
