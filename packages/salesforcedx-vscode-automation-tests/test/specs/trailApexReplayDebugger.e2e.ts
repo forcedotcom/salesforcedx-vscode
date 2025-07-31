@@ -168,6 +168,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
   it('SFDX: Get Apex Debug Logs', async () => {
     logTestStart(testSetup, 'SFDX: Get Apex Debug Logs');
+    await executeQuickPick('View: Close All Editors', Duration.seconds(1));
 
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();

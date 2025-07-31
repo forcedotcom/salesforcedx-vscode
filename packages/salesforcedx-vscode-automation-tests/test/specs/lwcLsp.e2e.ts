@@ -75,6 +75,7 @@ describe('LWC LSP', () => {
   it('Go to Definition (HTML)', async () => {
     if (process.platform !== 'win32') {
       logTestStart(testSetup, 'Go to Definition (HTML)');
+      await executeQuickPick('View: Close All Editors', Duration.seconds(1));
       const workbench = getWorkbench();
       await retryOperation(async () => {
         const textEditor = await getTextEditor(workbench, 'lwc1.html');
@@ -88,7 +89,6 @@ describe('LWC LSP', () => {
         await executeQuickPick('Go to Definition', Duration.seconds(3));
 
         // Verify 'Go to definition' took us to the definition file
-        await executeQuickPick('View: Focus Active Editor Group', Duration.seconds(1));
         const editorView = workbench.getEditorView();
         const activeTab = await editorView.getActiveTab();
         const title = await activeTab?.getTitle();
