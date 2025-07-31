@@ -24,6 +24,11 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
+    // If no components to retrieve, skip the actual operation but still allow postOperation to run
+    if (components.size === 0) {
+      return undefined;
+    }
+
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
@@ -31,6 +36,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
         this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+        // Force remote tracking refresh to ensure we get the latest changes
+        await this.sourceTracking.ensureRemoteTracking(true);
       }
     }
 
@@ -68,14 +75,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
       }
     } else {
       // Handle case where no components were deployed (empty ComponentSet)
-      const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
       const operationType = this.isPullOperation() ? 'pull' : 'retrieve';
-      const output = createRetrieveOrPullOutput([], relativePackageDirs, operationType);
-      channelService.appendLine(output);
-
-      // Clear any existing errors since this is a successful "no changes" scenario
-      DeployRetrieveExecutor.errorCollection.clear();
-      SfCommandletExecutor.errorCollection.clear();
+      this.handleEmptyComponentSet(operationType, true);
     }
   }
 

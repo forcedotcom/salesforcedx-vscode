@@ -5,8 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { filesDiffer } from '../../../src/conflict/conflictUtils';
+import { channelService } from '../../../src/channels';
+import { TimestampConflictChecker } from '../../../src/commands/util/timestampConflictChecker';
+import { filesDiffer, checkConflictsForChangedFiles } from '../../../src/conflict/conflictUtils';
+import { MetadataCacheService } from '../../../src/conflict/metadataCacheService';
+import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
+import { WorkspaceContext } from '../../../src/context/workspaceContext';
+import { nls } from '../../../src/messages';
 
 describe('conflictUtils', () => {
   let workspaceFsReadFileMock: jest.SpyInstance;
@@ -171,6 +179,85 @@ describe('conflictUtils', () => {
 
       expect(result).toBe(true);
       expect(workspaceFsReadFileMock).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('checkConflictsForChangedFiles', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(channelService, 'showChannelOutput').mockImplementation(jest.fn());
+      jest.spyOn(channelService, 'showCommandWithTimestamp').mockImplementation(jest.fn());
+      jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
+      jest.spyOn(nls, 'localize').mockReturnValue('');
+    });
+
+    it('should correctly match conflict paths with source tracking enabled', async () => {
+      // Mock the cache service to return the expected structure
+      const mockCacheResult = {
+        selectedPath: '/Users/peter.hale/git/dreamhouse-lwc/force-app/main/default/classes/MyClass.cls',
+        selectedType: 'individual' as any,
+        project: {
+          baseDirectory: '/Users/peter.hale/git/dreamhouse-lwc',
+          commonRoot: 'force-app/main/default',
+          components: []
+        },
+        cache: {
+          baseDirectory: '/cache/dir',
+          commonRoot: 'force-app/main/default',
+          components: []
+        },
+        properties: []
+      };
+
+      // Mock the detector to return conflicts with the correct structure
+      const mockDiffs = {
+        localRoot: '/Users/peter.hale/git/dreamhouse-lwc/force-app/main/default',
+        remoteRoot: '/cache/dir/force-app/main/default',
+        different: new Set([
+          {
+            localRelPath: 'classes/MyClass.cls',
+            remoteRelPath: 'classes/MyClass.cls',
+            localLastModifiedDate: '2023-01-01T00:00:00Z',
+            remoteLastModifiedDate: '2023-01-02T00:00:00Z'
+          }
+        ])
+      };
+
+      // Mock the dependencies
+      jest.spyOn(MetadataCacheService.prototype, 'loadCache').mockResolvedValue(mockCacheResult);
+      jest.spyOn(TimestampConflictDetector.prototype, 'createDiffs').mockResolvedValue(mockDiffs);
+
+      // Mock the conflict checker to return continue
+      const mockHandleConflicts = jest.fn().mockResolvedValue({ type: 'CONTINUE' });
+      jest.spyOn(TimestampConflictChecker.prototype, 'handleConflicts').mockImplementation(mockHandleConflicts);
+
+      // Set up changed file paths (source tracking enabled) - use path.join for cross-platform compatibility
+      const projectPath = '/Users/peter.hale/git/dreamhouse-lwc';
+      const changedFilePath = path.join(projectPath, 'force-app/main/default/classes/MyClass.cls');
+      const changedFilePaths = [changedFilePath];
+
+      // Mock workspace context
+      jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+        username: 'test@example.com'
+      } as any);
+
+      // Mock workspaceUtils.getRootWorkspacePath to return the project path
+      jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(projectPath);
+
+      // Act
+      const result = await checkConflictsForChangedFiles('deploy_with_sourcepath', changedFilePaths, true, false);
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockHandleConflicts).toHaveBeenCalled();
+
+      // Verify that the conflict was included (the path matching worked)
+      const callArgs = mockHandleConflicts.mock.calls[0];
+      expect(callArgs[1]).toBe('test@example.com'); // username
+      const diffsArg = callArgs[2];
+      expect(diffsArg.different.size).toBe(1);
+      const conflict = Array.from(diffsArg.different)[0] as any;
+      expect(conflict.localRelPath).toBe('classes/MyClass.cls');
     });
   });
 });

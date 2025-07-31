@@ -9,7 +9,9 @@ import {
   LibraryCommandletExecutor,
   getRelativeProjectPath,
   Row,
-  Table
+  Table,
+  workspaceUtils,
+  SourceTrackingService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve-bundle';
 import {
@@ -19,12 +21,16 @@ import {
   MetadataTransferResult,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+import * as nodePath from 'node:path';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
+import { salesforceCoreSettings } from '../settings';
 import { createComponentCount, formatException } from './util';
+import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
 export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult> extends LibraryCommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
@@ -90,6 +96,108 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
 
   protected isPullOperation(): boolean {
     return false; // Default to retrieve operation
+  }
+
+  /**
+   * Shared method to perform the actual operation (deploy or retrieve)
+   * This eliminates duplication between performDeployment and performRetrieve methods
+   * @param components The ComponentSet to operate on
+   * @param token Cancellation token
+   * @returns Promise<boolean> True if operation succeeded, false otherwise
+   */
+  protected async performOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<boolean> {
+    let result: R | undefined;
+
+    try {
+      // Set API versions
+      await componentSetUtils.setApiVersion(components);
+      await componentSetUtils.setSourceApiVersion(components);
+
+      // Add telemetry
+      this.telemetry.addProperty(TELEMETRY_METADATA_COUNT, JSON.stringify(createComponentCount(components)));
+
+      // Perform the operation
+      result = await this.doOperation(components, token ?? new vscode.CancellationTokenSource().token);
+
+      // If result is undefined, it means no components were processed (empty ComponentSet)
+      // This is considered a successful operation since there's nothing to do
+      if (result === undefined) {
+        return true;
+      }
+
+      const status = result?.response.status;
+
+      return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
+    } catch (e) {
+      throw formatException(e);
+    } finally {
+      await this.postOperation(result);
+    }
+  }
+
+  /**
+   * Shared method to handle empty ComponentSet scenarios
+   * This eliminates duplication between deploy and retrieve executors
+   * @param operationType The type of operation ('push' | 'deploy' | 'pull' | 'retrieve')
+   * @param isSuccess Whether the operation was successful
+   */
+  protected handleEmptyComponentSet(operationType: OperationType, isSuccess: boolean = true): void {
+    const output =
+      operationType === 'push' || operationType === 'deploy'
+        ? createDeployOrPushOutput([], [], isSuccess, operationType)
+        : createRetrieveOrPullOutput([], [], operationType);
+
+    channelService.appendLine(output);
+
+    // Clear any existing errors since this is a successful "no changes" scenario
+    DeployRetrieveExecutor.errorCollection.clear();
+    SfCommandletExecutor.errorCollection.clear();
+  }
+
+  /**
+   * Shared method to setup source tracking and populate changed file paths
+   * This eliminates duplication between projectDeployStart and projectRetrieveStart
+   * @param changedFilePaths Array to populate with changed file paths
+   * @returns Promise<ComponentSet> The local component set for further processing
+   */
+  protected async setupSourceTrackingAndChangedFilePaths(changedFilePaths: string[]): Promise<ComponentSet> {
+    const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
+    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+
+    if (sourceTrackingEnabled) {
+      try {
+        const connection = await WorkspaceContext.getInstance().getConnection();
+        if (!connection) {
+          throw new Error(nls.localize('error_source_tracking_connection_failed'));
+        }
+
+        const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+        if (!sourceTracking) {
+          throw new Error(nls.localize('error_source_tracking_service_failed'));
+        }
+
+        // Get local changes for conflict detection using the proper method
+        const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
+        const localComponentSet = localComponentSets.length > 0 ? localComponentSets[0] : new ComponentSet();
+
+        // Populate changedFilePaths for conflict detection from local changes
+        changedFilePaths.length = 0; // Clear the array
+        for (const component of localComponentSet.getSourceComponents()) {
+          if (component.content) {
+            const filePath = nodePath.isAbsolute(component.content)
+              ? component.content
+              : nodePath.resolve(projectPath, component.content);
+            changedFilePaths.push(filePath);
+          }
+        }
+
+        return localComponentSet;
+      } catch (error) {
+        throw new Error(`Source tracking setup failed: ${error}`);
+      }
+    }
+
+    return new ComponentSet();
   }
 }
 

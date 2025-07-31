@@ -81,12 +81,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
       } else {
         // Handle case where no components were deployed (empty ComponentSet)
         const operationType = this.isPushOperation() ? 'push' : 'deploy';
-        const output = createDeployOrPushOutput([], [], true, operationType);
-        channelService.appendLine(output);
-
-        // Clear any existing errors since this is a successful "no changes" scenario
-        DeployRetrieveExecutor.errorCollection.clear();
-        SfCommandletExecutor.errorCollection.clear();
+        this.handleEmptyComponentSet(operationType, true);
       }
     } finally {
       await DeployQueue.get().unlock();
