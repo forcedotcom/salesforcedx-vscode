@@ -21,6 +21,7 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
+  dismissAllNotifications,
   executeQuickPick,
   getStatusBarItemWhichIncludes,
   getTextEditor,
@@ -32,6 +33,8 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 /**
@@ -47,23 +50,33 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'TrailApexReplayDebugger'
+    testSuiteSuffixName: 'TrailApexReplayDebugger',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     log('TrailApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
 
+    // Hide chat copilot
+    await tryToHideCopilot();
+
     // Create Apex class AccountService
     await createApexClassWithBugs(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
 
-    // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
+
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+  });
+
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -101,7 +114,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     await pause(Duration.seconds(1));
 
     // Run SFDX: Toggle Checkpoint.
-    prompt = await executeQuickPick('SFDX: Toggle Checkpoint', Duration.seconds(1));
+    prompt = await executeQuickPick('SFDX: Toggle Checkpoint', Duration.seconds(10));
 
     // Verify checkpoint is present
     const breakpoints = await workbench.findElements(By.css('div.codicon-debug-breakpoint-conditional'));
@@ -256,12 +269,9 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       await pause(Duration.seconds(2));
 
       // Push source to org
-      await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+      await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(10));
 
-      await verifyNotificationWithRetry(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
+      await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
     }
   });
 

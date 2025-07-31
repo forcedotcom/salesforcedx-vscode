@@ -19,6 +19,8 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Aura LSP', () => {
@@ -29,12 +31,16 @@ describe('Aura LSP', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'AuraLsp'
+    testSuiteSuffixName: 'AuraLsp',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     log('AuraLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     // Create Aura Component
     await createAura('aura1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'aura'));

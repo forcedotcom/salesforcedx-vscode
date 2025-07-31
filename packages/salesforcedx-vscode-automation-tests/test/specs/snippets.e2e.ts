@@ -22,6 +22,8 @@ import {
 import { expect } from 'chai';
 import path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Snippets', () => {
@@ -31,11 +33,15 @@ describe('Snippets', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'Snippets'
+    testSuiteSuffixName: 'Snippets',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it.skip('Use out-of-the-box Apex Snippets', async () => {

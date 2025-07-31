@@ -54,9 +54,6 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
   "main": "./out/src/extension",
   "serverPath": [
     "..",

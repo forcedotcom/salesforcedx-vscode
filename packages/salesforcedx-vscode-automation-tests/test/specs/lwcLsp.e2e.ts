@@ -24,6 +24,8 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
@@ -33,12 +35,16 @@ describe('LWC LSP', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'LwcLsp'
+    testSuiteSuffixName: 'LwcLsp',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     log('LwcLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     // Create Lightning Web Component
     await createLwc('lwc1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'lwc'));

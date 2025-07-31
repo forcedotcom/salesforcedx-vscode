@@ -95,7 +95,7 @@
     }
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
+    "workspaceContains:**/lwc/**",
     "workspaceContains:../workspace-user.xml",
     "workspaceContains:**/workspace-user.xml"
   ],

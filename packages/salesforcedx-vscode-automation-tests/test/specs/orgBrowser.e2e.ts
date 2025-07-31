@@ -29,6 +29,8 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Org Browser', () => {
@@ -38,11 +40,15 @@ describe('Org Browser', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'OrgBrowser'
+    testSuiteSuffixName: 'OrgBrowser',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it('Check Org Browser is connected to target org', async () => {
@@ -99,6 +105,10 @@ describe('Org Browser', () => {
       '}'
     ].join('\n');
     await createApexClass('MyClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), classText);
+
+    // Close all notifications
+    await dismissAllNotifications();
+
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Created  ');
 
     await closeCurrentEditor();
@@ -119,6 +129,8 @@ describe('Org Browser', () => {
 
   it('Retrieve This Source from Org', async () => {
     logTestStart(testSetup, 'Retrieve This Source from Org');
+    // Close all notifications
+    await dismissAllNotifications();
     const myClassLabelEl = await findTypeInOrgBrowser('MyClass');
     expect(myClassLabelEl).to.not.be.undefined;
     await myClassLabelEl?.click();

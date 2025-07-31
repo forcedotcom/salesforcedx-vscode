@@ -37,7 +37,7 @@
     "async-lock": "1.4.1",
     "ejs": "3.1.10",
     "expand-home-dir": "0.0.3",
-    "fast-xml-parser": "4.5.1",
+    "fast-xml-parser": "4.5.3",
     "find-java-home": "1.2.2",
     "jsonpath-plus": "10.3.0",
     "vscode-languageclient": "^9.0.1",

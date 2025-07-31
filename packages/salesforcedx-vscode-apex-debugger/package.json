@@ -58,8 +58,7 @@
     "test": "jest --coverage"
   },
   "activationEvents": [
-    "onDebugResolve:apex",
-    "workspaceContains:sfdx-project.json"
+    "onDebugResolve:apex"
   ],
   "main": "./out/src",
   "packaging": {
