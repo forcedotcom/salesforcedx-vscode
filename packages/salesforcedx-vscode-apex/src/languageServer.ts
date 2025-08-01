@@ -143,12 +143,9 @@ export const buildClientOptions = (): ApexLanguageClientOptions => {
     .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
 
   // Create middleware that disables parity providers when setting is true
-  const parityMiddleware: Record<string, () => null> = {};
-  if (lspParityCapabilities) {
-    LSP_PARITY_PROVIDERS.forEach(provider => {
-      parityMiddleware[provider] = () => null;
-    });
-  }
+  const parityMiddleware: Record<string, () => null> = lspParityCapabilities
+    ? Object.fromEntries(LSP_PARITY_PROVIDERS.map(provider => [provider, () => null]))
+    : {};
 
   return {
     // Register the server for Apex documents
