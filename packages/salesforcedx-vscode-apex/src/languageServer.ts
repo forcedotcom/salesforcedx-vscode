@@ -186,18 +186,10 @@ export const buildClientOptions = (): ApexLanguageClientOptions => {
       apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
       apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
     },
-    ...(soqlExtensionInstalled
-      ? {
-          middleware: {
-            ...soqlMiddleware,
-            ...parityMiddleware
-          }
-        }
-      : {
-          middleware: {
-            ...parityMiddleware
-          }
-        }),
+    middleware: {
+      ...parityMiddleware,
+      ...(soqlExtensionInstalled ? soqlMiddleware : {})
+    },
     errorHandler: new ApexErrorHandler()
   };
 };
