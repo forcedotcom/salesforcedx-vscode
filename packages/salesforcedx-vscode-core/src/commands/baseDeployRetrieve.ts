@@ -28,7 +28,6 @@ import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { salesforceCoreSettings } from '../settings';
 import { createComponentCount, formatException } from './util';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
@@ -155,49 +154,43 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
   }
 
   /**
-   * Shared method to setup source tracking and populate changed file paths
+   * Shared method to get changed components from local file paths
    * This eliminates duplication between projectDeployStart and projectRetrieveStart
    * @param changedFilePaths Array to populate with changed file paths
    * @returns Promise<ComponentSet> The local component set for further processing
    */
-  protected async setupSourceTrackingAndChangedFilePaths(changedFilePaths: string[]): Promise<ComponentSet> {
-    const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
-    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
-
-    if (sourceTrackingEnabled) {
-      try {
-        const connection = await WorkspaceContext.getInstance().getConnection();
-        if (!connection) {
-          throw new Error(nls.localize('error_source_tracking_connection_failed'));
-        }
-
-        const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
-        if (!sourceTracking) {
-          throw new Error(nls.localize('error_source_tracking_service_failed'));
-        }
-
-        // Get local changes for conflict detection using the proper method
-        const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
-        const localComponentSet = localComponentSets.length > 0 ? localComponentSets[0] : new ComponentSet();
-
-        // Populate changedFilePaths for conflict detection from local changes
-        changedFilePaths.length = 0;
-        for (const component of localComponentSet.getSourceComponents()) {
-          if (component.content) {
-            const filePath = nodePath.isAbsolute(component.content)
-              ? component.content
-              : nodePath.resolve(projectPath, component.content);
-            changedFilePaths.push(filePath);
-          }
-        }
-
-        return localComponentSet;
-      } catch (error) {
-        throw new Error(`Source tracking setup failed: ${error}`);
+  protected async getLocalChanges(changedFilePaths: string[]): Promise<ComponentSet> {
+    try {
+      const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
+      const connection = await WorkspaceContext.getInstance().getConnection();
+      if (!connection) {
+        throw new Error(nls.localize('error_source_tracking_connection_failed'));
       }
+
+      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+      if (!sourceTracking) {
+        throw new Error(nls.localize('error_source_tracking_service_failed'));
+      }
+
+      // Get local changes for conflict detection using the proper method
+      const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
+      const localComponentSet = localComponentSets.length > 0 ? localComponentSets[0] : new ComponentSet();
+
+      // Populate changedFilePaths for conflict detection from local changes
+      changedFilePaths.length = 0;
+      for (const component of localComponentSet.getSourceComponents()) {
+        if (component.content) {
+          const filePath = nodePath.isAbsolute(component.content)
+            ? component.content
+            : nodePath.resolve(projectPath, component.content);
+          changedFilePaths.push(filePath);
+        }
+      }
+
+      return localComponentSet;
+    } catch (error) {
+      throw new Error(`Source tracking setup failed: ${error}`);
     }
-    // If source tracking is disabled, deploy all source
-    return ComponentSet.fromSource(projectPath);
   }
 }
 

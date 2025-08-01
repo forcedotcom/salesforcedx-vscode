@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ContinueResponse, EmptyParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ContinueResponse,
+  EmptyParametersGatherer,
+  SfWorkspaceChecker,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
 import { checkConflictsForChangedFiles } from '../conflict/conflictUtils';
@@ -72,7 +77,15 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
   }
 
   protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
-    return await this.setupSourceTrackingAndChangedFilePaths(this.changedFilePaths);
+    const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
+    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+
+    if (sourceTrackingEnabled) {
+      return await this.getLocalChanges(this.changedFilePaths);
+    }
+
+    // If source tracking is disabled, deploy all source
+    return ComponentSet.fromSource(projectPath);
   }
 
   protected isPushOperation(): boolean {

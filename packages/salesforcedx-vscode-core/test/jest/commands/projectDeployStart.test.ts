@@ -168,15 +168,13 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -186,15 +184,13 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -204,15 +200,13 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -222,15 +216,13 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -242,15 +234,13 @@ describe('ProjectDeployStart', () => {
         const mockComponentSet = new ComponentSet();
         // Mock the component set to have size > 0 to simulate changes
         jest.spyOn(mockComponentSet, 'size', 'get').mockReturnValue(1);
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result).toBe(mockComponentSet);
       });
@@ -260,15 +250,13 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = { type: 'CONTINUE', data: {} };
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -278,15 +266,13 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = { type: 'CONTINUE', data: {} };
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -296,15 +282,13 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -314,15 +298,13 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -332,16 +314,14 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).setupSourceTrackingAndChangedFilePaths).toHaveBeenCalledWith(
-          executor.getChangedFilePaths()
-        );
+        expect((executor as any).getLocalChanges).toHaveBeenCalledWith(executor.getChangedFilePaths());
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0); // Should be empty since no file paths
       });
@@ -350,9 +330,7 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        jest
-          .spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths')
-          .mockRejectedValue(new Error('Source tracking failed'));
+        jest.spyOn(executor as any, 'getLocalChanges').mockRejectedValue(new Error('Source tracking failed'));
 
         // Act & Assert
         await expect((executor as any).getComponents(mockResponse)).rejects.toThrow('Source tracking failed');
@@ -363,7 +341,7 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         jest
-          .spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths')
+          .spyOn(executor as any, 'getLocalChanges')
           .mockRejectedValue(new Error('Source tracking setup failed: null'));
 
         // Act & Assert
@@ -377,7 +355,7 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         jest
-          .spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths')
+          .spyOn(executor as any, 'getLocalChanges')
           .mockRejectedValue(new Error('Source tracking setup failed: error_source_tracking_connection_failed'));
 
         // Act & Assert
@@ -391,7 +369,7 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         jest
-          .spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths')
+          .spyOn(executor as any, 'getLocalChanges')
           .mockRejectedValue(new Error('Source tracking setup failed: Workspace context failed'));
 
         // Act & Assert
@@ -552,7 +530,7 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'setupSourceTrackingAndChangedFilePaths').mockResolvedValue(mockComponentSet);
+        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(true);
         jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);

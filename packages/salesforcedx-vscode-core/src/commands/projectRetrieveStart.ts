@@ -13,7 +13,6 @@ import {
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-
 import * as vscode from 'vscode';
 import { checkConflictsForChangedFiles } from '../conflict/conflictUtils';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
@@ -49,14 +48,11 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
     // Check for conflicts if:
     // 1. We're not ignoring conflicts
     // 2. Conflict detection is enabled
-    // 3. Either:
-    //    a) There are changed files to check for conflicts, OR
-    //    b) Source tracking is disabled
-    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
+    // 3. There are changed files
     if (
       !this.ignoreConflicts &&
       salesforceCoreSettings.getConflictDetectionEnabled() &&
-      (this.changedFilePaths.length > 0 || !sourceTrackingEnabled)
+      this.changedFilePaths.length > 0
     ) {
       const conflictResult = await checkConflictsForChangedFiles(
         'retrieve_with_sourcepath',
@@ -74,49 +70,40 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
   }
 
   /**
-   * Returns the set of components to retrieve. If source tracking is enabled and the org is source-tracked,
-   * retrieves only remote changes. If there are no remote changes, returns an empty ComponentSet (no-op).
-   * If source tracking is disabled, retrieve all source.
+   * Returns the set of components to retrieve. Since this command is only available for source-tracked orgs,
+   * we retrieve only remote changes. If there are no remote changes, returns an empty ComponentSet (no-op).
    */
   protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
-    await this.setupSourceTrackingAndChangedFilePaths(this.changedFilePaths);
-
-    // If source tracking is enabled, get remote changes
-    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
-    if (sourceTrackingEnabled) {
-      try {
-        const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
-        const connection = await WorkspaceContext.getInstance().getConnection();
-        if (!connection) {
-          throw new Error(nls.localize('error_source_tracking_connection_failed'));
-        }
-
-        // Clear the source tracking cache to ensure we get a fresh instance
-        SourceTrackingService.clearSourceTracking(projectPath, connection);
-
-        const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
-        if (!sourceTracking) {
-          throw new Error(nls.localize('error_source_tracking_service_failed'));
-        }
-
-        // Use the same approach as CLI: apply remote deletes and get component set
-        // This ensures proper state management and updates
-        const result = await sourceTracking.maybeApplyRemoteDeletesToLocal(true);
-
-        // Log the number of remote changes found for debugging
-        console.log(`Found ${result.componentSetFromNonDeletes.size} remote changes to retrieve`);
-
-        // Return the component set from the result, which includes proper state updates
-        return result.componentSetFromNonDeletes;
-      } catch (error) {
-        // If source tracking fails, let the error bubble up
-        console.error('Source tracking failed:', error);
-        throw new Error(nls.localize('error_source_tracking_components_failed', error));
+    await this.getLocalChanges(this.changedFilePaths);
+    try {
+      const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
+      const connection = await WorkspaceContext.getInstance().getConnection();
+      if (!connection) {
+        throw new Error(nls.localize('error_source_tracking_connection_failed'));
       }
-    }
 
-    // If source tracking is disabled or no local changes, retrieve all source
-    return ComponentSet.fromSource(workspaceUtils.getRootWorkspacePath() ?? '');
+      // Clear the source tracking cache to ensure we get a fresh instance
+      SourceTrackingService.clearSourceTracking(projectPath, connection);
+
+      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+      if (!sourceTracking) {
+        throw new Error(nls.localize('error_source_tracking_service_failed'));
+      }
+
+      // Use the same approach as CLI: apply remote deletes and get component set
+      // This ensures proper state management and updates
+      const result = await sourceTracking.maybeApplyRemoteDeletesToLocal(true);
+
+      // Log the number of remote changes found for debugging
+      console.log(`Found ${result.componentSetFromNonDeletes.size} remote changes to retrieve`);
+
+      // Return the component set from the result, which includes proper state updates
+      return result.componentSetFromNonDeletes;
+    } catch (error) {
+      // If source tracking fails, let the error bubble up
+      console.error('Source tracking failed:', error);
+      throw new Error(nls.localize('error_source_tracking_components_failed', error));
+    }
   }
 
   public getChangedFilePaths(): string[] {
