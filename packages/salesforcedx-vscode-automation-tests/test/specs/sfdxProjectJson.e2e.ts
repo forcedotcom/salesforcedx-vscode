@@ -9,6 +9,7 @@ import {
   TestReqConfig,
   ProjectShapeOption
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { createOrOverwriteFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
   getExtensionsToVerifyActive,
   reloadAndEnableExtensions,
@@ -16,7 +17,6 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { expect } from 'chai';
-import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
@@ -74,6 +74,6 @@ const createSfdxProjectJsonWithAllFields = async (testSetup: TestSetup): Promise
   ].join('\n');
 
   const sfdxProjectPath = path.join(testSetup.projectFolderPath!, 'sfdx-project.json');
-  await fs.writeFile(sfdxProjectPath, sfdxConfig, 'utf8');
+  createOrOverwriteFile(sfdxProjectPath, sfdxConfig);
   await pause();
 };

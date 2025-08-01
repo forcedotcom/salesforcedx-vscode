@@ -14,7 +14,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { validateCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { createCustomObjects, createOrOverwriteFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   clearOutputView,
@@ -24,7 +24,6 @@ import {
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
@@ -127,7 +126,7 @@ describe('Manifest Builder', () => {
       ].join('\n');
 
       const manifestPath = path.join(testSetup.projectFolderPath!, 'manifest', 'manifest.xml');
-      await fs.writeFile(manifestPath, content, 'utf8');
+      await createOrOverwriteFile(manifestPath, content);
       await pause(Duration.seconds(1));
     }
   });
