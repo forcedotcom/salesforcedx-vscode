@@ -26,6 +26,8 @@ import { logTestStart } from '../utils/loggingHelper';
 
 describe('Visualforce LSP', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
+  let pagesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -38,14 +40,16 @@ describe('Visualforce LSP', () => {
   before('Set up the testing environment', async () => {
     log('VisualforceLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
+    pagesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages');
 
     // Create Apex controller for the Visualforce Page
-    await createApexController(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+    await createApexController(classesFolderPath);
 
     // Clear output before running the command
     await clearOutputView();
     log(`${testSetup.testSuiteSuffixName} - calling createVisualforcePage()`);
-    await createVisualforcePage(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages'));
+    await createVisualforcePage(pagesFolderPath);
   });
 
   it.skip('Go to Definition', async () => {

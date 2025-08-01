@@ -51,6 +51,7 @@ import { logTestStart } from '../utils/loggingHelper';
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -63,27 +64,28 @@ describe('Run Apex Tests', () => {
   before('Set up the testing environment', async () => {
     log('RunApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Apex class 1 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
+      () => createApexClassWithTest('ExampleApexClass1', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 1 and test'
     );
 
     // Create Apex class 2 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass2', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
+      () => createApexClassWithTest('ExampleApexClass2', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 2 and test'
     );
 
     // Create Apex class 3 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass3', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
+      () => createApexClassWithTest('ExampleApexClass3', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 3 and test'
     );
@@ -330,7 +332,7 @@ describe('Run Apex Tests', () => {
   it('Run a test that fails and fix it', async () => {
     logTestStart(testSetup, 'Run a test that fails and fix it');
     // Create Apex class AccountService
-    await createApexClassWithBugs(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+    await createApexClassWithBugs(classesFolderPath);
 
     // Push source to org
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));

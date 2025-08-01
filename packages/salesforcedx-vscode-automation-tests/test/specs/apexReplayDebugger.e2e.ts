@@ -42,6 +42,7 @@ describe('Apex Replay Debugger', () => {
   let prompt: QuickOpenBox | InputBox;
   let testSetup: TestSetup;
   let projectFolderPath: string;
+  let classesFolderPath: string;
   let logFileTitle: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -56,12 +57,13 @@ describe('Apex Replay Debugger', () => {
     log('ApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectFolderPath = testSetup.projectFolderPath!;
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Apex class file
-    await createApexClassWithTest('ExampleApexClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+    await createApexClassWithTest('ExampleApexClass', classesFolderPath);
 
     // Dismiss all notifications so the push one can be seen
     await dismissAllNotifications();
@@ -261,7 +263,7 @@ describe('Apex Replay Debugger', () => {
     await clearOutputView();
 
     // Create anonymous apex file
-    await createAnonymousApexFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+    await createAnonymousApexFile(classesFolderPath);
 
     // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
     await executeQuickPick('SFDX: Execute Anonymous Apex with Editor Contents', Duration.seconds(10));

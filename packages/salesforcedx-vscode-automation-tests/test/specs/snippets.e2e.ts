@@ -28,6 +28,7 @@ import { logTestStart } from '../utils/loggingHelper';
 
 describe('Snippets', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -39,6 +40,7 @@ describe('Snippets', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
@@ -50,7 +52,7 @@ describe('Snippets', () => {
     const apexSnippet = 'String.isBlank(inputString)';
 
     // Create anonymous apex file
-    await createAnonymousApexFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+    await createAnonymousApexFile(classesFolderPath);
 
     // Type snippet "isb" in a new line and check it inserted the expected string
     const textEditor = await getTextEditor(workbench, 'Anonymous.apex');
@@ -71,7 +73,7 @@ describe('Snippets', () => {
     await createGlobalSnippetsFile(testSetup);
 
     // Create anonymous apex file
-    await createAnonymousApexFile(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+    await createAnonymousApexFile(classesFolderPath);
 
     // Type snippet "soql" and check it inserted the expected query
     const textEditor = await getTextEditor(workbench, 'Anonymous.apex');

@@ -25,6 +25,7 @@ import { logTestStart } from '../utils/loggingHelper';
 
 describe('Aura LSP', () => {
   let testSetup: TestSetup;
+  let auraFolderPath: string;
 
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -38,12 +39,13 @@ describe('Aura LSP', () => {
   before('Set up the testing environment', async () => {
     log('AuraLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    auraFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'aura');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Aura Component
-    await createAura('aura1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'aura'));
+    await createAura('aura1', auraFolderPath);
 
     // Reload the VSCode window to allow the Aura Component to be indexed by the Aura Language Server
     await reloadWindow(Duration.seconds(20));

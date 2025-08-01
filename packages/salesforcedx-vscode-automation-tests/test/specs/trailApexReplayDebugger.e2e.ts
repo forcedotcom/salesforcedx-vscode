@@ -45,6 +45,7 @@ import { logTestStart } from '../utils/loggingHelper';
 describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () => {
   let prompt: QuickOpenBox | InputBox;
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -57,12 +58,13 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
   before('Set up the testing environment', async () => {
     log('TrailApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide chat copilot
     await tryToHideCopilot();
 
     // Create Apex class AccountService
-    await createApexClassWithBugs(path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+    await createApexClassWithBugs(classesFolderPath);
 
     // Dismiss all notifications so the push one can be seen
     await dismissAllNotifications();
@@ -236,7 +238,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       logTestStart(testSetup, 'Push Fixed Metadata to Org');
 
       // Get the path to AccountService.cls file
-      const accountServicePath = `${testSetup.projectFolderPath}/force-app/main/default/classes/AccountService.cls`;
+      const accountServicePath = path.join(classesFolderPath, 'AccountService.cls');
 
       // Fix the test
       await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');

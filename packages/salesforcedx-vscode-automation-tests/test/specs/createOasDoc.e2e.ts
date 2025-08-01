@@ -67,6 +67,7 @@ import { logTestStart } from '../utils/loggingHelper';
 
 describe('Create OpenAPI v3 Specifications', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -79,6 +80,7 @@ describe('Create OpenAPI v3 Specifications', () => {
   before('Set up the testing environment', async () => {
     log('\nCreateOASDoc - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide chat copilot
     await tryToHideCopilot();
@@ -107,21 +109,21 @@ describe('Create OpenAPI v3 Specifications', () => {
 
     // Create the Apex class which the decomposed OAS doc will be generated from
     await retryOperation(
-      () => createApexClass('CaseManager', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), caseManagerClassText),
+      () => createApexClass('CaseManager', classesFolderPath, caseManagerClassText),
       2,
       'CreateOASDoc - Error creating Apex class CaseManager'
     );
 
     // Create the Apex class which the composed OAS doc will be generated from
     await retryOperation(
-      () => createApexClass('SimpleAccountResource', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), simpleAccountResourceClassText),
+      () => createApexClass('SimpleAccountResource', classesFolderPath, simpleAccountResourceClassText),
       2,
       'CreateOASDoc - Error creating Apex class SimpleAccountResource'
     );
 
     // Create an ineligible Apex class (the default Apex class from the template is a good example)
     await retryOperation(
-      () => createApexClass('IneligibleApexClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes')),
+      () => createApexClass('IneligibleApexClass', classesFolderPath),
       2,
       'CreateOASDoc - Error creating Apex class IneligibleApexClass'
     );
@@ -152,9 +154,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
   it('Try to generate OAS doc from an ineligible Apex class', async () => {
     logTestStart(testSetup, 'Try to generate OAS doc from an ineligible Apex class');
-    await openFile(
-      path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'IneligibleApexClass.cls')
-    );
+    await openFile(path.join(classesFolderPath, 'IneligibleApexClass.cls'));
     if (process.platform === 'win32') {
       await reloadWindow();
       await verifyExtensionsAreRunning(
@@ -183,9 +183,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         'Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation'
       );
       await executeQuickPick('View: Close All Editors');
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
-      );
+      await openFile(path.join(classesFolderPath, 'CaseManager.cls'));
       await pause(Duration.seconds(5));
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
@@ -254,9 +252,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         'Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge'
       );
       await executeQuickPick('View: Close All Editors');
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
-      );
+      await openFile(path.join(classesFolderPath, 'CaseManager.cls'));
       await pause(Duration.seconds(5));
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
@@ -312,9 +308,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         'Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation'
       );
       await executeQuickPick('View: Close All Editors');
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'SimpleAccountResource.cls')
-      );
+      await openFile(path.join(classesFolderPath, 'SimpleAccountResource.cls'));
       await pause(Duration.seconds(5));
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
@@ -670,9 +664,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       await retryOperation(
         async () => {
-          await openFile(
-            path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
-          );
+          await openFile(path.join(classesFolderPath, 'CaseManager.cls'));
           await pause(Duration.seconds(5));
         },
         3,

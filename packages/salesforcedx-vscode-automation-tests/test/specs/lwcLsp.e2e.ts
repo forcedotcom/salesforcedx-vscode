@@ -29,6 +29,7 @@ import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
   let testSetup: TestSetup;
+  let lwcFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -41,12 +42,13 @@ describe('LWC LSP', () => {
   before('Set up the testing environment', async () => {
     log('LwcLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    lwcFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'lwc');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Lightning Web Component
-    await createLwc('lwc1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'lwc'));
+    await createLwc('lwc1', lwcFolderPath);
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));

@@ -45,6 +45,7 @@ import { logTestStart } from '../utils/loggingHelper';
 describe('Deploy and Retrieve', () => {
   const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'MyClass');
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -56,6 +57,7 @@ describe('Deploy and Retrieve', () => {
   before('Set up the testing environment', async () => {
     log('Deploy and Retrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
@@ -70,7 +72,7 @@ describe('Deploy and Retrieve', () => {
       '}'
     ].join('\n');
     await dismissAllNotifications();
-    await createApexClass('MyClass', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'), classText);
+    await createApexClass('MyClass', classesFolderPath, classText);
   });
 
   it('Verify Source Tracking Setting is enabled', async () => {
@@ -397,8 +399,8 @@ describe('Deploy and Retrieve', () => {
       logTestStart(testSetup, 'Create and push 2 apex classes');
 
       // Create the Apex Classes.
-      await createApexClass('ExampleApexClass1', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
-      await createApexClass('ExampleApexClass2', path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+      await createApexClass('ExampleApexClass1', classesFolderPath);
+      await createApexClass('ExampleApexClass2', classesFolderPath);
 
       // Close all notifications
       await dismissAllNotifications();

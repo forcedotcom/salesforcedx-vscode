@@ -35,6 +35,9 @@ import { logTestStart } from '../utils/loggingHelper';
 describe('Push and Pull', () => {
   let testSetup1: TestSetup;
   let testSetup2: TestSetup;
+  let classesFolderPath: string;
+  let relativeApexClassesPath: string;
+  let relativeProfilesPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -47,6 +50,9 @@ describe('Push and Pull', () => {
   before('Set up the testing environment', async () => {
     log('Push And Pull - Set up the testing environment');
     testSetup1 = await TestSetup.setUp(testReqConfig);
+    relativeApexClassesPath = path.join('force-app', 'main', 'default', 'classes');
+    relativeProfilesPath = path.join('force-app', 'main', 'default', 'profiles');
+    classesFolderPath = path.join(testSetup1.projectFolderPath!, relativeApexClassesPath);
 
     // Hide copilot
     await tryToHideCopilot();
@@ -70,7 +76,7 @@ describe('Push and Pull', () => {
   it('Create an Apex class', async () => {
     logTestStart(testSetup1, 'Push And Pull - Create an Apex class');
     // Create an Apex Class.
-    await createApexClass('ExampleApexClass1', path.join(testSetup1.projectFolderPath!, 'force-app', 'main', 'default', 'classes'));
+    await createApexClass('ExampleApexClass1', classesFolderPath);
   });
 
   it('SFDX: View Local Changes', async () => {
@@ -80,10 +86,10 @@ describe('Push and Pull', () => {
     // Check the output.
     const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', 'Source Status', 10);
     expect(outputPanelText).to.contain(
-      `Local Add  ExampleApexClass1  ApexClass  ${path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls')}`
+      `Local Add  ExampleApexClass1  ApexClass  ${path.join(relativeApexClassesPath, 'ExampleApexClass1.cls')}`
     );
     expect(outputPanelText).to.contain(
-      `Local Add  ExampleApexClass1  ApexClass  ${path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls-meta.xml')}`
+      `Local Add  ExampleApexClass1  ApexClass  ${path.join(relativeApexClassesPath, 'ExampleApexClass1.cls-meta.xml')}`
     );
   });
 
@@ -147,9 +153,9 @@ describe('Push and Pull', () => {
     // Check the output.
     const outputPanelText = await verifyPushAndPullOutputText('Push', 'to', 'Changed');
 
-    expect(outputPanelText).to.contain(path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls'));
+    expect(outputPanelText).to.contain(path.join(relativeApexClassesPath, 'ExampleApexClass1.cls'));
     expect(outputPanelText).to.contain(
-      path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls-meta.xml')
+      path.join(relativeApexClassesPath, 'ExampleApexClass1.cls-meta.xml')
     );
   });
 
@@ -165,7 +171,7 @@ describe('Push and Pull', () => {
     // Check the output.
     let outputPanelText = await verifyPushAndPullOutputText('Pull', 'from', 'Created');
     // The first time a pull is performed, force-app/main/default/profiles/Admin.profile-meta.xml is pulled down.
-    expect(outputPanelText).to.contain(path.join('force-app', 'main', 'default', 'profiles', 'Admin.profile-meta.xml'));
+    expect(outputPanelText).to.contain(path.join(relativeProfilesPath, 'Admin.profile-meta.xml'));
 
     // Second pull...
     // Clear the output again.
