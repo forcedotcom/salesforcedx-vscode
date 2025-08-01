@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import { isLocalLogging } from '../../telemetry/utils/devModeUtils';
+import { TelemetryReporter } from '../../types';
 import { AppInsights } from './appInsights';
 import { LogStream } from './logStream';
 import { LogStreamConfig } from './logStreamConfig';
@@ -13,17 +13,18 @@ import { O11yReporter } from './o11yReporter';
 import { TelemetryFile } from './telemetryFile';
 import { TelemetryReporterConfig } from './telemetryReporterConfig';
 
-let o11yReporterInstance: O11yReporter | null = null;
-let o11yInitializationPromise: Promise<void> | null = null;
+const o11yReporterInstances: Map<string, O11yReporter> = new Map();
+const o11yInitializationPromises: Map<string, Promise<void>> = new Map();
 
-const setO11yInitializationPromise = (promise: Promise<void>) => {
-  o11yInitializationPromise = promise;
+const setO11yInitializationPromise = (extName: string, promise: Promise<void>) => {
+  o11yInitializationPromises.set(extName, promise);
 };
 
-const getO11yInitializationPromise = (): Promise<void> | null => o11yInitializationPromise;
+const getO11yInitializationPromise = (extName: string): Promise<void> | null =>
+  o11yInitializationPromises.get(extName) ?? null;
 
-const clearO11yInitializationPromise = () => {
-  o11yInitializationPromise = null;
+const clearO11yInitializationPromise = (extName: string) => {
+  o11yInitializationPromises.delete(extName);
 };
 
 export const determineReporters = (config: TelemetryReporterConfig) => {
@@ -33,7 +34,7 @@ export const determineReporters = (config: TelemetryReporterConfig) => {
   if (isDevMode) {
     addDevModeReporter(reporters, extName);
   } else {
-    addO11yReporter(reporters);
+    addO11yReporter(reporters, extName);
     addAppInsightsReporter(reporters, reporterName, version, aiKey, userId);
     addLogstreamReporter(reporters, extName);
   }
@@ -65,29 +66,30 @@ export const initializeO11yReporter = async (
   userId: string,
   version: string
 ): Promise<void> => {
-  if (o11yReporterInstance) return;
+  if (o11yReporterInstances.has(extName)) return;
 
-  if (getO11yInitializationPromise()) {
-    await getO11yInitializationPromise();
+  if (getO11yInitializationPromise(extName)) {
+    await getO11yInitializationPromise(extName);
     return;
   }
 
-  o11yReporterInstance = new O11yReporter(extName, version, o11yUploadEndpoint, userId);
+  const o11yReporterInstance = new O11yReporter(extName, version, o11yUploadEndpoint, userId);
   const initPromise = o11yReporterInstance
     .initialize(extName)
     .catch(err => {
       console.error('O11y initialization failed:', err);
-      o11yReporterInstance = null;
+      o11yReporterInstances.delete(extName);
     })
-    .finally(() => clearO11yInitializationPromise());
+    .finally(() => clearO11yInitializationPromise(extName));
 
-  setO11yInitializationPromise(initPromise);
+  o11yReporterInstances.set(extName, o11yReporterInstance);
+  setO11yInitializationPromise(extName, initPromise);
   await initPromise;
 };
 
-const addO11yReporter = (reporters: TelemetryReporter[]): void => {
-  if (o11yReporterInstance) {
-    reporters.push(o11yReporterInstance);
+const addO11yReporter = (reporters: TelemetryReporter[], extName: string): void => {
+  if (o11yReporterInstances.has(extName)) {
+    reporters.push(o11yReporterInstances.get(extName)!);
     console.log('Added O11y reporter to reporters list');
   } else {
     console.log('O11yReporter not initialized yet, skipping addition.');

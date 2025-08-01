@@ -11,6 +11,7 @@ import {
   SFDX_CORE_CONFIGURATION_NAME,
   SfWorkspaceChecker,
   TelemetryService,
+  TimingUtils,
   TraceFlags,
   WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
@@ -131,7 +132,10 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
   const deploySourcePathCmd = vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths);
   const projectRetrieveStartCmd = vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart);
-  const projectDeployStartCmd = vscode.commands.registerCommand('sf.project.deploy.start', projectDeployStart);
+  const projectDeployStartCmd = vscode.commands.registerCommand(
+    'sf.project.deploy.start',
+    async (isDeployOnSave: boolean) => projectDeployStart(isDeployOnSave, false)
+  );
   const projectRetrieveStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sf.project.retrieve.start.ignore.conflicts',
     projectRetrieveStart,
@@ -139,8 +143,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
   const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sf.project.deploy.start.ignore.conflicts',
-    projectDeployStart,
-    flagIgnoreConflicts
+    async (isDeployOnSave: boolean) => projectDeployStart(isDeployOnSave, true)
   );
   const retrieveCmd = vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths);
   const retrieveCurrentFileCmd = vscode.commands.registerCommand(
@@ -369,6 +372,7 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
+  const activationStartTime = TimingUtils.getCurrentTime();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
@@ -415,7 +419,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       telemetryService
     };
 
-    telemetryService.sendExtensionActivationEvent(activateTracker.activationInfo.startActivateHrTime);
+    telemetryService.sendExtensionActivationEvent(activationStartTime);
     MetricsReporter.extensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
     return internalApi;

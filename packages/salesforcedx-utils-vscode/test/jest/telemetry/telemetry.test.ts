@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { workspace } from 'vscode';
-import { TelemetryService } from '../../../src';
+import { TelemetryService, TelemetryServiceInterface } from '../../../src';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryServiceProvider } from '../../../src/services/telemetry';
 
@@ -179,6 +180,197 @@ describe('Telemetry', () => {
       spyIsTelemetryExtensionConfigurationEnabled.mockReturnValue(true);
       changeTelemetryServiceProperty(instance, 'cliAllowsTelemetryPromise', Promise.resolve(false));
       expect(await instance.isTelemetryEnabled()).toBe(false);
+    });
+  });
+
+  describe('Telemetry Service - Backwards Compatibility', () => {
+    let instance: TelemetryService;
+    let mockReporter: any;
+
+    beforeEach(() => {
+      // Clear instances to get fresh instance
+      TelemetryServiceProvider.instances.clear();
+      instance = TelemetryServiceProvider.getInstance() as TelemetryService;
+
+      // Mock reporters to avoid actual telemetry sends
+      mockReporter = {
+        sendTelemetryEvent: jest.fn(),
+        sendExceptionEvent: jest.fn(),
+        sendEventData: jest.fn(),
+        dispose: jest.fn()
+      };
+
+      // Replace the reporters array with our mock
+      (instance as any).reporters = [mockReporter];
+
+      // Set the extension name properly for testing
+      (instance as any).extensionName = 'salesforcedx-vscode-core';
+
+      // Enable telemetry for testing by mocking the validation method to call the callback directly
+      (instance as any).validateTelemetry = jest.fn((callback: () => void) => {
+        callback(); // Call immediately for testing
+      });
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      TelemetryServiceProvider.instances.clear();
+    });
+
+    describe('sendExtensionActivationEvent timing parameter compatibility', () => {
+      it('should work with number startTime (new format)', () => {
+        // Use a recent timestamp that won't cause negative time issues
+        const startTime = Date.now() - 50; // 50ms ago
+
+        expect(() => {
+          instance.sendExtensionActivationEvent(startTime);
+        }).not.toThrow();
+
+        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
+          'activationEvent',
+          expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }),
+          expect.objectContaining({ startupTime: expect.any(Number) })
+        );
+      });
+
+      it('should work with hrtime tuple startTime (legacy format)', () => {
+        // Create a valid hrtime tuple representing 50ms ago
+        const now = Date.now();
+        const fiftyMsAgo = now - 50;
+        const hrtime: [number, number] = [Math.floor(fiftyMsAgo / 1000), (fiftyMsAgo % 1000) * 1000000];
+
+        expect(() => {
+          instance.sendExtensionActivationEvent(hrtime);
+        }).not.toThrow();
+
+        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
+          'activationEvent',
+          expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }),
+          expect.objectContaining({ startupTime: expect.any(Number) })
+        );
+      });
+
+      it('should work with undefined startTime', () => {
+        expect(() => {
+          instance.sendExtensionActivationEvent(undefined, 100);
+        }).not.toThrow();
+
+        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
+          'activationEvent',
+          expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }),
+          expect.objectContaining({ startupTime: 100 })
+        );
+      });
+
+      it('should use markEndTime when provided, regardless of startTime format', () => {
+        const startTime = Date.now() - 50;
+        const markEndTime = 250;
+
+        instance.sendExtensionActivationEvent(startTime, markEndTime);
+
+        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
+          'activationEvent',
+          expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }),
+          expect.objectContaining({ startupTime: markEndTime })
+        );
+      });
+    });
+
+    describe('sendCommandEvent timing parameter compatibility', () => {
+      it('should work with number startTime (new format)', () => {
+        const startTime = Date.now() - 50; // 50ms ago
+
+        expect(() => {
+          instance.sendCommandEvent('test_command', startTime, { testProp: 'value' });
+        }).not.toThrow();
+
+        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
+          'commandExecution',
+          expect.objectContaining({
+            extensionName: 'salesforcedx-vscode-core',
+            commandName: 'test_command',
+            testProp: 'value'
+          }),
+          expect.objectContaining({ executionTime: expect.any(Number) })
+        );
+      });
+
+      it('should work with hrtime tuple startTime (legacy format)', () => {
+        // Create a valid hrtime tuple representing 50ms ago
+        const now = Date.now();
+        const fiftyMsAgo = now - 50;
+        const hrtime: [number, number] = [Math.floor(fiftyMsAgo / 1000), (fiftyMsAgo % 1000) * 1000000];
+
+        expect(() => {
+          instance.sendCommandEvent('test_command', hrtime, { testProp: 'value' });
+        }).not.toThrow();
+
+        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
+          'commandExecution',
+          expect.objectContaining({
+            extensionName: 'salesforcedx-vscode-core',
+            commandName: 'test_command',
+            testProp: 'value'
+          }),
+          expect.objectContaining({ executionTime: expect.any(Number) })
+        );
+      });
+
+      it('should work with undefined startTime', () => {
+        expect(() => {
+          instance.sendCommandEvent('test_command', undefined, { testProp: 'value' });
+        }).not.toThrow();
+
+        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
+          'commandExecution',
+          expect.objectContaining({
+            extensionName: 'salesforcedx-vscode-core',
+            commandName: 'test_command',
+            testProp: 'value'
+          }),
+          // No executionTime measurement when startTime is undefined
+          expect.not.objectContaining({ executionTime: expect.any(Number) })
+        );
+      });
+
+      it('should include measurements when provided with timing', () => {
+        const startTime = Date.now() - 50;
+        const measurements = { customMetric: 42 };
+
+        instance.sendCommandEvent('test_command', startTime, { testProp: 'value' }, measurements);
+
+        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
+          'commandExecution',
+          expect.objectContaining({
+            extensionName: 'salesforcedx-vscode-core',
+            commandName: 'test_command',
+            testProp: 'value'
+          }),
+          expect.objectContaining({
+            executionTime: expect.any(Number),
+            customMetric: 42
+          })
+        );
+      });
+    });
+
+    describe('hrTimeToMilliseconds helper method', () => {
+      it('should convert number correctly', () => {
+        const startTime = Date.now();
+        const result = (instance as any).hrTimeToMilliseconds(startTime);
+        expect(result).toBe(startTime);
+      });
+
+      it('should convert hrtime tuple correctly', () => {
+        const hrtime: [number, number] = [1000, 500000000]; // 1000 seconds + 500ms
+        const result = (instance as any).hrTimeToMilliseconds(hrtime);
+        expect(result).toBe(1000500); // 1000 seconds * 1000 + 500ms
+      });
+
+      it('should handle undefined by defaulting to [0, 0]', () => {
+        const result = (instance as any).hrTimeToMilliseconds(undefined);
+        expect(result).toBe(0); // [0, 0] converts to 0 milliseconds
+      });
     });
   });
 });

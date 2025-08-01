@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
@@ -184,5 +184,30 @@ export const rename = async (oldPath: string, newPath: string): Promise<void> =>
     throw new Error(
       `Failed to rename ${oldPath} to ${newPath}: ${error instanceof Error ? error.message : String(error)}`
     );
+  }
+};
+
+/**
+ * Checks if a directory is empty or contains only empty subdirectories (async, uses fs utils)
+ */
+export const isEmptyDirectory = async (dirPath: string): Promise<boolean> => {
+  try {
+    const items = await readDirectory(dirPath);
+    if (items.length === 0) {
+      return true;
+    }
+    for (const item of items) {
+      const itemPath = join(dirPath, item);
+      if (!(await isFile(itemPath))) {
+        return false; // Found a file, directory is not empty
+      }
+      if ((await isDirectory(itemPath)) && !(await isEmptyDirectory(itemPath))) {
+        return false; // Found a non-empty subdirectory
+      }
+    }
+    return true;
+  } catch {
+    // If we can't read the directory, assume it's not empty
+    return false;
   }
 };

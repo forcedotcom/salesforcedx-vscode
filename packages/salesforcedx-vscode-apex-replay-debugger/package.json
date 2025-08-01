@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.6.1",
+  "version": "64.7.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,22 +24,22 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "^8.2.2",
-    "@salesforce/salesforcedx-apex-replay-debugger": "64.6.1",
-    "@salesforce/salesforcedx-utils": "64.6.1",
-    "@salesforce/salesforcedx-utils-vscode": "64.6.1",
+    "@salesforce/apex-node-bundle": "^8.2.5",
+    "@salesforce/salesforcedx-apex-replay-debugger": "64.7.1",
+    "@salesforce/salesforcedx-utils": "64.7.1",
+    "@salesforce/salesforcedx-utils-vscode": "64.7.1",
     "async-lock": "1.4.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.18.1",
+    "@salesforce/core": "^8.18.4",
     "@types/async-lock": "1.4.2",
     "@types/node": "^20.0.0",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "salesforcedx-vscode-apex": "64.6.1",
-    "salesforcedx-vscode-core": "64.6.1",
+    "salesforcedx-vscode-apex": "64.7.1",
+    "salesforcedx-vscode-core": "64.7.1",
     "vscode-extension-telemetry": "^0.0.17"
   },
   "extensionDependencies": [
@@ -66,8 +66,7 @@
   },
   "activationEvents": [
     "onDebugResolve:apex",
-    "onCommand:extension.replay-debugger.getLogFileName",
-    "workspaceContains:sfdx-project.json"
+    "onCommand:extension.replay-debugger.getLogFileName"
   ],
   "main": "./out/src",
   "packaging": {

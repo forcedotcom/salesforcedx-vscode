@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { O11yService } from '../../services/o11yService';
+import { TelemetryReporter } from '../../types';
 import { isInternalHost } from '../utils/isInternal';
 import { CommonProperties, InternalProperties } from './loggingProperties';
 
@@ -29,7 +29,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
     private readonly userId: string
   ) {
     super(() => this.toDispose.forEach(d => d?.dispose()));
-    this.o11yService = O11yService.getInstance();
+    this.o11yService = O11yService.getInstance(extensionId);
     this.userOptIn = true; // Assume opt-in for now
     this.o11yUploadEndpoint = o11yUploadEndpoint;
     this.setTelemetryTag();

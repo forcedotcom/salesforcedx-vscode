@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "64.6.1",
+  "version": "64.7.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -32,8 +32,8 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "64.6.1",
-    "@salesforce/salesforcedx-utils-vscode": "64.6.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "64.7.1",
+    "@salesforce/salesforcedx-utils-vscode": "64.7.1",
     "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-data-view": "0.1.0",
@@ -45,15 +45,15 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.18.1",
-    "@salesforce/salesforcedx-utils": "64.6.1",
+    "@salesforce/core": "^8.18.4",
+    "@salesforce/salesforcedx-utils": "64.7.1",
     "@salesforce/ts-types": "2.0.12",
     "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
-    "salesforcedx-vscode-core": "64.6.1"
+    "salesforcedx-vscode-core": "64.7.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"

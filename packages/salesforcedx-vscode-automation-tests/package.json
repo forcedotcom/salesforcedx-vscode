@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-automation-tests",
-  "version": "64.6.1",
+  "version": "64.7.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "19.5.0",
-    "@salesforce/salesforcedx-vscode-test-tools": "*",
+    "@salesforce/salesforcedx-vscode-test-tools": "^1.1.6",
     "@types/chai": "^4.3.17",
     "@types/cross-spawn": "^6.0.6",
     "@types/mocha": "^10.0.9",
@@ -26,7 +26,7 @@
     "chai": "^4.5.0",
     "commitizen": "^4.3.1",
     "cross-spawn": "^7.0.3",
-    "eslint": "^9.13.0",
+    "eslint": "^9.32.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-prettier": "^5.2.1",

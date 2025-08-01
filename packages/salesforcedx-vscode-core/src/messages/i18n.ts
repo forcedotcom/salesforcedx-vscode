@@ -22,7 +22,7 @@ export const messages = {
   channel_end_with_sfdx_not_found:
     'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/salesforcecli',
   channel_end_with_error: 'ended with error %s',
-  channel_end: 'ended',
+  channel_end: 'Ended',
 
   progress_notification_text: 'Running %s',
 
@@ -321,6 +321,11 @@ export const messages = {
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
+  error_source_tracking_connection_failed: 'Failed to establish connection to the org for source tracking.',
+  error_source_tracking_service_failed: 'Failed to initialize source tracking service.',
+  error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s',
+  error_source_tracking_initialization_failed: 'Failed to initialize source tracking for the project.',
+  error_source_tracking_retrieval_failed: 'Failed to retrieve component changes using source tracking: %s',
   list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
@@ -669,6 +674,8 @@ export const messages = {
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
   conflict_detect_conflict_header_timestamp: 'Conflicts:\n    Found %d file(s) in conflict:\n',
   conflict_detect_command_hint: '\nRun the following command to overwrite the conflicts:\n  %s',
+  conflict_detect_command_hint_push:
+    '\nRun the following command to overwrite the conflicts:\n SFDX: Push Source to Default Org and Ignore Conflicts\n',
   conflict_detect_no_target_org: 'No target org for this project',
   conflict_detect_no_default_package_dir: 'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',

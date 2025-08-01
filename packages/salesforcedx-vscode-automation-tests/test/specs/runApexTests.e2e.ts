@@ -42,6 +42,8 @@ import {
 import { expect } from 'chai';
 import * as semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Run Apex Tests', () => {
@@ -52,12 +54,16 @@ describe('Run Apex Tests', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'RunApexTests'
+    testSuiteSuffixName: 'RunApexTests',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     log('RunApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     // Create Apex class 1 and test
     await retryOperation(
@@ -80,14 +86,20 @@ describe('Run Apex Tests', () => {
       'RunApexTests - Error creating Apex class 3 and test'
     );
 
-    // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+  });
+
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -125,7 +137,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -157,7 +169,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -191,7 +203,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
       'ExampleApexClass3Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -221,7 +233,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
@@ -263,7 +275,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
       'ExampleApexClass3Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
 
@@ -287,7 +299,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
@@ -299,12 +311,7 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(
-      workbench,
-      'Apex Tests',
-      'validateSayHello',
-      'Run Single Test'
-    );
+    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'validateSayHello', 'Run Single Test');
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -312,7 +319,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
@@ -325,13 +332,10 @@ describe('Run Apex Tests', () => {
 
     // Push source to org
     const workbench = getWorkbench();
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view.
     await dismissAllNotifications();
@@ -360,13 +364,10 @@ describe('Run Apex Tests', () => {
     await pause(Duration.seconds(1));
 
     // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view.
     await dismissAllNotifications();
@@ -391,7 +392,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'AccountServiceTest.should_create_account  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -475,14 +476,13 @@ describe('Run Apex Tests', () => {
     const expectedTexts = [
       '=== Test Summary',
       'TEST NAME',
-      'ended SFDX: Run Apex Tests',
       'Outcome              Passed',
       'Tests Ran            2',
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });

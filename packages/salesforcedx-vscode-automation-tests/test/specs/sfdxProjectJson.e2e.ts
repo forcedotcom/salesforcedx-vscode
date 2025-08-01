@@ -20,6 +20,8 @@ import { getTextEditor, getWorkbench } from '@salesforce/salesforcedx-vscode-tes
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 
 describe('Customize sfdx-project.json', () => {
   let testSetup: TestSetup;
@@ -28,17 +30,28 @@ describe('Customize sfdx-project.json', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'sfdxProjectJson'
+    testSuiteSuffixName: 'sfdxProjectJson',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
+
     await createSfdxProjectJsonWithAllFields(testSetup);
     await reloadAndEnableExtensions();
   });
 
   it('Verify our extensions are loaded after updating sfdx-project.json', async () => {
-    expect(await verifyExtensionsAreRunning(getExtensionsToVerifyActive())).to.equal(true);
+    expect(
+      await verifyExtensionsAreRunning(
+        getExtensionsToVerifyActive(ext =>
+          defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
+        )
+      )
+    ).to.equal(true);
   });
 
   after('Tear down and clean up the testing environment', async () => {

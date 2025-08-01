@@ -8,9 +8,11 @@ import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import { DeployExecutor, DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
+import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
+import { DeployExecutor } from '../../../src/commands/deployExecutor';
 import { SfCommandletExecutor } from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
+import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import * as diagnostics from '../../../src/diagnostics';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
@@ -27,19 +29,11 @@ jest.mock('@salesforce/source-deploy-retrieve-bundle', () => ({
   }))
 }));
 
-jest.mock('../../../src/commands/baseDeployRetrieve', () => ({
-  ...jest.requireActual('../../../src/commands/baseDeployRetrieve'),
-  RetrieveExecutor: jest.fn()
-}));
-
-jest.mock('../../../src/conflict/metadataCacheService', () => ({
-  ...jest.requireActual('../../../src/conflict/metadataCacheService')
-}));
-
+jest.mock('../../../src/salesforceProject/salesforceProjectConfig');
+jest.mock('../../../src/conflict/metadataCacheService');
 jest.mock('../../../src/commands/util/overwriteComponentPrompt');
 jest.mock('../../../src/commands/util/timestampConflictChecker');
 jest.mock('../../../src/conflict/timestampConflictDetector');
-jest.mock('../../../src/salesforceProject/salesforceProjectConfig');
 
 describe('Deploy Executor', () => {
   const dummyProcessCwd = '/';
@@ -51,6 +45,7 @@ describe('Deploy Executor', () => {
   let getSourceTrackingSpy: jest.SpyInstance;
   let deploySpy: jest.SpyInstance;
   let getEnableSourceTrackingForDeployAndRetrieveMock: jest.SpyInstance;
+  let getWorkspaceOrgTypeMock: jest.SpyInstance;
 
   class TestDeployExecutor extends DeployExecutor<{}> {
     // eslint-disable-next-line @typescript-eslint/no-useless-constructor
@@ -73,6 +68,7 @@ describe('Deploy Executor', () => {
     jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ type: vscode.FileType.File } as vscode.FileStat);
     jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
     jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue(dummyUsername);
+    getWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'getWorkspaceOrgType');
     getSourceTrackingSpy = jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue({
       ensureLocalTracking: ensureLocalTrackingSpy
     } as any);
@@ -85,6 +81,7 @@ describe('Deploy Executor', () => {
 
   it('should create Source Tracking and call ensureLocalTracking before deploying', async () => {
     // Arrange
+    getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
     deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({ pollStatus: jest.fn() } as any);
     const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
@@ -109,6 +106,7 @@ describe('Deploy Executor', () => {
 
   it('should NOT create Source Tracking and NOT call ensureLocalTracking before deploying when "Enable Source Tracking" is disabled(false)', async () => {
     // Arrange
+    getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
     deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({ pollStatus: jest.fn() } as any);
     const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
@@ -170,7 +168,8 @@ describe('Deploy Executor', () => {
       const mockDeployResult = {
         response: {
           status: 'Succeeded'
-        }
+        },
+        getFileResponses: jest.fn().mockReturnValue([])
       };
       const deployRetrieveExecutorClearSpy = jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
       SfCommandletExecutor.errorCollection = MockErrorCollection as any;
@@ -198,7 +197,8 @@ describe('Deploy Executor', () => {
       const mockDeployResult = {
         response: {
           status: 'Failed'
-        }
+        },
+        getFileResponses: jest.fn().mockReturnValue([{ state: 'Failed', filePath: 'test/path', error: 'Test error' }])
       };
       const unsuccessfulOperationHandlerSpy = jest
         .spyOn(TestDeployExecutor.prototype as any, 'unsuccessfulOperationHandler')
@@ -220,6 +220,71 @@ describe('Deploy Executor', () => {
       );
       expect(unlockSpy).toHaveBeenCalled();
       expect(mockUnlock).toHaveBeenCalled();
+    });
+
+    it('should treat SucceededPartial as success', async () => {
+      // Arrange
+      const mockDeployResult = {
+        response: {
+          status: 'SucceededPartial'
+        },
+        getFileResponses: jest.fn().mockReturnValue([])
+      };
+      const deployRetrieveExecutorClearSpy = jest.spyOn(DeployRetrieveExecutor.errorCollection, 'clear');
+      SfCommandletExecutor.errorCollection = MockErrorCollection as any;
+      const sfCommandletExecutorClearSpy = jest.spyOn(SfCommandletExecutor.errorCollection, 'clear');
+
+      const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
+
+      // Act
+      await (executor as any).postOperation(mockDeployResult);
+
+      // Assert
+      expect(getInstanceSpy).toHaveBeenCalled();
+      expect(getPackageDirectoryPathsSpy).toHaveBeenCalled();
+      expect(createOutputSpy).toHaveBeenCalled();
+      expect(appendLineSpy).toHaveBeenCalled();
+      expect(setPropertiesForFilesDeployMock).toHaveBeenCalledWith(mockDeployResult);
+      expect(deployRetrieveExecutorClearSpy).toHaveBeenCalled();
+      expect(sfCommandletExecutorClearSpy).toHaveBeenCalled();
+      expect(unlockSpy).toHaveBeenCalled();
+      expect(mockUnlock).toHaveBeenCalled();
+    });
+
+    it('should call createOutput with correct success status for Succeeded', () => {
+      // Arrange
+      const mockDeployResult = {
+        response: {
+          status: 'Succeeded'
+        },
+        getFileResponses: jest.fn().mockReturnValue([])
+      };
+      const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
+      const createOutputSpySucceeded = jest.spyOn(executor as any, 'createOutput').mockReturnValue('test output');
+
+      // Act
+      (executor as any).createOutput(mockDeployResult, ['path/to/package']);
+
+      // Assert
+      expect(createOutputSpySucceeded).toHaveBeenCalledWith(mockDeployResult, ['path/to/package']);
+    });
+
+    it('should call createOutput with correct success status for SucceededPartial', () => {
+      // Arrange
+      const mockDeployResult = {
+        response: {
+          status: 'SucceededPartial'
+        },
+        getFileResponses: jest.fn().mockReturnValue([])
+      };
+      const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
+      const createOutputSpyPartial = jest.spyOn(executor as any, 'createOutput').mockReturnValue('test output');
+
+      // Act
+      (executor as any).createOutput(mockDeployResult, ['path/to/package']);
+
+      // Assert
+      expect(createOutputSpyPartial).toHaveBeenCalledWith(mockDeployResult, ['path/to/package']);
     });
   });
 });

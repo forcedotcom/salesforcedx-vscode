@@ -318,6 +318,13 @@ export default [
       'no-invalid-this': 'off',
       'no-new-wrappers': 'error',
       'no-param-reassign': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[object.name='process'][property.name='hrtime']",
+          message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
+        }
+      ],
       'no-shadow': 'off',
       'no-self-assign': 'error',
       'no-self-compare': 'error',

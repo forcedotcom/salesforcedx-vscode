@@ -28,11 +28,14 @@ import {
   clearOutputView,
   attemptToFindOutputPanelText,
   getTextEditor,
-  waitForNotificationToGoAway
+  waitForNotificationToGoAway,
+  dismissAllNotifications
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Apex Replay Debugger', () => {
@@ -45,7 +48,8 @@ describe('Apex Replay Debugger', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'ApexReplayDebugger'
+    testSuiteSuffixName: 'ApexReplayDebugger',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
@@ -53,16 +57,19 @@ describe('Apex Replay Debugger', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     projectFolderPath = testSetup.projectFolderPath!;
 
+    // Hide copilot
+    await tryToHideCopilot();
+
     // Create Apex class file
     await createApexClassWithTest('ExampleApexClass');
 
-    // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
+
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
   });
 
   // Since tests are sequential, we need to skip the rest of the tests if one fails
@@ -102,8 +109,7 @@ describe('Apex Replay Debugger', () => {
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger');
-    expect(outputPanelText).to.contain('ended with exit code 0');
+    expect(outputPanelText).to.contain('Ended SFDX: Turn On Apex Debug Log for Replay Debugger');
   });
 
   it('Run the Anonymous Apex Debugger with Currently Selected Text', async () => {
@@ -135,7 +141,7 @@ describe('Apex Replay Debugger', () => {
     expect(outputPanelText).to.contain('Executed successfully.');
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
-    expect(outputPanelText).to.contain('ended Execute Anonymous Apex');
+    expect(outputPanelText).to.contain('Ended Execute Anonymous Apex');
   });
 
   it('SFDX: Get Apex Debug Logs', async () => {
@@ -165,7 +171,7 @@ describe('Apex Replay Debugger', () => {
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
-    expect(outputPanelText).to.contain('ended SFDX: Get Apex Debug Logs');
+    expect(outputPanelText).to.contain('Ended SFDX: Get Apex Debug Logs');
 
     // Verify content on log file
     const textEditor = await retryOperation(async () => {
@@ -194,16 +200,28 @@ describe('Apex Replay Debugger', () => {
     // Get file path from open text editor
     const activeTab = await editorView.getActiveTab();
     expect(activeTab).to.not.be.undefined;
+
     const title = await activeTab?.getTitle();
     if (title) logFileTitle = title;
     const logFilePath = path.join(projectFolderPath, '.sfdx', 'tools', 'debug', 'logs', logFileTitle);
-    console.log(`*** logFilePath = ${logFilePath}`);
+    log(`logFilePath: ${logFilePath}`);
 
     // Run SFDX: Launch Apex Replay Debugger with Last Log File
-    prompt = await executeQuickPick('SFDX: Launch Apex Replay Debugger with Last Log File', Duration.seconds(1));
-    await prompt.setText(logFilePath);
-    await prompt.confirm();
-    await pause();
+    await retryOperation(
+      async () => {
+        await pause(Duration.seconds(2));
+        prompt = await executeQuickPick('SFDX: Launch Apex Replay Debugger with Last Log File', Duration.seconds(1));
+
+        if (!prompt) {
+          throw new Error('Failed to get prompt from executeQuickPick');
+        }
+
+        await prompt.setText(logFilePath);
+        await prompt.confirm();
+      },
+      3,
+      'Failed to launch Apex Replay Debugger with Last Log File'
+    );
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -256,7 +274,7 @@ describe('Apex Replay Debugger', () => {
     expect(outputPanelText).to.contain('Executed successfully.');
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
-    expect(outputPanelText).to.contain('ended Execute Anonymous Apex');
+    expect(outputPanelText).to.contain('Ended Execute Anonymous Apex');
   });
 
   it('SFDX: Turn Off Apex Debug Log for Replay Debugger', async () => {
@@ -278,7 +296,7 @@ describe('Apex Replay Debugger', () => {
       'Starting SFDX: Turn Off Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.contain('ended with exit code 0');
+    expect(outputPanelText).to.contain('Ended SFDX: Turn Off Apex Debug Log for Replay Debugger');
   });
 
   after('Tear down and clean up the testing environment', async () => {
