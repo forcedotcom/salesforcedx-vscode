@@ -39,7 +39,8 @@ import {
   isCommandAvailable,
   overrideTextInFile,
   zoom,
-  zoomReset
+  zoomReset,
+  dismissAllNotifications
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
@@ -126,6 +127,8 @@ describe('Create OpenAPI v3 Specifications', () => {
     );
 
     // Push source to org
+    await dismissAllNotifications();
+    await pause(Duration.seconds(1));
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
     await verifyNotificationWithRetry(
