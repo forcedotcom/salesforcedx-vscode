@@ -29,6 +29,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Visualforce LSP', () => {
@@ -38,7 +39,8 @@ describe('Visualforce LSP', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'VisualforceLsp'
+    testSuiteSuffixName: 'VisualforceLsp',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
