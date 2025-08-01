@@ -51,4 +51,17 @@ describe('settings Unit Tests.', () => {
     expect(getConfigurationMock).toHaveBeenCalledWith();
     expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.apexoas.aa.method.annotations', []);
   });
+
+  it('Should be able to get lspParityCapabilities setting.', () => {
+    getConfigurationMock.mockReturnValue({
+      get: getFn.mockReturnValue(true)
+    } as any);
+
+    const result = vscode.workspace
+      .getConfiguration()
+      .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
+    expect(result).toBe(true);
+    expect(getConfigurationMock).toHaveBeenCalledWith();
+    expect(getFn).toHaveBeenCalledWith('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
+  });
 });
