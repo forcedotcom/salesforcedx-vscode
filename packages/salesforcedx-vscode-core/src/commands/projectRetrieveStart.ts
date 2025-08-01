@@ -49,11 +49,14 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
     // Check for conflicts if:
     // 1. We're not ignoring conflicts
     // 2. Conflict detection is enabled
-    // 3. There are changed files to check for conflicts
+    // 3. Either:
+    //    a) There are changed files to check for conflicts, OR
+    //    b) Source tracking is disabled
+    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (
       !this.ignoreConflicts &&
       salesforceCoreSettings.getConflictDetectionEnabled() &&
-      this.changedFilePaths.length > 0
+      (this.changedFilePaths.length > 0 || !sourceTrackingEnabled)
     ) {
       const conflictResult = await checkConflictsForChangedFiles(
         'retrieve_with_sourcepath',
