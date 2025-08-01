@@ -25,12 +25,13 @@ export const ProjectServiceLive = Layer.effect(
     const getSfProject = pipe(
       WorkspaceService,
       Effect.flatMap(ws => ws.getWorkspaceDescription),
+      Effect.tap(workspaceDescription => console.log('workspaceDescription', workspaceDescription)),
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
           ? Effect.fail(new Error('No workspace open'))
           : Effect.tryPromise({
-              try: () => SfProject.resolve(workspaceDescription.path),
-              catch: error => new Error(`Not a Salesforce project: ${String(error)}`)
+              try: () => SfProject.resolve(workspaceDescription.fsPath),
+              catch: error => new Error('Project Resolution Error', { cause: error })
             })
       )
     );
@@ -42,7 +43,7 @@ export const ProjectServiceLive = Layer.effect(
         workspaceDescription.isEmpty
           ? Effect.succeed(false)
           : Effect.tryPromise({
-              try: () => SfProject.resolve(workspaceDescription.path),
+              try: () => SfProject.resolve(workspaceDescription.fsPath),
               catch: () => false
             }).pipe(
               Effect.map(() => true),

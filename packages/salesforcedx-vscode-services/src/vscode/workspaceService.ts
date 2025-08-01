@@ -18,7 +18,10 @@ export type WorkspaceService = {
 export const WorkspaceService = Context.GenericTag<WorkspaceService>('WorkspaceService');
 
 type WorkspaceDescription = {
+  /** includes the file:// or other schemeprefix */
   path: string;
+  /** the path without the scheme prefix */
+  fsPath: string;
   isEmpty: boolean;
   isVirtualFs: boolean;
 };
@@ -37,7 +40,8 @@ export const WorkspaceServiceLive = Layer.succeed(WorkspaceService, {
     return {
       path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),
       isEmpty: folders?.length === 0,
-      isVirtualFs: folders?.[0]?.uri.scheme !== 'file'
+      isVirtualFs: folders?.[0]?.uri.scheme !== 'file',
+      fsPath: folders?.[0]?.uri.fsPath ?? ''
     };
   })
 });

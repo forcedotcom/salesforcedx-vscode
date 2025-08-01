@@ -8,6 +8,7 @@ const emptyPolyfillsPath = join(__dirname, 'empty-polyfills.js');
 const processGlobalPath = join(__dirname, 'process-global.js');
 const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
+const fsPolyfillPath = join(__dirname, 'fs-polyfill.js');
 // Enhanced plugin to transform body.pipe() to browser-compatible pipeTo with stream conversion
 const pipeTransformPlugin = () => ({
   name: 'pipe-transform',
@@ -71,6 +72,51 @@ const pipeTransformPlugin = () => ({
   }
 });
 
+// Plugin to transform jszip's nodestream check to always return true
+const jszipNodestreamTransformPlugin = () => ({
+  name: 'jszip-nodestream-transform',
+  setup(build) {
+    build.onLoad({ filter: /\.js$/ }, async args => {
+      const fs = await import('fs/promises');
+      let contents = await fs.readFile(args.path, 'utf8');
+
+      // Only transform if the file contains the jszip nodestream check pattern
+      if (contents.includes('nodestream = !!') && contents.includes('readable-stream')) {
+        // Transform the specific pattern we see in the bundled output
+        // From: try { r.nodestream = !!e("readable-stream").Readable; } catch (e2) { r.nodestream = false; }
+        // To: r.nodestream = true;
+        contents = contents.replace(
+          /try\s*\{\s*(\w+\.nodestream\s*=\s*!![^;]+);\s*\}\s*catch\s*\([^)]+\)\s*\{\s*\1\s*=\s*false;\s*\}/g,
+          (match, assignment) => {
+            const varMatch = assignment.match(/(\w+\.nodestream)\s*=/);
+            return varMatch ? `${varMatch[1]} = true;` : match;
+          }
+        );
+
+        // Also handle the original source pattern (without semicolons)
+        contents = contents.replace(
+          /try\s*\{\s*(\w+\.nodestream\s*=\s*!![^}]+)\s*\}\s*catch\s*\([^)]+\)\s*\{\s*\1\s*=\s*false\s*\}/g,
+          (match, assignment) => {
+            const varMatch = assignment.match(/(\w+\.nodestream)\s*=/);
+            return varMatch ? `${varMatch[1]} = true` : match;
+          }
+        );
+
+        // Handle the exact pattern we see in support.js
+        contents = contents.replace(
+          /try\s*\{\s*exports\.nodestream\s*=\s*!!require\("readable-stream"\)\.Readable;\s*\}\s*catch\s*\([^)]+\)\s*\{\s*exports\.nodestream\s*=\s*false;\s*\}/g,
+          'exports.nodestream = true;'
+        );
+
+        return { contents };
+      }
+
+      // Return undefined to let esbuild handle the file normally
+      return undefined;
+    });
+  }
+});
+
 export const commonConfigBrowser = {
   mainFields: ['browser', 'module', 'main'],
   bundle: true,
@@ -95,12 +141,12 @@ export const commonConfigBrowser = {
     __filename: '""'
   },
   alias: {
+    jszip: 'jszip/lib/index.js',
     // proper-lockfile and SDR use graceful-fs
-    'graceful-fs': '@salesforce/core/fs',
-    fs: '@salesforce/core/fs',
-    'node:process': processPolyfillPath,
-    'node:fs': '@salesforce/core/fs',
-    'node:fs/promises': '@salesforce/core/fs',
+    'graceful-fs': fsPolyfillPath,
+    fs: fsPolyfillPath,
+    'node:fs': fsPolyfillPath,
+    'node:fs/promises': fsPolyfillPath,
     jsonwebtoken: 'jsonwebtoken-esm',
     // Redirect jsforce-node to browser-compatible jsforce.  This is important, it won't auth without it but I don't understand why.
     '@jsforce/jsforce-node': 'jsforce/browser',
@@ -112,7 +158,7 @@ export const commonConfigBrowser = {
     'node:path': 'path-browserify',
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',
-    'node:stream': 'stream-browserify',
+    'node:stream': 'readable-stream',
     'node:util': 'util',
     'node:events': 'events',
     events: 'events',
@@ -133,11 +179,12 @@ export const commonConfigBrowser = {
     'node:net': emptyPolyfillsPath,
     'node:tls': emptyPolyfillsPath,
     'node:http2': emptyPolyfillsPath,
+    got: emptyPolyfillsPath, // has a lot of very node-focused references in its dependencies.
     // Standard Node.js modules (without node: prefix)
     path: 'path-browserify',
     os: 'os-browserify',
     buffer: 'buffer',
-    stream: 'stream-browserify',
+    stream: 'readable-stream',
     util: 'util',
     url: '/Users/shane.mclaughlin/eng/forcedotcom/salesforcedx-vscode/scripts/bundling/url-polyfill.js',
     crypto: 'crypto-browserify',
@@ -158,6 +205,7 @@ export const commonConfigBrowser = {
   },
   plugins: [
     pipeTransformPlugin(),
+    jszipNodestreamTransformPlugin(),
     nodeModulesPolyfillPlugin({
       modules: {
         // Empty polyfills for modules that can't be polyfilled

@@ -73,8 +73,6 @@ export const projectFiles = async (memfs: fsProvider): Promise<void> => {
     await createProjectStructure(memfs);
   } else {
   }
-  const config = vscode.workspace.getConfiguration();
-  await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
 
   // Run the Effect with the SettingsService layer
   await Effect.runPromise(Effect.provide(setupCredentials, SettingsServiceLive));
@@ -88,7 +86,7 @@ const setupCredentials = Effect.gen(function* () {
   console.log('Setting up test credentials for web environment');
   const instanceUrl = 'https://efficiency-data-8147-dev-ed.scratch.my.salesforce.com';
   const accessToken =
-    '00DD30000001cA5!ARsAQP.zHlUOmJbpXzELX6Tzl.zLgwBBtxe76xB1m2OtFzAyjyOptZOs4KB_FWakomEDRL253ALtZlAPo1FYeMpjdufqceAE';
+    '00DD30000001cA5!ARsAQGkc51XlT.GYt28IqgNhnRnYKypSOaJPuBjiak8JgJaf8TOBuGt.oxueSZymkWfb87NqkqdhJpZ8AA49o_VOaEDj7uCi';
 
   yield* settingsService.setInstanceUrl(instanceUrl);
   yield* settingsService.setAccessToken(accessToken);

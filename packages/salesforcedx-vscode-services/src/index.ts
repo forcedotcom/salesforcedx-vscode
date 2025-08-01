@@ -51,6 +51,10 @@ export const activate = async (
   channelServiceLayer = ChannelServiceLayer('Salesforce Services')
 ): Promise<SalesforceVSCodeServicesApi> => {
   console.log('🚀 [Services] Starting activation...');
+  // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
+
+  const config = vscode.workspace.getConfiguration();
+  await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
 
   const activationEffect = Effect.gen(function* () {
     // Output activation message using ChannelService
@@ -91,7 +95,7 @@ export const activate = async (
     }
   };
 
-  console.log('Salesforce Services extension is now active!');
+  console.log('Salesforce Services extension is now active! 8:15');
   return api;
 };
 

@@ -7,6 +7,7 @@
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import { Context, Effect, Layer, Option, pipe } from 'effect';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { ExtensionProviderService } from './extensionProvider';
 
 export type MetadataRetrieveService = {
@@ -87,7 +88,15 @@ const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> 
 const openFileInEditor = (filePath: string): Effect.Effect<void, Error, never> =>
   pipe(
     Effect.tryPromise({
-      try: () => vscode.workspace.openTextDocument(filePath),
+      try: () => {
+        console.log('openFileInEditor', filePath);
+        return vscode.workspace.openTextDocument(
+          URI.from({
+            scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file',
+            path: filePath
+          })
+        );
+      },
       catch: e => new Error(`Failed to open document: ${String(e)}`)
     }),
     Effect.flatMap(document =>

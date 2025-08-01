@@ -1,11 +1,12 @@
 # TODO
 
 starting from zero, or resuming existing stored project
-SDR retrieve in org browser
 core PR/self-review
 clean up /scripts/bundling folder for unused polyfills
 is EMS-style `* from 'foo'` not ok? If not ok, block with a lint rule
 should the fs stuff be its own extension that activates only in web scenario? If so, how to do that.
+in the logs, it looks like workspaceService stuff is all running 2x
+some Effect logging from the describe/list service
 
 ## docs
 

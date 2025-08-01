@@ -8,6 +8,7 @@
 import { type RetrieveResult, type MetadataMember } from '@salesforce/source-deploy-retrieve';
 
 import { Context, Effect, Layer, pipe } from 'effect';
+import * as vscode from 'vscode';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -51,11 +52,18 @@ const retrieve = (
         ? Effect.fail(new Error('No workspace path found'))
         : Effect.flatMap(channelService, _channel => {
             const output = project.getDefaultPackage().fullPath;
+            console.log('default packageoutput', output);
             return Effect.tryPromise({
               try: async () => {
-                const { ComponentSet, MetadataApiRetrieve } = await import('@salesforce/source-deploy-retrieve');
+                console.log('retrieve requested for', members);
+
+                const { MetadataApiRetrieve, ComponentSet } = await import('@salesforce/source-deploy-retrieve');
+                console.log('imported SDR 11:52:00');
+
                 const componentSet = new ComponentSet(members);
                 componentSet.apiVersion = '64.0';
+                console.log('componentSet built');
+
                 const retrieveOperation = new MetadataApiRetrieve({
                   usernameOrConnection: connection,
                   components: componentSet,
@@ -63,10 +71,24 @@ const retrieve = (
                   format: 'source',
                   merge: true
                 });
-                await retrieveOperation.start();
-                return await retrieveOperation.pollStatus();
+
+                const result = await vscode.window.withProgress(
+                  {
+                    location: vscode.ProgressLocation.Notification,
+                    title: `Retrieving ${members.map(m => m.type).join(', ')}`,
+                    cancellable: false
+                  },
+                  async () => {
+                    await retrieveOperation.start();
+                    return await retrieveOperation.pollStatus();
+                  }
+                );
+                return result;
               },
-              catch: e => e
+              catch: e => {
+                console.error(e);
+                return new Error('Failed to retrieve metadata', { cause: e });
+              }
             });
           })
     )

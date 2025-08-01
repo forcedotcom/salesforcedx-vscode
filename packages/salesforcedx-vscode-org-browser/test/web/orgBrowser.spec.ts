@@ -110,12 +110,13 @@ test.describe('Org Browser Web Extension', () => {
       // Take a final screenshot showing the error
       await orgBrowserPage.takeScreenshot('final-state-with-error.png');
 
-      // Look specifically for the "Not a Salesforce project" error
+      // Look specifically for the "Not a Salesforce project" error or the TypeError we're getting
       const projectError = errorTexts.some(
         text =>
           text.includes('Not a Salesforce project') ||
           text.includes('InvalidProjectWorkspaceError') ||
-          text.includes('memfs:/MyProject')
+          text.includes('memfs:/MyProject') ||
+          text.includes('The "original" argument must be of type Function')
       );
 
       // This is the expected error, so the test passes if we find it

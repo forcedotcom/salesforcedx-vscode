@@ -36,8 +36,6 @@ export const ConnectionServiceLive = Layer.succeed(ConnectionService, {
       if (!instanceUrl || !accessToken) {
         return yield* Effect.fail(new Error('No instanceUrl or accessToken found in settings'));
       }
-      console.log('instanceUrl', instanceUrl);
-      console.log('accessToken', accessToken);
 
       // For web environment, we need to use type assertion because the Connection.create
       // method's type definition doesn't account for the web environment parameters
@@ -56,8 +54,7 @@ export const ConnectionServiceLive = Layer.succeed(ConnectionService, {
       const configAggregator = yield* configService.getConfigAggregator;
       console.log('ConfigAggregator', JSON.stringify(configAggregator.getConfig(), null, 2));
 
-      const rawUsername = configAggregator.getPropertyValue('target-org');
-      const username = typeof rawUsername === 'string' ? rawUsername : undefined;
+      const username = configAggregator.getPropertyValue<string>('target-org');
 
       if (!username) {
         return yield* Effect.fail(new Error('No default org (target-org) set in config'));
@@ -65,12 +62,12 @@ export const ConnectionServiceLive = Layer.succeed(ConnectionService, {
 
       const authInfo = yield* Effect.tryPromise({
         try: () => AuthInfo.create({ username }),
-        catch: error => new Error(`Failed to create AuthInfo: ${String(error)}`)
+        catch: error => new Error('Failed to create AuthInfo', { cause: error })
       });
 
       return yield* Effect.tryPromise({
         try: () => Connection.create({ authInfo }),
-        catch: error => new Error(`Failed to create Connection: ${String(error)}`)
+        catch: error => new Error('Failed to create Connection', { cause: error })
       });
     }
   })
