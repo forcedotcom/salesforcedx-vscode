@@ -38,6 +38,17 @@ export class SourceTrackingProvider {
   }
 
   /**
+   * Clears the cached source tracking instance for a specific project and connection.
+   * This is useful to force a fresh source tracking instance, particularly for pull operations
+   * where stale remote tracking data might cause issues.
+   */
+  public clearSourceTracker(projectPath: string, connection: Connection): void {
+    const username = connection.getUsername();
+    const key = projectPath + username;
+    this.sourceTrackers.delete(key);
+  }
+
+  /**
    * Creates an instance of SourceTracking with options
    * configured to work in VSCE.
    * Since SourceTracking is initialized with an SfProject, which

@@ -14,7 +14,7 @@ import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { salesforceCoreSettings } from '../settings';
-import { DeployRetrieveExecutor, createRetrieveOutput } from './baseDeployRetrieve';
+import { DeployRetrieveExecutor, createRetrieveOrPullOutput } from './baseDeployRetrieve';
 import { SfCommandletExecutor } from './util';
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, RetrieveResult> {
@@ -24,6 +24,11 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
+    // If no components to retrieve, skip the actual operation but still allow postOperation to run
+    if (components.size === 0) {
+      return undefined;
+    }
+
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
@@ -31,6 +36,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
         this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+        // Force remote tracking refresh to ensure we get the latest changes
+        await this.sourceTracking.ensureRemoteTracking(true);
       }
     }
 
@@ -66,10 +73,15 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
       if (result?.response?.fileProperties !== undefined) {
         PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
       }
+    } else {
+      // Handle case where no components were deployed (empty ComponentSet)
+      const operationType = this.isPullOperation() ? 'pull' : 'retrieve';
+      this.handleEmptyComponentSet(operationType, true);
     }
   }
 
   private createOutput(result: RetrieveResult, relativePackageDirs: string[]): string {
-    return createRetrieveOutput(result.getFileResponses(), relativePackageDirs);
+    const operationType = this.isPullOperation() ? 'pull' : 'retrieve';
+    return createRetrieveOrPullOutput(result.getFileResponses(), relativePackageDirs, operationType);
   }
 }

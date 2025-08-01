@@ -27,11 +27,18 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
   private isManifest: boolean;
   private messages: ConflictDetectionMessages;
   private isPushOperation: boolean;
+  private isPullOperation: boolean;
 
-  constructor(isManifest: boolean, messages: ConflictDetectionMessages, isPushOperation: boolean = false) {
+  constructor(
+    isManifest: boolean,
+    messages: ConflictDetectionMessages,
+    isPushOperation: boolean = false,
+    isRetrieveOperation: boolean = false
+  ) {
     this.messages = messages;
     this.isManifest = isManifest;
     this.isPushOperation = isPushOperation;
+    this.isPullOperation = isRetrieveOperation;
   }
 
   public async check(
@@ -97,22 +104,31 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         channelService.appendLine(normalize(basename(file.localRelPath)));
       });
 
+      const showConflictsText = this.isPullOperation
+        ? nls.localize('conflict_detect_show_conflicts_retrieve')
+        : nls.localize('conflict_detect_show_conflicts_deploy');
+      const overrideText = this.isPullOperation
+        ? nls.localize('conflict_detect_override_retrieve')
+        : nls.localize('conflict_detect_override_deploy');
+
       const choice = await notificationService.showWarningModal(
         nls.localize(coerceMessageKey(this.messages.warningMessageKey)),
-        nls.localize('conflict_detect_show_conflicts'),
-        nls.localize('conflict_detect_override')
+        showConflictsText,
+        overrideText
       );
 
-      if (choice === nls.localize('conflict_detect_override')) {
+      if (choice === overrideText) {
         conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
       } else {
-        channelService.appendLine(
-          this.isPushOperation
-            ? nls.localize('conflict_detect_command_hint_push')
-            : nls.localize('conflict_detect_command_hint', this.messages.commandHint(componentPath))
-        );
+        if (this.isPushOperation) {
+          channelService.appendLine(nls.localize('conflict_detect_command_hint_push'));
+        } else if (this.isPullOperation) {
+          channelService.appendLine(nls.localize('conflict_detect_command_hint_pull'));
+        } else {
+          channelService.appendLine(this.messages.commandHint(componentPath));
+        }
 
-        const doReveal = choice === nls.localize('conflict_detect_show_conflicts');
+        const doReveal = choice === showConflictsText;
         conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, doReveal, results);
 
         await DeployQueue.get().unlock();
