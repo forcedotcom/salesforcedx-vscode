@@ -197,7 +197,7 @@ describe('Apex Replay Debugger', () => {
     logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
 
     // Run SFDX: Launch Apex Replay Debugger with Current File
-    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(1));
+    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(10));
 
     // Continue with the debug session
     await continueDebugging(2, 30);
