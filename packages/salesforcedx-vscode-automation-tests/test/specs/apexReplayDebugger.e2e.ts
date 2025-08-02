@@ -34,7 +34,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
-import { defaultExtensionConfigs } from '../testData/constants';
+import { apexReplayDebuggerExtensionConfigs } from '../testData/constants';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -50,7 +50,7 @@ describe('Apex Replay Debugger', () => {
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'ApexReplayDebugger',
-    extensionConfigs: defaultExtensionConfigs
+    extensionConfigs: apexReplayDebuggerExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
