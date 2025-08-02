@@ -59,14 +59,13 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test": "jest --coverage"
   },
   "activationEvents": [
     "onDebugResolve:apex",
-    "onCommand:extension.replay-debugger.getLogFileName"
+    "onCommand:extension.replay-debugger.getLogFileName",
+    "onCommand:sf.launch.replay.debugger.logfile",
+    "onCommand:sf.launch.replay.debugger.logfile.path"
   ],
   "main": "./out/src",
   "packaging": {

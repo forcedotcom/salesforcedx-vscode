@@ -5,18 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  openFile,
   pause,
   TestReqConfig,
   ProjectShapeOption
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { createOrOverwriteFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
   getExtensionsToVerifyActive,
   reloadAndEnableExtensions,
   verifyExtensionsAreRunning
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import { getTextEditor, getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after } from 'vscode-extension-tester';
@@ -60,7 +59,6 @@ describe('Customize sfdx-project.json', () => {
 });
 
 const createSfdxProjectJsonWithAllFields = async (testSetup: TestSetup): Promise<void> => {
-  const workbench = getWorkbench();
   const sfdxConfig = [
     '{',
     '\t"packageDirectories": [',
@@ -74,9 +72,8 @@ const createSfdxProjectJsonWithAllFields = async (testSetup: TestSetup): Promise
     '\t"sourceBehaviorOptions": ["decomposeCustomLabelsBeta", "decomposePermissionSetBeta", "decomposeWorkflowBeta", "decomposeSharingRulesBeta"]',
     '}'
   ].join('\n');
-  await openFile(path.join(testSetup.projectFolderPath!, 'sfdx-project.json'));
-  const textEditor = await getTextEditor(workbench, 'sfdx-project.json');
-  await textEditor.setText(sfdxConfig);
-  await textEditor.save();
+
+  const sfdxProjectPath = path.join(testSetup.projectFolderPath!, 'sfdx-project.json');
+  createOrOverwriteFile(sfdxProjectPath, sfdxConfig);
   await pause();
 };

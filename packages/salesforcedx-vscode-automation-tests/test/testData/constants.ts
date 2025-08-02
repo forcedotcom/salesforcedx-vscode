@@ -19,3 +19,13 @@ export const defaultExtensionConfigs: ExtensionConfig[] = [
     shouldInstall: 'always'
   }
 ];
+
+/** Extension configuration for tests that require the Apex Replay Debugger */
+export const apexReplayDebuggerExtensionConfigs: ExtensionConfig[] = [
+  ...defaultExtensionConfigs,
+  {
+    extensionId: 'salesforcedx-vscode-apex-replay-debugger',
+    shouldVerifyActivation: true,
+    shouldInstall: 'always'
+  }
+];

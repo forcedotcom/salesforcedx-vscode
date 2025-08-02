@@ -63,11 +63,11 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  core-miscellaneous:
+  core-snippets:
     uses: ./.github/workflows/runE2ETest.yml
     secrets: inherit
     with:
-      testToRun: 'miscellaneous.e2e.js'
+      testToRun: 'snippets.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 

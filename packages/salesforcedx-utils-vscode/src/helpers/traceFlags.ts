@@ -101,7 +101,7 @@ export class TraceFlags {
   private async updateTraceFlag(id: string, expirationDate: Date): Promise<boolean> {
     const traceFlag = {
       Id: id,
-      StartDate: Date.now(),
+      StartDate: new Date().toUTCString(),
       ExpirationDate: expirationDate.toUTCString()
     };
     const result = await this.connection.tooling.update('TraceFlag', traceFlag);
@@ -117,7 +117,7 @@ export class TraceFlags {
       tracedentityid: userId,
       logtype: 'developer_log',
       debuglevelid: debugLevelId,
-      StartDate: Date.now(),
+      StartDate: new Date().toUTCString(),
       ExpirationDate: expirationDate.toUTCString()
     };
 

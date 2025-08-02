@@ -34,7 +34,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
-import { defaultExtensionConfigs } from '../testData/constants';
+import { apexReplayDebuggerExtensionConfigs } from '../testData/constants';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -42,6 +42,7 @@ describe('Apex Replay Debugger', () => {
   let prompt: QuickOpenBox | InputBox;
   let testSetup: TestSetup;
   let projectFolderPath: string;
+  let classesFolderPath: string;
   let logFileTitle: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -49,19 +50,20 @@ describe('Apex Replay Debugger', () => {
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'ApexReplayDebugger',
-    extensionConfigs: defaultExtensionConfigs
+    extensionConfigs: apexReplayDebuggerExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     log('ApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectFolderPath = testSetup.projectFolderPath!;
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Apex class file
-    await createApexClassWithTest('ExampleApexClass');
+    await createApexClassWithTest('ExampleApexClass', classesFolderPath);
 
     // Dismiss all notifications so the push one can be seen
     await dismissAllNotifications();
@@ -178,6 +180,7 @@ describe('Apex Replay Debugger', () => {
       const editorView = workbench.getEditorView();
       const activeTab = await editorView.getActiveTab();
       const title = await activeTab?.getTitle();
+      if (title) logFileTitle = title;
       return await editorView.openEditor(title!);
     });
 
@@ -190,19 +193,19 @@ describe('Apex Replay Debugger', () => {
     expect(executionFinished).to.be.greaterThanOrEqual(1);
   });
 
+  it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
+
+    // Run SFDX: Launch Apex Replay Debugger with Current File
+    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(10));
+
+    // Continue with the debug session
+    await continueDebugging(2, 30);
+  });
+
   it('SFDX: Launch Apex Replay Debugger with Last Log File', async () => {
     logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Last Log File');
 
-    // Get open text editor
-    const workbench = getWorkbench();
-    const editorView = workbench.getEditorView();
-
-    // Get file path from open text editor
-    const activeTab = await editorView.getActiveTab();
-    expect(activeTab).to.not.be.undefined;
-
-    const title = await activeTab?.getTitle();
-    if (title) logFileTitle = title;
     const logFilePath = path.join(projectFolderPath, '.sfdx', 'tools', 'debug', 'logs', logFileTitle);
     log(`logFilePath: ${logFilePath}`);
 
@@ -222,19 +225,6 @@ describe('Apex Replay Debugger', () => {
       3,
       'Failed to launch Apex Replay Debugger with Last Log File'
     );
-
-    // Continue with the debug session
-    await continueDebugging(2, 30);
-  });
-
-  it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
-    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
-
-    const workbench = getWorkbench();
-    await getTextEditor(workbench, logFileTitle);
-
-    // Run SFDX: Launch Apex Replay Debugger with Current File
-    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(3));
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -261,7 +251,7 @@ describe('Apex Replay Debugger', () => {
     await clearOutputView();
 
     // Create anonymous apex file
-    await createAnonymousApexFile();
+    await createAnonymousApexFile(classesFolderPath);
 
     // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
     await executeQuickPick('SFDX: Execute Anonymous Apex with Editor Contents', Duration.seconds(10));

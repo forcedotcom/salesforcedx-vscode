@@ -50,13 +50,6 @@ describe('Authentication', () => {
     await tryToHideCopilot();
   });
 
-  // Since tests are sequential, we need to skip the rest of the tests if one fails
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Run SFDX: Authorize a Dev Hub', async () => {
     logTestStart(testSetup, 'Running SFDX: Authorize a Dev Hub');
     // In the initial state, the org picker button should be set to "No Default Org Set".
@@ -73,7 +66,7 @@ describe('Authentication', () => {
     // Could also run the command, "SFDX: Set a Default Org" but this exercises more UI elements.
 
     // Click on "No default Org Set" (in the bottom bar).
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const changeDefaultOrgSetItem = await getStatusBarItemWhichIncludes('No Default Org Set');
     expect(changeDefaultOrgSetItem).to.not.be.undefined;
     await changeDefaultOrgSetItem.click();

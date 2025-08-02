@@ -31,6 +31,7 @@ import {
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import * as path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
@@ -38,6 +39,7 @@ import { logTestStart } from '../utils/loggingHelper';
 
 describe('Debug Apex Tests', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -50,20 +52,21 @@ describe('Debug Apex Tests', () => {
   before('Set up the testing environment', async () => {
     log('DebugApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Apex class 1 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass1'),
+      () => createApexClassWithTest('ExampleApexClass1', classesFolderPath),
       2,
       'DebugApexTests - Error creating Apex class ExampleApexClass1'
     );
 
     // Create Apex class 2 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass2'),
+      () => createApexClassWithTest('ExampleApexClass2', classesFolderPath),
       2,
       'DebugApexTests - Error creating Apex class ExampleApexClass2'
     );

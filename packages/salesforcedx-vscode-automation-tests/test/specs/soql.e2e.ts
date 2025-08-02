@@ -50,7 +50,7 @@ describe('SOQL', () => {
     await pause(Duration.seconds(20));
 
     // Verify the command took us to the soql builder
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const editorView = workbench.getEditorView();
     const activeTab = await editorView.getActiveTab();
     const title = await activeTab?.getTitle();
@@ -61,7 +61,7 @@ describe('SOQL', () => {
     logTestStart(testSetup, 'Switch Between SOQL Builder and Text Editor - from SOQL Builder');
 
     // Click Switch Between SOQL Builder and Text Editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const editorView = workbench.getEditorView();
     const toggleSOQLButton = await editorView.getAction('Switch Between SOQL Builder and Text Editor');
     expect(toggleSOQLButton).to.not.be.undefined;
@@ -82,7 +82,7 @@ describe('SOQL', () => {
     await reloadWindow(Duration.seconds(5));
 
     // Click Switch Between SOQL Builder and Text Editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const editorView = workbench.getEditorView();
     const toggleSOQLButton = await editorView.getAction('Switch Between SOQL Builder and Text Editor');
     expect(toggleSOQLButton).to.not.be.undefined;
@@ -98,7 +98,7 @@ describe('SOQL', () => {
 
   it.skip('Verify the contents of the soql file', async () => {
     const expectedText = ['SELECT COUNT()', 'from Account'].join('\n');
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'countAccounts.soql');
     const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
     expect(textGeneratedFromTemplate).to.be(expectedText);

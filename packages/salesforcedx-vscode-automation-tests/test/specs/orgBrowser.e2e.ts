@@ -27,6 +27,7 @@ import {
   getWorkbench
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import * as path from 'node:path';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
@@ -34,6 +35,7 @@ import { logTestStart } from '../utils/loggingHelper';
 
 describe('Org Browser', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -45,6 +47,7 @@ describe('Org Browser', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
@@ -103,7 +106,7 @@ describe('Org Browser', () => {
       '\t}',
       '}'
     ].join('\n');
-    await createApexClass('MyClass', classText);
+    await createApexClass('MyClass', classesFolderPath, classText);
 
     // Close all notifications
     await dismissAllNotifications();
