@@ -410,6 +410,11 @@
           "default": false,
           "description": "%apex_code_completion_stats_description%"
         },
+        "salesforcedx-vscode-apex.advanced.lspParityCapabilities": {
+          "type": "boolean",
+          "default": true,
+          "description": "%apex_lsp_parity_capabilities_description%"
+        },
         "apex.trace.server": {
           "type": "string",
           "enum": [
