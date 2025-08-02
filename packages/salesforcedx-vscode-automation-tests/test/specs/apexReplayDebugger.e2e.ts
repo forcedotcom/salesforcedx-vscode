@@ -180,6 +180,7 @@ describe('Apex Replay Debugger', () => {
       const editorView = workbench.getEditorView();
       const activeTab = await editorView.getActiveTab();
       const title = await activeTab?.getTitle();
+      if (title) logFileTitle = title;
       return await editorView.openEditor(title!);
     });
 
@@ -192,19 +193,19 @@ describe('Apex Replay Debugger', () => {
     expect(executionFinished).to.be.greaterThanOrEqual(1);
   });
 
+  it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
+
+    // Run SFDX: Launch Apex Replay Debugger with Current File
+    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(1));
+
+    // Continue with the debug session
+    await continueDebugging(2, 30);
+  });
+
   it('SFDX: Launch Apex Replay Debugger with Last Log File', async () => {
     logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Last Log File');
 
-    // Get open text editor
-    const workbench = getWorkbench();
-    const editorView = workbench.getEditorView();
-
-    // Get file path from open text editor
-    const activeTab = await editorView.getActiveTab();
-    expect(activeTab).to.not.be.undefined;
-
-    const title = await activeTab?.getTitle();
-    if (title) logFileTitle = title;
     const logFilePath = path.join(projectFolderPath, '.sfdx', 'tools', 'debug', 'logs', logFileTitle);
     log(`logFilePath: ${logFilePath}`);
 
@@ -224,19 +225,6 @@ describe('Apex Replay Debugger', () => {
       3,
       'Failed to launch Apex Replay Debugger with Last Log File'
     );
-
-    // Continue with the debug session
-    await continueDebugging(2, 30);
-  });
-
-  it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
-    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
-
-    const workbench = getWorkbench();
-    await getTextEditor(workbench, logFileTitle);
-
-    // Run SFDX: Launch Apex Replay Debugger with Current File
-    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(3));
 
     // Continue with the debug session
     await continueDebugging(2, 30);
