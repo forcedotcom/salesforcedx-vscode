@@ -148,6 +148,7 @@ describe('Apex Replay Debugger', () => {
 
   it('SFDX: Get Apex Debug Logs', async () => {
     logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Get Apex Debug Logs');
+    await executeQuickPick('View: Close All Editors', Duration.seconds(1));
 
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
