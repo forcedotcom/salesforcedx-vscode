@@ -181,30 +181,48 @@ describe('Apex Replay Debugger', () => {
       'Failed to select log file from quick picks'
     );
 
+    log('I');
     await verifyNotificationWithRetry(/SFDX: Get Apex Debug Logs successfully ran/, Duration.TEN_MINUTES);
+    log('J');
 
     // Verify content on vscode's Output section
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
+    log('K');
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
+    log('L');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
+    log('M');
     expect(outputPanelText).to.contain('Ended SFDX: Get Apex Debug Logs');
+    log('N');
 
     // Verify content on log file
     const textEditor = await retryOperation(async () => {
+      log('O');
       const editorView = workbench.getEditorView();
+      log('P');
       const activeTab = await editorView.getActiveTab();
+      log('Q');
       const title = await activeTab?.getTitle();
+      log('R');
       if (title) logFileTitle = title;
+      log('S');
       return await editorView.openEditor(title!);
     });
 
+    log('T');
     if (!(textEditor instanceof TextEditor)) {
+      log('U');
       throw new Error(`Expected TextEditor but got different editor type: ${typeof textEditor}`);
     }
+    log('V');
     const executionStarted = await textEditor.getLineOfText('|EXECUTION_STARTED');
+    log('W');
     const executionFinished = await textEditor.getLineOfText('|EXECUTION_FINISHED');
+    log('X');
     expect(executionStarted).to.be.greaterThanOrEqual(1);
+    log('Y');
     expect(executionFinished).to.be.greaterThanOrEqual(1);
+    log('Z');
   });
 
   it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
