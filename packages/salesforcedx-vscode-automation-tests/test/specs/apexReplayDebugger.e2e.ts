@@ -197,6 +197,8 @@ describe('Apex Replay Debugger', () => {
 
     // Verify content on log file
     const textEditor = await retryOperation(async () => {
+      log('HERE');
+      await executeQuickPick('View: Focus Active Editor Group', Duration.seconds(1));
       log('O');
       const editorView = workbench.getEditorView();
       log('P');
