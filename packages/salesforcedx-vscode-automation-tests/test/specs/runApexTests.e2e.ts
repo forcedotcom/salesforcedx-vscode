@@ -36,6 +36,7 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
+  replaceLineInFile,
   verifyOutputPanelText,
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
@@ -43,12 +44,14 @@ import { expect } from 'chai';
 import * as semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -61,27 +64,28 @@ describe('Run Apex Tests', () => {
   before('Set up the testing environment', async () => {
     log('RunApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Apex class 1 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass1'),
+      () => createApexClassWithTest('ExampleApexClass1', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 1 and test'
     );
 
     // Create Apex class 2 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass2'),
+      () => createApexClassWithTest('ExampleApexClass2', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 2 and test'
     );
 
     // Create Apex class 3 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass3'),
+      () => createApexClassWithTest('ExampleApexClass3', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 3 and test'
     );
@@ -328,10 +332,9 @@ describe('Run Apex Tests', () => {
   it('Run a test that fails and fix it', async () => {
     logTestStart(testSetup, 'Run a test that fails and fix it');
     // Create Apex class AccountService
-    await createApexClassWithBugs();
+    await createApexClassWithBugs(classesFolderPath);
 
     // Push source to org
-    const workbench = getWorkbench();
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
@@ -358,9 +361,8 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(outputPanelText, expectedTexts);
 
     // Fix test
-    const textEditor = await getTextEditor(workbench, 'AccountService.cls');
-    await textEditor.setTextAtLine(6, '\t\t\tTickerSymbol = tickerSymbol');
-    await textEditor.save();
+    const accountServicePath = `${testSetup.projectFolderPath}/force-app/main/default/classes/AccountService.cls`;
+    await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');
     await pause(Duration.seconds(1));
 
     // Push source to org
@@ -413,7 +415,7 @@ describe('Run Apex Tests', () => {
     // Use different selector depending on VSCode version
     const selector =
       EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
-      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
+        semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
         ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
         : 'input.quick-input-list-checkbox';
     const checkbox = await prompt.findElement(By.css(selector));
@@ -438,7 +440,7 @@ describe('Run Apex Tests', () => {
     // Use different selector depending on VSCode version
     const selector =
       EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
-      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
+        semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
         ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
         : 'input.quick-input-list-checkbox';
 

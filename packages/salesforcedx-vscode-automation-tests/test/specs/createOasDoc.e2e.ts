@@ -9,7 +9,6 @@ import {
   TestReqConfig,
   ProjectShapeOption,
   pause,
-  createCommand,
   openFile,
   Duration
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
@@ -40,7 +39,8 @@ import {
   isCommandAvailable,
   overrideTextInFile,
   zoom,
-  zoomReset
+  zoomReset,
+  dismissAllNotifications
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
@@ -62,11 +62,13 @@ import {
   getIdealSimpleAccountResourceXml
 } from '../testData/oasDocs';
 import { caseManagerClassText, simpleAccountResourceClassText } from '../testData/sampleClassData';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Create OpenAPI v3 Specifications', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -79,6 +81,7 @@ describe('Create OpenAPI v3 Specifications', () => {
   before('Set up the testing environment', async () => {
     log('\nCreateOASDoc - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide chat copilot
     await tryToHideCopilot();
@@ -107,26 +110,28 @@ describe('Create OpenAPI v3 Specifications', () => {
 
     // Create the Apex class which the decomposed OAS doc will be generated from
     await retryOperation(
-      () => createApexClass('CaseManager', caseManagerClassText),
+      () => createApexClass('CaseManager', classesFolderPath, caseManagerClassText),
       2,
       'CreateOASDoc - Error creating Apex class CaseManager'
     );
 
     // Create the Apex class which the composed OAS doc will be generated from
     await retryOperation(
-      () => createApexClass('SimpleAccountResource', simpleAccountResourceClassText),
+      () => createApexClass('SimpleAccountResource', classesFolderPath, simpleAccountResourceClassText),
       2,
       'CreateOASDoc - Error creating Apex class SimpleAccountResource'
     );
 
     // Create an ineligible Apex class (the default Apex class from the template is a good example)
     await retryOperation(
-      () => createCommand('Apex Class', 'IneligibleApexClass', 'classes', 'cls'),
+      () => createApexClass('IneligibleApexClass', classesFolderPath),
       2,
       'CreateOASDoc - Error creating Apex class IneligibleApexClass'
     );
 
     // Push source to org
+    await dismissAllNotifications();
+    await pause(Duration.seconds(1));
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
 
     await verifyNotificationWithRetry(
@@ -137,7 +142,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     log(`${testSetup.testSuiteSuffixName} - Verify LSP finished indexing`);
 
     // Get Apex LSP Status Bar
-    const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
+    const statusBar = await retryOperation(async () => await getStatusBarItemWhichIncludes('Editor Language Status'));
     await statusBar.click();
     expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
@@ -150,9 +155,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
   it('Try to generate OAS doc from an ineligible Apex class', async () => {
     logTestStart(testSetup, 'Try to generate OAS doc from an ineligible Apex class');
-    await openFile(
-      path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'IneligibleApexClass.cls')
-    );
+    await openFile(path.join(classesFolderPath, 'IneligibleApexClass.cls'));
     if (process.platform === 'win32') {
       await reloadWindow();
       await verifyExtensionsAreRunning(
@@ -181,9 +184,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         'Generate OAS doc from a valid Apex class using command palette - Composed mode, initial generation'
       );
       await executeQuickPick('View: Close All Editors');
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
-      );
+      await openFile(path.join(classesFolderPath, 'CaseManager.cls'));
       await pause(Duration.seconds(5));
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
@@ -252,9 +253,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         'Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge'
       );
       await executeQuickPick('View: Close All Editors');
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
-      );
+      await openFile(path.join(classesFolderPath, 'CaseManager.cls'));
       await pause(Duration.seconds(5));
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
@@ -310,9 +309,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         'Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation'
       );
       await executeQuickPick('View: Close All Editors');
-      await openFile(
-        path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'SimpleAccountResource.cls')
-      );
+      await openFile(path.join(classesFolderPath, 'SimpleAccountResource.cls'));
       await pause(Duration.seconds(5));
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
@@ -447,8 +444,8 @@ describe('Create OpenAPI v3 Specifications', () => {
         log('Not Mac - can use context menu');
         await retryOperation(
           async () => {
-            const wrkbench = getWorkbench();
-            const textEditor = await getTextEditor(wrkbench, 'SimpleAccountResource.cls');
+            const workbench = getWorkbench();
+            const textEditor = await getTextEditor(workbench, 'SimpleAccountResource.cls');
             const contextMenu = await textEditor.openContextMenu();
             await contextMenu.select('SFDX: Create OpenAPI Document from This Class (Beta)');
 
@@ -544,12 +541,12 @@ describe('Create OpenAPI v3 Specifications', () => {
       );
 
       // Use context menu for Windows and Ubuntu, command palette for Mac
-      if (process.platform === 'darwin') {
+      const workbench = getWorkbench();
+      if (process.platform !== 'darwin') {
         log('Not Mac - can use context menu');
         await executeQuickPick('File: Focus on Files Explorer');
         await pause(Duration.seconds(2));
-        const wrkbench = getWorkbench();
-        const workbenchSidebar = await wrkbench.getSideBar().wait();
+        const workbenchSidebar = await workbench.getSideBar().wait();
         const cont = await workbenchSidebar.getContent().wait();
         const treeViewSection = await cont.getSection(testSetup.tempProjectName);
         if (!treeViewSection) {
@@ -595,7 +592,6 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       // Verify the generated OAS doc and the diff editor are both open in the Editor View
       await executeQuickPick('View: Open First Editor in Group');
-      const workbench = getWorkbench();
       await executeQuickPick('Explorer: Focus on Open Editors View');
       const sidebar = await workbench.getSideBar().wait();
       const content = await sidebar.getContent().wait();
@@ -669,9 +665,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       await retryOperation(
         async () => {
-          await openFile(
-            path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes', 'CaseManager.cls')
-          );
+          await openFile(path.join(classesFolderPath, 'CaseManager.cls'));
           await pause(Duration.seconds(5));
         },
         3,

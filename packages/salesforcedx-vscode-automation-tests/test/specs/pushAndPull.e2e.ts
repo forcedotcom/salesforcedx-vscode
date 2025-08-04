@@ -6,7 +6,6 @@
  */
 
 import {
-  createCommand,
   Duration,
   log,
   pause,
@@ -14,6 +13,7 @@ import {
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import { createApexClass } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { runCliCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
@@ -35,6 +35,9 @@ import { logTestStart } from '../utils/loggingHelper';
 describe('Push and Pull', () => {
   let testSetup1: TestSetup;
   let testSetup2: TestSetup;
+  let classesFolderPath: string;
+  let relativeApexClassesPath: string;
+  let relativeProfilesPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -47,6 +50,9 @@ describe('Push and Pull', () => {
   before('Set up the testing environment', async () => {
     log('Push And Pull - Set up the testing environment');
     testSetup1 = await TestSetup.setUp(testReqConfig);
+    relativeApexClassesPath = path.join('force-app', 'main', 'default', 'classes');
+    relativeProfilesPath = path.join('force-app', 'main', 'default', 'profiles');
+    classesFolderPath = path.join(testSetup1.projectFolderPath!, relativeApexClassesPath);
 
     // Hide copilot
     await tryToHideCopilot();
@@ -70,7 +76,7 @@ describe('Push and Pull', () => {
   it('Create an Apex class', async () => {
     logTestStart(testSetup1, 'Push And Pull - Create an Apex class');
     // Create an Apex Class.
-    await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
+    await createApexClass('ExampleApexClass1', classesFolderPath);
   });
 
   it('SFDX: View Local Changes', async () => {
@@ -80,10 +86,10 @@ describe('Push and Pull', () => {
     // Check the output.
     const outputPanelText = await attemptToFindOutputPanelText('Salesforce CLI', 'Source Status', 10);
     expect(outputPanelText).to.contain(
-      `Local Add  ExampleApexClass1  ApexClass  ${path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls')}`
+      `Local Add  ExampleApexClass1  ApexClass  ${path.join(relativeApexClassesPath, 'ExampleApexClass1.cls')}`
     );
     expect(outputPanelText).to.contain(
-      `Local Add  ExampleApexClass1  ApexClass  ${path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls-meta.xml')}`
+      `Local Add  ExampleApexClass1  ApexClass  ${path.join(relativeApexClassesPath, 'ExampleApexClass1.cls-meta.xml')}`
     );
   });
 
@@ -137,19 +143,19 @@ describe('Push and Pull', () => {
     // Clear the Output view again.
     await clearOutputView(Duration.seconds(2));
 
-    // Don't save the file just yet.
-    await overrideTextInFile(textEditor, newText, false);
+    // Override the file with the new text.
+    await overrideTextInFile(textEditor, newText);
 
-    // An now push the changes.
+    // And now push the changes.
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(5));
 
     await verifyPushSuccess();
     // Check the output.
     const outputPanelText = await verifyPushAndPullOutputText('Push', 'to', 'Changed');
 
-    expect(outputPanelText).to.contain(path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls'));
+    expect(outputPanelText).to.contain(path.join(relativeApexClassesPath, 'ExampleApexClass1.cls'));
     expect(outputPanelText).to.contain(
-      path.join('force-app', 'main', 'default', 'classes', 'ExampleApexClass1.cls-meta.xml')
+      path.join(relativeApexClassesPath, 'ExampleApexClass1.cls-meta.xml')
     );
   });
 
@@ -165,7 +171,7 @@ describe('Push and Pull', () => {
     // Check the output.
     let outputPanelText = await verifyPushAndPullOutputText('Pull', 'from', 'Created');
     // The first time a pull is performed, force-app/main/default/profiles/Admin.profile-meta.xml is pulled down.
-    expect(outputPanelText).to.contain(path.join('force-app', 'main', 'default', 'profiles', 'Admin.profile-meta.xml'));
+    expect(outputPanelText).to.contain(path.join(relativeProfilesPath, 'Admin.profile-meta.xml'));
 
     // Second pull...
     // Clear the output again.
@@ -192,8 +198,9 @@ describe('Push and Pull', () => {
           // sample comment for the pull test
       }
     }`;
-    // Don't save the file just yet.
-    await overrideTextInFile(textEditor, newText, false);
+
+    // Override the file with the new text.
+    await overrideTextInFile(textEditor, newText);
 
     // Wait for editor to stabilize before continuing
     await pause(Duration.seconds(1));
@@ -215,7 +222,7 @@ describe('Push and Pull', () => {
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
     await textEditor.save();
 
-    // An now pull the changes.
+    // And now pull the changes.
     await executeQuickPick('SFDX: Pull Source from Default Org', Duration.seconds(5));
     await verifyPullSuccess();
     // Check the output.

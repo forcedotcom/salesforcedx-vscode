@@ -17,23 +17,17 @@ import {
   createVisualforcePage
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
-import {
-  attemptToFindOutputPanelText,
-  clearOutputView,
-  executeQuickPick,
-  getTextEditor,
-  getWorkbench,
-  moveCursorWithFallback,
-  verifyOutputPanelText
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { clearOutputView, executeQuickPick, getTextEditor, getWorkbench, moveCursorWithFallback } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Visualforce LSP', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
+  let pagesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -46,45 +40,22 @@ describe('Visualforce LSP', () => {
   before('Set up the testing environment', async () => {
     log('VisualforceLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
+    pagesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'pages');
 
     // Create Apex controller for the Visualforce Page
-    await createApexController();
+    await createApexController(classesFolderPath);
 
     // Clear output before running the command
     await clearOutputView();
     log(`${testSetup.testSuiteSuffixName} - calling createVisualforcePage()`);
-    await createVisualforcePage();
-
-    const pathToPagesFolder = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages');
-    const pathToPage = path.join('force-app', 'main', 'default', 'pages', 'FooPage.page');
-
-    // Create an array of strings for the expected output text
-    const expectedTexts = [
-      `target dir = ${pathToPagesFolder.replace(/^[A-Z]:/, match => match.toLowerCase())}`,
-      `create ${pathToPage}`,
-      `create ${pathToPage}-meta.xml`,
-      'Finished SFDX: Create Visualforce Page'
-    ];
-    // Check output panel to validate file was created...
-    const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
-      'Starting SFDX: Create Visualforce Page',
-      10
-    );
-    await verifyOutputPanelText(outputPanelText, expectedTexts);
-
-    // Get open text editor and verify file content
-    const workbench = await getWorkbench();
-    const textEditor = await getTextEditor(workbench, 'FooPage.page');
-    const fileContent = await textEditor.getText();
-    expect(fileContent).to.contain('<apex:page controller="myController" tabStyle="Account">');
-    expect(fileContent).to.contain('</apex:page>');
+    await createVisualforcePage(pagesFolderPath);
   });
 
   it.skip('Go to Definition', async () => {
     logTestStart(testSetup, 'Go to Definition');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'FooPage.page');
     await moveCursorWithFallback(textEditor, 1, 25);
 
@@ -103,7 +74,7 @@ describe('Visualforce LSP', () => {
   it('Autocompletion', async () => {
     logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'FooPage.page');
     await textEditor.typeTextAt(3, 1, '\t\t<apex:pageM');
     await pause(Duration.seconds(1));

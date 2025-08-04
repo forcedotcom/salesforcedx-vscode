@@ -19,11 +19,13 @@ import {
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Aura LSP', () => {
   let testSetup: TestSetup;
+  let auraFolderPath: string;
 
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -37,22 +39,16 @@ describe('Aura LSP', () => {
   before('Set up the testing environment', async () => {
     log('AuraLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    auraFolderPath = getFolderPath(testSetup.projectFolderPath!, 'aura');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Aura Component
-    await createAura('aura1');
+    await createAura('aura1', auraFolderPath);
 
     // Reload the VSCode window to allow the Aura Component to be indexed by the Aura Language Server
     await reloadWindow(Duration.seconds(20));
-  });
-
-  // Since tests are sequential, we need to skip the rest of the tests if one fails
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -68,7 +64,7 @@ describe('Aura LSP', () => {
   it('Go to Definition', async () => {
     logTestStart(testSetup, 'Go to Definition');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'aura1.cmp');
 
     // Move cursor to the middle of "simpleNewContact"
@@ -86,7 +82,7 @@ describe('Aura LSP', () => {
   it('Autocompletion', async () => {
     logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'aura1.cmp');
     await textEditor.typeTextAt(2, 1, '<aura:appl');
     await pause(Duration.seconds(1));

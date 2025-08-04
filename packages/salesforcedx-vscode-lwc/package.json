@@ -62,10 +62,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:unit && npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
-    "test:vscode-integration": "node ../../scripts/download-vscode && node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-tests-with-recipes",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test": "jest --coverage"
   },
   "packaging": {
     "assets": [

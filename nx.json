@@ -2,12 +2,8 @@
   "targetDefaults": {
     "compile": {
       "cache": true,
-      "dependsOn": [
-        "^compile"
-      ],
-      "outputs": [
-        "{projectRoot}/out"
-      ],
+      "dependsOn": ["^compile"],
+      "outputs": ["{projectRoot}/out"],
       "inputs": [
         "default",
         "^default",
@@ -18,44 +14,28 @@
     },
     "lint": {
       "cache": true,
-      "dependsOn": [
-        "^lint"
-      ],
-      "inputs": [
-        "{workspaceRoot}/eslint.config.mjs"
-      ]
+      "dependsOn": ["^lint"],
+      "inputs": ["{workspaceRoot}/eslint.config.mjs"]
     },
-    "test:unit": {
+    "test": {
       "cache": true,
-      "dependsOn": [
-        "^test:unit"
-      ],
-      "outputs": [
-        "{projectRoot}/coverage"
-      ]
+      "dependsOn": ["^test"],
+      "outputs": ["{projectRoot}/coverage"]
     },
     "bundle:extension": {
       "cache": true,
-      "dependsOn": [
-        "compile",
-        "^bundle:extension"
-      ],
+      "dependsOn": ["compile", "^bundle:extension"],
       "inputs": [
         "{projectRoot}/esbuild.config.mjs",
         "{projectRoot}/esbuild.config.js",
         "{projectRoot}/out/**",
         "{projectRoot}/src/**"
       ],
-      "outputs": [
-        "{projectRoot}/dist"
-      ]
+      "outputs": ["{projectRoot}/dist"]
     },
     "vscode:package": {
       "cache": true,
-      "dependsOn": [
-        "^vscode:package",
-        "vscode:bundle"
-      ],
+      "dependsOn": ["^vscode:package", "vscode:bundle"],
       "inputs": [
         "{projectRoot}/esbuild.config.mjs",
         "{projectRoot}/esbuild.config.js",

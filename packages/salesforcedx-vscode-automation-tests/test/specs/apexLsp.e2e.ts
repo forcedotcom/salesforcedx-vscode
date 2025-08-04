@@ -21,7 +21,8 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getOutputViewText,
-  moveCursorWithFallback
+  moveCursorWithFallback,
+  reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import {
   executeQuickPick,
@@ -111,7 +112,12 @@ const setupTestEnvironment = async (): Promise<void> => {
   log(`ApexLsp - JAVA_HOME: ${EnvironmentSettings.getInstance().javaHome}`);
   // Allow time for VSCode to fully initialize and load extensions
   await pause(Duration.seconds(10));
-  await createApexClassWithTest('ExampleClass');
+  await createApexClassWithTest('ExampleClass', PATHS.apexClass);
+
+  // Reload window to get the language server to recognize the new classes (Windows only)
+  if (process.platform === 'win32') {
+    await reloadWindow(Duration.seconds(20));
+  }
 };
 
 const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
@@ -172,8 +178,8 @@ const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<v
   if (cleanDb) {
     const releaseDir = findReleaseDir();
     const standardApexLibraryPath = path.normalize(path.join(PATHS.tools, releaseDir, 'StandardApexLibrary'));
-    await removeFolder(standardApexLibraryPath);
-    expect(await getFolderName(standardApexLibraryPath)).to.equal(null);
+    removeFolder(standardApexLibraryPath);
+    expect(getFolderName(standardApexLibraryPath)).to.equal(null);
   }
 
   const restartCommand = await executeQuickPick('Restart Apex Language Server');
@@ -237,12 +243,6 @@ describe('Apex LSP', () => {
     await setupTestEnvironment();
   });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
-  });
-
   it('Verify LSP finished indexing', async () => {
     await verifyIndexing(testSetup);
   });
@@ -273,7 +273,7 @@ describe('Apex LSP', () => {
 
   after('Tear down and clean up the testing environment', async () => {
     log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
-    await removeFolder(PATHS.apexClass);
+    removeFolder(PATHS.apexClass);
     await testSetup?.tearDown();
   });
 });

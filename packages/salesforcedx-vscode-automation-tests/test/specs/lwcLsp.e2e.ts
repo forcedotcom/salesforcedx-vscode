@@ -23,11 +23,13 @@ import {
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
   let testSetup: TestSetup;
+  let lwcFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -40,12 +42,13 @@ describe('LWC LSP', () => {
   before('Set up the testing environment', async () => {
     log('LwcLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    lwcFolderPath = getFolderPath(testSetup.projectFolderPath!, 'lwc');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Lightning Web Component
-    await createLwc('lwc1');
+    await createLwc('lwc1', lwcFolderPath);
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));
@@ -54,7 +57,7 @@ describe('LWC LSP', () => {
   it('Go to Definition (JavaScript)', async () => {
     logTestStart(testSetup, 'Go to Definition (Javascript)');
     // Get open text editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.js');
 
     // Move cursor to the middle of "LightningElement"
@@ -73,8 +76,9 @@ describe('LWC LSP', () => {
   it('Go to Definition (HTML)', async () => {
     if (process.platform !== 'win32') {
       logTestStart(testSetup, 'Go to Definition (HTML)');
-      // Get open text editor
-      const workbench = await getWorkbench();
+      await executeQuickPick('View: Close All Editors', Duration.seconds(1));
+
+      const workbench = getWorkbench();
       const textEditor = await getTextEditor(workbench, 'lwc1.html');
 
       // Move cursor to the middle of "greeting"
@@ -94,7 +98,7 @@ describe('LWC LSP', () => {
   it('Autocompletion', async () => {
     logTestStart(testSetup, 'Autocompletion');
     // Get open text editor
-    const workbench = await getWorkbench().wait();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.html');
     await textEditor.typeTextAt(5, 1, '<lightnin');
     await pause(Duration.seconds(1));

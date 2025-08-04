@@ -22,22 +22,25 @@ import {
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
-describe('Miscellaneous', () => {
+describe('Snippets', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'Miscellaneous',
+    testSuiteSuffixName: 'Snippets',
     extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
@@ -45,11 +48,11 @@ describe('Miscellaneous', () => {
 
   it.skip('Use out-of-the-box Apex Snippets', async () => {
     logTestStart(testSetup, 'Use Apex Snippets');
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const apexSnippet = 'String.isBlank(inputString)';
 
     // Create anonymous apex file
-    await createAnonymousApexFile();
+    await createAnonymousApexFile(classesFolderPath);
 
     // Type snippet "isb" in a new line and check it inserted the expected string
     const textEditor = await getTextEditor(workbench, 'Anonymous.apex');
@@ -59,18 +62,18 @@ describe('Miscellaneous', () => {
     await inputBox.confirm();
     await textEditor.save();
     const fileContent = await textEditor.getText();
-    await expect(fileContent).to.contain(apexSnippet);
+    expect(fileContent).to.contain(apexSnippet);
   });
 
   it.skip('Use Custom Apex Snippets', async () => {
     logTestStart(testSetup, 'Use Apex Snippets');
 
     // Using the Command palette, run Snippets: Configure Snippets
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     await createGlobalSnippetsFile(testSetup);
 
     // Create anonymous apex file
-    await createAnonymousApexFile();
+    await createAnonymousApexFile(classesFolderPath);
 
     // Type snippet "soql" and check it inserted the expected query
     const textEditor = await getTextEditor(workbench, 'Anonymous.apex');
@@ -89,7 +92,7 @@ describe('Miscellaneous', () => {
 
   it.skip('Use out-of-the-box LWC Snippets - HTML', async () => {
     logTestStart(testSetup, 'Use out-of-the-box LWC Snippets - HTML');
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
 
     const lwcSnippet = [
       '<lightning-button',
@@ -120,12 +123,12 @@ describe('Miscellaneous', () => {
       .map(line => line.trimEnd())
       .join('\n');
 
-    await expect(fileContentWithoutTrailingSpaces).to.contain(lwcSnippet);
+    expect(fileContentWithoutTrailingSpaces).to.contain(lwcSnippet);
   });
 
   it('Use out-of-the-box LWC Snippets - JS', async () => {
     logTestStart(testSetup, 'Use out-of-the-box LWC Snippets - JS');
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
 
     const lwcSnippet = 'this.dispatchEvent(new CustomEvent("event-name"));';
 
@@ -148,7 +151,7 @@ describe('Miscellaneous', () => {
     await textEditor.save();
     const fileContent = await textEditor.getText();
 
-    await expect(fileContent).to.contain(lwcSnippet);
+    expect(fileContent).to.contain(lwcSnippet);
   });
 
   after('Tear down and clean up the testing environment', async () => {
