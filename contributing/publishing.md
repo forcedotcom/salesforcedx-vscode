@@ -40,11 +40,9 @@ The engineer should edit the contents of the changelog, and have the team and do
 
 ## Merging the Release Branch into Main
 
-After everyone is satisfied with the changelog updates, it's time to prepare the `main` branch with the new changes for the publish. A GitHub Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
+After everyone is satisfied with the changelog updates, a Github Action instead of just merging because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
 
-### To run the merge process:
-
-1. From the GitHub repository navigate to the Actions tab, and select the PreRelease workflow on the left
+1. From the GitHub repository navigate to the Actions tab, and select the [PreRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/prerelease.yml) workflow on the left
 1. Click the 'Run Workflow' dropdown button on the right
 1. In the form that appears, set the branch to `develop`, and set the 'branch to be released' input box to the name of the release (eg `release/v58.0.0`)
 1. Click the 'Run Workflow' button.
