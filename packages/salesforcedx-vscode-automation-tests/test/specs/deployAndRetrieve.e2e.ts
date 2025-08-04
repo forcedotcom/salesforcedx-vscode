@@ -39,6 +39,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -57,7 +58,7 @@ describe('Deploy and Retrieve', () => {
   before('Set up the testing environment', async () => {
     log('Deploy and Retrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
-    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide copilot
     await tryToHideCopilot();

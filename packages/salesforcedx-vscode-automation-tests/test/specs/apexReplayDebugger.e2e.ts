@@ -35,6 +35,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -57,7 +58,7 @@ describe('Apex Replay Debugger', () => {
     log('ApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectFolderPath = testSetup.projectFolderPath!;
-    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide copilot
     await tryToHideCopilot();

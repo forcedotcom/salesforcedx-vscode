@@ -31,9 +31,9 @@ import {
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import * as path from 'node:path';
 import { TreeItem, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -52,7 +52,7 @@ describe('Debug Apex Tests', () => {
   before('Set up the testing environment', async () => {
     log('DebugApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
-    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide copilot
     await tryToHideCopilot();

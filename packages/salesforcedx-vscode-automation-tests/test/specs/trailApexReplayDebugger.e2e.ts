@@ -34,6 +34,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -58,7 +59,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
   before('Set up the testing environment', async () => {
     log('TrailApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
-    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide chat copilot
     await tryToHideCopilot();

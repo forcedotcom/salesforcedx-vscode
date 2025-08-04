@@ -19,9 +19,9 @@ import {
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import { clearOutputView, executeQuickPick, getTextEditor, getWorkbench, moveCursorWithFallback } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import * as path from 'node:path';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Visualforce LSP', () => {
@@ -40,8 +40,8 @@ describe('Visualforce LSP', () => {
   before('Set up the testing environment', async () => {
     log('VisualforceLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
-    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
-    pagesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'pages');
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
+    pagesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'pages');
 
     // Create Apex controller for the Visualforce Page
     await createApexController(classesFolderPath);

@@ -62,6 +62,7 @@ import {
   getIdealSimpleAccountResourceXml
 } from '../testData/oasDocs';
 import { caseManagerClassText, simpleAccountResourceClassText } from '../testData/sampleClassData';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -80,7 +81,7 @@ describe('Create OpenAPI v3 Specifications', () => {
   before('Set up the testing environment', async () => {
     log('\nCreateOASDoc - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
-    classesFolderPath = path.join(testSetup.projectFolderPath!, 'force-app', 'main', 'default', 'classes');
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide chat copilot
     await tryToHideCopilot();
