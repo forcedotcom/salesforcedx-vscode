@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.7.1",
+  "version": "64.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,9 +25,9 @@
   ],
   "dependencies": {
     "@salesforce/core-bundle": "^8.18.4",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "64.7.1",
-    "@salesforce/salesforcedx-utils": "64.7.1",
-    "@salesforce/salesforcedx-utils-vscode": "64.7.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "64.8.0",
+    "@salesforce/salesforcedx-utils": "64.8.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.8.0",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "^12.21.6",
     "@salesforce/templates": "^64.2.1",
