@@ -91,11 +91,8 @@
     "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix",
-    "test": "lerna run test:unit",
+    "test": "lerna run test",
     "test:download-vscode": "node scripts/download-vscode",
-    "test:integration": "lerna run test:integration --concurrency 1 --stream -- --if-present",
-    "test:vscode-integration": "npm run test:download-vscode && lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-integration --if-present",
-    "test:vscode-insiders-integration": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-insiders-integration --if-present",
     "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
     "coverage:merge": "node scripts/mergeCoverageJson.mjs",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
@@ -126,7 +123,7 @@
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
       "pre-commit": "npx lerna run compile,lint && npm run check:peer-deps && npm run check:typescript-project-references",
-      "pre-push": "npx lerna run compile,lint,test:unit"
+      "pre-push": "npx lerna run compile,lint,test"
     }
   },
   "config": {

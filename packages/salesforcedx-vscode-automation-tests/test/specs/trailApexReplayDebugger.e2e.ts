@@ -27,11 +27,14 @@ import {
   getTextEditor,
   getWorkbench,
   moveCursorWithFallback,
+  replaceLineInFile,
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import * as path from 'node:path';
 import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -43,6 +46,7 @@ import { logTestStart } from '../utils/loggingHelper';
 describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () => {
   let prompt: QuickOpenBox | InputBox;
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -55,12 +59,13 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
   before('Set up the testing environment', async () => {
     log('TrailApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide chat copilot
     await tryToHideCopilot();
 
     // Create Apex class AccountService
-    await createApexClassWithBugs();
+    await createApexClassWithBugs(classesFolderPath);
 
     // Dismiss all notifications so the push one can be seen
     await dismissAllNotifications();
@@ -173,6 +178,8 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
   it('SFDX: Get Apex Debug Logs', async () => {
     logTestStart(testSetup, 'SFDX: Get Apex Debug Logs');
+    await executeQuickPick('View: Close All Editors', Duration.seconds(1));
+
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
 
@@ -190,6 +197,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
         expect(quickPicks, 'quickPicks undefined').to.not.be.undefined;
         expect(quickPicks.length, 'No quick picks found').to.be.greaterThan(0);
         await prompt.selectQuickPick('User User - ApexTestHandler');
+        await pause(Duration.seconds(2));
       },
       3,
       'Failed to select log file from quick picks'
@@ -229,11 +237,12 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
   it('Push Fixed Metadata to Org', async () => {
     if (process.platform === 'darwin') {
       logTestStart(testSetup, 'Push Fixed Metadata to Org');
-      // Get open text editor
-      const workbench = getWorkbench();
-      const textEditor = await getTextEditor(workbench, 'AccountService.cls');
-      await textEditor.setTextAtLine(6, '\t\t\tTickerSymbol = tickerSymbol');
-      await textEditor.save();
+
+      // Get the path to AccountService.cls file
+      const accountServicePath = path.join(classesFolderPath, 'AccountService.cls');
+
+      // Fix the test
+      await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');
       await pause(Duration.seconds(2));
 
       // Push source to org

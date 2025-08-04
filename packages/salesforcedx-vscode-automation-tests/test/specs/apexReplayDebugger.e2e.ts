@@ -35,6 +35,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -42,6 +43,7 @@ describe('Apex Replay Debugger', () => {
   let prompt: QuickOpenBox | InputBox;
   let testSetup: TestSetup;
   let projectFolderPath: string;
+  let classesFolderPath: string;
   let logFileTitle: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
@@ -56,12 +58,13 @@ describe('Apex Replay Debugger', () => {
     log('ApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     projectFolderPath = testSetup.projectFolderPath!;
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
 
     // Create Apex class file
-    await createApexClassWithTest('ExampleApexClass');
+    await createApexClassWithTest('ExampleApexClass', classesFolderPath);
 
     // Dismiss all notifications so the push one can be seen
     await dismissAllNotifications();
@@ -146,24 +149,31 @@ describe('Apex Replay Debugger', () => {
 
   it('SFDX: Get Apex Debug Logs', async () => {
     logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Get Apex Debug Logs');
+    await executeQuickPick('View: Close All Editors', Duration.seconds(1));
 
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
     await clearOutputView();
     await pause(Duration.seconds(2));
-    prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
 
-    // Wait for the command to execute
-    await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
-    await pause(Duration.seconds(5)); // Increased pause to allow quickpick to fully load
+    await retryOperation(
+      async () => {
+        prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
 
-    // Select a log file with error handling
-    await retryOperation(async () => {
-      const quickPicks = await prompt.getQuickPicks();
-      expect(quickPicks).to.not.be.undefined;
-      expect(quickPicks.length).to.be.greaterThanOrEqual(0);
-      await prompt.selectQuickPick('User User - Api');
-    });
+        // Wait for the command to execute
+        await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
+        await pause(Duration.seconds(5)); // Increased pause to allow quickpick to fully load
+
+        // Select a log file with error handling
+        const quickPicks = await prompt.getQuickPicks();
+        expect(quickPicks).to.not.be.undefined;
+        expect(quickPicks.length).to.be.greaterThanOrEqual(0);
+        await prompt.selectQuickPick('User User - Api');
+        await pause(Duration.seconds(2));
+      },
+      3,
+      'Failed to select log file from quick picks'
+    );
 
     await verifyNotificationWithRetry(/SFDX: Get Apex Debug Logs successfully ran/, Duration.TEN_MINUTES);
 
@@ -175,9 +185,11 @@ describe('Apex Replay Debugger', () => {
 
     // Verify content on log file
     const textEditor = await retryOperation(async () => {
+      await executeQuickPick('View: Focus Active Editor Group', Duration.seconds(1));
       const editorView = workbench.getEditorView();
       const activeTab = await editorView.getActiveTab();
       const title = await activeTab?.getTitle();
+      if (title) logFileTitle = title;
       return await editorView.openEditor(title!);
     });
 
@@ -190,19 +202,19 @@ describe('Apex Replay Debugger', () => {
     expect(executionFinished).to.be.greaterThanOrEqual(1);
   });
 
+  it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
+    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
+
+    // Run SFDX: Launch Apex Replay Debugger with Current File
+    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(10));
+
+    // Continue with the debug session
+    await continueDebugging(2, 30);
+  });
+
   it('SFDX: Launch Apex Replay Debugger with Last Log File', async () => {
     logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Last Log File');
 
-    // Get open text editor
-    const workbench = getWorkbench();
-    const editorView = workbench.getEditorView();
-
-    // Get file path from open text editor
-    const activeTab = await editorView.getActiveTab();
-    expect(activeTab).to.not.be.undefined;
-
-    const title = await activeTab?.getTitle();
-    if (title) logFileTitle = title;
     const logFilePath = path.join(projectFolderPath, '.sfdx', 'tools', 'debug', 'logs', logFileTitle);
     log(`logFilePath: ${logFilePath}`);
 
@@ -222,19 +234,6 @@ describe('Apex Replay Debugger', () => {
       3,
       'Failed to launch Apex Replay Debugger with Last Log File'
     );
-
-    // Continue with the debug session
-    await continueDebugging(2, 30);
-  });
-
-  it('SFDX: Launch Apex Replay Debugger with Current File - log file', async () => {
-    logTestStart(testSetup, 'ApexReplayDebugger - SFDX: Launch Apex Replay Debugger with Current File - log file');
-
-    const workbench = getWorkbench();
-    await getTextEditor(workbench, logFileTitle);
-
-    // Run SFDX: Launch Apex Replay Debugger with Current File
-    await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(3));
 
     // Continue with the debug session
     await continueDebugging(2, 30);
@@ -261,7 +260,7 @@ describe('Apex Replay Debugger', () => {
     await clearOutputView();
 
     // Create anonymous apex file
-    await createAnonymousApexFile();
+    await createAnonymousApexFile(classesFolderPath);
 
     // Run SFDX: Launch Apex Replay Debugger with Editor Contents", using the Command Palette.
     await executeQuickPick('SFDX: Execute Anonymous Apex with Editor Contents', Duration.seconds(10));

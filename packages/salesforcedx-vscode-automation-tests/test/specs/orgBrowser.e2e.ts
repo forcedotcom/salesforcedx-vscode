@@ -29,11 +29,13 @@ import {
 import { expect } from 'chai';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Org Browser', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -45,6 +47,7 @@ describe('Org Browser', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
@@ -103,7 +106,7 @@ describe('Org Browser', () => {
       '\t}',
       '}'
     ].join('\n');
-    await createApexClass('MyClass', classText);
+    await createApexClass('MyClass', classesFolderPath, classText);
 
     // Close all notifications
     await dismissAllNotifications();

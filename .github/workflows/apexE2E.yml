@@ -112,7 +112,6 @@ jobs:
       testToRun: 'apexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
-      os: '["macos-latest"]'
 
   debugApexTests:
     if: ${{ inputs.debugApexTests }}

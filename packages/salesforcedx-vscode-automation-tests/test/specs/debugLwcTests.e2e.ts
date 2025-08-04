@@ -41,6 +41,8 @@ import { logTestStart } from '../utils/loggingHelper';
 
 describe('Debug LWC Tests', () => {
   let testSetup: TestSetup;
+  let lwcFolderPath: string;
+  let relativeLwcPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -52,6 +54,8 @@ describe('Debug LWC Tests', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+    relativeLwcPath = path.join('force-app', 'main', 'default', 'lwc');
+    lwcFolderPath = path.join(testSetup.projectFolderPath!, relativeLwcPath);
 
     // Hide copilot
     await tryToHideCopilot();
@@ -60,10 +64,10 @@ describe('Debug LWC Tests', () => {
     await closeAllEditors();
 
     // Create LWC1 and test
-    await createLwc('lwc1');
+    await createLwc('lwc1', lwcFolderPath);
 
     // Create LWC2 and test
-    await createLwc('lwc2');
+    await createLwc('lwc2', lwcFolderPath);
 
     // Install Jest unit testing tools for LWC
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
@@ -105,7 +109,7 @@ describe('Debug LWC Tests', () => {
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
       'Ran all test suites within paths',
-      `${path.join('force-app', 'main', 'default', 'lwc', 'lwc1', '__tests__', 'lwc1.test.js')}`
+      `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
@@ -151,7 +155,7 @@ describe('Debug LWC Tests', () => {
       'Tests:       1 skipped, 1 passed, 2 total',
       'Snapshots:   0 total',
       'Ran all test suites within paths',
-      `${path.join('force-app', 'main', 'default', 'lwc', 'lwc1', '__tests__', 'lwc1.test.js')}`
+      `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
@@ -180,7 +184,7 @@ describe('Debug LWC Tests', () => {
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
       'Ran all test suites within paths',
-      `${path.join('force-app', 'main', 'default', 'lwc', 'lwc1', '__tests__', 'lwc1.test.js')}`
+      `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
@@ -228,7 +232,7 @@ describe('Debug LWC Tests', () => {
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
       'Ran all test suites matching',
-      `${path.join('force-app', 'main', 'default', 'lwc', 'lwc1', '__tests__', 'lwc1.test.js')}`
+      `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText, expectedTexts);
@@ -270,7 +274,7 @@ describe('Debug LWC Tests', () => {
       'Tests:       1 skipped, 1 passed, 2 total',
       'Snapshots:   0 total',
       'Ran all test suites within paths',
-      `${path.join('force-app', 'main', 'default', 'lwc', 'lwc2', '__tests__', 'lwc2.test.js')}`
+      `${path.join(relativeLwcPath, 'lwc2', '__tests__', 'lwc2.test.js')}`
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
@@ -299,7 +303,7 @@ describe('Debug LWC Tests', () => {
       'Tests:       2 passed, 2 total',
       'Snapshots:   0 total',
       'Ran all test suites within paths',
-      `${path.join('force-app', 'main', 'default', 'lwc', 'lwc2', '__tests__', 'lwc2.test.js')}`
+      `${path.join(relativeLwcPath, 'lwc2', '__tests__', 'lwc2.test.js')}`
     ];
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
