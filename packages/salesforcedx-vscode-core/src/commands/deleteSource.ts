@@ -1,91 +1,297 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { Lifecycle, Org, SfError, SfProject } from '@salesforce/core-bundle';
+import { Duration } from '@salesforce/kit';
 import {
+  createDirectory,
+  deleteFile,
+  writeFile,
+  readFile,
+  rename,
   workspaceUtils,
   fileUtils,
-  CancelResponse,
   ContinueResponse,
-  ParametersGatherer,
-  PreconditionChecker
+  LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ComponentSet,
+  ComponentSetBuilder,
+  ComponentStatus,
+  DeployResult,
+  DestructiveChangesType,
+  FileResponseSuccess,
+  RequestStatus,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve-bundle';
+import { ChangeResult, SourceTracking, deleteCustomLabels } from '@salesforce/source-tracking-bundle';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { OUTPUT_CHANNEL } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
-import { SfCommandlet } from './util/sfCommandlet';
-import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
-export class DeleteSourceExecutor extends SfCommandletExecutor<{
-  filePath: string;
-}> {
+type MixedDeployDelete = { deploy: string[]; delete: FileResponseSuccess[] };
+
+export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: string }> {
+  private org: Org;
+  private componentSet: ComponentSet | undefined;
+  private deployResult: DeployResult | undefined;
+  private mixedDeployDelete: MixedDeployDelete = { delete: [], deploy: [] };
+  private stashPath = new Map<string, string>();
+  private tracking: SourceTracking | undefined;
   private isSourceTracked: boolean;
+  private project: SfProject | undefined;
 
-  constructor(isSourceTracked: boolean) {
-    super();
+  constructor(isSourceTracked: boolean, org: Org, project?: SfProject) {
+    super(nls.localize('delete_source_text'), 'project_delete_source', OUTPUT_CHANNEL);
+    this.org = org;
     this.isSourceTracked = isSourceTracked;
+    this.project = project;
   }
-  public build(data: { filePath: string }): Command {
-    const commandBuilder = new SfCommandBuilder()
-      .withDescription(nls.localize('delete_source_text'))
-      .withArg('project:delete:source')
-      .withLogName('project_delete_source')
-      .withFlag('--source-dir', data.filePath)
-      .withArg('--no-prompt');
+
+  public async run(
+    response: ContinueResponse<{ filePath: string }>,
+    _progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    _token?: vscode.CancellationToken
+  ): Promise<boolean> {
+    await this.preChecks();
+    await this.delete(response.data.filePath);
+    await this.resolveSuccess();
+    await this.deleteFilesLocally();
+    await this.maybeUpdateTracking();
+    return true;
+  }
+
+  private async preChecks(): Promise<void> {
     if (this.isSourceTracked) {
-      commandBuilder.args.push('--track-source');
+      this.project ??= await SfProject.resolve();
+      this.tracking = await SourceTracking.create({
+        org: this.org,
+        project: this.project,
+        ignoreLocalCache: true
+      });
+      // Check for conflicts before proceeding
+      const conflicts = await this.tracking.getConflicts();
+      if (conflicts && conflicts.length > 0) {
+        throw new SfError(
+          // Use a generic message if the nls key is not available
+          'Conflicts detected. Resolve conflicts before deleting.',
+          'SourceConflictDetected',
+          [
+            'Conflicts:',
+            ...conflicts.map((c: ChangeResult) => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`)
+          ]
+        );
+      }
     }
-    return commandBuilder.build();
+  }
+
+  private async delete(filePath: string): Promise<void> {
+    const sourcepaths = [filePath];
+
+    this.componentSet = await ComponentSetBuilder.build({
+      sourcepath: sourcepaths,
+      projectDir: workspaceUtils.getRootWorkspacePath()
+    });
+
+    await componentSetUtils.setApiVersion(this.componentSet);
+    await componentSetUtils.setSourceApiVersion(this.componentSet);
+
+    const components = this.componentSet.toArray();
+
+    if (components.length === 0) {
+      notificationService.showInformationMessage('No components found to delete');
+      return;
+    }
+
+    // Create a new ComponentSet and mark everything for deletion
+    const cs = new ComponentSet([]);
+    cs.apiVersion = this.componentSet.apiVersion;
+    cs.sourceApiVersion = this.componentSet.sourceApiVersion;
+
+    components.forEach(component => {
+      if (component instanceof SourceComponent) {
+        cs.add(component, DestructiveChangesType.POST);
+      } else {
+        // a remote-only delete
+        cs.add(new SourceComponent({ name: component.fullName, type: component.type }), DestructiveChangesType.POST);
+      }
+    });
+    this.componentSet = cs;
+
+    if (sourcepaths) {
+      await Promise.all([
+        // determine if user is trying to delete a single file from a bundle, which is actually just an fs delete operation
+        // and then a constructive deploy on the "new" bundle
+        ...components
+          .filter(comp => comp.type.strategies?.adapter === 'bundle')
+          .filter((comp): comp is SourceComponent => comp instanceof SourceComponent)
+          .flatMap(bundle =>
+            sourcepaths
+              .filter(someContentsEndWithPath(bundle))
+              .map(sourcepath =>
+                this.moveToManifest(bundle, sourcepath, path.join(bundle.name, path.basename(sourcepath)))
+              )
+          ),
+        // same for decomposed components with non-addressable children (ex: decomposedPermissionSet.  Deleting a file means "redploy without that")
+        ...components
+          .filter(allChildrenAreNotAddressable)
+          .filter((comp): comp is SourceComponent => comp instanceof SourceComponent)
+          .flatMap(decomposed =>
+            sourcepaths
+              .filter(someContentsEndWithPath(decomposed))
+              .map(sourcepath => this.moveToManifest(decomposed, sourcepath, decomposed.fullName))
+          )
+      ]);
+    }
+
+    // fire predeploy event for the delete
+    await Lifecycle.getInstance().emit('predeploy', components);
+
+    const username = this.org.getUsername();
+    if (!username) {
+      throw new SfError('No username found for org', 'NoUsernameFound');
+    }
+
+    const deploy = await this.componentSet.deploy({
+      usernameOrConnection: username,
+      apiOptions: {
+        rest: true,
+        checkOnly: false
+      }
+    });
+
+    this.deployResult = await deploy.pollStatus({ timeout: Duration.minutes(33) });
+
+    await Lifecycle.getInstance().emit('postdeploy', this.deployResult);
+  }
+
+  private async resolveSuccess(): Promise<void> {
+    // if deploy failed restore the stashed files if they exist
+    if (this.deployResult && this.deployResult.response?.status !== RequestStatus.Succeeded) {
+      await Promise.all(
+        this.mixedDeployDelete.delete.map(async file => {
+          const stashSource = this.stashPath.get(file.filePath);
+          if (!stashSource) {
+            throw new Error(`Stash source not found for file: ${file.filePath}`);
+          }
+          await rename(stashSource, file.filePath);
+        })
+      );
+      throw new SfError('Delete operation failed', 'DeleteFailed');
+    } else if (this.mixedDeployDelete.delete.length > 0) {
+      // successful delete -> delete the stashed file
+      return await deleteFile(path.join(os.tmpdir(), 'source_delete'), { recursive: true });
+    }
+  }
+
+  private async deleteFilesLocally(): Promise<void> {
+    if (this.deployResult?.response?.status === RequestStatus.Succeeded) {
+      const customLabels = this.componentSet?.getSourceComponents().toArray().filter(isNonDecomposedCustomLabel) ?? [];
+      const promisesFromLabels = customLabels[0]?.xml ? [deleteCustomLabels(customLabels[0].xml, customLabels)] : [];
+
+      // mixed delete/deploy operations have already been deleted and stashed
+      const otherPromises =
+        this.mixedDeployDelete.delete.length === 0
+          ? (this.componentSet?.toArray() ?? [])
+              .filter((comp): comp is SourceComponent => comp instanceof SourceComponent)
+              .flatMap((component: SourceComponent) => [
+                ...(component.content ? [deleteFile(component.content, { recursive: true, useTrash: false })] : []),
+                ...(component.xml && !isNonDecomposedCustomLabel(component) ? [deleteFile(component.xml)] : [])
+              ])
+          : [];
+
+      await Promise.all([...promisesFromLabels, ...otherPromises]);
+    }
+  }
+
+  private async maybeUpdateTracking(): Promise<void> {
+    if (this.isSourceTracked && this.tracking && this.deployResult) {
+      // Only update tracking if the deploy was successful
+      if (this.deployResult.response?.status === RequestStatus.Succeeded) {
+        // update both local and remote tracking
+        await this.tracking.updateTrackingFromDeploy(this.deployResult);
+      }
+    }
+  }
+
+  private async moveToManifest(cmp: SourceComponent, sourcepath: string, fullName: string): Promise<void> {
+    this.mixedDeployDelete.delete.push({
+      state: ComponentStatus.Deleted,
+      fullName,
+      type: cmp.type.name,
+      filePath: sourcepath
+    });
+
+    // stash the file in case we need to restore it due to failed deploy/aborted command
+    this.stashPath.set(sourcepath, path.join(os.tmpdir(), 'source_delete', fullName));
+    await moveFileToStash(this.stashPath, sourcepath);
+    // re-walk the directory to avoid picking up the deleted file
+    this.mixedDeployDelete.deploy.push(...cmp.walkContent());
+
+    // now from destructive changes and add to manifest
+    // set NOT marked for delete
+    this.componentSet?.destructiveChangesPost.delete(`${cmp.type.id}#${cmp.fullName}`);
+    cmp.setMarkedForDelete(false);
+    this.componentSet?.add(cmp);
   }
 }
 
-class ManifestChecker implements PreconditionChecker {
-  private explorerPath: string;
-
-  constructor(uri: URI) {
-    this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
-  }
-
-  public check(): boolean {
-    if (workspaceUtils.hasRootWorkspace()) {
-      const workspaceRootPath = workspaceUtils.getRootWorkspacePath();
-      const manifestPath = path.join(workspaceRootPath, 'manifest');
-      const isManifestFile = this.explorerPath.includes(manifestPath);
-      if (isManifestFile) {
-        notificationService.showErrorMessage(nls.localize('delete_source_manifest_unsupported_message'));
-        return false;
-      }
-      return true;
-    }
+/**
+ * Checks if the given URI is a manifest file
+ */
+export const isManifestFile = (uri: URI): boolean => {
+  if (!workspaceUtils.hasRootWorkspace()) {
     return false;
   }
-}
+  const workspaceRootPath = workspaceUtils.getRootWorkspacePath();
+  const manifestPath = path.join(workspaceRootPath, 'manifest');
+  const explorerPath = fileUtils.flushFilePath(uri.fsPath);
+  return explorerPath.includes(manifestPath);
+};
 
-class ConfirmationAndSourcePathGatherer implements ParametersGatherer<{ filePath: string }> {
-  private explorerPath: string;
-  private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
-  private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
+/**
+ * Shows confirmation dialog for delete source operation
+ */
+export const showDeleteConfirmation = async (): Promise<boolean> => {
+  const PROCEED = nls.localize('confirm_delete_source_button_text');
+  const CANCEL = nls.localize('cancel_delete_source_button_text');
+  const prompt = nls.localize('delete_source_confirmation_message');
+  const response = await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL);
+  return response === PROCEED;
+};
 
-  constructor(uri: URI) {
-    this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
+/**
+ * Gets the org and project instances needed for delete source operation
+ */
+export const getOrgAndProject = async (): Promise<{ org: Org; project?: SfProject }> => {
+  const orgType = await workspaceContextUtils.getWorkspaceOrgType();
+  const isSourceTracked = orgType === OrgType.SourceTracked;
+
+  const workspaceContext = WorkspaceContext.getInstance();
+  const connection = await workspaceContext.getConnection();
+  const org = await Org.create({ connection });
+
+  let project: SfProject | undefined;
+  if (isSourceTracked) {
+    project = await SfProject.resolve();
   }
 
-  public async gather(): Promise<CancelResponse | ContinueResponse<{ filePath: string }>> {
-    const prompt = nls.localize('delete_source_confirmation_message');
-    const response = await vscode.window.showInformationMessage(prompt, this.PROCEED, this.CANCEL);
-
-    return response && response === this.PROCEED
-      ? { type: 'CONTINUE', data: { filePath: this.explorerPath } }
-      : { type: 'CANCEL' };
-  }
-}
+  return { org, project };
+};
 
 export const deleteSource = async (sourceUri: URI) => {
   const resolved =
@@ -97,13 +303,61 @@ export const deleteSource = async (sourceUri: URI) => {
   if (!resolved) {
     return;
   }
+
+  // Check if it's a manifest file (precondition check)
+  if (isManifestFile(resolved)) {
+    notificationService.showErrorMessage(nls.localize('delete_source_manifest_unsupported_message'));
+    return;
+  }
+
+  // User confirmation
+  const confirmed = await showDeleteConfirmation();
+  if (!confirmed) {
+    return;
+  }
+
+  // Get org and project
+  const { org, project } = await getOrgAndProject();
+
+  const filePath = fileUtils.flushFilePath(resolved.fsPath);
   const orgType = await workspaceContextUtils.getWorkspaceOrgType();
   const isSourceTracked = orgType === OrgType.SourceTracked;
-  const manifestChecker = new ManifestChecker(resolved);
-  const commandlet = new SfCommandlet(
-    manifestChecker,
-    new ConfirmationAndSourcePathGatherer(resolved),
-    new DeleteSourceExecutor(isSourceTracked)
-  );
-  await commandlet.run();
+
+  const executor = new DeleteSourceExecutor(isSourceTracked, org, project);
+
+  // Execute the delete operation
+  try {
+    await executor.run({ type: 'CONTINUE', data: { filePath } });
+  } catch (error) {
+    notificationService.showErrorMessage(
+      `Delete operation failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+    throw error;
+  }
 };
+
+// Utility functions
+export const moveFileToStash = async (stashPath: Map<string, string>, file: string): Promise<void> => {
+  const stashTarget = stashPath.get(file);
+  if (!stashTarget) {
+    throw new Error(`Stash target not found for file: ${file}`);
+  }
+  await createDirectory(path.dirname(stashTarget));
+  const fileContent = await readFile(file);
+  await writeFile(stashTarget, fileContent);
+  await deleteFile(file);
+};
+
+export const someContentsEndWithPath =
+  (cmp: SourceComponent) =>
+  (sourcePath: string): boolean =>
+    // walkContent returns absolute paths while sourcepath will usually be relative
+    cmp.walkContent().some(content => content.endsWith(sourcePath));
+
+export const allChildrenAreNotAddressable = (comp: any): boolean => {
+  const types = Object.values(comp.type.children?.types ?? {});
+  return types.length > 0 && types.every((child: any) => child.isAddressable === false);
+};
+
+export const isNonDecomposedCustomLabel = (component: any): boolean =>
+  component.type.name === 'CustomLabel' && !component.type.strategies?.adapter;
