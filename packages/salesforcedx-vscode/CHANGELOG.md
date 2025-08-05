@@ -12,5 +12,5 @@ This update improves startup performance by limiting unnecessary activations. ([
 - Push operations now use a shared library instead of running a CLI command. ([PR #6422](https://github.com/forcedotcom/salesforcedx-vscode/pull/6422)).
 
 #### salesforedx-vscode-apex
-- Our new TypeScript-based Apex Language Server is stepping in for some tasks previously handled by the Java-based version. If you experience issues, use the new **Enable LSP Parity Capabilities** setting to switch back to the old behavior.([PR #6433](https://github.com/forcedotcom/salesforcedx-vscode/pull/6433))
+- Our new TypeScript-based Apex Language Server is stepping in for some tasks previously handled by the Java-based version. If you experience issues, use the new **Enable LSP Parity Capabilities** setting to switch back to the old behavior. ([PR #6433](https://github.com/forcedotcom/salesforcedx-vscode/pull/6433))
 
