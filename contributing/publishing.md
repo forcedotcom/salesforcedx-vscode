@@ -69,10 +69,12 @@ After the release has been created, it will trigger two publish actions for publ
 
 Before approving the release to the marketplace, download the vsix files from the release you just created, install them locally and verify they are working as expected.
 
-Alternatively, you can download the files using the [gh cli](https://cli.github.com/) and then upload them all at once. Replace `v57.3.0` with the tag name for the release that you are testing, and to whatever download directory you would like. Additionally, `code` can be replaced by `code-insiders`.  From within the vscode repo
+Alternatively, you can download the files using the [gh cli](https://cli.github.com/) and then upload them all at once. Replace `v57.3.0` with the tag name for the release that you are testing, and to whatever download directory you would like. Additionally, `code` can be replaced by `code-insiders`.
 
-`> gh release download v57.3.0 --dir ~/Downloads/v57.3.0 --pattern '*.vsix'`
-`> find ~/Downloads/v53.3.0 -type f -name "*.vsix" -exec code --install-extension {} \;`
+```sh
+gh release download v64.8.0 --dir ~/Downloads/v64.8.0 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
+find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {} \;
+```
 
 After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" to allow the extensions to be uploaded and complete the release process.
 
