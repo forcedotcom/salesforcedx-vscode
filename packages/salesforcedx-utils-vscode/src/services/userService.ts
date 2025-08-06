@@ -5,50 +5,46 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { randomBytes } from 'node:crypto';
+// import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { randomBytes, createHash } from 'node:crypto';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecutor, workspaceUtils } from '..';
+// import { CliCommandExecutor, workspaceUtils } from '..';
 import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
+import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 
 export class UserService {
   private static getRandomUserId = (): string => randomBytes(20).toString('hex');
 
-  private static async executeCliTelemetry(): Promise<string> {
-    const command = new SfCommandBuilder().withArg('telemetry').withJson().build();
-    const workspacePath = workspaceUtils.getRootWorkspacePath();
-    const execution = new CliCommandExecutor(command, { cwd: workspacePath }).execute();
-    const cmdOutput = new CommandOutput();
-    const result = cmdOutput.getCmdResult(execution);
-    return result;
+  /**
+   * Creates a one-way hash of orgId and userId for telemetry compliance.
+   * This ensures customer data cannot be decoded while maintaining user distinction.
+   */
+  private static hashUserIdentifier(orgId: string, userId: string): string {
+    return createHash('sha256').update(`${orgId}-${userId}`).digest('hex');
   }
 
   public static async getTelemetryUserId(extensionContext: ExtensionContext): Promise<string> {
     // Defining UserId in globalState and using the same in appInsights reporter.
     // Assigns cliId to UserId when it's undefined in global state.
     // cliId is undefined when cli-telemetry variable disable-telemetry is true.
-    let globalStateUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID);
+    const globalStateUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID);
 
     if (globalStateUserId) {
       return globalStateUserId;
     }
 
-    globalStateUserId = await this.executeCliTelemetry()
-      .then((getCliTelemetryData): string => {
-        // will be removed as part of removing CLI calls
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        const cmdResult = JSON.parse(getCliTelemetryData) as {
-          result?: { cliId: string };
-        };
-        return cmdResult?.result?.cliId ?? this.getRandomUserId();
-      })
-      .catch(error => {
-        console.log(`Error: ${error} occurred in retrieving cliId, generating user-id ..`);
-        return this.getRandomUserId();
-      });
+    // If globalStateUserId is undefined, we should use a hashed combination of (orgId + userId) as the user id
+    // This complies with Salesforce policy by ensuring customer data cannot be decoded from telemetry
+    const context = WorkspaceContextUtil.getInstance();
+    const orgId = context.orgId;
+    const userId = context.username;
+    if (orgId && userId) {
+      return this.hashUserIdentifier(orgId, userId);
+    }
+
     // If the random UserId value is used here it will be unique per extension.
     await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, globalStateUserId);
 
-    return globalStateUserId;
+    return globalStateUserId ?? this.getRandomUserId();
   }
 }

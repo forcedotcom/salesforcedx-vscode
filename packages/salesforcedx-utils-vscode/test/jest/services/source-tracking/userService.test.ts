@@ -5,103 +5,57 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandOutput } from '@salesforce/salesforcedx-utils';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecution, CliCommandExecutor, TelemetryService, workspaceUtils } from '../../../../src';
+import { WorkspaceContextUtil } from '../../../../src';
 import { UserService } from '../../../../src/services/userService';
 
+jest.mock('../../../../src/context/workspaceContextUtil');
+
 describe('UserService', () => {
-  const fakeCliTelemetryData = {
-    result: {
-      enabled: true,
-      cliId: 'fakecliid234drrf5'
-    }
-  };
-
-  describe('executeCliTelemetry', () => {
-    let cliCommandExecution: CliCommandExecution;
-    let executionSpy: jest.SpyInstance;
-    let getCmdResultSpy: jest.SpyInstance;
-    let getRootWorkspacePathSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      cliCommandExecution = {
-        processExitCode: Promise.resolve(0),
-        processError: Promise.resolve(undefined),
-        processStdout: Promise.resolve(''),
-        processStderr: Promise.resolve('')
-      } as unknown as CliCommandExecution;
-      getRootWorkspacePathSpy = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('abc');
-      executionSpy = jest.spyOn(CliCommandExecutor.prototype, 'execute').mockReturnValue(cliCommandExecution);
-      getCmdResultSpy = jest
-        .spyOn(CommandOutput.prototype, 'getCmdResult')
-        .mockResolvedValue(JSON.stringify(fakeCliTelemetryData));
-    });
-    it('should return command output of sf telemetry', async () => {
-      const fakePath = '/fine/total';
-      const fakeExecution = 'FindCliIdValue';
-
-      getRootWorkspacePathSpy.mockReturnValueOnce(fakePath);
-      executionSpy.mockReturnValueOnce(fakeExecution);
-      getCmdResultSpy.mockResolvedValueOnce(fakeCliTelemetryData);
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const result = await (UserService as any).executeCliTelemetry();
-
-      expect(getRootWorkspacePathSpy).toHaveBeenCalled();
-      expect(executionSpy).toHaveBeenCalled();
-      expect(getCmdResultSpy).toHaveBeenCalled();
-      expect(result).toBe(fakeCliTelemetryData);
-    });
-  });
   describe('getTelemetryUserId', () => {
-    const fakeCliIdUndefined = {
-      result: {
-        enabled: true
-      }
-    };
-    const randomId = 'setredfvvvgbbdtrfyv234dd';
     const globalTelemetryUserId = 'e45rdcfy7ygvhu8uhbnjiiugdrgb';
+    const testOrgId = '00D000000000000EAA';
+    const testUserId = 'test@example.com';
 
-    let telemetryService: TelemetryService;
     let fakeExtensionContext: ExtensionContext;
-
-    let executeCliTelemetrySpy: jest.SpyInstance;
     let getRandomUserIdSpy: jest.SpyInstance;
     let fakeGet: jest.SpyInstance;
     let fakeUpdate: jest.SpyInstance;
+    let workspaceContextMock: Partial<WorkspaceContextUtil>;
+    let mockOrgId: string | undefined;
+    let mockUsername: string | undefined;
 
     beforeEach(() => {
-      telemetryService = new TelemetryService();
       fakeGet = jest.fn();
       fakeUpdate = jest.fn();
-      (telemetryService as any).extensionContext = { globalState: { get: fakeGet, update: fakeUpdate } };
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      fakeExtensionContext = (telemetryService as any).extensionContext;
-      executeCliTelemetrySpy = jest.spyOn(UserService as any, 'executeCliTelemetry');
+      fakeExtensionContext = {
+        globalState: {
+          get: fakeGet,
+          update: fakeUpdate
+        }
+      } as unknown as ExtensionContext;
+
       getRandomUserIdSpy = jest.spyOn(UserService as any, 'getRandomUserId');
+
+      // Initialize mock values
+      mockOrgId = undefined;
+      mockUsername = undefined;
+
+      // Mock WorkspaceContextUtil with getter properties
+      workspaceContextMock = {};
+      Object.defineProperty(workspaceContextMock, 'orgId', {
+        get: () => mockOrgId,
+        configurable: true
+      });
+      Object.defineProperty(workspaceContextMock, 'username', {
+        get: () => mockUsername,
+        configurable: true
+      });
+      (WorkspaceContextUtil.getInstance as jest.Mock).mockReturnValue(workspaceContextMock);
     });
 
-    it('should return cliId when telemetryUserId is undefined in global state', async () => {
-      fakeGet.mockReturnValueOnce(undefined);
-      fakeUpdate.mockResolvedValueOnce(undefined);
-      executeCliTelemetrySpy.mockResolvedValueOnce(JSON.stringify(fakeCliTelemetryData));
-
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
-
-      expect(uId).toBe(fakeCliTelemetryData.result.cliId);
-      expect(executeCliTelemetrySpy).toHaveBeenCalled();
-    });
-
-    it('should generate random userId when telemetryUserId as well as cliId is undefined', async () => {
-      fakeGet.mockReturnValueOnce(undefined);
-      executeCliTelemetrySpy.mockResolvedValueOnce(JSON.stringify(fakeCliIdUndefined));
-      getRandomUserIdSpy.mockResolvedValueOnce(randomId);
-
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
-
-      expect(getRandomUserIdSpy).toHaveBeenCalled();
-      expect(uId).toBe(randomId);
+    afterEach(() => {
+      jest.clearAllMocks();
     });
 
     it('should return telemetryUserId when defined in globalState', async () => {
@@ -109,10 +63,62 @@ describe('UserService', () => {
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
 
-      expect(executeCliTelemetrySpy).not.toHaveBeenCalled();
       expect(getRandomUserIdSpy).not.toHaveBeenCalled();
-      expect(uId).not.toBe(randomId);
       expect(uId).toBe(globalTelemetryUserId);
+    });
+
+    it('should return hashed combination of orgId and userId when both are available', async () => {
+      fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
+      mockOrgId = testOrgId;
+      mockUsername = testUserId;
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      // The result should be a SHA-256 hash
+      expect(uId).toHaveLength(64); // SHA-256 produces 64-character hex string
+      expect(uId).toMatch(/^[a-f0-9]{64}$/); // Should be hex characters only
+      expect(getRandomUserIdSpy).not.toHaveBeenCalled();
+    });
+
+    it('should generate random userId when orgId or userId is not available', async () => {
+      const randomId = 'randomGeneratedId123';
+      fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
+      mockOrgId = undefined;
+      mockUsername = undefined;
+      getRandomUserIdSpy.mockReturnValue(randomId);
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      expect(getRandomUserIdSpy).toHaveBeenCalled();
+      expect(uId).toBe(randomId);
+    });
+
+    it('should generate random userId when only orgId is available but username is missing', async () => {
+      const randomId = 'randomGeneratedId456';
+      fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
+      mockOrgId = testOrgId;
+      mockUsername = undefined;
+      getRandomUserIdSpy.mockReturnValue(randomId);
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      expect(getRandomUserIdSpy).toHaveBeenCalled();
+      expect(uId).toBe(randomId);
+    });
+
+    it('should generate consistent hash for the same orgId and userId combination', async () => {
+      fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
+      mockOrgId = testOrgId;
+      mockUsername = testUserId;
+
+      const uId1 = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      // Reset and test again
+      fakeGet.mockReturnValueOnce(undefined);
+      const uId2 = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      expect(uId1).toBe(uId2); // Should be deterministic
+      expect(uId1).toHaveLength(64);
     });
   });
 });
