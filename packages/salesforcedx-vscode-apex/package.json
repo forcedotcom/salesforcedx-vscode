@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.7.1",
+  "version": "64.8.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -26,10 +26,10 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "^8.2.5",
+    "@salesforce/apex-node-bundle": "^8.2.7",
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/salesforcedx-utils": "64.7.1",
-    "@salesforce/salesforcedx-utils-vscode": "64.7.1",
+    "@salesforce/salesforcedx-utils": "64.8.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.8.0",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.20.0",
     "@stoplight/spectral-functions": "1.10.1",
@@ -53,7 +53,7 @@
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",
     "openapi-types": "12.1.3",
-    "salesforcedx-vscode-core": "64.7.1"
+    "salesforcedx-vscode-core": "64.8.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -71,10 +71,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
-    "test": "npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test": "jest --coverage"
   },
   "packaging": {
     "assets": [
@@ -412,6 +409,11 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_code_completion_stats_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.lspParityCapabilities": {
+          "type": "boolean",
+          "default": true,
+          "description": "%apex_lsp_parity_capabilities_description%"
         },
         "apex.trace.server": {
           "type": "string",

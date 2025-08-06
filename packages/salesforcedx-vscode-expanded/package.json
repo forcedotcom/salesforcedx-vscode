@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.7.1",
+  "version": "64.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -39,6 +39,7 @@
     "salesforce.salesforcedx-vscode-soql",
     "salesforce.salesforce-vscode-slds",
     "salesforce.sfdx-code-analyzer-vscode",
+    "salesforce.apex-language-server-extension",
     "redhat.vscode-xml",
     "esbenp.prettier-vscode",
     "financialforce.lana"
