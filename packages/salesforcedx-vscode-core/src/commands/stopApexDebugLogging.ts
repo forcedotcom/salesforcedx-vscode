@@ -27,7 +27,7 @@ export const turnOffLogging = async (extensionContext: vscode.ExtensionContext):
   // Check if a TraceFlag already exists for the current user
   const myTraceFlag = await traceFlags.getTraceFlagForUser(userId);
 
-  if (myTraceFlag?.Id && myTraceFlag.DebugLevel.DeveloperName === 'ReplayDebuggerLevels') {
+  if (myTraceFlag?.DebugLevel.DeveloperName === 'ReplayDebuggerLevels') {
     await connection.tooling.delete('TraceFlag', myTraceFlag.Id);
 
     // Get user-specific key for clearing expiration date

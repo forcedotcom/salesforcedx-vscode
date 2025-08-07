@@ -154,9 +154,9 @@ export class TraceFlags {
 
   public async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
     const traceFlagQuery = `
-      SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce, debuglevel.developername
+      SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
       FROM TraceFlag
-      WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}' AND debuglevel.developername='ReplayDebuggerLevels'
+      WHERE LogType='DEVELOPER_LOG' AND TracedEntityId='${userId}' AND DebugLevel.DeveloperName='ReplayDebuggerLevels'
     `;
     const traceFlagResult = await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
 
