@@ -15,6 +15,7 @@ import { nls } from '../messages';
 type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;
+  DeveloperName: string;
 };
 
 type TraceFlagRecord = {
@@ -153,7 +154,7 @@ export class TraceFlags {
 
   public async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
     const traceFlagQuery = `
-      SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce
+      SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce, debuglevel.developername
       FROM TraceFlag
       WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}'
     `;
