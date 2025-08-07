@@ -33,7 +33,7 @@
     "fast-glob": "^3.3.2",
     "husky": "9.1.6",
     "mocha": "^10.8.2",
-    "prettier": "3.3.3",
+    "prettier": "3.6.2",
     "semver": "^7.6.3",
     "ts-node": "10.9.2",
     "typescript": "5.6.3",
