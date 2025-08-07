@@ -156,7 +156,7 @@ export class TraceFlags {
     const traceFlagQuery = `
       SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce, debuglevel.developername
       FROM TraceFlag
-      WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}'
+      WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}' AND debuglevel.developername='ReplayDebuggerLevels'
     `;
     const traceFlagResult = await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
 
@@ -184,7 +184,7 @@ export class TraceFlags {
 
     // Change the status bar message to reflect the trace flag expiration date for the new target org
 
-    // If there is a non-expired TraceFlag for the current user, update the status bar message
+    // If there is a non-expired TraceFlag with DeveloperName 'ReplayDebuggerLevels' for the current user, update the status bar message
     const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection()); // Get the new connection after switching
     const newUserId = await newTraceFlags.getUserIdOrThrow();
     const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
