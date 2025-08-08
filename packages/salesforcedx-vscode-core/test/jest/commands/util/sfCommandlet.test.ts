@@ -8,6 +8,14 @@ import { ProjectRetrieveStartExecutor } from '../../../../src/commands/projectRe
 import { RetrieveExecutor } from '../../../../src/commands/retrieveExecutor';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../../../../src/constants';
 
+// Mock the conflict directory to prevent circular dependency issues
+jest.mock('../../../../src/conflict/metadataCacheService', () => ({
+  MetadataCacheExecutor: class MockMetadataCacheExecutor {},
+  MetadataCacheService: class MockMetadataCacheService {},
+  MetadataCacheResult: {},
+  PathType: { Individual: 'Individual', Multiple: 'Multiple' }
+}));
+
 describe('SfCommandletExecutor', () => {
   beforeEach(() => {
     // Setup any common mocks if needed
@@ -32,11 +40,6 @@ describe('SfCommandletExecutor', () => {
     it('should have default ignoreConflicts value', () => {
       const executor = new ProjectRetrieveStartExecutor();
       expect((executor as any).ignoreConflicts).toBe(false);
-    });
-
-    it('should provide access to changed file paths', () => {
-      const executor = new ProjectRetrieveStartExecutor();
-      expect(executor.getChangedFilePaths()).toEqual([]);
     });
   });
 });

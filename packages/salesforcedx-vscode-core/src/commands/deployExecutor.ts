@@ -9,16 +9,40 @@ import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve-b
 import { ComponentStatus, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { handleConflictsWithUI } from '../conflict/conflictUtils';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../settings';
+import { DeployRetrieveOperationType } from '../util/types';
 import { DeployRetrieveExecutor, createDeployOrPushOutput } from './baseDeployRetrieve';
 import { SfCommandletExecutor } from './util';
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, DeployResult> {
   private sourceTracking?: SourceTrackingType;
+
+  protected getOperationType(): DeployRetrieveOperationType {
+    return 'deploy';
+  }
+
+  private deploy = async (
+    components: ComponentSet,
+    connection: any,
+    token: vscode.CancellationToken,
+    enableIgnoreConflicts: boolean = false
+  ): Promise<DeployResult> => {
+    if (enableIgnoreConflicts) {
+      // Retry with ignoreConflicts: true
+      this.sourceTracking?.setIgnoreConflicts(true);
+    }
+
+    const deployOperation = await components.deploy({
+      usernameOrConnection: connection
+    });
+    this.setupCancellation(deployOperation, token);
+    return await deployOperation.pollStatus();
+  };
 
   protected async doOperation(
     components: ComponentSet,
@@ -32,22 +56,46 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     components.projectDirectory = projectPath;
+    const ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled() || this.ignoreConflicts;
+
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
     if (sourceTrackingEnabled) {
       const orgType = await workspaceContextUtils.getWorkspaceOrgType();
       if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
-        this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+        this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection, ignoreConflicts);
         await this.sourceTracking.ensureLocalTracking();
       }
     }
 
-    const operation = await components.deploy({
-      usernameOrConnection: connection
-    });
+    // Check for conflicts using SourceTracking before the operation
+    if (this.sourceTracking && !ignoreConflicts) {
+      const conflicts = await this.sourceTracking.getConflicts();
+      if (conflicts?.length > 0) {
+        // Show conflict UI and let user decide
+        const conflictResult = await handleConflictsWithUI(
+          conflicts,
+          this.getLogName(),
+          this.getOperationType(),
+          async () => await this.deploy(components, connection, token, false),
+          async () => await this.deploy(components, connection, token, true)
+        );
+        if (conflictResult === undefined) {
+          // User cancelled - throw a cancellation error to prevent success notification
+          throw new Error('CONFLICT_CANCELLED');
+        }
+        // User chose to continue, conflictResult contains the deployment result
+        return conflictResult;
+      }
+    }
 
-    this.setupCancellation(operation, token);
+    // Execute the deployment operation (no conflicts detected or conflict detection disabled)
+    const result = await this.deploy(components, connection, token, false);
 
-    const result = await operation.pollStatus();
+    if (!result) {
+      // User cancelled due to conflicts
+      throw new Error();
+    }
+
     if (sourceTrackingEnabled) {
       const status = result?.response?.status;
       if ((status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) && this.sourceTracking) {
@@ -80,8 +128,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
         }
       } else {
         // Handle case where no components were deployed (empty ComponentSet)
-        const operationType = this.isPushOperation() ? 'push' : 'deploy';
-        this.handleEmptyComponentSet(operationType, true);
+        this.handleEmptyComponentSet(this.getOperationType(), true);
       }
     } finally {
       await DeployQueue.get().unlock();
@@ -96,7 +143,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     const isSuccess =
       result.response.status === RequestStatus.Succeeded || result.response.status === RequestStatus.SucceededPartial;
 
-    const operationType = this.isPushOperation() ? 'push' : 'deploy';
-    return createDeployOrPushOutput(result.getFileResponses(), relativePackageDirs, isSuccess, operationType);
+    return createDeployOrPushOutput(result.getFileResponses(), relativePackageDirs, isSuccess, this.getOperationType());
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "64.7.1",
+  "version": "64.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,8 +26,7 @@
     "copy:files": "shx cp src/beautify/beautify-* out/src/beautify",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "test": "npm run test:unit",
-    "test:unit": "jest --coverage",
+    "test": "jest --coverage",
     "watch": "tsc -watch -p ."
   }
 }

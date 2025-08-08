@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.7.1",
+  "version": "64.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,9 +25,9 @@
   ],
   "dependencies": {
     "@salesforce/core-bundle": "^8.18.4",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "64.7.1",
-    "@salesforce/salesforcedx-utils": "64.7.1",
-    "@salesforce/salesforcedx-utils-vscode": "64.7.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "64.8.0",
+    "@salesforce/salesforcedx-utils": "64.8.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.8.0",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "^12.21.6",
     "@salesforce/source-tracking-bundle": "^7.4.9",
@@ -89,10 +89,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:vscode-integration",
-    "test:vscode-integration": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ../../scripts/run-vscode-integration-tests",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "test:unit": "jest --coverage"
+    "test": "jest --coverage"
   },
   "nyc": {
     "reporter": [

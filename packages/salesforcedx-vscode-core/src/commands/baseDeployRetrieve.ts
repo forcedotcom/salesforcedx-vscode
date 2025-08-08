@@ -11,7 +11,8 @@ import {
   Row,
   Table,
   workspaceUtils,
-  SourceTrackingService
+  SourceTrackingService,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve-bundle';
 import {
@@ -21,19 +22,21 @@ import {
   MetadataTransferResult,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
-import * as nodePath from 'node:path';
+
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
+import { DeployRetrieveOperationType } from '../util/types';
 import { createComponentCount, formatException } from './util';
 import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
 export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult> extends LibraryCommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
+  protected ignoreConflicts: boolean = false;
 
   constructor(executionName: string, logName: string) {
     super(executionName, logName, OUTPUT_CHANNEL);
@@ -89,13 +92,10 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
   protected abstract doOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<R | undefined>;
   protected abstract postOperation(result: R | undefined): Promise<void>;
 
-  protected isPushOperation(): boolean {
-    return false; // Default to deploy operation
-  }
-
-  protected isPullOperation(): boolean {
-    return false; // Default to retrieve operation
-  }
+  /**
+   * Returns the operation type for this executor
+   */
+  protected abstract getOperationType(): DeployRetrieveOperationType;
 
   /**
    * Shared method to perform the actual operation (deploy or retrieve)
@@ -128,6 +128,13 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
 
       return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
     } catch (e) {
+      // Handle user cancellation from conflict dialog
+      if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
+        // Disable failure notifications
+        this.showFailureNotifications = false;
+        notificationService.showCanceledExecution(this.getExecutionName());
+        return false; // Return false to indicate operation was not successful
+      }
       throw formatException(e);
     } finally {
       await this.postOperation(result);
@@ -154,12 +161,11 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
   }
 
   /**
-   * Shared method to get changed components from local file paths
+   * Shared method to get changed components from source tracking
    * This eliminates duplication between projectDeployStart and projectRetrieveStart
-   * @param changedFilePaths Array to populate with changed file paths
    * @returns Promise<ComponentSet> The local component set for further processing
    */
-  protected async getLocalChanges(changedFilePaths: string[]): Promise<ComponentSet> {
+  protected async getLocalChanges(): Promise<ComponentSet> {
     try {
       const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
       const connection = await WorkspaceContext.getInstance().getConnection();
@@ -172,20 +178,9 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
         throw new Error(nls.localize('error_source_tracking_service_failed'));
       }
 
-      // Get local changes for conflict detection using the proper method
+      // Get local changes using the proper method
       const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
-      const localComponentSet = localComponentSets.length > 0 ? localComponentSets[0] : new ComponentSet();
-
-      // Populate changedFilePaths for conflict detection from local changes
-      changedFilePaths.length = 0;
-      for (const component of localComponentSet.getSourceComponents()) {
-        if (component.content) {
-          const filePath = nodePath.isAbsolute(component.content)
-            ? component.content
-            : nodePath.resolve(projectPath, component.content);
-          changedFilePaths.push(filePath);
-        }
-      }
+      const localComponentSet = localComponentSets[0] ?? new ComponentSet();
 
       return localComponentSet;
     } catch (error) {
@@ -329,7 +324,7 @@ export const createOperationOutput = (
 export const createRetrieveOrPullOutput = (
   fileResponses: FileResponse[],
   relativePackageDirs: string[],
-  operationType: 'retrieve' | 'pull'
+  operationType: DeployRetrieveOperationType
 ): string => createOperationOutput(fileResponses, relativePackageDirs, operationType);
 
 /**
@@ -339,5 +334,5 @@ export const createDeployOrPushOutput = (
   fileResponses: FileResponse[],
   relativePackageDirs: string[],
   isSuccess: boolean,
-  operationType: 'deploy' | 'push'
+  operationType: DeployRetrieveOperationType
 ): string => createOperationOutput(fileResponses, relativePackageDirs, operationType, isSuccess);

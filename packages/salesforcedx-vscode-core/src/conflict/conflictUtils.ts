@@ -6,16 +6,21 @@
  */
 
 import { readFile, workspaceUtils, errorToString } from '@salesforce/salesforcedx-utils-vscode';
-import * as nodePath from 'node:path';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { SourceConflictError } from '@salesforce/source-tracking-bundle';
+import * as path from 'node:path';
+
 import { channelService } from '../channels';
 import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { telemetryService } from '../telemetry';
-import { TimestampFileProperties } from './directoryDiffer';
+import { DeployRetrieveOperationType } from '../util/types';
+import { diffComponents } from './componentDiffer';
+import { DirectoryDiffResults, TimestampFileProperties } from './directoryDiffer';
 import { getConflictMessagesFor } from './messages';
 import { MetadataCacheService } from './metadataCacheService';
-import { TimestampConflictDetector } from './timestampConflictDetector';
 
 /**
  * Compares two files to determine if they differ in content.
@@ -30,25 +35,46 @@ export const filesDiffer = async (one: string, two: string): Promise<boolean> =>
 };
 
 /**
- * Shared method to check for conflicts in changed files
- * @param conflictMessageType The type of conflict messages to use ('deploy_with_sourcepath' or 'retrieve_with_sourcepath')
- * @param changedFilePaths Array of changed file paths for conflict detection
- * @param isPushOperation Whether this is a push operation (affects conflict checker behavior)
- * @returns Promise<boolean> True if conflicts were resolved or no conflicts found, false if operation should be cancelled
+ * Checks if an error is a SourceConflictError from SDR
+ * @param error Any error object
+ * @returns true if this is a SourceConflictError
  */
-export const checkConflictsForChangedFiles = async (
+export const isSourceConflictError = (error: any): error is SourceConflictError =>
+  error?.name === 'SourceConflictError';
+
+/**
+ * Handles SDR SourceConflictError by delegating to the caller
+ * This is a simplified version that doesn't have circular dependencies
+ * @param error The SourceConflictError from SDR
+ * @returns The error data for the caller to handle
+ */
+export const extractConflictsFromError = (error: SourceConflictError): any[] => error.data ?? [];
+
+/**
+ * Handles conflicts by showing VS Code's conflict UI and allowing user interaction
+ * @param conflicts Array of conflicts from SourceTracking.getConflicts() or SDR error
+ * @param conflictMessageType The type of conflict messages to use ('deploy_with_sourcepath', 'retrieve_with_sourcepath', etc.)
+ * @param operationType The type of operation ('deploy', 'retrieve', 'push', 'pull')
+ * @param operation The original operation function
+ * @param retryOperation Optional function to retry the operation with ignoreConflicts: true
+ * @returns Promise<T> The result of operation, or undefined if user cancels
+ */
+export const handleConflictsWithUI = async <T>(
+  conflicts: any[],
   conflictMessageType: string,
-  changedFilePaths: string[],
-  isPushOperation: boolean,
-  isPullOperation: boolean
-): Promise<boolean> => {
+  operationType: DeployRetrieveOperationType,
+  operation: () => Promise<T>,
+  retryOperation?: () => Promise<T>
+): Promise<T | undefined> => {
   try {
     const messages = getConflictMessagesFor(conflictMessageType);
     if (!messages) {
-      return true; // No conflict messages available, continue
+      // No conflict messages available, proceed with operation
+      console.warn('No conflict messages available, proceeding with operation');
+      return await operation();
     }
 
-    // Show channel output and log conflict detection start once for the entire operation
+    // Show channel output and log conflict detection start
     channelService.showChannelOutput();
     channelService.showCommandWithTimestamp(
       `${nls.localize('channel_starting_message')}${nls.localize('conflict_detect_execution_name')}\n`
@@ -58,75 +84,186 @@ export const checkConflictsForChangedFiles = async (
     if (!username) {
       const errorMsg = nls.localize('conflict_detect_no_target_org');
       channelService.appendLine(errorMsg);
-      return false;
+      throw new Error(errorMsg);
     }
 
-    // Use a single MetadataCacheService operation for all changed files
-    const cacheService = new MetadataCacheService(username);
     const projectPath = workspaceUtils.getRootWorkspacePath();
 
-    // Create a single cache operation for all changed files
-    // If we have changedFilePaths (source tracking enabled), use those specific files
-    // If we don't have changedFilePaths (source tracking disabled), use the entire project
-    const componentPath =
-      changedFilePaths.length > 0
-        ? changedFilePaths.length === 1
-          ? changedFilePaths[0]
-          : changedFilePaths
-        : projectPath;
-    const result = await cacheService.loadCache(componentPath, projectPath, false);
-    if (!result) {
-      console.warn('No cache result available for conflict detection');
-      return true; // Continue with operation
-    }
+    // For SourceTracking conflicts, we need to retrieve remote content to show diffs
+    const conflictResults = await createConflictResultsWithRemoteContent(conflicts, projectPath, username);
 
-    const detector = new TimestampConflictDetector();
-    const diffs = await detector.createDiffs(result);
-
-    if (diffs.different.size > 0) {
-      // Filter conflicts to only include our changed files
-      const relevantConflicts = new Set<TimestampFileProperties>();
-      for (const conflict of diffs.different) {
-        // Construct the full path by joining the local root (which includes project path) with the relative path
-        const conflictPath = nodePath.join(diffs.localRoot, conflict.localRelPath);
-        // If we have changedFilePaths (source tracking enabled), only check those files
-        // If we don't have changedFilePaths (source tracking disabled), check all conflicts
-        if (changedFilePaths.length === 0 || changedFilePaths.includes(conflictPath)) {
-          relevantConflicts.add(conflict);
-        }
-      }
-
-      if (relevantConflicts.size > 0) {
-        // Create a new diffs object with only relevant conflicts
-        const filteredDiffs = {
-          ...diffs,
-          different: relevantConflicts
-        };
-
-        // Create a TimestampConflictChecker to handle the conflicts
-        const timestampChecker = new TimestampConflictChecker(false, messages, isPushOperation, isPullOperation);
-        const conflictResult = await timestampChecker.handleConflicts(projectPath, username, filteredDiffs);
-
-        // Log conflict detection end
-        channelService.showCommandWithTimestamp(
-          `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`
-        );
-
-        return conflictResult.type === 'CONTINUE';
-      }
-    }
+    // Create a TimestampConflictChecker to handle the conflicts with VS Code UI
+    const conflictChecker = new TimestampConflictChecker(false, messages, operationType);
+    const conflictResult = await conflictChecker.handleConflicts(projectPath, username, conflictResults);
 
     // Log conflict detection end
     channelService.showCommandWithTimestamp(
       `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`
     );
 
-    return true; // No conflicts detected
-  } catch (error) {
-    console.error('Error during conflict detection:', error);
-    const errorMsg = nls.localize('conflict_detect_error', errorToString(error));
-    channelService.appendLine(errorMsg);
+    if (conflictResult?.type === 'CONTINUE') {
+      // User chose to continue - retry the operation if a retry function is provided
+      if (retryOperation) {
+        return await retryOperation();
+      } else {
+        // If no retry function, proceed with original operation
+        return await operation();
+      }
+    } else {
+      // User cancelled
+      return undefined;
+    }
+  } catch (handlingError) {
+    console.error('Conflict handling failed:', handlingError);
+    const errorMsg = nls.localize('conflict_detect_error', errorToString(handlingError));
     telemetryService.sendException('ConflictDetectionException', errorMsg);
-    return false; // Error occurred, cancel operation
+    // If conflict handling fails, throw an error
+    throw new Error(errorMsg);
   }
+};
+
+/**
+ * Resolves conflict metadata component references to actual file paths
+ */
+const resolveConflictFilePaths = async (conflicts: any[]): Promise<string[]> => {
+  const conflictFilePaths = conflicts.map(
+    conflict => conflict.filePath ?? conflict.fullName ?? conflict.name ?? 'unknown'
+  );
+
+  // Check if conflicts already contain valid file paths
+  const hasValidFilePaths = conflictFilePaths.some(
+    filePath => filePath !== 'unknown' && filePath.includes(path.sep) && !filePath.includes(' ')
+  );
+
+  if (hasValidFilePaths) {
+    return conflictFilePaths.filter((filePath): filePath is string => filePath !== 'unknown');
+  }
+
+  // Convert metadata component info to file paths using ComponentSet
+  const componentRefs = conflicts.map((conflict: any) => ({
+    fullName: conflict.fullName ?? conflict.name,
+    type: conflict.type ?? 'ApexClass' // Default assumption
+  }));
+
+  const packageDirs = await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
+  const projectComponentSet = ComponentSet.fromSource({
+    fsPaths: packageDirs,
+    include: new ComponentSet(componentRefs)
+  });
+
+  const actualFilePaths: string[] = [];
+  for (const component of projectComponentSet.getSourceComponents()) {
+    if (component.content) {
+      actualFilePaths.push(component.content);
+    }
+    if (component.xml) {
+      actualFilePaths.push(component.xml);
+    }
+  }
+
+  return actualFilePaths;
+};
+
+/**
+ * Creates DirectoryDiffResults from cache result and project components
+ */
+const createDiffResultsFromCache = async (
+  cacheResult: any,
+  actualFilePaths: string[]
+): Promise<DirectoryDiffResults> => {
+  const different = new Set<TimestampFileProperties>();
+
+  // Match cache components with project components and find differences
+  for (const cacheComponent of cacheResult.cache.components) {
+    const projectComponent = cacheResult.project.components.find(
+      (proj: any) => proj.fullName === cacheComponent.fullName && proj.type === cacheComponent.type
+    );
+
+    if (projectComponent) {
+      const differences = await diffComponents(projectComponent, cacheComponent);
+      if (differences?.length > 0) {
+        differences.forEach(difference => {
+          const localRelPath = path.relative(cacheResult.project.baseDirectory, difference.projectPath);
+          const remoteRelPath = path.relative(cacheResult.cache.baseDirectory, difference.cachePath);
+
+          different.add({
+            localRelPath,
+            remoteRelPath,
+            localLastModifiedDate: 'local',
+            remoteLastModifiedDate: 'remote'
+          });
+        });
+      }
+    }
+  }
+
+  return {
+    different,
+    localRoot: cacheResult.project.baseDirectory,
+    remoteRoot: cacheResult.cache.baseDirectory,
+    scannedLocal: actualFilePaths.length,
+    scannedRemote: actualFilePaths.length
+  };
+};
+
+/**
+ * Converts SourceTracking conflicts to VS Code DirectoryDiffResults format
+ * using MetadataCacheService to retrieve remote content for file diffs.
+ */
+const createConflictResultsWithRemoteContent = async (
+  conflicts: any[],
+  projectPath: string,
+  username: string
+): Promise<DirectoryDiffResults> => {
+  try {
+    // Step 1: Resolve conflict metadata to actual file paths
+    const actualFilePaths = await resolveConflictFilePaths(conflicts);
+
+    if (actualFilePaths.length === 0) {
+      console.warn('Could not resolve any file paths from conflicts, falling back to simple conflict list');
+      return createSimpleConflictResults(conflicts, projectPath);
+    }
+
+    // Step 2: Use MetadataCacheService to retrieve remote content
+    const cacheService = new MetadataCacheService(username);
+    const cacheResult = await cacheService.loadCache(actualFilePaths, projectPath);
+
+    if (!cacheResult) {
+      console.warn('Failed to retrieve remote content for conflicts');
+      return createSimpleConflictResults(conflicts, projectPath);
+    }
+
+    // Step 3: Create diff results from cached components
+    return await createDiffResultsFromCache(cacheResult, actualFilePaths);
+  } catch (error) {
+    console.warn('Failed to create conflict results with remote content:', error);
+    return createSimpleConflictResults(conflicts, projectPath);
+  }
+};
+
+/**
+ * Creates a simple conflict results list without file diffs (fallback)
+ */
+const createSimpleConflictResults = (conflicts: any[], projectPath: string): DirectoryDiffResults => {
+  const different = new Set<TimestampFileProperties>(
+    conflicts.map((conflict: any) => {
+      const filePath = conflict.filePath ?? conflict.fullName ?? conflict.name ?? 'unknown';
+      const localRelPath = path.isAbsolute(filePath) ? path.relative(projectPath, filePath) : filePath;
+
+      return {
+        localRelPath,
+        remoteRelPath: localRelPath, // No remote file available
+        localLastModifiedDate: 'local',
+        remoteLastModifiedDate: 'remote'
+      };
+    })
+  );
+
+  return {
+    different,
+    localRoot: projectPath,
+    remoteRoot: projectPath, // Same as local since no remote files
+    scannedLocal: conflicts.length,
+    scannedRemote: conflicts.length
+  };
 };

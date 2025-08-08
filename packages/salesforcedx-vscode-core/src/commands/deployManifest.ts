@@ -53,7 +53,7 @@ export const deployManifest = async (manifestUri: URI) => {
       new SfWorkspaceChecker(),
       new FilePathGatherer(resolved),
       new LibraryDeployManifestExecutor(),
-      new TimestampConflictChecker(true, messages)
+      new TimestampConflictChecker(true, messages, 'deploy')
     );
     await commandlet.run();
   }

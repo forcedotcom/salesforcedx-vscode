@@ -13,30 +13,26 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
-import { checkConflictsForChangedFiles } from '../conflict/conflictUtils';
+
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
 import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
+import { DeployRetrieveOperationType } from '../util/types';
 import { DeployExecutor } from './deployExecutor';
 import { SfCommandlet } from './util';
 
 export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
-  private isPushOp: boolean;
-  private changedFilePaths: string[] = [];
-  private ignoreConflicts: boolean;
-
   constructor(showChannelOutput: boolean = true, ignoreConflicts: boolean = false) {
     const localizedCommandName = ignoreConflicts
       ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
       : nls.localize('project_deploy_start_default_org_text');
     super(localizedCommandName, PROJECT_DEPLOY_START_LOG_NAME);
     this.showChannelOutput = showChannelOutput;
-    this.isPushOp = true;
     this.ignoreConflicts = ignoreConflicts;
   }
 
-  public getChangedFilePaths(): string[] {
-    return this.changedFilePaths;
+  protected getOperationType(): DeployRetrieveOperationType {
+    return 'push';
   }
 
   public async run(
@@ -48,31 +44,6 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     token?: vscode.CancellationToken
   ): Promise<boolean> {
     const components = await this.getComponents(response);
-
-    // Only do conflict detection if:
-    // 1. We're not ignoring conflicts, AND
-    // 2. Conflict detection is enabled, AND
-    // 3. Either:
-    //    a) We have changed files to deploy (source tracking enabled with changes), OR
-    //    b) Source tracking is disabled
-    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
-    if (
-      !this.ignoreConflicts &&
-      salesforceCoreSettings.getConflictDetectionEnabled() &&
-      (this.changedFilePaths.length > 0 || !sourceTrackingEnabled)
-    ) {
-      const conflictResult = await checkConflictsForChangedFiles(
-        'deploy_with_sourcepath',
-        this.changedFilePaths,
-        true,
-        false
-      );
-      if (!conflictResult) {
-        return false; // Conflict detection failed or was cancelled
-      }
-    }
-
-    // Continue with the normal deployment process using the components we already have
     return this.performOperation(components, token);
   }
 
@@ -81,15 +52,11 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
 
     if (sourceTrackingEnabled) {
-      return await this.getLocalChanges(this.changedFilePaths);
+      return await this.getLocalChanges();
     }
 
     // If source tracking is disabled, deploy all source
     return ComponentSet.fromSource(projectPath);
-  }
-
-  protected isPushOperation(): boolean {
-    return this.isPushOp;
   }
 }
 const workspaceChecker = new SfWorkspaceChecker();

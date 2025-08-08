@@ -20,31 +20,29 @@ For more information about publishing take a look at:
 
 # Steps
 
-## Creating a Release Branch
+## Create a Release Branch
 
-The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 1PM GMT (i.e. 5AM or 6AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
+A scheduled [Github Action](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/createReleaseBranch.yml) creates the release branch off of the `develop` branch on Mondays at 1PM GMT (i.e. 5AM or 6AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
 
 If any code changes are made between the time the release branch is automatically created and the actual release time, the engineer should run the `Create Release Branch` workflow with `patch` selected from the dropdown to create a new branch that contains those code changes.
-
-## Updating the Change Log
-
-The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The workflow will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
-
-The engineer should work with the team and doc writer to update and finalize the contents of the changelog. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
 ## Compare Changes in the Release
 
 When verifying the release, verify that it contains changes. One can see the changes in GitHub using an URL to diff the changes between releases, with an URl in the format of https://github.com/forcedotcom/salesforcedx-vscode/compare/release/v57.7.0...release/v57.8.0.
 
-If no changes were made the previous week, then the release can be skipped.
+If no changes were made the previous week, then the release can be skipped (no actions beyond this point)
+
+## Updating the Changelog
+
+The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The workflow will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
+
+The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
 ## Merging the Release Branch into Main
 
-After everyone is satisfied with the changelog updates, it's time to prepare the `main` branch with the new changes for the publish. A GitHub Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
+After everyone is satisfied with the changelog updates, use the [PreRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/prerelease.yml) workflow instead of just merging because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
 
-### To run the merge process:
-
-1. From the GitHub repository navigate to the Actions tab, and select the PreRelease workflow on the left
+1. From the GitHub repository navigate to the Actions tab, and select the [PreRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/prerelease.yml) workflow on the left
 1. Click the 'Run Workflow' dropdown button on the right
 1. In the form that appears, set the branch to `develop`, and set the 'branch to be released' input box to the name of the release (eg `release/v58.0.0`)
 1. Click the 'Run Workflow' button.

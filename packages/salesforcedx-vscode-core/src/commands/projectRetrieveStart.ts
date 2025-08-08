@@ -14,24 +14,20 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
-import { checkConflictsForChangedFiles } from '../conflict/conflictUtils';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
-import { salesforceCoreSettings } from '../settings';
+import { DeployRetrieveOperationType } from '../util/types';
 import { RetrieveExecutor } from './retrieveExecutor';
 import { SfCommandlet } from './util';
 
 export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
-  private changedFilePaths: string[] = [];
-  private ignoreConflicts: boolean;
-
   constructor(ignoreConflicts: boolean = false) {
     super(nls.localize('project_retrieve_start_default_org_text'), PROJECT_RETRIEVE_START_LOG_NAME);
     this.ignoreConflicts = ignoreConflicts;
   }
-  protected isPullOperation(): boolean {
-    return true;
+  protected getOperationType(): DeployRetrieveOperationType {
+    return 'pull';
   }
 
   public async run(
@@ -44,28 +40,6 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
   ): Promise<boolean> {
     // Get components to determine changed files
     const components = await this.getComponents(response);
-
-    // Check for conflicts if:
-    // 1. We're not ignoring conflicts
-    // 2. Conflict detection is enabled
-    // 3. There are changed files
-    if (
-      !this.ignoreConflicts &&
-      salesforceCoreSettings.getConflictDetectionEnabled() &&
-      this.changedFilePaths.length > 0
-    ) {
-      const conflictResult = await checkConflictsForChangedFiles(
-        'retrieve_with_sourcepath',
-        this.changedFilePaths,
-        false,
-        true
-      );
-      if (!conflictResult) {
-        return false; // Conflict detection failed or was cancelled
-      }
-    }
-
-    // Continue with the normal retrieve process using the components we already have
     return this.performOperation(components, token);
   }
 
@@ -74,7 +48,7 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
    * we retrieve only remote changes. If there are no remote changes, returns an empty ComponentSet (no-op).
    */
   protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
-    await this.getLocalChanges(this.changedFilePaths);
+    await this.getLocalChanges();
     try {
       const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
       const connection = await WorkspaceContext.getInstance().getConnection();
@@ -104,10 +78,6 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
       console.error('Source tracking failed:', error);
       throw new Error(nls.localize('error_source_tracking_components_failed', error));
     }
-  }
-
-  public getChangedFilePaths(): string[] {
-    return this.changedFilePaths;
   }
 }
 

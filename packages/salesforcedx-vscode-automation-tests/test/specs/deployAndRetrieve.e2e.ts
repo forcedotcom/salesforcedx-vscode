@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  createCommand,
   Duration,
   log,
   pause,
@@ -32,20 +31,22 @@ import {
   dismissAllNotifications,
   executeQuickPick,
   getTextEditor,
-  verifyOutputPanelText,
   getWorkbench,
-  overrideTextInFile
+  replaceLineInFile,
+  verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Deploy and Retrieve', () => {
   const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'MyClass');
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
@@ -57,6 +58,7 @@ describe('Deploy and Retrieve', () => {
   before('Set up the testing environment', async () => {
     log('Deploy and Retrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
     // Hide copilot
     await tryToHideCopilot();
@@ -71,28 +73,7 @@ describe('Deploy and Retrieve', () => {
       '}'
     ].join('\n');
     await dismissAllNotifications();
-    await createApexClass('MyClass', classText);
-    const successNotificationWasFound = await verifyNotificationWithRetry(
-      /SFDX: Create Apex Class successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
-
-    const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
-      'Finished SFDX: Create Apex Class',
-      10
-    );
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(outputPanelText).to.not.be.undefined;
-    expect(outputPanelText).to.contain(`${pathToClass}.cls`);
-    expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
-  });
-
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
+    await createApexClass('MyClass', classesFolderPath, classText);
   });
 
   it('Verify Source Tracking Setting is enabled', async () => {
@@ -121,19 +102,15 @@ describe('Deploy and Retrieve', () => {
 
   it('Modify the file and deploy again - ST enabled', async () => {
     logTestStart(testSetup, 'Modify the file and deploy again - ST enabled');
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by adding a comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    const newText = `public with sharing class MyClass {
-      // say hello to a given name
-      public static void SayHello(string name){
-        System.debug('Hello, ' + name + '!');
-      }
-    }`;
-    await overrideTextInFile(textEditor, newText);
+    await replaceLineInFile(myClassPath, 2, '\t//say hello to a given name');
+    await pause(Duration.seconds(2));
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Changed  ');
@@ -202,20 +179,18 @@ describe('Deploy and Retrieve', () => {
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by changing the comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    const newText = `public with sharing class MyClass {
-      // modified comment
-      public static void SayHello(string name){
-        System.debug('Hello, ' + name + '!');
-      }
-    }`;
-    await overrideTextInFile(textEditor, newText);
+    await replaceLineInFile(myClassPath, 2, '\t//modified comment');
+    await pause(Duration.seconds(2));
 
     // Retrieve running SFDX: Retrieve This Source from Org
 
     await runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
     // Retrieve operation will overwrite the file, hence the the comment will remain as before the modification
+    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
     const textAfterRetrieve = await textEditor.getText();
     expect(textAfterRetrieve).to.not.contain('modified comment');
   });
@@ -270,7 +245,6 @@ describe('Deploy and Retrieve', () => {
 
   it('Prefer Deploy on Save when `Push or deploy on save` is enabled', async () => {
     logTestStart(testSetup, "Prefer Deploy on Save when 'Push or deploy on save' is enabled");
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
@@ -284,11 +258,14 @@ describe('Deploy and Retrieve', () => {
 
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
+
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file and save to trigger deploy
+    await replaceLineInFile(myClassPath, 2, "\t// let's trigger deploy");
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    // overrideTextInFile writes via fs write, hence file save operation & deploy operation are NOT triggered
-    // textEditor.setTextAtLine(2, "\t// let's trigger deploy") can be finicky on local machine
-    await textEditor.setTextAtLine(2, "\t// let's trigger deploy");
     await textEditor.save();
     await pause(Duration.seconds(5));
 
@@ -330,19 +307,15 @@ describe('Deploy and Retrieve', () => {
 
   it('Modify the file and deploy again - ST disabled', async () => {
     logTestStart(testSetup, 'Modify the file and deploy again - ST disabled');
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by adding a comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    const newText = `public with sharing class MyClass {
-      // say hello to a given name - updated
-      public static void SayHello(string name){
-        System.debug('Hello, ' + name + '!');
-      }
-    }`;
-    await overrideTextInFile(textEditor, newText);
+    await replaceLineInFile(myClassPath, 2, '\t//say hello to a given name');
+    await pause(Duration.seconds(2));
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
@@ -427,8 +400,8 @@ describe('Deploy and Retrieve', () => {
       logTestStart(testSetup, 'Create and push 2 apex classes');
 
       // Create the Apex Classes.
-      await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
-      await createCommand('Apex Class', 'ExampleApexClass2', 'classes', 'cls');
+      await createApexClass('ExampleApexClass1', classesFolderPath);
+      await createApexClass('ExampleApexClass2', classesFolderPath);
 
       // Close all notifications
       await dismissAllNotifications();

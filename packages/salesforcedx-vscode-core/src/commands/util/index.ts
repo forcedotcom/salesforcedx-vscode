@@ -32,4 +32,5 @@ export {
 export { SfCommandlet } from './sfCommandlet';
 export { SfCommandletExecutor } from './sfCommandletExecutor';
 export { PathStrategyFactory, SourcePathStrategy } from './sourcePathStrategies';
+export { ConflictOperationType } from './timestampConflictChecker';
 export * from './lwcAuraDuplicateComponentCheckers';

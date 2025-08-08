@@ -87,6 +87,14 @@ export const activate = async (context: vscode.ExtensionContext) => {
   languageClientManager.setStatusBarInstance(languageServerStatusBarItem);
   await createLanguageClient(context, languageServerStatusBarItem);
 
+  // Register settings change handler for LSP parity capabilities
+  const lspParitySettingsWatcher = vscode.workspace.onDidChangeConfiguration(event => {
+    if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
+      void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
+    }
+  });
+  context.subscriptions.push(lspParitySettingsWatcher);
+
   // Javadoc support
   configureApexLanguage();
 
