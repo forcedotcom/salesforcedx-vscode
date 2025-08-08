@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, StateAggregator, Org, AuthFields } from '@salesforce/core-bundle';
 import { ConfigSource, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -156,6 +156,11 @@ export class OrgAuthInfo {
     const connection = await WorkspaceContext.getInstance().getConnection();
     const userId = connection.getAuthInfoFields().userId ?? (await connection.identity()).user_id;
     return userId;
+  }
+
+  public static async getAuthFields(): Promise<AuthFields> {
+    const connection = await WorkspaceContext.getInstance().getConnection();
+    return connection.getAuthInfoFields();
   }
 }
 
