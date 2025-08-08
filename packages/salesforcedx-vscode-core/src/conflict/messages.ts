@@ -6,6 +6,7 @@
  */
 import { SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { ConflictDetectionMessages } from '../commands/util';
+import { nls } from '../messages';
 
 export const getConflictMessagesFor = (logName: string): ConflictDetectionMessages | undefined => {
   const warningMessageKey = 'conflict_detect_conflicts_during_deploy';
@@ -49,6 +50,20 @@ export const getConflictMessagesFor = (logName: string): ConflictDetectionMessag
                 .toString()
             )
             .join('\n  ')
+      }
+    ],
+    [
+      'project_retrieve_start_default_scratch_org',
+      {
+        warningMessageKey: retrieveWarningMessageKey,
+        commandHint: () => nls.localize('pull_conflicts_error')
+      }
+    ],
+    [
+      'project_deploy_start_default_scratch_org',
+      {
+        warningMessageKey,
+        commandHint: () => nls.localize('push_conflicts_error')
       }
     ]
   ]);

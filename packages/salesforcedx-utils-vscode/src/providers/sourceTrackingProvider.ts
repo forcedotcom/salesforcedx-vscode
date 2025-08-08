@@ -26,12 +26,16 @@ export class SourceTrackingProvider {
     this.sourceTrackers = new Map<string, SourceTracking>();
   }
 
-  public async getSourceTracker(projectPath: string, connection: Connection): Promise<SourceTracking> {
+  public async getSourceTracker(
+    projectPath: string,
+    connection: Connection,
+    ignoreConflicts?: boolean
+  ): Promise<SourceTracking> {
     const username = connection.getUsername();
     const key = projectPath + username;
     let sourceTracker = this.sourceTrackers.get(key);
     if (!sourceTracker) {
-      sourceTracker = await this.createSourceTracking(projectPath, connection);
+      sourceTracker = await this.createSourceTracking(projectPath, connection, ignoreConflicts);
       this.sourceTrackers.set(key, sourceTracker);
     }
     return sourceTracker;
@@ -57,7 +61,11 @@ export class SourceTrackingProvider {
    * is no need to call process.chdir here as has been done in VSCE
    * with other core types like Config and ConfigAggregator.
    */
-  private async createSourceTracking(projectPath: string, connection: Connection): Promise<SourceTracking> {
+  private async createSourceTracking(
+    projectPath: string,
+    connection: Connection,
+    ignoreConflicts?: boolean
+  ): Promise<SourceTracking> {
     const project = await SfProject.resolve(projectPath);
     const org = await Org.create({ connection });
     const options: SourceTrackingOptions = {
@@ -68,7 +76,7 @@ export class SourceTrackingProvider {
       // commands (which use SourceTracking.getChanges()).
       ignoreLocalCache: true,
       subscribeSDREvents: true,
-      ignoreConflicts: true
+      ignoreConflicts: ignoreConflicts ?? true
     };
     const sourceTracking = await SourceTracking.create(options);
     return sourceTracking;

@@ -21,9 +21,13 @@ export class SourceTrackingService {
    * Gets the Source Tracking instance for this project
    * from the Source Tracking Provider.
    */
-  public static async getSourceTracking(projectPath: string, connection: Connection): Promise<SourceTracking> {
+  public static async getSourceTracking(
+    projectPath: string,
+    connection: Connection,
+    ignoreConflicts?: boolean
+  ): Promise<SourceTracking> {
     const provider = SourceTrackingProvider.getInstance();
-    const tracker = provider.getSourceTracker(projectPath, connection);
+    const tracker = provider.getSourceTracker(projectPath, connection, ignoreConflicts);
     return tracker;
   }
 

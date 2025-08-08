@@ -8,14 +8,13 @@
 import { SourceTrackingService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as path from 'node:path';
-import { channelService } from '../../../src/channels';
+
 import { ProjectRetrieveStartExecutor, projectRetrieveStart } from '../../../src/commands/projectRetrieveStart';
 import { RetrieveExecutor } from '../../../src/commands/retrieveExecutor';
 import { SfCommandlet } from '../../../src/commands/util';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { salesforceCoreSettings } from '../../../src/settings';
-import { telemetryService } from '../../../src/telemetry';
 
 const testProjectPath = path.resolve('test', 'project', 'path');
 const testFilePath = path.join(testProjectPath, 'force-app', 'main', 'default', 'classes', 'TestClass.cls');
@@ -25,6 +24,14 @@ jest.mock('../../../src/services/sdr/componentSetUtils', () => ({
     setApiVersion: jest.fn().mockResolvedValue(undefined),
     setSourceApiVersion: jest.fn().mockResolvedValue(undefined)
   }
+}));
+
+// Mock the conflict directory to prevent circular dependency issues
+jest.mock('../../../src/conflict/metadataCacheService', () => ({
+  MetadataCacheExecutor: class MockMetadataCacheExecutor {},
+  MetadataCacheService: class MockMetadataCacheService {},
+  MetadataCacheResult: {},
+  PathType: { Individual: 'Individual', Multiple: 'Multiple' }
 }));
 
 describe('ProjectRetrieveStart', () => {
@@ -47,18 +54,6 @@ describe('ProjectRetrieveStart', () => {
 
     afterEach(() => {
       jest.clearAllMocks();
-    });
-
-    describe('constructor', () => {
-      it('should create executor with default ignoreConflicts value', () => {
-        const executor = new ProjectRetrieveStartExecutor();
-        expect(executor.getChangedFilePaths()).toEqual([]);
-      });
-
-      it('should create executor with ignoreConflicts set to true', () => {
-        const executor = new ProjectRetrieveStartExecutor(true);
-        expect(executor.getChangedFilePaths()).toEqual([]);
-      });
     });
 
     describe('getComponents', () => {
@@ -296,137 +291,6 @@ describe('ProjectRetrieveStart', () => {
         // Act & Assert
         const result = await (executor as any).getComponents(mockResponse);
         expect(result).toBeInstanceOf(ComponentSet);
-      });
-    });
-
-    describe('checkConflictsForChangedFiles', () => {
-      beforeEach(() => {
-        jest.spyOn(channelService, 'showCommandWithTimestamp').mockImplementation(() => {});
-        jest.spyOn(channelService, 'appendLine').mockImplementation(() => {});
-        jest.spyOn(telemetryService, 'sendException').mockImplementation(() => {});
-        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
-          username: 'test@example.com'
-        } as any);
-      });
-
-      it('should store changed file paths in executor for conflict detection', async () => {
-        // Arrange
-        const executor = new ProjectRetrieveStartExecutor();
-        const mockComponentSet = new ComponentSet();
-
-        // Mock getComponents to avoid calling actual source tracking logic
-        jest.spyOn(executor as any, 'getComponents').mockImplementation(async () => {
-          // Manually call getLocalChanges to populate changedFilePaths
-          await (executor as any).getLocalChanges(executor.getChangedFilePaths());
-          return mockComponentSet;
-        });
-
-        // Mock getLocalChanges to populate changedFilePaths
-        jest.spyOn(executor as any, 'getLocalChanges').mockImplementation(async (...args: unknown[]) => {
-          const changedFilePaths = args[0] as string[];
-          changedFilePaths.push(testFilePath);
-          return mockComponentSet;
-        });
-
-        // Mock performOperation to return success
-        jest.spyOn(executor as any, 'performOperation').mockResolvedValue(true);
-
-        // Enable conflict detection so getLocalChanges is called
-        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
-
-        // Act
-        await executor.run({} as any);
-
-        // Assert
-        expect(executor.getChangedFilePaths()).toEqual([testFilePath]);
-      });
-
-      it('should skip conflict detection when no changed files are found', async () => {
-        // Arrange
-        const executor = new ProjectRetrieveStartExecutor();
-        const mockComponentSet = new ComponentSet();
-
-        // Mock getComponents to return a component set and avoid source tracking setup
-        jest.spyOn(executor as any, 'getComponents').mockResolvedValue(mockComponentSet);
-
-        // Mock performOperation to return success
-        jest.spyOn(executor as any, 'performOperation').mockResolvedValue(true);
-
-        // Enable conflict detection so getLocalChanges is called
-        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
-
-        // Mock the getLocalChanges method to not populate changedFilePaths
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
-
-        // Act
-        const result = await executor.run({} as any);
-
-        // Assert
-        expect(result).toBe(true);
-        expect(executor.getChangedFilePaths()).toEqual([]);
-      });
-
-      it('should skip conflict detection when ignoreConflicts is true', async () => {
-        // Arrange
-        const executor = new ProjectRetrieveStartExecutor(true); // ignoreConflicts = true
-        const mockComponentSet = new ComponentSet();
-
-        // Mock getComponents to return a component set and avoid source tracking setup
-        jest.spyOn(executor as any, 'getComponents').mockResolvedValue(mockComponentSet);
-
-        // Mock performOperation to return success
-        jest.spyOn(executor as any, 'performOperation').mockResolvedValue(true);
-
-        // Enable conflict detection so getLocalChanges would be called if ignoreConflicts was false
-        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
-
-        // Mock the getLocalChanges method to populate changedFilePaths
-        jest.spyOn(executor as any, 'getLocalChanges').mockImplementation(async (...args: unknown[]) => {
-          const changedFilePaths = args[0] as string[];
-          changedFilePaths.push(testFilePath);
-          return mockComponentSet;
-        });
-
-        // Act
-        const result = await executor.run({} as any);
-
-        // Assert
-        expect(result).toBe(true);
-        // Conflict detection should be skipped when ignoreConflicts is true, so changedFilePaths should remain empty
-        expect(executor.getChangedFilePaths()).toEqual([]);
-      });
-
-      it('should perform conflict detection when ignoreConflicts is false and conflicts are detected', async () => {
-        // Arrange
-        const executor = new ProjectRetrieveStartExecutor(false); // ignoreConflicts = false
-        const mockComponentSet = new ComponentSet();
-
-        // Mock getComponents to avoid calling actual source tracking logic
-        jest.spyOn(executor as any, 'getComponents').mockImplementation(async () => {
-          // Manually call getLocalChanges to populate changedFilePaths
-          await (executor as any).getLocalChanges(executor.getChangedFilePaths());
-          return mockComponentSet;
-        });
-
-        // Mock getLocalChanges to populate changedFilePaths
-        jest.spyOn(executor as any, 'getLocalChanges').mockImplementation(async (...args: unknown[]) => {
-          const changedFilePaths = args[0] as string[];
-          changedFilePaths.push(testFilePath);
-          return mockComponentSet;
-        });
-
-        // Mock performOperation to return success
-        jest.spyOn(executor as any, 'performOperation').mockResolvedValue(true);
-
-        // Enable conflict detection so getLocalChanges is called
-        jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(true);
-
-        // Act
-        const result = await executor.run({} as any);
-
-        // Assert
-        expect(result).toBe(true);
-        expect(executor.getChangedFilePaths()).toEqual([testFilePath]);
       });
     });
   });

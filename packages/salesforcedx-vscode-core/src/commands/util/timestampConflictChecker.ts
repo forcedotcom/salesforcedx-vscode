@@ -23,22 +23,17 @@ import { DeployQueue, salesforceCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
 import { ConflictDetectionMessages } from './conflictDetectionMessages';
 
+export type ConflictOperationType = 'push' | 'pull' | 'deploy' | 'retrieve';
+
 export class TimestampConflictChecker implements PostconditionChecker<string> {
   private isManifest: boolean;
   private messages: ConflictDetectionMessages;
-  private isPushOperation: boolean;
-  private isPullOperation: boolean;
+  private operationType: ConflictOperationType;
 
-  constructor(
-    isManifest: boolean,
-    messages: ConflictDetectionMessages,
-    isPushOperation: boolean = false,
-    isRetrieveOperation: boolean = false
-  ) {
+  constructor(isManifest: boolean, messages: ConflictDetectionMessages, operationType: ConflictOperationType) {
     this.messages = messages;
     this.isManifest = isManifest;
-    this.isPushOperation = isPushOperation;
-    this.isPullOperation = isRetrieveOperation;
+    this.operationType = operationType;
   }
 
   public async check(
@@ -67,7 +62,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
 
       try {
         const result = await cacheService.loadCache(
-          componentPath,
+          [componentPath],
           workspaceUtils.getRootWorkspacePath(),
           this.isManifest
         );
@@ -104,12 +99,14 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         channelService.appendLine(normalize(basename(file.localRelPath)));
       });
 
-      const showConflictsText = this.isPullOperation
-        ? nls.localize('conflict_detect_show_conflicts_retrieve')
-        : nls.localize('conflict_detect_show_conflicts_deploy');
-      const overrideText = this.isPullOperation
-        ? nls.localize('conflict_detect_override_retrieve')
-        : nls.localize('conflict_detect_override_deploy');
+      const showConflictsText =
+        this.operationType === 'pull' || this.operationType === 'retrieve'
+          ? nls.localize('conflict_detect_show_conflicts_retrieve')
+          : nls.localize('conflict_detect_show_conflicts_deploy');
+      const overrideText =
+        this.operationType === 'pull' || this.operationType === 'retrieve'
+          ? nls.localize('conflict_detect_override_retrieve')
+          : nls.localize('conflict_detect_override_deploy');
 
       const choice = await notificationService.showWarningModal(
         nls.localize(coerceMessageKey(this.messages.warningMessageKey)),
@@ -120,12 +117,17 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       if (choice === overrideText) {
         conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
       } else {
-        if (this.isPushOperation) {
-          channelService.appendLine(nls.localize('conflict_detect_command_hint_push'));
-        } else if (this.isPullOperation) {
-          channelService.appendLine(nls.localize('conflict_detect_command_hint_pull'));
-        } else {
-          channelService.appendLine(this.messages.commandHint(componentPath));
+        switch (this.operationType) {
+          case 'push':
+            channelService.appendLine(nls.localize('conflict_detect_command_hint_push'));
+            break;
+          case 'pull':
+            channelService.appendLine(nls.localize('conflict_detect_command_hint_pull'));
+            break;
+          case 'deploy':
+          case 'retrieve':
+            channelService.appendLine(this.messages.commandHint(componentPath));
+            break;
         }
 
         const doReveal = choice === showConflictsText;
