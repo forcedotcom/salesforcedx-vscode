@@ -70,9 +70,13 @@ describe('Deploy Executor', () => {
     jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue(dummyUsername);
     getWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'getWorkspaceOrgType');
     getSourceTrackingSpy = jest.spyOn(SourceTrackingService, 'getSourceTracking').mockResolvedValue({
-      ensureLocalTracking: ensureLocalTrackingSpy
+      ensureLocalTracking: ensureLocalTrackingSpy,
+      getConflicts: jest.fn().mockResolvedValue([]),
+      updateTrackingFromDeploy: jest.fn().mockResolvedValue(undefined)
     } as any);
-    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({ pollStatus: jest.fn() } as any);
+    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({
+      pollStatus: jest.fn().mockResolvedValue({ response: { status: 'Succeeded' } })
+    } as any);
     getEnableSourceTrackingForDeployAndRetrieveMock = jest.spyOn(
       salesforceCoreSettings,
       'getEnableSourceTrackingForDeployAndRetrieve'
@@ -83,7 +87,9 @@ describe('Deploy Executor', () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
-    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({ pollStatus: jest.fn() } as any);
+    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({
+      pollStatus: jest.fn().mockResolvedValue({ response: { status: 'Succeeded' } })
+    } as any);
     const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
     (executor as any).setupCancellation = jest.fn();
 
@@ -104,11 +110,51 @@ describe('Deploy Executor', () => {
     expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
   });
 
-  it('should NOT create Source Tracking and NOT call ensureLocalTracking before deploying when "Enable Source Tracking" is disabled(false)', async () => {
+  it('should NOT create Source Tracking and NOT call ensureLocalTracking before deploying when connected to a source-tracked org but "Enable Source Tracking" is disabled(false)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
-    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({ pollStatus: jest.fn() } as any);
+    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({
+      pollStatus: jest.fn().mockResolvedValue({ response: { status: 'Succeeded' } })
+    } as any);
+    const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
+    (executor as any).setupCancellation = jest.fn();
+
+    // Act
+    await (executor as any).doOperation(dummyComponentSet, {});
+
+    // Assert
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
+    expect(deploySpy).toHaveBeenCalled();
+  });
+
+  it('should NOT create Source Tracking and NOT call ensureLocalTracking before deploying when connected to a non-source-tracked org and "Enable Source Tracking" is disabled(false)', async () => {
+    // Arrange
+    getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
+    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({
+      pollStatus: jest.fn().mockResolvedValue({ response: { status: 'Succeeded' } })
+    } as any);
+    const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
+    (executor as any).setupCancellation = jest.fn();
+
+    // Act
+    await (executor as any).doOperation(dummyComponentSet, {});
+
+    // Assert
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
+    expect(deploySpy).toHaveBeenCalled();
+  });
+
+  it('should NOT create Source Tracking and NOT call ensureLocalTracking before deploying when connected to a non-source-tracked org and "Enable Source Tracking" is enabled(true)', async () => {
+    // Arrange
+    getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
+    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({
+      pollStatus: jest.fn().mockResolvedValue({ response: { status: 'Succeeded' } })
+    } as any);
     const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
     (executor as any).setupCancellation = jest.fn();
 
