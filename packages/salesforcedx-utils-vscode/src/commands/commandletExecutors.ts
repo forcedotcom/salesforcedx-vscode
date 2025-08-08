@@ -94,6 +94,14 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
     this.outputChannel = outputChannel;
   }
 
+  protected getLogName(): string {
+    return this.logName;
+  }
+
+  protected getExecutionName(): string {
+    return this.executionName;
+  }
+
   /**
    * Core logic of the command.
    *

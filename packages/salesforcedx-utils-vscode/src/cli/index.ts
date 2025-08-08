@@ -14,16 +14,3 @@ export {
 export { LocalCommandExecution } from './localCommandExecutor';
 export { OrgCreateErrorResult, OrgCreateResultParser, OrgCreateSuccessResult } from './orgCreateResultParser';
 export { OrgOpenContainerResultParser, OrgOpenErrorResult, OrgOpenSuccessResult } from './orgOpenContainerResultParser';
-export {
-  ProjectRetrieveStartResultParser,
-  ProjectRetrieveStartResult,
-  ProjectRetrieveStartErrorResponse,
-  ProjectRetrieveStartSuccessResponse
-} from './parsers/projectRetrieveStartResultParser';
-export {
-  CONFLICT_ERROR_NAME,
-  ProjectDeployStartResultParser,
-  ProjectDeployStartErrorResponse,
-  ProjectDeployStartSuccessResponse,
-  ProjectDeployStartResult
-} from './parsers/projectDeployStartResultParser';

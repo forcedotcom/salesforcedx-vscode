@@ -9,7 +9,10 @@ import {
   LibraryCommandletExecutor,
   getRelativeProjectPath,
   Row,
-  Table
+  Table,
+  workspaceUtils,
+  SourceTrackingService,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve-bundle';
 import {
@@ -19,19 +22,21 @@ import {
   MetadataTransferResult,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
+import { DeployRetrieveOperationType } from '../util/types';
 import { createComponentCount, formatException } from './util';
+import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
-export abstract class DeployRetrieveExecutor<
-  T,
-  R extends MetadataTransferResult
-> extends LibraryCommandletExecutor<T> {
+export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult> extends LibraryCommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
+  protected ignoreConflicts: boolean = false;
 
   constructor(executionName: string, logName: string) {
     super(executionName, logName, OUTPUT_CHANNEL);
@@ -72,7 +77,10 @@ export abstract class DeployRetrieveExecutor<
     }
   }
 
-  protected setupCancellation(operation: MetadataApiDeploy | MetadataApiRetrieve | undefined, token?: vscode.CancellationToken) {
+  protected setupCancellation(
+    operation: MetadataApiDeploy | MetadataApiRetrieve | undefined,
+    token?: vscode.CancellationToken
+  ) {
     if (token && operation) {
       token.onCancellationRequested(async () => {
         await operation.cancel();
@@ -84,8 +92,100 @@ export abstract class DeployRetrieveExecutor<
   protected abstract doOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<R | undefined>;
   protected abstract postOperation(result: R | undefined): Promise<void>;
 
-  protected isPushOperation(): boolean {
-    return false; // Default to deploy operation
+  /**
+   * Returns the operation type for this executor
+   */
+  protected abstract getOperationType(): DeployRetrieveOperationType;
+
+  /**
+   * Shared method to perform the actual operation (deploy or retrieve)
+   * This eliminates duplication between performDeployment and performRetrieve methods
+   * @param components The ComponentSet to operate on
+   * @param token Cancellation token
+   * @returns Promise<boolean> True if operation succeeded, false otherwise
+   */
+  protected async performOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<boolean> {
+    let result: R | undefined;
+
+    try {
+      // Set API versions
+      await componentSetUtils.setApiVersion(components);
+      await componentSetUtils.setSourceApiVersion(components);
+
+      // Add telemetry
+      this.telemetry.addProperty(TELEMETRY_METADATA_COUNT, JSON.stringify(createComponentCount(components)));
+
+      // Perform the operation
+      result = await this.doOperation(components, token ?? new vscode.CancellationTokenSource().token);
+
+      // If result is undefined, it means no components were processed (empty ComponentSet)
+      // This is considered a successful operation since there's nothing to do
+      if (result === undefined) {
+        return true;
+      }
+
+      const status = result?.response.status;
+
+      return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
+    } catch (e) {
+      // Handle user cancellation from conflict dialog
+      if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
+        // Disable failure notifications
+        this.showFailureNotifications = false;
+        notificationService.showCanceledExecution(this.getExecutionName());
+        return false; // Return false to indicate operation was not successful
+      }
+      throw formatException(e);
+    } finally {
+      await this.postOperation(result);
+    }
+  }
+
+  /**
+   * Shared method to handle empty ComponentSet scenarios
+   * This eliminates duplication between deploy and retrieve executors
+   * @param operationType The type of operation ('push' | 'deploy' | 'pull' | 'retrieve')
+   * @param isSuccess Whether the operation was successful
+   */
+  protected handleEmptyComponentSet(operationType: OperationType, isSuccess: boolean = true): void {
+    const output =
+      operationType === 'push' || operationType === 'deploy'
+        ? createDeployOrPushOutput([], [], isSuccess, operationType)
+        : createRetrieveOrPullOutput([], [], operationType);
+
+    channelService.appendLine(output);
+
+    // Clear any existing errors since this is a successful "no changes" scenario
+    DeployRetrieveExecutor.errorCollection.clear();
+    SfCommandletExecutor.errorCollection.clear();
+  }
+
+  /**
+   * Shared method to get changed components from source tracking
+   * This eliminates duplication between projectDeployStart and projectRetrieveStart
+   * @returns Promise<ComponentSet> The local component set for further processing
+   */
+  protected async getLocalChanges(): Promise<ComponentSet> {
+    try {
+      const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
+      const connection = await WorkspaceContext.getInstance().getConnection();
+      if (!connection) {
+        throw new Error(nls.localize('error_source_tracking_connection_failed'));
+      }
+
+      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+      if (!sourceTracking) {
+        throw new Error(nls.localize('error_source_tracking_service_failed'));
+      }
+
+      // Get local changes using the proper method
+      const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
+      const localComponentSet = localComponentSets[0] ?? new ComponentSet();
+
+      return localComponentSet;
+    } catch (error) {
+      throw new Error(`Source tracking setup failed: ${error}`);
+    }
   }
 }
 
@@ -167,7 +267,7 @@ export const createOutputTable = (
 /**
  * Operation type for output configuration
  */
-export type OperationType = 'deploy' | 'retrieve' | 'push';
+export type OperationType = 'deploy' | 'retrieve' | 'push' | 'pull';
 
 /**
  * Create output for deploy or retrieve operations
@@ -201,6 +301,12 @@ export const createOperationOutput = (
       successTitle: nls.localize('lib_retrieve_result_title'),
       failureTitle: nls.localize('lib_retrieve_message_title'),
       noResultsMessage: nls.localize('lib_retrieve_no_results')
+    },
+    pull: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
+      successTitle: nls.localize('table_title_pulled_source'),
+      failureTitle: nls.localize('table_title_pull_errors')
     }
   };
 
@@ -215,8 +321,11 @@ export const createOperationOutput = (
 /**
  * Create output for retrieve operations
  */
-export const createRetrieveOutput = (fileResponses: FileResponse[], relativePackageDirs: string[]): string =>
-  createOperationOutput(fileResponses, relativePackageDirs, 'retrieve');
+export const createRetrieveOrPullOutput = (
+  fileResponses: FileResponse[],
+  relativePackageDirs: string[],
+  operationType: DeployRetrieveOperationType
+): string => createOperationOutput(fileResponses, relativePackageDirs, operationType);
 
 /**
  * Create output for deploy or push operations
@@ -225,5 +334,5 @@ export const createDeployOrPushOutput = (
   fileResponses: FileResponse[],
   relativePackageDirs: string[],
   isSuccess: boolean,
-  operationType: 'deploy' | 'push'
+  operationType: DeployRetrieveOperationType
 ): string => createOperationOutput(fileResponses, relativePackageDirs, operationType, isSuccess);

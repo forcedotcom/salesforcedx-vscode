@@ -72,7 +72,10 @@ export const deploySourcePaths = async (
       new SfWorkspaceChecker(),
       new LibraryPathsGatherer(resolvedUris),
       new LibraryDeploySourcePathExecutor(showOutputPanel),
-      new CompositePostconditionChecker(new SourcePathChecker(), new TimestampConflictChecker(false, messages))
+      new CompositePostconditionChecker(
+        new SourcePathChecker(),
+        new TimestampConflictChecker(false, messages, 'deploy')
+      )
     );
 
     await commandlet.run();
