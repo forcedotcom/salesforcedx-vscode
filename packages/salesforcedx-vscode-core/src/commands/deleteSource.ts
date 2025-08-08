@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Lifecycle, Org, SfError, SfProject } from '@salesforce/core-bundle';
-import { Duration } from '@salesforce/kit';
+
 import {
   createDirectory,
   deleteFile,
@@ -174,7 +174,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
       }
     });
 
-    this.deployResult = await deploy.pollStatus({ timeout: Duration.minutes(33) });
+    this.deployResult = await deploy.pollStatus();
 
     await Lifecycle.getInstance().emit('postdeploy', this.deployResult);
   }
