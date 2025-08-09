@@ -15,6 +15,7 @@ import { nls } from '../messages';
 type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;
+  DeveloperName: string;
 };
 
 type TraceFlagRecord = {
@@ -153,9 +154,9 @@ export class TraceFlags {
 
   public async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
     const traceFlagQuery = `
-      SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce
+      SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
       FROM TraceFlag
-      WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}'
+      WHERE LogType='DEVELOPER_LOG' AND TracedEntityId='${userId}' AND DebugLevel.DeveloperName='ReplayDebuggerLevels'
     `;
     const traceFlagResult = await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
 
@@ -183,7 +184,7 @@ export class TraceFlags {
 
     // Change the status bar message to reflect the trace flag expiration date for the new target org
 
-    // If there is a non-expired TraceFlag for the current user, update the status bar message
+    // If there is a non-expired TraceFlag with DeveloperName 'ReplayDebuggerLevels' for the current user, update the status bar message
     const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection()); // Get the new connection after switching
     const newUserId = await newTraceFlags.getUserIdOrThrow();
     const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
