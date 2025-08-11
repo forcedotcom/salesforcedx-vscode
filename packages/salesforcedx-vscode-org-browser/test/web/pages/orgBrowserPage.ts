@@ -114,20 +114,21 @@ export class OrgBrowserPage {
 
       // Now find the specific element in the tree
       const allTypes = await this.getAllMetadataTypes();
-      return Promise.any(
-        allTypes.map(async item => {
-          const [text, ariaLabel, title] = await Promise.all([
-            item.textContent(),
-            item.getAttribute('aria-label'),
-            item.getAttribute('title')
-          ]);
-          if (text?.includes(typeName) || ariaLabel?.includes(typeName) || title?.includes(typeName)) {
-            console.log(`Found "${typeName}" using tree item search`);
-            return item;
-          }
-          throw new Error(`"${typeName}" was in DOM but not found in tree items`);
-        })
-      );
+
+      for (const item of allTypes) {
+        const [text, ariaLabel, title] = await Promise.all([
+          item.textContent(),
+          item.getAttribute('aria-label'),
+          item.getAttribute('title')
+        ]);
+        if (text?.includes(typeName) || ariaLabel?.includes(typeName) || title?.includes(typeName)) {
+          console.log(`Found "${typeName}" using tree item search`);
+          return item;
+        }
+      }
+
+      console.log(`"${typeName}" was in DOM but not found in tree items`);
+      return null;
     } catch (error) {
       console.log(`Timeout waiting for "${typeName}" to appear: ${String(error)}`);
     }
@@ -199,25 +200,29 @@ export class OrgBrowserPage {
     const errorTexts: string[] = [];
 
     if (errorCount > 0) {
-      console.log(`Found ${errorCount} error notification(s):`);
+      console.log(`Found ${errorCount} notification element(s):`);
 
       for (let i = 0; i < errorCount; i++) {
         const notification = this.errorNotifications.nth(i);
 
         // Try to get text content
         const errorText = await notification.textContent();
-        if (errorText) {
+        if (errorText && !errorTexts.includes(errorText)) {
           errorTexts.push(errorText);
-          console.log(`  Notification ${i + 1}: "${errorText}"`);
         }
 
         // Also try to get aria-label which might contain the error message
         const ariaLabel = await notification.getAttribute('aria-label');
         if (ariaLabel && !errorTexts.includes(ariaLabel)) {
           errorTexts.push(ariaLabel);
-          console.log(`  Notification ${i + 1} aria-label: "${ariaLabel}"`);
         }
       }
+
+      // Log the unique notifications
+      console.log(`Found ${errorTexts.length} unique notification(s):`);
+      errorTexts.forEach((text, index) => {
+        console.log(`  Notification ${index + 1}: "${text}"`);
+      });
     } else {
       console.log('No error notifications found with standard selectors');
 
@@ -362,35 +367,51 @@ export class OrgBrowserPage {
     await this.takeScreenshot('hover-with-retrieve-button.png');
 
     // Try to click the button using JavaScript for reliability
-    const success = await this.page.evaluate(() => {
-      const retrieveButtons = Array.from(document.querySelectorAll('a.action-label[aria-label="Retrieve Metadata"]'));
+    const itemText = await item.textContent();
+    if (!itemText) {
+      return false;
+    }
 
-      if (retrieveButtons.length === 0) {
-        return false;
-      }
+    const success = await this.page.evaluate(text => {
+      // Find the specific tree item first
+      const treeItems = Array.from(document.querySelectorAll('.monaco-list-row'));
+      let targetRow = null;
 
-      const button = retrieveButtons[0];
-
-      if (button instanceof HTMLElement) {
-        try {
-          // Make button visible and click it
-          button.style.visibility = 'visible';
-          button.style.display = 'inline-block';
-          button.style.opacity = '1';
-          button.style.pointerEvents = 'auto';
-
-          // Force into view and click
-          button.scrollIntoView({ behavior: 'auto', block: 'center' });
-          button.click();
-
-          return true;
-        } catch {
-          return false;
+      for (const row of treeItems) {
+        const rowText = row.textContent;
+        if (rowText?.includes(text)) {
+          targetRow = row;
+          break;
         }
       }
 
-      return false;
-    });
+      if (!targetRow) {
+        return false;
+      }
+
+      // Find the retrieve button within this specific row
+      const button = targetRow.querySelector('a.action-label[aria-label="Retrieve Metadata"]');
+
+      if (!button || !(button instanceof HTMLElement)) {
+        return false;
+      }
+
+      try {
+        // Make button visible and click it
+        button.style.visibility = 'visible';
+        button.style.display = 'inline-block';
+        button.style.opacity = '1';
+        button.style.pointerEvents = 'auto';
+
+        // Force into view and click
+        button.scrollIntoView({ behavior: 'auto', block: 'center' });
+        button.click();
+
+        return true;
+      } catch {
+        return false;
+      }
+    }, itemText);
 
     return success;
   }

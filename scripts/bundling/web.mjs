@@ -174,11 +174,7 @@ export const commonConfigBrowser = {
     'node-fetch': 'cross-fetch',
     'whatwg-url': 'url',
     // Empty polyfills for modules that can't be polyfilled
-    'node:child_process': emptyPolyfillsPath,
-    'node:dns': emptyPolyfillsPath,
     'node:net': emptyPolyfillsPath,
-    'node:tls': emptyPolyfillsPath,
-    'node:http2': emptyPolyfillsPath,
     got: emptyPolyfillsPath, // has a lot of very node-focused references in its dependencies.
     // Standard Node.js modules (without node: prefix)
     path: 'path-browserify',
@@ -195,13 +191,7 @@ export const commonConfigBrowser = {
     zlib: 'browserify-zlib',
     timers: 'timers-browserify',
     tty: 'tty-browserify',
-    string_decoder: 'string_decoder',
-    punycode: 'punycode',
-    domain: 'domain-browser',
-    constants: 'constants-browserify',
-    console: 'console-browserify',
-    vm: 'vm-browserify',
-    diagnostics_channel: 'diagnostics_channel'
+    console: 'console-browserify'
   },
   plugins: [
     pipeTransformPlugin(),
