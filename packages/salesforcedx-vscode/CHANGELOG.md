@@ -11,5 +11,5 @@
 
 #### salesforcedx-vscode-core
 
-- [W-19276014]  We fixed a bug where trace flags created in Developer Console were appearing in VSCode. Now the trace flags in Developer Console and VSCode are isolated from each other. ([PR #6465](https://github.com/forcedotcom/salesforcedx-vscode/pull/6465))
+- We fixed a bug where trace flags created by Developer Console were appearing in VSCode. Now trace flags created from Developer Console and VSCode are isolated from each other. ([PR #6465](https://github.com/forcedotcom/salesforcedx-vscode/pull/6465))
 
