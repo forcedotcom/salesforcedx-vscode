@@ -120,5 +120,72 @@ describe('UserService', () => {
       expect(uId1).toBe(uId2); // Should be deterministic
       expect(uId1).toHaveLength(64);
     });
+
+    it('should replace random globalStateUserId with hash when user authorizes to org', async () => {
+      const randomUserId = 'RANDOM_abc123def456';
+      fakeGet.mockReturnValueOnce(randomUserId); // Existing random value
+      mockOrgId = testOrgId;
+      mockUsername = testUserId;
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      // Should generate hash and update globalState
+      expect(uId).toHaveLength(64); // SHA-256 hash
+      expect(uId).toMatch(/^[a-f0-9]{64}$/);
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', uId);
+    });
+
+    it('should keep existing random value when no org authorization available', async () => {
+      const randomUserId = 'RANDOM_abc123def456';
+      fakeGet.mockReturnValueOnce(randomUserId); // Existing random value
+      mockOrgId = undefined;
+      mockUsername = undefined;
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      // Should keep the same random value
+      expect(uId).toBe(randomUserId);
+      expect(fakeUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should preserve existing hash when user authorizes to a different org', async () => {
+      const existingHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+      fakeGet.mockReturnValueOnce(existingHash); // Existing non-random hash
+      mockOrgId = 'differentOrgId123';
+      mockUsername = 'different@user.com';
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      // Should keep the original hash, not generate new one
+      expect(uId).toBe(existingHash);
+      expect(fakeUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should store hash in globalState when undefined and org data available', async () => {
+      fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
+      mockOrgId = testOrgId;
+      mockUsername = testUserId;
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      // Should generate hash and store it
+      expect(uId).toHaveLength(64);
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', uId);
+    });
+
+    it('should create and store random userId when undefined and no org data', async () => {
+      const randomId = 'RANDOM_generatedId789';
+      fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
+      mockOrgId = undefined;
+      mockUsername = undefined;
+      getRandomUserIdSpy.mockReturnValue(randomId);
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+
+      // Should generate random ID and store it
+      expect(uId).toBe(randomId);
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', randomId);
+      expect(getRandomUserIdSpy).toHaveBeenCalled();
+    });
   });
 });
