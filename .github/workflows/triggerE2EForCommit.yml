@@ -113,15 +113,13 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  # Temporarily disabled until we update selector
-  # https://salesforce-internal.slack.com/archives/C080T7PDPHR/p1754678898841059
-  # apex-run-tests:
-  #   uses: ./.github/workflows/runE2ETest.yml
-  #   secrets: inherit
-  #   with:
-  #     testToRun: 'runApexTests.e2e.js'
-  #     vscodeVersion: ${{ inputs.vscodeVersion }}
-  #     runId: ${{ inputs.runId }}
+  apex-run-tests:
+    uses: ./.github/workflows/runE2ETest.yml
+    secrets: inherit
+    with:
+      testToRun: 'runApexTests.e2e.js'
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      runId: ${{ inputs.runId }}
 
   apex-debug-tests:
     uses: ./.github/workflows/runE2ETest.yml
