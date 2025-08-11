@@ -209,7 +209,7 @@ describe('DeleteSource', () => {
       const executor = new DeleteSourceExecutor(true, mockOrg, undefined); // No project to trigger resolve
 
       await expect(executor.run({ type: 'CONTINUE', data: { filePath: testFilePath } })).rejects.toThrow(
-        'Conflicts detected. Resolve conflicts before deleting.'
+        nls.localize('delete_source_conflicts_detected')
       );
     });
 
@@ -239,7 +239,7 @@ describe('DeleteSource', () => {
       });
 
       await expect(executor.run({ type: 'CONTINUE', data: { filePath: testFilePath } })).rejects.toThrow(
-        'Delete operation failed'
+        nls.localize('delete_source_operation_failed')
       );
 
       deleteSpy.mockRestore();
@@ -407,7 +407,9 @@ describe('DeleteSource', () => {
       componentSetBuilderBuildSpy.mockRejectedValueOnce(error);
 
       await expect(deleteSource(testUri)).rejects.toThrow('Test error');
-      expect(notificationServiceShowErrorMessageSpy).toHaveBeenCalledWith('Delete operation failed: Test error');
+      expect(notificationServiceShowErrorMessageSpy).toHaveBeenCalledWith(
+        nls.localize('delete_source_operation_failed_with_error', 'Test error')
+      );
     });
 
     it('should abort when no URI is resolved', async () => {

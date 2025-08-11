@@ -15,7 +15,8 @@ import {
   workspaceUtils,
   fileUtils,
   ContinueResponse,
-  LibraryCommandletExecutor
+  LibraryCommandletExecutor,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -85,16 +86,11 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
       });
       // Check for conflicts before proceeding
       const conflicts = await this.tracking.getConflicts();
-      if (conflicts && conflicts.length > 0) {
-        throw new SfError(
-          // Use a generic message if the nls key is not available
-          'Conflicts detected. Resolve conflicts before deleting.',
-          'SourceConflictDetected',
-          [
-            'Conflicts:',
-            ...conflicts.map((c: ChangeResult) => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`)
-          ]
-        );
+      if (conflicts?.length > 0) {
+        throw new SfError(nls.localize('delete_source_conflicts_detected'), 'SourceConflictDetected', [
+          'Conflicts:',
+          ...conflicts.map((c: ChangeResult) => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`)
+        ]);
       }
     }
   }
@@ -113,7 +109,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
     const components = this.componentSet.toArray();
 
     if (components.length === 0) {
-      notificationService.showInformationMessage('No components found to delete');
+      notificationService.showInformationMessage(nls.localize('delete_source_no_components_found'));
       return;
     }
 
@@ -163,7 +159,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
 
     const username = this.org.getUsername();
     if (!username) {
-      throw new SfError('No username found for org', 'NoUsernameFound');
+      throw new SfError(nls.localize('delete_source_no_username_found'), 'NoUsernameFound');
     }
 
     const deploy = await this.componentSet.deploy({
@@ -186,12 +182,12 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
         this.mixedDeployDelete.delete.map(async file => {
           const stashSource = this.stashPath.get(file.filePath);
           if (!stashSource) {
-            throw new Error(`Stash source not found for file: ${file.filePath}`);
+            throw new Error(nls.localize('delete_source_stash_source_not_found', file.filePath));
           }
           await rename(stashSource, file.filePath);
         })
       );
-      throw new SfError('Delete operation failed', 'DeleteFailed');
+      throw new SfError(nls.localize('delete_source_operation_failed'), 'DeleteFailed');
     } else if (this.mixedDeployDelete.delete.length > 0) {
       // successful delete -> delete the stashed file
       return await deleteFile(path.join(os.tmpdir(), 'source_delete'), { recursive: true });
@@ -330,7 +326,7 @@ export const deleteSource = async (sourceUri: URI) => {
     await executor.run({ type: 'CONTINUE', data: { filePath } });
   } catch (error) {
     notificationService.showErrorMessage(
-      `Delete operation failed: ${error instanceof Error ? error.message : String(error)}`
+      nls.localize('delete_source_operation_failed_with_error', errorToString(error))
     );
     throw error;
   }
@@ -340,7 +336,7 @@ export const deleteSource = async (sourceUri: URI) => {
 export const moveFileToStash = async (stashPath: Map<string, string>, file: string): Promise<void> => {
   const stashTarget = stashPath.get(file);
   if (!stashTarget) {
-    throw new Error(`Stash target not found for file: ${file}`);
+    throw new Error(nls.localize('delete_source_stash_target_not_found', file));
   }
   await createDirectory(path.dirname(stashTarget));
   const fileContent = await readFile(file);
