@@ -360,13 +360,28 @@ async function run() {
       return JSON.parse(result).versions[0].version;
     }
 
-    function getMinimumVSCodeVersion() {
-      const currentDirectory = execSync('pwd').toString();
-      // currentDirectory contains a newline at the end
-      const packageJsonDirectory = `${currentDirectory.slice(0, -1)}/packages/salesforcedx-vscode-core/package.json`;
-      const packageJsonContent = readFileSync(packageJsonDirectory, 'utf8');
-      // The VSCode version has a carat in front that needs to be removed
-      return JSON.parse(packageJsonContent).engines.vscode.substring(1);
+    function getMinimumVSCodeVersion(): string {
+      try {
+        // Get the latest VSCode version from GitHub API using curl
+        const result = execSync('curl -s -H "User-Agent: salesforcedx-vscode-actions" https://api.github.com/repos/microsoft/vscode/releases/latest').toString();
+        const release: { tag_name?: string } = JSON.parse(result);
+        const latestVersion: string = release.tag_name ?? '1.103.0'; // e.g., "1.103.0"
+
+        // Parse version numbers
+        const versionParts: number[] = latestVersion.split('.').map(Number);
+        const major: number = versionParts[0] ?? 1;
+        const minor: number = versionParts[1] ?? 101;
+
+        // Calculate minimum version (latest - 2 minor versions)
+        const minMinor = Math.max(0, minor - 2);
+        const minimumVersion = `${major}.${minMinor}.0`;
+
+        return minimumVersion;
+      } catch (error) {
+        console.error('Failed to fetch latest VSCode version, falling back to default:', error);
+        // Fallback to a reasonable default if API call fails
+        return '1.101.0';
+      }
     }
 
     function getFile(filename: string, replacements: { [key: string]: string } | undefined) {
