@@ -5,11 +5,11 @@
 #### salesforcedx-vscode
 #### salesforcedx-vscode-expanded
 
-- We have increased our minimum supported VSCode version to (latest - 2). If you are currently using an older version of VSCode, you will need to update to maintain compatibility and continue receiving extension updates. ([PR #6452](https://github.com/forcedotcom/salesforcedx-vscode/pull/6452))
+- We’ve raised our minimum supported VS Code version to the latest minus two releases. If you’re on an older version, update VS Code to stay compatible and keep installing extension updates. ([PR #6452](https://github.com/forcedotcom/salesforcedx-vscode/pull/6452))
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- We fixed a bug where trace flags created by Developer Console were appearing in VSCode. Now trace flags created from Developer Console and VSCode are isolated from each other. ([PR #6465](https://github.com/forcedotcom/salesforcedx-vscode/pull/6465))
+- We fixed a bug where trace flags from Developer Console were showing up in VS Code. Now, trace flags created in each stay separate. ([PR #6465](https://github.com/forcedotcom/salesforcedx-vscode/pull/6465))
 
