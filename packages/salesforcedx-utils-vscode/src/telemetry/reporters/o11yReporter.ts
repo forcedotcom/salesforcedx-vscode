@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { O11yService } from '@salesforce/o11y-reporter';
 import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
-import { O11yService } from '../../services/o11yService';
 import { TelemetryReporter } from '../../types';
 import { isInternalHost } from '../utils/isInternal';
 import { CommonProperties, InternalProperties } from './loggingProperties';
@@ -102,8 +102,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
         measurements
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.o11yService.upload();
+      void this.o11yService.upload();
     }
   }
 
@@ -130,8 +129,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
         measurements
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.o11yService.upload();
+      void this.o11yService.upload();
     }
   }
 
