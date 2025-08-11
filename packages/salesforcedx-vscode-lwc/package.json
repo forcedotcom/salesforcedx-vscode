@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.9.0",
+  "version": "64.9.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,8 +27,8 @@
     "@salesforce/core-bundle": "^8.18.4",
     "@salesforce/lightning-lsp-common": "4.12.4",
     "@salesforce/lwc-language-server": "4.12.4",
-    "@salesforce/salesforcedx-utils": "64.9.0",
-    "@salesforce/salesforcedx-utils-vscode": "64.9.0",
+    "@salesforce/salesforcedx-utils": "64.9.1",
+    "@salesforce/salesforcedx-utils-vscode": "64.9.1",
     "applicationinsights": "1.0.7",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
