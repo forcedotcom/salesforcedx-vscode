@@ -49,6 +49,13 @@ After everyone is satisfied with the changelog updates, use the [PreRelease](htt
 
 The PreRelease job will verify if the version of the branch to be merged is newer than what is currently in the `main` branch and update `main` with the release branch.
 
+### Potential Errors
+If you get `error: failed to push some refs to 'https://github.com/forcedotcom/salesforcedx-vscode'` on the merge step
+1. check out the merge branch locally
+2. `git merge` main into it
+3. push
+4. run `PreRelease` workflow again 
+
 ## Publishing Main
 
 The merge into `main` will trigger a run of the 'Test, Build, and Release' GHA workflow (https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/testBuildAndRelease.yml) that will:
@@ -64,8 +71,10 @@ Before approving the release to the marketplace, download the vsix files from th
 
 Alternatively, you can download the files using the [gh cli](https://cli.github.com/) and then upload them all at once. Replace `v57.3.0` with the tag name for the release that you are testing, and to whatever download directory you would like. Additionally, `code` can be replaced by `code-insiders`.
 
-`> gh release download v57.3.0 --dir ~/Downloads/v57.3.0 --pattern '*.vsix'`
-`> find ~/Downloads/v53.3.0 -type f -name "*.vsix" -exec code --install-extension {} \;`
+```sh
+gh release download v64.8.0 --dir ~/Downloads/v64.8.0 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
+find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {} \;
+```
 
 After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" to allow the extensions to be uploaded and complete the release process.
 
