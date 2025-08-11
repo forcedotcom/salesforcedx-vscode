@@ -1,18 +1,18 @@
-# 64.8.0 - August 6, 2025
+# 64.9.1 - August 13, 2025
 
 ## Added
 
+#### salesforcedx-vscode
+
+- [W-19047382]  increase minimum supported VSCode version to (latest - 2) ([PR #6452](https://github.com/forcedotcom/salesforcedx-vscode/pull/6452))
+
+#### salesforcedx-vscode-expanded
+
+- [W-19047382]  increase minimum supported VSCode version to (latest - 2) ([PR #6452](https://github.com/forcedotcom/salesforcedx-vscode/pull/6452))
+
+## Fixed
+
 #### salesforcedx-vscode-core
 
-- We improved the extension activation logic so that the extension no longer activate as soon as a project with an `sfdx-project.json` is opened. Instead:
+- [W-19276014]  trace flags created in Developer Console should not appear in VSCode ([PR #6465](https://github.com/forcedotcom/salesforcedx-vscode/pull/6465))
 
-  - Debugger extensions (Replay and Interactive) activate only when a debugger command is run.
-  - The Visualforce extension activates only when a `.page` or `.component` file is opened.
-  - Aura and LWC extensions activate only if your project contains `aura/` or `lwc/` folders.
-    This update improves startup performance by limiting unnecessary activations. ([PR #6397](https://github.com/forcedotcom/salesforcedx-vscode/pull/6397))
-
-- Push operations now use a shared library instead of running a CLI command. ([PR #6422](https://github.com/forcedotcom/salesforcedx-vscode/pull/6422)).
-
-#### salesforedx-vscode-apex
-
-- Our new TypeScript-based Apex Language Server is stepping in for some tasks previously handled by the Java-based version. If you experience issues, use the new **Enable LSP Parity Capabilities** setting to switch back to the old behavior. ([PR #6433](https://github.com/forcedotcom/salesforcedx-vscode/pull/6433))
