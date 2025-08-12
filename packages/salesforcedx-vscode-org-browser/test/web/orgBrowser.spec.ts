@@ -44,7 +44,7 @@ test.describe('Org Browser Web Extension', () => {
     expect(treeItemCount, 'Incomplete tree items').toBeGreaterThan(2);
   });
 
-  test('should retrieve metadata and verify completion', async ({ orgBrowserPage, page }) => {
+  test('should retrieve custom object and verify completion', async ({ orgBrowserPage, page }) => {
     // Increase test timeout to 90 seconds
     test.setTimeout(90000);
 
@@ -149,10 +149,131 @@ test.describe('Org Browser Web Extension', () => {
       expect(progressCompleted, 'Progress notification should have disappeared').toBe(true);
       expect(fileOpened, 'A retrieved file should be open in editor').toBe(true);
 
-      console.log('✅ Test completed successfully - metadata retrieval verified');
+      console.log('✅ Test completed successfully - CustomObject metadata retrieval verified');
     } catch (error) {
       console.log(`❌ Test error: ${String(error)}`);
       await orgBrowserPage.takeScreenshot('test-error.png');
+      throw error;
+    }
+  });
+
+  test('should retrieve custom tab and verify completion', async ({ orgBrowserPage, page }) => {
+    // Increase test timeout to 90 seconds
+    test.setTimeout(90000);
+
+    // Check browser connection using the shared utility
+    await checkBrowserConnection(page, test);
+
+    try {
+      // 1. Open the Org Browser
+      await orgBrowserPage.openOrgBrowser();
+      console.log('✅ Org Browser opened');
+
+      // 2. Find CustomTab by scrolling through the tree
+      console.log('🔍 Looking for CustomTab metadata type...');
+
+      // Since CustomTab is alphabetically positioned, we need to scroll to find it
+      // First, let's try to find it normally
+      let customTabItem = await orgBrowserPage.findMetadataType('CustomTab', 5000); // Shorter timeout first
+
+      if (!customTabItem) {
+        console.log('CustomTab not visible in current viewport, scrolling to find it...');
+
+        // Focus the tree and scroll down gradually to find CustomTab
+        const treeContainer = orgBrowserPage.page.locator('.monaco-list');
+        await treeContainer.first().focus();
+
+        // Scroll down page by page until we find CustomTab
+        let scrollAttempts = 0;
+        const maxScrollAttempts = 10;
+
+        while (!customTabItem && scrollAttempts < maxScrollAttempts) {
+          console.log(`Scroll attempt ${scrollAttempts + 1}/${maxScrollAttempts}`);
+
+          // Scroll down using Page Down key
+          await orgBrowserPage.page.keyboard.press('PageDown');
+          await orgBrowserPage.page.waitForTimeout(500);
+
+          // Try to find CustomTab again
+          customTabItem = await orgBrowserPage.findMetadataType('CustomTab', 2000);
+          scrollAttempts++;
+        }
+      }
+
+      if (!customTabItem) {
+        throw new Error('Could not find CustomTab metadata type after scrolling');
+      }
+
+      console.log('✅ Found CustomTab metadata type');
+
+      // Take a screenshot of the CustomTab state
+      await orgBrowserPage.takeScreenshot('customtab-found.png');
+
+      // 3. Expand the CustomTab node
+      await orgBrowserPage.expandMetadataType(customTabItem);
+
+      // 4. Get the Broker__c item
+      const brokerTabItem = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
+
+      if (!brokerTabItem) {
+        throw new Error('Could not find Broker__c custom tab');
+      }
+
+      console.log('✅ Found Broker__c custom tab');
+
+      // 5. Click the retrieve button for Broker__c
+      const brokerRetrieveSuccess = await orgBrowserPage.clickRetrieveButton(brokerTabItem);
+
+      if (!brokerRetrieveSuccess) {
+        throw new Error('Failed to click retrieve button for Broker__c custom tab');
+      }
+
+      console.log('Successfully clicked retrieve button for Broker__c');
+
+      // 6. Wait for progress notification to appear
+      const brokerProgressAppeared = await orgBrowserPage.waitForProgressNotificationToAppear(30000);
+
+      if (!brokerProgressAppeared) {
+        throw new Error('Progress notification for CustomTab did not appear within timeout');
+      }
+
+      console.log('✅ Progress notification appeared for CustomTab retrieval');
+
+      // 7. Verify the notification mentions the retrieval (it might not say "CustomTab" specifically)
+      const brokerNotifications = await orgBrowserPage.getProgressNotifications();
+      console.log('Progress notifications for CustomTab:', brokerNotifications);
+
+      // Note: The actual error you want to debug - the notification might be empty or different
+      if (brokerNotifications.length === 0) {
+        console.log('⚠️ No progress notifications found - this is the issue to debug');
+        await orgBrowserPage.takeScreenshot('no-progress-notifications.png');
+        // Continue with the test to see what happens
+      }
+
+      // 8. Wait for progress notification to disappear (indicating completion)
+      console.log('Waiting for CustomTab progress notification to disappear...');
+      const brokerProgressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(300000);
+
+      if (!brokerProgressCompleted) {
+        throw new Error('CustomTab progress notification did not disappear within timeout');
+      }
+
+      console.log('✅ CustomTab progress notification disappeared - retrieval completed');
+
+      // 9. Check if a file was opened in the editor
+      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(10000);
+
+      // Take a final screenshot
+      await orgBrowserPage.takeScreenshot('customtab-final-state.png');
+
+      // Assert completion
+      expect(brokerProgressCompleted, 'CustomTab progress should have completed').toBe(true);
+      expect(fileOpened, 'A CustomTab file should be open in editor').toBe(true);
+
+      console.log('✅ Test completed successfully - CustomTab metadata retrieval verified');
+    } catch (error) {
+      console.log(`❌ CustomTab test error: ${String(error)}`);
+      await orgBrowserPage.takeScreenshot('customtab-test-error.png');
       throw error;
     }
   });

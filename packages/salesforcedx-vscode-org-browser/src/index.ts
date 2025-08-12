@@ -23,7 +23,7 @@ export const activateEffect = (
     yield* Effect.provide(
       Effect.gen(function* () {
         const svc = yield* ChannelService;
-        yield* svc.appendToChannel('Salesforce Org Browser extension is now active! 12:20');
+        yield* svc.appendToChannel('Salesforce Org Browser extension is now active! 4:12');
 
         // Register the tree provider
         const treeProvider = new MetadataTypeTreeProvider();

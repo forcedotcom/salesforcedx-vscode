@@ -10,6 +10,54 @@ const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
 const fsPolyfillPath = join(__dirname, 'fs-polyfill.js');
 
+// Plugin to transform jszip's nodestream check to always return true
+const jszipNodestreamTransformPlugin = () => ({
+  name: 'jszip-nodestream-transform',
+  setup(build) {
+    build.onLoad({ filter: /\.js$/ }, async args => {
+      const fs = await import('fs/promises');
+      let contents = await fs.readFile(args.path, 'utf8');
+
+      // Only transform if the file contains the jszip nodestream check pattern
+      if (contents.includes('nodestream') && contents.includes('readable-stream')) {
+        // console.log(`🔧 jszipNodestreamTransformPlugin: Transforming ${args.path}`);
+        // Transform the nodestream detection to always return true
+        // Replace: r.nodestream = !!e("readable-stream").Readable;
+        // With: r.nodestream = true;
+        contents = contents
+          // Force nodestream to true AND provide proper NodejsStreamOutputAdapter
+          .replace(
+            /try\{(\w+)\.nodestream=!!\w+\([^)]*\)\.Readable\}catch\([^)]+\)\{\1\.nodestream=![01]\}/g,
+            '$1.nodestream=!0'
+          )
+          .replace(
+            // Provide a proper NodejsStreamOutputAdapter that uses readable-stream
+            /if\((\w+)\.nodestream\)try\{(\w+)=\w+\([^)]*NodejsStreamOutputAdapter[^)]*\)\}/g,
+            `if($1.nodestream)try{
+            const {Readable}=require('readable-stream');
+            function NodejsStreamOutputAdapter(helper,options,updateCb){
+              Readable.call(this,options);
+              this._helper=helper;
+              var self=this;
+              helper.on('data',function(data,meta){
+                if(!self.push(data)){self._helper.pause();}
+                if(updateCb){updateCb(meta);}
+              }).on('error',function(e){self.emit('error',e);})
+              .on('end',function(){self.push(null);});
+            }
+            NodejsStreamOutputAdapter.prototype=Object.create(Readable.prototype);
+            NodejsStreamOutputAdapter.prototype.constructor=NodejsStreamOutputAdapter;
+            NodejsStreamOutputAdapter.prototype._read=function(){this._helper.resume();};
+            $2=NodejsStreamOutputAdapter;
+          }`
+          );
+
+        return { contents, loader: 'js' };
+      }
+    });
+  }
+});
+
 export const commonConfigBrowser = {
   mainFields: ['browser', 'module', 'main'],
   bundle: true,
@@ -17,7 +65,7 @@ export const commonConfigBrowser = {
   platform: 'browser',
   external: ['vscode'],
   // TODO: we need a way to turn this off for debugging and local dev
-  minify: true,
+  minify: false,
   sourcemap: true,
   keepNames: true,
   resolveExtensions: ['.js', '.ts', '.json'],
@@ -85,6 +133,7 @@ export const commonConfigBrowser = {
     timers: 'timers-browserify'
   },
   plugins: [
+    jszipNodestreamTransformPlugin(),
     nodeModulesPolyfillPlugin({
       modules: {
         // Empty polyfills for modules that can't be polyfilled
