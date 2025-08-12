@@ -195,7 +195,6 @@ export const commonConfigBrowser = {
     timers: 'timers-browserify'
   },
   plugins: [
-    jszipNodestreamTransformPlugin(),
     nodeModulesPolyfillPlugin({
       modules: {
         // Empty polyfills for modules that can't be polyfilled
