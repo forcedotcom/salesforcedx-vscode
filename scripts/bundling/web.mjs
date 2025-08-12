@@ -135,7 +135,7 @@ export const commonConfigBrowser = {
   define: {
     'process.env.SF_DISABLE_LOG_FILE': "'true'",
     'process.env.FORCE_MEMFS': "'true'", // Added this line    // Ensure global is available for Node.js modules
-    global: 'globalThis',
+    global: 'globalThis'
     // Other global polyfills
   },
   alias: {
