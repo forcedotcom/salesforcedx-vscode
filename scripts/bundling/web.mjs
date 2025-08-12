@@ -137,11 +137,8 @@ export const commonConfigBrowser = {
     'process.env.FORCE_MEMFS': "'true'", // Added this line    // Ensure global is available for Node.js modules
     global: 'globalThis',
     // Other global polyfills
-    __dirname: '""',
-    __filename: '""'
   },
   alias: {
-    jszip: 'jszip/lib/index.js',
     // proper-lockfile and SDR use graceful-fs
     'graceful-fs': fsPolyfillPath,
     fs: fsPolyfillPath,

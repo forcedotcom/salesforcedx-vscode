@@ -20,97 +20,59 @@ If something can be removed ok, once it's out, do a git commit `fix: remove [foo
 
 ### Injected Files
 
-1. processGlobalPath (process-global.js)
-2. processPolyfillPath (process-polyfill.js)
-3. bufferGlobalPath (buffer-global.js)
+1. processGlobalPath (process-global.js) ❌ REQUIRED
+2. processPolyfillPath (process-polyfill.js) ✅ REMOVED - Test passes
+3. bufferGlobalPath (buffer-global.js) ❌ REQUIRED - "Buffer is not defined" error
 
 ### Custom Plugins
 
-4. pipeTransformPlugin (custom plugin to transform body.pipe() to browser-compatible pipeTo)
-5. nodeModulesPolyfillPlugin (from 'esbuild-plugins-node-modules-polyfill')
+4. pipeTransformPlugin (custom plugin to transform body.pipe() to browser-compatible pipeTo) ✅ REMOVED - Test passes
+5. jszipNodestreamTransformPlugin (custom plugin) ✅ REMOVED - Test passes
+6. nodeModulesPolyfillPlugin (from 'esbuild-plugins-node-modules-polyfill') ❌ REQUIRED
 
 ### Define Values
 
-6. process.env.SF_DISABLE_LOG_FILE: "'true'"
-7. process.env.FORCE_MEMFS: "'true'"
 8. global: 'globalThis'
 9. \_\_dirname: '""'
 10. \_\_filename: '""'
 
-### Aliases
-
-11. 'graceful-fs': '@salesforce/core/fs'
-12. fs: '@salesforce/core/fs'
-13. 'node:process': processPolyfillPath
-14. 'node:fs': '@salesforce/core/fs'
-15. 'node:fs/promises': '@salesforce/core/fs'
-16. jsonwebtoken: 'jsonwebtoken-esm'
-17. '@jsforce/jsforce-node': 'jsforce/browser'
-18. '@jsforce/jsforce-node/lib': 'jsforce/browser'
-19. process: processPolyfillPath
-20. 'readable-stream': 'readable-stream'
-21. 'node:path': 'path-browserify'
-22. 'node:os': 'os-browserify'
-23. 'node:buffer': 'buffer'
-24. 'node:stream': 'stream-browserify'
-25. 'node:util': 'util'
-26. 'node:events': 'events'
-27. events: 'events'
-28. 'node:url': custom url-polyfill.js
-29. 'node:crypto': 'crypto-browserify'
-30. 'node:http': 'stream-http'
-31. 'node:https': 'https-browserify'
-32. 'node:querystring': 'querystring-es3'
-33. 'node:assert': 'assert'
-34. 'node:path/posix': 'path-browserify'
-35. 'node:assert/strict': 'assert'
-36. 'node-fetch': 'cross-fetch'
-37. 'whatwg-url': 'url'
-
 ### Empty Polyfills
 
-38. 'node:child_process': emptyPolyfillsPath
-39. 'node:dns': emptyPolyfillsPath
-40. 'node:net': emptyPolyfillsPath
-41. 'node:tls': emptyPolyfillsPath
-42. 'node:http2': emptyPolyfillsPath
+11. 'node:child_process': emptyPolyfillsPath
+12. 'node:dns': emptyPolyfillsPath
+13. 'node:net': emptyPolyfillsPath
+14. 'node:tls': emptyPolyfillsPath
+15. 'node:http2': emptyPolyfillsPath
+16. got: emptyPolyfillsPath
 
 ### Standard Node.js Module Polyfills
 
-43. path: 'path-browserify'
-44. os: 'os-browserify'
-45. buffer: 'buffer'
-46. stream: 'stream-browserify'
-47. util: 'util'
-48. url: custom url-polyfill.js
-49. crypto: 'crypto-browserify'
-50. http: 'stream-http'
-51. https: 'https-browserify'
-52. querystring: 'querystring-es3'
-53. assert: 'assert'
-54. zlib: 'browserify-zlib'
-55. timers: 'timers-browserify'
-56. tty: 'tty-browserify'
-57. string_decoder: 'string_decoder'
-58. punycode: 'punycode'
-59. domain: 'domain-browser'
-60. constants: 'constants-browserify'
-61. console: 'console-browserify'
-62. vm: 'vm-browserify'
-63. diagnostics_channel: 'diagnostics_channel'
+17. path: 'path-browserify'
+18. os: 'os-browserify'
+19. buffer: 'buffer'
+20. stream: 'readable-stream'
+21. util: 'util'
+22. url: custom url-polyfill.js
+23. crypto: 'crypto-browserify'
+24. http: 'stream-http'
+25. https: 'https-browserify'
+26. querystring: 'querystring-es3'
+27. assert: 'assert'
+28. zlib: 'browserify-zlib'
+29. timers: 'timers-browserify'
 
 ### nodeModulesPolyfillPlugin Empty Modules
 
-64. child_process: 'empty'
-65. dns: 'empty'
-66. net: 'empty'
-67. tls: 'empty'
-68. http2: 'empty'
+30. child_process: 'empty'
+31. dns: 'empty'
+32. net: 'empty'
+33. tls: 'empty'
+34. http2: 'empty'
 
 ### nodeModulesPolyfillPlugin Globals (disabled)
 
-69. process: false
-70. Buffer: false
+35. process: false
+36. Buffer: false
 
 ## Testing Strategy for Removing Polyfills
 
@@ -138,46 +100,45 @@ If something can be removed ok, once it's out, do a git commit `fix: remove [foo
 
 ### Group 1: Already Empty Polyfills (Likely Safe to Remove)
 
-- 38-42: 'node:child_process', 'node:dns', 'node:net', 'node:tls', 'node:http2' ❌ REQUIRED - Build fails without them
-- 64-68: child_process, dns, net, tls, http2 (nodeModulesPolyfillPlugin empty modules) ❌ REQUIRED - Build fails without them
+- 11-15: 'node:child_process', 'node:dns', 'node:net', 'node:tls', 'node:http2' ❌ REQUIRED - Build fails without them
+- 16: got ❌ REQUIRED - Build fails without it
+- 30-34: child_process, dns, net, tls, http2 (nodeModulesPolyfillPlugin empty modules) ❌ REQUIRED - Build fails without them
 
-### Group 2: Likely Unused Node.js Modules
+### Group 2: Likely Unused Node.js Modules (All Successfully Removed)
 
-- 58: punycode ✅ REMOVED - Test passes
-- 59: domain ✅ REMOVED - Test passes
-- 60: constants ✅ REMOVED - Test passes
-- 62: vm ✅ REMOVED - Test passes
-- 63: diagnostics_channel ✅ REMOVED - Test passes
-- 57: string_decoder ✅ REMOVED - Test passes
-- 56: tty ✅ REMOVED - Test passes
+- punycode ✅ REMOVED - Test passes
+- domain ✅ REMOVED - Test passes
+- constants ✅ REMOVED - Test passes
+- vm ✅ REMOVED - Test passes
+- diagnostics_channel ✅ REMOVED - Test passes
+- string_decoder ✅ REMOVED - Test passes
+- tty ✅ REMOVED - Test passes
 
 ### Group 3: Less Critical Browser Polyfills
 
-- 55: timers
-- 54: zlib
-- 61: console
-- 53: assert
-- 33: 'node:assert'
-- 35: 'node:assert/strict'
-- 52: querystring
-- 32: 'node:querystring'
+- 29: timers ❌ REQUIRED - Build fails without it (jsforce/xml2js needs it)
+- 28: zlib ❌ REQUIRED - Needed by decompress-response when got is removed, restored
+- console ✅ REMOVED - Not in current config
+- 27: assert ❌ REQUIRED - Build fails without it (@salesforce/core needs it)
+- 26: querystring ❌ REQUIRED - Build fails without it (jsforce needs it)
 
 ### Group 4: Network-Related Polyfills (Test Carefully)
 
-- 50: http
-- 30: 'node:http'
-- 51: https
-- 31: 'node:https'
-- 36: 'node-fetch'
-- 37: 'whatwg-url'
+- 24: http ❌ REQUIRED
+- 25: https ❌ REQUIRED
+- 'node-fetch' ✅ REMOVED - Test passes
+- 'whatwg-url' ✅ REMOVED - Test passes
+- events ✅ REMOVED - Test passes (non-prefixed version)
 
 ### Group 5: Core Node.js Functionality (Most Critical)
 
-- 43-49: path, os, buffer, stream, util, url, crypto
-- 21-29: 'node:path', 'node:os', 'node:buffer', 'node:stream', 'node:util', 'node:events', 'node:url', 'node:crypto'
-- 11-15: 'graceful-fs', fs, 'node:process', 'node:fs', 'node:fs/promises'
-- 1-3: processGlobalPath, processPolyfillPath, bufferGlobalPath (injected files)
+- 42-48: path, os, buffer, stream, util, url, crypto ❌ REQUIRED
+- 22, 25-28, 30-31: 'node:path', 'node:os', 'node:buffer', 'node:stream', 'node:util', 'node:url', 'node:crypto' ❌ REQUIRED
+- 11-19: jszip, fs polyfills, jsforce redirects, process ❌ REQUIRED
+- 1, 3: processGlobalPath, bufferGlobalPath (injected files) ❌ REQUIRED
+- 2: processPolyfillPath ✅ REMOVED
 
-## Post-comption
+## Post-completion
 
 If we removed anything from alias/polyfills that's in package.json and no longer needed, let's take it out of there, too.
+If we remove plugins, make sure their code is removed.
