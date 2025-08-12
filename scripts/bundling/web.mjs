@@ -192,8 +192,8 @@ export const commonConfigBrowser = {
     https: 'https-browserify',
     querystring: 'querystring-es3',
     assert: 'assert',
-    zlib: 'browserify-zlib',
     timers: 'timers-browserify'
+
   },
   plugins: [
     pipeTransformPlugin(),
