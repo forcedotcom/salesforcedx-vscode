@@ -50,14 +50,6 @@ export class OrgBrowserPage {
   }
 
   /**
-   * Wait for VS Code to fully load
-   */
-  public async waitForVSCodeLoad(timeout = 30000): Promise<void> {
-    await this.page.waitForSelector('.monaco-workbench', { timeout });
-    console.log('✅ VS Code workbench loaded');
-  }
-
-  /**
    * Open the Org Browser by clicking its activity bar item
    */
   public async openOrgBrowser(): Promise<void> {
@@ -91,15 +83,7 @@ export class OrgBrowserPage {
   }
 
   /**
-   * Get all metadata types in the Org Browser
-   */
-  public async getAllMetadataTypes(): Promise<Locator[]> {
-    return await this.treeItems.all();
-  }
-
-  /**
-   * Find a specific metadata type by name
-   * First waits for the element to appear, then locates it in the tree
+   * Find a specific metadata type by name using more idiomatic Playwright patterns
    * @param typeName The name of the metadata type to find (e.g., 'CustomObject', 'Account')
    * @param timeout Maximum time to wait for the element in ms (default: 15000)
    * @returns The locator for the found element, or null if not found
@@ -108,26 +92,18 @@ export class OrgBrowserPage {
     console.log(`Waiting for "${typeName}" to appear...`);
 
     try {
-      // First wait for the element to appear in the DOM
+      // Use the more idiomatic approach: waitForSelector with text selector
       await this.page.waitForSelector(`text=${typeName}`, { timeout });
       console.log(`"${typeName}" appeared in the DOM`);
 
-      // Now find the specific element in the tree
-      const allTypes = await this.getAllMetadataTypes();
-      return Promise.any(
-        allTypes.map(async item => {
-          const [text, ariaLabel, title] = await Promise.all([
-            item.textContent(),
-            item.getAttribute('aria-label'),
-            item.getAttribute('title')
-          ]);
-          if (text?.includes(typeName) || ariaLabel?.includes(typeName) || title?.includes(typeName)) {
-            console.log(`Found "${typeName}" using tree item search`);
-            return item;
-          }
-          throw new Error(`"${typeName}" was in DOM but not found in tree items`);
-        })
-      );
+      // Get the tree item using filter for more precise matching
+      const treeItem = this.treeItems.filter({ hasText: typeName });
+      const count = await treeItem.count();
+
+      if (count > 0) {
+        console.log(`Found "${typeName}" using tree item search`);
+        return treeItem.first();
+      }
     } catch (error) {
       console.log(`Timeout waiting for "${typeName}" to appear: ${String(error)}`);
     }
@@ -276,84 +252,40 @@ export class OrgBrowserPage {
   }
 
   /**
-   * Hover over a tree item to reveal action buttons
-   * Uses both Playwright hover and JavaScript event simulation for reliability
-   * @param item The locator for the tree item to hover over
+   * Get a specific metadata item under a metadata type
+   * @param metadataType The parent metadata type (e.g., 'CustomObject', 'AIApplication')
+   * @param itemName The specific metadata item name (e.g., 'Account', 'Broker__c')
+   * @returns The locator for the metadata item
    */
-  public async hoverToRevealActions(item: Locator): Promise<void> {
-    console.log('Hovering over item to reveal action buttons');
-
-    // First try standard hover with increased timeout
-    await item.hover({ timeout: 5000 });
-    // Try dispatching events directly on the provided item to reliably reveal actions
-    await item.evaluate((el: HTMLElement) => {
-      if (el instanceof HTMLElement) {
-        ['mouseenter', 'mouseover', 'mousemove'].forEach(eventType => {
-          const event = new MouseEvent(eventType, {
-            view: window,
-            bubbles: true,
-            cancelable: true
-          });
-          el.dispatchEvent(event);
-        });
-      }
-    });
-
-    // Wait for the action bar within the same row to become visible
-    const row = item.locator('xpath=ancestor::div[contains(@class, "monaco-list-row")]').first();
+  public async getMetadataItem(metadataType: string, itemName: string): Promise<Locator | null> {
     try {
-      await row.locator('.monaco-action-bar a.action-label').first().waitFor({ state: 'visible', timeout: 2000 });
-    } catch {
-      // if it doesn't appear in time, continue — fallback click logic will catch failures
-    }
-  }
+      console.log(`Looking for metadata item "${itemName}" under "${metadataType}"`);
 
-  /**
-   * Find the "Retrieve Metadata" button for a tree item
-   * @param item The locator for the tree item
-   * @returns The locator for the Retrieve Metadata button, or null if not found
-   */
-  public async findRetrieveButton(item: Locator): Promise<Locator | null> {
-    // Get the parent row of the item
-    const row = item.locator('xpath=ancestor::div[contains(@class, "monaco-list-row")]').first();
+      // All metadata items are at aria-level >= 2 (metadata types are level 1)
+      // Use a more specific selector for level 2+ elements containing the item name
+      const metadataItem = this.page
+        .locator(`.monaco-list-row[aria-label*="${itemName}"]`)
+        .filter({ hasText: itemName })
+        .first();
 
-    // Get all action buttons in the row
-    const allActionButtons = await row.locator('.monaco-action-bar a.action-label').all();
-
-    // Find the button with exact aria-label "Retrieve Metadata"
-    for (let i = 0; i < allActionButtons.length; i++) {
-      const label = (await allActionButtons[i].getAttribute('aria-label')) ?? '';
-      if (label === 'Retrieve Metadata') {
-        console.log(`Found Retrieve Metadata button at index ${i}`);
-        // Use 'this' to reference the class to satisfy linter
-        await this.page.evaluate(() => console.debug('Found retrieve button'));
-        return allActionButtons[i];
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Get the Account metadata item (first child under CustomObject)
-   * @returns The locator for the Account item
-   */
-  public async getAccountItem(): Promise<Locator | null> {
-    try {
-      // Look for Account item with aria-level="2" (child of CustomObject)
-      const accountItem = this.page.locator('.monaco-list-row[aria-label*="Account"][aria-level="2"]').first();
-      const count = await accountItem.count();
+      const count = await metadataItem.count();
 
       if (count > 0) {
-        const text = await accountItem.textContent();
-        console.log(`Found Account item: ${text?.trim()}`);
-        return accountItem;
+        // Verify this is actually a metadata item (level >= 2) not a metadata type
+        const ariaLevel = await metadataItem.getAttribute('aria-level');
+        const level = ariaLevel ? parseInt(ariaLevel, 10) : 0;
+
+        if (level >= 2) {
+          const text = await metadataItem.textContent();
+          console.log(`Found metadata item: ${text?.trim()}`);
+          return metadataItem;
+        }
       }
 
-      console.log('Account item not found');
+      console.log(`Metadata item "${itemName}" not found under "${metadataType}"`);
       return null;
     } catch (error) {
-      console.log('Error finding Account item:', error);
+      console.log(`Error finding metadata item "${itemName}" under "${metadataType}":`, error);
       return null;
     }
   }
@@ -364,6 +296,7 @@ export class OrgBrowserPage {
    * @param item The locator for the tree item
    * @returns True if the button was clicked successfully, false otherwise
    */
+  // eslint-disable-next-line class-methods-use-this
   public async clickRetrieveButton(item: Locator): Promise<boolean> {
     console.log('Attempting to click retrieve button');
 
@@ -434,21 +367,8 @@ export class OrgBrowserPage {
    */
   public async waitForProgressNotificationToAppear(timeout: number): Promise<boolean> {
     try {
-      await this.page.waitForFunction(
-        () => {
-          const notifications = document.querySelectorAll('.notification-list-item:not(.error)');
-          // Look for any notification that's not an error and contains progress-related text
-          for (const notification of Array.from(notifications)) {
-            const text = notification.textContent ?? '';
-            if (text.includes('Retrieving') || text.includes('progress') || text.includes('Loading')) {
-              return true;
-            }
-          }
-          return false;
-        },
-        undefined,
-        { timeout }
-      );
+      // More idiomatic: wait for a selector with specific text content
+      await this.page.waitForSelector('text=Retrieving', { timeout });
       return true;
     } catch {
       return false;
@@ -462,39 +382,10 @@ export class OrgBrowserPage {
    */
   public async waitForProgressNotificationToDisappear(timeout = 30000): Promise<boolean> {
     try {
-      await this.page.waitForFunction(
-        () => {
-          const notifications = document.querySelectorAll('.notification-list-item:not(.error)');
-          return notifications.length === 0;
-        },
-        undefined,
-        { timeout }
-      );
+      // More idiomatic: wait for the notification element to be hidden
+      const notification = this.page.locator('.notification-list-item:not(.error)');
+      await notification.waitFor({ state: 'hidden', timeout });
       return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Check if a file is open in the editor
-   * @param fileName Expected file name (can be partial)
-   * @returns True if file is open in editor
-   */
-  public async isFileOpenInEditor(fileName: string): Promise<boolean> {
-    try {
-      const editorTabs = this.page.locator('.monaco-workbench .tabs-container .tab');
-      const count = await editorTabs.count();
-
-      for (let i = 0; i < count; i++) {
-        const tab = editorTabs.nth(i);
-        const tabText = await tab.textContent();
-        if (tabText?.includes(fileName)) {
-          return true;
-        }
-      }
-
-      return false;
     } catch {
       return false;
     }

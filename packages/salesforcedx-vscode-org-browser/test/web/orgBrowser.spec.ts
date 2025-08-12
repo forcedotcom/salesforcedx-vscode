@@ -78,7 +78,7 @@ test.describe('Org Browser Web Extension', () => {
       await orgBrowserPage.expandMetadataType(customObjectItem);
 
       // Get the Account item (first child of CustomObject)
-      const accountItem = await orgBrowserPage.getAccountItem();
+      const accountItem = await orgBrowserPage.getMetadataItem('CustomObject', 'Account');
 
       if (!accountItem) {
         throw new Error('Could not find Account object');
