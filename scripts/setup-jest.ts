@@ -122,9 +122,7 @@ const getMockVSCode = () => {
       getConfiguration: () => {
         return {
           get: () => true,
-          update: jest.fn().mockResolvedValue(undefined),
-          has: jest.fn(),
-          inspect: jest.fn()
+          update: jest.fn()
         };
       },
       onDidChangeConfiguration: jest.fn(),
@@ -133,17 +131,7 @@ const getMockVSCode = () => {
         onDidCreate: jest.fn(),
         onDidDelete: jest.fn()
       }),
-      workspaceFolders: [
-        {
-          uri: {
-            scheme: 'file',
-            fsPath: '/mock/workspace',
-            toString: () => 'file:///mock/workspace'
-          },
-          name: 'mock-workspace',
-          index: 0
-        }
-      ],
+      workspaceFolders: [],
       fs: {
         writeFile: jest.fn(),
         stat: jest.fn(),
@@ -154,8 +142,7 @@ const getMockVSCode = () => {
         rename: jest.fn()
       },
       registerTextDocumentContentProvider: jest.fn(),
-      registerFileSystemProvider: jest.fn(),
-      updateWorkspaceFolders: jest.fn()
+      registerFileSystemProvider: jest.fn()
     },
     CompletionItem: class {
       public constructor(label: string) {}

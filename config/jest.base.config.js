@@ -9,7 +9,15 @@ module.exports = {
   resetMocks: true,
   moduleNameMapper: {
     '^vscode$': '<rootDir>/../../scripts/setup-jest.ts'
-  }
+  },
+  // Ignore .vscode-test directories to prevent Haste module map conflicts
+  modulePathIgnorePatterns: [
+    '/.vscode-test/'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.vscode-test/'
+  ]
   // This collectCoverageFrom will show coverage for all files in a projects, but slows down calculating coverage results.
   // Can be a good tool for measuring coverage of the project as a whole locally, but shouldn't be committed at this time.
   // Off:

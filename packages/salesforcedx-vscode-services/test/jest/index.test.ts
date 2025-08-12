@@ -16,7 +16,7 @@ jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
   FsProvider: class MockFsProvider {
     public readonly onDidChangeFile = { event: jest.fn() };
 
-    public async init() {
+    public async init(): Promise<this> {
       return this;
     }
 
@@ -104,6 +104,25 @@ const mockChannelService = {
 const MockChannelServiceLayer = Layer.succeed(ChannelService, mockChannelService);
 
 describe('Extension', () => {
+  beforeEach(() => {
+    // Mock workspace.workspaceFolders to have at least one folder
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const vscode = require('vscode');
+    vscode.workspace.workspaceFolders = [
+      {
+        uri: {
+          scheme: 'file',
+          fsPath: '/mock/workspace',
+          toString: (): string => 'file:///mock/workspace'
+        },
+        name: 'mock-workspace',
+        index: 0
+      }
+    ];
+    // Mock the updateWorkspaceFolders method that's called in the index.ts
+    vscode.workspace.updateWorkspaceFolders = jest.fn();
+  });
+
   it('should activate successfully', async () => {
     const context = {
       subscriptions: [],
