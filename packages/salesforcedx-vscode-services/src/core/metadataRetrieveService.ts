@@ -62,7 +62,7 @@ const retrieve = (
               try: async () => {
                 console.log('retrieve requested for', members);
                 const componentSet = new ComponentSet(members);
-                console.log('componentSet built');
+                console.log('componentSet built 12:23:00');
 
                 const retrieveOperation = new MetadataApiRetrieve({
                   usernameOrConnection: connection,
