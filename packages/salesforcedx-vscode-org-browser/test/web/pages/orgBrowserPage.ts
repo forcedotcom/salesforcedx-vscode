@@ -175,25 +175,29 @@ export class OrgBrowserPage {
     const errorTexts: string[] = [];
 
     if (errorCount > 0) {
-      console.log(`Found ${errorCount} error notification(s):`);
+      console.log(`Found ${errorCount} notification element(s):`);
 
       for (let i = 0; i < errorCount; i++) {
         const notification = this.errorNotifications.nth(i);
 
         // Try to get text content
         const errorText = await notification.textContent();
-        if (errorText) {
+        if (errorText && !errorTexts.includes(errorText)) {
           errorTexts.push(errorText);
-          console.log(`  Notification ${i + 1}: "${errorText}"`);
         }
 
         // Also try to get aria-label which might contain the error message
         const ariaLabel = await notification.getAttribute('aria-label');
         if (ariaLabel && !errorTexts.includes(ariaLabel)) {
           errorTexts.push(ariaLabel);
-          console.log(`  Notification ${i + 1} aria-label: "${ariaLabel}"`);
         }
       }
+
+      // Log the unique notifications
+      console.log(`Found ${errorTexts.length} unique notification(s):`);
+      errorTexts.forEach((text, index) => {
+        console.log(`  Notification ${index + 1}: "${text}"`);
+      });
     } else {
       console.log('No error notifications found with standard selectors');
 

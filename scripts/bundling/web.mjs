@@ -63,11 +63,7 @@ export const commonConfigBrowser = {
     'node:assert/strict': 'assert',
     // Polyfills for jsforce-node dependencies
     // Empty polyfills for modules that can't be polyfilled
-    'node:child_process': emptyPolyfillsPath,
-    'node:dns': emptyPolyfillsPath,
     'node:net': emptyPolyfillsPath,
-    'node:tls': emptyPolyfillsPath,
-    'node:http2': emptyPolyfillsPath,
     got: emptyPolyfillsPath, // has a lot of very node-focused references in its dependencies.
     // Standard Node.js modules (without node: prefix)
     path: 'path-browserify',
