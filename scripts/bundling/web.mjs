@@ -156,16 +156,16 @@ export const commonConfigBrowser = {
     // Force all readable-stream imports to use the main one to avoid duplication
     'readable-stream': 'readable-stream', // Node.js built-in module polyfills
     'node:path': 'path-browserify',
+    'node:http': 'stream-http',
+    'node:https': 'https-browserify',
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',
     'node:stream': 'readable-stream',
     'node:util': 'util',
     'node:events': 'events',
-    events: 'events',
+
     'node:url': '/Users/shane.mclaughlin/eng/forcedotcom/salesforcedx-vscode/scripts/bundling/url-polyfill.js',
     'node:crypto': 'crypto-browserify',
-    'node:http': 'stream-http',
-    'node:https': 'https-browserify',
     'node:querystring': 'querystring-es3',
     'node:assert': 'assert',
     'node:path/posix': 'path-browserify',
@@ -190,6 +190,7 @@ export const commonConfigBrowser = {
     https: 'https-browserify',
     querystring: 'querystring-es3',
     assert: 'assert',
+    zlib: 'browserify-zlib',
     timers: 'timers-browserify'
   },
   plugins: [
