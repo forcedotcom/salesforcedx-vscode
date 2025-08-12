@@ -128,7 +128,7 @@ export const commonConfigBrowser = {
   sourcemap: true,
   keepNames: true,
   resolveExtensions: ['.js', '.ts', '.json'],
-  inject: [processGlobalPath, processPolyfillPath, bufferGlobalPath],
+  inject: [processGlobalPath, bufferGlobalPath],
   logOverride: {
     'unsupported-dynamic-import': 'error'
   },
@@ -154,7 +154,8 @@ export const commonConfigBrowser = {
     // Force use of our custom process polyfill instead of esbuild's built-in
     process: processPolyfillPath,
     // Force all readable-stream imports to use the main one to avoid duplication
-    'readable-stream': 'readable-stream', // Node.js built-in module polyfills
+    'readable-stream': 'readable-stream',
+    events: 'events', // Node.js built-in module polyfills
     'node:path': 'path-browserify',
     'node:http': 'stream-http',
     'node:https': 'https-browserify',
