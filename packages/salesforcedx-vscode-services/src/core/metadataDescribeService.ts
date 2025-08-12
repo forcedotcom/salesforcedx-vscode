@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Context, Effect, Layer, pipe } from 'effect';
-import * as S from 'effect/Schema';
 import type { ConfigService } from './configService';
-import { ConnectionService } from './connectionService';
 import type { DescribeMetadataObject } from './schemas/describeMetadataObject';
-import { FilePropertiesSchema, type FileProperties } from './schemas/fileProperties';
-import { ChannelService } from '../vscode/channelService';
 import type { SettingsService } from '../vscode/settingsService';
 import type { WorkspaceService } from '../vscode/workspaceService';
+import { Context, Effect, Layer, pipe } from 'effect';
+import * as S from 'effect/Schema';
+import { ChannelService } from '../vscode/channelService';
+import { ConnectionService } from './connectionService';
+import { FilePropertiesSchema, type FileProperties } from './schemas/fileProperties';
 
 type DescribeContext = ConnectionService | ConfigService | WorkspaceService | ChannelService | SettingsService;
 

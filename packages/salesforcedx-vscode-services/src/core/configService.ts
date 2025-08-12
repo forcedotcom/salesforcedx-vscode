@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator } from '@salesforce/core';
+import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import { Context, Effect, Layer, pipe } from 'effect';
 // import * as vscode from 'vscode';
 // import { URI } from 'vscode-uri';

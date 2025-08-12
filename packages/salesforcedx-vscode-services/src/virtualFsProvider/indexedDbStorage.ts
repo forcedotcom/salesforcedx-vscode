@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fs } from '@salesforce/core';
+import { fs } from '@salesforce/core/fs';
 import { Context, Effect, Layer } from 'effect';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';

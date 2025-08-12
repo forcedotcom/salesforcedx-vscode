@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfProject } from '@salesforce/core';
+import { SfProject } from '@salesforce/core/project';
 import { Context, Effect, Layer } from 'effect';
 import { pipe } from 'effect/Function';
 import { WorkspaceService } from '../vscode/workspaceService';
