@@ -7,7 +7,6 @@
 import { pipe, Effect, Layer } from 'effect';
 import * as vscode from 'vscode';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
-import { MetadataDescribeService, MetadataDescribeServiceLive } from '../services/metadataDescribeService';
 import { isFolderType, OrgBrowserNode } from './orgBrowserNode';
 
 export const toTreeItem = (node: OrgBrowserNode): vscode.TreeItem => node;
@@ -46,14 +45,14 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
             api.services.ChannelServiceLayer('Salesforce Org Browser')
           );
           const allLayers = Layer.mergeAll(
-            MetadataDescribeServiceLive,
+            api.services.MetadataDescribeServiceLive,
             api.services.ConnectionServiceLive,
             api.services.ConfigServiceLive,
             api.services.WorkspaceServiceLive,
             api.services.SettingsServiceLive,
             fsWithChannel
           );
-          return Effect.flatMap(MetadataDescribeService, describeService => {
+          return Effect.flatMap(api.services.MetadataDescribeService, describeService => {
             if (!element) {
               const forceRefresh = this._forceRefresh;
               this._forceRefresh = false; // Reset the flag after using it, dang that's ugly

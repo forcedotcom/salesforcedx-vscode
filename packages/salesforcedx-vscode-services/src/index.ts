@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { sampleProjectName } from './constants';
 import { ConfigService, ConfigServiceLive } from './core/configService';
 import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
+import { MetadataDescribeService, MetadataDescribeServiceLive } from './core/metadataDescribeService';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
 import { fsPrefix } from './virtualFsProvider/constants';
@@ -34,6 +35,8 @@ export type SalesforceVSCodeServicesApi = {
     FsServiceLive: typeof FsServiceLive;
     ConfigService: typeof ConfigService;
     ConfigServiceLive: typeof ConfigServiceLive;
+    MetadataDescribeService: typeof MetadataDescribeService;
+    MetadataDescribeServiceLive: typeof MetadataDescribeServiceLive;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     MetadataRetrieveServiceLive: typeof MetadataRetrieveServiceLive;
     SettingsService: typeof SettingsService;
@@ -88,6 +91,8 @@ export const activate = async (
       FsServiceLive,
       ConfigService,
       ConfigServiceLive,
+      MetadataDescribeService,
+      MetadataDescribeServiceLive,
       MetadataRetrieveService,
       MetadataRetrieveServiceLive,
       SettingsService,

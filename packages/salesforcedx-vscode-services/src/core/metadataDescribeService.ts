@@ -7,14 +7,13 @@
 
 import { Context, Effect, Layer, pipe } from 'effect';
 import * as S from 'effect/Schema';
-import type { ConfigService } from 'salesforcedx-vscode-services/src/core/configService';
-import type { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
-import type { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
-import type { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
-import type { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import { DescribeMetadataObject } from '../schemas/describeMetadataObject';
-import { FilePropertiesSchema, FileProperties } from '../schemas/fileProperties';
-import { ExtensionProviderService } from './extensionProvider';
+import type { ConfigService } from './configService';
+import { ConnectionService } from './connectionService';
+import type { DescribeMetadataObject } from './schemas/describeMetadataObject';
+import { FilePropertiesSchema, type FileProperties } from './schemas/fileProperties';
+import { ChannelService } from '../vscode/channelService';
+import type { SettingsService } from '../vscode/settingsService';
+import type { WorkspaceService } from '../vscode/workspaceService';
 
 type DescribeContext = ConnectionService | ConfigService | WorkspaceService | ChannelService | SettingsService;
 
@@ -43,10 +42,6 @@ const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol'])
 export const MetadataDescribeServiceLive = Layer.effect(
   MetadataDescribeService,
   Effect.gen(function* () {
-    const svcProvider = yield* ExtensionProviderService;
-    const api = yield* svcProvider.getServicesApi;
-    const ConnectionService = api.services.ConnectionService;
-
     // a task that can be cached
     const cacheableDescribe = (
       _forceRefresh: boolean = false
@@ -62,7 +57,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
             Effect.map(result => result.metadataObjects.filter(obj => !NON_SUPPORTED_TYPES.has(obj.xmlName))),
             Effect.tap(result =>
               pipe(
-                Effect.flatMap(api.services.ChannelService, channel =>
+                Effect.flatMap(ChannelService, channel =>
                   channel.appendToChannel(`Metadata describe call completed. Found ${result.length} metadata types.`)
                 ),
                 Effect.catchAll(() => Effect.succeed(void 0))
