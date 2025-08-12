@@ -195,7 +195,6 @@ export const commonConfigBrowser = {
     timers: 'timers-browserify'
   },
   plugins: [
-    pipeTransformPlugin(),
     jszipNodestreamTransformPlugin(),
     nodeModulesPolyfillPlugin({
       modules: {
