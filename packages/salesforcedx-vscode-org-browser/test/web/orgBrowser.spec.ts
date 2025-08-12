@@ -44,7 +44,7 @@ test.describe('Org Browser Web Extension', () => {
     expect(treeItemCount, 'Incomplete tree items').toBeGreaterThan(2);
   });
 
-  test('should retrieve metadata and check for project error', async ({ orgBrowserPage, page }) => {
+  test('should retrieve metadata and verify completion', async ({ orgBrowserPage, page }) => {
     // Increase test timeout to 90 seconds
     test.setTimeout(90000);
 
@@ -76,10 +76,9 @@ test.describe('Org Browser Web Extension', () => {
 
       // 2. Expand the CustomObject node
       await orgBrowserPage.expandMetadataType(customObjectItem);
-      await orgBrowserPage.page.waitForTimeout(2000);
 
-      // Use findMetadataType which now waits for the element to appear
-      const accountItem = await orgBrowserPage.findMetadataType('Account');
+      // Get the Account item (first child of CustomObject)
+      const accountItem = await orgBrowserPage.getAccountItem();
 
       if (!accountItem) {
         throw new Error('Could not find Account object');
@@ -100,27 +99,57 @@ test.describe('Org Browser Web Extension', () => {
 
       console.log('Successfully clicked retrieve button');
 
-      // Wait longer for retrieval to complete and potential error to appear
-      console.log('Waiting for error notification to appear...');
-      await orgBrowserPage.page.waitForTimeout(5000);
+      // Capture any notifications immediately after clicking to see what was requested
+      const notifCaptureTs = Date.now();
+      console.log(`notification snapshot: ${new Date(notifCaptureTs).toISOString()}`);
+      const currentProgressNotifs = await orgBrowserPage.getProgressNotifications();
+      console.log('Current progress notifications after click:', currentProgressNotifs);
+      const currentErrorNotifs = await orgBrowserPage.getErrorNotifications();
+      console.log('Current error notifications after click:', currentErrorNotifs);
 
-      // Get error notifications using the Page Object method
-      const errorTexts = await orgBrowserPage.getErrorNotifications();
+      const progressAppeared = await orgBrowserPage.waitForProgressNotificationToAppear(30000);
 
-      // Take a final screenshot showing the error
-      await orgBrowserPage.takeScreenshot('final-state-with-error.png');
+      if (!progressAppeared) {
+        throw new Error('Progress notification did not appear within timeout - retrieval may not have started');
+      }
 
-      // Look specifically for the "Not a Salesforce project" error or the TypeError we're getting
-      const projectError = errorTexts.some(
-        text =>
-          text.includes('Not a Salesforce project') ||
-          text.includes('InvalidProjectWorkspaceError') ||
-          text.includes('memfs:/MyProject') ||
-          text.includes('The "original" argument must be of type Function')
-      );
+      console.log('✅ Progress notification appeared - retrieval started');
 
-      // This is the expected error, so the test passes if we find it
-      expect(projectError, 'Expected to find "Not a Salesforce project" error').toBe(true);
+      // Read and log the progress notifications that appeared and ensure it is for CustomObject
+      const notificationsWhenStarted = await orgBrowserPage.getProgressNotifications();
+      console.log('Progress notifications when started:', notificationsWhenStarted);
+
+      const notifHasCustomObject = notificationsWhenStarted.some(text => text.includes('CustomObject'));
+      if (!notifHasCustomObject) {
+        throw new Error(
+          `Retrieve started for wrong type; expected notification to include "CustomObject" but got: ${JSON.stringify(notificationsWhenStarted)}`
+        );
+      }
+
+      // Wait for progress notification to disappear (indicating completion)
+      console.log('Waiting for progress notification to disappear (completion)...');
+      const progressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(300000);
+
+      if (!progressCompleted) {
+        throw new Error('Progress notification did not disappear within timeout - retrieval may not have completed');
+      }
+
+      console.log('✅ Progress notification disappeared - retrieval completed');
+
+      // 5. Verify that a file was opened in the editor
+      console.log('Checking if retrieved file opened in editor...');
+
+      // Wait for any file to appear in the editor
+      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(10000);
+
+      // Take a final screenshot showing the completed state
+      await orgBrowserPage.takeScreenshot('final-state-completed.png');
+
+      // Assert that retrieval completed successfully
+      expect(progressCompleted, 'Progress notification should have disappeared').toBe(true);
+      expect(fileOpened, 'A retrieved file should be open in editor').toBe(true);
+
+      console.log('✅ Test completed successfully - metadata retrieval verified');
     } catch (error) {
       console.log(`❌ Test error: ${String(error)}`);
       await orgBrowserPage.takeScreenshot('test-error.png');

@@ -6,7 +6,7 @@ there are a LOT of polyfills in the scripts/bundling/web.mjs
 
 Now that we have solid UI tests, I want to see how much of that we can eliminate and have the test still pass.
 
-You can run the test via npm run test:web -w salesforcedx-vscode-org-browser (executed from the top of the salesforcedx-vscode project).
+You can run the test via `npm run test:web -w salesforcedx-vscode-org-browser -- --grep=<testName>` (executed from the top of the salesforcedx-vscode project).
 
 ## List of aliases, polyfills, and plugins used in web.mjs
 

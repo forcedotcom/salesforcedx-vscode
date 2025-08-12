@@ -285,33 +285,27 @@ export class OrgBrowserPage {
 
     // First try standard hover with increased timeout
     await item.hover({ timeout: 5000 });
-    await this.page.waitForTimeout(1000);
-
-    // Then try JavaScript hover simulation for better reliability
-    await this.page.evaluate(() => {
-      const element = document.evaluate(
-        '//*[contains(@class, "monaco-list-row") and contains(@class, "focused")]',
-        document,
-        null,
-        XPathResult.FIRST_ORDERED_NODE_TYPE,
-        null
-      ).singleNodeValue;
-
-      if (element instanceof HTMLElement) {
-        // Dispatch mouseenter and mouseover events
+    // Try dispatching events directly on the provided item to reliably reveal actions
+    await item.evaluate((el: HTMLElement) => {
+      if (el instanceof HTMLElement) {
         ['mouseenter', 'mouseover', 'mousemove'].forEach(eventType => {
           const event = new MouseEvent(eventType, {
             view: window,
             bubbles: true,
             cancelable: true
           });
-          element.dispatchEvent(event);
+          el.dispatchEvent(event);
         });
       }
     });
 
-    // Wait a moment for the action buttons to appear
-    await this.page.waitForTimeout(500);
+    // Wait for the action bar within the same row to become visible
+    const row = item.locator('xpath=ancestor::div[contains(@class, "monaco-list-row")]').first();
+    try {
+      await row.locator('.monaco-action-bar a.action-label').first().waitFor({ state: 'visible', timeout: 2000 });
+    } catch {
+      // if it doesn't appear in time, continue — fallback click logic will catch failures
+    }
   }
 
   /**
@@ -341,57 +335,196 @@ export class OrgBrowserPage {
   }
 
   /**
+   * Get the Account metadata item (first child under CustomObject)
+   * @returns The locator for the Account item
+   */
+  public async getAccountItem(): Promise<Locator | null> {
+    try {
+      // Look for Account item with aria-level="2" (child of CustomObject)
+      const accountItem = this.page.locator('.monaco-list-row[aria-label*="Account"][aria-level="2"]').first();
+      const count = await accountItem.count();
+
+      if (count > 0) {
+        const text = await accountItem.textContent();
+        console.log(`Found Account item: ${text?.trim()}`);
+        return accountItem;
+      }
+
+      console.log('Account item not found');
+      return null;
+    } catch (error) {
+      console.log('Error finding Account item:', error);
+      return null;
+    }
+  }
+
+  /**
    * Click the retrieve metadata button for a tree item
    * Uses both Playwright click and JavaScript click for reliability
    * @param item The locator for the tree item
    * @returns True if the button was clicked successfully, false otherwise
    */
   public async clickRetrieveButton(item: Locator): Promise<boolean> {
-    // First hover to reveal the action buttons
-    await this.hoverToRevealActions(item);
+    console.log('Attempting to click retrieve button');
 
-    // Find the retrieve button
-    const retrieveButton = await this.findRetrieveButton(item);
+    // First hover over the row to make action buttons visible
+    await item.hover();
+    console.log('✅ Hovered over row to reveal action buttons');
 
-    if (!retrieveButton) {
-      console.log('❌ Could not find retrieve button with aria-label="Retrieve Metadata"');
+    // Find the retrieve button within this specific row
+    const retrieveButton = item.locator('.action-label[aria-label="Retrieve Metadata"]').first();
+
+    // Wait for the button to become visible after hover
+    try {
+      await retrieveButton.waitFor({ state: 'visible', timeout: 3000 });
+    } catch {
+      console.log('❌ Retrieve button not visible after hover');
       return false;
     }
 
-    // Take a screenshot showing the hover state with retrieve button
-    await this.takeScreenshot('hover-with-retrieve-button.png');
+    // Log which row we're clicking
+    const rowText = (await item.textContent()) ?? '';
+    console.log(`Clicking retrieve button in row: ${rowText.trim().slice(0, 200)}`);
 
-    // Try to click the button using JavaScript for reliability
-    const success = await this.page.evaluate(() => {
-      const retrieveButtons = Array.from(document.querySelectorAll('a.action-label[aria-label="Retrieve Metadata"]'));
+    try {
+      // Click the retrieve button
+      await retrieveButton.click({ force: true });
+      console.log('✅ Successfully clicked retrieve button');
+      return true;
+    } catch (error) {
+      console.log('❌ Failed to click retrieve button:', error);
+      return false;
+    }
+  }
 
-      if (retrieveButtons.length === 0) {
-        return false;
+  /**
+   * Check for progress notifications in VS Code
+   * @returns Array of progress notification texts
+   */
+  public async getProgressNotifications(): Promise<string[]> {
+    const progressSelectors = [
+      '.monaco-workbench .notifications-toasts .notification-toast-container .notification-list-item',
+      '.monaco-workbench .notifications-center .notification-list-item',
+      '.notification-list-item:not(.error)'
+    ];
+
+    const progressNotifications = this.page.locator(progressSelectors.join(','));
+    const count = await progressNotifications.count();
+
+    if (count === 0) {
+      return [];
+    }
+
+    const texts: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const notification = progressNotifications.nth(i);
+      const text = await notification.textContent();
+      if (text) {
+        texts.push(text.trim());
       }
+    }
 
-      const button = retrieveButtons[0];
+    return texts;
+  }
 
-      if (button instanceof HTMLElement) {
-        try {
-          // Make button visible and click it
-          button.style.visibility = 'visible';
-          button.style.display = 'inline-block';
-          button.style.opacity = '1';
-          button.style.pointerEvents = 'auto';
-
-          // Force into view and click
-          button.scrollIntoView({ behavior: 'auto', block: 'center' });
-          button.click();
-
-          return true;
-        } catch {
+  /**
+   * Wait for progress notification to appear
+   * @param timeout Maximum time to wait in milliseconds
+   * @returns True if notification appeared, false if timeout
+   */
+  public async waitForProgressNotificationToAppear(timeout: number): Promise<boolean> {
+    try {
+      await this.page.waitForFunction(
+        () => {
+          const notifications = document.querySelectorAll('.notification-list-item:not(.error)');
+          // Look for any notification that's not an error and contains progress-related text
+          for (const notification of Array.from(notifications)) {
+            const text = notification.textContent ?? '';
+            if (text.includes('Retrieving') || text.includes('progress') || text.includes('Loading')) {
+              return true;
+            }
+          }
           return false;
+        },
+        undefined,
+        { timeout }
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Wait for progress notification to disappear (indicating completion)
+   * @param timeout Maximum time to wait in milliseconds
+   * @returns True if notification disappeared, false if timeout
+   */
+  public async waitForProgressNotificationToDisappear(timeout = 30000): Promise<boolean> {
+    try {
+      await this.page.waitForFunction(
+        () => {
+          const notifications = document.querySelectorAll('.notification-list-item:not(.error)');
+          return notifications.length === 0;
+        },
+        undefined,
+        { timeout }
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Check if a file is open in the editor
+   * @param fileName Expected file name (can be partial)
+   * @returns True if file is open in editor
+   */
+  public async isFileOpenInEditor(fileName: string): Promise<boolean> {
+    try {
+      const editorTabs = this.page.locator('.monaco-workbench .tabs-container .tab');
+      const count = await editorTabs.count();
+
+      for (let i = 0; i < count; i++) {
+        const tab = editorTabs.nth(i);
+        const tabText = await tab.textContent();
+        if (tabText?.includes(fileName)) {
+          return true;
         }
       }
 
       return false;
-    });
+    } catch {
+      return false;
+    }
+  }
 
-    return success;
+  /**
+   * Wait for any file to open in the editor
+   * @param timeout Maximum time to wait in milliseconds
+   * @returns True if any file opened, false if timeout
+   */
+  public async waitForFileToOpenInEditor(timeout = 10000): Promise<boolean> {
+    try {
+      await this.page.waitForFunction(
+        () => {
+          const editorTabs = Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'));
+          // Look for any tab that's not the welcome/walkthrough tab
+          for (const tab of editorTabs) {
+            const tabText = tab.textContent ?? '';
+            // Skip welcome/walkthrough tabs
+            if (!tabText.includes('Welcome') && !tabText.includes('Walkthrough') && !tabText.includes('Get Started')) {
+              return true;
+            }
+          }
+          return false;
+        },
+        { timeout }
+      );
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
