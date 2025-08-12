@@ -49,7 +49,7 @@ const retrieve = (
     Effect.all([
       Effect.flatMap(ConnectionService, service => service.getConnection),
       Effect.flatMap(ProjectService, service => service.getSfProject),
-      Effect.flatMap(WorkspaceService, service => service.getWorkspaceDescription),
+      Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
       Effect.succeed(ChannelService)
     ]),
     Effect.flatMap(([connection, project, workspaceDescription, channelService]) =>

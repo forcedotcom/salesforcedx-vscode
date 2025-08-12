@@ -53,7 +53,6 @@ export const activate = async (
   context: vscode.ExtensionContext,
   channelServiceLayer = ChannelServiceLayer('Salesforce Services')
 ): Promise<SalesforceVSCodeServicesApi> => {
-  console.log('🚀 [Services] Starting activation...');
   // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
 
   const config = vscode.workspace.getConfiguration();
@@ -116,7 +115,7 @@ const fileSystemSetup = async (
   // Check if workspace is virtual file system
   await Effect.runPromise(
     Effect.provide(
-      Effect.flatMap(WorkspaceService, ws => ws.getWorkspaceDescription),
+      Effect.flatMap(WorkspaceService, ws => ws.getWorkspaceInfo),
       WorkspaceServiceLive
     ).pipe(
       Effect.flatMap(workspaceDescription => {

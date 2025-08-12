@@ -24,7 +24,7 @@ export const ProjectServiceLive = Layer.effect(
   Effect.gen(function* () {
     const getSfProject = pipe(
       WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspaceDescription),
+      Effect.flatMap(ws => ws.getWorkspaceInfo),
       Effect.tap(workspaceDescription => console.log('workspaceDescription', workspaceDescription)),
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
@@ -38,7 +38,7 @@ export const ProjectServiceLive = Layer.effect(
 
     const isSalesforceProject = pipe(
       WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspaceDescription),
+      Effect.flatMap(ws => ws.getWorkspaceInfo),
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
           ? Effect.succeed(false)

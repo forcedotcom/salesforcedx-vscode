@@ -12,12 +12,12 @@ import * as vscode from 'vscode';
 
 export type WorkspaceService = {
   /** Get info about the workspace */
-  readonly getWorkspaceDescription: Effect.Effect<WorkspaceDescription, never, never>;
+  readonly getWorkspaceInfo: Effect.Effect<WorkspaceInfo, never, never>;
 };
 
 export const WorkspaceService = Context.GenericTag<WorkspaceService>('WorkspaceService');
 
-type WorkspaceDescription = {
+type WorkspaceInfo = {
   /** includes the file:// or other schemeprefix */
   path: string;
   /** the path without the scheme prefix */
@@ -27,7 +27,7 @@ type WorkspaceDescription = {
 };
 
 export const WorkspaceServiceLive = Layer.succeed(WorkspaceService, {
-  getWorkspaceDescription: Effect.sync(() => {
+  getWorkspaceInfo: Effect.sync(() => {
     const folders = vscode.workspace.workspaceFolders;
     console.log(`Workspace folders: ${JSON.stringify(folders, null, 2)}`);
     console.log(`Workspace folders length: ${folders?.length}`);

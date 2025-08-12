@@ -11,6 +11,74 @@ import { Layer, Effect as EffectFn } from 'effect';
 import type { Effect } from 'effect/Effect';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
 
+// Mock FsProvider to avoid IndexedDB initialization
+jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
+  FsProvider: class MockFsProvider {
+    public readonly onDidChangeFile = { event: jest.fn() };
+
+    public async init() {
+      return this;
+    }
+
+    public exists = jest.fn().mockReturnValue(false);
+    public createDirectory = jest.fn();
+    public writeFile = jest.fn();
+    public readFile = jest.fn();
+    public delete = jest.fn();
+    public rename = jest.fn();
+    public stat = jest.fn();
+    public readDirectory = jest.fn().mockReturnValue([]);
+    public watch = jest.fn();
+  }
+}));
+
+// Mock node:os module
+jest.mock('node:os', () => ({
+  homedir: jest.fn(() => '/tmp'),
+  platform: jest.fn(() => 'linux'),
+  arch: jest.fn(() => 'x64'),
+  tmpdir: jest.fn(() => '/tmp'),
+  hostname: jest.fn(() => 'mock-hostname'),
+  type: jest.fn(() => 'Linux'),
+  release: jest.fn(() => '5.4.0'),
+  totalmem: jest.fn(() => 8589934592),
+  freemem: jest.fn(() => 4294967296),
+  cpus: jest.fn(() => []),
+  networkInterfaces: jest.fn(() => ({})),
+  userInfo: jest.fn(() => ({ username: 'testuser', uid: 1000, gid: 1000, shell: '/bin/bash', homedir: '/tmp' })),
+  uptime: jest.fn(() => 123456),
+  loadavg: jest.fn(() => [0.5, 0.3, 0.2]),
+  EOL: '\n',
+  constants: {
+    signals: {},
+    errno: {},
+    priority: {}
+  }
+}));
+
+// Mock node:fs module
+jest.mock('node:fs', () => ({
+  watch: jest.fn(() => ({
+    close: jest.fn()
+  })),
+  promises: {
+    access: jest.fn(),
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    mkdir: jest.fn(),
+    readdir: jest.fn(),
+    stat: jest.fn(),
+    unlink: jest.fn(),
+    rmdir: jest.fn()
+  },
+  constants: {
+    F_OK: 0,
+    R_OK: 4,
+    W_OK: 2,
+    X_OK: 1
+  }
+}));
+
 // Create a mock ChannelService
 const mockChannelService = {
   getChannel: EffectFn.sync(() => ({
@@ -84,6 +152,6 @@ describe('Extension', () => {
 
     // Test that projectFiles can be called without throwing an error
     // This verifies that the homedir fix works
-    await expect(projectFiles(mockFsProvider)).resolves.not.toThrow();
+    await expect(projectFiles(mockFsProvider)).resolves.toBeUndefined();
   });
 });

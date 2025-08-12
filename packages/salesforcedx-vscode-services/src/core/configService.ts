@@ -24,7 +24,7 @@ export const ConfigServiceLive = Layer.effect(
   Effect.sync(() => ({
     getConfigAggregator: pipe(
       WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspaceDescription),
+      Effect.flatMap(ws => ws.getWorkspaceInfo),
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
           ? Effect.fail(new Error('No workspace project path found'))
