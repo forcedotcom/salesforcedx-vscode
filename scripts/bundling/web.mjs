@@ -171,8 +171,6 @@ export const commonConfigBrowser = {
     'node:path/posix': 'path-browserify',
     'node:assert/strict': 'assert',
     // Polyfills for jsforce-node dependencies
-    'node-fetch': 'cross-fetch',
-    'whatwg-url': 'url',
     // Empty polyfills for modules that can't be polyfilled
     'node:child_process': emptyPolyfillsPath,
     'node:dns': emptyPolyfillsPath,
@@ -193,7 +191,6 @@ export const commonConfigBrowser = {
     querystring: 'querystring-es3',
     assert: 'assert',
     timers: 'timers-browserify'
-
   },
   plugins: [
     pipeTransformPlugin(),
