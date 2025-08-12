@@ -8,6 +8,14 @@ Now that we have solid UI tests, I want to see how much of that we can eliminate
 
 You can run the test via `npm run test:web -w salesforcedx-vscode-org-browser -- --grep=<testName>` (executed from the top of the salesforcedx-vscode project).
 
+After removing an item, run the test then update this doc with the result (can it be safely removed or not). If it can't be removed, be sure to put it back before proceeding to the next item.
+
+Feel free to try multiple items at a time if it's more efficient, you can always go back and do them individually if it's not clear what broke the test.
+
+Be sure to increment timestamps in the extensions if necessary to ensure non-cached builds. You can tell from the build output of `bundle:extension` that they rebuilt the dist.
+
+If something can be removed ok, once it's out, do a git commit `fix: remove [foo]` to record it
+
 ## List of aliases, polyfills, and plugins used in web.mjs
 
 ### Injected Files
@@ -130,18 +138,18 @@ You can run the test via `npm run test:web -w salesforcedx-vscode-org-browser --
 
 ### Group 1: Already Empty Polyfills (Likely Safe to Remove)
 
-- 38-42: 'node:child_process', 'node:dns', 'node:net', 'node:tls', 'node:http2'
-- 64-68: child_process, dns, net, tls, http2 (nodeModulesPolyfillPlugin empty modules)
+- 38-42: 'node:child_process', 'node:dns', 'node:net', 'node:tls', 'node:http2' ❌ REQUIRED - Build fails without them
+- 64-68: child_process, dns, net, tls, http2 (nodeModulesPolyfillPlugin empty modules) ❌ REQUIRED - Build fails without them
 
 ### Group 2: Likely Unused Node.js Modules
 
-- 58: punycode
-- 59: domain
-- 60: constants
-- 62: vm
-- 63: diagnostics_channel
-- 57: string_decoder
-- 56: tty
+- 58: punycode ✅ REMOVED - Test passes
+- 59: domain ✅ REMOVED - Test passes
+- 60: constants ✅ REMOVED - Test passes
+- 62: vm ✅ REMOVED - Test passes
+- 63: diagnostics_channel ✅ REMOVED - Test passes
+- 57: string_decoder ✅ REMOVED - Test passes
+- 56: tty ✅ REMOVED - Test passes
 
 ### Group 3: Less Critical Browser Polyfills
 
@@ -170,12 +178,6 @@ You can run the test via `npm run test:web -w salesforcedx-vscode-org-browser --
 - 11-15: 'graceful-fs', fs, 'node:process', 'node:fs', 'node:fs/promises'
 - 1-3: processGlobalPath, processPolyfillPath, bufferGlobalPath (injected files)
 
-## Results Tracking
+## Post-comption
 
-| Group   | Polyfills Removed | Test Result | Notes |
-| ------- | ----------------- | ----------- | ----- |
-| Group 1 |                   |             |       |
-| Group 2 |                   |             |       |
-| Group 3 |                   |             |       |
-| Group 4 |                   |             |       |
-| Group 5 |                   |             |       |
+If we removed anything from alias/polyfills that's in package.json and no longer needed, let's take it out of there, too.

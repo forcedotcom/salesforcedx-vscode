@@ -193,15 +193,7 @@ export const commonConfigBrowser = {
     querystring: 'querystring-es3',
     assert: 'assert',
     zlib: 'browserify-zlib',
-    timers: 'timers-browserify',
-    tty: 'tty-browserify',
-    string_decoder: 'string_decoder',
-    punycode: 'punycode',
-    domain: 'domain-browser',
-    constants: 'constants-browserify',
-    console: 'console-browserify',
-    vm: 'vm-browserify',
-    diagnostics_channel: 'diagnostics_channel'
+    timers: 'timers-browserify'
   },
   plugins: [
     pipeTransformPlugin(),
