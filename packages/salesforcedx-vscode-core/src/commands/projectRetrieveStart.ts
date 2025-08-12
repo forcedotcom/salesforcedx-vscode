@@ -26,9 +26,7 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
     super(nls.localize('project_retrieve_start_default_org_text'), PROJECT_RETRIEVE_START_LOG_NAME);
     this.ignoreConflicts = ignoreConflicts;
   }
-  protected getOperationType(): DeployRetrieveOperationType {
-    return 'pull';
-  }
+  protected readonly operationType: DeployRetrieveOperationType = 'pull';
 
   public async run(
     response: ContinueResponse<{}>,
@@ -48,7 +46,6 @@ export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
    * we retrieve only remote changes. If there are no remote changes, returns an empty ComponentSet (no-op).
    */
   protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
-    await this.getLocalChanges();
     try {
       const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
       const connection = await WorkspaceContext.getInstance().getConnection();

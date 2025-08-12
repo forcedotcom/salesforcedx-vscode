@@ -10,21 +10,20 @@ import { ComponentStatus, RequestStatus } from '@salesforce/source-deploy-retrie
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleConflictsWithUI } from '../conflict/conflictUtils';
+import { assertConflictLogName } from '../conflict/messages';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../settings';
 import { DeployRetrieveOperationType } from '../util/types';
-import { DeployRetrieveExecutor, createDeployOrPushOutput } from './baseDeployRetrieve';
+import { DeployRetrieveExecutor, createOperationOutput, handleEmptyComponentSet } from './baseDeployRetrieve';
 import { SfCommandletExecutor } from './util';
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, DeployResult> {
   private sourceTracking?: SourceTrackingType;
 
-  protected getOperationType(): DeployRetrieveOperationType {
-    return 'deploy';
-  }
+  protected readonly operationType: DeployRetrieveOperationType = 'deploy';
 
   private deploy = async (
     components: ComponentSet,
@@ -33,7 +32,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     enableIgnoreConflicts: boolean = false
   ): Promise<DeployResult> => {
     if (enableIgnoreConflicts) {
-      // Retry with ignoreConflicts: true
       this.sourceTracking?.setIgnoreConflicts(true);
     }
 
@@ -58,13 +56,15 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     components.projectDirectory = projectPath;
     const ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled() || this.ignoreConflicts;
 
+    // Set up source tracking based on org type and settings:
+    // - Source-tracked orgs: Always use source tracking
+    // - Non-source-tracked orgs: Only if the setting is enabled
+    const orgType = await workspaceContextUtils.getWorkspaceOrgType();
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
-    if (sourceTrackingEnabled) {
-      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
-      if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
-        this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection, ignoreConflicts);
-        await this.sourceTracking.ensureLocalTracking();
-      }
+
+    if (orgType === workspaceContextUtils.OrgType.SourceTracked || sourceTrackingEnabled) {
+      this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection, ignoreConflicts);
+      await this.sourceTracking.ensureLocalTracking();
     }
 
     // Check for conflicts using SourceTracking before the operation
@@ -74,8 +74,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
         // Show conflict UI and let user decide
         const conflictResult = await handleConflictsWithUI(
           conflicts,
-          this.getLogName(),
-          this.getOperationType(),
+          assertConflictLogName(this.logName),
+          this.operationType,
           async () => await this.deploy(components, connection, token, false),
           async () => await this.deploy(components, connection, token, true)
         );
@@ -128,7 +128,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
         }
       } else {
         // Handle case where no components were deployed (empty ComponentSet)
-        this.handleEmptyComponentSet(this.getOperationType(), true);
+        handleEmptyComponentSet(this.operationType, true);
       }
     } finally {
       await DeployQueue.get().unlock();
@@ -143,6 +143,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     const isSuccess =
       result.response.status === RequestStatus.Succeeded || result.response.status === RequestStatus.SucceededPartial;
 
-    return createDeployOrPushOutput(result.getFileResponses(), relativePackageDirs, isSuccess, this.getOperationType());
+    return createOperationOutput(result.getFileResponses(), relativePackageDirs, this.operationType, isSuccess);
   }
 }

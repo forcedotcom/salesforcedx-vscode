@@ -75,8 +75,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
 export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor<T> {
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
-  private readonly executionName: string;
-  private readonly logName: string;
+  protected readonly executionName: string;
+  protected readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected showSuccessNotifications = true;
@@ -92,14 +92,6 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
     this.executionName = executionName;
     this.logName = logName;
     this.outputChannel = outputChannel;
-  }
-
-  protected getLogName(): string {
-    return this.logName;
-  }
-
-  protected getExecutionName(): string {
-    return this.executionName;
   }
 
   /**

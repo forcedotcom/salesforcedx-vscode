@@ -8,13 +8,16 @@
 import {
   ContinueResponse,
   EmptyParametersGatherer,
+  errorToString,
   SfWorkspaceChecker,
+  SourceTrackingService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import * as vscode from 'vscode';
 
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { DeployRetrieveOperationType } from '../util/types';
@@ -31,9 +34,7 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     this.ignoreConflicts = ignoreConflicts;
   }
 
-  protected getOperationType(): DeployRetrieveOperationType {
-    return 'push';
-  }
+  protected readonly operationType: DeployRetrieveOperationType = 'push';
 
   public async run(
     response: ContinueResponse<{}>,
@@ -52,7 +53,25 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
 
     if (sourceTrackingEnabled) {
-      return await this.getLocalChanges();
+      try {
+        const connection = await WorkspaceContext.getInstance().getConnection();
+        if (!connection) {
+          throw new Error(nls.localize('error_source_tracking_connection_failed'));
+        }
+
+        const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+        if (!sourceTracking) {
+          throw new Error(nls.localize('error_source_tracking_service_failed'));
+        }
+
+        // Get local changes using the proper method
+        const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
+        const localComponentSet = localComponentSets[0] ?? new ComponentSet();
+
+        return localComponentSet;
+      } catch (error) {
+        throw new Error(`Source tracking setup failed: ${errorToString(error)}`);
+      }
     }
 
     // If source tracking is disabled, deploy all source
