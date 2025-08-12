@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type RetrieveResult, type MetadataMember } from '@salesforce/source-deploy-retrieve';
+import {
+  type RetrieveResult,
+  type MetadataMember,
+  MetadataApiRetrieve,
+  ComponentSet
+} from '@salesforce/source-deploy-retrieve';
 
 import { Context, Effect, Layer, pipe } from 'effect';
 import * as vscode from 'vscode';
@@ -56,12 +61,7 @@ const retrieve = (
             return Effect.tryPromise({
               try: async () => {
                 console.log('retrieve requested for', members);
-
-                const { MetadataApiRetrieve, ComponentSet } = await import('@salesforce/source-deploy-retrieve');
-                console.log('imported SDR 11:52:00');
-
                 const componentSet = new ComponentSet(members);
-                componentSet.apiVersion = '64.0';
                 console.log('componentSet built');
 
                 const retrieveOperation = new MetadataApiRetrieve({

@@ -15,6 +15,6 @@ export const sfdxProjectJson = [
   '	],',
   '	"namespace": "",',
   '	"sfdcLoginUrl": "https://login.salesforce.com",',
-  '	"sourceApiVersion": "58.0"',
+  '	"sourceApiVersion": "64.0"',
   '}'
 ];
