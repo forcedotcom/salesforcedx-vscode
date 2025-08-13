@@ -9,6 +9,7 @@ const processGlobalPath = join(__dirname, 'process-global.js');
 const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
 const fsPolyfillPath = join(__dirname, 'fs-polyfill.js');
+const urlPolyfillPath = join(__dirname, 'url-polyfill.js');
 
 // Plugin to transform jszip's nodestream check to always return true
 const jszipNodestreamTransformPlugin = () => ({
@@ -103,7 +104,7 @@ export const commonConfigBrowser = {
     'node:util': 'util',
     'node:events': 'events',
 
-    'node:url': '/Users/shane.mclaughlin/eng/forcedotcom/salesforcedx-vscode/scripts/bundling/url-polyfill.js',
+    'node:url': urlPolyfillPath,
     'node:crypto': 'crypto-browserify',
     'node:querystring': 'querystring-es3',
     'node:assert': 'assert',
@@ -123,7 +124,7 @@ export const commonConfigBrowser = {
     buffer: 'buffer',
     stream: 'readable-stream',
     util: 'util',
-    url: '/Users/shane.mclaughlin/eng/forcedotcom/salesforcedx-vscode/scripts/bundling/url-polyfill.js',
+    url: urlPolyfillPath,
     crypto: 'crypto-browserify',
     http: 'stream-http',
     https: 'https-browserify',
