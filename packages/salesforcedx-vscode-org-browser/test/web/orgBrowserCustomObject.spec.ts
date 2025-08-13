@@ -6,44 +6,14 @@
  */
 import { test, expect } from './fixtures/cdpFixture';
 import { checkBrowserConnection } from './shared/browserConnectionUtils';
-import { strict as assert } from 'node:assert';
+
 /**
- * Test suite for Salesforce Org Browser web extension
+ * Test suite for Salesforce Org Browser web extension - CustomObject functionality
  * Tests run against VS Code web served by vscode-test-web
  *
  * Using fixtures for CDP connection and Org Browser page
  */
-test.describe('Org Browser Web Extension', () => {
-  test('should verify org browser metadata types and tree functionality', async ({ orgBrowserPage, page }) => {
-    // This will throw an error if a browser is in use for manual testing
-    await checkBrowserConnection(page, test);
-
-    await orgBrowserPage.openOrgBrowser();
-
-    await orgBrowserPage.page.screenshot({ path: 'test-results/full-page-screenshot.png', fullPage: true });
-    console.log('✅ Screenshot saved to test-results/full-page-screenshot.png');
-
-    const customObjectItem = await orgBrowserPage.findMetadataType('CustomObject');
-
-    assert(customObjectItem, 'Failed to find CustomObject using findMetadataType');
-
-    await orgBrowserPage.expandMetadataType(customObjectItem);
-
-    await orgBrowserPage.takeScreenshot('after-expansion.png');
-
-    console.log('⏳ Waiting for tree data loading and potential errors...');
-    await orgBrowserPage.page.waitForTimeout(500);
-
-    // Check for VS Code notification errors
-    (await orgBrowserPage.getErrorNotifications()).map((errorText, i) => {
-      console.log(`  Error ${i + 1}: ${errorText}`);
-    });
-
-    // Get the count of tree items for reporting
-    const treeItemCount = await orgBrowserPage.page.locator('.monaco-list-row').count();
-    expect(treeItemCount, 'Incomplete tree items').toBeGreaterThan(2);
-  });
-
+test.describe('Org Browser Web Extension - CustomObject', () => {
   test('should retrieve custom object and verify completion', async ({ orgBrowserPage, page }) => {
     // Check browser connection using the shared utility
     // This will throw an error if a browser is in use for manual testing
@@ -71,7 +41,7 @@ test.describe('Org Browser Web Extension', () => {
       }
 
       // 2. Expand the CustomObject node
-      await orgBrowserPage.expandMetadataType(customObjectItem);
+      await customObjectItem.click();
 
       // Get the Account item (first child of CustomObject)
       const accountItem = await orgBrowserPage.getMetadataItem('CustomObject', 'Account');
@@ -149,95 +119,6 @@ test.describe('Org Browser Web Extension', () => {
     } catch (error) {
       console.log(`❌ Test error: ${String(error)}`);
       await orgBrowserPage.takeScreenshot('test-error.png');
-      throw error;
-    }
-  });
-
-  test('should retrieve custom tab and verify completion', async ({ orgBrowserPage, page }) => {
-    // Check browser connection using the shared utility
-    await checkBrowserConnection(page, test);
-
-    try {
-      // 1. Open the Org Browser
-      await orgBrowserPage.openOrgBrowser();
-
-      // 2. Find CustomTab using the enhanced findMetadataType with automatic scrolling
-      const customTabItem = await orgBrowserPage.findMetadataType('CustomTab');
-
-      if (!customTabItem) {
-        throw new Error('Could not find CustomTab metadata type');
-      }
-
-      console.log('✅ Found CustomTab metadata type');
-
-      // Take a screenshot of the CustomTab state
-      await orgBrowserPage.takeScreenshot('customtab-found.png');
-
-      // 3. Expand the CustomTab node
-      await orgBrowserPage.expandMetadataType(customTabItem);
-
-      // 4. Get the Broker__c item
-      const brokerTabItem = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
-
-      if (!brokerTabItem) {
-        throw new Error('Could not find Broker__c custom tab');
-      }
-
-      console.log('✅ Found Broker__c custom tab');
-
-      // 5. Click the retrieve button for Broker__c
-      const brokerRetrieveSuccess = await orgBrowserPage.clickRetrieveButton(brokerTabItem);
-
-      if (!brokerRetrieveSuccess) {
-        throw new Error('Failed to click retrieve button for Broker__c custom tab');
-      }
-
-      console.log('Successfully clicked retrieve button for Broker__c');
-
-      // 6. Wait for progress notification to appear
-      const brokerProgressAppeared = await orgBrowserPage.waitForProgressNotificationToAppear(30000);
-
-      if (!brokerProgressAppeared) {
-        throw new Error('Progress notification for CustomTab did not appear within timeout');
-      }
-
-      console.log('✅ Progress notification appeared for CustomTab retrieval');
-
-      // 7. Verify the notification mentions the retrieval (it might not say "CustomTab" specifically)
-      const brokerNotifications = await orgBrowserPage.getProgressNotifications();
-      console.log('Progress notifications for CustomTab:', brokerNotifications);
-
-      // Note: The actual error you want to debug - the notification might be empty or different
-      if (brokerNotifications.length === 0) {
-        console.log('⚠️ No progress notifications found - this is the issue to debug');
-        await orgBrowserPage.takeScreenshot('no-progress-notifications.png');
-        // Continue with the test to see what happens
-      }
-
-      // 8. Wait for progress notification to disappear (indicating completion)
-      console.log('Waiting for CustomTab progress notification to disappear...');
-      const brokerProgressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(90000);
-
-      if (!brokerProgressCompleted) {
-        throw new Error('CustomTab progress notification did not disappear within timeout');
-      }
-
-      console.log('✅ CustomTab progress notification disappeared - retrieval completed');
-
-      // 9. Check if a file was opened in the editor
-      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(10000);
-
-      // Take a final screenshot
-      await orgBrowserPage.takeScreenshot('customtab-final-state.png');
-
-      // Assert completion
-      expect(brokerProgressCompleted, 'CustomTab progress should have completed').toBe(true);
-      expect(fileOpened, 'A CustomTab file should be open in editor').toBe(true);
-
-      console.log('✅ Test completed successfully - CustomTab metadata retrieval verified');
-    } catch (error) {
-      console.log(`❌ CustomTab test error: ${String(error)}`);
-      await orgBrowserPage.takeScreenshot('customtab-test-error.png');
       throw error;
     }
   });
