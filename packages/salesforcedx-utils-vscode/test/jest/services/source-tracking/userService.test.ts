@@ -32,6 +32,9 @@ describe('UserService', () => {
         globalState: {
           get: fakeGet,
           update: fakeUpdate
+        },
+        extension: {
+          id: 'test.extension.id'
         }
       } as unknown as ExtensionContext;
 
@@ -186,6 +189,33 @@ describe('UserService', () => {
       expect(uId).toBe(randomId);
       expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', randomId);
       expect(getRandomUserIdSpy).toHaveBeenCalled();
+    });
+
+    it('should skip shared user ID check when extension is Core extension', async () => {
+      const coreExtensionContext = {
+        globalState: {
+          get: fakeGet,
+          update: fakeUpdate
+        },
+        extension: {
+          id: 'salesforce.salesforcedx-vscode-core'
+        }
+      } as unknown as ExtensionContext;
+
+      const randomId = 'RANDOM_coreExtensionId';
+      fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
+      mockOrgId = undefined;
+      mockUsername = undefined;
+      getRandomUserIdSpy.mockReturnValue(randomId);
+
+      const getSharedTelemetryUserIdSpy = jest.spyOn(UserService as any, 'getSharedTelemetryUserId');
+
+      const uId = await UserService.getTelemetryUserId(coreExtensionContext);
+
+      // Should NOT call getSharedTelemetryUserId for Core extension
+      expect(getSharedTelemetryUserIdSpy).not.toHaveBeenCalled();
+      expect(uId).toBe(randomId);
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', randomId);
     });
   });
 });

@@ -313,7 +313,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         } catch {
           console.log(
             `There was an error sending an exception report to: ${typeof reporter} ` +
-              `name: ${String(name)} message: ${String(message)}`
+            `name: ${String(name)} message: ${String(message)}`
           );
         }
       });

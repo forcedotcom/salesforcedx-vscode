@@ -6,9 +6,14 @@
  */
 
 import { randomBytes, createHash } from 'node:crypto';
-import { ExtensionContext } from 'vscode';
+import { ExtensionContext, extensions } from 'vscode';
 import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
+
+// Type definition for the Core extension API
+interface SalesforceVSCodeCoreApi {
+  getSharedTelemetryUserId?: () => Promise<string>;
+}
 
 export class UserService {
   /**
@@ -24,6 +29,23 @@ export class UserService {
     ;
 
   /**
+   * Attempts to get the shared telemetry user ID from the Core extension.
+   * Returns undefined if the Core extension is not available or doesn't have the method.
+   */
+  private static async getSharedTelemetryUserId(): Promise<string | undefined> {
+    try {
+      const coreExtension = extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
+      if (coreExtension && coreExtension.isActive && coreExtension.exports?.getSharedTelemetryUserId) {
+        return await coreExtension.exports.getSharedTelemetryUserId();
+      }
+    } catch (error) {
+      // Silently ignore errors - we'll fall back to extension-specific storage
+      console.log(`Failed to get shared telemetry user ID: ${String(error)}`);
+    }
+    return undefined;
+  }
+
+  /**
    * Creates a one-way hash of orgId and userId for telemetry compliance.
    * This ensures customer data cannot be decoded while maintaining user distinction.
    */
@@ -33,21 +55,31 @@ export class UserService {
 
   /**
    * Retrieves or generates a telemetry user ID for the current VS Code extension context.
-   *
    * The returned user ID is used for telemetry purposes and is determined as follows:
    *
-   * 1. If org authorization data (orgId and userId) is available:
-   * a. If no user ID exists in global state, or if the existing user ID is a random value, a deterministic SHA-256 hash of orgId and userId is generated, stored, and returned.
-   * b. If a non-random user ID already exists in global state, it is returned as-is (don't change on new org auth)
+   * 1. First, attempts to get a shared telemetry user ID from the Core extension if available.
+   * 2. If shared ID is not available, falls back to extension-specific behavior:
+   * a. If org authorization data (orgId and userId) is available:
+   * - If no user ID exists in global state, or if the existing user ID is a random value, a deterministic SHA-256 hash of orgId and userId is generated, stored, and returned.
+   * - If a non-random user ID already exists in global state, it is returned as-is.
+   * b. If org authorization data is not available:
+   * - If a user ID exists in global state, it is returned.
+   * - Otherwise, a new random user ID is generated, stored, and returned.
    *
-   * 2. If org authorization data is not available:
-   * a. If a user ID exists in global state, it is returned.
-   * b. Otherwise, a new random user ID is generated, stored, and returned.
-   *
-   * @param {ExtensionContext} extensionContext - The VS Code extension context, used to access global state.
-   * @returns {Promise<string>} The telemetry user ID, either hashed or randomly generated.
+   * @param extensionContext - The VS Code extension context, used to access global state.
+   * @returns The telemetry user ID, either shared, hashed, or randomly generated.
    */
   public static async getTelemetryUserId(extensionContext: ExtensionContext): Promise<string> {
+    // First, try to get the shared telemetry user ID from the Core extension
+    // Only check for shared user ID if this is not the Core extension itself (to avoid infinite loop)
+    if (extensionContext.extension.id !== 'salesforce.salesforcedx-vscode-core') {
+      const sharedUserId = await this.getSharedTelemetryUserId();
+      if (sharedUserId) {
+        return sharedUserId;
+      }
+    }
+
+    // Fall back to extension-specific behavior
     // Defining UserId in globalState and using the same in appInsights reporter.
     // Assigns cliId to UserId when it's undefined in global state.
     // cliId is undefined when cli-telemetry variable disable-telemetry is true.
