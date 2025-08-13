@@ -7,7 +7,7 @@
 
 import { readFile, workspaceUtils, errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import { SourceConflictError } from '@salesforce/source-tracking-bundle';
+import { type SourceTracking } from '@salesforce/source-tracking-bundle';
 import * as path from 'node:path';
 
 import { channelService } from '../channels';
@@ -20,7 +20,9 @@ import { DeployRetrieveOperationType } from '../util/types';
 import { diffComponents } from './componentDiffer';
 import { DirectoryDiffResults, TimestampFileProperties } from './directoryDiffer';
 import { getConflictMessagesFor } from './messages';
-import { MetadataCacheService } from './metadataCacheService';
+import { MetadataCacheResult, MetadataCacheService } from './metadataCacheService';
+
+type Conflict = Awaited<ReturnType<typeof SourceTracking.prototype.getConflicts>>[number];
 
 /**
  * Compares two files to determine if they differ in content.
@@ -35,22 +37,6 @@ export const filesDiffer = async (one: string, two: string): Promise<boolean> =>
 };
 
 /**
- * Checks if an error is a SourceConflictError from SDR
- * @param error Any error object
- * @returns true if this is a SourceConflictError
- */
-export const isSourceConflictError = (error: any): error is SourceConflictError =>
-  error?.name === 'SourceConflictError';
-
-/**
- * Handles SDR SourceConflictError by delegating to the caller
- * This is a simplified version that doesn't have circular dependencies
- * @param error The SourceConflictError from SDR
- * @returns The error data for the caller to handle
- */
-export const extractConflictsFromError = (error: SourceConflictError): any[] => error.data ?? [];
-
-/**
  * Handles conflicts by showing VS Code's conflict UI and allowing user interaction
  * @param conflicts Array of conflicts from SourceTracking.getConflicts() or SDR error
  * @param conflictMessageType The type of conflict messages to use ('deploy_with_sourcepath', 'retrieve_with_sourcepath', etc.)
@@ -60,7 +46,7 @@ export const extractConflictsFromError = (error: SourceConflictError): any[] => 
  * @returns Promise<T> The result of operation, or undefined if user cancels
  */
 export const handleConflictsWithUI = async <T>(
-  conflicts: any[],
+  conflicts: Conflict[],
   conflictMessageType: string,
   operationType: DeployRetrieveOperationType,
   operation: () => Promise<T>,
@@ -125,7 +111,7 @@ export const handleConflictsWithUI = async <T>(
 /**
  * Resolves conflict metadata component references to actual file paths
  */
-const resolveConflictFilePaths = async (conflicts: any[]): Promise<string[]> => {
+const resolveConflictFilePaths = async (conflicts: Conflict[]): Promise<string[]> => {
   const conflictFilePaths = conflicts.map(
     conflict => conflict.filePath ?? conflict.fullName ?? conflict.name ?? 'unknown'
   );
@@ -140,7 +126,7 @@ const resolveConflictFilePaths = async (conflicts: any[]): Promise<string[]> => 
   }
 
   // Convert metadata component info to file paths using ComponentSet
-  const componentRefs = conflicts.map((conflict: any) => ({
+  const componentRefs = conflicts.map(conflict => ({
     fullName: conflict.fullName ?? conflict.name,
     type: conflict.type ?? 'ApexClass' // Default assumption
   }));
@@ -168,7 +154,7 @@ const resolveConflictFilePaths = async (conflicts: any[]): Promise<string[]> => 
  * Creates DirectoryDiffResults from cache result and project components
  */
 const createDiffResultsFromCache = async (
-  cacheResult: any,
+  cacheResult: MetadataCacheResult,
   actualFilePaths: string[]
 ): Promise<DirectoryDiffResults> => {
   const different = new Set<TimestampFileProperties>();
@@ -176,7 +162,7 @@ const createDiffResultsFromCache = async (
   // Match cache components with project components and find differences
   for (const cacheComponent of cacheResult.cache.components) {
     const projectComponent = cacheResult.project.components.find(
-      (proj: any) => proj.fullName === cacheComponent.fullName && proj.type === cacheComponent.type
+      proj => proj.fullName === cacheComponent.fullName && proj.type === cacheComponent.type
     );
 
     if (projectComponent) {
@@ -211,7 +197,7 @@ const createDiffResultsFromCache = async (
  * using MetadataCacheService to retrieve remote content for file diffs.
  */
 const createConflictResultsWithRemoteContent = async (
-  conflicts: any[],
+  conflicts: Conflict[],
   projectPath: string,
   username: string
 ): Promise<DirectoryDiffResults> => {
@@ -244,9 +230,9 @@ const createConflictResultsWithRemoteContent = async (
 /**
  * Creates a simple conflict results list without file diffs (fallback)
  */
-const createSimpleConflictResults = (conflicts: any[], projectPath: string): DirectoryDiffResults => {
+const createSimpleConflictResults = (conflicts: Conflict[], projectPath: string): DirectoryDiffResults => {
   const different = new Set<TimestampFileProperties>(
-    conflicts.map((conflict: any) => {
+    conflicts.map(conflict => {
       const filePath = conflict.filePath ?? conflict.fullName ?? conflict.name ?? 'unknown';
       const localRelPath = path.isAbsolute(filePath) ? path.relative(projectPath, filePath) : filePath;
 
