@@ -6,48 +6,15 @@
  */
 import { test, expect } from './fixtures/cdpFixture';
 import { checkBrowserConnection } from './shared/browserConnectionUtils';
-import { strict as assert } from 'node:assert';
+
 /**
- * Test suite for Salesforce Org Browser web extension
+ * Test suite for Salesforce Org Browser web extension - CustomObject functionality
  * Tests run against VS Code web served by vscode-test-web
  *
  * Using fixtures for CDP connection and Org Browser page
  */
-test.describe('Org Browser Web Extension', () => {
-  test('should verify org browser metadata types and tree functionality', async ({ orgBrowserPage, page }) => {
-    // This will throw an error if a browser is in use for manual testing
-    await checkBrowserConnection(page, test);
-
-    await orgBrowserPage.openOrgBrowser();
-
-    await orgBrowserPage.page.screenshot({ path: 'test-results/full-page-screenshot.png', fullPage: true });
-    console.log('✅ Screenshot saved to test-results/full-page-screenshot.png');
-
-    const customObjectItem = await orgBrowserPage.findMetadataType('CustomObject');
-
-    assert(customObjectItem, 'Failed to find CustomObject using findMetadataType');
-
-    await orgBrowserPage.expandMetadataType(customObjectItem);
-
-    await orgBrowserPage.takeScreenshot('after-expansion.png');
-
-    console.log('⏳ Waiting for tree data loading and potential errors...');
-    await orgBrowserPage.page.waitForTimeout(500);
-
-    // Check for VS Code notification errors
-    (await orgBrowserPage.getErrorNotifications()).map((errorText, i) => {
-      console.log(`  Error ${i + 1}: ${errorText}`);
-    });
-
-    // Get the count of tree items for reporting
-    const treeItemCount = await orgBrowserPage.page.locator('.monaco-list-row').count();
-    expect(treeItemCount, 'Incomplete tree items').toBeGreaterThan(2);
-  });
-
-  test('should retrieve metadata and verify completion', async ({ orgBrowserPage, page }) => {
-    // Increase test timeout to 90 seconds
-    test.setTimeout(90000);
-
+test.describe('Org Browser Web Extension - CustomObject', () => {
+  test('should retrieve custom object and verify completion', async ({ orgBrowserPage, page }) => {
     // Check browser connection using the shared utility
     // This will throw an error if a browser is in use for manual testing
     await checkBrowserConnection(page, test);
@@ -55,14 +22,8 @@ test.describe('Org Browser Web Extension', () => {
     try {
       // 1. Open the Org Browser using the Page Object method
       await orgBrowserPage.openOrgBrowser();
-      console.log('✅ Org Browser opened');
 
       const customObjectItem = await orgBrowserPage.findMetadataType('CustomObject');
-
-      // If findMetadataType fails, log the error but don't try fallback
-      if (!customObjectItem) {
-        console.log('Failed to find CustomObject using findMetadataType');
-      }
 
       // Take a screenshot of the initial tree state
       await orgBrowserPage.takeScreenshot('initial-tree-state.png');
@@ -75,16 +36,10 @@ test.describe('Org Browser Web Extension', () => {
       }
 
       // 2. Expand the CustomObject node
-      await orgBrowserPage.expandMetadataType(customObjectItem);
+      await customObjectItem.click();
 
       // Get the Account item (first child of CustomObject)
       const accountItem = await orgBrowserPage.getMetadataItem('CustomObject', 'Account');
-
-      if (!accountItem) {
-        throw new Error('Could not find Account object');
-      }
-
-      console.log('✅ Found Account object');
 
       // 3. Use the Page Object methods to hover and click the retrieve button
       console.log('Using Page Object methods to hover and click retrieve button');
@@ -128,7 +83,7 @@ test.describe('Org Browser Web Extension', () => {
 
       // Wait for progress notification to disappear (indicating completion)
       console.log('Waiting for progress notification to disappear (completion)...');
-      const progressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(300000);
+      const progressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(90000);
 
       if (!progressCompleted) {
         throw new Error('Progress notification did not disappear within timeout - retrieval may not have completed');
@@ -149,7 +104,7 @@ test.describe('Org Browser Web Extension', () => {
       expect(progressCompleted, 'Progress notification should have disappeared').toBe(true);
       expect(fileOpened, 'A retrieved file should be open in editor').toBe(true);
 
-      console.log('✅ Test completed successfully - metadata retrieval verified');
+      console.log('✅ Test completed successfully - CustomObject metadata retrieval verified');
     } catch (error) {
       console.log(`❌ Test error: ${String(error)}`);
       await orgBrowserPage.takeScreenshot('test-error.png');

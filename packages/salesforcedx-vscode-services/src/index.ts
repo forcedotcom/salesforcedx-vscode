@@ -99,7 +99,7 @@ export const activate = async (
     }
   };
 
-  console.log('Salesforce Services extension is now active! 8:15');
+  console.log('Salesforce Services extension is now active! 4:17');
   return api;
 };
 
@@ -167,7 +167,7 @@ const fileSystemSetup = async (
               }
               // replace the existing workspace with ours.
               vscode.workspace.updateWorkspaceFolders(0, 0, {
-                name: 'Code Builder 2025-07-30 12:55:00',
+                name: 'Code Builder 2025-08-12 16:47:00',
                 uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
               });
             },

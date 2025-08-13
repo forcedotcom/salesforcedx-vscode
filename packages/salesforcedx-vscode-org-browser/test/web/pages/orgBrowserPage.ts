@@ -50,121 +50,125 @@ export class OrgBrowserPage {
   }
 
   /**
+   * Wait for the project file system to be loaded in Explorer
+   */
+  private async waitForProject(): Promise<void> {
+    // Wait for Explorer view
+
+    try {
+      await Promise.any(
+        ['[aria-label*="Explorer"]', '.explorer-viewlet', '#workbench\\.parts\\.sidebar .explorer-folders-view'].map(
+          selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15000 })
+        )
+      );
+    } catch {
+      throw new Error('Explorer view not found - file system may not be initialized');
+    }
+
+    // Wait for sfdx-project.json file
+
+    try {
+      await Promise.any(
+        [
+          'text=sfdx-project.json',
+          '.monaco-list-row:has-text("sfdx-project.json")',
+          '[aria-label*="sfdx-project.json"]'
+        ].map(selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15000 }))
+      );
+    } catch {
+      throw new Error('sfdx-project.json not found - Salesforce project may not be loaded');
+    }
+  }
+
+  /**
    * Open the Org Browser by clicking its activity bar item
    */
   public async openOrgBrowser(): Promise<void> {
-    // Wait for activity bar to be ready
+    await this.waitForProject();
     await this.activityBarItem.waitFor({ timeout: 15000 });
-    console.log('🔍 Looking for Org Browser activity bar item...');
-
-    // Click on the Org Browser tab
     await this.activityBarItem.click();
-    console.log('✅ Clicked Org Browser activity bar item - switching from Explorer to Org Browser');
-
-    // Wait for the view switch to complete and sidebar to open
     await this.sidebar.waitFor({ timeout: 10000 });
-    console.log('✅ Sidebar opened');
+    console.log('✅ Org Browser opened');
 
-    // Wait for tree items to load - look for actual tree rows instead of fixed timeout
-    await this.page
-      .waitForSelector('.monaco-list-row', {
-        timeout: 15000,
-        state: 'attached'
-      })
-      .catch(e => console.log('Waiting for tree items timed out:', e.message));
-
-    // Additional check to ensure tree is populated
-    const itemCount = await this.treeItems.count();
-    if (itemCount > 0) {
-      console.log(`✅ Tree loaded with ${itemCount} items`);
-    } else {
-      console.log('⚠️ Tree appears to be empty after waiting');
-    }
+    // Ensure we have actual metadata types loaded (not just empty tree structure)
+    await this.page.locator('[role="treeitem"][aria-level="1"]').first().waitFor({ timeout: 15000 });
+    console.log('✅ Metadata types loaded');
   }
 
-  /**
-   * Find a specific metadata type by name using more idiomatic Playwright patterns
-   * @param typeName The name of the metadata type to find (e.g., 'CustomObject', 'Account')
-   * @param timeout Maximum time to wait for the element in ms (default: 15000)
-   * @returns The locator for the found element, or null if not found
-   */
-  public async findMetadataType(typeName: string, timeout = 15000): Promise<Locator | null> {
-    console.log(`Waiting for "${typeName}" to appear...`);
+  public async expandFolder(folderItem: Locator): Promise<void> {
+    console.log('🔍 Attempting to expand folder...');
+
+    // Click to expand the folder
+    await folderItem.click({ timeout: 5000 });
+    console.log('✅ Successfully clicked folder item');
 
     try {
-      // Use the more idiomatic approach: waitForSelector with text selector
-      await this.page.waitForSelector(`text=${typeName}`, { timeout });
-      console.log(`"${typeName}" appeared in the DOM`);
-
-      // Get the tree item using filter for more precise matching
-      const treeItem = this.treeItems.filter({ hasText: typeName });
-      const count = await treeItem.count();
-
-      if (count > 0) {
-        console.log(`Found "${typeName}" using tree item search`);
-        return treeItem.first();
-      }
-    } catch (error) {
-      console.log(`Timeout waiting for "${typeName}" to appear: ${String(error)}`);
-    }
-
-    return null;
-  }
-
-  /**
-   * Expand a metadata type by clicking on it
-   */
-  public async expandMetadataType(typeItem: Locator): Promise<void> {
-    console.log('🔍 Attempting to expand tree item...');
-
-    // Get the initial count of tree rows before expansion
-    const initialRowCount = await this.page.locator('.monaco-list-row').count();
-
-    // Click to expand
-    await typeItem.click({ timeout: 5000 });
-    console.log('✅ Successfully clicked tree item');
-
-    // Wait for more rows to appear (indicating expansion)
-    try {
-      // Wait for the tree to update (either more rows or changed aria-expanded state)
-      await Promise.race([
-        // Option 1: Wait for more list rows to appear
-        this.page.waitForFunction(
-          data => document.querySelectorAll(data.selector).length > data.count,
-          { selector: '.monaco-list-row', count: initialRowCount },
-          { timeout: 5000 }
-        ),
-
-        // Option 2: Wait for a loading indicator to appear and disappear
-        this.page
-          .waitForSelector('.monaco-list-row[aria-busy="true"]', {
-            state: 'visible',
-            timeout: 2000
+      await this.page
+        .waitForSelector('.monaco-list-row[aria-busy="true"]', {
+          state: 'visible',
+          timeout: 5000
+        })
+        .then(() =>
+          this.page.waitForSelector('.monaco-list-row[aria-busy="true"]', {
+            state: 'hidden',
+            timeout: 5000
           })
-          .then(() =>
-            this.page.waitForSelector('.monaco-list-row[aria-busy="true"]', {
-              state: 'hidden',
-              timeout: 3000
-            })
-          )
-          .catch(() => {})
-      ]).catch(() => {
-        // If neither option works, we'll check the count manually
-        console.log('No visible expansion indicators detected');
-      });
-
-      // Verify expansion by comparing row counts
-      const newRowCount = await this.page.locator('.monaco-list-row').count();
-      if (newRowCount > initialRowCount) {
-        console.log(`✅ Tree expanded: rows increased from ${initialRowCount} to ${newRowCount}`);
-      } else {
-        console.log('No change in row count detected, but continuing');
-      }
+        )
+        .catch(() => {
+          console.log('No visible folder expansion indicators detected');
+        });
     } catch {
-      // If all waiting methods fail, fall back to a small timeout
-      console.log('Could not detect expansion, continuing anyway');
+      console.log('Could not detect folder expansion, continuing anyway');
       await this.page.waitForTimeout(1000);
     }
+  }
+
+  /**
+   * Find a specific metadata type by name using type-to-search navigation
+   * Much more reliable than scrolling in virtualized lists
+   * @param typeName The name of the metadata type to find (e.g., 'CustomObject', 'Report')
+   * @returns The locator for the found element, or null if not found
+   */
+  public async findMetadataType(typeName: string): Promise<Locator> {
+    console.log(`🔍 Looking for "${typeName}" metadata type using type-to-search...`);
+
+    // Create a precise locator that matches exact tree items at aria-level 1
+    const metadataTypeLocator = this.page.locator(
+      `[role="treeitem"][aria-level="1"][aria-label="${typeName} "], [role="treeitem"][aria-level="1"][aria-label^="${typeName},"]`
+    );
+
+    // Check if already visible
+    if (await metadataTypeLocator.first().isVisible({ timeout: 1000 })) {
+      console.log(`✅ "${typeName}" already visible`);
+      return metadataTypeLocator.first();
+    }
+
+    console.log(`"${typeName}" not visible, using type-to-search navigation...`);
+
+    // Fallback: Use VS Code's type-to-search feature
+    console.log('Using type-to-search navigation...');
+
+    const treeContainer = this.page.locator('.monaco-list').first();
+
+    // Click on the tree to focus it
+    await treeContainer.click();
+    console.log('✅ Focused tree container');
+
+    await this.page.keyboard.type(typeName, { delay: 1 });
+    console.log(`✅ Typed "${typeName}" to search`);
+
+    // Wait a moment for the navigation to complete
+    await this.page.waitForTimeout(500);
+
+    // Check if the target element is now visible
+    if (await metadataTypeLocator.first().isVisible({ timeout: 2000 })) {
+      const foundText = await metadataTypeLocator.first().textContent();
+      const foundLabel = await metadataTypeLocator.first().getAttribute('aria-label');
+      console.log(`✅ "${typeName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
+      return metadataTypeLocator.first();
+    }
+
+    throw new Error(`❌ "${typeName}" not found even with type-to-search`);
   }
 
   /**
@@ -261,37 +265,29 @@ export class OrgBrowserPage {
    * @param itemName The specific metadata item name (e.g., 'Account', 'Broker__c')
    * @returns The locator for the metadata item
    */
-  public async getMetadataItem(metadataType: string, itemName: string): Promise<Locator | null> {
-    try {
-      console.log(`Looking for metadata item "${itemName}" under "${metadataType}"`);
+  public async getMetadataItem(metadataType: string, itemName: string, level = 2): Promise<Locator> {
+    console.log(`Looking for metadata item "${itemName}" under "${metadataType}"`);
 
-      // All metadata items are at aria-level >= 2 (metadata types are level 1)
-      // Use a more specific selector for level 2+ elements containing the item name
-      const metadataItem = this.page
-        .locator(`.monaco-list-row[aria-label*="${itemName}"]`)
-        .filter({ hasText: itemName })
-        .first();
+    // All metadata items are at aria-level >= 2 (metadata types are level 1)
+    const metadataItem = this.page.getByRole('treeitem', { level, name: itemName });
 
-      const count = await metadataItem.count();
-
-      if (count > 0) {
-        // Verify this is actually a metadata item (level >= 2) not a metadata type
-        const ariaLevel = await metadataItem.getAttribute('aria-level');
-        const level = ariaLevel ? parseInt(ariaLevel, 10) : 0;
-
-        if (level >= 2) {
-          const text = await metadataItem.textContent();
-          console.log(`Found metadata item: ${text?.trim()}`);
-          return metadataItem;
-        }
-      }
-
-      console.log(`Metadata item "${itemName}" not found under "${metadataType}"`);
-      return null;
-    } catch (error) {
-      console.log(`Error finding metadata item "${itemName}" under "${metadataType}":`, error);
-      return null;
+    // Check if already visible
+    if (await metadataItem.first().isVisible({ timeout: 1000 })) {
+      console.log(`✅ "${itemName}" already visible`);
+      return metadataItem.first();
     }
+
+    await this.page.keyboard.type(itemName, { delay: 1 });
+    console.log(`✅ Typed "${itemName}" to search`);
+
+    if (await metadataItem.first().isVisible({ timeout: 2000 })) {
+      const foundText = await metadataItem.first().textContent();
+      const foundLabel = await metadataItem.first().getAttribute('aria-label');
+      console.log(`✅ "${itemName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
+      return metadataItem.first();
+    }
+
+    throw new Error(`❌ Metadata item "${itemName}" not found under "${metadataType}"`);
   }
 
   /**
@@ -420,6 +416,61 @@ export class OrgBrowserPage {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Find a folder within a foldered metadata type
+   * @param metadataType The parent metadata type (e.g., 'Report', 'Dashboard')
+   * @param folderName The folder name (e.g., 'unfiled$Public')
+   * @returns The locator for the found folder, or null if not found
+   */
+  public async findFolder(metadataType: string, folderName: string): Promise<Locator | null> {
+    debugger;
+    console.log(`🔍 Looking for folder "${folderName}" under "${metadataType}"...`);
+
+    // Create a precise locator that matches folder items at aria-level 2
+    const folderLocator = this.page.locator(`[role="treeitem"][aria-level="2"][aria-label*="${folderName}"]`);
+
+    // Check if already visible (most common case)
+    if (await folderLocator.first().isVisible({ timeout: 1000 })) {
+      console.log(`✅ Folder "${folderName}" already visible`);
+      return folderLocator.first();
+    }
+
+    console.log(`Folder "${folderName}" not visible, using type-to-search...`);
+
+    try {
+      // Primary: Try scrollIntoViewIfNeeded for elements that exist in DOM
+      await folderLocator.first().scrollIntoViewIfNeeded();
+      console.log(`✅ Folder "${folderName}" found via scrollIntoViewIfNeeded`);
+      return folderLocator.first();
+    } catch {
+      // Fallback: Use type-to-search for folders
+      console.log('Using type-to-search for folder...');
+
+      const treeContainer = this.page.locator('.monaco-list').first();
+
+      // Click on the tree to focus it
+      await treeContainer.click();
+      console.log('✅ Focused tree container for folder search');
+
+      // Type the first few characters of the folder name
+      const searchTerm = folderName.startsWith('unfiled') ? 'unf' : folderName.substring(0, 3);
+      await this.page.keyboard.type(searchTerm, { delay: 100 });
+      console.log(`✅ Typed "${searchTerm}" to search for folder`);
+
+      // Wait a moment for the navigation to complete
+      await this.page.waitForTimeout(500);
+
+      // Check if the target folder is now visible
+      if (await folderLocator.first().isVisible({ timeout: 2000 })) {
+        console.log(`✅ Folder "${folderName}" found via type-to-search`);
+        return folderLocator.first();
+      }
+
+      console.log(`❌ Folder "${folderName}" not found even with type-to-search`);
+      return null;
     }
   }
 }
