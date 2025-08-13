@@ -8,11 +8,17 @@
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
+import {
+  Executable,
+  LanguageClientOptions,
+  ProvideCodeLensesSignature,
+  RevealOutputChannelOn
+} from 'vscode-languageclient/node';
 import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
+import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
@@ -137,7 +143,7 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
 };
 
 export const buildClientOptions = (): ApexLanguageClientOptions => {
-  const soqlExtensionInstalled = isSOQLExtensionInstalled();
+  const soqlExtensionInstalled = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql') !== undefined;
   const lspParityCapabilities = vscode.workspace
     .getConfiguration()
     .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
@@ -146,6 +152,38 @@ export const buildClientOptions = (): ApexLanguageClientOptions => {
   const parityMiddleware: Record<string, () => null> = lspParityCapabilities
     ? Object.fromEntries(LSP_PARITY_PROVIDERS.map(provider => [provider, () => null]))
     : {};
+
+  const provideCodeLenses = async (
+    document: vscode.TextDocument,
+    token: vscode.CancellationToken,
+    next: ProvideCodeLensesSignature
+  ) => {
+    const lenses = await next(document, token);
+    // Jorje sticks the namespace from sfdx-project.json on the arguments, like ns.class.method
+    // org may or may not actually use the namespace (ex: scratch org with --no-namespace)
+    // ns represents the namespace that came from auth files (ie, when the org is created/auth'd)
+    const ns =
+      (await (await getVscodeCoreExtension()).exports.OrgAuthInfo.getAuthFields()).namespacePrefix ?? undefined;
+    return lenses?.map(lens => {
+      if (ns !== undefined || !lens.command?.title) {
+        return lens; // it's okay to leave the namespace in place
+      }
+      if (['Run Test', 'Debug Test'].includes(lens.command.title)) {
+        // namespace.class.method => class.method
+        console.log(`provideCodeLenses Middleware > Single test originally: ${lens.command.arguments}`);
+        lens.command.arguments = lens.command.arguments?.map((arg: string) => arg.split('.').slice(-2).join('.'));
+        console.log(`provideCodeLenses Middleware > Single test modified: ${lens.command.arguments}`);
+      } else if (['Run All Tests', 'Debug All Tests'].includes(lens.command.title)) {
+        // namespace.class => class
+        console.log(`provideCodeLenses Middleware > All tests originally: ${lens.command.arguments}`);
+        lens.command.arguments = lens.command.arguments?.map((arg: string) => arg.split('.').at(-1));
+        console.log(`provideCodeLenses Middleware > All tests modified: ${lens.command.arguments}`);
+      }
+      // TODO: remove after testing
+      // lens.command!.title = `${lens.command!.title} ${lens.command!.command} ${lens.command!.arguments} [ns=${ns}]`;
+      return lens;
+    });
+  };
 
   return {
     // Register the server for Apex documents
@@ -185,14 +223,9 @@ export const buildClientOptions = (): ApexLanguageClientOptions => {
     },
     middleware: {
       ...parityMiddleware,
-      ...(soqlExtensionInstalled ? soqlMiddleware : {})
+      ...(soqlExtensionInstalled ? soqlMiddleware : {}),
+      provideCodeLenses
     },
     errorHandler: new ApexErrorHandler()
   };
-};
-
-const isSOQLExtensionInstalled = () => {
-  const soqlExtensionName = 'salesforce.salesforcedx-vscode-soql';
-  const soqlExtension = vscode.extensions.getExtension(soqlExtensionName);
-  return soqlExtension !== undefined;
 };
