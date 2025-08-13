@@ -45,9 +45,6 @@ test.describe('Org Browser Web Extension', () => {
   });
 
   test('should retrieve custom object and verify completion', async ({ orgBrowserPage, page }) => {
-    // Increase test timeout to 90 seconds
-    test.setTimeout(90000);
-
     // Check browser connection using the shared utility
     // This will throw an error if a browser is in use for manual testing
     await checkBrowserConnection(page, test);
@@ -55,7 +52,6 @@ test.describe('Org Browser Web Extension', () => {
     try {
       // 1. Open the Org Browser using the Page Object method
       await orgBrowserPage.openOrgBrowser();
-      console.log('✅ Org Browser opened');
 
       const customObjectItem = await orgBrowserPage.findMetadataType('CustomObject');
 
@@ -128,7 +124,7 @@ test.describe('Org Browser Web Extension', () => {
 
       // Wait for progress notification to disappear (indicating completion)
       console.log('Waiting for progress notification to disappear (completion)...');
-      const progressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(300000);
+      const progressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(90000);
 
       if (!progressCompleted) {
         throw new Error('Progress notification did not disappear within timeout - retrieval may not have completed');
@@ -158,50 +154,18 @@ test.describe('Org Browser Web Extension', () => {
   });
 
   test('should retrieve custom tab and verify completion', async ({ orgBrowserPage, page }) => {
-    // Increase test timeout to 90 seconds
-    test.setTimeout(90000);
-
     // Check browser connection using the shared utility
     await checkBrowserConnection(page, test);
 
     try {
       // 1. Open the Org Browser
       await orgBrowserPage.openOrgBrowser();
-      console.log('✅ Org Browser opened');
 
-      // 2. Find CustomTab by scrolling through the tree
-      console.log('🔍 Looking for CustomTab metadata type...');
-
-      // Since CustomTab is alphabetically positioned, we need to scroll to find it
-      // First, let's try to find it normally
-      let customTabItem = await orgBrowserPage.findMetadataType('CustomTab', 5000); // Shorter timeout first
+      // 2. Find CustomTab using the enhanced findMetadataType with automatic scrolling
+      const customTabItem = await orgBrowserPage.findMetadataType('CustomTab');
 
       if (!customTabItem) {
-        console.log('CustomTab not visible in current viewport, scrolling to find it...');
-
-        // Focus the tree and scroll down gradually to find CustomTab
-        const treeContainer = orgBrowserPage.page.locator('.monaco-list');
-        await treeContainer.first().focus();
-
-        // Scroll down page by page until we find CustomTab
-        let scrollAttempts = 0;
-        const maxScrollAttempts = 10;
-
-        while (!customTabItem && scrollAttempts < maxScrollAttempts) {
-          console.log(`Scroll attempt ${scrollAttempts + 1}/${maxScrollAttempts}`);
-
-          // Scroll down using Page Down key
-          await orgBrowserPage.page.keyboard.press('PageDown');
-          await orgBrowserPage.page.waitForTimeout(500);
-
-          // Try to find CustomTab again
-          customTabItem = await orgBrowserPage.findMetadataType('CustomTab', 2000);
-          scrollAttempts++;
-        }
-      }
-
-      if (!customTabItem) {
-        throw new Error('Could not find CustomTab metadata type after scrolling');
+        throw new Error('Could not find CustomTab metadata type');
       }
 
       console.log('✅ Found CustomTab metadata type');
@@ -252,7 +216,7 @@ test.describe('Org Browser Web Extension', () => {
 
       // 8. Wait for progress notification to disappear (indicating completion)
       console.log('Waiting for CustomTab progress notification to disappear...');
-      const brokerProgressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(300000);
+      const brokerProgressCompleted = await orgBrowserPage.waitForProgressNotificationToDisappear(90000);
 
       if (!brokerProgressCompleted) {
         throw new Error('CustomTab progress notification did not disappear within timeout');

@@ -50,65 +50,106 @@ export class OrgBrowserPage {
   }
 
   /**
-   * Open the Org Browser by clicking its activity bar item
+   * Wait for the project file system to be loaded in Explorer
    */
-  public async openOrgBrowser(): Promise<void> {
-    // Wait for activity bar to be ready
-    await this.activityBarItem.waitFor({ timeout: 15000 });
-    console.log('🔍 Looking for Org Browser activity bar item...');
+  private async waitForProject(): Promise<void> {
+    // Wait for Explorer view
 
-    // Click on the Org Browser tab
-    await this.activityBarItem.click();
-    console.log('✅ Clicked Org Browser activity bar item - switching from Explorer to Org Browser');
+    try {
+      await Promise.any(
+        ['[aria-label*="Explorer"]', '.explorer-viewlet', '#workbench\\.parts\\.sidebar .explorer-folders-view'].map(
+          selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15000 })
+        )
+      );
+    } catch {
+      throw new Error('Explorer view not found - file system may not be initialized');
+    }
 
-    // Wait for the view switch to complete and sidebar to open
-    await this.sidebar.waitFor({ timeout: 10000 });
-    console.log('✅ Sidebar opened');
+    // Wait for sfdx-project.json file
 
-    // Wait for tree items to load - look for actual tree rows instead of fixed timeout
-    await this.page
-      .waitForSelector('.monaco-list-row', {
-        timeout: 15000,
-        state: 'attached'
-      })
-      .catch(e => console.log('Waiting for tree items timed out:', e.message));
-
-    // Additional check to ensure tree is populated
-    const itemCount = await this.treeItems.count();
-    if (itemCount > 0) {
-      console.log(`✅ Tree loaded with ${itemCount} items`);
-    } else {
-      console.log('⚠️ Tree appears to be empty after waiting');
+    try {
+      await Promise.any(
+        [
+          'text=sfdx-project.json',
+          '.monaco-list-row:has-text("sfdx-project.json")',
+          '[aria-label*="sfdx-project.json"]'
+        ].map(selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15000 }))
+      );
+    } catch {
+      throw new Error('sfdx-project.json not found - Salesforce project may not be loaded');
     }
   }
 
   /**
-   * Find a specific metadata type by name using more idiomatic Playwright patterns
-   * @param typeName The name of the metadata type to find (e.g., 'CustomObject', 'Account')
-   * @param timeout Maximum time to wait for the element in ms (default: 15000)
+   * Open the Org Browser by clicking its activity bar item
+   */
+  public async openOrgBrowser(): Promise<void> {
+    await this.waitForProject();
+    await this.activityBarItem.waitFor({ timeout: 15000 });
+    await this.activityBarItem.click();
+    await this.sidebar.waitFor({ timeout: 10000 });
+    console.log('✅ Org Browser opened');
+
+    // Ensure we have actual metadata types loaded (not just empty tree structure)
+    await this.page.locator('[role="treeitem"][aria-level="1"]').first().waitFor({ timeout: 15000 });
+    console.log('✅ Metadata types loaded');
+  }
+
+  /**
+   * Find a specific metadata type by name with automatic scrolling support
+   * Uses Playwright's idiomatic scrollIntoViewIfNeeded for automatic scrolling
+   * @param typeName The name of the metadata type to find (e.g., 'CustomObject', 'CustomTab')
    * @returns The locator for the found element, or null if not found
    */
-  public async findMetadataType(typeName: string, timeout = 15000): Promise<Locator | null> {
-    console.log(`Waiting for "${typeName}" to appear...`);
+  public async findMetadataType(typeName: string): Promise<Locator | null> {
+    console.log(`🔍 Looking for "${typeName}" metadata type...`);
 
-    try {
-      // Use the more idiomatic approach: waitForSelector with text selector
-      await this.page.waitForSelector(`text=${typeName}`, { timeout });
-      console.log(`"${typeName}" appeared in the DOM`);
+    // Create a precise locator that matches exact tree items at aria-level 1
+    const metadataTypeLocator = this.page.locator(
+      `[role="treeitem"][aria-level="1"][aria-label="${typeName} "], [role="treeitem"][aria-level="1"][aria-label^="${typeName},"]`
+    );
 
-      // Get the tree item using filter for more precise matching
-      const treeItem = this.treeItems.filter({ hasText: typeName });
-      const count = await treeItem.count();
-
-      if (count > 0) {
-        console.log(`Found "${typeName}" using tree item search`);
-        return treeItem.first();
-      }
-    } catch (error) {
-      console.log(`Timeout waiting for "${typeName}" to appear: ${String(error)}`);
+    // Check if already visible (most common case)
+    if (await metadataTypeLocator.first().isVisible({ timeout: 1000 })) {
+      console.log(`✅ "${typeName}" already visible`);
+      return metadataTypeLocator.first();
     }
 
-    return null;
+    console.log(`"${typeName}" not visible, using idiomatic scrolling approach...`);
+
+    try {
+      // Primary: Try scrollIntoViewIfNeeded for elements that exist in DOM
+      await metadataTypeLocator.first().scrollIntoViewIfNeeded();
+      console.log(`✅ "${typeName}" found via scrollIntoViewIfNeeded`);
+      return metadataTypeLocator.first();
+    } catch {
+      // Fallback: For virtualized lists, use mouse.wheel() (per Playwright docs)
+      // This is more idiomatic than keyboard navigation for scrolling
+      console.log('Trying mouse wheel scrolling for virtualized content...');
+
+      const treeContainer = this.page.locator('.monaco-list').first();
+
+      // Position the mouse over the tree for wheel events
+      await treeContainer.hover();
+
+      // Scroll down progressively to trigger virtualization
+      for (let i = 0; i < 15; i++) {
+        // Check if element appeared
+        if (await metadataTypeLocator.first().isVisible({ timeout: 500 })) {
+          console.log(`✅ "${typeName}" found after ${i + 1} wheel scrolls`);
+          return metadataTypeLocator.first();
+        }
+
+        // Use mouse.wheel() - Playwright's recommended approach for manual scrolling
+        await this.page.mouse.wheel(0, 400);
+
+        // Brief pause for virtual rendering and animations
+        await this.page.waitForTimeout(300);
+      }
+
+      console.log(`❌ "${typeName}" not found after wheel scrolling`);
+      return null;
+    }
   }
 
   /**

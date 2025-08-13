@@ -17,6 +17,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
+  timeout: 0, // No test-level timeout, rely on action timeouts only
   reporter: [
     ['html', { open: 'never' }], // Don't auto-open HTML report
     ['list'] // Also show list output for immediate feedback
