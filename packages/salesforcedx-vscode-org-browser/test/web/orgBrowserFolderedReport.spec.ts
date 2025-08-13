@@ -25,12 +25,6 @@ test.describe('Org Browser Web Extension - Foldered Report', () => {
       // 2. Find Report metadata type using the enhanced findMetadataType with automatic scrolling
       const reportItem = await orgBrowserPage.findMetadataType('Report');
 
-      if (!reportItem) {
-        throw new Error('Could not find Report metadata type');
-      }
-
-      console.log('✅ Found Report metadata type');
-
       // Take a screenshot of the Report state
       await orgBrowserPage.takeScreenshot('report-found.png');
 
@@ -41,12 +35,6 @@ test.describe('Org Browser Web Extension - Foldered Report', () => {
       // 4. Find the unfiled$Public folder (level 2)
       const unfiledFolderItem = await orgBrowserPage.getMetadataItem('Report', folderName, 2);
 
-      if (!unfiledFolderItem) {
-        throw new Error(`Could not find ${folderName} folder`);
-      }
-
-      console.log(`✅ Found ${folderName} folder`);
-
       // 5. Expand the folder to show reports inside
       await orgBrowserPage.expandFolder(unfiledFolderItem);
 
@@ -56,12 +44,6 @@ test.describe('Org Browser Web Extension - Foldered Report', () => {
         `${folderName}/flow_orchestration_log`,
         3
       );
-
-      if (!reportComponentItem) {
-        throw new Error('Could not find the specific report in unfiled$Public folder');
-      }
-
-      console.log('✅ Found specific report in folder');
 
       // 7. Click the retrieve button for the specific report
       const reportRetrieveSuccess = await orgBrowserPage.clickRetrieveButton(reportComponentItem);

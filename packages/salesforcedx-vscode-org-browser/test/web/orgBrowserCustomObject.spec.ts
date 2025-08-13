@@ -25,11 +25,6 @@ test.describe('Org Browser Web Extension - CustomObject', () => {
 
       const customObjectItem = await orgBrowserPage.findMetadataType('CustomObject');
 
-      // If findMetadataType fails, log the error but don't try fallback
-      if (!customObjectItem) {
-        console.log('Failed to find CustomObject using findMetadataType');
-      }
-
       // Take a screenshot of the initial tree state
       await orgBrowserPage.takeScreenshot('initial-tree-state.png');
 
@@ -45,12 +40,6 @@ test.describe('Org Browser Web Extension - CustomObject', () => {
 
       // Get the Account item (first child of CustomObject)
       const accountItem = await orgBrowserPage.getMetadataItem('CustomObject', 'Account');
-
-      if (!accountItem) {
-        throw new Error('Could not find Account object');
-      }
-
-      console.log('✅ Found Account object');
 
       // 3. Use the Page Object methods to hover and click the retrieve button
       console.log('Using Page Object methods to hover and click retrieve button');

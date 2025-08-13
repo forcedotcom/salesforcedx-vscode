@@ -25,10 +25,6 @@ test.describe('Org Browser Web Extension - CustomTab', () => {
       // 2. Find CustomTab using the enhanced findMetadataType with automatic scrolling
       const customTabItem = await orgBrowserPage.findMetadataType('CustomTab');
 
-      if (!customTabItem) {
-        throw new Error('Could not find CustomTab metadata type');
-      }
-
       // Take a screenshot of the CustomTab state
       await orgBrowserPage.takeScreenshot('customtab-found.png');
 
@@ -37,10 +33,6 @@ test.describe('Org Browser Web Extension - CustomTab', () => {
 
       // 4. Get the Broker__c item
       const brokerTabItem = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
-
-      if (!brokerTabItem) {
-        throw new Error('Could not find Broker__c custom tab');
-      }
 
       // 5. Click the retrieve button for Broker__c
       const brokerRetrieveSuccess = await orgBrowserPage.clickRetrieveButton(brokerTabItem);

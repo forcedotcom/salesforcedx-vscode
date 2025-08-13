@@ -129,7 +129,7 @@ export class OrgBrowserPage {
    * @param typeName The name of the metadata type to find (e.g., 'CustomObject', 'Report')
    * @returns The locator for the found element, or null if not found
    */
-  public async findMetadataType(typeName: string): Promise<Locator | null> {
+  public async findMetadataType(typeName: string): Promise<Locator> {
     console.log(`🔍 Looking for "${typeName}" metadata type using type-to-search...`);
 
     // Create a precise locator that matches exact tree items at aria-level 1
@@ -168,8 +168,7 @@ export class OrgBrowserPage {
       return metadataTypeLocator.first();
     }
 
-    console.log(`❌ "${typeName}" not found even with type-to-search`);
-    return null;
+    throw new Error(`❌ "${typeName}" not found even with type-to-search`);
   }
 
   /**
@@ -262,7 +261,7 @@ export class OrgBrowserPage {
    * @param itemName The specific metadata item name (e.g., 'Account', 'Broker__c')
    * @returns The locator for the metadata item
    */
-  public async getMetadataItem(metadataType: string, itemName: string, level = 2): Promise<Locator | null> {
+  public async getMetadataItem(metadataType: string, itemName: string, level = 2): Promise<Locator> {
     console.log(`Looking for metadata item "${itemName}" under "${metadataType}"`);
 
     // All metadata items are at aria-level >= 2 (metadata types are level 1)
@@ -284,8 +283,7 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    console.log(`Metadata item "${itemName}" not found under "${metadataType}"`);
-    return null;
+    throw new Error(`❌ Metadata item "${itemName}" not found under "${metadataType}"`);
   }
 
   /**
