@@ -8,6 +8,7 @@
 import { SfProject } from '@salesforce/core/project';
 import { Context, Effect, Layer } from 'effect';
 import { pipe } from 'effect/Function';
+import { WebSdkLayer } from '../observability/spans';
 import { WorkspaceService } from '../vscode/workspaceService';
 
 export type ProjectService = {
@@ -34,7 +35,9 @@ export const ProjectServiceLive = Layer.effect(
               catch: error => new Error('Project Resolution Error', { cause: error })
             })
       )
-    );
+    )
+      .pipe(Effect.withSpan('getSfProject'))
+      .pipe(Effect.provide(WebSdkLayer));
 
     const isSalesforceProject = pipe(
       WorkspaceService,

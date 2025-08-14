@@ -81,6 +81,7 @@ export const commonConfigBrowser = {
     // Other global polyfills
   },
   alias: {
+    async_hooks: emptyPolyfillsPath,
     // proper-lockfile and SDR use graceful-fs
     'graceful-fs': fsPolyfillPath,
     fs: fsPolyfillPath,

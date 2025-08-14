@@ -9,6 +9,7 @@ import { Global } from '@salesforce/core';
 import { Context, Effect, Layer } from 'effect';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
+import { WebSdkLayer } from '../observability/spans';
 
 export type WorkspaceService = {
   /** Get info about the workspace */
@@ -29,14 +30,13 @@ type WorkspaceInfo = {
 export const WorkspaceServiceLive = Layer.succeed(WorkspaceService, {
   getWorkspaceInfo: Effect.sync(() => {
     const folders = vscode.workspace.workspaceFolders;
+
     console.log(`Workspace folders: ${JSON.stringify(folders, null, 2)}`);
     console.log(`Workspace folders length: ${folders?.length}`);
     console.log(`Workspace name: ${vscode.workspace.name}`);
     console.log(`First folder URI: ${JSON.stringify(folders?.[0]?.uri ?? '', null, 2)}`);
     console.log('First folder fsPath:', folders?.[0]?.uri.fsPath);
     console.log(`PathWithSchema: ${getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse(''))}`);
-    console.log(`home is ${os.homedir()}`);
-    console.log(`isWeb: ${Global.isWeb}`);
     return {
       path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),
       isEmpty: folders?.length === 0,
@@ -44,6 +44,10 @@ export const WorkspaceServiceLive = Layer.succeed(WorkspaceService, {
       fsPath: folders?.[0]?.uri.fsPath ?? ''
     };
   })
+    .pipe(Effect.tap(info => Effect.annotateCurrentSpan(info)))
+    .pipe(Effect.tap(() => Effect.annotateCurrentSpan({ isWeb: Global.isWeb, home: os.homedir() })))
+    .pipe(Effect.withSpan('getWorkspaceInfo'))
+    .pipe(Effect.provide(WebSdkLayer))
 });
 
 const getPathWithSchema = (uri: vscode.Uri): string => (uri.scheme === 'file' ? uri.fsPath : uri.toString());

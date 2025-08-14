@@ -422,7 +422,6 @@ export class OrgBrowserPage {
    * @returns The locator for the found folder, or null if not found
    */
   public async findFolder(metadataType: string, folderName: string): Promise<Locator | null> {
-    debugger;
     console.log(`🔍 Looking for folder "${folderName}" under "${metadataType}"...`);
 
     // Create a precise locator that matches folder items at aria-level 2

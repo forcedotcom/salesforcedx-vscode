@@ -11,6 +11,7 @@ import type { SettingsService } from '../vscode/settingsService';
 import type { WorkspaceService } from '../vscode/workspaceService';
 import { Context, Effect, Layer, pipe } from 'effect';
 import * as S from 'effect/Schema';
+import { WebSdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
 import { FilePropertiesSchema, type FileProperties } from './schemas/fileProperties';
@@ -53,7 +54,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
             Effect.tryPromise({
               try: () => conn.metadata.describe(),
               catch: e => new Error(`Describe failed: ${String(e)}`)
-            }),
+            }).pipe(Effect.withSpan('describe (API call)')),
             Effect.map(result => result.metadataObjects.filter(obj => !NON_SUPPORTED_TYPES.has(obj.xmlName))),
             Effect.tap(result =>
               pipe(
@@ -65,7 +66,9 @@ export const MetadataDescribeServiceLive = Layer.effect(
             )
           )
         )
-      );
+      )
+        .pipe(Effect.withSpan('cacheableDescribe'))
+        .pipe(Effect.provide(WebSdkLayer));
 
     const cachedDescribe = yield* Effect.cachedFunction(cacheableDescribe);
 
@@ -85,14 +88,16 @@ export const MetadataDescribeServiceLive = Layer.effect(
             Effect.tryPromise({
               try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
               catch: e => new Error(`listMetadata failed for type ${type}: ${String(e)}`)
-            }),
+            }).pipe(Effect.withSpan('listMetadata (API call)')),
             Effect.map(ensureArray),
             Effect.map(arr => arr.sort((a, b) => a.fullName.localeCompare(b.fullName))),
             Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
             Effect.mapError(e => new Error(`Failed to decode FileProperties: ${String(e)}`))
           )
         )
-      );
+      )
+        .pipe(Effect.withSpan('listMetadata'))
+        .pipe(Effect.provide(WebSdkLayer));
 
     return { describe, listMetadata };
   })

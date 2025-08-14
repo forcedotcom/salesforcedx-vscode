@@ -86,7 +86,7 @@ const setupCredentials = Effect.gen(function* () {
   console.log('Setting up test credentials for web environment');
   const instanceUrl = 'https://java-dream-1093-dev-ed.scratch.my.salesforce.com';
   const accessToken =
-    '00DDP000006EZae!AR8AQPTiIV_6i.IlMj2gc0ErFagXpM.nNtntRcwz4ioA3WBnujVKvyKqigV5ABB9JCWbTdNr5TtKAgDdxxWqRAhiMaeAHDhW';
+    '00DDP000006EZae!AR8AQIf82cv3XMfHqbB3eQoJr2kC4FjcK1__DB8bisw.AZtK.pzd0UohNQqOFBTUFQyI.sez1jmXhthl8x8ZTSz9ex0gf7ej';
 
   yield* settingsService.setInstanceUrl(instanceUrl);
   yield* settingsService.setAccessToken(accessToken);

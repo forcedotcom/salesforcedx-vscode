@@ -13,6 +13,7 @@ import { ConnectionService, ConnectionServiceLive } from './core/connectionServi
 import { MetadataDescribeService, MetadataDescribeServiceLive } from './core/metadataDescribeService';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
+import { WebSdkLayer } from './observability/spans';
 import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
 import { projectFiles } from './virtualFsProvider/projectInit';
@@ -41,6 +42,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRetrieveServiceLive: typeof MetadataRetrieveServiceLive;
     SettingsService: typeof SettingsService;
     SettingsServiceLive: typeof SettingsServiceLive;
+    WebSdkLayer: typeof WebSdkLayer;
   };
 };
 
@@ -95,7 +97,8 @@ export const activate = async (
       MetadataRetrieveService,
       MetadataRetrieveServiceLive,
       SettingsService,
-      SettingsServiceLive
+      SettingsServiceLive,
+      WebSdkLayer
     }
   };
 

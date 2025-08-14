@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection, Global } from '@salesforce/core';
 import { Context, Effect, Layer } from 'effect';
+import { WebSdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
@@ -71,4 +72,6 @@ export const ConnectionServiceLive = Layer.succeed(ConnectionService, {
       });
     }
   })
+    .pipe(Effect.withSpan('getConnection'))
+    .pipe(Effect.provide(WebSdkLayer))
 });

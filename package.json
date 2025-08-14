@@ -11,12 +11,10 @@
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
-    "a": "3.0.1",
     "jsforce": "3.9.4",
     "memfs": "^4.17.2",
     "node": "^20.17.0",
     "npm": "^10",
-    "picomatch": "4.0.2",
     "semver": "^7.5.4",
     "ts-node": "10.9.2",
     "url": "0.11.4"
