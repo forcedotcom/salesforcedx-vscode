@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { workspaceUtils, nls } from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils, nls, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
 import { channelService } from '../../../src/channels';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
@@ -28,6 +28,8 @@ jest.mock('../../../src/services/sdr/componentSetUtils', () => ({
 describe('ProjectDeployStart', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock SourceTrackingService properly
+    jest.spyOn(SourceTrackingService, 'getSourceTracking').mockImplementation(jest.fn());
   });
 
   describe('ProjectDeployStartExecutor', () => {
@@ -165,13 +167,17 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -181,13 +187,17 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -197,13 +207,17 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -213,13 +227,17 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -231,13 +249,17 @@ describe('ProjectDeployStart', () => {
         const mockComponentSet = new ComponentSet();
         // Mock the component set to have size > 0 to simulate changes
         jest.spyOn(mockComponentSet, 'size', 'get').mockReturnValue(1);
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result).toBe(mockComponentSet);
       });
@@ -247,13 +269,17 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = { type: 'CONTINUE', data: {} };
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -263,13 +289,17 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = { type: 'CONTINUE', data: {} };
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -279,13 +309,17 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -295,13 +329,17 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0);
       });
@@ -311,14 +349,18 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
         const mockComponentSet = new ComponentSet();
-        jest.spyOn(executor as any, 'getLocalChanges').mockResolvedValue(mockComponentSet);
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(mockComponentSet);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
 
         // Assert
-        expect((executor as any).getLocalChanges).toHaveBeenCalledWith();
+        expect(SourceTrackingService.getSourceTracking).toHaveBeenCalledWith('/test/project/path', {});
+        expect(mockSourceTracking.localChangesAsComponentSet).toHaveBeenCalledWith(false);
         expect(result).toBeInstanceOf(ComponentSet);
         expect(result.size).toBe(0); // Should be empty since no file paths
       });
@@ -327,23 +369,23 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        jest.spyOn(executor as any, 'getLocalChanges').mockRejectedValue(new Error('Source tracking failed'));
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockRejectedValue(new Error('Source tracking failed'));
 
         // Act & Assert
-        await expect((executor as any).getComponents(mockResponse)).rejects.toThrow('Source tracking failed');
+        await expect((executor as any).getComponents(mockResponse)).rejects.toThrow(
+          'Source tracking setup failed: Source tracking failed'
+        );
       });
 
       it('should throw error when source tracking service is null', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        jest
-          .spyOn(executor as any, 'getLocalChanges')
-          .mockRejectedValue(new Error('Source tracking setup failed: null'));
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(null);
 
         // Act & Assert
         await expect((executor as any).getComponents(mockResponse)).rejects.toThrow(
-          'Source tracking setup failed: null'
+          'Source tracking setup failed: Failed to initialize source tracking service.'
         );
       });
 
@@ -351,13 +393,13 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        jest
-          .spyOn(executor as any, 'getLocalChanges')
-          .mockRejectedValue(new Error('Source tracking setup failed: error_source_tracking_connection_failed'));
+        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+          getConnection: jest.fn().mockResolvedValue(null)
+        } as any);
 
         // Act & Assert
         await expect((executor as any).getComponents(mockResponse)).rejects.toThrow(
-          'Source tracking setup failed: error_source_tracking_connection_failed'
+          'Source tracking setup failed: Failed to establish connection to the org for source tracking.'
         );
       });
 
@@ -365,9 +407,9 @@ describe('ProjectDeployStart', () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
-        jest
-          .spyOn(executor as any, 'getLocalChanges')
-          .mockRejectedValue(new Error('Source tracking setup failed: Workspace context failed'));
+        jest.spyOn(WorkspaceContext, 'getInstance').mockImplementation(() => {
+          throw new Error('Workspace context failed');
+        });
 
         // Act & Assert
         await expect((executor as any).getComponents(mockResponse)).rejects.toThrow(
@@ -407,7 +449,7 @@ describe('ProjectDeployStart', () => {
         const executor = new ProjectDeployStartExecutor();
 
         // Assert
-        expect((executor as any).getOperationType()).toBe('push');
+        expect((executor as any).operationType).toBe('push');
       });
 
       it('should set showChannelOutput correctly', () => {

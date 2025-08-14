@@ -12,20 +12,19 @@ import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleConflictsWithUI } from '../conflict/conflictUtils';
+import { assertConflictLogName } from '../conflict/messages';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { salesforceCoreSettings } from '../settings';
 import { DeployRetrieveOperationType } from '../util/types';
-import { DeployRetrieveExecutor, createRetrieveOrPullOutput } from './baseDeployRetrieve';
+import { DeployRetrieveExecutor, createOperationOutput, handleEmptyComponentSet } from './baseDeployRetrieve';
 import { SfCommandletExecutor } from './util';
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, RetrieveResult> {
   private sourceTracking?: SourceTrackingType;
 
-  protected getOperationType(): DeployRetrieveOperationType {
-    return 'retrieve';
-  }
+  protected readonly operationType: DeployRetrieveOperationType = 'retrieve';
 
   private retrieve = async (
     components: ComponentSet,
@@ -83,8 +82,8 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
         // Show conflict UI and let user decide
         const conflictResult = await handleConflictsWithUI(
           conflicts,
-          this.getLogName(),
-          this.getOperationType(),
+          assertConflictLogName(this.logName),
+          this.operationType,
           async () => await this.retrieve(components, connection, defaultOutput, token, false),
           async () => await this.retrieve(components, connection, defaultOutput, token, true)
         );
@@ -122,11 +121,11 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
       }
     } else {
       // Handle case where no components were deployed (empty ComponentSet)
-      this.handleEmptyComponentSet(this.getOperationType(), true);
+      handleEmptyComponentSet(this.operationType, true);
     }
   }
 
   private createOutput(result: RetrieveResult, relativePackageDirs: string[]): string {
-    return createRetrieveOrPullOutput(result.getFileResponses(), relativePackageDirs, this.getOperationType());
+    return createOperationOutput(result.getFileResponses(), relativePackageDirs, this.operationType);
   }
 }

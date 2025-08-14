@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CommandParams } from './commandParams';
 export { CommandletExecutor } from './commandletExecutor';
 export { CompositePostconditionChecker } from './compositePostconditionChecker';
 export { CompositePreconditionChecker } from './compositePreconditionChecker';
@@ -32,5 +31,4 @@ export {
 export { SfCommandlet } from './sfCommandlet';
 export { SfCommandletExecutor } from './sfCommandletExecutor';
 export { PathStrategyFactory, SourcePathStrategy } from './sourcePathStrategies';
-export { ConflictOperationType } from './timestampConflictChecker';
 export * from './lwcAuraDuplicateComponentCheckers';

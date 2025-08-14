@@ -21,24 +21,23 @@ import { coerceMessageKey, nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, salesforceCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
+import { DeployRetrieveOperationType } from '../../util/types';
 import { ConflictDetectionMessages } from './conflictDetectionMessages';
 
-export type ConflictOperationType = 'push' | 'pull' | 'deploy' | 'retrieve';
-
-export class TimestampConflictChecker implements PostconditionChecker<string> {
+export class TimestampConflictChecker implements PostconditionChecker<string | string[]> {
   private isManifest: boolean;
   private messages: ConflictDetectionMessages;
-  private operationType: ConflictOperationType;
+  private operationType: DeployRetrieveOperationType;
 
-  constructor(isManifest: boolean, messages: ConflictDetectionMessages, operationType: ConflictOperationType) {
+  constructor(isManifest: boolean, messages: ConflictDetectionMessages, operationType: DeployRetrieveOperationType) {
     this.messages = messages;
     this.isManifest = isManifest;
     this.operationType = operationType;
   }
 
   public async check(
-    inputs: ContinueResponse<string> | CancelResponse
-  ): Promise<ContinueResponse<string> | CancelResponse> {
+    inputs: ContinueResponse<string | string[]> | CancelResponse
+  ): Promise<ContinueResponse<string | string[]> | CancelResponse> {
     if (!salesforceCoreSettings.getConflictDetectionEnabled()) {
       return inputs;
     }
@@ -58,16 +57,17 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       }
 
       const componentPath = inputs.data;
+      const componentPaths = Array.isArray(componentPath) ? componentPath : [componentPath];
       const cacheService = new MetadataCacheService(username);
 
       try {
-        const result = await cacheService.loadCache(
-          [componentPath],
+        const cacheResult = await cacheService.loadCache(
+          componentPaths,
           workspaceUtils.getRootWorkspacePath(),
           this.isManifest
         );
         const detector = new TimestampConflictDetector();
-        const diffs = await detector.createDiffs(result);
+        const diffs = await detector.createDiffs(cacheResult);
 
         channelService.showCommandWithTimestamp(
           `${nls.localize('channel_end')} ${nls.localize('conflict_detect_execution_name')}\n`
@@ -85,10 +85,10 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
   }
 
   public async handleConflicts(
-    componentPath: string,
+    componentPath: string | string[],
     usernameOrAlias: string,
     results: DirectoryDiffResults
-  ): Promise<ContinueResponse<string> | CancelResponse> {
+  ): Promise<ContinueResponse<string | string[]> | CancelResponse> {
     const conflictTitle = nls.localize('conflict_detect_view_root', usernameOrAlias, results.different.size);
 
     if (results.different.size === 0) {
@@ -126,7 +126,8 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
             break;
           case 'deploy':
           case 'retrieve':
-            channelService.appendLine(this.messages.commandHint(componentPath));
+            const pathToShow = Array.isArray(componentPath) ? componentPath[0] : componentPath;
+            channelService.appendLine(this.messages.commandHint(pathToShow));
             break;
         }
 
@@ -134,7 +135,10 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, doReveal, results);
 
         await DeployQueue.get().unlock();
-        return { type: 'CANCEL' };
+        return {
+          type: 'CANCEL',
+          msg: 'Deploy cancelled due to conflicts'
+        };
       }
     }
     return { type: 'CONTINUE', data: componentPath };

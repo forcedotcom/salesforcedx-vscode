@@ -93,6 +93,34 @@ on:
         type: string
 
 jobs:
+  calculate-min-vscode-version:
+    runs-on: ubuntu-latest
+    outputs:
+      min-vscode-version: ${{ steps.calc.outputs.version }}
+    steps:
+      - name: Calculate VSCode (latest - 2) version
+        id: calc
+        run: |
+          # Fetch latest VSCode releases from GitHub API
+          echo "Fetching VSCode releases..."
+          RELEASES=$(curl -s https://api.github.com/repos/microsoft/vscode/releases)
+
+          # Extract latest stable release (not prerelease)
+          LATEST=$(echo "$RELEASES" | jq -r '[.[] | select(.prerelease == false and .draft == false)] | .[0].tag_name' | sed 's/^v//')
+          echo "Latest VSCode version: $LATEST"
+
+          # Parse major.minor from latest (e.g., "1.102.3" -> "1.102")
+          MAJOR=$(echo $LATEST | cut -d. -f1)
+          MINOR=$(echo $LATEST | cut -d. -f2)
+          echo "Parsed: Major=$MAJOR, Minor=$MINOR"
+
+          # Calculate target version: latest - 2 months
+          TARGET_MINOR=$((MINOR - 2))
+          TARGET_VERSION="${MAJOR}.${TARGET_MINOR}.0"
+
+          echo "Target VSCode version (latest - 2): $TARGET_VERSION"
+          echo "version=$TARGET_VERSION" >> $GITHUB_OUTPUT
+
   Apex:
     if: ${{ inputs.apexE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     uses: ./.github/workflows/apexE2E.yml
@@ -143,48 +171,54 @@ jobs:
 
   Apex_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    needs: calculate-min-vscode-version
     uses: ./.github/workflows/apexE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: '1.90.0'
+      vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
       runId: ${{ github.event.workflow_run.id }}
 
   Core_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    needs: calculate-min-vscode-version
     uses: ./.github/workflows/coreE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: '1.90.0'
+      vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
       runId: ${{ github.event.workflow_run.id }}
 
   DeployAndRetrieve_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    needs: calculate-min-vscode-version
     uses: ./.github/workflows/deployRetrieveE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: '1.90.0'
+      vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
       runId: ${{ github.event.workflow_run.id }}
 
   LSP_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    needs: calculate-min-vscode-version
     uses: ./.github/workflows/lspE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: '1.90.0'
+      vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
       runId: ${{ github.event.workflow_run.id }}
 
   LWC_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    needs: calculate-min-vscode-version
     uses: ./.github/workflows/lwcE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: '1.90.0'
+      vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
       runId: ${{ github.event.workflow_run.id }}
 
   SOQL_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    needs: calculate-min-vscode-version
     uses: ./.github/workflows/soqlE2E.yml
     secrets: inherit
     with:
-      vscodeVersion: '1.90.0'
+      vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
       runId: ${{ github.event.workflow_run.id }}

@@ -7,7 +7,7 @@
 
 import { readFile, workspaceUtils, errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import { SourceConflictError } from '@salesforce/source-tracking-bundle';
+import type { ChangeResult } from '@salesforce/source-tracking-bundle';
 import * as path from 'node:path';
 
 import { channelService } from '../channels';
@@ -19,7 +19,7 @@ import { telemetryService } from '../telemetry';
 import { DeployRetrieveOperationType } from '../util/types';
 import { diffComponents } from './componentDiffer';
 import { DirectoryDiffResults, TimestampFileProperties } from './directoryDiffer';
-import { getConflictMessagesFor } from './messages';
+import { getConflictMessagesFor, ConflictLogName } from './messages';
 import { MetadataCacheService } from './metadataCacheService';
 
 /**
@@ -35,22 +35,6 @@ export const filesDiffer = async (one: string, two: string): Promise<boolean> =>
 };
 
 /**
- * Checks if an error is a SourceConflictError from SDR
- * @param error Any error object
- * @returns true if this is a SourceConflictError
- */
-export const isSourceConflictError = (error: any): error is SourceConflictError =>
-  error?.name === 'SourceConflictError';
-
-/**
- * Handles SDR SourceConflictError by delegating to the caller
- * This is a simplified version that doesn't have circular dependencies
- * @param error The SourceConflictError from SDR
- * @returns The error data for the caller to handle
- */
-export const extractConflictsFromError = (error: SourceConflictError): any[] => error.data ?? [];
-
-/**
  * Handles conflicts by showing VS Code's conflict UI and allowing user interaction
  * @param conflicts Array of conflicts from SourceTracking.getConflicts() or SDR error
  * @param conflictMessageType The type of conflict messages to use ('deploy_with_sourcepath', 'retrieve_with_sourcepath', etc.)
@@ -60,19 +44,14 @@ export const extractConflictsFromError = (error: SourceConflictError): any[] => 
  * @returns Promise<T> The result of operation, or undefined if user cancels
  */
 export const handleConflictsWithUI = async <T>(
-  conflicts: any[],
-  conflictMessageType: string,
+  conflicts: ChangeResult[],
+  conflictMessageType: ConflictLogName,
   operationType: DeployRetrieveOperationType,
   operation: () => Promise<T>,
   retryOperation?: () => Promise<T>
 ): Promise<T | undefined> => {
   try {
     const messages = getConflictMessagesFor(conflictMessageType);
-    if (!messages) {
-      // No conflict messages available, proceed with operation
-      console.warn('No conflict messages available, proceeding with operation');
-      return await operation();
-    }
 
     // Show channel output and log conflict detection start
     channelService.showChannelOutput();
@@ -122,13 +101,9 @@ export const handleConflictsWithUI = async <T>(
   }
 };
 
-/**
- * Resolves conflict metadata component references to actual file paths
- */
-const resolveConflictFilePaths = async (conflicts: any[]): Promise<string[]> => {
-  const conflictFilePaths = conflicts.map(
-    conflict => conflict.filePath ?? conflict.fullName ?? conflict.name ?? 'unknown'
-  );
+/** Resolves conflict metadata component references to all associated file paths */
+const resolveConflictFilePaths = async (conflicts: ChangeResult[]): Promise<string[]> => {
+  const conflictFilePaths = conflicts.flatMap(conflict => conflict.filenames ?? []);
 
   // Check if conflicts already contain valid file paths
   const hasValidFilePaths = conflictFilePaths.some(
@@ -211,7 +186,7 @@ const createDiffResultsFromCache = async (
  * using MetadataCacheService to retrieve remote content for file diffs.
  */
 const createConflictResultsWithRemoteContent = async (
-  conflicts: any[],
+  conflicts: ChangeResult[],
   projectPath: string,
   username: string
 ): Promise<DirectoryDiffResults> => {

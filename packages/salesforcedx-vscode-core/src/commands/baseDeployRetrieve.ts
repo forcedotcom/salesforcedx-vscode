@@ -10,8 +10,6 @@ import {
   getRelativeProjectPath,
   Row,
   Table,
-  workspaceUtils,
-  SourceTrackingService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve-bundle';
@@ -26,7 +24,6 @@ import {
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { DeployRetrieveOperationType } from '../util/types';
@@ -71,6 +68,13 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
 
       return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
     } catch (e) {
+      // Handle user cancellation from conflict dialog
+      if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
+        // Disable failure notifications and show cancellation notification
+        this.showFailureNotifications = false;
+        notificationService.showCanceledExecution(this.executionName);
+        return false; // Return false to indicate operation was not successful
+      }
       throw formatException(e);
     } finally {
       await this.postOperation(result);
@@ -93,9 +97,9 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
   protected abstract postOperation(result: R | undefined): Promise<void>;
 
   /**
-   * Returns the operation type for this executor
+   * The operation type for this executor
    */
-  protected abstract getOperationType(): DeployRetrieveOperationType;
+  protected abstract readonly operationType: DeployRetrieveOperationType;
 
   /**
    * Shared method to perform the actual operation (deploy or retrieve)
@@ -132,7 +136,7 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
       if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
         // Disable failure notifications
         this.showFailureNotifications = false;
-        notificationService.showCanceledExecution(this.getExecutionName());
+        notificationService.showCanceledExecution(this.executionName);
         return false; // Return false to indicate operation was not successful
       }
       throw formatException(e);
@@ -140,62 +144,34 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
       await this.postOperation(result);
     }
   }
-
-  /**
-   * Shared method to handle empty ComponentSet scenarios
-   * This eliminates duplication between deploy and retrieve executors
-   * @param operationType The type of operation ('push' | 'deploy' | 'pull' | 'retrieve')
-   * @param isSuccess Whether the operation was successful
-   */
-  protected handleEmptyComponentSet(operationType: OperationType, isSuccess: boolean = true): void {
-    const output =
-      operationType === 'push' || operationType === 'deploy'
-        ? createDeployOrPushOutput([], [], isSuccess, operationType)
-        : createRetrieveOrPullOutput([], [], operationType);
-
-    channelService.appendLine(output);
-
-    // Clear any existing errors since this is a successful "no changes" scenario
-    DeployRetrieveExecutor.errorCollection.clear();
-    SfCommandletExecutor.errorCollection.clear();
-  }
-
-  /**
-   * Shared method to get changed components from source tracking
-   * This eliminates duplication between projectDeployStart and projectRetrieveStart
-   * @returns Promise<ComponentSet> The local component set for further processing
-   */
-  protected async getLocalChanges(): Promise<ComponentSet> {
-    try {
-      const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
-      const connection = await WorkspaceContext.getInstance().getConnection();
-      if (!connection) {
-        throw new Error(nls.localize('error_source_tracking_connection_failed'));
-      }
-
-      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
-      if (!sourceTracking) {
-        throw new Error(nls.localize('error_source_tracking_service_failed'));
-      }
-
-      // Get local changes using the proper method
-      const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
-      const localComponentSet = localComponentSets[0] ?? new ComponentSet();
-
-      return localComponentSet;
-    } catch (error) {
-      throw new Error(`Source tracking setup failed: ${error}`);
-    }
-  }
 }
 
-export const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
+const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
   fileResponse.state === ComponentStatus.Failed;
+
+/**
+ * Handle empty ComponentSet scenarios by showing appropriate output and clearing error collections
+ * This can be used by any deploy/retrieve command when there are no components to process
+ * @param operationType The type of operation ('push' | 'deploy' | 'pull' | 'retrieve')
+ * @param isSuccess Whether the operation was successful
+ */
+export const handleEmptyComponentSet = (
+  operationType: DeployRetrieveOperationType,
+  isSuccess: boolean = true
+): void => {
+  const output = createOperationOutput([], [], operationType, isSuccess);
+
+  channelService.appendLine(output);
+
+  // Clear any existing errors since this is a successful "no changes" scenario
+  DeployRetrieveExecutor.errorCollection.clear();
+  SfCommandletExecutor.errorCollection.clear();
+};
 
 /**
  * Shared utility to create output tables for deploy and retrieve operations
  */
-export interface OutputTableConfig {
+interface OutputTableConfig {
   successColumns: { key: string; label: string }[];
   failureColumns: { key: string; label: string }[];
   successTitle: string;
@@ -215,7 +191,7 @@ const COMMON_COLUMNS = {
   message: { key: 'error', label: nls.localize('table_header_message') }
 } as const;
 
-export const createOutputTable = (
+const createOutputTable = (
   fileResponses: FileResponse[],
   relativePackageDirs: string[],
   config: OutputTableConfig
@@ -264,25 +240,18 @@ export const createOutputTable = (
   return output;
 };
 
-/**
- * Operation type for output configuration
- */
-export type OperationType = 'deploy' | 'retrieve' | 'push' | 'pull';
-
-/**
- * Create output for deploy or retrieve operations
- */
+/** Create output for deploy, retrieve, push, or pull operations */
 export const createOperationOutput = (
   fileResponses: FileResponse[],
   relativePackageDirs: string[],
-  operationType: OperationType,
+  operationType: DeployRetrieveOperationType,
   isSuccess?: boolean
 ): string => {
   // Base configuration for all operations
   const baseSuccessColumns = [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.filePath];
   const baseFailureColumns = [COMMON_COLUMNS.filePath, COMMON_COLUMNS.error];
 
-  const configs: Record<OperationType, OutputTableConfig> = {
+  const configs: Record<DeployRetrieveOperationType, OutputTableConfig> = {
     deploy: {
       successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
       failureColumns: baseFailureColumns,
@@ -317,22 +286,3 @@ export const createOperationOutput = (
 
   return createOutputTable(responses, relativePackageDirs, configs[operationType]);
 };
-
-/**
- * Create output for retrieve operations
- */
-export const createRetrieveOrPullOutput = (
-  fileResponses: FileResponse[],
-  relativePackageDirs: string[],
-  operationType: DeployRetrieveOperationType
-): string => createOperationOutput(fileResponses, relativePackageDirs, operationType);
-
-/**
- * Create output for deploy or push operations
- */
-export const createDeployOrPushOutput = (
-  fileResponses: FileResponse[],
-  relativePackageDirs: string[],
-  isSuccess: boolean,
-  operationType: DeployRetrieveOperationType
-): string => createOperationOutput(fileResponses, relativePackageDirs, operationType, isSuccess);
