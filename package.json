@@ -37,7 +37,7 @@
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@typescript-eslint/eslint-plugin": "8.33.0",
-    "@typescript-eslint/parser": "8.33.0",
+    "@typescript-eslint/parser": "8.39.1",
     "@vscode/test-electron": "2.3.0",
     "@vscode/vsce": "2.32.0",
     "acorn": "8.15.0",
