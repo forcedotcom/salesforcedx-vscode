@@ -79,10 +79,7 @@ export class UserService {
       }
     }
 
-    // Fall back to extension-specific behavior
-    // Defining UserId in globalState and using the same in appInsights reporter.
-    // Assigns cliId to UserId when it's undefined in global state.
-    // cliId is undefined when cli-telemetry variable disable-telemetry is true.
+    // Calculate the telemetry ID based on the orgId and userId
     const globalStateUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID);
 
     const context = WorkspaceContextUtil.getInstance();
