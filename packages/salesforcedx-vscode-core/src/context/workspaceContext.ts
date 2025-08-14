@@ -104,11 +104,8 @@ export class WorkspaceContext {
       // Update the telemetry user ID in global state
       await UserService.getTelemetryUserId(this.extensionContext);
 
-      // Refresh telemetry reporters with the new user ID
-      const telemetryService = TelemetryService.getInstance();
-      if ('refreshReporters' in telemetryService && typeof telemetryService.refreshReporters === 'function') {
-        await telemetryService.refreshReporters(this.extensionContext);
-      }
+      // Refresh telemetry reporters for ALL extensions (Core, Apex, etc.)
+      await TelemetryService.refreshAllExtensionReporters(this.extensionContext);
     } catch (error) {
       console.log('Failed to update telemetry user ID after org change:', error);
     }
