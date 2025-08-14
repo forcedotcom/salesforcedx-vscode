@@ -31,11 +31,3 @@ export const getComponentPath = async (sourceFsPath: string): Promise<string> =>
 export const getComponentName = (componentPath: string): string => path.basename(componentPath);
 
 export const isLwcComponent = (componentPath: string): boolean => path.basename(path.dirname(componentPath)) === LWC;
-
-// for testing
-export const componentUtils = {
-  getComponentPath,
-  getLightningComponentDirectory,
-  getComponentName,
-  isLwcComponent
-};
