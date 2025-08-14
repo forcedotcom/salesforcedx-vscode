@@ -249,7 +249,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     // Refresh reporters for all registered extension instances
     for (const [extensionName, telemetryService] of TelemetryServiceProvider.instances) {
       if (telemetryService instanceof TelemetryService && 'refreshReporters' in telemetryService) {
-        const refreshPromise = (telemetryService as TelemetryService).refreshReporters(coreExtensionContext)
+        const refreshPromise = telemetryService.refreshReporters(coreExtensionContext)
           .catch(error => {
             console.log(`Failed to refresh telemetry reporters for ${extensionName}:`, error);
           });
