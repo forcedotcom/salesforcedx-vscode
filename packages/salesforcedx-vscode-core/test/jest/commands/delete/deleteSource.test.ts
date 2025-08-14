@@ -24,7 +24,8 @@ import {
   DeleteSourceExecutor,
   isManifestFile,
   showDeleteConfirmation,
-  getOrgAndProject,
+  getOrg,
+  getProjectIfSourceTracked,
   moveFileToStash
 } from '../../../../src/commands/deleteSource';
 import * as getUriFromActiveEditor from '../../../../src/commands/util/getUriFromActiveEditor';
@@ -314,26 +315,31 @@ describe('DeleteSource', () => {
     });
   });
 
-  describe('getOrgAndProject', () => {
-    it('should return org and project for source-tracked orgs', async () => {
+  describe('getOrg', () => {
+    it('should return org instance', async () => {
+      const result = await getOrg();
+
+      expect(result).toBe(mockOrg);
+      expect(orgCreateSpy).toHaveBeenCalledWith({ connection: mockConnection });
+    });
+  });
+
+  describe('getProjectIfSourceTracked', () => {
+    it('should return project for source-tracked orgs', async () => {
       workspaceContextUtilsGetWorkspaceOrgTypeSpy.mockResolvedValue(OrgType.SourceTracked);
 
-      const result = await getOrgAndProject();
+      const result = await getProjectIfSourceTracked();
 
-      expect(result.org).toBe(mockOrg);
-      expect(result.project).toBe(mockProject);
-      expect(orgCreateSpy).toHaveBeenCalledWith({ connection: mockConnection });
+      expect(result).toBe(mockProject);
       expect(sfProjectResolveSpy).toHaveBeenCalled();
     });
 
-    it('should return org without project for non-source-tracked orgs', async () => {
+    it('should return undefined for non-source-tracked orgs', async () => {
       workspaceContextUtilsGetWorkspaceOrgTypeSpy.mockResolvedValue(OrgType.NonSourceTracked);
 
-      const result = await getOrgAndProject();
+      const result = await getProjectIfSourceTracked();
 
-      expect(result.org).toBe(mockOrg);
-      expect(result.project).toBeUndefined();
-      expect(orgCreateSpy).toHaveBeenCalledWith({ connection: mockConnection });
+      expect(result).toBeUndefined();
       expect(sfProjectResolveSpy).not.toHaveBeenCalled();
     });
   });

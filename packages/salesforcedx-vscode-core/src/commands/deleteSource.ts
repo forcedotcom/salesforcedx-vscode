@@ -70,9 +70,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
   ): Promise<boolean> {
     await this.preChecks();
     await this.delete(response.data.filePath);
-    await this.resolveSuccess();
-    await this.deleteFilesLocally();
-    await this.maybeUpdateTracking();
+    await this.handleDeployResult();
     return true;
   }
 
@@ -87,10 +85,13 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
       // Check for conflicts before proceeding
       const conflicts = await this.tracking.getConflicts();
       if (conflicts?.length > 0) {
-        throw new SfError(nls.localize('delete_source_conflicts_detected'), 'SourceConflictDetected', [
-          'Conflicts:',
-          ...conflicts.map((c: ChangeResult) => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`)
-        ]);
+        const conflictDetails = conflicts.map(
+          (c: ChangeResult) => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`
+        );
+        throw new SfError(
+          `${nls.localize('delete_source_conflicts_detected')} Conflicts: ${conflictDetails.join(', ')}`,
+          'SourceConflictDetected'
+        );
       }
     }
   }
@@ -106,33 +107,36 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
     await componentSetUtils.setApiVersion(this.componentSet);
     await componentSetUtils.setSourceApiVersion(this.componentSet);
 
-    const components = this.componentSet.toArray();
-
-    if (components.length === 0) {
+    if (this.componentSet.size === 0) {
       notificationService.showInformationMessage(nls.localize('delete_source_no_components_found'));
       return;
     }
 
     // Create a new ComponentSet and mark everything for deletion
-    const cs = new ComponentSet([]);
-    cs.apiVersion = this.componentSet.apiVersion;
-    cs.sourceApiVersion = this.componentSet.sourceApiVersion;
+    const originalComponents = this.componentSet.toArray();
 
-    components.forEach(component => {
+    const cs = originalComponents.reduce((destructiveSet, component) => {
       if (component instanceof SourceComponent) {
-        cs.add(component, DestructiveChangesType.POST);
+        destructiveSet.add(component, DestructiveChangesType.POST);
       } else {
         // a remote-only delete
-        cs.add(new SourceComponent({ name: component.fullName, type: component.type }), DestructiveChangesType.POST);
+        destructiveSet.add(
+          new SourceComponent({ name: component.fullName, type: component.type }),
+          DestructiveChangesType.POST
+        );
       }
-    });
+      return destructiveSet;
+    }, new ComponentSet([]));
+
+    cs.apiVersion = this.componentSet.apiVersion;
+    cs.sourceApiVersion = this.componentSet.sourceApiVersion;
     this.componentSet = cs;
 
     if (sourcepaths) {
       await Promise.all([
         // determine if user is trying to delete a single file from a bundle, which is actually just an fs delete operation
         // and then a constructive deploy on the "new" bundle
-        ...components
+        ...originalComponents
           .filter(comp => comp.type.strategies?.adapter === 'bundle')
           .filter((comp): comp is SourceComponent => comp instanceof SourceComponent)
           .flatMap(bundle =>
@@ -143,7 +147,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
               )
           ),
         // same for decomposed components with non-addressable children (ex: decomposedPermissionSet.  Deleting a file means "redploy without that")
-        ...components
+        ...originalComponents
           .filter(allChildrenAreNotAddressable)
           .filter((comp): comp is SourceComponent => comp instanceof SourceComponent)
           .flatMap(decomposed =>
@@ -155,14 +159,14 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
     }
 
     // fire predeploy event for the delete
-    await Lifecycle.getInstance().emit('predeploy', components);
+    await Lifecycle.getInstance().emit('predeploy', originalComponents);
 
     const username = this.org.getUsername();
     if (!username) {
       throw new SfError(nls.localize('delete_source_no_username_found'), 'NoUsernameFound');
     }
 
-    const deploy = await this.componentSet.deploy({
+    const deployOperation = await this.componentSet.deploy({
       usernameOrConnection: username,
       apiOptions: {
         rest: true,
@@ -170,12 +174,12 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
       }
     });
 
-    this.deployResult = await deploy.pollStatus();
+    this.deployResult = await deployOperation.pollStatus();
 
     await Lifecycle.getInstance().emit('postdeploy', this.deployResult);
   }
 
-  private async resolveSuccess(): Promise<void> {
+  private async handleDeployResult(): Promise<void> {
     // if deploy failed restore the stashed files if they exist
     if (this.deployResult && this.deployResult.response?.status !== RequestStatus.Succeeded) {
       await Promise.all(
@@ -188,39 +192,51 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
         })
       );
       throw new SfError(nls.localize('delete_source_operation_failed'), 'DeleteFailed');
-    } else if (this.mixedDeployDelete.delete.length > 0) {
-      // successful delete -> delete the stashed file
-      return await deleteFile(path.join(os.tmpdir(), 'source_delete'), { recursive: true });
     }
+
+    // Handle successful deployment
+    if (this.mixedDeployDelete.delete.length > 0) {
+      // successful delete -> delete the stashed file
+      await deleteFile(path.join(os.tmpdir(), 'source_delete'), { recursive: true });
+    }
+
+    // Delete local files after successful deployment
+    await this.deleteFilesLocally();
+
+    // Update source tracking after successful deployment
+    await this.updateSourceTracking();
   }
 
   private async deleteFilesLocally(): Promise<void> {
-    if (this.deployResult?.response?.status === RequestStatus.Succeeded) {
-      const customLabels = this.componentSet?.getSourceComponents().toArray().filter(isNonDecomposedCustomLabel) ?? [];
-      const promisesFromLabels = customLabels[0]?.xml ? [deleteCustomLabels(customLabels[0].xml, customLabels)] : [];
+    const components = this.componentSet?.getSourceComponents().toArray() ?? [];
 
-      // mixed delete/deploy operations have already been deleted and stashed
-      const otherPromises =
-        this.mixedDeployDelete.delete.length === 0
-          ? (this.componentSet?.toArray() ?? [])
-              .filter((comp): comp is SourceComponent => comp instanceof SourceComponent)
-              .flatMap((component: SourceComponent) => [
-                ...(component.content ? [deleteFile(component.content, { recursive: true, useTrash: false })] : []),
-                ...(component.xml && !isNonDecomposedCustomLabel(component) ? [deleteFile(component.xml)] : [])
-              ])
-          : [];
+    // Find custom labels and create deletion promise
+    const customLabels = components.filter(isNonDecomposedCustomLabel);
+    const promisesFromLabels = customLabels[0]?.xml ? [deleteCustomLabels(customLabels[0].xml, customLabels)] : [];
 
-      await Promise.all([...promisesFromLabels, ...otherPromises]);
-    }
+    // mixed delete/deploy operations have already been deleted and stashed
+    const otherPromises =
+      this.mixedDeployDelete.delete.length === 0
+        ? (this.componentSet?.toArray() ?? []).reduce<Promise<void>[]>((promises, component) => {
+            if (component instanceof SourceComponent) {
+              if (component.content) {
+                promises.push(deleteFile(component.content, { recursive: true, useTrash: false }));
+              }
+              if (component.xml && !isNonDecomposedCustomLabel(component)) {
+                promises.push(deleteFile(component.xml));
+              }
+            }
+            return promises;
+          }, [])
+        : [];
+
+    await Promise.all([...promisesFromLabels, ...otherPromises]);
   }
 
-  private async maybeUpdateTracking(): Promise<void> {
+  private async updateSourceTracking(): Promise<void> {
     if (this.isSourceTracked && this.tracking && this.deployResult) {
-      // Only update tracking if the deploy was successful
-      if (this.deployResult.response?.status === RequestStatus.Succeeded) {
-        // update both local and remote tracking
-        await this.tracking.updateTrackingFromDeploy(this.deployResult);
-      }
+      // update both local and remote tracking
+      await this.tracking.updateTrackingFromDeploy(this.deployResult);
     }
   }
 
@@ -271,22 +287,26 @@ export const showDeleteConfirmation = async (): Promise<boolean> => {
 };
 
 /**
- * Gets the org and project instances needed for delete source operation
+ * Gets the org instance for delete source operations
  */
-export const getOrgAndProject = async (): Promise<{ org: Org; project?: SfProject }> => {
+export const getOrg = async (): Promise<Org> => {
+  const workspaceContext = WorkspaceContext.getInstance();
+  const connection = await workspaceContext.getConnection();
+  return await Org.create({ connection });
+};
+
+/**
+ * Gets the project instance if working with a source-tracked org
+ */
+export const getProjectIfSourceTracked = async (): Promise<SfProject | undefined> => {
   const orgType = await workspaceContextUtils.getWorkspaceOrgType();
   const isSourceTracked = orgType === OrgType.SourceTracked;
 
-  const workspaceContext = WorkspaceContext.getInstance();
-  const connection = await workspaceContext.getConnection();
-  const org = await Org.create({ connection });
-
-  let project: SfProject | undefined;
   if (isSourceTracked) {
-    project = await SfProject.resolve();
+    return await SfProject.resolve();
   }
 
-  return { org, project };
+  return undefined;
 };
 
 export const deleteSource = async (sourceUri: URI) => {
@@ -312,8 +332,9 @@ export const deleteSource = async (sourceUri: URI) => {
     return;
   }
 
-  // Get org and project
-  const { org, project } = await getOrgAndProject();
+  // Get org and project instances
+  const org = await getOrg();
+  const project = await getProjectIfSourceTracked();
 
   const filePath = fileUtils.flushFilePath(resolved.fsPath);
   const orgType = await workspaceContextUtils.getWorkspaceOrgType();
@@ -352,7 +373,7 @@ export const someContentsEndWithPath =
 
 export const allChildrenAreNotAddressable = (comp: any): boolean => {
   const types = Object.values(comp.type.children?.types ?? {});
-  return types.length > 0 && types.every((child: any) => child.isAddressable === false);
+  return !types.some((child: any) => child.isAddressable);
 };
 
 export const isNonDecomposedCustomLabel = (component: any): boolean =>
