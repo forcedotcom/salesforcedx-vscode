@@ -187,6 +187,56 @@ export class TelemetryService implements TelemetryServiceInterface {
     return this.reporters;
   }
 
+  /**
+   * Refreshes telemetry reporters with the latest user ID when org authorization changes.
+   * This ensures that telemetry events use the correct user ID (hashed orgId + userId)
+   * instead of the initial random ID that was set during extension activation.
+   */
+  public async refreshReporters(extensionContext: ExtensionContext): Promise<void> {
+    if (!this.extensionContext || this.reporters.length === 0 || !(await this.isTelemetryEnabled())) {
+      return;
+    }
+
+    // Get the updated user ID
+    const userId = await UserService.getTelemetryUserId(extensionContext);
+
+    // Dispose existing reporters
+    for (const reporter of this.reporters) {
+      try {
+        await reporter.dispose();
+      } catch (error) {
+        console.log('Error disposing telemetry reporter:', error);
+      }
+    }
+    this.reporters = [];
+
+    // Create new reporters with updated user ID
+    const { name, version, o11yUploadEndpoint, enableO11y } = extensionPackageJsonSchema.parse(
+      extensionContext.extension.packageJSON
+    );
+
+    const reporterConfig: TelemetryReporterConfig = {
+      extName: name,
+      version,
+      aiKey: this.aiKey,
+      userId,
+      reporterName: this.getTelemetryReporterName(),
+      isDevMode: this.isDevMode
+    };
+
+    const isO11yEnabled = typeof enableO11y === 'boolean' ? enableO11y : enableO11y?.toLowerCase() === 'true';
+
+    if (isO11yEnabled && o11yUploadEndpoint) {
+      await initializeO11yReporter(reporterConfig.extName, o11yUploadEndpoint, userId, version);
+    }
+
+    const reporters = determineReporters(reporterConfig);
+    this.reporters.push(...reporters);
+    this.extensionContext?.subscriptions.push(...this.reporters);
+
+    console.log('Telemetry reporters refreshed with new user ID:', userId);
+  }
+
   public async isTelemetryEnabled(): Promise<boolean> {
     return this.isInternal ? true : this.isTelemetryExtensionConfigurationEnabled() && (await this.checkCliTelemetry());
   }
