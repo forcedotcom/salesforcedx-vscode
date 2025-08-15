@@ -18,7 +18,6 @@ describe('UserService', () => {
     const testUserId = 'test@example.com';
 
     let fakeExtensionContext: ExtensionContext;
-    let getRandomUserIdSpy: jest.SpyInstance;
     let fakeGet: jest.SpyInstance;
     let fakeUpdate: jest.SpyInstance;
     let workspaceContextMock: Partial<WorkspaceContextUtil>;
@@ -37,8 +36,6 @@ describe('UserService', () => {
           id: 'test.extension.id'
         }
       } as unknown as ExtensionContext;
-
-      getRandomUserIdSpy = jest.spyOn(UserService as any, 'getRandomUserId');
 
       // Initialize mock values
       mockOrgId = undefined;
@@ -63,10 +60,7 @@ describe('UserService', () => {
 
     it('should return telemetryUserId when defined in globalState', async () => {
       fakeGet.mockReturnValueOnce(globalTelemetryUserId);
-
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
-
-      expect(getRandomUserIdSpy).not.toHaveBeenCalled();
       expect(uId).toBe(globalTelemetryUserId);
     });
 
@@ -80,33 +74,28 @@ describe('UserService', () => {
       // The result should be a SHA-256 hash
       expect(uId).toHaveLength(64); // SHA-256 produces 64-character hex string
       expect(uId).toMatch(/^[a-f0-9]{64}$/); // Should be hex characters only
-      expect(getRandomUserIdSpy).not.toHaveBeenCalled();
     });
 
-    it('should generate random userId when orgId or userId is not available', async () => {
-      const randomId = 'randomGeneratedId123';
+    it('should return anonymous user ID when orgId or userId is not available', async () => {
       fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
       mockOrgId = undefined;
       mockUsername = undefined;
-      getRandomUserIdSpy.mockReturnValue(randomId);
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
 
-      expect(getRandomUserIdSpy).toHaveBeenCalled();
-      expect(uId).toBe(randomId);
+      expect(uId).toBe('UNAUTHENTICATED_USER');
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', 'UNAUTHENTICATED_USER');
     });
 
-    it('should generate random userId when only orgId is available but username is missing', async () => {
-      const randomId = 'randomGeneratedId456';
+    it('should return anonymous user ID when only orgId is available but username is missing', async () => {
       fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
       mockOrgId = testOrgId;
       mockUsername = undefined;
-      getRandomUserIdSpy.mockReturnValue(randomId);
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
 
-      expect(getRandomUserIdSpy).toHaveBeenCalled();
-      expect(uId).toBe(randomId);
+      expect(uId).toBe('UNAUTHENTICATED_USER');
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', 'UNAUTHENTICATED_USER');
     });
 
     it('should generate consistent hash for the same orgId and userId combination', async () => {
@@ -124,9 +113,9 @@ describe('UserService', () => {
       expect(uId1).toHaveLength(64);
     });
 
-    it('should replace random globalStateUserId with hash when user authorizes to org', async () => {
-      const randomUserId = 'RANDOM_abc123def456';
-      fakeGet.mockReturnValueOnce(randomUserId); // Existing random value
+    it('should replace anonymous user ID with hash when user authorizes to org', async () => {
+      const anonymousUserId = 'UNAUTHENTICATED_USER';
+      fakeGet.mockReturnValueOnce(anonymousUserId); // Existing anonymous user ID
       mockOrgId = testOrgId;
       mockUsername = testUserId;
 
@@ -138,22 +127,22 @@ describe('UserService', () => {
       expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', uId);
     });
 
-    it('should keep existing random value when no org authorization available', async () => {
-      const randomUserId = 'RANDOM_abc123def456';
-      fakeGet.mockReturnValueOnce(randomUserId); // Existing random value
+    it('should keep existing anonymous user ID when no org authorization available', async () => {
+      const anonymousUserId = 'UNAUTHENTICATED_USER';
+      fakeGet.mockReturnValueOnce(anonymousUserId); // Existing anonymous user ID
       mockOrgId = undefined;
       mockUsername = undefined;
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
 
-      // Should keep the same random value
-      expect(uId).toBe(randomUserId);
+      // Should keep the same anonymous user ID
+      expect(uId).toBe(anonymousUserId);
       expect(fakeUpdate).not.toHaveBeenCalled();
     });
 
     it('should preserve existing hash when user authorizes to a different org', async () => {
       const existingHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-      fakeGet.mockReturnValueOnce(existingHash); // Existing non-random hash
+      fakeGet.mockReturnValueOnce(existingHash); // Existing non-anonymous hash
       mockOrgId = 'differentOrgId123';
       mockUsername = 'different@user.com';
 
@@ -176,19 +165,16 @@ describe('UserService', () => {
       expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', uId);
     });
 
-    it('should create and store random userId when undefined and no org data', async () => {
-      const randomId = 'RANDOM_generatedId789';
+    it('should store anonymous user ID when undefined and no org data', async () => {
       fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
       mockOrgId = undefined;
       mockUsername = undefined;
-      getRandomUserIdSpy.mockReturnValue(randomId);
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
 
-      // Should generate random ID and store it
-      expect(uId).toBe(randomId);
-      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', randomId);
-      expect(getRandomUserIdSpy).toHaveBeenCalled();
+      // Should use anonymous user ID and store it
+      expect(uId).toBe('UNAUTHENTICATED_USER');
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', 'UNAUTHENTICATED_USER');
     });
 
     it('should skip shared user ID check when extension is Core extension', async () => {
@@ -202,11 +188,9 @@ describe('UserService', () => {
         }
       } as unknown as ExtensionContext;
 
-      const randomId = 'RANDOM_coreExtensionId';
       fakeGet.mockReturnValueOnce(undefined); // No existing globalStateUserId
       mockOrgId = undefined;
       mockUsername = undefined;
-      getRandomUserIdSpy.mockReturnValue(randomId);
 
       const getSharedTelemetryUserIdSpy = jest.spyOn(UserService as any, 'getSharedTelemetryUserId');
 
@@ -214,8 +198,8 @@ describe('UserService', () => {
 
       // Should NOT call getSharedTelemetryUserId for Core extension
       expect(getSharedTelemetryUserIdSpy).not.toHaveBeenCalled();
-      expect(uId).toBe(randomId);
-      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', randomId);
+      expect(uId).toBe('UNAUTHENTICATED_USER');
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', 'UNAUTHENTICATED_USER');
     });
   });
 });

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { randomBytes, createHash } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { ExtensionContext, extensions } from 'vscode';
 import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
@@ -17,25 +17,13 @@ interface SalesforceVSCodeCoreApi {
 
 export class UserService {
   /**
-   * Generates a random user ID string for telemetry purposes.
-   * The returned value is prefixed with 'RANDOM_' and consists of 40 hexadecimal characters,
-   * because 20 random bytes encoded as hex yields 40 characters (2 hex chars per byte).
-   *
-   * @returns {string} A randomly generated user ID string.
-   */
-  private static getRandomUserId = (): string =>
-    // 20 bytes * 2 hex chars per byte = 40 hex characters
-    `RANDOM_${randomBytes(20).toString('hex')}`
-    ;
-
-  /**
    * Attempts to get the shared telemetry user ID from the Core extension.
    * Returns undefined if the Core extension is not available or doesn't have the method.
    */
   private static async getSharedTelemetryUserId(): Promise<string | undefined> {
     try {
       const coreExtension = extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
-      if (coreExtension && coreExtension.isActive && coreExtension.exports?.getSharedTelemetryUserId) {
+      if (coreExtension?.isActive && coreExtension.exports?.getSharedTelemetryUserId) {
         return await coreExtension.exports.getSharedTelemetryUserId();
       }
     } catch (error) {
@@ -60,14 +48,14 @@ export class UserService {
    * 1. First, attempts to get a shared telemetry user ID from the Core extension if available.
    * 2. If shared ID is not available, falls back to extension-specific behavior:
    * a. If org authorization data (orgId and userId) is available:
-   * - If no user ID exists in global state, or if the existing user ID is a random value, a deterministic SHA-256 hash of orgId and userId is generated, stored, and returned.
-   * - If a non-random user ID already exists in global state, it is returned as-is.
+   * - If no user ID exists in global state, or if the existing user ID is the anonymous user ID, a deterministic SHA-256 hash of orgId and userId is generated, stored, and returned.
+   * - If a non-anonymous user ID already exists in global state, it is returned as-is.
    * b. If org authorization data is not available:
    * - If a user ID exists in global state, it is returned.
-   * - Otherwise, a new random user ID is generated, stored, and returned.
+   * - Otherwise, the anonymous user ID is returned.
    *
    * @param extensionContext - The VS Code extension context, used to access global state.
-   * @returns The telemetry user ID, either shared, hashed, or randomly generated.
+   * @returns The telemetry user ID, either shared, hashed, or the anonymous user ID.
    */
   public static async getTelemetryUserId(extensionContext: ExtensionContext): Promise<string> {
     // First, try to get the shared telemetry user ID from the Core extension
@@ -88,14 +76,14 @@ export class UserService {
 
     // If we have org authorization data available (orgId + userId)
     if (orgId && userId) {
-      // If globalStateUserId is undefined or is a random value, replace it with the hashed value
-      if (!globalStateUserId || globalStateUserId.startsWith('RANDOM_')) {
+      // If globalStateUserId is undefined or is the anonymous user ID, replace it with the hashed value
+      if (!globalStateUserId || globalStateUserId === 'UNAUTHENTICATED_USER') {
         const hashedUserId = this.hashUserIdentifier(orgId, userId);
         await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, hashedUserId);
         return hashedUserId;
       }
 
-      // If globalStateUserId already exists and is not random, keep it (don't change on new org auth)
+      // If globalStateUserId already exists and is not the anonymous user ID, keep it (don't change on new org auth)
       return globalStateUserId;
     }
 
@@ -104,9 +92,8 @@ export class UserService {
       return globalStateUserId;
     }
 
-    // If globalStateUserId is undefined and no org data available, create and store a random value
-    const randomUserId = this.getRandomUserId();
-    await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, randomUserId);
-    return randomUserId;
+    // If globalStateUserId is undefined and no org data available, use the anonymous user ID
+    await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, 'UNAUTHENTICATED_USER');
+    return 'UNAUTHENTICATED_USER';
   }
 }
