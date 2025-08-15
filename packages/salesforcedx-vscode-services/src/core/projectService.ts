@@ -6,7 +6,7 @@
  */
 
 import { SfProject } from '@salesforce/core/project';
-import { Context, Effect, Layer } from 'effect';
+import { Cache, Context, Duration, Effect, Layer } from 'effect';
 import { pipe } from 'effect/Function';
 import { WebSdkLayer } from '../observability/spans';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -20,20 +20,29 @@ export type ProjectService = {
 
 export const ProjectService = Context.GenericTag<ProjectService>('ProjectService');
 
-export const ProjectServiceLive = Layer.effect(
+const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never> =>
+  Effect.tryPromise({
+    try: () => SfProject.resolve(fsPath),
+    catch: error => new Error('Project Resolution Error', { cause: error })
+  }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
+
+export const ProjectServiceLive = Layer.scoped(
   ProjectService,
   Effect.gen(function* () {
+    // Create Effect's Cache for SfProject resolution with capacity and TTL
+    const sfProjectCache = yield* Cache.make({
+      capacity: 10, // Maximum number of cached SfProject instances
+      timeToLive: Duration.minutes(10), // Projects expire after 10 minutes (project structure changes are infrequent)
+      lookup: resolveSfProject // Lookup function that resolves SfProject for given fsPath
+    });
+
     const getSfProject = pipe(
       WorkspaceService,
       Effect.flatMap(ws => ws.getWorkspaceInfo),
-      Effect.tap(workspaceDescription => console.log('workspaceDescription', workspaceDescription)),
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
           ? Effect.fail(new Error('No workspace open'))
-          : Effect.tryPromise({
-              try: () => SfProject.resolve(workspaceDescription.fsPath),
-              catch: error => new Error('Project Resolution Error', { cause: error })
-            })
+          : sfProjectCache.get(workspaceDescription.fsPath)
       )
     )
       .pipe(Effect.withSpan('getSfProject'))
@@ -45,10 +54,7 @@ export const ProjectServiceLive = Layer.effect(
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
           ? Effect.succeed(false)
-          : Effect.tryPromise({
-              try: () => SfProject.resolve(workspaceDescription.fsPath),
-              catch: () => false
-            }).pipe(
+          : sfProjectCache.get(workspaceDescription.fsPath).pipe(
               Effect.map(() => true),
               Effect.catchAll(() => Effect.succeed(false))
             )

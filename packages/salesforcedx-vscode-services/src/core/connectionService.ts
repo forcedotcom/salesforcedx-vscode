@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo, Connection, Global } from '@salesforce/core';
-import { Context, Effect, Layer } from 'effect';
+import { Cache, Context, Duration, Effect, Layer } from 'effect';
 import { WebSdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -26,52 +26,66 @@ export type ConnectionService = {
 
 export const ConnectionService = Context.GenericTag<ConnectionService>('ConnectionService');
 
-export const ConnectionServiceLive = Layer.succeed(ConnectionService, {
-  getConnection: Effect.gen(function* () {
-    if (Global.isWeb) {
-      // Web environment - get connection from settings
-      const settingsService = yield* SettingsService;
-      const instanceUrl = yield* settingsService.getInstanceUrl;
-      const accessToken = yield* settingsService.getAccessToken;
+type WebConnectionKey = {
+  instanceUrl: string;
+  accessToken: string;
+};
 
-      if (!instanceUrl || !accessToken) {
-        return yield* Effect.fail(new Error('No instanceUrl or accessToken found in settings'));
-      }
+const createWebConnection = ({ instanceUrl, accessToken }: WebConnectionKey): Effect.Effect<Connection, Error, never> =>
+  Effect.tryPromise({
+    try: async () =>
+      Connection.create({
+        authInfo: await AuthInfo.create({
+          accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
+        })
+      }),
+    catch: error => new Error(`Failed to create Connection: ${String(error)}`)
+  }).pipe(Effect.withSpan('createWebConnection', { attributes: { instanceUrl } }));
 
-      // For web environment, we need to use type assertion because the Connection.create
-      // method's type definition doesn't account for the web environment parameters
-      return yield* Effect.tryPromise({
-        try: async () =>
-          Connection.create({
-            authInfo: await AuthInfo.create({
-              accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
-            })
-          }),
-        catch: error => new Error(`Failed to create Connection: ${String(error)}`)
-      });
-    } else {
-      // Desktop environment - use existing flow
-      const configService = yield* ConfigService;
-      const configAggregator = yield* configService.getConfigAggregator;
-      console.log('ConfigAggregator', JSON.stringify(configAggregator.getConfig(), null, 2));
+export const ConnectionServiceLive = Layer.scoped(
+  ConnectionService,
+  Effect.gen(function* () {
+    // Create Effect's Cache for web connections with capacity and TTL
+    const webConnectionCache = yield* Cache.make({
+      capacity: 20, // Maximum number of cached web connections
+      timeToLive: Duration.hours(2), // Connections expire after 2 hours (common token lifetime)
+      lookup: createWebConnection // Lookup function that creates Connection for given credentials
+    });
 
-      const username = configAggregator.getPropertyValue<string>('target-org');
+    return {
+      getConnection: Effect.gen(function* () {
+        if (Global.isWeb) {
+          // Web environment - get connection from settings
+          const settingsService = yield* SettingsService;
+          const instanceUrl = yield* settingsService.getInstanceUrl;
+          const accessToken = yield* settingsService.getAccessToken;
 
-      if (!username) {
-        return yield* Effect.fail(new Error('No default org (target-org) set in config'));
-      }
+          return yield* webConnectionCache.get({ instanceUrl, accessToken });
+        } else {
+          // Desktop environment - use existing flow
+          const configService = yield* ConfigService;
+          const configAggregator = yield* configService.getConfigAggregator;
+          console.log('ConfigAggregator', JSON.stringify(configAggregator.getConfig(), null, 2));
 
-      const authInfo = yield* Effect.tryPromise({
-        try: () => AuthInfo.create({ username }),
-        catch: error => new Error('Failed to create AuthInfo', { cause: error })
-      });
+          const username = configAggregator.getPropertyValue<string>('target-org');
 
-      return yield* Effect.tryPromise({
-        try: () => Connection.create({ authInfo }),
-        catch: error => new Error('Failed to create Connection', { cause: error })
-      });
-    }
+          if (!username) {
+            return yield* Effect.fail(new Error('No default org (target-org) set in config'));
+          }
+
+          const authInfo = yield* Effect.tryPromise({
+            try: () => AuthInfo.create({ username }),
+            catch: error => new Error('Failed to create AuthInfo', { cause: error })
+          });
+
+          return yield* Effect.tryPromise({
+            try: () => Connection.create({ authInfo }),
+            catch: error => new Error('Failed to create Connection', { cause: error })
+          });
+        }
+      })
+        .pipe(Effect.withSpan('getConnection'))
+        .pipe(Effect.provide(WebSdkLayer))
+    };
   })
-    .pipe(Effect.withSpan('getConnection'))
-    .pipe(Effect.provide(WebSdkLayer))
-});
+);

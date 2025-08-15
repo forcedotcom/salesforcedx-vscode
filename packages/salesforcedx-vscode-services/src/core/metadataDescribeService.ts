@@ -21,7 +21,7 @@ type DescribeContext = ConnectionService | ConfigService | WorkspaceService | Ch
 export type MetadataDescribeService = {
   /**
    * Performs a Metadata API describe and returns the result.
-   * The forceRefresh parameter is kept for future Effect-based caching implementation.
+   * When forceRefresh=true, bypasses the cache and makes a fresh API call.
    */
   readonly describe: (
     forceRefresh?: boolean
@@ -43,9 +43,9 @@ const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol'])
 export const MetadataDescribeServiceLive = Layer.effect(
   MetadataDescribeService,
   Effect.gen(function* () {
-    // a task that can be cached
+    // a task that can be cached - uses the key parameter for caching
     const cacheableDescribe = (
-      _forceRefresh: boolean = false
+      _key: string = 'cached'
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
       pipe(
         Effect.flatMap(ConnectionService, svc => svc.getConnection),
@@ -75,7 +75,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
     const describe = (
       forceRefresh = false
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
-      forceRefresh ? cacheableDescribe(true) : cachedDescribe(false);
+      forceRefresh ? cacheableDescribe(`fresh-${Date.now()}`) : cachedDescribe('cached');
 
     const listMetadata = (
       type: string,

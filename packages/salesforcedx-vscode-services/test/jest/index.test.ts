@@ -7,9 +7,9 @@
 
 import { activate, deactivate } from '../../src/index';
 import { ChannelService } from '../../src/vscode/channelService';
-import { Layer, Effect as EffectFn } from 'effect';
-import type { Effect } from 'effect/Effect';
+import { Layer, Effect } from 'effect';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
+import { SettingsServiceLive } from '../../src/vscode/settingsService';
 
 // Mock FsProvider to avoid IndexedDB initialization
 jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
@@ -81,7 +81,7 @@ jest.mock('node:fs', () => ({
 
 // Create a mock ChannelService
 const mockChannelService = {
-  getChannel: EffectFn.sync(() => ({
+  getChannel: Effect.sync(() => ({
     appendLine: jest.fn(),
     append: jest.fn(),
     clear: jest.fn(),
@@ -98,7 +98,7 @@ const mockChannelService = {
     warn: jest.fn(),
     error: jest.fn()
   })),
-  appendToChannel: (_message: string): Effect<void, never, never> => EffectFn.sync(() => {})
+  appendToChannel: (_message: string): Effect.Effect<void, never, never> => Effect.sync(() => {})
 };
 
 const MockChannelServiceLayer = Layer.succeed(ChannelService, mockChannelService);
@@ -171,6 +171,8 @@ describe('Extension', () => {
 
     // Test that projectFiles can be called without throwing an error
     // This verifies that the homedir fix works
-    await expect(projectFiles(mockFsProvider)).resolves.toBeUndefined();
+    await expect(
+      Effect.runPromise(Effect.provide(projectFiles(mockFsProvider), SettingsServiceLive))
+    ).resolves.toBeUndefined();
   });
 });

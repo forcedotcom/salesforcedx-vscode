@@ -30,7 +30,8 @@ export class FsProvider implements vscode.FileSystemProvider {
     const program = pipe(
       IndexedDBStorageService,
       Effect.flatMap(storage => storage.loadState),
-      Effect.provide(dependencies)
+      Effect.provide(dependencies),
+      Effect.withSpan('FsProvider: init')
     );
 
     await Effect.runPromise(program);
@@ -89,15 +90,16 @@ export class FsProvider implements vscode.FileSystemProvider {
       }),
       // Write file to filesystem
       Effect.flatMap(() =>
-        Effect.try({
-          try: () => fs.writeFileSync(uri.fsPath, Buffer.from(content)),
+        Effect.tryPromise({
+          try: () => fs.promises.writeFile(uri.fsPath, Buffer.from(content)),
           catch: e => new Error(`Failed to write file: ${String(e)}`)
         })
       ),
       // Save to IndexedDB
       Effect.flatMap(() => IndexedDBStorageService),
       Effect.flatMap(storage => storage.saveFile(uri.fsPath)),
-      Effect.provide(dependencies)
+      Effect.provide(dependencies),
+      Effect.withSpan('FsProvider: writeFile')
     );
 
     await Effect.runPromise(program);
@@ -111,7 +113,8 @@ export class FsProvider implements vscode.FileSystemProvider {
     const program = pipe(
       IndexedDBStorageService,
       Effect.flatMap(storage => storage.deleteFile(uri.fsPath)),
-      Effect.provide(dependencies)
+      Effect.provide(dependencies),
+      Effect.withSpan('FsProvider: delete')
     );
 
     await Effect.runPromise(program);
@@ -133,7 +136,8 @@ export class FsProvider implements vscode.FileSystemProvider {
           Effect.flatMap(() => storage.saveFile(newUri.fsPath))
         )
       ),
-      Effect.provide(dependencies)
+      Effect.provide(dependencies),
+      Effect.withSpan('FsProvider: rename')
     );
 
     await Effect.runPromise(program);

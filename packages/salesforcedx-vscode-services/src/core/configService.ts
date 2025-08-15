@@ -6,9 +6,10 @@
  */
 
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { Context, Effect, Layer, pipe } from 'effect';
+import { Cache, Context, Duration, Effect, Layer, pipe } from 'effect';
 // import * as vscode from 'vscode';
 // import { URI } from 'vscode-uri';
+import { WebSdkLayer } from '../observability/spans';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 
@@ -19,24 +20,40 @@ export type ConfigService = {
 
 export const ConfigService = Context.GenericTag<ConfigService>('ConfigService');
 
-export const ConfigServiceLive = Layer.effect(
+const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggregator, Error, never> =>
+  Effect.tryPromise({
+    try: () => ConfigAggregator.create({ projectPath }),
+    catch: (error: unknown) => new Error(`Failed to get ConfigAggregator: ${String(error)}`)
+  }).pipe(Effect.withSpan('createConfigAggregator', { attributes: { projectPath } }));
+
+export const ConfigServiceLive = Layer.scoped(
   ConfigService,
-  Effect.sync(() => ({
-    getConfigAggregator: pipe(
-      WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspaceInfo),
-      Effect.flatMap(workspaceDescription =>
-        workspaceDescription.isEmpty
-          ? Effect.fail(new Error('No workspace project path found'))
-          : Effect.succeed(workspaceDescription.path.replace(fsPrefix, '').replace(':/', ''))
-      ),
-      Effect.tap(projectPath => console.log('WSPath', JSON.stringify(projectPath, null, 2))),
-      Effect.flatMap(projectPath =>
-        Effect.tryPromise({
-          try: () => ConfigAggregator.create({ projectPath }),
-          catch: (error: unknown) => new Error(`Failed to get ConfigAggregator: ${String(error)}`)
-        })
+  Effect.gen(function* () {
+    // Create Effect's Cache with capacity and TTL for better performance and memory management
+    const configCache = yield* Cache.make({
+      capacity: 50, // Maximum number of cached ConfigAggregators
+      timeToLive: Duration.minutes(30), // Cache entries expire after 30 minutes
+      lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
+    });
+
+    return {
+      getConfigAggregator: pipe(
+        WorkspaceService,
+        Effect.flatMap(ws => ws.getWorkspaceInfo),
+        Effect.flatMap(workspaceDescription =>
+          workspaceDescription.isEmpty
+            ? Effect.fail(new Error('No workspace project path found'))
+            : Effect.succeed(workspaceDescription.path.replace(fsPrefix, '').replace(':/', ''))
+        ),
+        Effect.tap(projectPath => Effect.annotateCurrentSpan({ projectPath })),
+        Effect.flatMap(projectPath =>
+          Effect.gen(function* () {
+            return yield* configCache.get(projectPath);
+          })
+        ),
+        Effect.withSpan('getConfigAggregator'),
+        Effect.provide(WebSdkLayer)
       )
-    )
-  }))
+    };
+  })
 );

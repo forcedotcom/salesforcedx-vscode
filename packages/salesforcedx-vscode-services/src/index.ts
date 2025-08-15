@@ -46,6 +46,24 @@ export type SalesforceVSCodeServicesApi = {
   };
 };
 
+/** Creates the activation effect for the services extension */
+const createActivationEffect = (
+  context: vscode.ExtensionContext,
+  channelServiceLayer: ReturnType<typeof ChannelServiceLayer>
+): Effect.Effect<void, Error, WorkspaceService | SettingsService> =>
+  Effect.gen(function* () {
+    // Output activation message using ChannelService
+    const svc = yield* ChannelService;
+    yield* svc.appendToChannel('Salesforce Services extension is activating!');
+
+    // Set up the file system
+    yield* fileSystemSetup(context, channelServiceLayer);
+    yield* setupCredentials;
+  }).pipe(
+    Effect.provide(channelServiceLayer),
+    Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error)))
+  );
+
 /**
  * Activates the Salesforce Services extension and returns API for other extensions to consume
  * Both service tags/types and their default Live implementations are exported.
@@ -56,29 +74,20 @@ export const activate = async (
   channelServiceLayer = ChannelServiceLayer('Salesforce Services')
 ): Promise<SalesforceVSCodeServicesApi> => {
   // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
-
   const config = vscode.workspace.getConfiguration();
   await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
 
-  const activationEffect = Effect.gen(function* () {
-    // Output activation message using ChannelService
-    console.log('🔍 [Services] Setting up channel service...');
-    const svc = yield* ChannelService;
-    yield* svc.appendToChannel('Salesforce Services extension is activating!');
-    console.log('✅ [Services] Channel service setup complete');
-
-    console.log('🔍 [Services] Starting file system setup...');
-    yield* Effect.promise(() => fileSystemSetup(context));
-    console.log('✅ [Services] File system setup complete');
-  }).pipe(
-    Effect.provide(channelServiceLayer),
-    Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error)))
+  await Effect.runPromise(
+    Effect.provide(createActivationEffect(context, channelServiceLayer), WorkspaceServiceLive).pipe(
+      Effect.provide(SettingsServiceLive),
+      Effect.withSpan('activation:salesforcedx-vscode-services'),
+      Effect.provide(WebSdkLayer)
+    )
   );
 
-  await Effect.runPromise(activationEffect);
-
+  console.log('Salesforce Services extension is now active! 4:17');
   // Return API for other extensions to consume
-  const api: SalesforceVSCodeServicesApi = {
+  return {
     services: {
       ConnectionService,
       ConnectionServiceLive,
@@ -101,9 +110,6 @@ export const activate = async (
       WebSdkLayer
     }
   };
-
-  console.log('Salesforce Services extension is now active! 4:17');
-  return api;
 };
 
 /** Deactivates the Salesforce Services extension */
@@ -111,88 +117,93 @@ export const deactivate = (): void => {
   console.log('Salesforce Services extension is now deactivated!');
 };
 
-const fileSystemSetup = async (
+/** Sets up the virtual file system for the extension */
+const fileSystemSetup = (
   context: vscode.ExtensionContext,
   channelServiceLayer = ChannelServiceLayer('Salesforce Services')
-): Promise<void> => {
-  // Check if workspace is virtual file system
-  await Effect.runPromise(
-    Effect.provide(
-      Effect.flatMap(WorkspaceService, ws => ws.getWorkspaceInfo),
-      WorkspaceServiceLive
-    ).pipe(
-      Effect.flatMap(workspaceDescription => {
-        if (workspaceDescription) {
-          return Effect.tryPromise({
-            try: async () => {
-              const fsProvider = await new FsProvider().init();
-              context.subscriptions.push(
-                vscode.workspace.registerFileSystemProvider(fsPrefix, fsProvider, {
-                  isCaseSensitive: true
-                })
-              );
-              if (workspaceDescription.isEmpty) {
-                await Effect.runPromise(
-                  Effect.provide(
-                    Effect.gen(function* () {
-                      const svc = yield* ChannelService;
-                      yield* svc.appendToChannel('initializing workspace with standard files');
-                    }),
-                    channelServiceLayer
-                  )
-                );
-                // if the workspace is empty, init the standard files
-                await projectFiles(fsProvider);
-              } else {
-                await Effect.runPromise(
-                  Effect.provide(
-                    Effect.gen(function* () {
-                      const svc = yield* ChannelService;
-                      yield* svc.appendToChannel('Workspace is not empty, copying files to virtual file system');
-                    }),
-                    channelServiceLayer
-                  )
-                );
-                // TODO: make this actually work.  It's kinda sketchy fighting against he vscode internal fs ext
-                // get all the files from the existing workspace and put them in the memfs
-                await Promise.all(
-                  fsProvider
-                    .readDirectory(vscode.Uri.parse(workspaceDescription.path))
-                    .filter(([, fileType]) => fileType === vscode.FileType.File)
-                    .map(([file]) => {
-                      const content = fsProvider.readFile(vscode.Uri.parse(`${workspaceDescription.path}/${file}`));
-                      return fsProvider.writeFile(vscode.Uri.parse(`${fsPrefix}:/${file}`), content, {
-                        create: true,
-                        overwrite: true
-                      });
-                    })
-                );
-              }
-              // replace the existing workspace with ours.
-              vscode.workspace.updateWorkspaceFolders(0, 0, {
-                name: 'Code Builder 2025-08-12 16:47:00',
-                uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
-              });
-            },
-            catch: (error: unknown) => new Error(`Failed to initialize fsProvider: ${String(error)}`)
-          });
-        }
-        return Effect.succeed(undefined);
+): Effect.Effect<void, Error, WorkspaceService | ChannelService | SettingsService> =>
+  Effect.gen(function* () {
+    const channelService = yield* ChannelService;
+
+    //TODO: red the files from workspace, if there is one
+    //TODO put the memfs instance into core library
+    //TODO: re-instantiate the memfs from browser storage, if there is
+    //TODO: init the project if there is not one
+
+    // Check if workspace is virtual file system
+    const workspaceDescription = yield* Effect.flatMap(WorkspaceService, ws => ws.getWorkspaceInfo);
+
+    // Initialize file system provider
+    const fsProvider = yield* Effect.tryPromise({
+      try: () => new FsProvider().init(),
+      catch: (error: unknown) => new Error(`Failed to initialize FsProvider: ${String(error)}`)
+    });
+
+    // Register the file system provider
+    context.subscriptions.push(
+      vscode.workspace.registerFileSystemProvider(fsPrefix, fsProvider, {
+        isCaseSensitive: true
       })
-    )
+    );
+
+    if (workspaceDescription.isEmpty) {
+      // Initialize workspace with standard files
+      yield* channelService.appendToChannel('initializing workspace with standard files');
+
+      yield* projectFiles(fsProvider);
+    } else {
+      // Copy existing files to virtual file system
+      yield* channelService.appendToChannel('Workspace is not empty, copying files to virtual file system');
+
+      // TODO: make this actually work. It's kinda sketchy fighting against the vscode internal fs ext
+      // get all the files from the existing workspace and put them in the memfs
+      const fileCopyOperations = fsProvider
+        .readDirectory(vscode.Uri.parse(workspaceDescription.path))
+        .filter(([, fileType]) => fileType === vscode.FileType.File)
+        .map(([file]) => {
+          const content = fsProvider.readFile(vscode.Uri.parse(`${workspaceDescription.path}/${file}`));
+          return fsProvider.writeFile(vscode.Uri.parse(`${fsPrefix}:/${file}`), content, {
+            create: true,
+            overwrite: true
+          });
+        });
+
+      yield* Effect.tryPromise({
+        try: () => Promise.all(fileCopyOperations),
+        catch: (error: unknown) => new Error(`Failed to copy workspace files: ${String(error)}`)
+      });
+    }
+
+    // Replace the existing workspace with ours
+    vscode.workspace.updateWorkspaceFolders(0, 0, {
+      name: 'Code Builder',
+      uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
+    });
+
+    // Register completion message
+    //TODO: read the files from workspace, if there is one
+    //TODO: put the memfs instance into core library
+    //TODO: re-instantiate the memfs from browser storage, if there is
+    //TODO: init the project if there is not one
+    yield* channelService.appendToChannel(`Registered ${fsPrefix} file system provider`);
+  }).pipe(
+    Effect.provide(channelServiceLayer),
+    Effect.provide(WorkspaceServiceLive),
+    Effect.provide(SettingsServiceLive),
+    Effect.provide(WebSdkLayer),
+    Effect.withSpan('fileSystemSetup')
   );
 
-  //TODO: red the files from workspace, if there is one
-  //TODO put the memfs instance into core library
-  //TODO: re-instantiate the memfs from browser storage, if there is
-  //TODO: init the project if there is not one
-  await Effect.runPromise(
-    Effect.provide(
-      Effect.gen(function* () {
-        const svc = yield* ChannelService;
-        yield* svc.appendToChannel(`Registered ${fsPrefix} file system provider`);
-      }),
-      channelServiceLayer
-    )
-  );
-};
+// Create Effect for setting up test credentials
+// TODO: delete this, or make it a separate extension that we don't ship, etc.  Some way to populate the test environment.
+const setupCredentials = Effect.gen(function* () {
+  const settingsService = yield* SettingsService;
+
+  const instanceUrl = 'https://app-site-2249-dev-ed.scratch.my.salesforce.com';
+  const accessToken =
+    '00DD50000003FWG!AQUAQO8ptFCu2j4xCWtVOq17TjOdVz9Zf839.2AGrnrUgX2ICO1YeSUxEtGj6adY77pO7PSw3wEUWgnrvbUQ.G2TBAntV6Y5';
+  yield* settingsService.setInstanceUrl(instanceUrl);
+  yield* settingsService.setAccessToken(accessToken);
+
+  return { instanceUrl, accessToken };
+}).pipe(Effect.withSpan('projectInit: setupCredentials'));

@@ -27,27 +27,38 @@ type WorkspaceInfo = {
   isVirtualFs: boolean;
 };
 
-export const WorkspaceServiceLive = Layer.succeed(WorkspaceService, {
-  getWorkspaceInfo: Effect.sync(() => {
-    const folders = vscode.workspace.workspaceFolders;
+const getWorkspaceInfoTask = Effect.sync(() => {
+  const folders = vscode.workspace.workspaceFolders;
+  return {
+    path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),
+    isEmpty: folders?.length === 0,
+    isVirtualFs: folders?.[0]?.uri.scheme !== 'file',
+    fsPath: folders?.[0]?.uri.fsPath ?? ''
+  };
+}).pipe(
+  Effect.tap(info => Effect.annotateCurrentSpan(info)),
+  Effect.tap(() =>
+    Effect.annotateCurrentSpan({
+      folders: vscode.workspace.workspaceFolders,
+      isWeb: Global.isWeb,
+      home: os.homedir(),
+      workspaceName: vscode.workspace.name
+    })
+  ),
+  Effect.withSpan('getWorkspaceInfo'),
+  Effect.provide(WebSdkLayer)
+);
 
-    console.log(`Workspace folders: ${JSON.stringify(folders, null, 2)}`);
-    console.log(`Workspace folders length: ${folders?.length}`);
-    console.log(`Workspace name: ${vscode.workspace.name}`);
-    console.log(`First folder URI: ${JSON.stringify(folders?.[0]?.uri ?? '', null, 2)}`);
-    console.log('First folder fsPath:', folders?.[0]?.uri.fsPath);
-    console.log(`PathWithSchema: ${getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse(''))}`);
+export const WorkspaceServiceLive = Layer.scoped(
+  WorkspaceService,
+  Effect.gen(function* () {
+    // Create the cached effect once at service creation time
+    const cachedGetWorkspaceInfo = yield* Effect.cached(getWorkspaceInfoTask);
+
     return {
-      path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),
-      isEmpty: folders?.length === 0,
-      isVirtualFs: folders?.[0]?.uri.scheme !== 'file',
-      fsPath: folders?.[0]?.uri.fsPath ?? ''
+      getWorkspaceInfo: cachedGetWorkspaceInfo
     };
   })
-    .pipe(Effect.tap(info => Effect.annotateCurrentSpan(info)))
-    .pipe(Effect.tap(() => Effect.annotateCurrentSpan({ isWeb: Global.isWeb, home: os.homedir() })))
-    .pipe(Effect.withSpan('getWorkspaceInfo'))
-    .pipe(Effect.provide(WebSdkLayer))
-});
+);
 
 const getPathWithSchema = (uri: vscode.Uri): string => (uri.scheme === 'file' ? uri.fsPath : uri.toString());

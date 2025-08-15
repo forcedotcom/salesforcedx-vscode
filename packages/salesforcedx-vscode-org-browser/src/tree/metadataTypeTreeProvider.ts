@@ -14,21 +14,13 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserNode | undefined | void> = new vscode.EventEmitter();
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserNode | undefined | void> =
     this._onDidChangeTreeData.event;
-  private _forceRefresh = false;
-
-  public refresh(): void {
-    this._forceRefresh = true;
-    this._onDidChangeTreeData.fire();
-  }
 
   /**
    * Refreshes only the given type node in the tree.
    */
-  public refreshType(typeName: string): Effect.Effect<void, Error, never> {
-    return Effect.sync(() => {
-      const kind = isFolderType(typeName) ? 'folderType' : 'type';
-      this._onDidChangeTreeData.fire(new OrgBrowserNode(kind, typeName));
-    });
+  public async refreshType(node?: OrgBrowserNode): Promise<void> {
+    await this.getChildren(node, true);
+    this._onDidChangeTreeData.fire(node);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -36,7 +28,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return element;
   }
 
-  public async getChildren(element?: OrgBrowserNode): Promise<OrgBrowserNode[]> {
+  // eslint-disable-next-line class-methods-use-this
+  public async getChildren(element?: OrgBrowserNode, refresh = false): Promise<OrgBrowserNode[]> {
     const program = pipe(
       Effect.flatMap(ExtensionProviderService, svcProvider =>
         Effect.flatMap(svcProvider.getServicesApi, api => {
@@ -54,9 +47,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
           );
           return Effect.flatMap(api.services.MetadataDescribeService, describeService => {
             if (!element) {
-              const forceRefresh = this._forceRefresh;
-              this._forceRefresh = false; // Reset the flag after using it, dang that's ugly
-              return describeService.describe(forceRefresh).pipe(
+              return describeService.describe(refresh).pipe(
                 Effect.map(types =>
                   Array.from(types)
                     .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))

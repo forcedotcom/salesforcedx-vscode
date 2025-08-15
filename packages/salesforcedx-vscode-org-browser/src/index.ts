@@ -31,15 +31,8 @@ export const activateEffect = (
 
         // Register commands
         context.subscriptions.push(
-          vscode.commands.registerCommand('sfdxOrgBrowser.refresh', () => {
-            treeProvider.refresh();
-          }),
-          vscode.commands.registerCommand('sfdxOrgBrowser.refreshType', (node: OrgBrowserNode) => {
-            if (node?.xmlName) {
-              treeProvider.refreshType(node.xmlName);
-            } else {
-              treeProvider.refresh();
-            }
+          vscode.commands.registerCommand('sfdxOrgBrowser.refreshType', async (node: OrgBrowserNode) => {
+            await treeProvider.refreshType(node);
           })
         );
         registerRetrieveMetadataCommand(context);

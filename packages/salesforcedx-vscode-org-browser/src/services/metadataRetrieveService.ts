@@ -39,7 +39,8 @@ const retrieve = (
         api.services.WorkspaceServiceLive,
         api.services.ProjectServiceLive,
         api.services.ChannelServiceLayer('Salesforce Org Browser'),
-        api.services.SettingsServiceLive
+        api.services.SettingsServiceLive,
+        api.services.WebSdkLayer
       );
 
       return pipe(
@@ -97,12 +98,12 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error, never> =
           })
         );
       },
-      catch: e => new Error(`Failed to open document: ${String(e)}`)
+      catch: e => new Error(`Failed to open document at ${filePath}: ${String(e)}`)
     }),
     Effect.flatMap(document =>
       Effect.tryPromise({
         try: () => vscode.window.showTextDocument(document),
-        catch: e => new Error(`Failed to show document: ${String(e)}`)
+        catch: e => new Error(`Failed to show document at ${filePath}: ${String(e)}`)
       })
     ),
     Effect.map(() => undefined)

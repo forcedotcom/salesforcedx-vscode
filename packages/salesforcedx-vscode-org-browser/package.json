@@ -77,14 +77,6 @@
     },
     "commands": [
       {
-        "command": "sfdxOrgBrowser.refresh",
-        "title": "Refresh Metadata Types",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
         "command": "sfdxOrgBrowser.refreshType",
         "title": "Refresh Type",
         "category": "Org Browser",
@@ -105,7 +97,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "sfdxOrgBrowser.refresh",
+          "command": "sfdxOrgBrowser.refreshType",
           "when": "view == sfdxOrgBrowser",
           "group": "navigation@1"
         }

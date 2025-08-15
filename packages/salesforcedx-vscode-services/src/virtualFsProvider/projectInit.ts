@@ -9,14 +9,12 @@ import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
-import { SettingsService, SettingsServiceLive } from '../vscode/settingsService';
+import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { fsProvider } from './fsTypes';
 import { TEMPLATES, metadataDirs } from './templates/templates';
 
 const sampleProjectPath = `${fsPrefix}:/${sampleProjectName}`;
-console.log('projectInit reading homedir');
-console.log(os);
 const home = os.homedir();
 
 const getDirsToCreate = (): string[] => [
@@ -41,13 +39,24 @@ const createConfigFiles = (memfs: fsProvider): void => {
   });
 };
 
-const createProjectStructure = async (memfs: fsProvider): Promise<void> => {
-  getDirsToCreate()
-    .map(dir => vscode.Uri.parse(dir))
-    .map(uri => memfs.createDirectory(uri));
-  createConfigFiles(memfs);
-  createVSCodeFiles(memfs);
-};
+/** Creates the project directory structure and files */
+const createProjectStructure = (memfs: fsProvider): Effect.Effect<void, Error, never> =>
+  Effect.gen(function* () {
+    // Create all directories
+    yield* Effect.tryPromise({
+      try: () =>
+        Promise.all(
+          getDirsToCreate()
+            .map(dir => vscode.Uri.parse(dir))
+            .map(uri => memfs.createDirectory(uri))
+        ),
+      catch: (error: unknown) => new Error(`Failed to create project directories: ${String(error)}`)
+    });
+
+    yield* Effect.all([Effect.sync(() => createConfigFiles(memfs)), Effect.sync(() => createVSCodeFiles(memfs))], {
+      concurrency: 'unbounded'
+    });
+  }).pipe(Effect.withSpan('projectInit: createProjectStructure'));
 
 const createVSCodeFiles = (memfs: fsProvider): void => {
   // Create .vscode directory and config files
@@ -67,29 +76,12 @@ const createVSCodeFiles = (memfs: fsProvider): void => {
   });
 };
 
-/** create the files for an empty sfdx project */
-export const projectFiles = async (memfs: fsProvider): Promise<void> => {
-  if (!memfs.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`))) {
-    await createProjectStructure(memfs);
-  } else {
-  }
-
-  // Run the Effect with the SettingsService layer
-  await Effect.runPromise(Effect.provide(setupCredentials, SettingsServiceLive));
-};
-
-// Create Effect for setting up test credentials
-// TODO: delete this, or make it a separate extension that we don't ship, etc.  Some way to populate the test environment.
-const setupCredentials = Effect.gen(function* () {
-  const settingsService = yield* SettingsService;
-
-  console.log('Setting up test credentials for web environment');
-  const instanceUrl = 'https://java-dream-1093-dev-ed.scratch.my.salesforce.com';
-  const accessToken =
-    '00DDP000006EZae!AR8AQIf82cv3XMfHqbB3eQoJr2kC4FjcK1__DB8bisw.AZtK.pzd0UohNQqOFBTUFQyI.sez1jmXhthl8x8ZTSz9ex0gf7ej';
-
-  yield* settingsService.setInstanceUrl(instanceUrl);
-  yield* settingsService.setAccessToken(accessToken);
-
-  return { instanceUrl, accessToken };
-});
+/** Creates the files for an empty sfdx project */
+export const projectFiles = (memfs: fsProvider): Effect.Effect<void, Error, SettingsService> =>
+  Effect.gen(function* () {
+    // Check if project already exists, if not create it
+    const projectExists = memfs.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`));
+    if (!projectExists) {
+      yield* createProjectStructure(memfs);
+    }
+  });
