@@ -1,6 +1,7 @@
 import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import fs from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,32 +17,22 @@ const jszipNodestreamTransformPlugin = () => ({
   name: 'jszip-nodestream-transform',
   setup(build) {
     build.onLoad({ filter: /\.js$/ }, async args => {
-      const fs = await import('fs/promises');
-      let contents = await fs.readFile(args.path, 'utf8');
+      const originalContents = await fs.promises.readFile(args.path, 'utf8');
 
       // Only transform if the file contains the jszip nodestream check pattern
-      if (contents.includes('nodestream') && args.path.includes('jszip')) {
-        console.log(`🔧 jszipNodestreamTransformPlugin: Fixing JSZip nodestream in ${args.path}`);
-
-        // Debug: Check for different module 16 patterns
-        const hasModule16Pattern1 = contents.includes('t5.exports = e("stream");');
-        const hasModule16Pattern2 = contents.includes('exports=e("stream")},{stream:void 0}],17:');
-        console.log(`🔧 Module 16 patterns - bundled: ${hasModule16Pattern1}, source: ${hasModule16Pattern2}`);
-
-        // Remove the checkSupport("nodestream") call and trailing comma
-        contents = contents.replace(/(\w+)\.checkSupport\(['""]nodestream['"]\)\s*,\s*/g, '');
-
-        // Force nodestream to true by replacing the readable-stream detection
-        // contents = contents.replace(/!!e\("readable-stream"\)\.Readable/g, 'true');
-
-        // Fix the broken readable-stream module (module 16) that tries to export native 'stream'
-        // This is the root cause of "o2 is not a constructor" error
-        contents = contents.replace(
-          'exports=e("stream")},{stream:void 0}],17:[function(e,t,r',
-          'exports={Readable:require("readable-stream").Readable}},{stream:void 0}],17:[function(e,t,r'
-        );
-
-        return { contents, loader: 'js' };
+      if (originalContents.includes('nodestream') && args.path.includes('jszip')) {
+        return {
+          contents: originalContents
+            // Remove the checkSupport("nodestream") call and trailing comma
+            .replace(/(\w+)\.checkSupport\(['""]nodestream['"]\)\s*,\s*/g, '')
+            // Fix the broken readable-stream module (module 16) that tries to export native 'stream'
+            // This is the root cause of "o2 is not a constructor" error
+            .replace(
+              'exports=e("stream")},{stream:void 0}],17:[function(e,t,r',
+              'exports={Readable:require("readable-stream").Readable}},{stream:void 0}],17:[function(e,t,r'
+            ),
+          loader: 'js'
+        };
       }
     });
   }
