@@ -20,38 +20,26 @@ const jszipNodestreamTransformPlugin = () => ({
       let contents = await fs.readFile(args.path, 'utf8');
 
       // Only transform if the file contains the jszip nodestream check pattern
-      if (contents.includes('nodestream') && contents.includes('readable-stream')) {
-        // console.log(`🔧 jszipNodestreamTransformPlugin: Transforming ${args.path}`);
-        // Transform the nodestream detection to always return true
-        // Replace: r.nodestream = !!e("readable-stream").Readable;
-        // With: r.nodestream = true;
-        contents = contents
-          // Force nodestream to true AND provide proper NodejsStreamOutputAdapter
-          .replace(
-            /try\{(\w+)\.nodestream=!!\w+\([^)]*\)\.Readable\}catch\([^)]+\)\{\1\.nodestream=![01]\}/g,
-            '$1.nodestream=!0'
-          )
-          .replace(
-            // Provide a proper NodejsStreamOutputAdapter that uses readable-stream
-            /if\((\w+)\.nodestream\)try\{(\w+)=\w+\([^)]*NodejsStreamOutputAdapter[^)]*\)\}/g,
-            `if($1.nodestream)try{
-            const {Readable}=require('readable-stream');
-            function NodejsStreamOutputAdapter(helper,options,updateCb){
-              Readable.call(this,options);
-              this._helper=helper;
-              var self=this;
-              helper.on('data',function(data,meta){
-                if(!self.push(data)){self._helper.pause();}
-                if(updateCb){updateCb(meta);}
-              }).on('error',function(e){self.emit('error',e);})
-              .on('end',function(){self.push(null);});
-            }
-            NodejsStreamOutputAdapter.prototype=Object.create(Readable.prototype);
-            NodejsStreamOutputAdapter.prototype.constructor=NodejsStreamOutputAdapter;
-            NodejsStreamOutputAdapter.prototype._read=function(){this._helper.resume();};
-            $2=NodejsStreamOutputAdapter;
-          }`
-          );
+      if (contents.includes('nodestream') && args.path.includes('jszip')) {
+        console.log(`🔧 jszipNodestreamTransformPlugin: Fixing JSZip nodestream in ${args.path}`);
+
+        // Debug: Check for different module 16 patterns
+        const hasModule16Pattern1 = contents.includes('t5.exports = e("stream");');
+        const hasModule16Pattern2 = contents.includes('exports=e("stream")},{stream:void 0}],17:');
+        console.log(`🔧 Module 16 patterns - bundled: ${hasModule16Pattern1}, source: ${hasModule16Pattern2}`);
+
+        // Remove the checkSupport("nodestream") call and trailing comma
+        contents = contents.replace(/(\w+)\.checkSupport\(['""]nodestream['"]\)\s*,\s*/g, '');
+
+        // Force nodestream to true by replacing the readable-stream detection
+        // contents = contents.replace(/!!e\("readable-stream"\)\.Readable/g, 'true');
+
+        // Fix the broken readable-stream module (module 16) that tries to export native 'stream'
+        // This is the root cause of "o2 is not a constructor" error
+        contents = contents.replace(
+          'exports=e("stream")},{stream:void 0}],17:[function(e,t,r',
+          'exports={Readable:require("readable-stream").Readable}},{stream:void 0}],17:[function(e,t,r'
+        );
 
         return { contents, loader: 'js' };
       }
