@@ -113,7 +113,7 @@ const retrieve = (
                   const result = await vscode.window.withProgress(
                     {
                       location: vscode.ProgressLocation.Notification,
-                      title: `Retrieving ${members.map(m => m.type).join(', ')}`,
+                      title: `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`,
                       cancellable: false
                     },
                     async () => {
@@ -132,7 +132,7 @@ const retrieve = (
       )
     )
   )
-    .pipe(Effect.withSpan('retrieve'))
+    .pipe(Effect.withSpan('retrieve', { attributes: { members } }))
     .pipe(Effect.provide(WebSdkLayer));
 
 export const MetadataRetrieveServiceLive = Layer.scoped(

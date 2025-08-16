@@ -19,14 +19,6 @@ export const registerRetrieveMetadataCommand = (context: vscode.ExtensionContext
 
       const retrieveEffect = pipe(
         Effect.flatMap(MetadataRetrieveService, svc => svc.retrieve([target], node.kind === 'component')),
-        Effect.tap(() =>
-          Effect.sync(() => {
-            // Only show notifications for bulk operations (type and folder)
-            if (node.kind !== 'component') {
-              vscode.window.showInformationMessage(getRetrieveMessage(node));
-            }
-          })
-        ),
         Effect.catchAll(error =>
           Effect.sync(() => {
             vscode.window.showErrorMessage(`Retrieve failed: ${error.message}`);
@@ -57,16 +49,4 @@ const getRetrieveTarget = (node: OrgBrowserNode): MetadataMember | undefined => 
 
   // folderType nodes don't have retrieve functionality
   return undefined;
-};
-
-const getRetrieveMessage = (node: OrgBrowserNode): string => {
-  if (node.kind === 'type') {
-    return `Retrieved all ${node.xmlName} components`;
-  }
-
-  if (node.kind === 'folder' && node.folderName) {
-    return `Retrieved all ${node.xmlName} components in ${node.folderName}`;
-  }
-
-  return 'Retrieve completed';
 };
