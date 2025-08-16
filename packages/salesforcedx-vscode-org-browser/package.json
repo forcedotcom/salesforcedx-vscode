@@ -132,13 +132,13 @@
           "group": "inline"
         },
         {
-          "command": "orgBrowser.retrieveMetadata",
-          "when": "view == sfdxOrgBrowser && viewItem == type",
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser && viewItem == folder",
           "group": "inline"
         },
         {
           "command": "orgBrowser.retrieveMetadata",
-          "when": "view == sfdxOrgBrowser && viewItem == folder",
+          "when": "view == sfdxOrgBrowser && viewItem == type",
           "group": "inline"
         },
         {

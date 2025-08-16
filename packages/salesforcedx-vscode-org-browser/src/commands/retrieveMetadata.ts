@@ -38,11 +38,6 @@ const getRetrieveTarget = (node: OrgBrowserNode): MetadataMember | undefined => 
     return { type: node.xmlName, fullName: '*' };
   }
 
-  if (node.kind === 'folder' && node.folderName) {
-    // For folders, retrieve all components in that folder
-    return { type: node.xmlName, fullName: `${node.folderName}/*` };
-  }
-
   if (node.kind === 'component' && node.componentName !== undefined) {
     return { type: node.xmlName, fullName: node.componentName };
   }
