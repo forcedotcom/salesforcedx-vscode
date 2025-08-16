@@ -59,11 +59,17 @@
   "main": "./dist/index.js",
   "browser": "./dist/browser.js",
   "contributes": {
+    "viewsWelcome": [
+      {
+        "view": "sfdxOrgBrowser",
+        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
           "id": "metadata",
-          "title": "Org Browser",
+          "title": "Salesforce Org Browser",
           "icon": "resources/orgBrowserIcon.svg"
         }
       ]

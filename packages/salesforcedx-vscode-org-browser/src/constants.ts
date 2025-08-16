@@ -6,3 +6,4 @@
  */
 
 export const EXTENSION_NAME = 'salesforcedx-vscode-org-browser';
+export const TREE_VIEW_ID = 'sfdxOrgBrowser';

@@ -8,19 +8,16 @@
 import { Effect } from 'effect';
 import * as vscode from 'vscode';
 import { registerRetrieveMetadataCommand } from './commands/retrieveMetadata';
+import { TREE_VIEW_ID } from './constants';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserNode } from './tree/orgBrowserNode';
 
-const TREE_VIEW_ID = 'sfdxOrgBrowser';
+export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
+  Effect.runPromise(Effect.provide(activateEffect(context), ExtensionProviderServiceLive));
 
-export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
-  await Effect.runPromise(Effect.provide(activateEffect(context), ExtensionProviderServiceLive));
-};
-
-export const deactivate = (): void => {
-  void Effect.runPromise(Effect.provide(deactivateEffect, ExtensionProviderServiceLive));
-};
+export const deactivate = async (): Promise<void> =>
+  Effect.runPromise(Effect.provide(deactivateEffect, ExtensionProviderServiceLive));
 
 export const activateEffect = (
   context: vscode.ExtensionContext
