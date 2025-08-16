@@ -12,6 +12,16 @@ import { ExtensionProviderService, ExtensionProviderServiceLive } from './servic
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserNode } from './tree/orgBrowserNode';
 
+const TREE_VIEW_ID = 'sfdxOrgBrowser';
+
+export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
+  await Effect.runPromise(Effect.provide(activateEffect(context), ExtensionProviderServiceLive));
+};
+
+export const deactivate = (): void => {
+  void Effect.runPromise(Effect.provide(deactivateEffect, ExtensionProviderServiceLive));
+};
+
 export const activateEffect = (
   context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, ExtensionProviderService> =>
@@ -23,16 +33,18 @@ export const activateEffect = (
     yield* Effect.provide(
       Effect.gen(function* () {
         const svc = yield* ChannelService;
-        yield* svc.appendToChannel('Salesforce Org Browser extension is now active! 4:12');
+        yield* svc.appendToChannel('Salesforce Org Browser extension activating');
 
         // Register the tree provider
-        const treeProvider = new MetadataTypeTreeProvider();
-        vscode.window.registerTreeDataProvider('sfdxOrgBrowser', treeProvider);
+        vscode.window.registerTreeDataProvider(TREE_VIEW_ID, new MetadataTypeTreeProvider());
 
         // Register commands
         context.subscriptions.push(
-          vscode.commands.registerCommand('sfdxOrgBrowser.refreshType', async (node: OrgBrowserNode) => {
-            await treeProvider.refreshType(node);
+          vscode.commands.registerCommand(`${TREE_VIEW_ID}.refreshType`, async (node: OrgBrowserNode) => {
+            await new MetadataTypeTreeProvider().refreshType(node);
+          }),
+          vscode.commands.registerCommand(`${TREE_VIEW_ID}.collapseAll`, () => {
+            vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`);
           })
         );
         registerRetrieveMetadataCommand(context);
@@ -59,11 +71,3 @@ export const deactivateEffect = Effect.gen(function* () {
     ChannelServiceLayer('Salesforce Org Browser')
   );
 });
-
-export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
-  await Effect.runPromise(Effect.provide(activateEffect(context), ExtensionProviderServiceLive));
-};
-
-export const deactivate = (): void => {
-  void Effect.runPromise(Effect.provide(deactivateEffect, ExtensionProviderServiceLive));
-};

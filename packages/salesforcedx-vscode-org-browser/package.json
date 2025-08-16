@@ -93,12 +93,23 @@
           "dark": "resources/dark/retrieve.svg",
           "light": "resources/light/retrieve.svg"
         }
+      },
+      {
+        "command": "sfdxOrgBrowser.collapseAll",
+        "title": "Collapse All",
+        "category": "Org Browser",
+        "icon": "$(collapse-all)"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser",
+          "group": "navigation@0"
+        },
+        {
+          "command": "sfdxOrgBrowser.collapseAll",
           "when": "view == sfdxOrgBrowser",
           "group": "navigation@1"
         }
