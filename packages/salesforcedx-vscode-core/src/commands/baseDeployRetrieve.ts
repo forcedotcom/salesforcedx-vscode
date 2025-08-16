@@ -298,5 +298,5 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   }
 }
 
-export const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
+const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
   fileResponse.state === ComponentStatus.Failed;

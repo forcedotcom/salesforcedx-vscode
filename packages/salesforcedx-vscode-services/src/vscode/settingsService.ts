@@ -8,9 +8,9 @@
 import { Context, Effect, Layer } from 'effect';
 import * as vscode from 'vscode';
 
-export const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
-export const INSTANCE_URL_KEY = 'instanceUrl';
-export const ACCESS_TOKEN_KEY = 'accessToken';
+const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
+const INSTANCE_URL_KEY = 'instanceUrl';
+const ACCESS_TOKEN_KEY = 'accessToken';
 
 /**
  * Service for interacting with VSCode settings

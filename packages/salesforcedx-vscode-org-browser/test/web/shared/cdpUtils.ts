@@ -6,7 +6,7 @@
  */
 import { chromium, Browser, BrowserContext, Page } from '@playwright/test';
 
-export type ConsoleCapture = {
+type ConsoleCapture = {
   consoleErrors: string[];
   removeAllListenersErrors: string[];
   fiberFailureErrors: string[];
@@ -87,51 +87,6 @@ export const connectToCDPBrowser = async (port: number = 9222): Promise<CDPConne
 };
 
 /**
- * Inject settings into VSCode via CDP
- */
-export const injectSettings = async (page: Page, section: string, settings: Record<string, unknown>): Promise<void> => {
-  console.log(`Injecting settings for section: ${section}`, settings);
-
-  await page.evaluate(
-    params => {
-      // Access the VSCode API through acquireVsCodeApi()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
-      const vscode = (window as any).acquireVsCodeApi();
-
-      // Create a message to update settings
-      vscode.postMessage({
-        command: 'updateSettings',
-        section: params.section,
-        settings: params.settings
-      });
-
-      // Also try to directly modify the configuration if accessible
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
-        if ((window as any).vscode?.workspace) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
-          const config = (window as any).vscode.workspace.getConfiguration(params.section);
-
-          // Update each setting
-          Object.entries(params.settings).forEach(([key, value]) => {
-            config.update(key, value, true);
-          });
-
-          console.log(`Settings for ${params.section} updated via direct configuration API`);
-        }
-      } catch (error) {
-        console.error('Failed to update settings via direct API:', error);
-      }
-    },
-    { section, settings }
-  );
-
-  // Wait a moment for settings to be applied
-  await page.waitForTimeout(1000);
-  console.log('Settings injection completed');
-};
-
-/**
  * Report console capture results
  */
 export const reportConsoleCapture = (capture: ConsoleCapture): void => {
@@ -160,24 +115,4 @@ export const reportConsoleCapture = (capture: ConsoleCapture): void => {
     console.log('\n❌ FiberFailure Errors:');
     capture.fiberFailureErrors.forEach(error => console.log(`  ${error}`));
   }
-};
-
-/**
- * Wait for a specific condition with timeout
- */
-export const waitForCondition = async (
-  condition: () => boolean | Promise<boolean>,
-  timeoutMs: number = 10000,
-  intervalMs: number = 100
-): Promise<void> => {
-  const startTime = Date.now();
-
-  while (Date.now() - startTime < timeoutMs) {
-    if (await condition()) {
-      return;
-    }
-    await new Promise(resolve => setTimeout(resolve, intervalMs));
-  }
-
-  throw new Error(`Condition not met within ${timeoutMs}ms`);
 };

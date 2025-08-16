@@ -9,13 +9,13 @@ import { connectToCDPBrowser, CDPConnection, reportConsoleCapture } from '../sha
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 
 // Define the fixture interface
-export type CDPFixtures = {
+type CDPFixtures = {
   cdpConnection: CDPConnection;
   cdpPage: Page; // The page from CDP connection
 };
 
 // Define test configuration options
-export type TestConfig = {
+type TestConfig = {
   screenshotOnFailure: boolean;
   timeouts: {
     vsCodeLoad: number;
@@ -26,7 +26,7 @@ export type TestConfig = {
 };
 
 // Define the OrgBrowser fixtures
-export type OrgBrowserFixtures = {
+type OrgBrowserFixtures = {
   orgBrowserPage: OrgBrowserPage;
   testConfig: TestConfig;
 } & CDPFixtures;

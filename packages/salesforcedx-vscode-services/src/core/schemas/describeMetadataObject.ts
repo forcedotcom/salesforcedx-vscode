@@ -6,7 +6,7 @@
  */
 import * as S from 'effect/Schema';
 
-export const DescribeMetadataObjectSchema = S.Struct({
+const DescribeMetadataObjectSchema = S.Struct({
   childXmlNames: S.Array(S.String), // always present, not optional
   directoryName: S.String,
   inFolder: S.Boolean,
@@ -14,7 +14,5 @@ export const DescribeMetadataObjectSchema = S.Struct({
   suffix: S.optional(S.Union(S.String, S.Null)), // string | null | undefined
   xmlName: S.String
 });
-
-export const DescribeMetadataObjectsSchema = S.Array(DescribeMetadataObjectSchema);
 
 export type DescribeMetadataObject = S.Schema.Type<typeof DescribeMetadataObjectSchema>;

@@ -11,31 +11,23 @@ export type fsProvider = vscode.FileSystemProvider & {
   exists: (uri: vscode.Uri) => boolean;
 };
 
-export type SerializedFile = vscode.FileStat & {
+type SerializedFile = vscode.FileStat & {
   type: vscode.FileType.File;
   data: string;
 };
 
-export type SerializedDirectory = vscode.FileStat & {
+type SerializedDirectory = vscode.FileStat & {
   type: vscode.FileType.Directory;
   entries: Record<string, SerializedEntry>;
 };
 
 export type SerializedEntry = SerializedFile | SerializedDirectory;
 
-export const isSerializedFile = (entry: SerializedEntry): entry is SerializedFile =>
-  entry.type === vscode.FileType.File;
-
-export const isSerializedDirectory = (entry: SerializedEntry): entry is SerializedDirectory =>
-  entry.type === vscode.FileType.Directory;
-
-// version that include the path
-
 export const isSerializedDirectoryWithPath = (entry: SerializedEntryWithPath): entry is SerializedDirectoryWithPath =>
   entry.type === vscode.FileType.Directory;
 
 export type SerializedFileWithPath = SerializedFile & { path: string };
-export type SerializedDirectoryWithPath = SerializedDirectory & {
+type SerializedDirectoryWithPath = SerializedDirectory & {
   path: string;
 };
 export type SerializedEntryWithPath = SerializedFileWithPath | SerializedDirectoryWithPath;

@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 
-export type OrgBrowserNodeKind =
+type OrgBrowserNodeKind =
   /** a normal metadata type */
   | 'type'
   /** a metadata type that has a folder (Dashboard, Document, EmailTemplate, Report) */

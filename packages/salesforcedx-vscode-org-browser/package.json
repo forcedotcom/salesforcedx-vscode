@@ -28,6 +28,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/source-deploy-retrieve": "^12.22.5",
     "salesforcedx-vscode-services": "64.4.0",
     "@types/node": "^20.0.0",
     "esbuild": "0.25.0",

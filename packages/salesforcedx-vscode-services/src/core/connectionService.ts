@@ -12,16 +12,9 @@ import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 
-// Use the actual connection type from sfdx-core
-export type SalesforceConnection = Connection;
-
 export type ConnectionService = {
   /** Get a Connection to the target org */
-  readonly getConnection: Effect.Effect<
-    SalesforceConnection,
-    Error,
-    ConfigService | WorkspaceService | SettingsService
-  >;
+  readonly getConnection: Effect.Effect<Connection, Error, ConfigService | WorkspaceService | SettingsService>;
 };
 
 export const ConnectionService = Context.GenericTag<ConnectionService>('ConnectionService');

@@ -9,7 +9,6 @@ import * as vscode from 'vscode';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { isFolderType, OrgBrowserNode } from './orgBrowserNode';
 
-export const toTreeItem = (node: OrgBrowserNode): vscode.TreeItem => node;
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserNode> {
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserNode | undefined | void> = new vscode.EventEmitter();
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserNode | undefined | void> =
