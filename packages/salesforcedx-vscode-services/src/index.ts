@@ -201,7 +201,7 @@ const setupCredentials = Effect.gen(function* () {
 
   const instanceUrl = 'https://app-site-2249-dev-ed.scratch.my.salesforce.com';
   const accessToken =
-    '00DD50000003FWG!AQUAQO8ptFCu2j4xCWtVOq17TjOdVz9Zf839.2AGrnrUgX2ICO1YeSUxEtGj6adY77pO7PSw3wEUWgnrvbUQ.G2TBAntV6Y5';
+    '00DD50000003FWG!AQUAQBTnEgzaCsjFIKwHbf.GUSz8N1N4qE2JFe9FveXyS1GeuJapRoD3mJO.XCaQ_t5KNtHh7axPQk_OqbBOtQDD84Cwu260';
   yield* settingsService.setInstanceUrl(instanceUrl);
   yield* settingsService.setAccessToken(accessToken);
 
