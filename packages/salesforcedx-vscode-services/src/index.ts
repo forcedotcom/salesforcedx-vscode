@@ -126,7 +126,6 @@ const fileSystemSetup = (
     const channelService = yield* ChannelService;
 
     //TODO: red the files from workspace, if there is one
-    //TODO put the memfs instance into core library
     //TODO: re-instantiate the memfs from browser storage, if there is
     //TODO: init the project if there is not one
 
@@ -182,7 +181,6 @@ const fileSystemSetup = (
 
     // Register completion message
     //TODO: read the files from workspace, if there is one
-    //TODO: put the memfs instance into core library
     //TODO: re-instantiate the memfs from browser storage, if there is
     //TODO: init the project if there is not one
     yield* channelService.appendToChannel(`Registered ${fsPrefix} file system provider`);
@@ -194,16 +192,22 @@ const fileSystemSetup = (
     Effect.withSpan('fileSystemSetup')
   );
 
-// Create Effect for setting up test credentials
-// TODO: delete this, or make it a separate extension that we don't ship, etc.  Some way to populate the test environment.
+// Create Effect for setting up test credentials if they are not already set (CodeBuilder from the org should set them)
+// TODO: prompt the user for a refresh token, and then use that to get the access token
+// by implementing the vscode auth provider https://github.com/microsoft/vscode-extension-samples/blob/main/authenticationprovider-sample/src/extension.ts
+// TODO: tests should also populate the settings
 const setupCredentials = Effect.gen(function* () {
   const settingsService = yield* SettingsService;
 
   const instanceUrl = 'https://app-site-2249-dev-ed.scratch.my.salesforce.com';
   const accessToken =
     '00DD50000003FWG!AQUAQBTnEgzaCsjFIKwHbf.GUSz8N1N4qE2JFe9FveXyS1GeuJapRoD3mJO.XCaQ_t5KNtHh7axPQk_OqbBOtQDD84Cwu260';
-  yield* settingsService.setInstanceUrl(instanceUrl);
-  yield* settingsService.setAccessToken(accessToken);
+  if (!(yield* settingsService.getInstanceUrl).startsWith('https://')) {
+    yield* settingsService.setInstanceUrl(instanceUrl);
+  }
+  if (!(yield* settingsService.getAccessToken).startsWith('00D')) {
+    yield* settingsService.setAccessToken(accessToken);
+  }
 
   return { instanceUrl, accessToken };
 }).pipe(Effect.withSpan('projectInit: setupCredentials'));
