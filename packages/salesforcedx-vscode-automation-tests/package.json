@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-automation-tests",
-  "version": "64.9.1",
+  "version": "64.10.0",
   "description": "",
   "main": "index.js",
   "scripts": {
