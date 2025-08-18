@@ -31,7 +31,7 @@
     "@opentelemetry/sdk-trace-web": "2.0.1",
     "@opentelemetry/sdk-logs": "0.203.0",
     "@salesforce/core": "^8.19.1",
-    "@salesforce/source-deploy-retrieve": "^12.22.3",
+    "@salesforce/source-deploy-retrieve": "^12.22.8",
     "@salesforce/source-tracking": "^7.4.9",
     "effect": "^3.16.12",
     "jsforce": "^3.10.2",

@@ -22,6 +22,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.4.4",
+    "@effect/language-service": "0.35.2",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.11.0",
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
