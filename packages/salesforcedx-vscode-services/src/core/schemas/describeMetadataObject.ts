@@ -6,6 +6,8 @@
  */
 import * as S from 'effect/Schema';
 
+// keep this around for typing and for parsing in the future
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DescribeMetadataObjectSchema = S.Struct({
   childXmlNames: S.Array(S.String), // always present, not optional
   directoryName: S.String,
