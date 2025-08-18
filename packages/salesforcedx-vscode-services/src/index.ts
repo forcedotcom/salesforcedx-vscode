@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Effect } from 'effect';
+import { Effect, Layer } from 'effect';
 import * as vscode from 'vscode';
 import { sampleProjectName } from './constants';
 import { ConfigService, ConfigServiceLive } from './core/configService';
@@ -16,6 +16,7 @@ import { ProjectService, ProjectServiceLive } from './core/projectService';
 import { WebSdkLayer } from './observability/spans';
 import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
+import { startWatch } from './virtualFsProvider/memfsWatcher';
 import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { FsService, FsServiceLive } from './vscode/fsService';
@@ -84,7 +85,7 @@ export const activate = async (
     )
   );
 
-  console.log('Salesforce Services extension is now active! 4:17');
+  console.log('Salesforce Services extension is now active! 7:50');
   // Return API for other extensions to consume
   return {
     services: {
@@ -144,6 +145,8 @@ const fileSystemSetup = (
       })
     );
 
+    yield* startWatch();
+
     if (workspaceDescription.isEmpty) {
       // Initialize workspace with standard files
       yield* channelService.appendToChannel('initializing workspace with standard files');
@@ -184,9 +187,11 @@ const fileSystemSetup = (
     //TODO: init the project if there is not one
     yield* channelService.appendToChannel(`Registered ${fsPrefix} file system provider`);
   }).pipe(
-    Effect.provide(channelServiceLayer),
-    Effect.provide(WorkspaceServiceLive),
-    Effect.provide(SettingsServiceLive),
-    Effect.provide(WebSdkLayer),
+    Effect.provide(
+      Layer.provideMerge(
+        channelServiceLayer,
+        Layer.provideMerge(WorkspaceServiceLive, Layer.provideMerge(SettingsServiceLive, WebSdkLayer))
+      )
+    ),
     Effect.withSpan('fileSystemSetup')
   );

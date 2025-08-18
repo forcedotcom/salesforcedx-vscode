@@ -61,7 +61,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async createDirectory(uri: vscode.Uri): Promise<void> {
-    fs.mkdirSync(uri.fsPath, { recursive: true });
+    await fs.promises.mkdir(uri.fsPath, { recursive: true });
     emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
   }
 
@@ -93,12 +93,7 @@ export class FsProvider implements vscode.FileSystemProvider {
           try: () => fs.promises.writeFile(uri.fsPath, Buffer.from(content)),
           catch: e => new Error(`Failed to write file: ${String(e)}`)
         })
-      ),
-      // Save to IndexedDB
-      Effect.flatMap(() => IndexedDBStorageService),
-      Effect.flatMap(storage => storage.saveFile(uri.fsPath)),
-      Effect.provide(dependencies),
-      Effect.withSpan('FsProvider: writeFile')
+      )
     );
 
     await Effect.runPromise(Effect.scoped(program));
@@ -108,16 +103,6 @@ export class FsProvider implements vscode.FileSystemProvider {
 
   public async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
     await fs.promises.rm(uri.fsPath, { recursive: options.recursive, force: true });
-
-    const program = pipe(
-      IndexedDBStorageService,
-      Effect.flatMap(storage => storage.deleteFile(uri.fsPath)),
-      Effect.provide(dependencies),
-      Effect.withSpan('FsProvider: delete')
-    );
-
-    await Effect.runPromise(Effect.scoped(program));
-
     emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
   }
 
@@ -125,21 +110,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     if (!options.overwrite && this.exists(newUri)) {
       throw vscode.FileSystemError.FileExists(newUri);
     }
-    fs.renameSync(oldUri.fsPath, newUri.fsPath);
-
-    const program = pipe(
-      IndexedDBStorageService,
-      Effect.flatMap(storage =>
-        pipe(
-          storage.deleteFile(oldUri.fsPath),
-          Effect.flatMap(() => storage.saveFile(newUri.fsPath))
-        )
-      ),
-      Effect.provide(dependencies),
-      Effect.withSpan('FsProvider: rename')
-    );
-
-    await Effect.runPromise(Effect.scoped(program));
+    await fs.promises.rename(oldUri.fsPath, newUri.fsPath);
 
     emitter.fire([
       { type: vscode.FileChangeType.Deleted, uri: oldUri },

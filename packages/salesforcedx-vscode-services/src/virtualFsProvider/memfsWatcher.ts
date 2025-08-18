@@ -9,6 +9,7 @@ import { fs } from '@salesforce/core/fs';
 import { Effect, Layer, pipe } from 'effect';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
+import { WebSdkLayer } from '../observability/spans';
 import { ChannelService, ChannelServiceLayer } from '../vscode/channelService';
 import { fsPrefix } from './constants';
 import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './indexedDbStorage';
@@ -22,63 +23,98 @@ const storageWithChannel = Layer.provideMerge(
 
 // we need an emitter to send events to the fileSystemProvider using the vscode API
 export const emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
-export const startWatch = async (): Promise<void> => {
-  // this watches files in the project/workspace only, not the global sfdx folders, tmp, home, etc.
-  fs.watch(`/${sampleProjectName}`, { recursive: true }, async (event: string, filename: string) => {
-    try {
-      const uri = vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}/${filename}`);
+/** Starts watching the memfs for file changes */
+export const startWatch = (): Effect.Effect<void, Error, ChannelService> =>
+  Effect.gen(function* () {
+    const channelService = yield* ChannelService;
 
-      // For 'rename' events, we need to check if the file exists
-      // If it exists, it was created/renamed to. If not, it was deleted/renamed from
-      if (event === 'rename') {
-        if (fs.existsSync(filename)) {
-          // File was created or renamed to this location
-          const program = pipe(
-            IndexedDBStorageService,
-            Effect.flatMap(storage => storage.saveFile(filename)),
-            Effect.flatMap(() => ChannelService),
-            Effect.flatMap(channel =>
-              Effect.sync(() => channel.appendToChannel(`Saved new/renamed file ${filename} to IndexedDB`))
-            ),
-            Effect.provide(storageWithChannel)
-          );
-          await Effect.runPromise(Effect.scoped(program));
-          emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
-        } else {
-          // File was deleted or renamed from this location
-          const program = pipe(
-            IndexedDBStorageService,
-            Effect.flatMap(storage => storage.deleteFile(filename)),
-            Effect.flatMap(() => ChannelService),
-            Effect.flatMap(channel =>
-              Effect.sync(() => channel.appendToChannel(`Deleted file ${filename} from IndexedDB`))
-            ),
-            Effect.provide(storageWithChannel)
-          );
-          await Effect.runPromise(Effect.scoped(program));
-          emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
+    yield* channelService.appendToChannel(`Starting file watcher for /${sampleProjectName}`);
+
+    // Wrap fs.watch in an Effect
+    yield* Effect.async<void, Error>(resume => {
+      try {
+        const projectPath = `/${sampleProjectName}`;
+        console.log(`[WATCHER] Starting fs.watch for ${projectPath}`);
+
+        // Ensure the directory exists before watching
+        if (!fs.existsSync(projectPath)) {
+          console.log(`[WATCHER] Creating directory: ${projectPath}`);
+          fs.mkdirSync(projectPath, { recursive: true });
         }
+
+        // this watches files in the project/workspace only, not the global sfdx folders, tmp, home, etc.
+        fs.watch(projectPath, { recursive: true }, async (event: string, filename: string) => {
+          const fullPath = `/${sampleProjectName}/${filename}`;
+          try {
+            const uri = vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}/${filename}`);
+
+            // For 'rename' events, we need to check if the file exists
+            // If it exists, it was created/renamed to. If not, it was deleted/renamed from
+            if (event === 'rename') {
+              if (fs.existsSync(fullPath)) {
+                // File was created or renamed to this location
+                const program = pipe(
+                  IndexedDBStorageService,
+                  Effect.flatMap(storage => storage.saveFile(fullPath)),
+                  Effect.provide(storageWithChannel),
+                  Effect.withSpan('watchProject:rename(saveFile)', { attributes: { path: fullPath, uri } }),
+                  Effect.provide(WebSdkLayer)
+                );
+                await Effect.runPromise(Effect.scoped(program));
+                emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
+              } else {
+                // File was deleted or renamed from this location
+                const program = pipe(
+                  IndexedDBStorageService,
+                  Effect.flatMap(storage => storage.deleteFile(fullPath)),
+                  Effect.provide(storageWithChannel),
+                  Effect.withSpan('watchProject:rename(deleteFile)', { attributes: { path: fullPath, uri } }),
+                  Effect.provide(WebSdkLayer)
+                );
+                await Effect.runPromise(Effect.scoped(program));
+                emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
+              }
+            }
+            // For 'change' events, always save to IndexedDB
+            else if (event === 'change') {
+              const program = pipe(
+                IndexedDBStorageService,
+                Effect.flatMap(storage => storage.saveFile(fullPath)),
+                Effect.provide(storageWithChannel),
+                Effect.withSpan('watchProject:change(saveFile)', { attributes: { path: fullPath, uri } }),
+                Effect.provide(WebSdkLayer)
+              );
+              await Effect.runPromise(Effect.scoped(program));
+              emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+            }
+          } catch (error) {
+            // Get channel service for error logging
+            const channel = await Effect.runPromise(
+              pipe(ChannelService, Effect.provide(ChannelServiceLayer('Salesforce Services')))
+            );
+            await Effect.runPromise(
+              channel.appendToChannel(`Error handling fs event for ${fullPath}: ${String(error)}`)
+            );
+          }
+        });
+
+        // Successfully started watching
+        console.log('[WATCHER] fs.watch successfully started');
+        resume(Effect.succeed(undefined));
+      } catch (error) {
+        console.log(`[WATCHER] Error starting fs.watch: ${String(error)}`);
+        resume(Effect.fail(new Error(`Failed to start file watcher: ${String(error)}`)));
       }
-      // For 'change' events, always save to IndexedDB
-      else if (event === 'change') {
-        const program = pipe(
-          IndexedDBStorageService,
-          Effect.flatMap(storage => storage.saveFile(filename)),
-          Effect.flatMap(() => ChannelService),
-          Effect.flatMap(channel =>
-            Effect.sync(() => channel.appendToChannel(`Saved changed file ${filename} to IndexedDB`))
-          ),
-          Effect.provide(storageWithChannel)
-        );
-        await Effect.runPromise(Effect.scoped(program));
-        emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
-      }
-    } catch (error) {
-      // Get channel service for error logging
-      const channel = await Effect.runPromise(
-        pipe(ChannelService, Effect.provide(ChannelServiceLayer('Salesforce Services')))
+    });
+
+    yield* channelService.appendToChannel('File watcher started successfully');
+    console.log('[WATCHER] startWatch Effect completed successfully');
+  }).pipe(
+    Effect.tapError(error => {
+      console.log(`[WATCHER] startWatch Effect failed: ${error.message}`);
+      return Effect.flatMap(ChannelService, channel =>
+        channel.appendToChannel(`Error starting watcher: ${error.message}`)
       );
-      channel.appendToChannel(`Error handling fs event for ${filename}: ${error}`);
-    }
-  });
-};
+    }),
+    Effect.withSpan('startWatch')
+  );
