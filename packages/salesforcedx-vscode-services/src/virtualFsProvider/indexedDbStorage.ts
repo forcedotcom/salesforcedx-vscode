@@ -4,18 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import { fs } from '@salesforce/core/fs';
 import { Context, Effect, Layer } from 'effect';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
 import { WebSdkLayer } from '../observability/spans';
-import { ChannelService } from '../vscode/channelService';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
-  SerializedEntry,
   SerializedEntryWithPath,
   SerializedFileWithPath
 } from './fsTypes';
@@ -25,148 +22,120 @@ const STORE_NAME = 'files';
 const DB_VERSION = 1;
 
 export type IndexedDBStorageService = {
-  /** Initialize the IndexedDB database */
-  readonly initDB: Effect.Effect<void, Error, ChannelService>;
   /** Load state from IndexedDB into memfs */
-  readonly loadState: Effect.Effect<void, Error, ChannelService>;
+  readonly loadState: () => Effect.Effect<void, Error>;
   /** Save a file to IndexedDB */
-  readonly saveFile: (path: string) => Effect.Effect<void, Error, ChannelService>;
+  readonly saveFile: (path: string) => Effect.Effect<void, Error>;
   /** Delete a file from IndexedDB */
-  readonly deleteFile: (path: string) => Effect.Effect<void, Error, ChannelService>;
+  readonly deleteFile: (path: string) => Effect.Effect<void, Error>;
   /** Load a specific file from IndexedDB */
-  readonly loadFile: (path: string) => Effect.Effect<void, Error, ChannelService>;
+  readonly loadFile: (path: string) => Effect.Effect<void, Error>;
 };
 
 export const IndexedDBStorageService = Context.GenericTag<IndexedDBStorageService>('IndexedDBStorageService');
 
-export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, Error, ChannelService> = Layer.scoped(
+export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, Error> = Layer.scoped(
   IndexedDBStorageService,
   Effect.gen(function* () {
-    // Initialize the database once at service creation time
-    const channelService = yield* ChannelService;
-    const database = yield* Effect.tryPromise({
-      try: async (): Promise<IDBDatabase> => {
-        channelService.appendToChannel(`IndexedDBStorage initDB ${Date.now()}`);
-        const db = await new Promise<IDBDatabase>((resolve, reject) => {
-          const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const db = yield* Effect.async<IDBDatabase, Error>(resume => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      request.onupgradeneeded = (event): void => {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        const dbToUpgrade = (event.target as IDBOpenDBRequest).result;
+        if (!dbToUpgrade.objectStoreNames.contains(STORE_NAME)) {
+          dbToUpgrade.createObjectStore(STORE_NAME);
+        }
+      };
+
+      request.onsuccess = (event): void => {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        resume(Effect.succeed((event.target as IDBOpenDBRequest).result));
+      };
+
+      request.onerror = (event: unknown): void => {
+        resume(Effect.fail(new Error(`Failed to open IndexedDB database "${DB_NAME}" with error: ${event}`)));
+      };
+    });
+
+    yield* Effect.addFinalizer(() =>
+      Effect.sync(() => {
+        db.close();
+      })
+    );
+
+    const withStore = <A>(
+      mode: IDBTransactionMode,
+      f: (store: IDBObjectStore) => IDBRequest<A>
+    ): Effect.Effect<A, Error> =>
+      Effect.async<A, Error>(resume => {
+        // eslint-disable-next-line functional/no-try-statements
+        try {
+          const transaction = db.transaction(STORE_NAME, mode);
+          const store = transaction.objectStore(STORE_NAME);
+          const request = f(store);
+
+          request.onsuccess = (): void => {
+            resume(Effect.succeed(request.result));
+          };
 
           request.onerror = (): void => {
-            channelService.appendToChannel('IndexedDB error');
-            reject(request.error);
-          };
-
-          request.onsuccess = (): void => {
-            channelService.appendToChannel(`IndexedDB initialized ${Date.now()}`);
-            resolve(request.result);
-          };
-
-          request.onupgradeneeded = (event): void => {
-            channelService.appendToChannel(`indexedDB upgraded from ${event.oldVersion} to ${event.newVersion}`);
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            const upgradeDB = (event.target as IDBOpenDBRequest).result;
-            if (!upgradeDB.objectStoreNames.contains(STORE_NAME)) {
-              upgradeDB.createObjectStore(STORE_NAME, { keyPath: 'path' });
-            }
-          };
-        });
-        return db;
-      },
-      catch: (error: unknown) => new Error(`Failed to initialize IndexedDB: ${String(error)}`)
-    }).pipe(Effect.withSpan('initDB'));
-
-    const initDB = Effect.succeed(undefined);
-
-    const loadState = Effect.tryPromise({
-      try: async (): Promise<void> => {
-        channelService.appendToChannel('indexedDBStorage loadState');
-        const transaction = database.transaction(STORE_NAME, 'readonly');
-        const store = transaction.objectStore(STORE_NAME);
-        const request = store.getAll();
-
-        await new Promise<void>((resolve, reject) => {
-          request.onsuccess = (): void => {
-            channelService.appendToChannel('loadState success');
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            const entries = request.result as SerializedEntryWithPath[];
-            entries.filter(isSerializedDirectoryWithPath).forEach(entry => {
-              fs.mkdirSync(entry.path, { recursive: true });
-            });
-            entries.filter(isSerializedFileWithPath).forEach(writeFileWithOrWithoutDir);
-            channelService.appendToChannel('loadState completed');
-            resolve();
-          };
-          request.onerror = (): void => reject(request.error);
-        });
-      },
-      catch: (error: unknown) => new Error(`Failed to load state: ${String(error)}`)
-    }).pipe(Effect.withSpan('loadState'), Effect.provide(WebSdkLayer));
-
-    const saveFile = (path: string): Effect.Effect<void, Error, ChannelService> =>
-      Effect.tryPromise({
-        try: async (): Promise<void> => {
-          const stats = fs.statSync(path);
-          const entry: SerializedEntry & { path: string } = {
-            path,
-            ctime: stats.ctimeMs,
-            mtime: stats.mtimeMs,
-            size: stats.size,
-            ...(stats.isDirectory()
-              ? { entries: {}, type: vscode.FileType.Directory }
-              : {
-                  data: fs.readFileSync(path).toString('base64'),
-                  type: vscode.FileType.File
+            resume(
+              Effect.fail(
+                new Error(`Transaction failed with mode "${mode}" with cause: ${request.error}`, {
+                  cause: request.error
                 })
+              )
+            );
           };
+        } catch (error) {
+          resume(
+            Effect.fail(new Error(`Transaction failed with mode "${mode}" with cause: ${error}`, { cause: error }))
+          );
+        }
+      });
 
-          await new Promise<void>((resolve, reject) => {
-            const request = getObjectStore(database, 'readwrite').put(entry);
-            request.onsuccess = (): void => resolve();
-            request.onerror = (): void => reject(request.error);
+    const loadState = (): Effect.Effect<void, Error> =>
+      withStore('readonly', store => store.getAll()).pipe(
+        Effect.tap((entries: SerializedEntryWithPath[]) => {
+          entries.filter(isSerializedDirectoryWithPath).forEach(entry => {
+            fs.mkdirSync(entry.path, { recursive: true });
           });
-        },
-        catch: (error: unknown) => new Error(`Failed to save file ${path}: ${String(error)}`)
-      }).pipe(Effect.withSpan('saveFile', { attributes: { path } }), Effect.provide(WebSdkLayer));
+          entries.filter(isSerializedFileWithPath).forEach(writeFileWithOrWithoutDir);
+        }),
+        Effect.withSpan('loadState'),
+        Effect.provide(WebSdkLayer)
+      );
 
-    const deleteFile = (path: string): Effect.Effect<void, Error, ChannelService> =>
-      Effect.tryPromise({
-        try: async (): Promise<void> => {
-          await new Promise<void>((resolve, reject) => {
-            const request = getObjectStore(database, 'readwrite').delete(path);
-            request.onsuccess = (): void => resolve();
-            request.onerror = (): void => reject(request.error);
-          });
-        },
-        catch: (error: unknown) => new Error(`Failed to delete file ${path}: ${String(error)}`)
-      }).pipe(Effect.withSpan('deleteFile', { attributes: { path } }), Effect.provide(WebSdkLayer));
+    const saveFile = (path: string): Effect.Effect<void, Error> =>
+      // Provide the key explicitly since the store uses out-of-line keys
+      withStore('readwrite', store => store.put(buildFileEntry(path), path)).pipe(
+        Effect.withSpan('saveFile', { attributes: { path } }),
+        Effect.provide(WebSdkLayer)
+      );
 
-    const loadFile = (path: string): Effect.Effect<void, Error, ChannelService> =>
-      Effect.tryPromise({
-        try: async (): Promise<void> => {
-          await new Promise<void>((resolve, reject) => {
-            const request = getObjectStore(database, 'readonly').get(path);
-            request.onsuccess = (): void => {
-              // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-              const entry = request.result as SerializedEntryWithPath;
-              if (!entry) {
-                resolve();
-                return;
-              }
+    const deleteFile = (path: string): Effect.Effect<void, Error> =>
+      withStore('readwrite', store => store.delete(path)).pipe(
+        Effect.withSpan('deleteFile', { attributes: { path } }),
+        Effect.provide(WebSdkLayer)
+      );
 
-              if (isSerializedFileWithPath(entry)) {
-                writeFileWithOrWithoutDir(entry);
-              } else {
-                fs.mkdirSync(entry.path, { recursive: true });
-              }
-              resolve();
-            };
-            request.onerror = (): void => reject(request.error);
-          });
-        },
-        catch: (error: unknown) => new Error(`Failed to load file ${path}: ${String(error)}`)
-      }).pipe(Effect.withSpan('loadFile', { attributes: { path } }), Effect.provide(WebSdkLayer));
-
+    const loadFile = (path: string): Effect.Effect<void, Error> =>
+      withStore<SerializedEntryWithPath | undefined>('readonly', store => store.get(path)).pipe(
+        Effect.tap(entry => {
+          if (!entry) {
+            return;
+          }
+          if (isSerializedFileWithPath(entry)) {
+            writeFileWithOrWithoutDir(entry);
+          } else {
+            fs.mkdirSync(entry.path, { recursive: true });
+          }
+        }),
+        Effect.withSpan('loadFile', { attributes: { path } }),
+        Effect.provide(WebSdkLayer)
+      );
     return {
-      initDB,
       loadState,
       saveFile,
       deleteFile,
@@ -175,13 +144,27 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
   })
 );
 
-const getObjectStore = (db: IDBDatabase, mode: 'readwrite' | 'readonly'): IDBObjectStore => {
-  const transaction = db.transaction(STORE_NAME, mode);
-  const store = transaction.objectStore(STORE_NAME);
-  return store;
-};
+// Expose a single, memoized layer instance to ensure one shared IndexedDB connection
+export const IndexedDBStorageServiceLayer = Layer.memoize(IndexedDBStorageServiceLive);
+export const IndexedDBStorageServiceShared = Layer.unwrapEffect(IndexedDBStorageServiceLayer);
 
 const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {
   fs.mkdirSync(dirname(entry.path), { recursive: true });
   fs.writeFileSync(entry.path, Buffer.from(entry.data, 'base64'));
+};
+
+const buildFileEntry = (path: string): SerializedEntryWithPath => {
+  const stats = fs.statSync(path);
+  return {
+    path,
+    ctime: stats.ctimeMs,
+    mtime: stats.mtimeMs,
+    size: stats.size,
+    ...(stats.isDirectory()
+      ? { entries: {}, type: vscode.FileType.Directory }
+      : {
+          data: fs.readFileSync(path).toString('base64'),
+          type: vscode.FileType.File
+        })
+  };
 };

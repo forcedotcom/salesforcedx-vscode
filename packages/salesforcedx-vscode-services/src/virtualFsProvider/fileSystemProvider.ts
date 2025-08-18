@@ -10,15 +10,14 @@
 /* eslint-disable functional/no-throw-statements */
 
 import { fs } from '@salesforce/core/fs';
-import { Effect, Layer, pipe } from 'effect';
+import { Effect, pipe } from 'effect';
 import { Buffer } from 'node:buffer';
 import { Dirent } from 'node:fs';
 import * as vscode from 'vscode';
-import { ChannelServiceLayer } from '../vscode/channelService';
-import { IndexedDBStorageService, IndexedDBStorageServiceLive } from './indexedDbStorage';
+import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './indexedDbStorage';
 import { emitter } from './memfsWatcher';
 
-const dependencies = Layer.provideMerge(IndexedDBStorageServiceLive, ChannelServiceLayer('Salesforce Services'));
+const dependencies = IndexedDBStorageServiceShared;
 /**
  * the VSCode API doesn't store these anywhere by default.
  * This is hooked up to memfs right now, and its watcher handles everything else
@@ -29,12 +28,12 @@ export class FsProvider implements vscode.FileSystemProvider {
   public async init(): Promise<FsProvider> {
     const program = pipe(
       IndexedDBStorageService,
-      Effect.flatMap(storage => storage.loadState),
-      Effect.provide(dependencies),
-      Effect.withSpan('FsProvider: init')
+      Effect.flatMap(storage => storage.loadState()),
+      Effect.withSpan('FsProvider: init'),
+      Effect.provide(dependencies)
     );
 
-    await Effect.runPromise(program);
+    await Effect.runPromise(Effect.scoped(program));
 
     return this;
   }
@@ -102,7 +101,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       Effect.withSpan('FsProvider: writeFile')
     );
 
-    await Effect.runPromise(program);
+    await Effect.runPromise(Effect.scoped(program));
 
     emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }
@@ -117,7 +116,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       Effect.withSpan('FsProvider: delete')
     );
 
-    await Effect.runPromise(program);
+    await Effect.runPromise(Effect.scoped(program));
 
     emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
   }
@@ -140,7 +139,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       Effect.withSpan('FsProvider: rename')
     );
 
-    await Effect.runPromise(program);
+    await Effect.runPromise(Effect.scoped(program));
 
     emitter.fire([
       { type: vscode.FileChangeType.Deleted, uri: oldUri },

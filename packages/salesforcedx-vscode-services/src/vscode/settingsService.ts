@@ -12,6 +12,12 @@ const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
 const INSTANCE_URL_KEY = 'instanceUrl';
 const ACCESS_TOKEN_KEY = 'accessToken';
 
+// TODO: prompt the user for a refresh token, and then use that to get the access token
+// by implementing the vscode auth provider https://github.com/microsoft/vscode-extension-samples/blob/main/authenticationprovider-sample/src/extension.ts
+// TODO: tests should also populate the settings
+const FALLBACK_INSTANCE_URL = 'https://app-site-2249-dev-ed.scratch.my.salesforce.com';
+const FALLBACK_ACCESS_TOKEN =
+  '00DD50000003FWG!AQUAQMZFSd6o0GfXE8nrDJsgZndU2F4MqDZMNn3B.Fo_oNkvtf5s739b1q5AxzUYkw2PrAXZljocPzMPUN63ET1gexrsLA_2';
 /**
  * Service for interacting with VSCode settings
  */
@@ -79,7 +85,7 @@ export const SettingsServiceLive = Layer.succeed(SettingsService, {
   getInstanceUrl: Effect.try({
     try: () => {
       const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-      return config.get<string>(INSTANCE_URL_KEY) ?? '';
+      return config.get<string>(INSTANCE_URL_KEY) ?? FALLBACK_INSTANCE_URL;
     },
     catch: error => new Error(`Failed to get instanceUrl: ${String(error)}`)
   }),
@@ -87,7 +93,7 @@ export const SettingsServiceLive = Layer.succeed(SettingsService, {
   getAccessToken: Effect.try({
     try: () => {
       const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-      return config.get<string>(ACCESS_TOKEN_KEY) ?? '';
+      return config.get<string>(ACCESS_TOKEN_KEY) ?? FALLBACK_ACCESS_TOKEN;
     },
     catch: error => new Error(`Failed to get accessToken: ${String(error)}`)
   }),

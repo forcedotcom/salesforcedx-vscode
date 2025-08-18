@@ -11,11 +11,14 @@ import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
 import { ChannelService, ChannelServiceLayer } from '../vscode/channelService';
 import { fsPrefix } from './constants';
-import { IndexedDBStorageService, IndexedDBStorageServiceLive } from './indexedDbStorage';
+import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './indexedDbStorage';
 
 /* eslint-disable functional/no-try-statements */
 
-const storageWithChannel = Layer.provideMerge(IndexedDBStorageServiceLive, ChannelServiceLayer('Salesforce Services'));
+const storageWithChannel = Layer.provideMerge(
+  IndexedDBStorageServiceShared,
+  ChannelServiceLayer('Salesforce Services')
+);
 
 // we need an emitter to send events to the fileSystemProvider using the vscode API
 export const emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
@@ -39,7 +42,7 @@ export const startWatch = async (): Promise<void> => {
             ),
             Effect.provide(storageWithChannel)
           );
-          await Effect.runPromise(program);
+          await Effect.runPromise(Effect.scoped(program));
           emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
         } else {
           // File was deleted or renamed from this location
@@ -52,7 +55,7 @@ export const startWatch = async (): Promise<void> => {
             ),
             Effect.provide(storageWithChannel)
           );
-          await Effect.runPromise(program);
+          await Effect.runPromise(Effect.scoped(program));
           emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
         }
       }
@@ -67,7 +70,7 @@ export const startWatch = async (): Promise<void> => {
           ),
           Effect.provide(storageWithChannel)
         );
-        await Effect.runPromise(program);
+        await Effect.runPromise(Effect.scoped(program));
         emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
       }
     } catch (error) {
