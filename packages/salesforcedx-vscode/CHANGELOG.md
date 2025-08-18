@@ -4,5 +4,5 @@
 
 #### salesforcedx-vscode-core
 
-- Made changes under the hood to use @salesforce/o11y-reporter package ([PR #6468](https://github.com/forcedotcom/salesforcedx-vscode/pull/6468))
+- We made some changes under the hood. ([PR #6468](https://github.com/forcedotcom/salesforcedx-vscode/pull/6468))
 
