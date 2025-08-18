@@ -85,7 +85,8 @@ export const SettingsServiceLive = Layer.succeed(SettingsService, {
   getInstanceUrl: Effect.try({
     try: () => {
       const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-      return config.get<string>(INSTANCE_URL_KEY) ?? FALLBACK_INSTANCE_URL;
+      const value = config.get<string>(INSTANCE_URL_KEY) ?? FALLBACK_INSTANCE_URL;
+      return value.length > 0 ? value : FALLBACK_INSTANCE_URL;
     },
     catch: error => new Error(`Failed to get instanceUrl: ${String(error)}`)
   }),
@@ -93,7 +94,8 @@ export const SettingsServiceLive = Layer.succeed(SettingsService, {
   getAccessToken: Effect.try({
     try: () => {
       const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-      return config.get<string>(ACCESS_TOKEN_KEY) ?? FALLBACK_ACCESS_TOKEN;
+      const value = config.get<string>(ACCESS_TOKEN_KEY) ?? FALLBACK_ACCESS_TOKEN;
+      return value.length > 0 ? value : FALLBACK_ACCESS_TOKEN;
     },
     catch: error => new Error(`Failed to get accessToken: ${String(error)}`)
   }),

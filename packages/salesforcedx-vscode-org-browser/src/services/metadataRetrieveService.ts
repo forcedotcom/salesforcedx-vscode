@@ -6,6 +6,7 @@
  */
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import { Context, Effect, Layer, Option, pipe } from 'effect';
+import { WebSdkLayer } from 'salesforcedx-vscode-services/src/observability/spans';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ExtensionProviderService } from './extensionProvider';
@@ -89,15 +90,13 @@ const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> 
 const openFileInEditor = (filePath: string): Effect.Effect<void, Error, never> =>
   pipe(
     Effect.tryPromise({
-      try: () => {
-        console.log('openFileInEditor', filePath);
-        return vscode.workspace.openTextDocument(
+      try: () =>
+        vscode.workspace.openTextDocument(
           URI.from({
             scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file',
             path: filePath
           })
-        );
-      },
+        ),
       catch: e => new Error(`Failed to open document at ${filePath}: ${String(e)}`)
     }),
     Effect.flatMap(document =>
@@ -106,7 +105,9 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error, never> =
         catch: e => new Error(`Failed to show document at ${filePath}: ${String(e)}`)
       })
     ),
-    Effect.map(() => undefined)
+    Effect.map(() => undefined),
+    Effect.withSpan('openFileInEditor', { attributes: { filePath } }),
+    Effect.provide(WebSdkLayer)
   );
 
 export const MetadataRetrieveServiceLive = Layer.effect(MetadataRetrieveService, Effect.succeed({ retrieve }));
