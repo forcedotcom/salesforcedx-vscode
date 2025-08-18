@@ -4,7 +4,12 @@
     "rootDir": ".",
     "outDir": "out",
     "target": "ES2023",
-    "lib": ["ES2023", "DOM"]
+    "lib": ["ES2023", "DOM"],
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": ["src/**/*.ts", "test/**/*.ts", "playwright.web.config.ts"],
