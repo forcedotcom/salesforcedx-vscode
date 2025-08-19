@@ -9,7 +9,6 @@ import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   ContinueResponse,
-  isSFContainerMode,
   ParametersGatherer,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -19,22 +18,7 @@ import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demoMode';
 import { SfCommandlet, SfCommandletExecutor } from '../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
-import { AuthDemoModeExecutor, OrgLoginWebContainerExecutor } from './orgLoginWeb';
-
-class OrgLoginWebDevHubContainerExecutor extends OrgLoginWebContainerExecutor {
-  public build(data: AuthDevHubParams): Command {
-    const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_dev_hub_text'));
-
-    command
-      .withArg(CLI.ORG_LOGIN_DEVICE)
-      .withFlag('--alias', data.alias)
-      .withArg('--set-default-dev-hub')
-      .withLogName('org_login_web_dev_hub_container')
-      .withJson();
-
-    return command.build();
-  }
-}
+import { AuthDemoModeExecutor } from './orgLoginWeb';
 
 class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
@@ -94,8 +78,6 @@ const parameterGatherer = new AuthDevHubParamsGatherer();
 
 const createAuthDevHubExecutor = (): SfCommandletExecutor<{}> => {
   switch (true) {
-    case isSFContainerMode():
-      return new OrgLoginWebDevHubContainerExecutor();
     case isDemoMode():
       return new OrgLoginWebDevHubDemoModeExecutor();
     default:
