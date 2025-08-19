@@ -9,6 +9,7 @@ import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
+import { WebSdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { fsProvider } from './fsTypes';
@@ -80,8 +81,13 @@ const createVSCodeFiles = (memfs: fsProvider): void => {
 export const projectFiles = (memfs: fsProvider): Effect.Effect<void, Error, SettingsService> =>
   Effect.gen(function* () {
     // Check if project already exists, if not create it
+    console.log('projectFiles', memfs.readDirectory(vscode.Uri.parse(`${sampleProjectPath}`)));
     const projectExists = memfs.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`));
+    yield* Effect.annotateCurrentSpan({ projectExists });
+
     if (!projectExists) {
       yield* createProjectStructure(memfs);
     }
-  });
+  })
+    .pipe(Effect.withSpan('projectFiles'))
+    .pipe(Effect.provide(WebSdkLayer));

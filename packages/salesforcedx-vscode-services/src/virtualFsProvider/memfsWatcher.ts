@@ -34,13 +34,9 @@ export const startWatch = (): Effect.Effect<void, Error, ChannelService> =>
     yield* Effect.async<void, Error>(resume => {
       try {
         const projectPath = `/${sampleProjectName}`;
-        console.log(`[WATCHER] Starting fs.watch for ${projectPath}`);
 
         // Ensure the directory exists before watching
-        if (!fs.existsSync(projectPath)) {
-          console.log(`[WATCHER] Creating directory: ${projectPath}`);
-          fs.mkdirSync(projectPath, { recursive: true });
-        }
+        fs.mkdirSync(projectPath, { recursive: true });
 
         // this watches files in the project/workspace only, not the global sfdx folders, tmp, home, etc.
         fs.watch(projectPath, { recursive: true }, async (event: string, filename: string) => {
@@ -98,23 +94,17 @@ export const startWatch = (): Effect.Effect<void, Error, ChannelService> =>
           }
         });
 
-        // Successfully started watching
-        console.log('[WATCHER] fs.watch successfully started');
         resume(Effect.succeed(undefined));
       } catch (error) {
-        console.log(`[WATCHER] Error starting fs.watch: ${String(error)}`);
         resume(Effect.fail(new Error(`Failed to start file watcher: ${String(error)}`)));
       }
     });
 
     yield* channelService.appendToChannel('File watcher started successfully');
-    console.log('[WATCHER] startWatch Effect completed successfully');
   }).pipe(
-    Effect.tapError(error => {
-      console.log(`[WATCHER] startWatch Effect failed: ${error.message}`);
-      return Effect.flatMap(ChannelService, channel =>
-        channel.appendToChannel(`Error starting watcher: ${error.message}`)
-      );
-    }),
-    Effect.withSpan('startWatch')
+    Effect.tapError(error =>
+      Effect.flatMap(ChannelService, channel => channel.appendToChannel(`Error starting watcher: ${error.message}`))
+    ),
+    Effect.withSpan('startWatch'),
+    Effect.provide(WebSdkLayer)
   );
