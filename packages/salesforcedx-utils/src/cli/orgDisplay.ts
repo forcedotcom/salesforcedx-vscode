@@ -87,7 +87,7 @@ export class OrgDisplay {
 
     // Get organization details via SOQL
     const orgQuery = await connection.singleRecordQuery<OrgQueryResult>(
-      'SELECT Id, Name, CreatedDate, CreatedBy.Username, OrganizationType, InstanceName, IsSandbox FROM Organization'
+      'SELECT Id, Name, CreatedDate, CreatedBy.Username, OrganizationType, InstanceName, NamespacePrefix, IsSandbox FROM Organization'
     );
 
     // For scratch orgs, get detailed information from the dev hub
@@ -143,7 +143,7 @@ export class OrgDisplay {
       }
     }
 
-    const orgInfo: OrgInfo = {
+    return {
       username,
       devHubId: authFields.devHubUsername ?? '',
       id: authFields.orgId ?? orgQuery.Id,
@@ -152,6 +152,7 @@ export class OrgDisplay {
       expirationDate: scratchOrgInfo.expirationDate,
       status,
       edition,
+      ...(orgQuery.NamespacePrefix ? { namespace: orgQuery.NamespacePrefix } : {}),
       orgName: scratchOrgInfo.orgName,
       accessToken: authFields.accessToken ?? '',
       instanceUrl: authFields.instanceUrl ?? '',
@@ -161,7 +162,5 @@ export class OrgDisplay {
       connectionStatus,
       password: scratchOrgInfo.password ?? ''
     };
-
-    return orgInfo;
   }
 }

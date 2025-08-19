@@ -55,7 +55,7 @@ class QuickLaunch {
       return false;
     }
 
-    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(true);
+    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints();
     if (oneOrMoreCheckpoints) {
       const createCheckpointsResult = await CheckpointService.sfCreateCheckpoints();
       if (!createCheckpointsResult) {

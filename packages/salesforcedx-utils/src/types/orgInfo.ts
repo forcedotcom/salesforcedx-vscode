@@ -21,6 +21,7 @@ export type OrgInfo = {
   alias: string;
   connectionStatus: string;
   password?: string;
+  namespace?: string;
 };
 
 export type OrgQueryResult = {
@@ -31,6 +32,7 @@ export type OrgQueryResult = {
   OrganizationType: string;
   InstanceName: string;
   IsSandbox: boolean;
+  NamespacePrefix: string;
 };
 
 export type ScratchOrgQueryResult = {
