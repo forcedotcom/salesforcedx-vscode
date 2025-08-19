@@ -7,6 +7,7 @@
 
 import { ExtensionContext } from 'vscode';
 import { WorkspaceContextUtil } from '../../../../src';
+import { UNAUTHENTICATED_USER } from '../../../../src/constants';
 import { UserService } from '../../../../src/services/userService';
 
 jest.mock('../../../../src/context/workspaceContextUtil');
@@ -83,8 +84,8 @@ describe('UserService', () => {
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
 
-      expect(uId).toBe('UNAUTHENTICATED_USER');
-      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', 'UNAUTHENTICATED_USER');
+      expect(uId).toBe(UNAUTHENTICATED_USER);
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', UNAUTHENTICATED_USER);
     });
 
     it('should return anonymous user ID when only orgId is available but username is missing', async () => {
@@ -94,8 +95,8 @@ describe('UserService', () => {
 
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
 
-      expect(uId).toBe('UNAUTHENTICATED_USER');
-      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', 'UNAUTHENTICATED_USER');
+      expect(uId).toBe(UNAUTHENTICATED_USER);
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', UNAUTHENTICATED_USER);
     });
 
     it('should generate consistent hash for the same orgId and userId combination', async () => {
@@ -114,7 +115,7 @@ describe('UserService', () => {
     });
 
     it('should replace anonymous user ID with hash when user authorizes to org', async () => {
-      const anonymousUserId = 'UNAUTHENTICATED_USER';
+      const anonymousUserId = UNAUTHENTICATED_USER;
       fakeGet.mockReturnValueOnce(anonymousUserId); // Existing anonymous user ID
       mockOrgId = testOrgId;
       mockUsername = testUserId;
@@ -128,7 +129,7 @@ describe('UserService', () => {
     });
 
     it('should keep existing anonymous user ID when no org authorization available', async () => {
-      const anonymousUserId = 'UNAUTHENTICATED_USER';
+      const anonymousUserId = UNAUTHENTICATED_USER;
       fakeGet.mockReturnValueOnce(anonymousUserId); // Existing anonymous user ID
       mockOrgId = undefined;
       mockUsername = undefined;
@@ -173,8 +174,8 @@ describe('UserService', () => {
       const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
 
       // Should use anonymous user ID and store it
-      expect(uId).toBe('UNAUTHENTICATED_USER');
-      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', 'UNAUTHENTICATED_USER');
+      expect(uId).toBe(UNAUTHENTICATED_USER);
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', UNAUTHENTICATED_USER);
     });
 
     it('should skip shared user ID check when extension is Core extension', async () => {
@@ -198,8 +199,8 @@ describe('UserService', () => {
 
       // Should NOT call getSharedTelemetryUserId for Core extension
       expect(getSharedTelemetryUserIdSpy).not.toHaveBeenCalled();
-      expect(uId).toBe('UNAUTHENTICATED_USER');
-      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', 'UNAUTHENTICATED_USER');
+      expect(uId).toBe(UNAUTHENTICATED_USER);
+      expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', UNAUTHENTICATED_USER);
     });
   });
 });

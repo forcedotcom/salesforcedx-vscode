@@ -7,7 +7,7 @@
 
 import { createHash } from 'node:crypto';
 import { ExtensionContext, extensions } from 'vscode';
-import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
+import { TELEMETRY_GLOBAL_USER_ID, UNAUTHENTICATED_USER } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 
 // Type definition for the Core extension API
@@ -77,7 +77,7 @@ export class UserService {
     // If we have org authorization data available (orgId + userId)
     if (orgId && userId) {
       // If globalStateUserId is undefined or is the anonymous user ID, replace it with the hashed value
-      if (!globalStateUserId || globalStateUserId === 'UNAUTHENTICATED_USER') {
+      if (!globalStateUserId || globalStateUserId === UNAUTHENTICATED_USER) {
         const hashedUserId = this.hashUserIdentifier(orgId, userId);
         await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, hashedUserId);
         return hashedUserId;
@@ -93,7 +93,7 @@ export class UserService {
     }
 
     // If globalStateUserId is undefined and no org data available, use the anonymous user ID
-    await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, 'UNAUTHENTICATED_USER');
-    return 'UNAUTHENTICATED_USER';
+    await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, UNAUTHENTICATED_USER);
+    return UNAUTHENTICATED_USER;
   }
 }
