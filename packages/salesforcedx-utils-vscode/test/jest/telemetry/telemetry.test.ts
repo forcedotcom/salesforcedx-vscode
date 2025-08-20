@@ -487,8 +487,14 @@ describe('Telemetry', () => {
       expect(mockReporter1.dispose).toHaveBeenCalled();
       expect(mockReporter2.dispose).toHaveBeenCalled();
 
-      // Verify user ID was fetched
-      expect(mockUserService).toHaveBeenCalledWith(mockExtensionContext);
+      // Verify user ID was fetched with the correct parameters
+      // Since this is not the Core extension (no extension.id), it should get a DefaultSharedTelemetryProvider
+      expect(mockUserService).toHaveBeenCalledWith(
+        mockExtensionContext,
+        expect.objectContaining({
+          getSharedTelemetryUserId: expect.any(Function)
+        })
+      );
 
       // Verify new reporters were created with correct config
       expect(mockDetermineReporters).toHaveBeenCalledWith({
@@ -642,6 +648,57 @@ describe('Telemetry', () => {
       });
     });
 
+    describe('Provider Selection', () => {
+      it('should pass DefaultSharedTelemetryProvider for non-Core extensions', async () => {
+        // Mock extension context for non-Core extension (no extension.id)
+        const nonCoreContext = {
+          extension: {
+            packageJSON: {
+              name: 'test-extension',
+              version: '1.0.0'
+            }
+            // No id field = not Core extension
+          },
+          subscriptions: []
+        };
+
+        (instance as any).extensionContext = nonCoreContext;
+        (instance as any).reporters = [mockReporter1];
+
+        await instance.refreshReporters(nonCoreContext as any);
+
+        // Should pass a DefaultSharedTelemetryProvider
+        expect(mockUserService).toHaveBeenCalledWith(
+          nonCoreContext,
+          expect.objectContaining({
+            getSharedTelemetryUserId: expect.any(Function)
+          })
+        );
+      });
+
+      it('should pass undefined provider for Core extension', async () => {
+        // Mock extension context for Core extension
+        const coreContext = {
+          extension: {
+            id: 'salesforce.salesforcedx-vscode-core',
+            packageJSON: {
+              name: 'salesforcedx-vscode-core',
+              version: '1.0.0'
+            }
+          },
+          subscriptions: []
+        };
+
+        (instance as any).extensionContext = coreContext;
+        (instance as any).reporters = [mockReporter1];
+
+        await instance.refreshReporters(coreContext as any);
+
+        // Should pass undefined to avoid infinite loop
+        expect(mockUserService).toHaveBeenCalledWith(coreContext, undefined);
+      });
+    });
+
     describe('Error Handling', () => {
       it('should handle invalid package.json schema gracefully', async () => {
         mockExtensionContext.extension.packageJSON = {
@@ -663,8 +720,14 @@ describe('Telemetry', () => {
         // Should throw when user service fails
         await expect(instance.refreshReporters(mockExtensionContext)).rejects.toThrow('Failed to get user ID');
 
-        // Should have attempted to get user ID
-        expect(mockUserService).toHaveBeenCalledWith(mockExtensionContext);
+        // Should have attempted to get user ID with the correct parameters
+        // Since this is not the Core extension (no extension.id), it should get a DefaultSharedTelemetryProvider
+        expect(mockUserService).toHaveBeenCalledWith(
+          mockExtensionContext,
+          expect.objectContaining({
+            getSharedTelemetryUserId: expect.any(Function)
+          })
+        );
       });
 
       it('should handle missing package.json fields gracefully', async () => {

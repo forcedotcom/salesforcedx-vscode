@@ -10,12 +10,24 @@ import { TELEMETRY_GLOBAL_USER_ID, UNAUTHENTICATED_USER } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { getSharedTelemetryUserId, hashUserIdentifier } from '../helpers/telemetryUtils';
 
+/** Interface for providing shared telemetry user ID from Core extension */
+export interface SharedTelemetryProvider {
+  getSharedTelemetryUserId(): Promise<string | undefined>;
+}
+
+/** Default implementation that uses the existing getSharedTelemetryUserId function */
+export class DefaultSharedTelemetryProvider implements SharedTelemetryProvider {
+  public async getSharedTelemetryUserId(): Promise<string | undefined> {
+    return await getSharedTelemetryUserId();
+  }
+}
+
 export class UserService {
   /**
    * Retrieves or generates a telemetry user ID for the current VS Code extension context.
    * The returned user ID is used for telemetry purposes and is determined as follows:
    *
-   * 1. First, attempts to get a shared telemetry user ID from the Core extension if available.
+   * 1. First, attempts to get a shared telemetry user ID from the provided SharedTelemetryProvider if available.
    * 2. If shared ID is not available, falls back to extension-specific behavior:
    * a. If org authorization data (orgId and userId) is available:
    * - If no user ID exists in global state, or if the existing user ID is the anonymous user ID, a deterministic SHA-256 hash of orgId and userId is generated, stored, and returned.
@@ -25,13 +37,16 @@ export class UserService {
    * - Otherwise, the anonymous user ID is returned.
    *
    * @param extensionContext - The VS Code extension context, used to access global state.
+   * @param sharedTelemetryProvider - Optional provider for shared telemetry user ID from Core extension.
    * @returns The telemetry user ID, either shared, hashed, or the anonymous user ID.
    */
-  public static async getTelemetryUserId(extensionContext: ExtensionContext): Promise<string> {
-    // First, try to get the shared telemetry user ID from the Core extension
-    // Only check for shared user ID if this is not the Core extension itself (to avoid infinite loop)
-    if (extensionContext.extension.id !== 'salesforce.salesforcedx-vscode-core') {
-      const sharedUserId = await getSharedTelemetryUserId();
+  public static async getTelemetryUserId(
+    extensionContext: ExtensionContext,
+    sharedTelemetryProvider?: SharedTelemetryProvider
+  ): Promise<string> {
+    // First, try to get the shared telemetry user ID from the provided provider
+    if (sharedTelemetryProvider) {
+      const sharedUserId = await sharedTelemetryProvider.getSharedTelemetryUserId();
       if (sharedUserId) {
         return sharedUserId;
       }

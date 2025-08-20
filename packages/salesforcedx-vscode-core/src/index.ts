@@ -476,7 +476,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     WorkspaceContext,
     taskViewService,
     telemetryService,
-    getSharedTelemetryUserId: async () => await UserService.getTelemetryUserId(extensionContext),
+    getSharedTelemetryUserId: async () => await UserService.getTelemetryUserId(extensionContext, undefined),
     services: {
       RegistryAccess,
       ChannelService,

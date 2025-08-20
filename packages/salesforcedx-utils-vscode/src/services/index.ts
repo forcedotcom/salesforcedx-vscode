@@ -6,4 +6,4 @@
  */
 
 export { SourceTrackingType, SourceTrackingService } from './sourceTrackingService';
-export { UserService } from './userService';
+export { UserService, SharedTelemetryProvider, DefaultSharedTelemetryProvider } from './userService';

@@ -101,8 +101,8 @@ export class WorkspaceContext {
     }
 
     try {
-      // Update the telemetry user ID in global state
-      await UserService.getTelemetryUserId(this.extensionContext);
+      // Update the telemetry user ID in global state (Core extension doesn't use shared provider to avoid infinite loop)
+      await UserService.getTelemetryUserId(this.extensionContext, undefined);
 
       // Refresh telemetry reporters for ALL extensions (Core, Apex, etc.)
       await refreshAllExtensionReporters(this.extensionContext);

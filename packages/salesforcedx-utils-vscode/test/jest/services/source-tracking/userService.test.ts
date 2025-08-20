@@ -9,7 +9,7 @@ import { ExtensionContext } from 'vscode';
 import { WorkspaceContextUtil } from '../../../../src';
 import { UNAUTHENTICATED_USER } from '../../../../src/constants';
 import * as telemetryUtils from '../../../../src/helpers/telemetryUtils';
-import { UserService } from '../../../../src/services/userService';
+import { UserService, SharedTelemetryProvider } from '../../../../src/services/userService';
 
 jest.mock('../../../../src/context/workspaceContextUtil');
 
@@ -62,7 +62,7 @@ describe('UserService', () => {
 
     it('should return telemetryUserId when defined in globalState', async () => {
       fakeGet.mockReturnValueOnce(globalTelemetryUserId);
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
       expect(uId).toBe(globalTelemetryUserId);
     });
 
@@ -71,7 +71,7 @@ describe('UserService', () => {
       mockOrgId = testOrgId;
       mockUsername = testUserId;
 
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       // The result should be a SHA-256 hash
       expect(uId).toHaveLength(64); // SHA-256 produces 64-character hex string
@@ -83,7 +83,7 @@ describe('UserService', () => {
       mockOrgId = undefined;
       mockUsername = undefined;
 
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       expect(uId).toBe(UNAUTHENTICATED_USER);
       expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', UNAUTHENTICATED_USER);
@@ -94,7 +94,7 @@ describe('UserService', () => {
       mockOrgId = testOrgId;
       mockUsername = undefined;
 
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       expect(uId).toBe(UNAUTHENTICATED_USER);
       expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', UNAUTHENTICATED_USER);
@@ -105,11 +105,11 @@ describe('UserService', () => {
       mockOrgId = testOrgId;
       mockUsername = testUserId;
 
-      const uId1 = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId1 = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       // Reset and test again
       fakeGet.mockReturnValueOnce(undefined);
-      const uId2 = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId2 = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       expect(uId1).toBe(uId2); // Should be deterministic
       expect(uId1).toHaveLength(64);
@@ -121,7 +121,7 @@ describe('UserService', () => {
       mockOrgId = testOrgId;
       mockUsername = testUserId;
 
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       // Should generate hash and update globalState
       expect(uId).toHaveLength(64); // SHA-256 hash
@@ -135,7 +135,7 @@ describe('UserService', () => {
       mockOrgId = undefined;
       mockUsername = undefined;
 
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       // Should keep the same anonymous user ID
       expect(uId).toBe(anonymousUserId);
@@ -148,7 +148,7 @@ describe('UserService', () => {
       mockOrgId = 'differentOrgId123';
       mockUsername = 'different@user.com';
 
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       // Should keep the original hash, not generate new one
       expect(uId).toBe(existingHash);
@@ -160,7 +160,7 @@ describe('UserService', () => {
       mockOrgId = testOrgId;
       mockUsername = testUserId;
 
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       // Should generate hash and store it
       expect(uId).toHaveLength(64);
@@ -172,7 +172,7 @@ describe('UserService', () => {
       mockOrgId = undefined;
       mockUsername = undefined;
 
-      const uId = await UserService.getTelemetryUserId(fakeExtensionContext);
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, undefined);
 
       // Should use anonymous user ID and store it
       expect(uId).toBe(UNAUTHENTICATED_USER);
@@ -196,12 +196,38 @@ describe('UserService', () => {
 
       const getSharedTelemetryUserIdSpy = jest.spyOn(telemetryUtils, 'getSharedTelemetryUserId');
 
-      const uId = await UserService.getTelemetryUserId(coreExtensionContext);
+      const uId = await UserService.getTelemetryUserId(coreExtensionContext, undefined);
 
       // Should NOT call getSharedTelemetryUserId for Core extension
       expect(getSharedTelemetryUserIdSpy).not.toHaveBeenCalled();
       expect(uId).toBe(UNAUTHENTICATED_USER);
       expect(fakeUpdate).toHaveBeenCalledWith('telemetryUserId', UNAUTHENTICATED_USER);
+    });
+
+    it('should use provided SharedTelemetryProvider when available', async () => {
+      const sharedUserId = 'shared-telemetry-user-id';
+      const mockProvider: SharedTelemetryProvider = {
+        getSharedTelemetryUserId: jest.fn().mockResolvedValue(sharedUserId)
+      };
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, mockProvider);
+
+      expect(mockProvider.getSharedTelemetryUserId).toHaveBeenCalled();
+      expect(uId).toBe(sharedUserId);
+      expect(fakeGet).not.toHaveBeenCalled(); // Should not check global state when shared ID is available
+    });
+
+    it('should fall back to local logic when SharedTelemetryProvider returns undefined', async () => {
+      const mockProvider: SharedTelemetryProvider = {
+        getSharedTelemetryUserId: jest.fn().mockResolvedValue(undefined)
+      };
+      fakeGet.mockReturnValueOnce(globalTelemetryUserId);
+
+      const uId = await UserService.getTelemetryUserId(fakeExtensionContext, mockProvider);
+
+      expect(mockProvider.getSharedTelemetryUserId).toHaveBeenCalled();
+      expect(uId).toBe(globalTelemetryUserId);
+      expect(fakeGet).toHaveBeenCalled(); // Should check global state when shared ID is not available
     });
   });
 });
