@@ -30,10 +30,10 @@ const getDirsToCreate = (): string[] => [
   ...metadataDirs.map(dir => `${sampleProjectPath}/force-app/main/default/${dir}`)
 ];
 
-const createConfigFiles = (memfs: fsProvider): void => {
+const createConfigFiles = (fsp: fsProvider): void => {
   Object.entries(TEMPLATES).forEach(([name, content]) => {
     const uri = vscode.Uri.parse(`${sampleProjectPath}/${name}`);
-    memfs.writeFile(uri, Buffer.from(content.join('\n')), {
+    fsp.writeFile(uri, Buffer.from(content.join('\n')), {
       create: true,
       overwrite: true
     });
@@ -41,7 +41,7 @@ const createConfigFiles = (memfs: fsProvider): void => {
 };
 
 /** Creates the project directory structure and files */
-const createProjectStructure = (memfs: fsProvider): Effect.Effect<void, Error, never> =>
+const createProjectStructure = (fsp: fsProvider): Effect.Effect<void, Error, never> =>
   Effect.gen(function* () {
     // Create all directories
     yield* Effect.tryPromise({
@@ -49,44 +49,45 @@ const createProjectStructure = (memfs: fsProvider): Effect.Effect<void, Error, n
         Promise.all(
           getDirsToCreate()
             .map(dir => vscode.Uri.parse(dir))
-            .map(uri => memfs.createDirectory(uri))
+            .filter(uri => !fsp.exists(uri))
+            .map(uri => fsp.createDirectory(uri))
         ),
       catch: (error: unknown) => new Error(`Failed to create project directories: ${String(error)}`)
     });
 
-    yield* Effect.all([Effect.sync(() => createConfigFiles(memfs)), Effect.sync(() => createVSCodeFiles(memfs))], {
+    yield* Effect.all([Effect.sync(() => createConfigFiles(fsp)), Effect.sync(() => createVSCodeFiles(fsp))], {
       concurrency: 'unbounded'
     });
   }).pipe(Effect.withSpan('projectInit: createProjectStructure'));
 
-const createVSCodeFiles = (memfs: fsProvider): void => {
+const createVSCodeFiles = (fsp: fsProvider): void => {
   // Create .vscode directory and config files
-  memfs.writeFile(
+  fsp.writeFile(
     vscode.Uri.parse(`${sampleProjectPath}/.vscode/tasks.json`),
     Buffer.from(JSON.stringify({ version: '2.0.0', tasks: [] }, null, 2)),
     { create: true, overwrite: true }
   );
-  memfs.writeFile(
+  fsp.writeFile(
     vscode.Uri.parse(`${sampleProjectPath}/.vscode/launch.json`),
     Buffer.from(JSON.stringify({ version: '0.2.0', configurations: [] }, null, 2)),
     { create: true, overwrite: true }
   );
-  memfs.writeFile(vscode.Uri.parse(`${sampleProjectPath}/.vscode/mcp.json`), Buffer.from(JSON.stringify({}, null, 2)), {
+  fsp.writeFile(vscode.Uri.parse(`${sampleProjectPath}/.vscode/mcp.json`), Buffer.from(JSON.stringify({}, null, 2)), {
     create: true,
     overwrite: true
   });
 };
 
 /** Creates the files for an empty sfdx project */
-export const projectFiles = (memfs: fsProvider): Effect.Effect<void, Error, SettingsService> =>
+export const projectFiles = (fsp: fsProvider): Effect.Effect<void, Error, SettingsService> =>
   Effect.gen(function* () {
     // Check if project already exists, if not create it
-    console.log('projectFiles', memfs.readDirectory(vscode.Uri.parse(`${sampleProjectPath}`)));
-    const projectExists = memfs.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`));
+    console.log('projectFiles', fsp.readDirectory(vscode.Uri.parse(`${sampleProjectPath}`)));
+    const projectExists = fsp.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`));
     yield* Effect.annotateCurrentSpan({ projectExists });
 
     if (!projectExists) {
-      yield* createProjectStructure(memfs);
+      yield* createProjectStructure(fsp);
     }
   })
     .pipe(Effect.withSpan('projectFiles'))

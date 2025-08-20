@@ -34,26 +34,35 @@ export type IndexedDBStorageService = {
 
 export const IndexedDBStorageService = Context.GenericTag<IndexedDBStorageService>('IndexedDBStorageService');
 
+const isOpenRequestEvent = (event: Event): event is Event & { target: IDBOpenDBRequest } =>
+  event.target instanceof IDBOpenDBRequest;
+
+const ensureOpenRequestEvent = (event: Event): Event & { target: IDBOpenDBRequest } => {
+  if (!isOpenRequestEvent(event)) {
+    // eslint-disable-next-line functional/no-throw-statements
+    throw new Error('Invalid event target for IndexedDB open request');
+  }
+  return event;
+};
+
 export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, Error> = Layer.scoped(
   IndexedDBStorageService,
   Effect.gen(function* () {
     const db = yield* Effect.async<IDBDatabase, Error>(resume => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      const openRequest = indexedDB.open(DB_NAME, DB_VERSION);
 
-      request.onupgradeneeded = (event): void => {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        const dbToUpgrade = (event.target as IDBOpenDBRequest).result;
+      openRequest.onupgradeneeded = (event): void => {
+        const dbToUpgrade = ensureOpenRequestEvent(event).target.result;
         if (!dbToUpgrade.objectStoreNames.contains(STORE_NAME)) {
           dbToUpgrade.createObjectStore(STORE_NAME);
         }
       };
 
-      request.onsuccess = (event): void => {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        resume(Effect.succeed((event.target as IDBOpenDBRequest).result));
+      openRequest.onsuccess = (event: Event): void => {
+        resume(Effect.succeed(ensureOpenRequestEvent(event).target.result));
       };
 
-      request.onerror = (event: unknown): void => {
+      openRequest.onerror = (event: unknown): void => {
         resume(Effect.fail(new Error(`Failed to open IndexedDB database "${DB_NAME}" with error: ${event}`)));
       };
     });
@@ -71,6 +80,7 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
       Effect.async<A, Error>(resume => {
         // eslint-disable-next-line functional/no-try-statements
         try {
+          // Use strict durability for write operations to ensure data is written to disk
           const transaction = db.transaction(STORE_NAME, mode);
           const store = transaction.objectStore(STORE_NAME);
           const request = f(store);
@@ -103,6 +113,7 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
           });
           entries.filter(isSerializedFileWithPath).forEach(writeFileWithOrWithoutDir);
         }),
+        Effect.tap(entries => Effect.annotateCurrentSpan({ entries })),
         Effect.withSpan('loadState'),
         Effect.provide(WebSdkLayer)
       );

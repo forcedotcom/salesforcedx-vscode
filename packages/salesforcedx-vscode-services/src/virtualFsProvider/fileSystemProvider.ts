@@ -14,29 +14,13 @@ import { Effect, pipe } from 'effect';
 import { Buffer } from 'node:buffer';
 import { Dirent } from 'node:fs';
 import * as vscode from 'vscode';
-import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './indexedDbStorage';
 import { emitter } from './memfsWatcher';
-
-const dependencies = IndexedDBStorageServiceShared;
 /**
  * the VSCode API doesn't store these anywhere by default.
  * This is hooked up to memfs right now, and its watcher handles everything else
  */
 export class FsProvider implements vscode.FileSystemProvider {
   public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = emitter.event;
-
-  public async init(): Promise<FsProvider> {
-    const program = pipe(
-      IndexedDBStorageService,
-      Effect.flatMap(storage => storage.loadState()),
-      Effect.withSpan('FsProvider: init'),
-      Effect.provide(dependencies)
-    );
-
-    await Effect.runPromise(Effect.scoped(program));
-
-    return this;
-  }
 
   public exists(uri: vscode.Uri): boolean {
     return fs.existsSync(uri.fsPath);

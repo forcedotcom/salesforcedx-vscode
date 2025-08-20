@@ -10,8 +10,8 @@ import { ConsoleSpanExporter, BatchSpanProcessor } from '@opentelemetry/sdk-trac
 export const WebSdkLayer = WebSdk.layer(() => ({
   resource: {
     serviceName: 'salesforcedx-vscode-services',
-    timestamp: '2025-08-15T20:49:30.000Z',
-    // serviceVersion: '0.0.1',
+    //manually bump this to cause rebuilds/bust cache
+    serviceVersion: '2025-08-15T20:49:30.000Z',
     attributes: {}
   },
   spanProcessor: new BatchSpanProcessor(new ConsoleSpanExporter())
