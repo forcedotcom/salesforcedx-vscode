@@ -117,6 +117,8 @@ export const messages = {
   delete_source_stash_source_not_found: 'Stash source not found for file: %s',
   delete_source_operation_failed: 'Delete operation failed',
   delete_source_operation_failed_with_error: 'Delete operation failed: %s',
+  table_title_deleted_source: 'Deleted Source',
+  table_title_delete_errors: 'Delete Errors',
   analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
   analytics_template_name_text: 'template name',
   apex_generate_class_text: 'SFDX: Create Apex Class',

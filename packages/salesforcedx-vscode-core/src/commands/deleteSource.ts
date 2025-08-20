@@ -7,16 +7,15 @@
 import { Lifecycle, Org, SfError, SfProject } from '@salesforce/core-bundle';
 
 import {
+  ContinueResponse,
+  LibraryCommandletExecutor,
   createDirectory,
   deleteFile,
-  writeFile,
+  fileUtils,
   readFile,
   rename,
   workspaceUtils,
-  fileUtils,
-  ContinueResponse,
-  LibraryCommandletExecutor,
-  errorToString
+  writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -24,6 +23,7 @@ import {
   ComponentStatus,
   DeployResult,
   DestructiveChangesType,
+  FileResponse,
   FileResponseSuccess,
   RequestStatus,
   SourceComponent
@@ -33,12 +33,14 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { OUTPUT_CHANNEL } from '../channels';
+import { OUTPUT_CHANNEL, channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
+import { createOperationOutput } from './baseDeployRetrieve';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 type MixedDeployDelete = { deploy: string[]; delete: FileResponseSuccess[] };
@@ -47,6 +49,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
   private org: Org;
   private componentSet: ComponentSet | undefined;
   private deployResult: DeployResult | undefined;
+  private fileResponses: FileResponse[] | undefined;
   private mixedDeployDelete: MixedDeployDelete = { delete: [], deploy: [] };
   private stashPath = new Map<string, string>();
   private tracking: SourceTracking | undefined;
@@ -62,15 +65,34 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
 
   public async run(
     response: ContinueResponse<{ filePath: string }>,
-    _progress?: vscode.Progress<{
+    progress?: vscode.Progress<{
       message?: string | undefined;
       increment?: number | undefined;
     }>,
     _token?: vscode.CancellationToken
   ): Promise<boolean> {
+    // Update progress notification instead of logging to output channel
+    progress?.report({ message: 'Checking for conflicts...' });
     await this.preChecks();
+
+    progress?.report({ message: 'Deploying delete to org...' });
     await this.delete(response.data.filePath);
-    await this.handleDeployResult();
+
+    // Follow CLI pattern: resolveSuccess, deleteFilesLocally, updateTracking
+    progress?.report({ message: 'Processing deployment results...' });
+    await this.resolveSuccess();
+
+    progress?.report({ message: 'Deleting local files...' });
+    await this.deleteFilesLocally();
+
+    progress?.report({ message: 'Updating source tracking...' });
+    await this.maybeUpdateTracking();
+
+    // Show results table like other deploy operations
+    progress?.report({ message: 'Formatting results...' });
+    await this.displayResults();
+
+    // Return true to trigger LibraryCommandletExecutor's success notification
     return true;
   }
 
@@ -115,18 +137,15 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
     // Create a new ComponentSet and mark everything for deletion
     const originalComponents = this.componentSet.toArray();
 
-    const cs = originalComponents.reduce((destructiveSet, component) => {
+    const cs = new ComponentSet([]);
+    originalComponents.map(component => {
       if (component instanceof SourceComponent) {
-        destructiveSet.add(component, DestructiveChangesType.POST);
+        cs.add(component, DestructiveChangesType.POST);
       } else {
         // a remote-only delete
-        destructiveSet.add(
-          new SourceComponent({ name: component.fullName, type: component.type }),
-          DestructiveChangesType.POST
-        );
+        cs.add(new SourceComponent({ name: component.fullName, type: component.type }), DestructiveChangesType.POST);
       }
-      return destructiveSet;
-    }, new ComponentSet([]));
+    });
 
     cs.apiVersion = this.componentSet.apiVersion;
     cs.sourceApiVersion = this.componentSet.sourceApiVersion;
@@ -179,7 +198,15 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
     await Lifecycle.getInstance().emit('postdeploy', this.deployResult);
   }
 
-  private async handleDeployResult(): Promise<void> {
+  /**
+   * Checks the response status to determine whether the delete was successful.
+   * Following CLI resolveSuccess() method exactly
+   */
+  private async resolveSuccess(): Promise<void> {
+    // Extract file responses early like CLI does - this preserves error details for display
+    this.fileResponses =
+      this.mixedDeployDelete.delete.length > 0 ? this.mixedDeployDelete.delete : this.deployResult?.getFileResponses();
+
     // if deploy failed restore the stashed files if they exist
     if (this.deployResult && this.deployResult.response?.status !== RequestStatus.Succeeded) {
       await Promise.all(
@@ -191,52 +218,155 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
           await rename(stashSource, file.filePath);
         })
       );
+
+      // Following CLI pattern: show detailed errors and throw
+      await this.showDetailedErrors();
       throw new SfError(nls.localize('delete_source_operation_failed'), 'DeleteFailed');
+    } else if (this.mixedDeployDelete.delete.length > 0) {
+      // successful delete -> delete the stashed file (following CLI deleteStash pattern)
+      await deleteFile(path.join(os.tmpdir(), 'source_delete'), { recursive: true, useTrash: false });
+    }
+  }
+
+  private async showDetailedErrors(): Promise<void> {
+    if (!this.deployResult) {
+      return;
     }
 
-    // Handle successful deployment
-    if (this.mixedDeployDelete.delete.length > 0) {
-      // successful delete -> delete the stashed file
-      await deleteFile(path.join(os.tmpdir(), 'source_delete'), { recursive: true });
+    try {
+      // Following CLI pattern: use the proper fileResponses and format like other deploy operations
+      const fileResponses = this.fileResponses ?? this.deployResult.getFileResponses();
+      const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
+
+      const output = createOperationOutput(
+        fileResponses,
+        relativePackageDirs,
+        'deploy', // Use 'deploy' operation type for error formatting
+        false // isSuccess = false to show error details
+      );
+
+      // Display the detailed error information in the output channel
+      channelService.appendLine('=== DELETE OPERATION ERRORS ===');
+      channelService.appendLine(output);
+      channelService.showChannelOutput();
+    } catch {
+      // Fallback to basic error information if detailed formatting fails
+      const fileResponses = this.deployResult.getFileResponses();
+      const failedResponses = fileResponses.filter(response => response.state === ComponentStatus.Failed);
+
+      if (failedResponses.length > 0) {
+        channelService.appendLine('Delete operation failed with the following errors:');
+        failedResponses.forEach(response => {
+          const filePath = 'filePath' in response ? (response.filePath ?? 'Unknown file') : 'Unknown file';
+          const errorMsg =
+            'error' in response
+              ? `${filePath}: ${response.error ?? 'Unknown error'}`
+              : `${filePath}: Success (unexpected)`;
+          channelService.appendLine(errorMsg);
+        });
+        channelService.showChannelOutput();
+      }
     }
-
-    // Delete local files after successful deployment
-    await this.deleteFilesLocally();
-
-    // Update source tracking after successful deployment
-    await this.updateSourceTracking();
   }
 
   private async deleteFilesLocally(): Promise<void> {
+    // Following CLI pattern: only delete files if deployment succeeded
+    if (!this.deployResult || this.deployResult.response?.status !== RequestStatus.Succeeded) {
+      return;
+    }
+
     const components = this.componentSet?.getSourceComponents().toArray() ?? [];
 
-    // Find custom labels and create deletion promise
+    // Find custom labels and create deletion promise (same as CLI)
     const customLabels = components.filter(isNonDecomposedCustomLabel);
     const promisesFromLabels = customLabels[0]?.xml ? [deleteCustomLabels(customLabels[0].xml, customLabels)] : [];
 
-    // mixed delete/deploy operations have already been deleted and stashed
+    // Follow CLI pattern: only delete if not mixed deploy/delete operations
     const otherPromises =
       this.mixedDeployDelete.delete.length === 0
-        ? (this.componentSet?.toArray() ?? []).reduce<Promise<void>[]>((promises, component) => {
-            if (component instanceof SourceComponent) {
-              if (component.content) {
-                promises.push(deleteFile(component.content, { recursive: true, useTrash: false }));
-              }
-              if (component.xml && !isNonDecomposedCustomLabel(component)) {
-                promises.push(deleteFile(component.xml));
-              }
-            }
-            return promises;
-          }, [])
+        ? (this.componentSet?.toArray() ?? [])
+            .filter((component): component is SourceComponent => component instanceof SourceComponent)
+            .flatMap((component: SourceComponent) => [
+              ...(component.content ? [deleteFile(component.content, { recursive: true, useTrash: false })] : []),
+              ...(component.xml && !isNonDecomposedCustomLabel(component) ? [deleteFile(component.xml)] : [])
+            ])
         : [];
 
     await Promise.all([...promisesFromLabels, ...otherPromises]);
   }
 
-  private async updateSourceTracking(): Promise<void> {
-    if (this.isSourceTracked && this.tracking && this.deployResult) {
-      // update both local and remote tracking
-      await this.tracking.updateTrackingFromDeploy(this.deployResult);
+  /**
+   * Update source tracking following CLI maybeUpdateTracking() method exactly
+   */
+  private async maybeUpdateTracking(): Promise<void> {
+    if (this.isSourceTracked) {
+      // might not exist if we exited from the operation early
+      if (!this.deployResult) {
+        return;
+      }
+
+      const successes = (this.fileResponses ?? this.deployResult.getFileResponses()).filter(
+        (response): response is FileResponseSuccess => response.state !== ComponentStatus.Failed
+      );
+
+      if (successes.length === 0) {
+        return;
+      }
+
+      await Promise.all([
+        this.tracking?.updateLocalTracking({
+          files: successes
+            .filter(fileResponse => fileResponse.state !== ComponentStatus.Deleted)
+            .map(fileResponse => fileResponse.filePath),
+          deletedFiles: successes
+            .filter(fileResponse => fileResponse.state === ComponentStatus.Deleted)
+            .map(fileResponse => fileResponse.filePath)
+        }),
+        this.tracking?.updateRemoteTracking(
+          successes.map(response => ({
+            fullName: response.fullName,
+            type: response.type,
+            state: response.state,
+            filePath: response.filePath
+          }))
+        )
+      ]);
+    }
+  }
+
+  private async displayResults(): Promise<void> {
+    if (!this.deployResult) {
+      return;
+    }
+
+    try {
+      // Use the file responses we extracted earlier for consistent formatting
+      const fileResponses = this.fileResponses ?? this.deployResult.getFileResponses();
+      const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
+
+      // Format and display the results table
+      const output = createOperationOutput(
+        fileResponses,
+        relativePackageDirs,
+        'delete', // Use deploy operation type for consistent formatting
+        this.deployResult.response?.status === RequestStatus.Succeeded
+      );
+
+      channelService.appendLine(output);
+    } catch {
+      // Fallback to basic output if formatting fails
+      const fileResponses = this.deployResult.getFileResponses();
+      const deletedResponses = fileResponses.filter(
+        response => response.state === ComponentStatus.Deleted || response.state === ComponentStatus.Failed
+      );
+
+      if (deletedResponses.length > 0) {
+        channelService.appendLine('\n=== Deleted Source ===');
+        deletedResponses.forEach(response => {
+          const filePath = 'filePath' in response ? (response.filePath ?? 'Unknown file') : 'Unknown file';
+          channelService.appendLine(`Deleted: ${response.type}:${response.fullName} - ${filePath}`);
+        });
+      }
     }
   }
 
@@ -343,14 +473,7 @@ export const deleteSource = async (sourceUri: URI) => {
   const executor = new DeleteSourceExecutor(isSourceTracked, org, project);
 
   // Execute the delete operation
-  try {
-    await executor.run({ type: 'CONTINUE', data: { filePath } });
-  } catch (error) {
-    notificationService.showErrorMessage(
-      nls.localize('delete_source_operation_failed_with_error', errorToString(error))
-    );
-    throw error;
-  }
+  await executor.execute({ type: 'CONTINUE', data: { filePath } });
 };
 
 // Utility functions
@@ -362,7 +485,7 @@ export const moveFileToStash = async (stashPath: Map<string, string>, file: stri
   await createDirectory(path.dirname(stashTarget));
   const fileContent = await readFile(file);
   await writeFile(stashTarget, fileContent);
-  await deleteFile(file);
+  // Don't delete the original file here - it will be deleted after successful deployment
 };
 
 export const someContentsEndWithPath =
@@ -371,10 +494,10 @@ export const someContentsEndWithPath =
     // walkContent returns absolute paths while sourcepath will usually be relative
     cmp.walkContent().some(content => content.endsWith(sourcePath));
 
-export const allChildrenAreNotAddressable = (comp: any): boolean => {
+const allChildrenAreNotAddressable = (comp: any): boolean => {
   const types = Object.values(comp.type.children?.types ?? {});
-  return !types.some((child: any) => child.isAddressable);
+  return types.length > 0 && types.every((child: any) => child.isAddressable === false);
 };
 
-export const isNonDecomposedCustomLabel = (component: any): boolean =>
+const isNonDecomposedCustomLabel = (component: any): boolean =>
   component.type.name === 'CustomLabel' && !component.type.strategies?.adapter;
