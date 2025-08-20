@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import { Effect, Layer, Scope, Exit } from 'effect';
 import * as vscode from 'vscode';
 import { sampleProjectName } from './constants';
@@ -18,7 +19,7 @@ import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
 import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { startWatch } from './virtualFsProvider/memfsWatcher';
-// import { projectFiles } from './virtualFsProvider/projectInit';
+import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { FsService, FsServiceLive } from './vscode/fsService';
 import { SettingsService, SettingsServiceLive } from './vscode/settingsService';
@@ -61,8 +62,10 @@ const createActivationEffect = (
     const svc = yield* ChannelService;
     yield* svc.appendToChannel('Salesforce Services extension is activating!');
 
-    // Set up the file system
-    yield* fileSystemSetup(context);
+    if (Global.isWeb) {
+      // Set up the file system
+      yield* fileSystemSetup(context);
+    }
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -136,8 +139,6 @@ const fileSystemSetup = (
   context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, WorkspaceService | ChannelService | SettingsService | IndexedDBStorageService> =>
   Effect.gen(function* () {
-    const channelService = yield* ChannelService;
-
     const fsProvider = new FsProvider();
 
     // Load state from IndexedDB first
@@ -158,14 +159,5 @@ const fileSystemSetup = (
     });
 
     yield* startWatch();
-
-    yield* channelService.appendToChannel('initializing workspace with standard files');
-
-    // yield* projectFiles(fsProvider);
-
-    // Register completion message
-    //TODO: read the files from workspace, if there is one
-    //TODO: re-instantiate the memfs from browser storage, if there is
-    //TODO: init the project if there is not one
-    yield* channelService.appendToChannel(`Registered ${fsPrefix} file system provider`);
+    yield* Effect.forkDaemon(projectFiles(fsProvider));
   }).pipe(Effect.withSpan('fileSystemSetup'));

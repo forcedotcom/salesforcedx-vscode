@@ -17,7 +17,7 @@ const ACCESS_TOKEN_KEY = 'accessToken';
 // TODO: tests should also populate the settings
 const FALLBACK_INSTANCE_URL = 'https://app-site-2249-dev-ed.scratch.my.salesforce.com';
 const FALLBACK_ACCESS_TOKEN =
-  '00DD50000003FWG!AQUAQArGQcNMgMVgNRWdOLS27YdoWKKsAsBw6MZAaqLWcCNkYg2QitMSXugLIcPLEg4sjnUmMiu3ZVt7PjoHNttEuUV3z3dK';
+  '00DD50000003FWG!AQUAQIBqclXYeG.NToE6Zl5iKoOlYikzDE4JZ7FlgcVEqpwS5qZEU7NqHrO1IfdW8O1XwZZ8f_xSobsQMMWRu9OMN78yXu8R';
 /**
  * Service for interacting with VSCode settings
  */

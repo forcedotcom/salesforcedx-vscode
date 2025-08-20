@@ -6,7 +6,7 @@
  */
 
 import { fs } from '@salesforce/core/fs';
-import { Effect, Schedule, Stream } from 'effect';
+import { Effect, Schedule, Stream, Console } from 'effect';
 import { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
@@ -35,7 +35,8 @@ export const startWatch = (): Effect.Effect<void, Error, ChannelService | Indexe
       e => new Error(String(e)) // Error Handling
     ).pipe(
       // dedupe adjacent identical events
-      Stream.changesWith((a, b) => a.eventType === b.eventType && a.filename === b.filename),
+      // Stream.changesWith((a, b) => a.eventType === b.eventType && a.filename === b.filename),
+      Stream.tap(e => Console.log(e)),
       // if there are "change" events AND non-change events, drop the change events.  We prefer the "rename" (create) event.
       Stream.changesWith((a, b) => a.eventType === 'change' && b.eventType !== 'change' && a.filename === b.filename),
       Stream.changesWith((a, b) => b.eventType === 'change' && a.eventType !== 'change' && a.filename === b.filename),

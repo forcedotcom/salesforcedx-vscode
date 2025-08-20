@@ -11,14 +11,70 @@ import { Layer, Effect } from 'effect';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
 import { SettingsServiceLive } from '../../src/vscode/settingsService';
 
+// Mock indexedDB API for Node.js environment
+const mockIndexedDB = {
+  open: jest.fn().mockReturnValue({
+    onsuccess: null,
+    onerror: null,
+    onupgradeneeded: null,
+    result: {
+      transaction: jest.fn().mockReturnValue({
+        objectStore: jest.fn().mockReturnValue({
+          put: jest.fn().mockReturnValue({
+            onsuccess: null,
+            onerror: null
+          }),
+          get: jest.fn().mockReturnValue({
+            onsuccess: null,
+            onerror: null
+          }),
+          getAll: jest.fn().mockReturnValue({
+            onsuccess: null,
+            onerror: null
+          }),
+          delete: jest.fn().mockReturnValue({
+            onsuccess: null,
+            onerror: null
+          })
+        }),
+        oncomplete: null,
+        onerror: null
+      }),
+      createObjectStore: jest.fn(),
+      objectStoreNames: {
+        contains: jest.fn().mockReturnValue(false)
+      },
+      close: jest.fn()
+    }
+  })
+};
+
+// Mock the global indexedDB
+(global as any).indexedDB = mockIndexedDB;
+(global as any).IDBOpenDBRequest = jest.fn();
+
+// Mock IndexedDB Storage Service
+jest.mock('../../src/virtualFsProvider/indexedDbStorage', () => {
+  const originalModule = jest.requireActual('../../src/virtualFsProvider/indexedDbStorage');
+  const { Layer, Effect } = require('effect');
+
+  const mockStorage = {
+    loadState: () => Effect.succeed(undefined),
+    saveFile: () => Effect.succeed(undefined),
+    deleteFile: () => Effect.succeed(undefined),
+    loadFile: () => Effect.succeed(undefined)
+  };
+
+  return {
+    ...originalModule,
+    IndexedDBStorageServiceShared: Layer.succeed(originalModule.IndexedDBStorageService, mockStorage)
+  };
+});
+
 // Mock FsProvider to avoid IndexedDB initialization
 jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
   FsProvider: class MockFsProvider {
     public readonly onDidChangeFile = { event: jest.fn() };
-
-    public async init(): Promise<this> {
-      return this;
-    }
 
     public exists = jest.fn().mockReturnValue(false);
     public createDirectory = jest.fn();
@@ -29,6 +85,18 @@ jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
     public stat = jest.fn();
     public readDirectory = jest.fn().mockReturnValue([]);
     public watch = jest.fn();
+  }
+}));
+
+// Mock memfsWatcher to avoid file watching in tests
+jest.mock('../../src/virtualFsProvider/memfsWatcher', () => ({
+  startWatch: () => {
+    const { Effect } = require('effect');
+    return Effect.succeed(undefined);
+  },
+  emitter: {
+    event: jest.fn(),
+    fire: jest.fn()
   }
 }));
 
