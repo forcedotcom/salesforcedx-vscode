@@ -45,7 +45,6 @@
     "@types/node": "^20.0.0",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
     "nyc": "^15",
@@ -75,7 +74,7 @@
     }
   },
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.js",
+    "bundle:extension": "node ./esbuild.config.mjs",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

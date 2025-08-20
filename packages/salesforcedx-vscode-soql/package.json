@@ -52,7 +52,6 @@
     "@types/papaparse": "^5.2.3",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2",
     "salesforcedx-vscode-core": "64.10.1"
   },
   "extensionDependencies": [
