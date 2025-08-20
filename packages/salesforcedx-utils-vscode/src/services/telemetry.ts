@@ -204,7 +204,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     for (const reporter of this.reporters) {
       await reporter.dispose().catch(() => {});
     }
-    this.reporters = [];
+    this.reporters.length = 0;
 
     // Create new reporters with updated user ID
     const { name, version, o11yUploadEndpoint, enableO11y } = extensionPackageJsonSchema.parse(
