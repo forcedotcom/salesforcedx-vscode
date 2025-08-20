@@ -40,7 +40,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "mkdir -p ./dist && npm run bundle:extension:build && npm run bundle:extension:copy",
+    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:build": "esbuild ./src/extension.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --minify",
     "bundle:extension:copy": "cp ../salesforcedx-visualforce-language-server/dist/visualforceServer.js ./dist/",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",

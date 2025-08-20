@@ -51,9 +51,9 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "mkdir -p ./dist && node ./esbuild.config.mjs",
+    "bundle:extension": "node ./esbuild.config.mjs",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "mkdir -p ./dist && ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",

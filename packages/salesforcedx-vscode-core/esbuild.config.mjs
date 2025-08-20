@@ -25,14 +25,12 @@ const copyFiles = (src, dest) => {
 const srcTemplatesPath = '../../node_modules/@salesforce/templates/lib/templates';
 const destTemplatesPath = './dist/templates';
 
-(async () => {
-  await build({
-    ...nodeConfig,
-    entryPoints: ['./src/index.ts'],
-    outdir: 'dist/src',
-    external: ['vscode', 'applicationinsights', '@salesforce/schemas'],
-    minify: true
-  });
-})().then(() => {
-  copyFiles(srcTemplatesPath, destTemplatesPath);
+await build({
+  ...nodeConfig,
+  entryPoints: ['./src/index.ts'],
+  outdir: 'dist/src',
+  external: ['vscode', 'applicationinsights', '@salesforce/schemas'],
+  minify: true
 });
+
+copyFiles(srcTemplatesPath, destTemplatesPath);

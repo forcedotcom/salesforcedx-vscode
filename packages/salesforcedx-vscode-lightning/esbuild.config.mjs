@@ -7,11 +7,9 @@
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { build } from 'esbuild';
 
-async () => {
-  await build({
-    ...nodeConfig,
-    external: ['vscode', 'applicationinsights', '@salesforce/lightning-lsp-common', '@salesforce/aura-language-server'],
-    entryPoints: ['./src/index.ts'],
-    outdir: 'dist'
-  });
-};
+await build({
+  ...nodeConfig,
+  external: ['vscode', 'applicationinsights', '@salesforce/lightning-lsp-common', '@salesforce/aura-language-server'],
+  entryPoints: ['./src/index.ts'],
+  outdir: 'dist'
+});

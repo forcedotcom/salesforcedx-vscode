@@ -7,20 +7,18 @@
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { build } from 'esbuild';
 
-async () => {
-  await build({
-    ...nodeConfig,
-    ...sharedConfig,
-    loader: { '.node': 'file' },
-    external: [
-      'vscode',
-      'applicationinsights',
-      '@salesforce/lightning-lsp-common',
-      '@salesforce/lwc-language-server',
-      '@babel/preset-typescript/package.json',
-      'jest-editor-support'
-    ],
-    entryPoints: ['./src/index.ts'],
-    outdir: 'dist'
-  });
-};
+await build({
+  ...nodeConfig,
+  ...sharedConfig,
+  loader: { '.node': 'file' },
+  external: [
+    'vscode',
+    'applicationinsights',
+    '@salesforce/lightning-lsp-common',
+    '@salesforce/lwc-language-server',
+    '@babel/preset-typescript/package.json',
+    'jest-editor-support'
+  ],
+  entryPoints: ['./src/index.ts'],
+  outdir: 'dist'
+});

@@ -58,7 +58,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "mkdir -p ./dist && npm run bundle:extension:build && npm run bundle:extension:copy",
+    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
     "bundle:extension:build": "node ./esbuild.config.mjs",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
