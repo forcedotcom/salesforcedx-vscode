@@ -11,6 +11,13 @@ import { TelemetryService, TelemetryServiceInterface } from '../../../src';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryServiceProvider } from '../../../src/services/telemetry';
 
+// Mock the dependencies
+jest.mock('../../../src/services/userService');
+jest.mock('../../../src/telemetry/reporters/determineReporters');
+
+import { UserService } from '../../../src/services/userService';
+import { determineReporters, initializeO11yReporter } from '../../../src/telemetry/reporters/determineReporters';
+
 describe('Telemetry', () => {
   describe('Telemetry Service Provider', () => {
     afterEach(() => {
@@ -370,6 +377,316 @@ describe('Telemetry', () => {
       it('should handle undefined by defaulting to [0, 0]', () => {
         const result = (instance as any).hrTimeToMilliseconds(undefined);
         expect(result).toBe(0); // [0, 0] converts to 0 milliseconds
+      });
+    });
+  });
+
+  describe('Telemetry Service - refreshReporters', () => {
+    let instance: TelemetryService;
+    let mockExtensionContext: any;
+    let mockReporter1: any;
+    let mockReporter2: any;
+    let mockUserService: jest.SpyInstance;
+    let mockDetermineReporters: jest.SpyInstance;
+    let mockInitializeO11yReporter: jest.SpyInstance;
+    let spyIsTelemetryEnabled: jest.SpyInstance;
+    let consoleLogSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      // Clear instances to get fresh instance
+      TelemetryServiceProvider.instances.clear();
+      instance = TelemetryServiceProvider.getInstance() as TelemetryService;
+
+      // Mock extension context
+      mockExtensionContext = {
+        extension: {
+          packageJSON: {
+            name: 'test-extension',
+            version: '1.0.0',
+            o11yUploadEndpoint: 'https://test-endpoint.com',
+            enableO11y: 'true'
+          }
+        },
+        subscriptions: []
+      };
+
+      // Mock reporters
+      mockReporter1 = {
+        dispose: jest.fn().mockResolvedValue(undefined)
+      };
+      mockReporter2 = {
+        dispose: jest.fn().mockResolvedValue(undefined)
+      };
+
+      // Set up initial state
+      (instance as any).extensionContext = mockExtensionContext;
+      (instance as any).reporters = [mockReporter1, mockReporter2];
+      (instance as any).aiKey = 'test-ai-key';
+      (instance as any).isDevMode = false;
+
+      // Mock dependencies
+      mockUserService = jest.mocked(UserService.getTelemetryUserId).mockResolvedValue('updated-user-id');
+
+      mockDetermineReporters = jest
+        .mocked(determineReporters)
+        .mockReturnValue([
+          { dispose: jest.fn(), sendTelemetryEvent: jest.fn(), sendExceptionEvent: jest.fn() } as any,
+          { dispose: jest.fn(), sendTelemetryEvent: jest.fn(), sendExceptionEvent: jest.fn() } as any
+        ]);
+
+      mockInitializeO11yReporter = jest.mocked(initializeO11yReporter).mockResolvedValue(undefined);
+
+      spyIsTelemetryEnabled = jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
+
+      jest.spyOn(instance, 'getTelemetryReporterName').mockReturnValue('test-reporter-name');
+
+      consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      jest.restoreAllMocks();
+      TelemetryServiceProvider.instances.clear();
+    });
+
+    it('should return early if extensionContext is not set', async () => {
+      (instance as any).extensionContext = undefined;
+
+      await instance.refreshReporters(mockExtensionContext);
+
+      expect(mockUserService).not.toHaveBeenCalled();
+      expect(mockDetermineReporters).not.toHaveBeenCalled();
+    });
+
+    it('should return early if no reporters exist', async () => {
+      (instance as any).reporters = [];
+
+      await instance.refreshReporters(mockExtensionContext);
+
+      expect(mockUserService).not.toHaveBeenCalled();
+      expect(mockDetermineReporters).not.toHaveBeenCalled();
+    });
+
+    it('should return early if telemetry is disabled', async () => {
+      spyIsTelemetryEnabled.mockResolvedValue(false);
+
+      await instance.refreshReporters(mockExtensionContext);
+
+      expect(mockUserService).not.toHaveBeenCalled();
+      expect(mockDetermineReporters).not.toHaveBeenCalled();
+    });
+
+    it('should successfully refresh reporters with updated user ID', async () => {
+      const newReporter1 = { dispose: jest.fn(), sendTelemetryEvent: jest.fn(), sendExceptionEvent: jest.fn() } as any;
+      const newReporter2 = { dispose: jest.fn(), sendTelemetryEvent: jest.fn(), sendExceptionEvent: jest.fn() } as any;
+      mockDetermineReporters.mockReturnValue([newReporter1, newReporter2]);
+
+      await instance.refreshReporters(mockExtensionContext);
+
+      // Verify old reporters were disposed
+      expect(mockReporter1.dispose).toHaveBeenCalled();
+      expect(mockReporter2.dispose).toHaveBeenCalled();
+
+      // Verify user ID was fetched
+      expect(mockUserService).toHaveBeenCalledWith(mockExtensionContext);
+
+      // Verify new reporters were created with correct config
+      expect(mockDetermineReporters).toHaveBeenCalledWith({
+        extName: 'test-extension',
+        version: '1.0.0',
+        aiKey: 'test-ai-key',
+        userId: 'updated-user-id',
+        reporterName: 'test-reporter-name',
+        isDevMode: false
+      });
+
+      // Verify new reporters were added
+      expect((instance as any).reporters).toEqual([newReporter1, newReporter2]);
+
+      // Verify reporters were added to subscriptions
+      expect(mockExtensionContext.subscriptions).toContain(newReporter1);
+      expect(mockExtensionContext.subscriptions).toContain(newReporter2);
+
+      // Verify console log
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'Telemetry reporters refreshed for test-extension with new user ID:',
+        'updated-user-id'
+      );
+    });
+
+    it('should handle reporter disposal errors gracefully', async () => {
+      const disposalError = new Error('Disposal failed');
+      mockReporter1.dispose.mockRejectedValue(disposalError);
+
+      // Should not throw despite disposal error
+      await expect(instance.refreshReporters(mockExtensionContext)).resolves.not.toThrow();
+
+      // Should still proceed with creating new reporters
+      expect(mockDetermineReporters).toHaveBeenCalled();
+      expect(mockUserService).toHaveBeenCalled();
+    });
+
+    it('should clear reporters array before adding new ones', async () => {
+      const initialReportersLength = (instance as any).reporters.length;
+      expect(initialReportersLength).toBeGreaterThan(0);
+
+      const newReporter = { dispose: jest.fn(), sendTelemetryEvent: jest.fn(), sendExceptionEvent: jest.fn() } as any;
+      mockDetermineReporters.mockReturnValue([newReporter]);
+
+      await instance.refreshReporters(mockExtensionContext);
+
+      // Should have exactly the new reporters, not appended to old ones
+      expect((instance as any).reporters).toEqual([newReporter]);
+      expect((instance as any).reporters.length).toBe(1);
+    });
+
+    it('should use dev mode setting from instance', async () => {
+      (instance as any).isDevMode = true;
+
+      await instance.refreshReporters(mockExtensionContext);
+
+      expect(mockDetermineReporters).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isDevMode: true
+        })
+      );
+    });
+
+    it('should throw when trying to add reporters to undefined subscriptions', async () => {
+      mockExtensionContext.subscriptions = undefined;
+
+      // Should throw when trying to push to undefined subscriptions
+      await expect(instance.refreshReporters(mockExtensionContext)).rejects.toThrow();
+
+      // Should have attempted to create reporters
+      expect(mockDetermineReporters).toHaveBeenCalled();
+    });
+
+    describe('O11y Reporter Initialization', () => {
+      it('should initialize O11y reporter when enabled with boolean true', async () => {
+        mockExtensionContext.extension.packageJSON.enableO11y = 'true';
+
+        await instance.refreshReporters(mockExtensionContext);
+
+        expect(mockInitializeO11yReporter).toHaveBeenCalledWith(
+          'test-extension',
+          'https://test-endpoint.com',
+          'updated-user-id',
+          '1.0.0'
+        );
+      });
+
+      it('should not initialize O11y reporter when disabled with boolean false', async () => {
+        mockExtensionContext.extension.packageJSON.enableO11y = 'false';
+
+        await instance.refreshReporters(mockExtensionContext);
+
+        expect(mockInitializeO11yReporter).not.toHaveBeenCalled();
+      });
+
+      it('should not initialize O11y reporter when no upload endpoint is provided', async () => {
+        mockExtensionContext.extension.packageJSON.o11yUploadEndpoint = undefined;
+
+        await instance.refreshReporters(mockExtensionContext);
+
+        expect(mockInitializeO11yReporter).not.toHaveBeenCalled();
+      });
+
+      it('should work with undefined enableO11y field', async () => {
+        mockExtensionContext.extension.packageJSON.enableO11y = undefined;
+
+        await instance.refreshReporters(mockExtensionContext);
+
+        // Should not initialize O11y reporter when enableO11y is undefined
+        expect(mockInitializeO11yReporter).not.toHaveBeenCalled();
+
+        // Should still create regular reporters
+        expect(mockDetermineReporters).toHaveBeenCalled();
+      });
+
+      it('should work with empty string enableO11y field', async () => {
+        mockExtensionContext.extension.packageJSON.enableO11y = '';
+
+        await instance.refreshReporters(mockExtensionContext);
+
+        // Should not initialize O11y reporter when enableO11y is empty string
+        expect(mockInitializeO11yReporter).not.toHaveBeenCalled();
+
+        // Should still create regular reporters
+        expect(mockDetermineReporters).toHaveBeenCalled();
+      });
+
+      it('should handle case-insensitive enableO11y values', async () => {
+        mockExtensionContext.extension.packageJSON.enableO11y = 'TRUE';
+
+        await instance.refreshReporters(mockExtensionContext);
+
+        // Should initialize O11y reporter when enableO11y is 'TRUE' (case insensitive)
+        expect(mockInitializeO11yReporter).toHaveBeenCalledWith(
+          'test-extension',
+          'https://test-endpoint.com',
+          'updated-user-id',
+          '1.0.0'
+        );
+      });
+
+      it('should handle O11y initialization errors by throwing', async () => {
+        const o11yError = new Error('O11y initialization failed');
+        mockInitializeO11yReporter.mockRejectedValue(o11yError);
+
+        // Should throw when O11y initialization fails
+        await expect(instance.refreshReporters(mockExtensionContext)).rejects.toThrow('O11y initialization failed');
+
+        // Should have attempted to initialize O11y
+        expect(mockInitializeO11yReporter).toHaveBeenCalled();
+      });
+    });
+
+    describe('Error Handling', () => {
+      it('should handle invalid package.json schema gracefully', async () => {
+        mockExtensionContext.extension.packageJSON = {
+          // Missing required name and version fields
+          enableO11y: 'true'
+        };
+
+        // Should throw due to Zod validation error
+        await expect(instance.refreshReporters(mockExtensionContext)).rejects.toThrow();
+
+        // Should not have proceeded to create reporters
+        expect(mockDetermineReporters).not.toHaveBeenCalled();
+      });
+
+      it('should handle UserService.getTelemetryUserId errors', async () => {
+        const userServiceError = new Error('Failed to get user ID');
+        mockUserService.mockRejectedValue(userServiceError);
+
+        // Should throw when user service fails
+        await expect(instance.refreshReporters(mockExtensionContext)).rejects.toThrow('Failed to get user ID');
+
+        // Should have attempted to get user ID
+        expect(mockUserService).toHaveBeenCalledWith(mockExtensionContext);
+      });
+
+      it('should handle missing package.json fields gracefully', async () => {
+        mockExtensionContext.extension.packageJSON = {
+          name: 'test-extension',
+          version: '1.0.0'
+          // Missing o11yUploadEndpoint and enableO11y
+        };
+
+        await expect(instance.refreshReporters(mockExtensionContext)).resolves.not.toThrow();
+
+        expect(mockDetermineReporters).toHaveBeenCalledWith({
+          extName: 'test-extension',
+          version: '1.0.0',
+          aiKey: 'test-ai-key',
+          userId: 'updated-user-id',
+          reporterName: 'test-reporter-name',
+          isDevMode: false
+        });
+
+        // Should not initialize O11y reporter when fields are missing
+        expect(mockInitializeO11yReporter).not.toHaveBeenCalled();
       });
     });
   });
