@@ -46,7 +46,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
+    "bundle:extension": "mkdir -p ./dist && npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
     "bundle:extension:build": "node ./esbuild.config.mjs",
     "vscode:prepublish": "npm prune --production",
