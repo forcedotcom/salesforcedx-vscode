@@ -354,7 +354,8 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it('Run a test that fails and fix it', async () => {
+  // Known issue on Mac GHA: https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002KT1FhYAL/view
+  (process.platform === 'darwin' ? it.skip : it)('Run a test that fails and fix it', async () => {
     logTestStart(testSetup, 'Run a test that fails and fix it');
     // Create Apex class AccountService
 
