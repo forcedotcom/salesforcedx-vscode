@@ -104,7 +104,7 @@
     "vscode:bundle": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
     "vscode:bundle:debugger": "lerna run bundle:debugger",
     "vscode:bundle:extension": "lerna run bundle:extension",
-    "vscode:package": "node ./scripts/capture-esbuild-warnings.js && lerna run vscode:package --concurrency 1",
+    "vscode:package": "npm run compile && npm run vscode:bundle && node ./scripts/capture-esbuild-warnings.js && lerna run vscode:package --concurrency 1",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} \\;",
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
