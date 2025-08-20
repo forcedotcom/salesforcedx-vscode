@@ -12,7 +12,7 @@ import {
   TraceFlags,
   disposeTraceFlagExpiration,
   UserService,
-  TelemetryService
+  refreshAllExtensionReporters
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { decorators } from '../decorators';
@@ -105,7 +105,7 @@ export class WorkspaceContext {
       await UserService.getTelemetryUserId(this.extensionContext);
 
       // Refresh telemetry reporters for ALL extensions (Core, Apex, etc.)
-      await TelemetryService.refreshAllExtensionReporters(this.extensionContext);
+      await refreshAllExtensionReporters(this.extensionContext);
     } catch (error) {
       console.log('Failed to update telemetry user ID after org change:', error);
     }

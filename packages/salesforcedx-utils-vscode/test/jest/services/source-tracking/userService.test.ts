@@ -8,6 +8,7 @@
 import { ExtensionContext } from 'vscode';
 import { WorkspaceContextUtil } from '../../../../src';
 import { UNAUTHENTICATED_USER } from '../../../../src/constants';
+import * as telemetryUtils from '../../../../src/helpers/telemetryUtils';
 import { UserService } from '../../../../src/services/userService';
 
 jest.mock('../../../../src/context/workspaceContextUtil');
@@ -193,7 +194,7 @@ describe('UserService', () => {
       mockOrgId = undefined;
       mockUsername = undefined;
 
-      const getSharedTelemetryUserIdSpy = jest.spyOn(UserService as any, 'getSharedTelemetryUserId');
+      const getSharedTelemetryUserIdSpy = jest.spyOn(telemetryUtils, 'getSharedTelemetryUserId');
 
       const uId = await UserService.getTelemetryUserId(coreExtensionContext);
 

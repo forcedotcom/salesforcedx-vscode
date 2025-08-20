@@ -5,42 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createHash } from 'node:crypto';
-import { ExtensionContext, extensions } from 'vscode';
+import { ExtensionContext } from 'vscode';
 import { TELEMETRY_GLOBAL_USER_ID, UNAUTHENTICATED_USER } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
-
-// Type definition for the Core extension API
-interface SalesforceVSCodeCoreApi {
-  getSharedTelemetryUserId?: () => Promise<string>;
-}
+import { getSharedTelemetryUserId, hashUserIdentifier } from '../helpers/telemetryUtils';
 
 export class UserService {
-  /**
-   * Attempts to get the shared telemetry user ID from the Core extension.
-   * Returns undefined if the Core extension is not available or doesn't have the method.
-   */
-  private static async getSharedTelemetryUserId(): Promise<string | undefined> {
-    try {
-      const coreExtension = extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
-      if (coreExtension?.isActive && coreExtension.exports?.getSharedTelemetryUserId) {
-        return await coreExtension.exports.getSharedTelemetryUserId();
-      }
-    } catch (error) {
-      // Silently ignore errors - we'll fall back to extension-specific storage
-      console.log(`Failed to get shared telemetry user ID: ${String(error)}`);
-    }
-    return undefined;
-  }
-
-  /**
-   * Creates a one-way hash of orgId and userId for telemetry compliance.
-   * This ensures customer data cannot be decoded while maintaining user distinction.
-   */
-  private static hashUserIdentifier(orgId: string, userId: string): string {
-    return createHash('sha256').update(`${orgId}-${userId}`).digest('hex');
-  }
-
   /**
    * Retrieves or generates a telemetry user ID for the current VS Code extension context.
    * The returned user ID is used for telemetry purposes and is determined as follows:
@@ -61,7 +31,7 @@ export class UserService {
     // First, try to get the shared telemetry user ID from the Core extension
     // Only check for shared user ID if this is not the Core extension itself (to avoid infinite loop)
     if (extensionContext.extension.id !== 'salesforce.salesforcedx-vscode-core') {
-      const sharedUserId = await this.getSharedTelemetryUserId();
+      const sharedUserId = await getSharedTelemetryUserId();
       if (sharedUserId) {
         return sharedUserId;
       }
@@ -78,7 +48,7 @@ export class UserService {
     if (orgId && userId) {
       // If globalStateUserId is undefined or is the anonymous user ID, replace it with the hashed value
       if (!globalStateUserId || globalStateUserId === UNAUTHENTICATED_USER) {
-        const hashedUserId = this.hashUserIdentifier(orgId, userId);
+        const hashedUserId = hashUserIdentifier(orgId, userId);
         await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, hashedUserId);
         return hashedUserId;
       }

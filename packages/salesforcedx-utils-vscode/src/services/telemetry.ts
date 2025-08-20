@@ -233,30 +233,6 @@ export class TelemetryService implements TelemetryServiceInterface {
     console.log(`Telemetry reporters refreshed for ${name} with new user ID:`, userId);
   }
 
-  /**
-   * Refreshes telemetry reporters for ALL extension instances when org authorization changes.
-   * This ensures that all extensions (Core, Apex, etc.) use the updated hashed user ID.
-   */
-  public static async refreshAllExtensionReporters(coreExtensionContext: ExtensionContext): Promise<void> {
-    console.log('Refreshing telemetry reporters for all extensions...');
-
-    const refreshPromises: Promise<void>[] = [];
-
-    // Refresh reporters for all registered extension instances
-    for (const [extensionName, telemetryService] of TelemetryServiceProvider.instances) {
-      if (telemetryService instanceof TelemetryService && 'refreshReporters' in telemetryService) {
-        const refreshPromise = telemetryService.refreshReporters(coreExtensionContext).catch(error => {
-          console.log(`Failed to refresh telemetry reporters for ${extensionName}:`, error);
-        });
-        refreshPromises.push(refreshPromise);
-      }
-    }
-
-    // Wait for all refresh operations to complete
-    await Promise.all(refreshPromises);
-    console.log('Completed refreshing telemetry reporters for all extensions');
-  }
-
   public async isTelemetryEnabled(): Promise<boolean> {
     return this.isInternal ? true : this.isTelemetryExtensionConfigurationEnabled() && (await this.checkCliTelemetry());
   }
