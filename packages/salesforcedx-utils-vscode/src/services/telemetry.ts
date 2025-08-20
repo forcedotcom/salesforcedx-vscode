@@ -202,11 +202,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
     // Dispose existing reporters
     for (const reporter of this.reporters) {
-      try {
-        await reporter.dispose();
-      } catch (error) {
-        console.log('Error disposing telemetry reporter:', error);
-      }
+      await reporter.dispose().catch(() => {});
     }
     this.reporters = [];
 
@@ -249,10 +245,9 @@ export class TelemetryService implements TelemetryServiceInterface {
     // Refresh reporters for all registered extension instances
     for (const [extensionName, telemetryService] of TelemetryServiceProvider.instances) {
       if (telemetryService instanceof TelemetryService && 'refreshReporters' in telemetryService) {
-        const refreshPromise = telemetryService.refreshReporters(coreExtensionContext)
-          .catch(error => {
-            console.log(`Failed to refresh telemetry reporters for ${extensionName}:`, error);
-          });
+        const refreshPromise = telemetryService.refreshReporters(coreExtensionContext).catch(error => {
+          console.log(`Failed to refresh telemetry reporters for ${extensionName}:`, error);
+        });
         refreshPromises.push(refreshPromise);
       }
     }
@@ -388,7 +383,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         } catch {
           console.log(
             `There was an error sending an exception report to: ${typeof reporter} ` +
-            `name: ${String(name)} message: ${String(message)}`
+              `name: ${String(name)} message: ${String(message)}`
           );
         }
       });
