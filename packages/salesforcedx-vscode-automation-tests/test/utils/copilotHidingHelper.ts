@@ -12,10 +12,16 @@ import {
 
 export const tryToHideCopilot = async (): Promise<void> => {
   try {
-    await executeQuickPick('Chat: Hide Copilot');
+    await executeQuickPick('Chat: Hide AI Features');
     await pause(Duration.seconds(1));
-    await clickButtonOnModalDialog('Hide Copilot');
+    await clickButtonOnModalDialog('Hide AI Features');
   } catch {
-    log('Chat: Hide Copilot not found');
+    try {
+      await executeQuickPick('Chat: Hide Copilot');
+      await pause(Duration.seconds(1));
+      await clickButtonOnModalDialog('Hide Copilot');
+    } catch {
+      log('Chat: Hide Copilot not found');
+    }
   }
 };

@@ -24,7 +24,8 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   closeCurrentEditor,
   dismissAllNotifications,
-  getWorkbench
+  getWorkbench,
+  zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
@@ -77,9 +78,13 @@ describe('Org Browser', () => {
       'Certificates',
       'Communities'
     ];
+
+    await zoom('Out', 2, Duration.seconds(1));
+
     for (const type of metadataTypes) {
       const element = await findTypeInOrgBrowser(type);
-      expect(element).to.not.be.undefined;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      expect(element, `Metadata type ${type} is not available`).to.not.be.undefined;
     }
   });
 
