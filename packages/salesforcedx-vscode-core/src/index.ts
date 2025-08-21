@@ -13,7 +13,7 @@ import {
   TelemetryService,
   TimingUtils,
   TraceFlags,
-  UserService,
+  getTelemetryUserId,
   WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
@@ -476,7 +476,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     WorkspaceContext,
     taskViewService,
     telemetryService,
-    getSharedTelemetryUserId: async () => await UserService.getTelemetryUserId(extensionContext, undefined),
+    getSharedTelemetryUserId: async () => await getTelemetryUserId(extensionContext, undefined),
     services: {
       RegistryAccess,
       ChannelService,

@@ -25,7 +25,7 @@ import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConf
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
-import { UserService, DefaultSharedTelemetryProvider } from './userService';
+import { getTelemetryUserId, DefaultSharedTelemetryProvider } from './userService';
 
 type CommandMetric = {
   extensionName: string;
@@ -157,10 +157,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       const userId = this.extensionContext
-        ? await UserService.getTelemetryUserId(
-            this.extensionContext,
-            this.getSharedTelemetryProvider(this.extensionContext)
-          )
+        ? await getTelemetryUserId(this.extensionContext, this.getSharedTelemetryProvider(this.extensionContext))
         : 'unknown';
       const reporterConfig: TelemetryReporterConfig = {
         extName: this.extensionName,
@@ -213,10 +210,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     }
 
     // Get the updated user ID
-    const userId = await UserService.getTelemetryUserId(
-      extensionContext,
-      this.getSharedTelemetryProvider(extensionContext)
-    );
+    const userId = await getTelemetryUserId(extensionContext, this.getSharedTelemetryProvider(extensionContext));
 
     // Dispose existing reporters
     for (const reporter of this.reporters) {

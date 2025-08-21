@@ -15,7 +15,7 @@ import { TelemetryServiceProvider } from '../../../src/services/telemetry';
 jest.mock('../../../src/services/userService');
 jest.mock('../../../src/telemetry/reporters/determineReporters');
 
-import { UserService } from '../../../src/services/userService';
+import { getTelemetryUserId } from '../../../src/services/userService';
 import { determineReporters, initializeO11yReporter } from '../../../src/telemetry/reporters/determineReporters';
 
 describe('Telemetry', () => {
@@ -425,7 +425,7 @@ describe('Telemetry', () => {
       (instance as any).isDevMode = false;
 
       // Mock dependencies
-      mockUserService = jest.mocked(UserService.getTelemetryUserId).mockResolvedValue('updated-user-id');
+      mockUserService = jest.mocked(getTelemetryUserId).mockResolvedValue('updated-user-id');
 
       mockDetermineReporters = jest
         .mocked(determineReporters)
@@ -713,7 +713,7 @@ describe('Telemetry', () => {
         expect(mockDetermineReporters).not.toHaveBeenCalled();
       });
 
-      it('should handle UserService.getTelemetryUserId errors', async () => {
+      it('should handle getTelemetryUserId errors', async () => {
         const userServiceError = new Error('Failed to get user ID');
         mockUserService.mockRejectedValue(userServiceError);
 
