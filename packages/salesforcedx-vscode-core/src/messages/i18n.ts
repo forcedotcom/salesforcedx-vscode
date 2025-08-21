@@ -683,7 +683,7 @@ export const messages = {
   conflict_detect_no_target_org: 'No target org for this project',
   conflict_detect_no_default_package_dir: 'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',
-  conflict_detect_not_enabled: 'Enable the Detect Conflicts at Sync setting to view org differences',
+  conflict_detect_not_enabled: 'Enable the Detect Conflicts for Deploy and Retrieve setting to view org differences',
   conflict_detect_root_title: 'Org Differences',
   conflict_detect_view_root: '%s : %d file difference(s)',
   conflict_detect_no_conflicts: 'No conflicts',
