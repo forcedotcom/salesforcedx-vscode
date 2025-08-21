@@ -21,3 +21,4 @@ export const INTERNAL_FILTER = 'internal.salesforce.com';
 export const TRACE_FLAG_EXPIRATION_KEY = 'apexReplayDebugger.traceFlagExpiration';
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
+export const UNAUTHENTICATED_USER = 'UNAUTHENTICATED_USER';

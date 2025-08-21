@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TELEMETRY_GLOBAL_USER_ID } from '@salesforce/salesforcedx-utils-vscode';
+import { TELEMETRY_GLOBAL_USER_ID, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import { extensions, window, Extension } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
@@ -21,6 +21,12 @@ describe('Telemetry', () => {
   let cliSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    // Mock WorkspaceContextUtil to prevent file system watcher issues
+    jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
+      orgId: 'test-org-id',
+      username: 'test@example.com'
+    } as any);
+
     mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
     jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
     teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
