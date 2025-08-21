@@ -101,7 +101,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
    * Base method (no-op) that is overridden by sub-classes
    * projectDeployStart and projectRetrieveStart to update the local cache's
    * timestamps post-operation, in order to be in sync for the
-   * "Detect Conflicts at Sync" setting.
+   * "Detect Conflicts for Deploy and Retrieve" setting.
    */
 
   public abstract build(data: T): Command;

@@ -4,11 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  fixupError,
-  ProjectDeployStartErrorResponse,
-  getRootWorkspacePath
-} from '@salesforce/salesforcedx-utils-vscode';
+import { fixupError, getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve-bundle';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -28,58 +24,6 @@ export const getRange = (lineNumber: string, columnNumber: string): vscode.Range
   const col = Number(columnNumber);
   const pos = new vscode.Position(ln > 0 ? ln - 1 : 0, col > 0 ? col - 1 : 0);
   return new vscode.Range(pos, pos);
-};
-
-export const handlePushDiagnosticErrors = (
-  errors: ProjectDeployStartErrorResponse,
-  workspacePath: string,
-  sourcePathOrPaths: string,
-  errorCollection: vscode.DiagnosticCollection
-): vscode.DiagnosticCollection => {
-  errorCollection.clear();
-
-  const defaultErrorPath = sourcePathOrPaths.includes(',') ? workspacePath : sourcePathOrPaths;
-
-  const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-
-  const processError = (filePath: string, lineNumber: string, columnNumber: string, error: string, type: string) => {
-    const fileUri = getFileUri(workspacePath, filePath, defaultErrorPath);
-    const range = getRange(lineNumber || '1', columnNumber || '1');
-
-    const diagnostic: vscode.Diagnostic = {
-      message: fixupError(error),
-      severity: vscode.DiagnosticSeverity.Error,
-      source: type,
-      range
-    };
-
-    if (!diagnosticMap.has(fileUri)) {
-      diagnosticMap.set(fileUri, []);
-    }
-
-    diagnosticMap.get(fileUri)!.push(diagnostic);
-  };
-
-  if (Reflect.has(errors, 'files')) {
-    errors.files?.forEach(error => {
-      processError(
-        error.filePath ?? notApplicable,
-        error.lineNumber ?? '1',
-        error.columnNumber ?? '1',
-        error.error ?? 'Unknown error',
-        error.type ?? 'Unknown type'
-      );
-    });
-  } else if (Reflect.has(errors, 'status')) {
-    processError(defaultErrorPath, '1', '1', errors.message, errors.name);
-  }
-
-  handleDuplicateDiagnostics(diagnosticMap).forEach((diagMap: vscode.Diagnostic[], file) => {
-    const fileUri = URI.file(file);
-    errorCollection.set(fileUri, diagMap);
-  });
-
-  return errorCollection;
 };
 
 export const handleDeployDiagnostics = (

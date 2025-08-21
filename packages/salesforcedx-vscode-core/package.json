@@ -31,6 +31,7 @@
     "@salesforce/salesforcedx-utils-vscode": "64.10.1",
     "@salesforce/schemas": "1.9.0",
     "@salesforce/source-deploy-retrieve-bundle": "^12.21.6",
+    "@salesforce/source-tracking-bundle": "^7.4.9",
     "@salesforce/templates": "^64.2.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -921,7 +922,7 @@
           "default": false,
           "description": "%push_or_deploy_on_save_show_output_panel%"
         },
-        "salesforcedx-vscode-core.detectConflictsAtSync": {
+        "salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve": {
           "type": "boolean",
           "default": false,
           "description": "%conflict_detection_enabled_description%"

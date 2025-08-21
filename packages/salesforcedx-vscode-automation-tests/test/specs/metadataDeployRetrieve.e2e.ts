@@ -16,7 +16,8 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   attemptToFindTextEditorText,
   clearOutputView,
-  closeAllEditors
+  closeAllEditors,
+  dismissAllNotifications
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
@@ -52,6 +53,9 @@ describe('metadata mdDeployRetrieve', () => {
       testSetup.projectFolderPath!,
       'force-app/main/default/objects/Account/fields/Deploy_Test__c.field-meta.xml'
     );
+
+    // Clear notifications
+    await dismissAllNotifications();
   });
 
   it('Open and deploy MD v1', async () => {

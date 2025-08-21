@@ -9,7 +9,7 @@
   "config_set_org_text": "SFDX: Set a Default Org",
   "conflict_detect_open_file": "Open File",
   "conflict_detect_resolve_view": "Org Differences",
-  "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for all deploy commands executed from VS Code",
+  "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for all deploy and retrieve commands executed from VS Code",
   "core_settings_title": "Salesforce Core Configuration",
   "data_query_input_text": "SFDX: Execute SOQL Query...",
   "data_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text",

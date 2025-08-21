@@ -226,13 +226,14 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'メタデータのデプロイ中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
   conflict_detect_conflicts_during_retrieve:
     'メタデータの取得中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
-  conflict_detect_override: '競合を上書き',
-  conflict_detect_show_conflicts: '競合を表示',
+  conflict_detect_override_deploy: '競合を上書き',
+  conflict_detect_show_conflicts_deploy: '競合を表示',
 
   conflict_detect_no_target_org: 'このプロジェクトにはデフォルトのユーザ名がありません',
   conflict_detect_no_default_package_dir: 'このプロジェクトにはデフォルトのパッケージディレクトリがありません',
   conflict_detect_view_init: '競合検出ビューが初期化されていません',
-  conflict_detect_not_enabled: '組織との差分を表示するために、Detect Conflicts at Sync 設定を有効化してください',
+  conflict_detect_not_enabled:
+    '組織との差分を表示するために、Detect Conflicts for Deploy and Retrieve 設定を有効化してください',
 
   conflict_detect_no_conflicts: '競合がありません',
 

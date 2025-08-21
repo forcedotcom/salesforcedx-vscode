@@ -12,6 +12,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
+import { salesforceCoreSettings } from '../../settings';
 import { RetrieveExecutor } from '../retrieveExecutor';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<LocalComponent[]> {
@@ -20,6 +21,8 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<LocalCom
   constructor(openAfterRetrieve = false) {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_sourcepath');
     this.openAfterRetrieve = openAfterRetrieve;
+    // Apply the global conflict detection setting for general retrieve commands
+    this.ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled();
   }
 
   protected async getComponents(response: ContinueResponse<LocalComponent[]>): Promise<ComponentSet> {
