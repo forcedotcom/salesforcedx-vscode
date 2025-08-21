@@ -19,6 +19,7 @@ export type ComponentName = {
   name?: string;
 };
 
+export type DeployRetrieveOperationType = 'deploy' | 'retrieve' | 'push' | 'pull';
 export const isContinue = (contineOrCancel: ContinueOrCancel): contineOrCancel is ContinueResponse<OneOrMany> =>
   Reflect.get(contineOrCancel, 'type') === 'CONTINUE';
 
