@@ -30,11 +30,3 @@ jobs:
       tag: ${{ needs.getDistTag.outputs.tag || 'latest' }}
       githubTag: ${{ github.event.release.tag_name || inputs.tag }}
     secrets: inherit
-
-  publish-bundle:
-    if: ${{ success() && needs.getDistTag.outputs.tag == '' }}
-    uses: ./.github/workflows/releaseWithCoreBundle.yml
-    needs: [getDistTag, npm]
-    with:
-      branch: 'main'
-    secrets: inherit
