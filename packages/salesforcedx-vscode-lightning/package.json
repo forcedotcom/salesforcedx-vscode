@@ -28,6 +28,7 @@
     "@salesforce/lightning-lsp-common": "4.12.5",
     "@salesforce/salesforcedx-utils-vscode": "64.10.1",
     "applicationinsights": "1.0.7",
+    "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
