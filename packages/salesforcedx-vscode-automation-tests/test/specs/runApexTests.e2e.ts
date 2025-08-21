@@ -355,10 +355,12 @@ describe('Run Apex Tests', () => {
   });
 
   // Known issue on Mac GHA: https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002KT1FhYAL/view
-  (process.platform === 'darwin' ? it.skip : it)('Run a test that fails and fix it', async () => {
+  it('Run a test that fails and fix it', async () => {
     logTestStart(testSetup, 'Run a test that fails and fix it');
-    // Create Apex class AccountService
 
+    await executeQuickPick('View: Close All Editors', Duration.seconds(1));
+
+    // Create Apex class AccountService
     await createApexClassWithBugs(classesFolderPath);
 
     // Push source to org
