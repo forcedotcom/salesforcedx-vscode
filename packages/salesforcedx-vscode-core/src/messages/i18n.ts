@@ -668,18 +668,22 @@ export const messages = {
   conflict_detect_conflicts_during_deploy: 'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
     'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
-  conflict_detect_override: 'Override Conflicts and Deploy',
-  conflict_detect_show_conflicts: 'View Conflicts and Cancel Deploy',
+  conflict_detect_override_deploy: 'Override Conflicts and Deploy',
+  conflict_detect_override_retrieve: 'Override Conflicts and Retrieve',
+  conflict_detect_show_conflicts_deploy: 'View Conflicts and Cancel Deploy',
+  conflict_detect_show_conflicts_retrieve: 'View Conflicts and Cancel Retrieve',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
   conflict_detect_conflict_header_timestamp: 'Conflicts:\n    Found %d file(s) in conflict:\n',
   conflict_detect_command_hint: '\nRun the following command to overwrite the conflicts:\n  %s',
   conflict_detect_command_hint_push:
     '\nRun the following command to overwrite the conflicts:\n SFDX: Push Source to Default Org and Ignore Conflicts\n',
+  conflict_detect_command_hint_pull:
+    '\nRun the following command to overwrite the conflicts:\n SFDX: Pull Source from Default Org and Ignore Conflicts\n',
   conflict_detect_no_target_org: 'No target org for this project',
   conflict_detect_no_default_package_dir: 'No default package directory for this project',
   conflict_detect_view_init: 'Conflict detection view has not been initialized',
-  conflict_detect_not_enabled: 'Enable the Detect Conflicts at Sync setting to view org differences',
+  conflict_detect_not_enabled: 'Enable the Detect Conflicts for Deploy and Retrieve setting to view org differences',
   conflict_detect_root_title: 'Org Differences',
   conflict_detect_view_root: '%s : %d file difference(s)',
   conflict_detect_no_conflicts: 'No conflicts',
