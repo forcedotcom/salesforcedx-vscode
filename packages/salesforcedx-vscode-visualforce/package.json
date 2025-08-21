@@ -33,7 +33,7 @@
     "vscode-languageserver-types": "^3.17.5"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.15.1",
     "cross-env": "5.2.0"
   },
   "extensionDependencies": [
