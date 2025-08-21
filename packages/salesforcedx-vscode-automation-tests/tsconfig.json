@@ -5,7 +5,7 @@
     "outDir": "./lib", // Specify the output directory
     "module": "commonjs",
     "moduleResolution": "node",
-    "types": ["node", "mocha"],
+    "types": ["node"],
     "target": "ES2020"
   },
   "include": ["./test/**/*.ts", "./test/customSummaryReporter.ts"],
