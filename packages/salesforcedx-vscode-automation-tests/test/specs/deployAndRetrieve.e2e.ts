@@ -389,7 +389,7 @@ describe('Deploy and Retrieve', () => {
       'ApexClass',
       `${pathToClass}.cls`,
       `${pathToClass}.cls-meta.xml`,
-      'ended with exit code 0'
+      'Ended SFDX: Delete from Project and Org'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -476,7 +476,7 @@ describe('Deploy and Retrieve', () => {
         'ApexClass',
         `${pathToClassDeleteFromProjectAndOrg}.cls`,
         `${pathToClassDeleteFromProjectAndOrg}.cls-meta.xml`,
-        'ended with exit code 0'
+        'Ended SFDX: Delete from Project and Org'
       ];
 
       await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -558,7 +558,7 @@ describe('Deploy and Retrieve', () => {
         'ApexClass',
         `${pathToClassDeleteFromProjectAndOrg}.cls`,
         `${pathToClassDeleteFromProjectAndOrg}.cls-meta.xml`,
-        'ended with exit code 0'
+        'Ended SFDX: Delete from Project and Org'
       ];
 
       await verifyOutputPanelText(outputPanelText, expectedTexts);

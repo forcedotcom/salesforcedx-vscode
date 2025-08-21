@@ -276,6 +276,12 @@ export const createOperationOutput = (
       failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
       successTitle: nls.localize('table_title_pulled_source'),
       failureTitle: nls.localize('table_title_pull_errors')
+    },
+    delete: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
+      successTitle: nls.localize('table_title_deleted_source'),
+      failureTitle: nls.localize('table_title_delete_errors')
     }
   };
 
