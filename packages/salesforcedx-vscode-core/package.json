@@ -922,7 +922,7 @@
           "default": false,
           "description": "%push_or_deploy_on_save_show_output_panel%"
         },
-        "salesforcedx-vscode-core.detectConflictsAtSync": {
+        "salesforcedx-vscode-core.detectConflictsForDeployAndRetrieve": {
           "type": "boolean",
           "default": false,
           "description": "%conflict_detection_enabled_description%"
