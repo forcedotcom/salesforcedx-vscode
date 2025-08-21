@@ -232,8 +232,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   conflict_detect_no_target_org: 'このプロジェクトにはデフォルトのユーザ名がありません',
   conflict_detect_no_default_package_dir: 'このプロジェクトにはデフォルトのパッケージディレクトリがありません',
   conflict_detect_view_init: '競合検出ビューが初期化されていません',
-  conflict_detect_not_enabled:
-    '組織との差分を表示するために、Detect Conflicts for Deploy and Retrieve 設定を有効化してください',
+  conflict_detect_not_enabled: '組織との差分を表示するために、Detect Conflicts at Sync 設定を有効化してください',
 
   conflict_detect_no_conflicts: '競合がありません',
 

@@ -27,7 +27,7 @@ export const TABLE_SUCCESS_COL = 'table_header_success';
 
 // sfdxCore setting config values
 export const ALL_EXCEPTION_CATCHER_ENABLED = 'allExceptionCatcherEnabled';
-export const CONFLICT_DETECTION_ENABLED = 'detectConflictsForDeployAndRetrieve';
+export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const PREFER_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.preferDeployOnSave';
