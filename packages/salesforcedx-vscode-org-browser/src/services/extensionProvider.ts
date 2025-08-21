@@ -20,7 +20,9 @@ const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeSer
   api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
 
 const getServicesApi = pipe(
-  Effect.sync(() => vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')),
+  Effect.sync(() =>
+    vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
+  ),
   Effect.flatMap(extension =>
     extension ? Effect.succeed(extension) : Effect.fail(new Error('Services extension not found'))
   ),

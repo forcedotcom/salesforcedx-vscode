@@ -55,26 +55,23 @@ export const ConnectionServiceLive = Layer.scoped(
 
           return yield* webConnectionCache.get({ instanceUrl, accessToken });
         } else {
-          // Desktop environment - use existing flow
-          const configService = yield* ConfigService;
-          const configAggregator = yield* configService.getConfigAggregator;
-          console.log('ConfigAggregator', JSON.stringify(configAggregator.getConfig(), null, 2));
-
-          const username = configAggregator.getPropertyValue<string>('target-org');
-
-          if (!username) {
-            return yield* Effect.fail(new Error('No default org (target-org) set in config'));
-          }
-
-          const authInfo = yield* Effect.tryPromise({
-            try: () => AuthInfo.create({ username }),
-            catch: error => new Error('Failed to create AuthInfo', { cause: error })
-          });
-
-          return yield* Effect.tryPromise({
-            try: () => Connection.create({ authInfo }),
-            catch: error => new Error('Failed to create Connection', { cause: error })
-          });
+          return yield* ConfigService.pipe(
+            Effect.flatMap(cfgSvc => cfgSvc.getConfigAggregator),
+            Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
+            Effect.flatMap(agg => Effect.succeed(agg.getPropertyValue<string>('target-org'))),
+            Effect.flatMap(username =>
+              Effect.tryPromise({
+                try: () => AuthInfo.create({ username }),
+                catch: error => new Error('Failed to create AuthInfo', { cause: error })
+              })
+            ),
+            Effect.flatMap(authInfo =>
+              Effect.tryPromise({
+                try: () => Connection.create({ authInfo }),
+                catch: error => new Error('Failed to create Connection', { cause: error })
+              }).pipe(Effect.withSpan('getConnection'))
+            )
+          );
         }
       })
         .pipe(Effect.withSpan('getConnection'))

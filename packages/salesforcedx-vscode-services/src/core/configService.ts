@@ -23,7 +23,7 @@ export const ConfigService = Context.GenericTag<ConfigService>('ConfigService');
 const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggregator, Error, never> =>
   Effect.tryPromise({
     try: () => ConfigAggregator.create({ projectPath }),
-    catch: (error: unknown) => new Error(`Failed to get ConfigAggregator: ${String(error)}`)
+    catch: (error: unknown) => new Error(`Failed to get ConfigAggregator at ${projectPath}: ${String(error)}`)
   }).pipe(Effect.withSpan('createConfigAggregator', { attributes: { projectPath } }));
 
 export const ConfigServiceLive = Layer.scoped(
