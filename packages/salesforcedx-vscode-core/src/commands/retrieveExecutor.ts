@@ -59,7 +59,6 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
 
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled() || this.ignoreConflicts;
 
     // Set up source tracking based on org type and settings:
     // - Source-tracked orgs: Always use source tracking
@@ -68,7 +67,11 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
 
     if (orgType === workspaceContextUtils.OrgType.SourceTracked || sourceTrackingEnabled) {
-      this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection, ignoreConflicts);
+      this.sourceTracking = await SourceTrackingService.getSourceTracking(
+        projectPath,
+        connection,
+        this.ignoreConflicts
+      );
       // Force remote tracking refresh to ensure we get the latest changes
       await this.sourceTracking.ensureRemoteTracking(true);
     }
@@ -76,7 +79,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
     const defaultOutput = join(projectPath, (await SalesforcePackageDirectories.getDefaultPackageDir()) ?? '');
 
     // Check for conflicts using SourceTracking before the operation
-    if (this.sourceTracking && !ignoreConflicts) {
+    if (this.sourceTracking && !this.ignoreConflicts) {
       const conflicts = await this.sourceTracking.getConflicts();
       if (conflicts?.length > 0) {
         // Show conflict UI and let user decide
@@ -97,7 +100,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
     }
 
     // Execute the retrieve operation (no conflicts detected or conflict detection disabled)
-    const result = await this.retrieve(components, connection, defaultOutput, token, false);
+    const result = await this.retrieve(components, connection, defaultOutput, token, this.ignoreConflicts);
     // Update source tracking after successful retrieve if we have source tracking set up
     if (this.sourceTracking) {
       const status = result?.response?.status;

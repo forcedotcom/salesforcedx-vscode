@@ -54,7 +54,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     const projectPath = getRootWorkspacePath();
     const connection = await WorkspaceContext.getInstance().getConnection();
     components.projectDirectory = projectPath;
-    const ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled() || this.ignoreConflicts;
 
     // Set up source tracking based on org type and settings:
     // - Source-tracked orgs: Always use source tracking
@@ -63,12 +62,16 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
 
     if (orgType === workspaceContextUtils.OrgType.SourceTracked || sourceTrackingEnabled) {
-      this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection, ignoreConflicts);
+      this.sourceTracking = await SourceTrackingService.getSourceTracking(
+        projectPath,
+        connection,
+        this.ignoreConflicts
+      );
       await this.sourceTracking.ensureLocalTracking();
     }
 
     // Check for conflicts using SourceTracking before the operation
-    if (this.sourceTracking && !ignoreConflicts) {
+    if (this.sourceTracking && !this.ignoreConflicts) {
       const conflicts = await this.sourceTracking.getConflicts();
       if (conflicts?.length > 0) {
         // Show conflict UI and let user decide
@@ -89,7 +92,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T, Deploy
     }
 
     // Execute the deployment operation (no conflicts detected or conflict detection disabled)
-    const result = await this.deploy(components, connection, token, false);
+    const result = await this.deploy(components, connection, token, this.ignoreConflicts);
 
     if (!result) {
       // User cancelled due to conflicts

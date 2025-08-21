@@ -21,6 +21,8 @@ class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor(showChannelOutput: boolean = true) {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_sourcepath');
     this.showChannelOutput = showChannelOutput;
+    // Apply the global conflict detection setting for general deploy commands
+    this.ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled();
   }
 
   public async getComponents(response: ContinueResponse<string[]>): Promise<ComponentSet> {
