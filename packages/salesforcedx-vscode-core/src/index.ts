@@ -13,6 +13,7 @@ import {
   TelemetryService,
   TimingUtils,
   TraceFlags,
+  getTelemetryUserId,
   WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
@@ -470,6 +471,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     WorkspaceContext,
     taskViewService,
     telemetryService,
+    getSharedTelemetryUserId: async () => await getTelemetryUserId(extensionContext, undefined),
     services: {
       RegistryAccess,
       ChannelService,
@@ -597,6 +599,7 @@ export type SalesforceVSCodeCoreApi = {
   WorkspaceContext: typeof WorkspaceContext;
   taskViewService: typeof taskViewService;
   telemetryService: typeof telemetryService;
+  getSharedTelemetryUserId: () => Promise<string>;
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
