@@ -9,7 +9,6 @@ import { build } from 'esbuild';
 
 await build({
   ...nodeConfig,
-  ...sharedConfig,
   loader: { '.node': 'file' },
   external: [
     'vscode',
