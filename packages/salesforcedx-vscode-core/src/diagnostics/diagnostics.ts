@@ -9,7 +9,7 @@ import {
   ProjectDeployStartErrorResponse,
   getRootWorkspacePath
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';

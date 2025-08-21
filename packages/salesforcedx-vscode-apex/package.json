@@ -26,7 +26,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "^8.2.7",
+    "@salesforce/apex-node": "^8.2.7",
     "@salesforce/apex-tmlanguage": "1.8.1",
     "@salesforce/salesforcedx-utils": "64.10.1",
     "@salesforce/salesforcedx-utils-vscode": "64.10.1",

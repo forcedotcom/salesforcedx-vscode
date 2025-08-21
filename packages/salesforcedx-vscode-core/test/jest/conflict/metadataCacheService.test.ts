@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { isDirectory } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { MetadataCacheService, PathType } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';

@@ -13,7 +13,7 @@ import {
   errorToString,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as nodePath from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';

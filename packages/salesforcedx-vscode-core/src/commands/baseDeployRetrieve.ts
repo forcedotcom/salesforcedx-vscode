@@ -11,14 +11,14 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve';
 import {
   ComponentStatus,
   FileResponse,
   FileResponseFailure,
   MetadataTransferResult,
   RequestStatus
-} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
@@ -26,10 +26,7 @@ import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { createComponentCount, formatException } from './util';
 
-export abstract class DeployRetrieveExecutor<
-  T,
-  R extends MetadataTransferResult
-> extends LibraryCommandletExecutor<T> {
+export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult> extends LibraryCommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
 
@@ -72,7 +69,10 @@ export abstract class DeployRetrieveExecutor<
     }
   }
 
-  protected setupCancellation(operation: MetadataApiDeploy | MetadataApiRetrieve | undefined, token?: vscode.CancellationToken) {
+  protected setupCancellation(
+    operation: MetadataApiDeploy | MetadataApiRetrieve | undefined,
+    token?: vscode.CancellationToken
+  ) {
     if (token && operation) {
       token.onCancellationRequested(async () => {
         await operation.cancel();

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ContinueResponse, SfWorkspaceChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'node:path';
 import { URI } from 'vscode-uri';
 import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
