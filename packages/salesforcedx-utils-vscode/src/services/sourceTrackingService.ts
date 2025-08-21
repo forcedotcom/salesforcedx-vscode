@@ -160,11 +160,13 @@ class StatusResultsTable {
     { label: nls.localize('project_path'), key: 'filePath' }
   ];
 
-  private columns = this.statusResults.some(result => result.ignored)
-    ? [{ label: nls.localize('ignored'), key: 'ignored' }, ...StatusResultsTable.baseColumns]
-    : StatusResultsTable.baseColumns;
+  private columns: { label: string; key: string }[];
 
-  constructor(private statusResults: StatusResult[]) {}
+  constructor(private statusResults: StatusResult[]) {
+    this.columns = this.statusResults.some(result => result.ignored)
+      ? [{ label: nls.localize('ignored'), key: 'ignored' }, ...StatusResultsTable.baseColumns]
+      : StatusResultsTable.baseColumns;
+  }
 
   public value(): string {
     this.statusResults.forEach(statusResult => this.convertToTableRow(statusResult));

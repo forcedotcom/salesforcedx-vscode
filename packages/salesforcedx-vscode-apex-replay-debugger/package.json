@@ -34,7 +34,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.18.4",
     "@types/async-lock": "1.4.2",
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.15.1",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "esbuild-plugin-pino": "^2.2.2",

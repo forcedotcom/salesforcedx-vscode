@@ -82,8 +82,8 @@ export class TaskViewService implements TreeDataProvider<Task> {
 }
 
 export class Task extends TreeItem {
-  public readonly label?: string;
-  public readonly collapsibleState?: TreeItemCollapsibleState;
+  public readonly label?: string = undefined;
+  public readonly collapsibleState?: TreeItemCollapsibleState = undefined;
   private readonly taskViewProvider: TaskViewService;
   private readonly execution: CommandExecution;
   private readonly cancellationTokenSource?: CancellationTokenSource;

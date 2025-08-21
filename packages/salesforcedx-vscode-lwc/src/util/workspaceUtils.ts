@@ -21,7 +21,7 @@ export class WorkspaceUtils {
   }
 
   public getGlobalStore(): Memento | undefined {
-    return this.extensionContext && this.extensionContext.globalState;
+    return this.extensionContext?.globalState;
   }
 
   public getWorkspaceSettings(): WorkspaceConfiguration {
