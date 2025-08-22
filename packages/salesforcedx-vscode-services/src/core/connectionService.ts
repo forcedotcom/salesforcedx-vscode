@@ -6,8 +6,8 @@
  */
 
 import { AuthInfo, Connection, Global } from '@salesforce/core';
-import { Cache, Context, Duration, Effect, Layer } from 'effect';
-import { WebSdkLayer } from '../observability/spans';
+import { Context, Duration, Effect, Layer, Cache } from 'effect';
+import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
@@ -24,40 +24,73 @@ type WebConnectionKey = {
   accessToken: string;
 };
 
-const createWebConnection = ({ instanceUrl, accessToken }: WebConnectionKey): Effect.Effect<Connection, Error, never> =>
-  Effect.tryPromise({
-    try: async () =>
-      Connection.create({
-        authInfo: await AuthInfo.create({
-          accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
-        })
-      }),
-    catch: error => new Error(`Failed to create Connection: ${String(error)}`)
-  }).pipe(Effect.withSpan('createWebConnection', { attributes: { instanceUrl } }));
+type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
 
-export const ConnectionServiceLive = Layer.scoped(
+const createAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect<AuthInfo, Error> =>
+  Effect.tryPromise({
+    try: () =>
+      AuthInfo.create({
+        accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
+      }),
+    catch: error => new Error('Failed to create AuthInfo', { cause: error })
+  }).pipe(
+    Effect.tap(authInfo => Effect.annotateCurrentSpan(authInfo.getFields())),
+    Effect.withSpan('createAuthInfo'),
+    Effect.provide(SdkLayer)
+  );
+
+const createConnection = (authInfo: AuthInfo, apiVersion: string): Effect.Effect<Connection, Error> =>
+  Effect.tryPromise({
+    // calling the org to get the API version really slows things down, so we want it in config
+    try: () => Connection.create({ authInfo, connectionOptions: { version: apiVersion } }),
+    catch: error => new Error('Failed to create Connection', { cause: error })
+  }).pipe(Effect.withSpan('createConnection', { attributes: { apiVersion } }));
+
+const createWebConnection = (key: string): Effect.Effect<Connection, Error> => {
+  const { instanceUrl, accessToken, apiVersion } = fromKey(key);
+  return createAuthInfo(instanceUrl, accessToken).pipe(
+    Effect.flatMap(authInfo => createConnection(authInfo, apiVersion)),
+    Effect.withSpan('createWebConnection (cache miss)', {
+      attributes: { apiVersion }
+    }),
+    Effect.provide(SdkLayer)
+  );
+};
+
+// use string cache keys, objects don't seem to work
+const toKey = (instanceUrl: string, accessToken: string, apiVersion: string): string =>
+  `${instanceUrl}###${accessToken}###${apiVersion}`;
+
+const fromKey = (key: string): WebConnectionKeyAndApiVersion => {
+  const [instanceUrl, accessToken, apiVersion] = key.split('###');
+  return { instanceUrl, accessToken, apiVersion };
+};
+
+const cache = Effect.runSync(
+  Cache.make({
+    capacity: 100,
+    timeToLive: Duration.infinity,
+    lookup: createWebConnection
+  })
+);
+
+export const ConnectionServiceLive = Layer.effect(
   ConnectionService,
   Effect.gen(function* () {
-    // Create Effect's Cache for web connections with capacity and TTL
-    const webConnectionCache = yield* Cache.make({
-      capacity: 20, // Maximum number of cached web connections
-      timeToLive: Duration.hours(2), // Connections expire after 2 hours (common token lifetime)
-      lookup: createWebConnection // Lookup function that creates Connection for given credentials
-    });
-
     return {
       getConnection: Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan({ isWeb: Global.isWeb });
         if (Global.isWeb) {
           // Web environment - get connection from settings
           const settingsService = yield* SettingsService;
           const instanceUrl = yield* settingsService.getInstanceUrl;
           const accessToken = yield* settingsService.getAccessToken;
+          const apiVersion = yield* settingsService.getApiVersion;
 
-          return yield* webConnectionCache.get({ instanceUrl, accessToken });
+          return yield* cache.get(toKey(instanceUrl, accessToken, apiVersion));
         } else {
           return yield* ConfigService.pipe(
             Effect.flatMap(cfgSvc => cfgSvc.getConfigAggregator),
-            Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
             Effect.flatMap(agg => Effect.succeed(agg.getPropertyValue<string>('target-org'))),
             Effect.flatMap(username =>
               Effect.tryPromise({
@@ -69,13 +102,11 @@ export const ConnectionServiceLive = Layer.scoped(
               Effect.tryPromise({
                 try: () => Connection.create({ authInfo }),
                 catch: error => new Error('Failed to create Connection', { cause: error })
-              }).pipe(Effect.withSpan('getConnection'))
+              })
             )
           );
         }
-      })
-        .pipe(Effect.withSpan('getConnection'))
-        .pipe(Effect.provide(WebSdkLayer))
+      }).pipe(Effect.provide(SdkLayer), Effect.withSpan('getConnection'))
     };
   })
 );
