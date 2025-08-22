@@ -6,7 +6,7 @@
  */
 
 import { OutputChannel, window } from 'vscode';
-import { CommandExecution } from '../cli';
+import type { CommandExecution } from '@salesforce/salesforcedx-utils';
 import { stripAnsi } from '../helpers/utils';
 import { nls } from '../messages';
 import { SettingsService } from '../settings';

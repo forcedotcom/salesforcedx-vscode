@@ -81,7 +81,7 @@ import {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { isvDebugBootstrap } from './commands/isvdebugging';
+import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
 

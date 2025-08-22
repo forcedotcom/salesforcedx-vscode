@@ -6,7 +6,7 @@
  */
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { CommandExecution } from '../cli';
+import type { CommandExecution } from '@salesforce/salesforcedx-utils';
 import { nls } from '../messages';
 
 export class ProgressNotification {

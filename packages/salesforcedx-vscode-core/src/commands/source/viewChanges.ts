@@ -8,10 +8,8 @@ import { EmptyParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesfo
 import { SfCommandlet } from '../util';
 import { SourceTrackingGetStatusExecutor } from './sourceTrackingGetStatusExecutor';
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
 const getCommandletFor = (executor: SourceTrackingGetStatusExecutor): SfCommandlet<{}> =>
-  new SfCommandlet(workspaceChecker, parameterGatherer, executor);
+  new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), executor);
 
 export const viewAllChanges = (): void => {
   viewChanges('view_all_changes_text', 'view_all_changes', true, true);

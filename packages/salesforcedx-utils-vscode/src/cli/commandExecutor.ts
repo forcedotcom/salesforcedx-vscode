@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command, GlobalCliEnvironment, CancellationToken } from '@salesforce/salesforcedx-utils';
+import { Command, GlobalCliEnvironment, CancellationToken, CommandExecution } from '@salesforce/salesforcedx-utils';
 import { ChildProcess, SpawnOptions } from 'node:child_process';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
@@ -59,21 +59,6 @@ export class CliCommandExecutor {
     return new CliCommandExecution(this.command, childProcess, cancellationToken);
   }
 }
-
-/**
- * Represents a command execution (a process has already been spawned for it).
- * This is tightly coupled with the execution model (child_process).
- * If we ever use a different executor, this class should be refactored and abstracted
- * to take an event emitter/observable instead of child_process.
- */
-export type CommandExecution = {
-  readonly command: Command;
-  readonly cancellationToken?: CancellationToken;
-  readonly processExitSubject: Observable<number | undefined>;
-  readonly processErrorSubject: Observable<Error | undefined>;
-  readonly stdoutSubject: Observable<Buffer | string>;
-  readonly stderrSubject: Observable<Buffer | string>;
-};
 
 export class CliCommandExecution implements CommandExecution {
   public readonly command: Command;
