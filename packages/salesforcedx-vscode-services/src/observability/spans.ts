@@ -8,6 +8,4 @@ import { Global } from '@salesforce/core';
 import { NodeSdkLayer } from './spansNode';
 import { WebSdkLayer } from './spansWeb';
 
-console.log('Global.isWeb', Global.isWeb);
-
-export const SdkLayer = Global.isWeb ? WebSdkLayer : NodeSdkLayer;
+export const SdkLayer = process.env.ESBUILD_PLATFORM === 'web' || Global.isWeb ? WebSdkLayer : NodeSdkLayer;

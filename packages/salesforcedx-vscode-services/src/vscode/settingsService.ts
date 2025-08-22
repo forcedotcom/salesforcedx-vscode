@@ -18,7 +18,7 @@ const API_VERSION_KEY = 'apiVersion';
 // TODO: tests should also populate the settings
 const FALLBACK_INSTANCE_URL = 'https://app-site-2249-dev-ed.scratch.my.salesforce.com';
 const FALLBACK_ACCESS_TOKEN =
-  '00DD50000003FWG!AQUAQM6n4d.DRtPiVk.58DjrOluxmNg8tPtqBaYdIzxezVTg6wtrZvH8u99phJ72Fx3HTUl.yH68mxv8whxF9G2gT0XNmgCl';
+  '00DD50000003FWG!AQUAQAc0KDBCC6oBOqbG4SZI.Fm.qh2fImUg558aslCCubrO6qyU.9DjsP9VWy_MpCd3UYylSOq33C7a0RjCb.bfK7QFR.Xq';
 const FALLBACK_API_VERSION = '64.0';
 
 /**

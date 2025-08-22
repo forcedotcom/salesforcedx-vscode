@@ -7,17 +7,23 @@
 import { build } from 'esbuild';
 import { commonConfigNode } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
+import { writeFile } from 'fs/promises';
 
 // Desktop build (Node.js environment)
-await build({
+const nodeBuild = await build({
   ...commonConfigNode,
   entryPoints: ['./out/src/index.js'],
-  outdir: './dist'
+  outdir: './dist',
+  metafile: true
 });
 
 // Browser build (browser environment)
-await build({
+const browserBuild = await build({
   ...commonConfigBrowser,
   entryPoints: ['./out/src/index.js'],
-  outfile: './dist/browser.js'
+  outfile: './dist/browser.js',
+  metafile: true
 });
+
+await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
+await writeFile('dist/browser-metafile.json', JSON.stringify(browserBuild.metafile, null, 2));
