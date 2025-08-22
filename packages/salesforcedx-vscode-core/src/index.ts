@@ -13,6 +13,7 @@ import {
   TelemetryService,
   TimingUtils,
   TraceFlags,
+  getTelemetryUserId,
   WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
@@ -82,7 +83,7 @@ import {
 } from './commands';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
-import { FlagParameter, SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
+import { SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
@@ -102,10 +103,6 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import { MetricsReporter } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
-
-const flagIgnoreConflicts: FlagParameter<string> = {
-  flag: '--ignore-conflicts'
-};
 
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
   // Customer-facing commands
@@ -138,8 +135,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
   const projectRetrieveStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sf.project.retrieve.start.ignore.conflicts',
-    projectRetrieveStart,
-    flagIgnoreConflicts
+    () => projectRetrieveStart(true)
   );
   const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sf.project.deploy.start.ignore.conflicts',
@@ -475,6 +471,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     WorkspaceContext,
     taskViewService,
     telemetryService,
+    getSharedTelemetryUserId: async () => await getTelemetryUserId(extensionContext, undefined),
     services: {
       RegistryAccess,
       ChannelService,
@@ -602,6 +599,7 @@ export type SalesforceVSCodeCoreApi = {
   WorkspaceContext: typeof WorkspaceContext;
   taskViewService: typeof taskViewService;
   telemetryService: typeof telemetryService;
+  getSharedTelemetryUserId: () => Promise<string>;
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
