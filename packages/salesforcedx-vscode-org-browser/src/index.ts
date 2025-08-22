@@ -25,8 +25,10 @@ export const activateEffect = (
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
-    const ChannelServiceLayer = api.services.ChannelServiceLayer;
+    const ChannelServiceLayer = api.services.ChannelServiceLayer('Salesforce Org Browser');
     const ChannelService = api.services.ChannelService;
+    const SdkLayer = api.services.SdkLayer;
+
     yield* Effect.provide(
       Effect.gen(function* () {
         const svc = yield* ChannelService;
@@ -48,8 +50,8 @@ export const activateEffect = (
 
         // Append completion message
         yield* svc.appendToChannel('Salesforce Org Browser activation complete.');
-      }),
-      ChannelServiceLayer('Salesforce Org Browser')
+      }).pipe(Effect.withSpan('activation:salesforcedx-vscode-org-browser'), Effect.provide(SdkLayer)),
+      ChannelServiceLayer
     );
 
     // do various activation things here

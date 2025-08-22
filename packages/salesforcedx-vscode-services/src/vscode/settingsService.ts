@@ -8,7 +8,7 @@
 import { Context, Effect, Layer } from 'effect';
 import * as vscode from 'vscode';
 
-const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
+export const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
 const INSTANCE_URL_KEY = 'instanceUrl';
 const ACCESS_TOKEN_KEY = 'accessToken';
 
@@ -17,7 +17,8 @@ const ACCESS_TOKEN_KEY = 'accessToken';
 // TODO: tests should also populate the settings
 const FALLBACK_INSTANCE_URL = 'https://app-site-2249-dev-ed.scratch.my.salesforce.com';
 const FALLBACK_ACCESS_TOKEN =
-  '00DD50000003FWG!AQUAQEYUZAKdWB8FrorXeSWFSUKmdlIgUnARnMRo6pXM3ahEyNPdtwIObEcAoJHJISwUf0x6MTNxHlUXmxxl_9zQeXuMex4h';
+  '00DD50000003FWG!AQUAQM6n4d.DRtPiVk.58DjrOluxmNg8tPtqBaYdIzxezVTg6wtrZvH8u99phJ72Fx3HTUl.yH68mxv8whxF9G2gT0XNmgCl';
+
 /**
  * Service for interacting with VSCode settings
  */

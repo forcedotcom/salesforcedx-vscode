@@ -4,15 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { WebSdk } from '@effect/opentelemetry';
-import { ConsoleSpanExporter, BatchSpanProcessor } from '@opentelemetry/sdk-trace-web';
+import { Global } from '@salesforce/core';
+import { NodeSdkLayer } from './spansNode';
+import { WebSdkLayer } from './spansWeb';
 
-export const WebSdkLayer = WebSdk.layer(() => ({
-  resource: {
-    serviceName: 'salesforcedx-vscode-services',
-    //manually bump this to cause rebuilds/bust cache
-    serviceVersion: '2025-08-15T20:49:30.000Z',
-    attributes: {}
-  },
-  spanProcessor: new BatchSpanProcessor(new ConsoleSpanExporter())
-}));
+console.log('Global.isWeb', Global.isWeb);
+
+export const SdkLayer = Global.isWeb ? WebSdkLayer : NodeSdkLayer;

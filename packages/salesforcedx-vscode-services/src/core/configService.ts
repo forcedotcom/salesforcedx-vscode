@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import { Cache, Context, Duration, Effect, Layer, pipe } from 'effect';
 // import * as vscode from 'vscode';
 // import { URI } from 'vscode-uri';
-import { WebSdkLayer } from '../observability/spans';
+import { SdkLayer } from '../observability/spans';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 
@@ -32,7 +33,7 @@ export const ConfigServiceLive = Layer.scoped(
     // Create Effect's Cache with capacity and TTL for better performance and memory management
     const configCache = yield* Cache.make({
       capacity: 50, // Maximum number of cached ConfigAggregators
-      timeToLive: Duration.minutes(30), // Cache entries expire after 30 minutes
+      timeToLive: Duration.minutes(Global.isWeb ? 30 : 0), // Do not cache on desktop
       lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
     });
 
@@ -51,8 +52,11 @@ export const ConfigServiceLive = Layer.scoped(
             return yield* configCache.get(projectPath);
           })
         ),
+        // stateless when org can change: always reload only on desktop
+        Effect.flatMap(agg => (Global.isWeb ? Effect.succeed(agg) : Effect.promise(() => agg.reload()))),
+        Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
         Effect.withSpan('getConfigAggregator'),
-        Effect.provide(WebSdkLayer)
+        Effect.provide(SdkLayer)
       )
     };
   })

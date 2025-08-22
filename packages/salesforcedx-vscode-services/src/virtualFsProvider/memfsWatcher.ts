@@ -10,7 +10,7 @@ import { Effect, Schedule, Stream } from 'effect';
 import { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
-import { WebSdkLayer } from '../observability/spans';
+import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
 import { fsPrefix } from './constants';
 import { IndexedDBStorageService } from './indexedDbStorage';
@@ -49,7 +49,7 @@ export const startWatch = (): Effect.Effect<void, Error, ChannelService | Indexe
       Effect.flatMap(ChannelService, channel => channel.appendToChannel(`Error starting watcher: ${error.message}`))
     ),
     Effect.withSpan('startWatch'),
-    Effect.provide(WebSdkLayer)
+    Effect.provide(SdkLayer)
   );
 
 const updateIDB = (event: FileChangeInfo<string>): Effect.Effect<void, Error, IndexedDBStorageService> =>

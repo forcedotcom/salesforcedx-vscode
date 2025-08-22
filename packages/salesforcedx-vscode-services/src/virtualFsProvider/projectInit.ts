@@ -9,7 +9,7 @@ import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
-import { WebSdkLayer } from '../observability/spans';
+import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { fsProvider } from './fsTypes';
@@ -91,4 +91,4 @@ export const projectFiles = (fsp: fsProvider): Effect.Effect<void, Error, Settin
     }
   })
     .pipe(Effect.withSpan('projectFiles'))
-    .pipe(Effect.provide(WebSdkLayer));
+    .pipe(Effect.provide(SdkLayer));

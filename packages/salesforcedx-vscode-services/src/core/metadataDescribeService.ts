@@ -11,7 +11,7 @@ import type { SettingsService } from '../vscode/settingsService';
 import type { WorkspaceService } from '../vscode/workspaceService';
 import { Context, Effect, Layer, pipe } from 'effect';
 import * as S from 'effect/Schema';
-import { WebSdkLayer } from '../observability/spans';
+import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
 import { FilePropertiesSchema, type FileProperties } from './schemas/fileProperties';
@@ -68,7 +68,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
         )
       )
         .pipe(Effect.withSpan('cacheableDescribe'))
-        .pipe(Effect.provide(WebSdkLayer));
+        .pipe(Effect.provide(SdkLayer));
 
     const cachedDescribe = yield* Effect.cachedFunction(cacheableDescribe);
 
@@ -94,10 +94,10 @@ export const MetadataDescribeServiceLive = Layer.effect(
             Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
             Effect.mapError(e => new Error(`Failed to decode FileProperties: ${String(e)}`))
           )
-        )
-      )
-        .pipe(Effect.withSpan('listMetadata'))
-        .pipe(Effect.provide(WebSdkLayer));
+        ),
+        Effect.withSpan('listMetadata'),
+        Effect.provide(SdkLayer)
+      );
 
     return { describe, listMetadata };
   })

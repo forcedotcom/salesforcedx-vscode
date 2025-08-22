@@ -16,7 +16,7 @@ import {
 
 import { Context, Effect, Layer, pipe } from 'effect';
 import * as vscode from 'vscode';
-import { WebSdkLayer } from '../observability/spans';
+import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -128,12 +128,12 @@ const retrieve = (
                   return new Error('Failed to retrieve metadata', { cause: e });
                 }
               })
-            )
+            ).pipe(Effect.withSpan('retrieve (API call)'))
       )
-    )
-  )
-    .pipe(Effect.withSpan('retrieve', { attributes: { members } }))
-    .pipe(Effect.provide(WebSdkLayer));
+    ),
+    Effect.withSpan('retrieve', { attributes: { members } }),
+    Effect.provide(SdkLayer)
+  );
 
 export const MetadataRetrieveServiceLive = Layer.scoped(
   MetadataRetrieveService,

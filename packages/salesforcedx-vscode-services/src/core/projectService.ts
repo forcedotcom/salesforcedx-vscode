@@ -8,7 +8,7 @@
 import { SfProject } from '@salesforce/core/project';
 import { Cache, Context, Duration, Effect, Layer } from 'effect';
 import { pipe } from 'effect/Function';
-import { WebSdkLayer } from '../observability/spans';
+import { SdkLayer } from '../observability/spans';
 import { WorkspaceService } from '../vscode/workspaceService';
 
 export type ProjectService = {
@@ -46,7 +46,7 @@ export const ProjectServiceLive = Layer.scoped(
       )
     )
       .pipe(Effect.withSpan('getSfProject'))
-      .pipe(Effect.provide(WebSdkLayer));
+      .pipe(Effect.provide(SdkLayer));
 
     const isSalesforceProject = pipe(
       WorkspaceService,

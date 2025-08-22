@@ -4,12 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Global } from '@salesforce/core';
 import { fs } from '@salesforce/core/fs';
 import { Context, Effect, Layer } from 'effect';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
-import { WebSdkLayer } from '../observability/spans';
+import { SdkLayer } from '../observability/spans';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
@@ -45,6 +46,16 @@ const ensureOpenRequestEvent = (event: Event): Event & { target: IDBOpenDBReques
   return event;
 };
 
+export const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.sync(
+  IndexedDBStorageService,
+  () => ({
+    loadState: () => Effect.succeed(undefined),
+    saveFile: () => Effect.succeed(undefined),
+    deleteFile: () => Effect.succeed(undefined),
+    loadFile: () => Effect.succeed(undefined)
+  })
+);
+
 export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, Error> = Layer.scoped(
   IndexedDBStorageService,
   Effect.gen(function* () {
@@ -63,7 +74,7 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
       };
 
       openRequest.onerror = (event: unknown): void => {
-        resume(Effect.fail(new Error(`Failed to open IndexedDB database "${DB_NAME}" with error: ${event}`)));
+        resume(Effect.fail(new Error(`Failed to open IndexedDB database "${DB_NAME}" with error: ${String(event)}`)));
       };
     });
 
@@ -92,7 +103,7 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
           request.onerror = (): void => {
             resume(
               Effect.fail(
-                new Error(`Transaction failed with mode "${mode}" with cause: ${request.error}`, {
+                new Error(`Transaction failed with mode "${mode}" with cause: ${String(request.error)}`, {
                   cause: request.error
                 })
               )
@@ -100,7 +111,9 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
           };
         } catch (error) {
           resume(
-            Effect.fail(new Error(`Transaction failed with mode "${mode}" with cause: ${error}`, { cause: error }))
+            Effect.fail(
+              new Error(`Transaction failed with mode "${mode}" with cause: ${String(error)}`, { cause: error })
+            )
           );
         }
       });
@@ -115,20 +128,20 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
         }),
         Effect.tap(entries => Effect.annotateCurrentSpan({ entries })),
         Effect.withSpan('loadState'),
-        Effect.provide(WebSdkLayer)
+        Effect.provide(SdkLayer)
       );
 
     const saveFile = (path: string): Effect.Effect<void, Error> =>
       // Provide the key explicitly since the store uses out-of-line keys
       withStore('readwrite', store => store.put(buildFileEntry(path), path)).pipe(
         Effect.withSpan('saveFile', { attributes: { path } }),
-        Effect.provide(WebSdkLayer)
+        Effect.provide(SdkLayer)
       );
 
     const deleteFile = (path: string): Effect.Effect<void, Error> =>
       withStore('readwrite', store => store.delete(path)).pipe(
         Effect.withSpan('deleteFile', { attributes: { path } }),
-        Effect.provide(WebSdkLayer)
+        Effect.provide(SdkLayer)
       );
 
     const loadFile = (path: string): Effect.Effect<void, Error> =>
@@ -144,7 +157,7 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
           }
         }),
         Effect.withSpan('loadFile', { attributes: { path } }),
-        Effect.provide(WebSdkLayer)
+        Effect.provide(SdkLayer)
       );
     return {
       loadState,
@@ -155,9 +168,10 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
   })
 );
 
-// Expose a single, memoized layer instance to ensure one shared IndexedDB connection
-export const IndexedDBStorageServiceLayer = Layer.memoize(IndexedDBStorageServiceLive);
-export const IndexedDBStorageServiceShared = Layer.unwrapEffect(IndexedDBStorageServiceLayer);
+// Expose a single, memoized layer instance to ensure one shared IndexedDB connection only if web.  Otherwise, use a dummy layer.
+export const IndexedDBStorageServiceShared = Global.isWeb
+  ? Layer.unwrapEffect(Layer.memoize(IndexedDBStorageServiceLive))
+  : IndexedDBStorageServicesNoop;
 
 const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {
   fs.mkdirSync(dirname(entry.path), { recursive: true });

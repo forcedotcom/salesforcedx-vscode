@@ -14,7 +14,7 @@ import { ConnectionService, ConnectionServiceLive } from './core/connectionServi
 import { MetadataDescribeService, MetadataDescribeServiceLive } from './core/metadataDescribeService';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
-import { WebSdkLayer } from './observability/spans';
+import { SdkLayer } from './observability/spans';
 import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
 import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
@@ -49,7 +49,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRetrieveServiceLive: typeof MetadataRetrieveServiceLive;
     SettingsService: typeof SettingsService;
     SettingsServiceLive: typeof SettingsServiceLive;
-    WebSdkLayer: typeof WebSdkLayer;
+    SdkLayer: typeof SdkLayer;
   };
 };
 
@@ -63,7 +63,7 @@ const createActivationEffect = (
     yield* svc.appendToChannel('Salesforce Services extension is activating!');
 
     if (Global.isWeb) {
-      // Set up the file system
+      // Set up the file system for web extensions
       yield* fileSystemSetup(context);
     }
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
@@ -78,9 +78,10 @@ export const activate = async (
   channelServiceLayer = ChannelServiceLayer('Salesforce Services')
 ): Promise<SalesforceVSCodeServicesApi> => {
   // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
-  const config = vscode.workspace.getConfiguration();
-  await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
-
+  if (Global.isWeb) {
+    const config = vscode.workspace.getConfiguration();
+    await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
+  }
   // Create persistent scope for the extension
   extensionScope = await Effect.runPromise(Scope.make());
 
@@ -88,12 +89,14 @@ export const activate = async (
     WorkspaceServiceLive,
     SettingsServiceLive,
     IndexedDBStorageServiceShared,
-    WebSdkLayer,
+    SdkLayer,
     channelServiceLayer
   );
   await Effect.runPromise(
     Effect.provide(
-      createActivationEffect(context).pipe(Effect.withSpan('activation:salesforcedx-vscode-services')),
+      createActivationEffect(context).pipe(
+        Effect.withSpan('activation:salesforcedx-vscode-services', { attributes: { isWeb: Global.isWeb } })
+      ),
       requirements
     ).pipe(Scope.extend(extensionScope))
   );
@@ -120,7 +123,7 @@ export const activate = async (
       MetadataRetrieveServiceLive,
       SettingsService,
       SettingsServiceLive,
-      WebSdkLayer
+      SdkLayer
     }
   };
 };

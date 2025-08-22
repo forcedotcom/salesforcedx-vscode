@@ -9,7 +9,7 @@ import { Global } from '@salesforce/core';
 import { Context, Effect, Layer } from 'effect';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
-import { WebSdkLayer } from '../observability/spans';
+import { SdkLayer } from '../observability/spans';
 
 export type WorkspaceService = {
   /** Get info about the workspace */
@@ -46,7 +46,7 @@ const getWorkspaceInfoTask = Effect.sync(() => {
     })
   ),
   Effect.withSpan('getWorkspaceInfo'),
-  Effect.provide(WebSdkLayer)
+  Effect.provide(SdkLayer)
 );
 
 export const WorkspaceServiceLive = Layer.scoped(
