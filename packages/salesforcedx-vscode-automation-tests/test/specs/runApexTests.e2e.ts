@@ -37,7 +37,8 @@ import {
   getWorkbench,
   replaceLineInFile,
   verifyOutputPanelText,
-  waitForAndGetCodeLens
+  waitForAndGetCodeLens,
+  zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
@@ -354,11 +355,12 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  // Known issue on Mac GHA: https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002KT1FhYAL/view
-  (process.platform === 'darwin' ? it.skip : it)('Run a test that fails and fix it', async () => {
+  it('Run a test that fails and fix it', async () => {
     logTestStart(testSetup, 'Run a test that fails and fix it');
-    // Create Apex class AccountService
 
+    await zoom('Out', 2); // Zoom out the editor view
+
+    // Create Apex class AccountService
     await createApexClassWithBugs(classesFolderPath);
 
     // Push source to org
