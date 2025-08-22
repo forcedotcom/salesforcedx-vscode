@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 export const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
 const INSTANCE_URL_KEY = 'instanceUrl';
 const ACCESS_TOKEN_KEY = 'accessToken';
+const API_VERSION_KEY = 'apiVersion';
 
 // TODO: prompt the user for a refresh token, and then use that to get the access token
 // by implementing the vscode auth provider https://github.com/microsoft/vscode-extension-samples/blob/main/authenticationprovider-sample/src/extension.ts
@@ -18,6 +19,7 @@ const ACCESS_TOKEN_KEY = 'accessToken';
 const FALLBACK_INSTANCE_URL = 'https://app-site-2249-dev-ed.scratch.my.salesforce.com';
 const FALLBACK_ACCESS_TOKEN =
   '00DD50000003FWG!AQUAQM6n4d.DRtPiVk.58DjrOluxmNg8tPtqBaYdIzxezVTg6wtrZvH8u99phJ72Fx3HTUl.yH68mxv8whxF9G2gT0XNmgCl';
+const FALLBACK_API_VERSION = '64.0';
 
 /**
  * Service for interacting with VSCode settings
@@ -50,16 +52,24 @@ export type SettingsService = {
   readonly getAccessToken: Effect.Effect<string, Error, never>;
 
   /**
+   * Get the Salesforce API version from settings.  In the form of '64.0'
+   */
+  readonly getApiVersion: Effect.Effect<string, Error, never>;
+
+  /**
    * Set the Salesforce instance URL in settings
-   * @param url The instance URL
    */
   readonly setInstanceUrl: (url: string) => Effect.Effect<void, Error, never>;
 
   /**
    * Set the Salesforce access token in settings
-   * @param token The access token
    */
   readonly setAccessToken: (token: string) => Effect.Effect<void, Error, never>;
+
+  /**
+   * Set the Salesforce API version in settings
+   */
+  readonly setApiVersion: (version: string) => Effect.Effect<void, Error, never>;
 };
 
 export const SettingsService = Context.GenericTag<SettingsService>('SettingsService');
@@ -101,6 +111,15 @@ export const SettingsServiceLive = Layer.succeed(SettingsService, {
     catch: error => new Error(`Failed to get accessToken: ${String(error)}`)
   }),
 
+  getApiVersion: Effect.try({
+    try: () => {
+      const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
+      const value = config.get<string>(API_VERSION_KEY) ?? FALLBACK_API_VERSION;
+      return value.length > 0 ? value : FALLBACK_API_VERSION;
+    },
+    catch: error => new Error(`Failed to get apiVersion: ${String(error)}`)
+  }),
+
   setInstanceUrl: (url: string) =>
     Effect.tryPromise({
       try: async () => {
@@ -117,5 +136,14 @@ export const SettingsServiceLive = Layer.succeed(SettingsService, {
         await config.update(ACCESS_TOKEN_KEY, token, vscode.ConfigurationTarget.Global);
       },
       catch: error => new Error(`Failed to set accessToken: ${String(error)}`)
+    }),
+
+  setApiVersion: (version: string) =>
+    Effect.tryPromise({
+      try: async () => {
+        const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
+        await config.update(API_VERSION_KEY, version, vscode.ConfigurationTarget.Global);
+      },
+      catch: error => new Error(`Failed to set apiVersion: ${String(error)}`)
     })
 });

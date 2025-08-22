@@ -34,7 +34,7 @@ export const ProjectServiceLive = Layer.scoped(
       capacity: 10, // Maximum number of cached SfProject instances
       timeToLive: Duration.minutes(10), // Projects expire after 10 minutes (project structure changes are infrequent)
       lookup: resolveSfProject // Lookup function that resolves SfProject for given fsPath
-    });
+    }).pipe(Effect.withSpan('sfProjectCache'));
 
     const getSfProject = pipe(
       WorkspaceService,

@@ -6,7 +6,6 @@
  */
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import { Context, Effect, Layer, Option, pipe } from 'effect';
-import { WebSdkLayer } from 'salesforcedx-vscode-services/src/observability/spans';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ExtensionProviderService } from './extensionProvider';
@@ -41,7 +40,7 @@ const retrieve = (
         api.services.ProjectServiceLive,
         api.services.ChannelServiceLayer('Salesforce Org Browser'),
         api.services.SettingsServiceLive,
-        api.services.WebSdkLayer
+        api.services.SdkLayer
       );
 
       return pipe(
@@ -56,7 +55,9 @@ const retrieve = (
                   channel.appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`),
                   Effect.tap(() =>
                     fileCount > 0
-                      ? channel.appendToChannel(`Retrieved files: ${fileResponses!.map(f => f.filePath).join(', ')}`)
+                      ? channel.appendToChannel(
+                          `Retrieved files: ${fileResponses!.map(f => `  - ${f.filePath}`).join('\n')}`
+                        )
                       : Effect.fail(new Error('No files retrieved'))
                   )
                 )
@@ -87,7 +88,7 @@ const retrieve = (
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
   Option.fromNullable(result.getFileResponses()?.[0]?.filePath);
 
-const openFileInEditor = (filePath: string): Effect.Effect<void, Error, never> =>
+const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
   pipe(
     Effect.tryPromise({
       try: () =>
@@ -106,8 +107,7 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error, never> =
       })
     ),
     Effect.map(() => undefined),
-    Effect.withSpan('openFileInEditor', { attributes: { filePath } }),
-    Effect.provide(WebSdkLayer)
+    Effect.withSpan('openFileInEditor', { attributes: { filePath } })
   );
 
 export const MetadataRetrieveServiceLive = Layer.effect(MetadataRetrieveService, Effect.succeed({ retrieve }));

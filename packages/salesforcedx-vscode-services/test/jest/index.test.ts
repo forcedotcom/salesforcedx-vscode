@@ -12,7 +12,7 @@ import { projectFiles } from '../../src/virtualFsProvider/projectInit';
 import { SettingsServiceLive } from '../../src/vscode/settingsService';
 
 // Mock indexedDB API for Node.js environment
-const mockIndexedDB = {
+const mockIndexedDB: Partial<IDBFactory> = {
   open: jest.fn().mockReturnValue({
     onsuccess: null,
     onerror: null,
@@ -50,24 +50,30 @@ const mockIndexedDB = {
 };
 
 // Mock the global indexedDB
-(global as any).indexedDB = mockIndexedDB;
-(global as any).IDBOpenDBRequest = jest.fn();
+type GlobalWithIDB = typeof globalThis & {
+  indexedDB: unknown;
+  IDBOpenDBRequest: unknown;
+};
+const g = globalThis as GlobalWithIDB;
+g.indexedDB = mockIndexedDB as unknown as IDBFactory;
+g.IDBOpenDBRequest = jest.fn() as unknown as typeof IDBOpenDBRequest;
 
 // Mock IndexedDB Storage Service
 jest.mock('../../src/virtualFsProvider/indexedDbStorage', () => {
   const originalModule = jest.requireActual('../../src/virtualFsProvider/indexedDbStorage');
-  const { Layer, Effect } = require('effect');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const E = require('effect');
 
   const mockStorage = {
-    loadState: () => Effect.succeed(undefined),
-    saveFile: () => Effect.succeed(undefined),
-    deleteFile: () => Effect.succeed(undefined),
-    loadFile: () => Effect.succeed(undefined)
+    loadState: (): Effect.Effect<void, never, never> => E.Effect.succeed(undefined),
+    saveFile: (): Effect.Effect<void, never, never> => E.Effect.succeed(undefined),
+    deleteFile: (): Effect.Effect<void, never, never> => E.Effect.succeed(undefined),
+    loadFile: (): Effect.Effect<void, never, never> => E.Effect.succeed(undefined)
   };
 
   return {
     ...originalModule,
-    IndexedDBStorageServiceShared: Layer.succeed(originalModule.IndexedDBStorageService, mockStorage)
+    IndexedDBStorageServiceShared: E.Layer.succeed(originalModule.IndexedDBStorageService, mockStorage)
   };
 });
 
@@ -91,8 +97,9 @@ jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
 // Mock memfsWatcher to avoid file watching in tests
 jest.mock('../../src/virtualFsProvider/memfsWatcher', () => ({
   startWatch: () => {
-    const { Effect } = require('effect');
-    return Effect.succeed(undefined);
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const E = require('effect');
+    return E.Effect.succeed(undefined);
   },
   emitter: {
     event: jest.fn(),
@@ -217,8 +224,8 @@ describe('Extension', () => {
     expect(api.services.ProjectService).toBeDefined();
   });
 
-  it('should deactivate successfully', () => {
-    deactivate();
+  it('should deactivate successfully', async () => {
+    await deactivate();
     expect(true).toBe(true);
   });
 
