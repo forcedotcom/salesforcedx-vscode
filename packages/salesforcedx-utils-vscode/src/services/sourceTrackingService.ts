@@ -21,10 +21,24 @@ export class SourceTrackingService {
    * Gets the Source Tracking instance for this project
    * from the Source Tracking Provider.
    */
-  public static async getSourceTracking(projectPath: string, connection: Connection): Promise<SourceTracking> {
+  public static async getSourceTracking(
+    projectPath: string,
+    connection: Connection,
+    ignoreConflicts?: boolean
+  ): Promise<SourceTracking> {
     const provider = SourceTrackingProvider.getInstance();
-    const tracker = provider.getSourceTracker(projectPath, connection);
+    const tracker = provider.getSourceTracker(projectPath, connection, ignoreConflicts);
     return tracker;
+  }
+
+  /**
+   * Clears the cached source tracking instance for a specific project and connection.
+   * This is useful to force a fresh source tracking instance, particularly for pull operations
+   * where stale remote tracking data might cause issues.
+   */
+  public static clearSourceTracking(projectPath: string, connection: Connection): void {
+    const provider = SourceTrackingProvider.getInstance();
+    provider.clearSourceTracker(projectPath, connection);
   }
 
   public static async updateSourceTrackingAfterRetrieve(sourceTracking: SourceTracking, result: RetrieveResult) {
@@ -146,11 +160,13 @@ class StatusResultsTable {
     { label: nls.localize('project_path'), key: 'filePath' }
   ];
 
-  private columns = this.statusResults.some(result => result.ignored)
-    ? [{ label: nls.localize('ignored'), key: 'ignored' }, ...StatusResultsTable.baseColumns]
-    : StatusResultsTable.baseColumns;
+  private columns: { label: string; key: string }[];
 
-  constructor(private statusResults: StatusResult[]) {}
+  constructor(private statusResults: StatusResult[]) {
+    this.columns = this.statusResults.some(result => result.ignored)
+      ? [{ label: nls.localize('ignored'), key: 'ignored' }, ...StatusResultsTable.baseColumns]
+      : StatusResultsTable.baseColumns;
+  }
 
   public value(): string {
     this.statusResults.forEach(statusResult => this.convertToTableRow(statusResult));

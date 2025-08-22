@@ -32,7 +32,7 @@
     "vscode-extension-telemetry": "^0.0.17"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.15.1",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "salesforcedx-vscode-apex": "64.10.1"

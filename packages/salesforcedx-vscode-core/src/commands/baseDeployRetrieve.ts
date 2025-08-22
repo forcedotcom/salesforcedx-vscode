@@ -9,7 +9,8 @@ import {
   LibraryCommandletExecutor,
   getRelativeProjectPath,
   Row,
-  Table
+  Table,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve-bundle';
 import {
@@ -19,19 +20,20 @@ import {
   MetadataTransferResult,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { nls } from '../messages';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
+import { DeployRetrieveOperationType } from '../util/types';
 import { createComponentCount, formatException } from './util';
+import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
-export abstract class DeployRetrieveExecutor<
-  T,
-  R extends MetadataTransferResult
-> extends LibraryCommandletExecutor<T> {
+export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult> extends LibraryCommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
+  protected ignoreConflicts: boolean = false;
 
   constructor(executionName: string, logName: string) {
     super(executionName, logName, OUTPUT_CHANNEL);
@@ -66,13 +68,23 @@ export abstract class DeployRetrieveExecutor<
 
       return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
     } catch (e) {
+      // Handle user cancellation from conflict dialog
+      if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
+        // Disable failure notifications and show cancellation notification
+        this.showFailureNotifications = false;
+        notificationService.showCanceledExecution(this.executionName);
+        return false; // Return false to indicate operation was not successful
+      }
       throw formatException(e);
     } finally {
       await this.postOperation(result);
     }
   }
 
-  protected setupCancellation(operation: MetadataApiDeploy | MetadataApiRetrieve | undefined, token?: vscode.CancellationToken) {
+  protected setupCancellation(
+    operation: MetadataApiDeploy | MetadataApiRetrieve | undefined,
+    token?: vscode.CancellationToken
+  ) {
     if (token && operation) {
       token.onCancellationRequested(async () => {
         await operation.cancel();
@@ -84,18 +96,82 @@ export abstract class DeployRetrieveExecutor<
   protected abstract doOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<R | undefined>;
   protected abstract postOperation(result: R | undefined): Promise<void>;
 
-  protected isPushOperation(): boolean {
-    return false; // Default to deploy operation
+  /**
+   * The operation type for this executor
+   */
+  protected abstract readonly operationType: DeployRetrieveOperationType;
+
+  /**
+   * Shared method to perform the actual operation (deploy or retrieve)
+   * This eliminates duplication between performDeployment and performRetrieve methods
+   * @param components The ComponentSet to operate on
+   * @param token Cancellation token
+   * @returns Promise<boolean> True if operation succeeded, false otherwise
+   */
+  protected async performOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<boolean> {
+    let result: R | undefined;
+
+    try {
+      // Set API versions
+      await componentSetUtils.setApiVersion(components);
+      await componentSetUtils.setSourceApiVersion(components);
+
+      // Add telemetry
+      this.telemetry.addProperty(TELEMETRY_METADATA_COUNT, JSON.stringify(createComponentCount(components)));
+
+      // Perform the operation
+      result = await this.doOperation(components, token ?? new vscode.CancellationTokenSource().token);
+
+      // If result is undefined, it means no components were processed (empty ComponentSet)
+      // This is considered a successful operation since there's nothing to do
+      if (result === undefined) {
+        return true;
+      }
+
+      const status = result?.response.status;
+
+      return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
+    } catch (e) {
+      // Handle user cancellation from conflict dialog
+      if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
+        // Disable failure notifications
+        this.showFailureNotifications = false;
+        notificationService.showCanceledExecution(this.executionName);
+        return false; // Return false to indicate operation was not successful
+      }
+      throw formatException(e);
+    } finally {
+      await this.postOperation(result);
+    }
   }
 }
 
-export const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
+const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
   fileResponse.state === ComponentStatus.Failed;
+
+/**
+ * Handle empty ComponentSet scenarios by showing appropriate output and clearing error collections
+ * This can be used by any deploy/retrieve command when there are no components to process
+ * @param operationType The type of operation ('push' | 'deploy' | 'pull' | 'retrieve')
+ * @param isSuccess Whether the operation was successful
+ */
+export const handleEmptyComponentSet = (
+  operationType: DeployRetrieveOperationType,
+  isSuccess: boolean = true
+): void => {
+  const output = createOperationOutput([], [], operationType, isSuccess);
+
+  channelService.appendLine(output);
+
+  // Clear any existing errors since this is a successful "no changes" scenario
+  DeployRetrieveExecutor.errorCollection.clear();
+  SfCommandletExecutor.errorCollection.clear();
+};
 
 /**
  * Shared utility to create output tables for deploy and retrieve operations
  */
-export interface OutputTableConfig {
+interface OutputTableConfig {
   successColumns: { key: string; label: string }[];
   failureColumns: { key: string; label: string }[];
   successTitle: string;
@@ -115,7 +191,7 @@ const COMMON_COLUMNS = {
   message: { key: 'error', label: nls.localize('table_header_message') }
 } as const;
 
-export const createOutputTable = (
+const createOutputTable = (
   fileResponses: FileResponse[],
   relativePackageDirs: string[],
   config: OutputTableConfig
@@ -164,25 +240,18 @@ export const createOutputTable = (
   return output;
 };
 
-/**
- * Operation type for output configuration
- */
-export type OperationType = 'deploy' | 'retrieve' | 'push';
-
-/**
- * Create output for deploy or retrieve operations
- */
+/** Create output for deploy, retrieve, push, or pull operations */
 export const createOperationOutput = (
   fileResponses: FileResponse[],
   relativePackageDirs: string[],
-  operationType: OperationType,
+  operationType: DeployRetrieveOperationType,
   isSuccess?: boolean
 ): string => {
   // Base configuration for all operations
   const baseSuccessColumns = [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.filePath];
   const baseFailureColumns = [COMMON_COLUMNS.filePath, COMMON_COLUMNS.error];
 
-  const configs: Record<OperationType, OutputTableConfig> = {
+  const configs: Record<DeployRetrieveOperationType, OutputTableConfig> = {
     deploy: {
       successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
       failureColumns: baseFailureColumns,
@@ -201,6 +270,18 @@ export const createOperationOutput = (
       successTitle: nls.localize('lib_retrieve_result_title'),
       failureTitle: nls.localize('lib_retrieve_message_title'),
       noResultsMessage: nls.localize('lib_retrieve_no_results')
+    },
+    pull: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
+      successTitle: nls.localize('table_title_pulled_source'),
+      failureTitle: nls.localize('table_title_pull_errors')
+    },
+    delete: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
+      successTitle: nls.localize('table_title_deleted_source'),
+      failureTitle: nls.localize('table_title_delete_errors')
     }
   };
 
@@ -211,19 +292,3 @@ export const createOperationOutput = (
 
   return createOutputTable(responses, relativePackageDirs, configs[operationType]);
 };
-
-/**
- * Create output for retrieve operations
- */
-export const createRetrieveOutput = (fileResponses: FileResponse[], relativePackageDirs: string[]): string =>
-  createOperationOutput(fileResponses, relativePackageDirs, 'retrieve');
-
-/**
- * Create output for deploy or push operations
- */
-export const createDeployOrPushOutput = (
-  fileResponses: FileResponse[],
-  relativePackageDirs: string[],
-  isSuccess: boolean,
-  operationType: 'deploy' | 'push'
-): string => createOperationOutput(fileResponses, relativePackageDirs, operationType, isSuccess);
