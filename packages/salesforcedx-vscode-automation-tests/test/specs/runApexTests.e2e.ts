@@ -137,7 +137,7 @@ describe('Run Apex Tests', () => {
     expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
 
-  it.skip('Run All Tests via Apex Class', async () => {
+  it('Run All Tests via Apex Class', async () => {
     logTestStart(testSetup, 'Run All Tests via Apex Class');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass1Test.cls');
@@ -170,7 +170,7 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
-  it.skip('Run Single Test via Apex Class', async () => {
+  it('Run Single Test via Apex Class', async () => {
     logTestStart(testSetup, 'Run Single Test via Apex Class');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ExampleApexClass2Test.cls');
@@ -203,7 +203,7 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
-  it.skip('Run All Tests via Command Palette', async () => {
+  it('Run All Tests via Command Palette', async () => {
     logTestStart(testSetup, 'Run All Tests via Command Palette');
     // Clear the Output view.
     await dismissAllNotifications();
@@ -237,7 +237,7 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
-  it.skip('Run Single Class via Command Palette', async () => {
+  it('Run Single Class via Command Palette', async () => {
     logTestStart(testSetup, 'Run Single Class via Command Palette');
     // Clear the Output view.
     await dismissAllNotifications();
@@ -266,7 +266,7 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
-  it.skip('Run All tests via Test Sidebar', async () => {
+  it('Run All tests via Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All tests via Test Sidebar');
     const workbench = getWorkbench();
     const testingView = await workbench.getActivityBar().getViewControl('Testing');
@@ -313,7 +313,7 @@ describe('Run Apex Tests', () => {
     }
   });
 
-  it.skip('Run All Tests on a Class via the Test Sidebar', async () => {
+  it('Run All Tests on a Class via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All Tests on a Class via the Test Sidebar');
     const workbench = getWorkbench();
     // Clear the Output view.
@@ -334,7 +334,7 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it.skip('Run Single Test via the Test Sidebar', async () => {
+  it('Run Single Test via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
     const workbench = getWorkbench();
     // Clear the Output view.
