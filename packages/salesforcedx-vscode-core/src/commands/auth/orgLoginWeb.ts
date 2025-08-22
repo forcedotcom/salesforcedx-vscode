@@ -102,14 +102,8 @@ const promptLogOutForProdOrg = async () => {
 const workspaceChecker = new SfWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> => {
-  switch (true) {
-    case isDemoMode():
-      return new OrgLoginWebDemoModeExecutor();
-    default:
-      return new OrgLoginWebExecutor();
-  }
-};
+const createOrgLoginWebExecutor = (): SfCommandletExecutor<{}> =>
+  isDemoMode() ? new OrgLoginWebDemoModeExecutor() : new OrgLoginWebExecutor();
 
 export const orgLoginWeb = async (): Promise<void> => {
   const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, createOrgLoginWebExecutor());
