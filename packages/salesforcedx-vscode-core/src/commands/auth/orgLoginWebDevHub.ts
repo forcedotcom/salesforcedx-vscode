@@ -13,12 +13,10 @@ import {
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { CLI } from '../../constants';
+import { ORG_LOGIN_WEB } from '../../constants';
 import { nls } from '../../messages';
-import { isDemoMode } from '../../modes/demoMode';
 import { SfCommandlet, SfCommandletExecutor } from '../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
-import { AuthDemoModeExecutor } from './orgLoginWeb';
 
 class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
   protected showChannelOutput = false;
@@ -27,25 +25,11 @@ class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
     const command = new SfCommandBuilder().withDescription(nls.localize('org_login_web_authorize_dev_hub_text'));
 
     command
-      .withArg(CLI.ORG_LOGIN_WEB)
+      .withArg(ORG_LOGIN_WEB)
       .withLogName('org_login_web_dev_hub')
       .withFlag('--alias', data.alias)
       .withArg('--set-default-dev-hub');
     return command.build();
-  }
-}
-
-class OrgLoginWebDevHubDemoModeExecutor extends AuthDemoModeExecutor<{}> {
-  public build(data: AuthDevHubParams): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
-      .withArg(CLI.ORG_LOGIN_WEB)
-      .withFlag('--alias', data.alias)
-      .withArg('--set-default-dev-hub')
-      .withArg('--no-prompt')
-      .withJson()
-      .withLogName('org_login_web_dev_hub_demo_mode')
-      .build();
   }
 }
 
@@ -73,19 +57,11 @@ type AuthDevHubParams = {
   alias: string;
 };
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new AuthDevHubParamsGatherer();
-
-const createAuthDevHubExecutor = (): SfCommandletExecutor<{}> => {
-  switch (true) {
-    case isDemoMode():
-      return new OrgLoginWebDevHubDemoModeExecutor();
-    default:
-      return new OrgLoginWebDevHubExecutor();
-  }
-};
-
 export const orgLoginWebDevHub = async () => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, createAuthDevHubExecutor());
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new AuthDevHubParamsGatherer(),
+    new OrgLoginWebDevHubExecutor()
+  );
   await commandlet.run();
 };

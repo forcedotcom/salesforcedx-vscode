@@ -230,11 +230,6 @@ export const messages = {
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
   error_creating_launchjson: 'Error creating launch.json: %s',
 
-  demo_mode_status_text: '$(gist-secret) SFDX DEMO',
-  demo_mode_status_tooltip:
-    'You are running Salesforce Extensions for VS Code in demo mode. You will be prompted for confirmation when connecting to production orgs.',
-  demo_mode_prompt:
-    'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   org_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',

@@ -90,8 +90,7 @@ import { PersistentStorageService, registerConflictView, setupConflictView } fro
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, showDemoMode } from './decorators';
-import { isDemoMode } from './modes/demoMode';
+import { decorators } from './decorators';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
@@ -526,11 +525,6 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   await decorators.showOrg();
 
   await setUpOrgExpirationWatcher(newOrgList);
-
-  // Demo mode decorator
-  if (isDemoMode()) {
-    showDemoMode();
-  }
 };
 
 export const deactivate = async (): Promise<void> => {
