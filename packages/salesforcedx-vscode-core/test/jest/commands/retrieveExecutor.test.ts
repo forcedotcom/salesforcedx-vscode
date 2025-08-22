@@ -6,6 +6,7 @@
  */
 import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../../../src/commands/retrieveExecutor';
 import { OrgType, workspaceContextUtils } from '../../../src/context';
@@ -17,21 +18,30 @@ jest.mock('../../../src/salesforceProject/salesforceProjectConfig');
 jest.mock('../../../src/conflict/metadataCacheService');
 
 describe('Retrieve Executor', () => {
-  const dummyProcessCwd = '/';
-  const dummyComponentSet = new ComponentSet();
-  const mockWorkspaceContext = { getConnection: jest.fn() } as any;
+  const dummyProcessCwd = path.sep;
+  const dummyComponentSet = {
+    size: 1, // Ensure non-zero size to avoid early return
+    retrieve: jest.fn()
+  } as unknown as ComponentSet;
+  const mockWorkspaceContext = {
+    getConnection: jest.fn().mockResolvedValue({
+      getUsername: jest.fn().mockReturnValue('test@example.com')
+    })
+  } as unknown as WorkspaceContext;
   const updateTrackingFromRetrieveMock = jest.fn().mockResolvedValue({});
   const dummySourceTracking = {
-    updateTrackingFromRetrieve: updateTrackingFromRetrieveMock
-  } as any;
+    updateTrackingFromRetrieve: updateTrackingFromRetrieveMock,
+    ensureRemoteTracking: jest.fn().mockResolvedValue(undefined),
+    getConflicts: jest.fn().mockResolvedValue([])
+  };
   const dummyRetrieveResult = {
     components: {},
     localComponents: {},
     response: {}
-  } as any;
+  };
   const dummyRetrieveOperation = {
     pollStatus: jest.fn().mockResolvedValue(dummyRetrieveResult)
-  } as any;
+  };
 
   let workspaceContextGetInstanceSpy: jest.SpyInstance;
   let getSourceTrackingSpy: jest.SpyInstance;
@@ -47,15 +57,15 @@ describe('Retrieve Executor', () => {
     }
   }
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.spyOn(process, 'cwd').mockReturnValue(dummyProcessCwd);
     jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ type: vscode.FileType.File } as vscode.FileStat);
     jest.spyOn(ConfigUtil, 'getUsername').mockResolvedValue('test@username.com');
     workspaceContextGetInstanceSpy = jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue(mockWorkspaceContext);
     getSourceTrackingSpy = jest
       .spyOn(SourceTrackingService, 'getSourceTracking')
-      .mockResolvedValue(dummySourceTracking);
-    retrieveSpy = jest.spyOn(dummyComponentSet, 'retrieve').mockResolvedValue(dummyRetrieveOperation);
+      .mockResolvedValue(dummySourceTracking as any);
+    retrieveSpy = jest.spyOn(dummyComponentSet, 'retrieve').mockResolvedValue(dummyRetrieveOperation as any);
     pollStatusMock = jest.spyOn(dummyRetrieveOperation, 'pollStatus').mockResolvedValue(dummyRetrieveResult);
     updateTrackingAfterRetrieveMock = jest
       .spyOn(SourceTrackingService, 'updateSourceTrackingAfterRetrieve')
@@ -67,7 +77,7 @@ describe('Retrieve Executor', () => {
     );
   });
 
-  it('should create Source Tracking before retrieving and update it after retrieving when connected to a source-tracked org and “Enable source tracking” is enabled(true)', async () => {
+  it('should create Source Tracking before retrieving and update it after retrieving when connected to a source-tracked org and "Enable source tracking" is enabled(true)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
@@ -89,7 +99,7 @@ describe('Retrieve Executor', () => {
     expect(updateTrackingAfterRetrieveMock).toHaveBeenCalledWith(dummySourceTracking, dummyRetrieveResult);
   });
 
-  it('should NOT update source tracking after retrieving without a successful response when “Enable source tracking” is enabled(true)', async () => {
+  it('should NOT update source tracking after retrieving without a successful response when "Enable source tracking" is enabled(true)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
@@ -111,7 +121,7 @@ describe('Retrieve Executor', () => {
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 
-  it('should NOT create Source Tracking before retrieving and NOT update it after retrieving when connected to a non-source-tracked org and “Enable source tracking” is enabled(true)', async () => {
+  it('should create Source Tracking before retrieving and update it after retrieving when connected to a non-source-tracked org and "Enable source tracking" is enabled(true)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
@@ -123,15 +133,34 @@ describe('Retrieve Executor', () => {
 
     // Assert
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
-    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(getSourceTrackingSpy).toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
     expect(pollStatusMock).toHaveBeenCalled();
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 
-  it('should NOT create Source Tracking before retrieving and NOT update it after retrieving when connected to a source-tracked org when “Enable source tracking” is disabled(false)', async () => {
+  it('should create Source Tracking before retrieving and update it after retrieving when connected to a source-tracked org even when "Enable source tracking" is disabled(false)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
+    const executor = new TestRetrieveExecutor('testRetrieve', 'testRetrieveLog');
+    (executor as any).setupCancellation = jest.fn();
+    dummyRetrieveResult.response = { status: 'SucceededPartial' };
+
+    // Act
+    await (executor as any).doOperation(dummyComponentSet, {});
+
+    // Assert
+    expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
+    expect(getSourceTrackingSpy).toHaveBeenCalled();
+    expect(retrieveSpy).toHaveBeenCalled();
+    expect(pollStatusMock).toHaveBeenCalled();
+    expect(updateTrackingAfterRetrieveMock).toHaveBeenCalled();
+  });
+
+  it('should NOT create Source Tracking before retrieving and NOT update it after retrieving when connected to a non-source-tracked org and "Enable source tracking" is disabled(false)', async () => {
+    // Arrange
+    getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
     const executor = new TestRetrieveExecutor('testRetrieve', 'testRetrieveLog');
     (executor as any).setupCancellation = jest.fn();

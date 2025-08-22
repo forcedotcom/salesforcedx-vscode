@@ -4,11 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  getRootWorkspacePath,
-  ProjectRetrieveStartResult,
-  ProjectDeployStartResult
-} from '@salesforce/salesforcedx-utils-vscode';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import { DeployResult, FileProperties } from '@salesforce/source-deploy-retrieve';
 import { ExtensionContext, Memento } from 'vscode';
 import { WorkspaceContext } from '../context';
@@ -63,18 +59,6 @@ export class PersistentStorageService {
     for (const file of fileResponses) {
       this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
         lastModifiedDate: currentTimestamp
-      });
-    }
-  }
-
-  public setPropertiesForFilesPushPull(pushOrPullResults: ProjectDeployStartResult[] | ProjectRetrieveStartResult[]) {
-    const afterPushPullTimestamp = new Date().toISOString();
-    for (const file of pushOrPullResults) {
-      if (!file.fullName) {
-        continue;
-      }
-      this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
-        lastModifiedDate: afterPushPullTimestamp
       });
     }
   }
