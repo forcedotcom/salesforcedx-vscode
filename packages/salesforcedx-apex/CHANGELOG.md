@@ -1,3 +1,12 @@
+## [8.2.9](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.8...8.2.9) (2025-08-24)
+
+
+### Bug Fixes
+
+* **deps:** bump istanbul-reports from 3.1.7 to 3.2.0 ([b4b9b85](https://github.com/forcedotcom/salesforcedx-apex/commit/b4b9b85d5a15a0e19a725deb94c9e923eb0f1d40))
+
+
+
 ## [8.2.8](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.7...8.2.8) (2025-08-10)
 
 
