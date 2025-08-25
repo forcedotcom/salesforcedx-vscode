@@ -9,6 +9,7 @@ import { Context, Effect, Layer } from 'effect';
 import * as vscode from 'vscode';
 
 export const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
+export const SALESFORCE_DX_SECTION = 'salesforcedx-vscode-salesforcedx';
 const INSTANCE_URL_KEY = 'instanceUrl';
 const ACCESS_TOKEN_KEY = 'accessToken';
 const API_VERSION_KEY = 'apiVersion';

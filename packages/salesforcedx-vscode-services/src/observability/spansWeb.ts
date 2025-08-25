@@ -7,6 +7,7 @@
 import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter, BatchSpanProcessor } from '@opentelemetry/sdk-trace-web';
+import { getLocalTracesEnabled } from './localTracing';
 
 export const WebSdkLayer = WebSdk.layer(() => ({
   resource: {
@@ -15,5 +16,8 @@ export const WebSdkLayer = WebSdk.layer(() => ({
     serviceVersion: '2025-08-15T20:49:30.000Z',
     attributes: {}
   },
-  spanProcessor: [new BatchSpanProcessor(new ConsoleSpanExporter()), new BatchSpanProcessor(new OTLPTraceExporter())]
+  spanProcessor: [
+    new BatchSpanProcessor(new ConsoleSpanExporter()),
+    ...(getLocalTracesEnabled() ? [new BatchSpanProcessor(new OTLPTraceExporter())] : [])
+  ]
 }));

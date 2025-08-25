@@ -73,6 +73,7 @@ export const commonConfigBrowser = {
     '@jsforce/jsforce-node/lib': 'jsforce/browser',
     // Force use of our custom process polyfill instead of esbuild's built-in
     process: processPolyfillPath,
+    'node:process': processPolyfillPath,
     // Force all readable-stream imports to use the main one to avoid duplication
     'readable-stream': 'readable-stream',
     events: 'events', // Node.js built-in module polyfills

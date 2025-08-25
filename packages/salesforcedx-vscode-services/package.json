@@ -24,6 +24,7 @@
     "Other"
   ],
   "dependencies": {
+    "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
     "@effect/opentelemetry": "0.56.2",
     "@opentelemetry/exporter-trace-otlp-http": "0.203.0",
     "@opentelemetry/sdk-metrics": "2.0.1",
@@ -82,6 +83,11 @@
           "type": "string",
           "default": "",
           "description": "Salesforce access token for web extensions"
+        },
+        "salesforcedx-vscode-salesforcedx.enableLocalTraces": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable local OpenTelemetry traces for debugging and performance monitoring.  Start the trace viewer using docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm"
         }
       }
     },

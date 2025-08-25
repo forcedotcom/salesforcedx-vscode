@@ -96,7 +96,7 @@ jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
 
 // Mock memfsWatcher to avoid file watching in tests
 jest.mock('../../src/virtualFsProvider/memfsWatcher', () => ({
-  startWatch: () => {
+  startWatch: (): Effect.Effect<void, never, never> => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const E = require('effect');
     return E.Effect.succeed(undefined);
