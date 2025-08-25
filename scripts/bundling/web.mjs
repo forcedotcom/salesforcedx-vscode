@@ -54,6 +54,7 @@ export const commonConfigBrowser = {
     'unsupported-dynamic-import': 'error'
   },
   define: {
+    'process.env.ESBUILD_PLATFORM': "'web'", // use this to intelligently drop node-only code
     'process.env.SF_DISABLE_LOG_FILE': "'true'",
     'process.env.FORCE_MEMFS': "'true'", // Added this line    // Ensure global is available for Node.js modules
     global: 'globalThis'

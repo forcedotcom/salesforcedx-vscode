@@ -8,4 +8,5 @@ import { Global } from '@salesforce/core';
 import { NodeSdkLayer } from './spansNode';
 import { WebSdkLayer } from './spansWeb';
 
+// build-time env to help esbuild drop unnecessary code
 export const SdkLayer = process.env.ESBUILD_PLATFORM === 'web' || Global.isWeb ? WebSdkLayer : NodeSdkLayer;
