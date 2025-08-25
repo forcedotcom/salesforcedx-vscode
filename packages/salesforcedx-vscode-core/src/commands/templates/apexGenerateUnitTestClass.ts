@@ -45,23 +45,15 @@ export const apexGenerateUnitTestClass = async (
   }
 
   // When called from the context menu in the explorer unexpected values are passed in for unitFileToCreate and unitFileDirectory.
-  let fileNameGatherer: ParametersGatherer<any>;
-  if (unitFileToCreate && typeof unitFileToCreate === 'string') {
-    fileNameGatherer = new SimpleGatherer<{ fileName: string }>({
-      fileName: unitFileToCreate
-    });
-  } else {
-    fileNameGatherer = gatherers.fileNameGatherer;
-  }
+  const fileNameGatherer: ParametersGatherer<any> =
+    unitFileToCreate && typeof unitFileToCreate === 'string'
+      ? new SimpleGatherer<{ fileName: string }>({ fileName: unitFileToCreate })
+      : gatherers.fileNameGatherer;
 
-  let templateTypeGatherer: ParametersGatherer<any>;
-  if (template && typeof template === 'string') {
-    templateTypeGatherer = new SimpleGatherer<{ template: string }>({
-      template: template ?? 'ApexUnitTest'
-    });
-  } else {
-    templateTypeGatherer = gatherers.templateGatherer;
-  }
+  const templateTypeGatherer: ParametersGatherer<any> =
+    template && typeof template === 'string'
+      ? new SimpleGatherer<{ template: string }>({ template: template ?? 'ApexUnitTest' })
+      : gatherers.templateGatherer;
 
   const createTemplateExecutor = new LibraryApexGenerateUnitTestClassExecutor();
   const commandlet = new SfCommandlet(

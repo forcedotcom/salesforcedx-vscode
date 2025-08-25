@@ -19,11 +19,7 @@ class AliasList extends SfCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-const executor = new AliasList();
-const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
-
 export const aliasList = async (): Promise<void> => {
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), new AliasList());
   await commandlet.run();
 };

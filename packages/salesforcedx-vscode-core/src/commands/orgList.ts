@@ -22,11 +22,9 @@ class OrgListExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-
 export const orgList = (): void => {
   const parameterGatherer = new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_org_list_clean'));
   const executor = new OrgListExecutor();
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, executor);
   void commandlet.run();
 };

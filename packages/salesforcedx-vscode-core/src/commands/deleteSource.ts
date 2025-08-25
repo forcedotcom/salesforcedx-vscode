@@ -488,7 +488,7 @@ export const moveFileToStash = async (stashPath: Map<string, string>, file: stri
   // Don't delete the original file here - it will be deleted after successful deployment
 };
 
-export const someContentsEndWithPath =
+const someContentsEndWithPath =
   (cmp: SourceComponent) =>
   (sourcePath: string): boolean =>
     // walkContent returns absolute paths while sourcepath will usually be relative

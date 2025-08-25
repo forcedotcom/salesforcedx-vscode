@@ -136,7 +136,7 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
   return client;
 };
 
-export const buildClientOptions = (): ApexLanguageClientOptions => {
+const buildClientOptions = (): ApexLanguageClientOptions => {
   const soqlExtensionInstalled = isSOQLExtensionInstalled();
   const lspParityCapabilities = vscode.workspace
     .getConfiguration()

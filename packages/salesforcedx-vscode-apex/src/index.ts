@@ -9,7 +9,8 @@ import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforced
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
-import { CodeCoverage, StatusBarToggle } from './codecoverage';
+import { CodeCoverageHandler as CodeCoverage } from './codecoverage/colorizer';
+import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
   anonApexDebug,
   anonApexExecute,

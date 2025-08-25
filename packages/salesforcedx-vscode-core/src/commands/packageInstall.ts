@@ -79,11 +79,12 @@ class SelectInstallationKey implements ParametersGatherer<InstallationKey> {
   }
 }
 
-const workspaceChecker = new EmptyPreChecker();
-const parameterGatherer = new CompositeParametersGatherer(new SelectPackageID(), new SelectInstallationKey());
-
-const sfPackageInstallCommandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new PackageInstallExecutor());
-
 export const packageInstall = async (): Promise<void> => {
+  const sfPackageInstallCommandlet = new SfCommandlet(
+    new EmptyPreChecker(),
+    new CompositeParametersGatherer(new SelectPackageID(), new SelectInstallationKey()),
+    new PackageInstallExecutor()
+  );
+
   await sfPackageInstallCommandlet.run();
 };

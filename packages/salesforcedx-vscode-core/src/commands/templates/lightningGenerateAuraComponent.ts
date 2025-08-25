@@ -52,15 +52,15 @@ class LibraryLightningGenerateAuraComponentExecutor extends LibraryBaseTemplateC
   }
 }
 
-const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
-const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
-
 export const lightningGenerateAuraComponent = (): void => {
   const createTemplateExecutor = new LibraryLightningGenerateAuraComponentExecutor();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
-    new CompositeParametersGatherer<LocalComponent>(metadataTypeGatherer, fileNameGatherer, outputDirGatherer),
+    new CompositeParametersGatherer<LocalComponent>(
+      new MetadataTypeGatherer(AURA_TYPE),
+      new SelectFileName(),
+      new SelectOutputDir(AURA_DIRECTORY, true)
+    ),
     createTemplateExecutor,
     new CompositePostconditionChecker(new LwcAuraDuplicateComponentCheckerForCreate(), new OverwriteComponentPrompt())
   );
@@ -72,7 +72,10 @@ export const internalLightningGenerateAuraComponent = (sourceUri: Uri): void => 
 
   const commandlet = new SfCommandlet(
     new InternalDevWorkspaceChecker(),
-    new CompositeParametersGatherer<DirFileNameSelection>(fileNameGatherer, new FileInternalPathGatherer(sourceUri)),
+    new CompositeParametersGatherer<DirFileNameSelection>(
+      new SelectFileName(),
+      new FileInternalPathGatherer(sourceUri)
+    ),
     createTemplateExecutor
   );
   void commandlet.run();

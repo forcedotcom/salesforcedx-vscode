@@ -4,11 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { Command, CommandOutput, SfCommandBuilder, CommandExecution } from '@salesforce/salesforcedx-utils';
 import {
   CancelResponse,
   CliCommandExecutor,
-  CommandExecution,
   CompositeParametersGatherer,
   ContinueResponse,
   createDirectory,
@@ -414,23 +413,23 @@ class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   }
 }
 
-const forceIdeUrlGatherer = new EnterForceIdeUri();
-const workspaceChecker = new EmptyPreChecker();
-const parameterGatherer = new CompositeParametersGatherer(
-  forceIdeUrlGatherer,
-  new SelectProjectName(() => {
-    if (forceIdeUrlGatherer.forceIdUrl?.orgName) {
-      return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_'));
-    }
-    return '';
-  }),
-  new SelectProjectFolder()
-);
-const pathExistsChecker = new PathExistsChecker();
-
-const executor = new IsvDebugBootstrapExecutor();
-const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor, pathExistsChecker);
-
 export const isvDebugBootstrap = async (): Promise<void> => {
+  const forceIdeUrlGatherer = new EnterForceIdeUri();
+  const workspaceChecker = new EmptyPreChecker();
+  const parameterGatherer = new CompositeParametersGatherer(
+    forceIdeUrlGatherer,
+    new SelectProjectName(() => {
+      if (forceIdeUrlGatherer.forceIdUrl?.orgName) {
+        return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_'));
+      }
+      return '';
+    }),
+    new SelectProjectFolder()
+  );
+  const pathExistsChecker = new PathExistsChecker();
+
+  const executor = new IsvDebugBootstrapExecutor();
+  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor, pathExistsChecker);
+
   await commandlet.run();
 };
