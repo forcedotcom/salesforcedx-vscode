@@ -198,11 +198,11 @@ export const lightningLwcStart = async () => {
     }
   }
 
-  const preconditionChecker = new SfWorkspaceChecker();
-  const parameterGatherer = new EmptyParametersGatherer();
-  const executor = new LightningLwcStartExecutor();
-
-  const commandlet = new SfCommandlet(preconditionChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new EmptyParametersGatherer(),
+    new LightningLwcStartExecutor()
+  );
 
   await commandlet.run();
 };

@@ -122,22 +122,29 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const testSuiteSelector = new TestSuiteSelector();
-const testSuiteCreator = new TestSuiteCreator();
-const testSuiteBuilder = new TestSuiteBuilder();
-
 export const apexTestSuiteAdd = async () => {
-  const commandlet = new SfCommandlet(workspaceChecker, testSuiteBuilder, new ApexLibraryTestSuiteBuilder());
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new TestSuiteBuilder(),
+    new ApexLibraryTestSuiteBuilder()
+  );
   await commandlet.run();
 };
 
 export const apexTestSuiteCreate = async () => {
-  const commandlet = new SfCommandlet(workspaceChecker, testSuiteCreator, new ApexLibraryTestSuiteBuilder());
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new TestSuiteCreator(),
+    new ApexLibraryTestSuiteBuilder()
+  );
   await commandlet.run();
 };
 
 export const apexTestSuiteRun = async () => {
-  const commandlet = new SfCommandlet(workspaceChecker, testSuiteSelector, new ApexLibraryTestRunExecutor());
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new TestSuiteSelector(),
+    new ApexLibraryTestRunExecutor()
+  );
   await commandlet.run();
 };

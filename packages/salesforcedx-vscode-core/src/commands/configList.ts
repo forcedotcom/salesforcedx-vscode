@@ -19,11 +19,7 @@ class ConfigList extends SfCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ConfigList();
-const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
-
 export const configList = async (): Promise<void> => {
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), new ConfigList());
   await commandlet.run();
 };

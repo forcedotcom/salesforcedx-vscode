@@ -35,8 +35,6 @@ class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-
 export async function orgDelete(this: FlagParameter<string>) {
   const flag = this ? this.flag : undefined;
 
@@ -48,6 +46,6 @@ export async function orgDelete(this: FlagParameter<string>) {
     : new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_default_org'));
 
   const executor = new OrgDeleteExecutor(flag);
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, executor);
   await commandlet.run();
 }

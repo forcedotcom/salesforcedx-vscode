@@ -40,12 +40,8 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-const executor = new OrgLogoutAll();
-const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
-
 export const orgLogoutAll = async () => {
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), new OrgLogoutAll());
   await commandlet.run();
 };
 

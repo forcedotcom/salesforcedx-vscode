@@ -78,13 +78,11 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
     return ComponentSet.fromSource(projectPath);
   }
 }
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
 
 export const projectDeployStart = async (isDeployOnSave: boolean, ignoreConflicts = false) => {
   const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
   const executor = new ProjectDeployStartExecutor(showOutputPanel, ignoreConflicts);
 
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), executor);
   await commandlet.run();
 };

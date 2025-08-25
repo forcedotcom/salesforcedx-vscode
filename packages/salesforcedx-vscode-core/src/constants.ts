@@ -40,10 +40,8 @@ export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-star
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
 export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
-export const CLI = {
-  ORG_LOGIN_DEVICE: 'org:login:device',
-  ORG_LOGIN_WEB: 'org:login:web'
-};
+export const ORG_LOGIN_WEB = 'org:login:web';
+
 export const APEX_FILE_NAME_EXTENSION = '.apex';
 export const SOQL_FILE_NAME_EXTENSION = '.soql';
 export const AURA_PATH = '/force-app/main/default/aura/';

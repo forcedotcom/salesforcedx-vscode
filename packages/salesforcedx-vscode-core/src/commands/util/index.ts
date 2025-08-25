@@ -17,7 +17,6 @@ export { formatException } from './formatException';
 export { LibraryPathsGatherer } from './libraryPathsGatherer';
 export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
 export {
-  DemoModePromptGatherer,
   FilePathGatherer,
   FileSelection,
   FileSelector,
