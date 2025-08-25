@@ -12,7 +12,6 @@
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
     "@salesforce/vscode-service-provider": "1.5.0",
-    "a": "3.0.1",
     "node": "^22.15.1",
     "npm": "^10",
     "picomatch": "4.0.3",
