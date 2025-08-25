@@ -158,10 +158,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   error_writing_installed_package_info: 'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
 
-  demo_mode_status_tooltip:
-    'VS Code のSalesforce 拡張機能をデモモードで実行しています。本番環境に接続するときに確認を求められます。',
-  demo_mode_prompt:
-    'デモモードまたは共有マシンで、ビジネスまたは本番組織を認証することは推奨されません。認証を続ける場合、組織を使用した後、必ず "SFDX: すべての認証済み組織からログアウト" を実行してください。',
   org_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
 
   manifest_editor_title_message: 'マニフェストエディタ',

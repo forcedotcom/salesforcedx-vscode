@@ -37,15 +37,15 @@ class LibraryVisualforceGeneratePageExecutor extends LibraryBaseTemplateCommand<
   }
 }
 
-const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir(VISUALFORCE_PAGE_DIRECTORY);
-const metadataTypeGatherer = new MetadataTypeGatherer(VISUALFORCE_PAGE_TYPE);
-
 export const visualforceGeneratePage = (): void => {
   const createTemplateExecutor = new LibraryVisualforceGeneratePageExecutor();
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
-    new CompositeParametersGatherer<LocalComponent>(metadataTypeGatherer, fileNameGatherer, outputDirGatherer),
+    new CompositeParametersGatherer<LocalComponent>(
+      new MetadataTypeGatherer(VISUALFORCE_PAGE_TYPE),
+      new SelectFileName(),
+      new SelectOutputDir(VISUALFORCE_PAGE_DIRECTORY)
+    ),
     createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
