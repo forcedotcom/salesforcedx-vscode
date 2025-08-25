@@ -57,19 +57,19 @@ export class OrgList implements vscode.Disposable {
   public async isOrgExpired(targetOrgOrAlias: string): Promise<boolean> {
     const username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
     const authFields = await getAuthFieldsFor(username);
-    const today = new Date();
+    const now = new Date().getTime();
     let expirationDate;
     if (authFields.expirationDate) {
       expirationDate = new Date(authFields.expirationDate);
     }
-    return expirationDate ? expirationDate < today : false;
+    return expirationDate ? expirationDate.getTime() < now : false;
   }
 
-  public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]): Promise<string[]> {
+  public async filterAuthInfo(orgAuthorizations: OrgAuthorization[], showExpired: boolean = false): Promise<string[]> {
     const targetDevHub = await OrgAuthInfo.getDevHubUsername();
 
     const authList = [];
-    const today = new Date();
+    const today = new Date().getTime();
     for (const orgAuth of orgAuthorizations) {
       // When this is called right after logging out of an org, there can
       // still be a cached Org Auth in the list with a "No auth information found"
@@ -88,11 +88,17 @@ export class OrgList implements vscode.Disposable {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      const isExpired = authFields?.expirationDate ? today >= new Date(authFields.expirationDate) : false;
+      // More precise expiration check: compare exact timestamps, not just dates
+      // This accounts for the time of day when the org actually expires
+      const isExpired = authFields?.expirationDate ? new Date(authFields.expirationDate).getTime() < today : false;
+
+      // Skip expired orgs unless explicitly requested to show them
+      if (isExpired && !showExpired) {
+        continue;
+      }
 
       const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
-      let authListItem =
-        aliases && aliases.length > 0 ? `${aliases.join(',')} - ${orgAuth.username}` : orgAuth.username;
+      let authListItem = aliases?.length > 0 ? `${aliases.join(',')} - ${orgAuth.username}` : orgAuth.username;
 
       if (isExpired) {
         authListItem += ` - ${nls.localize('org_expired')} ${String.fromCodePoint(0x274c)}`; // cross-mark
