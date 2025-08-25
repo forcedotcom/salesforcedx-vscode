@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.10.1",
+  "version": "64.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,9 +24,9 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/aura-language-server": "4.12.4",
+    "@salesforce/aura-language-server": "4.12.7",
     "@salesforce/lightning-lsp-common": "4.12.7",
-    "@salesforce/salesforcedx-utils-vscode": "64.10.1",
+    "@salesforce/salesforcedx-utils-vscode": "64.11.0",
     "applicationinsights": "1.0.7",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
