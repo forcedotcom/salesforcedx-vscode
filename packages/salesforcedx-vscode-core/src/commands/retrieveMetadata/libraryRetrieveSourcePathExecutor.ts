@@ -6,8 +6,8 @@
  */
 
 import { ContinueResponse, LocalComponent, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
-import { ComponentLike } from '@salesforce/source-deploy-retrieve-bundle/lib/src/resolve/types';
+import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';

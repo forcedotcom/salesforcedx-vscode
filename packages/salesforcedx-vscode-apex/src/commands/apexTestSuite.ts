@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestService } from '@salesforce/apex-node-bundle';
+import { TestService } from '@salesforce/apex-node';
 import {
   CancelResponse,
   ContinueResponse,

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core-bundle';
+import { Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY, VISUALFORCE_DEBUG_LEVEL } from '../constants';
@@ -181,7 +181,6 @@ export class TraceFlags {
   }
 
   public async handleTraceFlagCleanup(extensionContext: vscode.ExtensionContext): Promise<void> {
-
     // Change the status bar message to reflect the trace flag expiration date for the new target org
 
     // If there is a non-expired TraceFlag with DeveloperName 'ReplayDebuggerLevels' for the current user, update the status bar message

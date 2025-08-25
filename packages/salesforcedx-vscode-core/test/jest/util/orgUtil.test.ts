@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo } from '@salesforce/core-bundle';
+import { AuthInfo } from '@salesforce/core';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';

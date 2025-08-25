@@ -6,7 +6,7 @@
  */
 
 import * as fsUtils from '@salesforce/salesforcedx-utils-vscode';
-import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
+import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as conflictModule from '../../../src/conflict';

@@ -6,8 +6,8 @@
  */
 
 import { readFile, workspaceUtils, errorToString } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
-import type { ChangeResult } from '@salesforce/source-tracking-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import type { ChangeResult } from '@salesforce/source-tracking';
 import * as path from 'node:path';
 
 import { channelService } from '../channels';

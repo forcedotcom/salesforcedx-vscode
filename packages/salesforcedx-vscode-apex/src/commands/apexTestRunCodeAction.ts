@@ -13,8 +13,8 @@ import {
   TestLevel,
   TestResult,
   TestService
-} from '@salesforce/apex-node-bundle';
-import { ApexDiagnostic } from '@salesforce/apex-node-bundle/lib/src/utils';
+} from '@salesforce/apex-node';
+import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import type { NamedPackageDir } from '@salesforce/core';
 import {
   ContinueResponse,

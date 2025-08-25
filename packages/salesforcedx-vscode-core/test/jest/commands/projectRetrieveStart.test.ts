@@ -6,7 +6,7 @@
  */
 
 import { SourceTrackingService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as path from 'node:path';
 
 import { ProjectRetrieveStartExecutor, projectRetrieveStart } from '../../../src/commands/projectRetrieveStart';

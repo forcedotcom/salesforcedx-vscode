@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { fixupError, getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Config, Org, StateAggregator } from '@salesforce/core-bundle';
+import { Config, Org, StateAggregator } from '@salesforce/core';
 import { ConfigUtil, TARGET_ORG_KEY, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
