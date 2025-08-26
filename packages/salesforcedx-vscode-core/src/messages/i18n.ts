@@ -760,7 +760,17 @@ export const messages = {
   create_not_supported: 'Create is not supported for multiple components',
   input_incorrect_properties: 'Input does not contain correct component properties',
   manifest_editor_title_message: 'Manifest Editor',
-  missing_label: `${MISSING_LABEL_MSG}: %s`
+  missing_label: `${MISSING_LABEL_MSG}: %s`,
+
+  // Metadata XML Support Messages
+  metadata_xml_no_redhat_extension_found:
+    'Red Hat XML extension is not installed. Install it to enable metadata XML IntelliSense.',
+  metadata_xml_redhat_extension_setup_success: 'Salesforce metadata XML IntelliSense is now available.',
+  metadata_xml_redhat_extension_regression:
+    'Salesforce metadata XML IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
+  metadata_xml_deprecated_redhat_extension:
+    'Salesforce metadata XML IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
+  metadata_xml_fail_redhat_extension: 'Failed to setup Red Hat XML extension for metadata XML support'
 } as const;
 
 export type MessageKey = keyof typeof messages;
