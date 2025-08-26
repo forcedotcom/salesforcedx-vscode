@@ -8,7 +8,7 @@
 
 - `SFDX: Delete This from Project and Org` command does not rely on the CLI anymore. ([PR #6466](https://github.com/forcedotcom/salesforcedx-vscode/pull/6466))
 
-- `SFDX: Pull This Source from Org` command does not rely on the CLI anymore. ([PR #6438](https://github.com/forcedotcom/salesforcedx-vscode/pull/6438))
+- `SFDX: Pull This Source from Org` command does not rely on the CLI anymore. Now you can also view file differences upon conflicts, or choose to ignore them and proceed with pull. ([PR #6438](https://github.com/forcedotcom/salesforcedx-vscode/pull/6438))
 
 ## Fixed
 
