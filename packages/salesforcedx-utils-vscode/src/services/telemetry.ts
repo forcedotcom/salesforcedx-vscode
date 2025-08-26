@@ -25,7 +25,7 @@ import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConf
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
-import { getTelemetryUserId, DefaultSharedTelemetryProvider } from './userService';
+import { UserService } from './userService';
 
 type CommandMetric = {
   extensionName: string;
@@ -123,16 +123,6 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   /**
-   * Determines the appropriate SharedTelemetryProvider based on extension context.
-   * Core extension uses undefined to avoid infinite loops, others use DefaultSharedTelemetryProvider.
-   */
-  private getSharedTelemetryProvider(extensionContext: ExtensionContext): DefaultSharedTelemetryProvider | undefined {
-    return extensionContext.extension.id !== 'salesforce.salesforcedx-vscode-core'
-      ? new DefaultSharedTelemetryProvider()
-      : undefined;
-  }
-
-  /**
    * Initialize Telemetry Service during extension activation.
    * @param extensionContext extension context
    */
@@ -156,9 +146,7 @@ export class TelemetryService implements TelemetryServiceInterface {
       });
 
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
-      const userId = this.extensionContext
-        ? await getTelemetryUserId(this.extensionContext, this.getSharedTelemetryProvider(this.extensionContext))
-        : 'unknown';
+      const userId = this.extensionContext ? await UserService.getTelemetryUserId(this.extensionContext) : 'unknown';
       const reporterConfig: TelemetryReporterConfig = {
         extName: this.extensionName,
         version: this.version,
@@ -197,52 +185,6 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   public getReporters(): TelemetryReporter[] {
     return this.reporters;
-  }
-
-  /**
-   * Refreshes telemetry reporters with the latest user ID when org authorization changes.
-   * This ensures that telemetry events use the correct user ID (hashed orgId + userId)
-   * instead of the initial random ID that was set during extension activation.
-   */
-  public async refreshReporters(extensionContext: ExtensionContext): Promise<void> {
-    if (!this.extensionContext || this.reporters.length === 0 || !(await this.isTelemetryEnabled())) {
-      return;
-    }
-
-    // Get the updated user ID
-    const userId = await getTelemetryUserId(extensionContext, this.getSharedTelemetryProvider(extensionContext));
-
-    // Dispose existing reporters
-    for (const reporter of this.reporters) {
-      await reporter.dispose().catch(() => {});
-    }
-    this.reporters.length = 0;
-
-    // Create new reporters with updated user ID
-    const { name, version, o11yUploadEndpoint, enableO11y } = extensionPackageJsonSchema.parse(
-      extensionContext.extension.packageJSON
-    );
-
-    const reporterConfig: TelemetryReporterConfig = {
-      extName: name,
-      version,
-      aiKey: this.aiKey,
-      userId,
-      reporterName: this.getTelemetryReporterName(),
-      isDevMode: this.isDevMode
-    };
-
-    const isO11yEnabled = typeof enableO11y === 'boolean' ? enableO11y : enableO11y?.toLowerCase() === 'true';
-
-    if (isO11yEnabled && o11yUploadEndpoint) {
-      await initializeO11yReporter(reporterConfig.extName, o11yUploadEndpoint, userId, version);
-    }
-
-    const reporters = determineReporters(reporterConfig);
-    this.reporters.push(...reporters);
-    this.extensionContext?.subscriptions.push(...this.reporters);
-
-    console.log(`Telemetry reporters refreshed for ${name} with new user ID:`, userId);
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
