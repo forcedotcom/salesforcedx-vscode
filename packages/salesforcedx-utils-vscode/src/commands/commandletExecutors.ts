@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command } from '@salesforce/salesforcedx-utils';
+import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
 import * as vscode from 'vscode';
-import { CliCommandExecutor, CommandExecution } from '../cli';
+import { CliCommandExecutor } from '../cli';
 import { TimingUtils } from '../helpers/timingUtils';
 import { TelemetryBuilder, TelemetryService } from '../index';
 import { nls } from '../messages';
@@ -75,8 +75,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
 export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor<T> {
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
-  private readonly executionName: string;
-  private readonly logName: string;
+  protected readonly executionName: string;
+  protected readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected showSuccessNotifications = true;

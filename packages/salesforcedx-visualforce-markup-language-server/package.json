@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "64.10.1",
+  "version": "64.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -12,7 +12,7 @@
   ],
   "main": "out/src",
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.15.1",
     "shx": "0.4.0"
   },
   "dependencies": {

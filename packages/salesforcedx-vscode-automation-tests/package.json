@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-automation-tests",
-  "version": "64.10.1",
+  "version": "64.11.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -36,7 +36,7 @@
     "prettier": "3.6.2",
     "semver": "^7.6.3",
     "ts-node": "10.9.2",
-    "typescript": "5.6.3",
+    "typescript": "5.9.2",
     "vscode-extension-tester": "^8.16.0"
   }
 }

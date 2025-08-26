@@ -6,7 +6,7 @@
  */
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { registerIsvAuthWatcher } from '../../../src/context';
+import { registerIsvAuthWatcher } from '../../../src/context/isvContext';
 
 describe('isvContext unit test', () => {
   describe('registerIsvAuthWatcher', () => {
