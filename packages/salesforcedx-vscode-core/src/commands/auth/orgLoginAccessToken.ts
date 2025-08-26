@@ -49,10 +49,11 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new AccessTokenParamsGatherer();
-
 export const orgLoginAccessToken = async () => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new OrgLoginAccessTokenExecutor());
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new AccessTokenParamsGatherer(),
+    new OrgLoginAccessTokenExecutor()
+  );
   await commandlet.run();
 };

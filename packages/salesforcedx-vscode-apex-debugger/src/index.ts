@@ -29,8 +29,8 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
 import { getActiveApexExtension } from './context/apexExtension';
+import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
 import { nls } from './messages';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();

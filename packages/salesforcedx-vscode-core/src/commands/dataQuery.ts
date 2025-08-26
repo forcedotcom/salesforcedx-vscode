@@ -142,8 +142,7 @@ type QueryAndApiInputs = {
 };
 
 export const dataQuery = (): void => {
-  const parameterGatherer = new GetQueryAndApiInputs();
-  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, new DataQueryExecutor());
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new GetQueryAndApiInputs(), new DataQueryExecutor());
   void commandlet.run();
 };
 
