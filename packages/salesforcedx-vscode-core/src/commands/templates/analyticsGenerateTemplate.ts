@@ -64,11 +64,9 @@ class SelectProjectTemplate implements ParametersGatherer<Template> {
   }
 }
 
-const outputDirGatherer = new SelectOutputDir(ANALYTICS_TEMPLATE_DIRECTORY);
-
-const parameterGatherer = new CompositeParametersGatherer(new SelectProjectTemplate(), outputDirGatherer);
-
 export const analyticsGenerateTemplate = (): void => {
+  const outputDirGatherer = new SelectOutputDir(ANALYTICS_TEMPLATE_DIRECTORY);
+  const parameterGatherer = new CompositeParametersGatherer(new SelectProjectTemplate(), outputDirGatherer);
   const createTemplateExecutor = new LibraryAnalyticsGenerateTemplateExecutor();
   const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, createTemplateExecutor);
   void commandlet.run();
