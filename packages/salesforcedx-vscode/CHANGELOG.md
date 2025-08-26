@@ -6,9 +6,9 @@
 
 - We made some changes under the hood. ([PR #6491](https://github.com/forcedotcom/salesforcedx-vscode/pull/6491))
 
-- `SFDX: Delete This from Project and Org` command does not rely on the CLI anymore. ([PR #6466](https://github.com/forcedotcom/salesforcedx-vscode/pull/6466))
+- We made some changes under the hood to `SFDX: Delete This from Project and Org` command. It now runs faster. ([PR #6466](https://github.com/forcedotcom/salesforcedx-vscode/pull/6466))
 
-- `SFDX: Pull This Source from Org` command does not rely on the CLI anymore. Now you can also view file differences upon conflicts, or choose to ignore them and proceed with pull. ([PR #6438](https://github.com/forcedotcom/salesforcedx-vscode/pull/6438))
+- We made some changes under the hood to `SFDX: Pull This Source from Org` that make the command run faster. You can now view file differences when there are conflicts. You can also ignore the differences and proceed.([PR #6438](https://github.com/forcedotcom/salesforcedx-vscode/pull/6438))
 
 ## Fixed
 
