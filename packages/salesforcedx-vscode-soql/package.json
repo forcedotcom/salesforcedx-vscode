@@ -113,6 +113,10 @@
         "command": "soql.builder.toggle",
         "title": "%soql_builder_toggle%",
         "icon": "$(go-to-file)"
+      },
+      {
+        "command": "soql.walkthrough.open",
+        "title": "%soql_walkthrough_open%"
       }
     ],
     "menus": {
@@ -124,6 +128,10 @@
         {
           "command": "soql.builder.toggle",
           "when": "false"
+        },
+        {
+          "command": "soql.walkthrough.open",
+          "when": "sf:project_opened"
         }
       ],
       "editor/title": [
@@ -144,6 +152,63 @@
           "description": "%soql_validation_flag%"
         }
       }
-    }
+    },
+    "walkthroughs": [
+      {
+        "id": "soqlWalkthrough",
+        "title": "%soql_walkthrough_title%",
+        "description": "%soql_walkthrough_description%",
+        "steps": [
+          {
+            "id": "step1",
+            "title": "%soql_walkthrough_step1_title%",
+            "description": "%soql_walkthrough_step1_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step1_alt%"
+            }
+          },
+          {
+            "id": "step2",
+            "title": "%soql_walkthrough_step2_title%",
+            "description": "%soql_walkthrough_step2_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step2_alt%"
+            },
+            "completionEvents": [
+              "onCommand:soql.builder.open.new"
+            ]
+          },
+          {
+            "id": "step3",
+            "title": "%soql_walkthrough_step3_title%",
+            "description": "%soql_walkthrough_step3_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step3_alt%"
+            }
+          },
+          {
+            "id": "step4",
+            "title": "%soql_walkthrough_step4_title%",
+            "description": "%soql_walkthrough_step4_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step4_alt%"
+            }
+          },
+          {
+            "id": "step5",
+            "title": "%soql_walkthrough_step5_title%",
+            "description": "%soql_walkthrough_step5_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step5_alt%"
+            }
+          }
+        ]
+      }
+    ]
   }
 }
