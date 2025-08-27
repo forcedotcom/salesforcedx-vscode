@@ -34,8 +34,8 @@
     "@types/mocha": "^10.0.10",
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
-    "@typescript-eslint/eslint-plugin": "^8.39.1",
-    "@typescript-eslint/parser": "8.39.1",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
     "@vscode/test-electron": "2.3.0",
     "@vscode/vsce": "2.32.0",
     "acorn": "8.15.0",
@@ -98,7 +98,7 @@
     "capture:results": "shx mkdir -p ./test-results && npm run junit:report && npm run coverage:report",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:deps": "lerna exec --no-bail --stream depcheck",
-    "check:peer-deps": "check-peer-dependencies",
+    "check:peer-deps": "check-peer-dependencies --ignore picomatch",
     "check:typescript-project-references": "workspaces-to-typescript-project-references --check",
     "vscode:bundle": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
     "vscode:bundle:debugger": "lerna run bundle:debugger",
@@ -121,7 +121,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npx lerna run compile,lint && npm run check:peer-deps && npm run check:typescript-project-references",
+      "pre-commit": "npx lerna run compile,lint && npm run check:peer-deps && npm run check:typescript-project-references && ts-node scripts/package-lock.validation.ts",
       "pre-push": "npx lerna run compile,lint,test"
     }
   },
