@@ -36366,4 +36366,10 @@ Total metadata types: 758+
     </xsd:annotation>
   </xsd:element>
 
+  <xsd:element name="FlexiPage" type="tns:FlexiPage">
+    <xsd:annotation>
+      <xsd:documentation>Represents a Lightning page. Lightning pages are custom layouts that let you design pages for use in the Salesforce mobile app and Lightning Experience.</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
   </xsd:schema>

@@ -154,6 +154,10 @@ export class MetadataDocumentationService {
       LightningComponentBundle: {
         description:
           'Represents a Lightning web component bundle. A Lightning web component bundle contains all the resources for a Lightning web component: JavaScript, HTML, CSS, SVG resources, and a configuration file.'
+      },
+      FlexiPage: {
+        description:
+          'Represents a Lightning page. Lightning pages are custom layouts that let you design pages for use in the Salesforce mobile app and Lightning Experience.'
       }
       // Add more metadata types as needed from the official documentation
     };
@@ -183,7 +187,8 @@ export class MetadataDocumentationService {
       StaticResource:
         'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_staticresource.htm',
       LightningComponentBundle:
-        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningcomponentbundle.htm'
+        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningcomponentbundle.htm',
+      FlexiPage: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flexipage.htm'
     };
 
     // Return known URL if available
