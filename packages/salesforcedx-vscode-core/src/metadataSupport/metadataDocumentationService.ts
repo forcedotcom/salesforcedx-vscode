@@ -170,25 +170,7 @@ export class MetadataDocumentationService {
       ApexClass: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_classes.htm',
       ApexTrigger: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_triggers.htm',
       CustomObject: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm',
-      Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm',
-      Layout: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_layout.htm',
-      Profile: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profile.htm',
-      PermissionSet: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_permissionset.htm',
-      CustomField: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customfield.htm',
-      ValidationRule:
-        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_validationrule.htm',
-      WorkflowRule: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_workflowrule.htm',
-      CustomTab: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customtab.htm',
-      CustomApplication:
-        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm',
-      Report: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm',
-      Dashboard: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dashboard.htm',
-      EmailTemplate: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm',
-      StaticResource:
-        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_staticresource.htm',
-      LightningComponentBundle:
-        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningcomponentbundle.htm',
-      FlexiPage: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flexipage.htm'
+      Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm'
     };
 
     // Return known URL if available
@@ -204,6 +186,7 @@ export class MetadataDocumentationService {
     const potentialUrls = [
       `${baseUrl}/meta_${typeNameLower}.htm`,
       `${baseUrl}/meta_${typeNameLower}s.htm`, // plural form
+      `${baseUrl}/meta_${typeNameLower}es.htm`, // plural form with es suffix
       `${baseUrl}/meta_${typeNameLower.replace(/([A-Z])/g, '_$1').toLowerCase()}.htm`, // snake_case
       `${baseUrl}/meta_${typeNameLower.replace(/([A-Z])/g, '$1').toLowerCase()}.htm` // remove camelCase
     ];
