@@ -89,7 +89,7 @@ export class MetadataDocumentationService {
     return {
       ApexClass: {
         description:
-          'Represents an Apex class. Classes consist of other classes, user-defined methods, variables, exception types, and static initialization code.'
+          'Represents an Apex class. An Apex class is a template or blueprint from which Apex objects are created. Classes consist of other classes, user-defined methods, variables, exception types, and static initialization code.'
       },
       ApexTrigger: {
         description:
