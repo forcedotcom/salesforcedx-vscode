@@ -91,6 +91,7 @@ import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators } from './decorators';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
+import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
@@ -526,6 +527,25 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   // Initialize metadata XML support
   const metadataXmlSupport = MetadataXmlSupport.getInstance();
   await metadataXmlSupport.initializeMetadataSupport(extensionContext);
+
+  // Initialize metadata hover provider
+  const metadataHoverProvider = new MetadataHoverProvider(extensionContext);
+  await metadataHoverProvider.initialize();
+
+  // Register hover provider for XML files
+  const hoverProviderDisposable = vscode.languages.registerHoverProvider(
+    [
+      { scheme: 'file', language: 'xml' },
+      { scheme: 'file', pattern: '**/*-meta.xml' },
+      { scheme: 'file', pattern: '**/*.object-meta.xml' },
+      { scheme: 'file', pattern: '**/*.flow-meta.xml' },
+      { scheme: 'file', pattern: '**/*.layout-meta.xml' },
+      { scheme: 'file', pattern: '**/*.profile-meta.xml' },
+      { scheme: 'file', pattern: '**/*.permissionset-meta.xml' }
+    ],
+    metadataHoverProvider
+  );
+  extensionContext.subscriptions.push(hoverProviderDisposable);
 
   await setUpOrgExpirationWatcher(newOrgList);
 };
