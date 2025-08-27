@@ -14,8 +14,8 @@ import { MetadataDocumentationService } from './metadataDocumentationService';
 export class MetadataHoverProvider implements vscode.HoverProvider {
   private documentationService: MetadataDocumentationService;
 
-  constructor(extensionContext: vscode.ExtensionContext) {
-    this.documentationService = new MetadataDocumentationService(extensionContext);
+  constructor() {
+    this.documentationService = new MetadataDocumentationService();
   }
 
   /**
@@ -31,7 +31,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
   public provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
-    token: vscode.CancellationToken
+    _token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.Hover> {
     // Only provide hover for XML files that are likely metadata files
     if (!this.isMetadataFile(document)) {

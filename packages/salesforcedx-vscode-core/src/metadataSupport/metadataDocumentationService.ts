@@ -4,8 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
-
 export interface MetadataFieldInfo {
   name: string;
   type: string;
@@ -27,10 +25,6 @@ export class MetadataDocumentationService {
   private documentationMap: Map<string, MetadataTypeDocumentation> = new Map();
   private initialized = false;
 
-  constructor(extensionContext: vscode.ExtensionContext) {
-    // Extension context not needed since we're using static documentation
-  }
-
   /**
    * Initialize the service by loading metadata documentation from XSD
    */
@@ -51,7 +45,7 @@ export class MetadataDocumentationService {
    * Get documentation for a specific metadata type
    */
   public getDocumentation(metadataType: string): MetadataTypeDocumentation | null {
-    return this.documentationMap.get(metadataType) || null;
+    return this.documentationMap.get(metadataType) ?? null;
   }
 
   /**
@@ -74,7 +68,7 @@ export class MetadataDocumentationService {
     for (const [typeName, typeInfo] of Object.entries(metadataTypes)) {
       this.documentationMap.set(typeName, {
         name: typeName,
-        description: typeInfo.description || '',
+        description: typeInfo.description ?? '',
         fields: typeInfo.fields,
         developerGuideUrl: await this.getDeveloperGuideUrl(typeName)
       });

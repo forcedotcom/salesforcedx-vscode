@@ -90,8 +90,8 @@ import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators } from './decorators';
-import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
+import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
@@ -529,7 +529,7 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   await metadataXmlSupport.initializeMetadataSupport(extensionContext);
 
   // Initialize metadata hover provider
-  const metadataHoverProvider = new MetadataHoverProvider(extensionContext);
+  const metadataHoverProvider = new MetadataHoverProvider();
   await metadataHoverProvider.initialize();
 
   // Register hover provider for XML files

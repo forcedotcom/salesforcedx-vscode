@@ -7,24 +7,6 @@
 import * as vscode from 'vscode';
 import { MetadataHoverProvider } from '../../../src/metadataSupport/metadataHoverProvider';
 
-// Mock VS Code extension context
-const mockExtensionContext = {
-  asAbsolutePath: jest.fn((relativePath: string) => `/mock/path/${relativePath}`),
-  subscriptions: [],
-  workspaceState: {
-    get: jest.fn(),
-    update: jest.fn()
-  },
-  globalState: {
-    get: jest.fn(),
-    update: jest.fn()
-  },
-  extensionPath: '/mock/extension/path',
-  storagePath: '/mock/storage/path',
-  globalStoragePath: '/mock/global/storage/path',
-  logPath: '/mock/log/path'
-} as any;
-
 // Mock document
 const createMockDocument = (fileName: string, content: string) =>
   ({
@@ -49,7 +31,7 @@ describe('MetadataHoverProvider', () => {
   let hoverProvider: MetadataHoverProvider;
 
   beforeEach(() => {
-    hoverProvider = new MetadataHoverProvider(mockExtensionContext);
+    hoverProvider = new MetadataHoverProvider();
     jest.clearAllMocks();
   });
 
@@ -130,4 +112,3 @@ describe('MetadataHoverProvider', () => {
     });
   });
 });
-
