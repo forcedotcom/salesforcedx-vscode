@@ -110,7 +110,7 @@ describe('Deploy Executor', () => {
     expect(ensureLocalTrackingSpyCallOrder).toBeLessThan(deployCallOrder);
   });
 
-  it('should create Source Tracking and call ensureLocalTracking before deploying when connected to a source-tracked org even if "Enable Source Tracking" is disabled(false)', async () => {
+  it('should NOT create Source Tracking when connected to a source-tracked org but "Enable Source Tracking" is disabled(false)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
@@ -124,8 +124,8 @@ describe('Deploy Executor', () => {
     await (executor as any).doOperation(dummyComponentSet, {});
 
     // Assert
-    expect(getSourceTrackingSpy).toHaveBeenCalled();
-    expect(ensureLocalTrackingSpy).toHaveBeenCalled();
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();
   });
 
@@ -148,7 +148,7 @@ describe('Deploy Executor', () => {
     expect(deploySpy).toHaveBeenCalled();
   });
 
-  it('should create Source Tracking and call ensureLocalTracking before deploying when connected to a non-source-tracked org and "Enable Source Tracking" is enabled(true)', async () => {
+  it('should NOT create Source Tracking when connected to a non-source-tracked org even if "Enable Source Tracking" is enabled(true)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
@@ -162,8 +162,8 @@ describe('Deploy Executor', () => {
     await (executor as any).doOperation(dummyComponentSet, {});
 
     // Assert
-    expect(getSourceTrackingSpy).toHaveBeenCalled();
-    expect(ensureLocalTrackingSpy).toHaveBeenCalled();
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();
   });
 

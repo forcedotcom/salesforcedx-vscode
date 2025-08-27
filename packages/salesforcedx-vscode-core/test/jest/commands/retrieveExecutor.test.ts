@@ -121,7 +121,7 @@ describe('Retrieve Executor', () => {
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 
-  it('should create Source Tracking before retrieving and update it after retrieving when connected to a non-source-tracked org and "Enable source tracking" is enabled(true)', async () => {
+  it('should NOT create Source Tracking when connected to a non-source-tracked org even if "Enable source tracking" is enabled(true)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.NonSourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
@@ -133,13 +133,13 @@ describe('Retrieve Executor', () => {
 
     // Assert
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
-    expect(getSourceTrackingSpy).toHaveBeenCalled();
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
     expect(pollStatusMock).toHaveBeenCalled();
     expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 
-  it('should create Source Tracking before retrieving and update it after retrieving when connected to a source-tracked org even when "Enable source tracking" is disabled(false)', async () => {
+  it('should NOT create Source Tracking when connected to a source-tracked org but "Enable source tracking" is disabled(false)', async () => {
     // Arrange
     getWorkspaceOrgTypeMock.mockResolvedValue(OrgType.SourceTracked);
     getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(false);
@@ -152,10 +152,10 @@ describe('Retrieve Executor', () => {
 
     // Assert
     expect(workspaceContextGetInstanceSpy).toHaveBeenCalled();
-    expect(getSourceTrackingSpy).toHaveBeenCalled();
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
     expect(retrieveSpy).toHaveBeenCalled();
     expect(pollStatusMock).toHaveBeenCalled();
-    expect(updateTrackingAfterRetrieveMock).toHaveBeenCalled();
+    expect(updateTrackingAfterRetrieveMock).not.toHaveBeenCalled();
   });
 
   it('should NOT create Source Tracking before retrieving and NOT update it after retrieving when connected to a non-source-tracked org and "Enable source tracking" is disabled(false)', async () => {

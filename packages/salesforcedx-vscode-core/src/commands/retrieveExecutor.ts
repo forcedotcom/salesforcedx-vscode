@@ -61,12 +61,12 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
     const connection = await WorkspaceContext.getInstance().getConnection();
 
     // Set up source tracking based on org type and settings:
-    // - Source-tracked orgs: Always use source tracking
-    // - Non-source-tracked orgs: Only if the setting is enabled
+    // - Source-tracked orgs: Use source tracking only if the setting is enabled (for performance control)
+    // - Non-source-tracked orgs: Never use source tracking
     const orgType = await workspaceContextUtils.getWorkspaceOrgType();
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
 
-    if (orgType === workspaceContextUtils.OrgType.SourceTracked || sourceTrackingEnabled) {
+    if (orgType === workspaceContextUtils.OrgType.SourceTracked && sourceTrackingEnabled) {
       this.sourceTracking = await SourceTrackingService.getSourceTracking(
         projectPath,
         connection,
