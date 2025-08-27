@@ -30,7 +30,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   extensionContext.subscriptions.push(
     vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew),
-    vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle)
+    vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle),
+    vscode.commands.registerCommand('soql.walkthrough.open', () => {
+      vscode.commands.executeCommand(
+        'workbench.action.openWalkthrough',
+        'salesforce.salesforcedx-vscode-soql#soqlWalkthrough',
+        false
+      );
+    })
   );
 
   await startLanguageClient(extensionContext);
