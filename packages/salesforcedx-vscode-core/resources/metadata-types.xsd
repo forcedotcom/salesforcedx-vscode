@@ -36360,4 +36360,10 @@ Total metadata types: 758+
     </xsd:annotation>
   </xsd:element>
 
+  <xsd:element name="LightningComponentBundle" type="tns:LightningComponentBundle">
+    <xsd:annotation>
+      <xsd:documentation>Represents a Lightning web component bundle. A Lightning web component bundle contains all the resources for a Lightning web component: JavaScript, HTML, CSS, SVG resources, and a configuration file.</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
   </xsd:schema>
