@@ -6,7 +6,7 @@ This file contains all metadata type definitions for hover documentation and IDE
 Generated on: 2025-01-27T20:00:00.000Z
 Total metadata types: 758+
 -->
-<xsd:schema 
+<xsd:schema
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   targetNamespace="http://soap.sforce.com/2006/04/metadata"
   xmlns:tns="http://soap.sforce.com/2006/04/metadata"
@@ -36263,97 +36263,97 @@ Total metadata types: 758+
 
   <!-- Root Elements for Metadata Types -->
   <!-- These elements allow the metadata types to be used as root elements in XML files -->
-  
+
   <xsd:element name="ApexClass" type="tns:ApexClass">
     <xsd:annotation>
-      <xsd:documentation>Represents an Apex class. An Apex class is a template or blueprint from which Apex objects are created.</xsd:documentation>
+      <xsd:documentation>Represents an Apex class. An Apex class is a template or blueprint from which Apex objects are created. Classes consist of other classes, user-defined methods, variables, exception types, and static initialization code.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="ApexTrigger" type="tns:ApexTrigger">
     <xsd:annotation>
-      <xsd:documentation>Represents an Apex trigger. A trigger is Apex code that executes before or after specific database operations.</xsd:documentation>
+      <xsd:documentation>Represents an Apex trigger. A trigger is Apex code that executes before or after specific database operations on a Salesforce object.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="CustomObject" type="tns:CustomObject">
     <xsd:annotation>
-      <xsd:documentation>Represents a custom object. Custom objects store information that's unique to your organization.</xsd:documentation>
+      <xsd:documentation>Represents a custom object. Custom objects are database tables that allow you to store information unique to your organization.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="Flow" type="tns:Flow">
     <xsd:annotation>
-      <xsd:documentation>Represents a Flow. Flows are applications that can execute logic, interact with the Salesforce database, and collect data from users.</xsd:documentation>
+      <xsd:documentation>Represents a Flow. Flows are applications that automate business processes by collecting data and performing actions in your Salesforce org or external systems.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="Layout" type="tns:Layout">
     <xsd:annotation>
-      <xsd:documentation>Represents a page layout. Page layouts control the layout and organization of buttons, fields, s-controls, Visualforce, custom links, and related lists on object record pages.</xsd:documentation>
+      <xsd:documentation>Represents a page layout. Page layouts control the layout and organization of buttons, fields, Visualforce, custom links, and related lists on object record pages.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="Profile" type="tns:Profile">
     <xsd:annotation>
       <xsd:documentation>Represents a profile. Profiles define how users access objects and data, and what they can do within the application.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="PermissionSet" type="tns:PermissionSet">
     <xsd:annotation>
       <xsd:documentation>Represents a permission set. Permission sets extend users' functional access without changing their profiles.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="CustomField" type="tns:CustomField">
     <xsd:annotation>
       <xsd:documentation>Represents a custom field. Custom fields allow you to store additional information that's unique to your organization.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="ValidationRule" type="tns:ValidationRule">
     <xsd:annotation>
       <xsd:documentation>Represents a validation rule. Validation rules verify that data entered by users in records meets the standards you specify.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="WorkflowRule" type="tns:WorkflowRule">
     <xsd:annotation>
       <xsd:documentation>Represents a workflow rule. Workflow rules automate standard internal procedures and processes to save time across your org.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="CustomTab" type="tns:CustomTab">
     <xsd:annotation>
       <xsd:documentation>Represents a custom tab. Custom tabs let you display custom object data or other web content in Salesforce.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="CustomApplication" type="tns:CustomApplication">
     <xsd:annotation>
       <xsd:documentation>Represents a custom application. Custom applications are collections of tabs that work as a unit to provide application functionality.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="Report" type="tns:Report">
     <xsd:annotation>
       <xsd:documentation>Represents a report. Reports are formatted displays of Salesforce data that you can filter, group, and display in a graphical chart.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="Dashboard" type="tns:Dashboard">
     <xsd:annotation>
       <xsd:documentation>Represents a dashboard. Dashboards are visual displays of key metrics and trends for records in your org.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="EmailTemplate" type="tns:EmailTemplate">
     <xsd:annotation>
       <xsd:documentation>Represents an email template. Email templates are preformatted emails that communicate a standard message.</xsd:documentation>
     </xsd:annotation>
   </xsd:element>
-  
+
   <xsd:element name="StaticResource" type="tns:StaticResource">
     <xsd:annotation>
       <xsd:documentation>Represents a static resource. Static resources allow you to upload content that you can reference in a Visualforce page.</xsd:documentation>
