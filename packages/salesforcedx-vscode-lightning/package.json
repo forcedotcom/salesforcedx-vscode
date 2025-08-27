@@ -36,7 +36,7 @@
     "@types/which": "^1.3.1",
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2"
+    "esbuild-plugin-pino": "^2.3.3"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
