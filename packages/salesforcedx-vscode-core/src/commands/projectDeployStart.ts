@@ -13,7 +13,7 @@ import {
   SourceTrackingService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
@@ -50,32 +50,25 @@ export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
 
   protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
     const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
-    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
-
-    if (sourceTrackingEnabled) {
-      try {
-        const connection = await WorkspaceContext.getInstance().getConnection();
-        if (!connection) {
-          throw new Error(nls.localize('error_source_tracking_connection_failed'));
-        }
-
-        const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
-        if (!sourceTracking) {
-          throw new Error(nls.localize('error_source_tracking_service_failed'));
-        }
-
-        // Get local changes using the proper method
-        const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
-        const localComponentSet = localComponentSets[0] ?? new ComponentSet();
-
-        return localComponentSet;
-      } catch (error) {
-        throw new Error(`Source tracking setup failed: ${errorToString(error)}`);
+    try {
+      const connection = await WorkspaceContext.getInstance().getConnection();
+      if (!connection) {
+        throw new Error(nls.localize('error_source_tracking_connection_failed'));
       }
-    }
 
-    // If source tracking is disabled, deploy all source
-    return ComponentSet.fromSource(projectPath);
+      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+      if (!sourceTracking) {
+        throw new Error(nls.localize('error_source_tracking_service_failed'));
+      }
+
+      // Get local changes using the proper method
+      const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
+      const localComponentSet = localComponentSets[0] ?? new ComponentSet();
+
+      return localComponentSet;
+    } catch (error) {
+      throw new Error(`Source tracking setup failed: ${errorToString(error)}`);
+    }
   }
 }
 

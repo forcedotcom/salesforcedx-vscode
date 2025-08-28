@@ -8,54 +8,51 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
-const child_process_1 = require("child_process");
+const node_child_process_1 = require("node:child_process");
+const node_fs_1 = require("node:fs");
+const path = require("node:path");
 const semver = require("semver");
-const fs_1 = require("fs");
-const path = require("path");
 const nodeVersions_1 = require("./nodeVersions");
 async function run() {
     try {
         const issue = github_1.context.payload.issue;
         if (!issue) {
-            (0, core_1.setFailed)("github.context.payload.issue does not exist");
+            (0, core_1.setFailed)('github.context.payload.issue does not exist');
             return;
         }
         // Temporary check to prevent this action from running on old issues
         // This will prevent noise on tickets already being investigated
         // This can be removed once the action has been running for a while
         const creationDate = new Date(issue.created_at);
-        const cutoffDate = new Date("2023-06-14T00:00:00Z");
+        const cutoffDate = new Date('2023-06-14T00:00:00Z');
         if (creationDate < cutoffDate) {
-            console.log("Issue was created before 6/14/2023, skipping");
+            console.log('Issue was created before 6/14/2023, skipping');
             return;
         }
         // Create a GitHub client
-        const token = (0, core_1.getInput)("repo-token");
+        const token = (0, core_1.getInput)('repo-token');
         const octokit = (0, github_1.getOctokit)(token);
         // Get owner and repo from context
         const owner = github_1.context.repo.owner;
         const repo = github_1.context.repo.repo;
         const issue_number = issue.number;
-        console.log("Issue URL:", issue.html_url);
+        console.log('Issue URL:', issue.html_url);
         const { body } = issue;
         const { login: author } = issue.user;
         const { data: comments } = await getAllComments();
         // For version checks, we only care about comments from the author
-        const authorComments = comments.filter((comment) => comment?.user?.login === author);
+        const authorComments = comments.filter(comment => comment?.user?.login === author);
         // Build an array of the issue body and all of the comment bodies
-        const bodies = [
-            body,
-            ...authorComments.map((comment) => comment.body),
-        ].filter((body) => body !== undefined);
-        console.log('bodies = ' + JSON.stringify(bodies));
-        console.log('bodies.length = ' + bodies.length);
+        const bodies = [body, ...authorComments.map(comment => comment.body)].filter((body) => body !== undefined);
+        console.log(`bodies = ${JSON.stringify(bodies)}`);
+        console.log(`bodies.length = ${bodies.length}`);
         if (bodies[0] === null) {
             console.log('No content provided in issue body');
-            const message = getFile("../../messages/provide-version.md", {
-                THE_AUTHOR: issue.user.login,
+            const message = getFile('../../messages/provide-version.md', {
+                THE_AUTHOR: issue.user.login
             });
             postComment(message);
-            addLabel("missing required information");
+            addLabel('missing required information');
         }
         else {
             let extensionsValid = true;
@@ -69,78 +66,78 @@ async function run() {
             const extensionsVersionRegex = /(?:\*{2}Salesforce Extension Version in VS Code\*{2}:\s*v?(\d{2}\.\d{1,2}\.\d))|(?:Salesforce Extension Version in VS Code:\s*v?(\d{2}\.\d{1,2}\.\d))/g;
             // Search all bodies and get an array of all versions found (first or second capture group)
             const extensionsVersions = bodies
-                .map((body) => [...body.matchAll(extensionsVersionRegex)].map((match) => match[1] || match[2]))
+                .map(body => [...body.matchAll(extensionsVersionRegex)].map(match => match[1] || match[2]))
                 .flat();
             console.log('extensionsVersions', extensionsVersions);
             if (extensionsVersions.length > 0) {
                 const extensionsLatest = getLatestExtensionsVersion();
                 console.log('extensionsLatest', extensionsLatest);
-                const oneSatisfies = extensionsVersions.some((version) => semver.gte(version, extensionsLatest));
+                const oneSatisfies = extensionsVersions.some(version => semver.gte(version, extensionsLatest));
                 if (!oneSatisfies) {
-                    const oldExtensions = getFile("../../messages/old-extensions.md", {
+                    const oldExtensions = getFile('../../messages/old-extensions.md', {
                         THE_AUTHOR: author,
-                        USER_VERSION: extensionsVersions.join("`, `"),
+                        USER_VERSION: extensionsVersions.join('`, `'),
                         LATEST_VERSION: extensionsLatest
                     });
                     postComment(oldExtensions);
                 }
                 if (extensionsValid) {
-                    console.log("A valid extensions version is provided!");
+                    console.log('A valid extensions version is provided!');
                 }
                 else {
-                    console.log("The extensions version provided is NOT valid");
-                    addLabel("missing required information");
+                    console.log('The extensions version provided is NOT valid');
+                    addLabel('missing required information');
                 }
             }
             else {
-                console.log("Extensions version is NOT provided");
+                console.log('Extensions version is NOT provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile("../../messages/provide-version.md", {
-                        THE_AUTHOR: issue.user.login,
+                    const message = getFile('../../messages/provide-version.md', {
+                        THE_AUTHOR: issue.user.login
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel("missing required information");
+                    addLabel('missing required information');
                 }
                 extensionsValid = false;
             }
             // Checking VSCode version
-            const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(?:Version:\s*)?v?(1\.\d{2}\.\d))|(?:VS Code version:\s*(?:Version:\s*)?v?(1\.\d{2}\.\d))/g;
+            const vscodeVersionRegex = /(?:\*{2}VS Code version\*{2}:\s*(?:Version:\s*)?v?(1\.\d{2,3}\.\d))|(?:VS Code version:\s*(?:Version:\s*)?v?(1\.\d{2,3}\.\d))/g;
             // Search all bodies and get an array of all versions found (first or second capture group)
             const vscodeVersions = bodies
-                .map((body) => [...body.matchAll(vscodeVersionRegex)].map((match) => match[1] || match[2]))
+                .map(body => [...body.matchAll(vscodeVersionRegex)].map(match => match[1] || match[2]))
                 .flat();
             console.log('vscodeVersions', vscodeVersions);
             if (vscodeVersions.length > 0) {
                 const vscodeMinVersion = getMinimumVSCodeVersion();
                 console.log('vscodeMinVersion', vscodeMinVersion);
-                const oneSatisfies = vscodeVersions.some((version) => semver.gte(version, vscodeMinVersion));
+                const oneSatisfies = vscodeVersions.some(version => semver.gte(version, vscodeMinVersion));
                 if (!oneSatisfies) {
-                    const oldVSCode = getFile("../../messages/unsupported-vscode.md", {
+                    const oldVSCode = getFile('../../messages/unsupported-vscode.md', {
                         THE_AUTHOR: author,
-                        USER_VERSION: vscodeVersions.join("`, `"),
+                        USER_VERSION: vscodeVersions.join('`, `'),
                         MIN_VERSION: vscodeMinVersion
                     });
                     postComment(oldVSCode);
                     vscodeValid = false;
                 }
                 if (vscodeValid) {
-                    console.log("A valid VSCode version is provided!");
+                    console.log('A valid VSCode version is provided!');
                 }
                 else {
-                    console.log("The VSCode version provided is NOT valid");
-                    addLabel("missing required information");
+                    console.log('The VSCode version provided is NOT valid');
+                    addLabel('missing required information');
                 }
             }
             else {
-                console.log("VSCode version is NOT provided");
+                console.log('VSCode version is NOT provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile("../../messages/provide-version.md", {
-                        THE_AUTHOR: issue.user.login,
+                    const message = getFile('../../messages/provide-version.md', {
+                        THE_AUTHOR: issue.user.login
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel("missing required information");
+                    addLabel('missing required information');
                 }
                 vscodeValid = false;
             }
@@ -149,20 +146,20 @@ async function run() {
             const osVersionRegex = /(?:\*{2}OS and version\*{2}:\s*(?!\*\*VS|VS)\S.*?)(?=\r?\n|$)|(?:OS and version:\s*(?!\*\*VS|VS)\S.*?)(?=\r?\n|$)/g;
             // Search all bodies and get an array of all versions found (first or second capture group)
             const osVersions = bodies
-                .map((body) => [...body.matchAll(osVersionRegex)].map((match) => match[1] || match[2]))
+                .map(body => [...body.matchAll(osVersionRegex)].map(match => match[1] || match[2]))
                 .flat();
             if (osVersions.length > 0) {
-                console.log("OS and version is provided!");
+                console.log('OS and version is provided!');
             }
             else {
-                console.log("OS and version is NOT provided");
+                console.log('OS and version is NOT provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile("../../messages/provide-version.md", {
-                        THE_AUTHOR: issue.user.login,
+                    const message = getFile('../../messages/provide-version.md', {
+                        THE_AUTHOR: issue.user.login
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel("missing required information");
+                    addLabel('missing required information');
                 }
                 osVersionValid = false;
             }
@@ -170,20 +167,20 @@ async function run() {
             const lastWorkingVersionRegex = /(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*\r\n)|(Most recent version of the extensions where this was working:\s*\S.*\r\n)|(\*{2}Most recent version of the extensions where this was working\*{2}:\s*\S.*$)|(Most recent version of the extensions where this was working:\s*\S.*$)/g;
             // Search all bodies and get an array of all versions found (first or second capture group)
             const lastWorkingVersions = bodies
-                .map((body) => [...body.matchAll(lastWorkingVersionRegex)].map((match) => match[1] || match[2]))
+                .map(body => [...body.matchAll(lastWorkingVersionRegex)].map(match => match[1] || match[2]))
                 .flat();
             if (lastWorkingVersions.length > 0) {
-                console.log("Last working version is provided!");
+                console.log('Last working version is provided!');
             }
             else {
-                console.log("Last working version is NOT provided");
+                console.log('Last working version is NOT provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile("../../messages/provide-version.md", {
-                        THE_AUTHOR: issue.user.login,
+                    const message = getFile('../../messages/provide-version.md', {
+                        THE_AUTHOR: issue.user.login
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel("missing required information");
+                    addLabel('missing required information');
                 }
                 lastWorkingVersionValid = false;
             }
@@ -192,45 +189,38 @@ async function run() {
             const sfdxVersionRegex = /(?:Salesforce CLI Version|(?:\*{2}Salesforce CLI Version\*{2})):\s*(?:sfdx-cli\/)?(\d+\.\d+\.\d+)/g;
             const nodeVersionRegex = /node-v(\d{2})\.\d+\.\d+/g;
             // Search all bodies and get an array of all versions found (first capture group)
-            const sfVersions = bodies
-                .map((body) => [...body.matchAll(sfVersionRegex)].map((match) => match[1]))
-                .flat();
-            const sfdxVersions = bodies
-                .map((body) => [...body.matchAll(sfdxVersionRegex)].map((match) => match[1]))
-                .flat();
-            const nodeVersions = bodies
-                .map((body) => [...body.matchAll(nodeVersionRegex)].map((match) => match[1]))
-                .flat();
-            console.log("sfVersions", sfVersions);
-            console.log("sfdxVersions", sfdxVersions);
-            console.log("nodeVersions", nodeVersions);
-            if ((sfVersions.length > 0 || sfdxVersions.length > 0)) {
+            const sfVersions = bodies.map(body => [...body.matchAll(sfVersionRegex)].map(match => match[1])).flat();
+            const sfdxVersions = bodies.map(body => [...body.matchAll(sfdxVersionRegex)].map(match => match[1])).flat();
+            const nodeVersions = bodies.map(body => [...body.matchAll(nodeVersionRegex)].map(match => match[1])).flat();
+            console.log('sfVersions', sfVersions);
+            console.log('sfdxVersions', sfdxVersions);
+            console.log('nodeVersions', nodeVersions);
+            if (sfVersions.length > 0 || sfdxVersions.length > 0) {
                 if (sfVersions.length > 0) {
-                    const oneSatisfies = sfVersions.some((version) => semver.gte(version, '2.0.0'));
+                    const oneSatisfies = sfVersions.some(version => semver.gte(version, '2.0.0'));
                     if (!oneSatisfies) {
                         // If not, share deprecation information
-                        const sfV1 = getFile("../../messages/deprecated-cli.md", {
+                        const sfV1 = getFile('../../messages/deprecated-cli.md', {
                             THE_AUTHOR: author,
-                            OLD_CLI: "`sf` (v1)",
+                            OLD_CLI: '`sf` (v1)'
                         });
                         postComment(sfV1);
                         cliValid = false;
                     }
                 }
-                if (sfdxVersions.find((v) => v.startsWith("7.")) &&
-                    !sfVersions.find((v) => v.startsWith("2."))) {
-                    const noOldSfdx = getFile("../../messages/deprecated-cli.md", {
+                if (sfdxVersions.find(v => v.startsWith('7.')) && !sfVersions.find(v => v.startsWith('2.'))) {
+                    const noOldSfdx = getFile('../../messages/deprecated-cli.md', {
                         THE_AUTHOR: author,
-                        OLD_CLI: "`sfdx` (v7)",
+                        OLD_CLI: '`sfdx` (v7)'
                     });
                     postComment(noOldSfdx);
                     cliValid = false;
                 }
                 if (nodeVersions.length > 0) {
                     if (!(await (0, nodeVersions_1.isAnyVersionValid)(new Date())(nodeVersions))) {
-                        const nodeVersionMessage = getFile("../../messages/unsupported-node.md", {
+                        const nodeVersionMessage = getFile('../../messages/unsupported-node.md', {
                             THE_AUTHOR: author,
-                            NODE_VERSION: nodeVersions.join("`, `"),
+                            NODE_VERSION: nodeVersions.join('`, `')
                         });
                         postComment(nodeVersionMessage);
                         closeIssue();
@@ -238,32 +228,32 @@ async function run() {
                     }
                 }
                 if (cliValid) {
-                    console.log("A valid CLI version is provided!");
+                    console.log('A valid CLI version is provided!');
                 }
                 else {
-                    console.log("Information provided is NOT valid");
-                    addLabel("missing required information");
+                    console.log('Information provided is NOT valid');
+                    addLabel('missing required information');
                 }
             }
             else {
-                console.log("Full version information was not provided");
+                console.log('Full version information was not provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile("../../messages/provide-version.md", {
-                        THE_AUTHOR: issue.user.login,
+                    const message = getFile('../../messages/provide-version.md', {
+                        THE_AUTHOR: issue.user.login
                     });
                     postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel("missing required information");
+                    addLabel('missing required information');
                 }
                 cliValid = false;
             }
             if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
-                addLabel("validated");
-                removeLabel("missing required information");
+                addLabel('validated');
+                removeLabel('missing required information');
             }
             else {
-                console.log("You have one or more missing/invalid versions.");
-                addLabel("missing required information");
+                console.log('You have one or more missing/invalid versions.');
+                addLabel('missing required information');
             }
         }
         // ---------
@@ -274,21 +264,21 @@ async function run() {
                 owner,
                 repo,
                 issue_number,
-                state: "closed",
+                state: 'closed'
             });
         }
         async function getAllComments() {
             return await octokit.rest.issues.listComments({
                 owner,
                 repo,
-                issue_number,
+                issue_number
             });
         }
         async function postComment(body) {
             // Check that this comment has not been previously commented
-            if (comments.length) {
-                if (comments.some((comment) => comment.body === body)) {
-                    console.log("Already commented");
+            if (comments.length > 0) {
+                if (comments.some(comment => comment.body === body)) {
+                    console.log('Already commented');
                     return;
                 }
             }
@@ -296,7 +286,7 @@ async function run() {
                 owner,
                 repo,
                 issue_number,
-                body,
+                body
             });
         }
         async function addLabel(label) {
@@ -304,7 +294,7 @@ async function run() {
                 owner,
                 repo,
                 issue_number,
-                labels: [label],
+                labels: [label]
             });
         }
         async function removeLabel(label) {
@@ -313,7 +303,7 @@ async function run() {
                     owner,
                     repo,
                     issue_number,
-                    name: label,
+                    name: label
                 });
             }
             catch (err) {
@@ -326,19 +316,32 @@ async function run() {
             }
         }
         function getLatestExtensionsVersion() {
-            const result = (0, child_process_1.execSync)(`npx vsce show salesforce.salesforcedx-vscode --json`).toString();
+            const result = (0, node_child_process_1.execSync)('npx vsce show salesforce.salesforcedx-vscode --json').toString();
             return JSON.parse(result).versions[0].version;
         }
         function getMinimumVSCodeVersion() {
-            const currentDirectory = (0, child_process_1.execSync)(`pwd`).toString();
-            // currentDirectory contains a newline at the end
-            const packageJsonDirectory = currentDirectory.slice(0, -1) + "/packages/salesforcedx-vscode-core/package.json";
-            const packageJsonContent = (0, fs_1.readFileSync)(packageJsonDirectory, 'utf8');
-            // The VSCode version has a carat in front that needs to be removed
-            return JSON.parse(packageJsonContent).engines.vscode.substring(1);
+            try {
+                // Get the latest VSCode version from GitHub API using curl
+                const result = (0, node_child_process_1.execSync)('curl -s -H "User-Agent: salesforcedx-vscode-actions" https://api.github.com/repos/microsoft/vscode/releases/latest').toString();
+                const release = JSON.parse(result);
+                const latestVersion = release.tag_name ?? '1.103.0'; // e.g., "1.103.0"
+                // Parse version numbers
+                const versionParts = latestVersion.split('.').map(Number);
+                const major = versionParts[0] ?? 1;
+                const minor = versionParts[1] ?? 101;
+                // Calculate minimum version (latest - 2 minor versions)
+                const minMinor = Math.max(0, minor - 2);
+                const minimumVersion = `${major}.${minMinor}.0`;
+                return minimumVersion;
+            }
+            catch (error) {
+                console.error('Failed to fetch latest VSCode version, falling back to default:', error);
+                // Fallback to a reasonable default if API call fails
+                return '1.101.0';
+            }
         }
         function getFile(filename, replacements) {
-            let contents = (0, fs_1.readFileSync)(path.join(__dirname, filename), "utf8");
+            let contents = (0, node_fs_1.readFileSync)(path.join(__dirname, filename), 'utf8');
             Object.entries(replacements || {}).map(([key, value]) => {
                 contents = contents.replaceAll(key, value);
             });

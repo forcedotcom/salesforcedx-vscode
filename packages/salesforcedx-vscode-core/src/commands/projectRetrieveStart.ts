@@ -12,7 +12,7 @@ import {
   SourceTrackingService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { PROJECT_RETRIEVE_START_LOG_NAME } from '../constants';
 import { WorkspaceContext } from '../context/workspaceContext';
