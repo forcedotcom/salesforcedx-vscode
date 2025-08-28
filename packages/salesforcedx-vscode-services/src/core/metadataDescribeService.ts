@@ -95,7 +95,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
             Effect.mapError(e => new Error(`Failed to decode FileProperties: ${String(e)}`))
           )
         ),
-        Effect.withSpan('listMetadata', { attributes: { type, folder } }),
+        Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } }),
         Effect.provide(SdkLayer)
       );
 

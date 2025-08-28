@@ -6,18 +6,27 @@
  */
 import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { ConsoleSpanExporter, BatchSpanProcessor } from '@opentelemetry/sdk-trace-web';
+import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
+import { isTelemetryExtensionConfigurationEnabled } from './appInsights';
+import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
 import { getLocalTracesEnabled } from './localTracing';
+import { SpanTransformProcessor } from './spanTransformProcessor';
 
 export const WebSdkLayer = WebSdk.layer(() => ({
   resource: {
     serviceName: 'salesforcedx-vscode-services',
     //manually bump this to cause rebuilds/bust cache
     serviceVersion: '2025-08-15T20:49:30.000Z',
-    attributes: {}
+    attributes: {
+      'service.environment': 'vscode-extension',
+      'service.platform': 'web'
+    }
   },
   spanProcessor: [
-    new BatchSpanProcessor(new ConsoleSpanExporter()),
-    ...(getLocalTracesEnabled() ? [new BatchSpanProcessor(new OTLPTraceExporter())] : [])
+    new SpanTransformProcessor(new ConsoleSpanExporter()),
+    ...(isTelemetryExtensionConfigurationEnabled()
+      ? [new SpanTransformProcessor(new ApplicationInsightsWebExporter())]
+      : []),
+    ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : [])
   ]
 }));

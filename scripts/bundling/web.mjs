@@ -47,7 +47,7 @@ export const commonConfigBrowser = {
   // TODO: we need a way to turn this off for debugging and local dev
   minify: false,
   sourcemap: true,
-  keepNames: true,
+  // keepNames: false, // Disabled to fix "Cannot redefine property: name" error
   resolveExtensions: ['.js', '.ts', '.json'],
   inject: [processGlobalPath, bufferGlobalPath],
   logOverride: {
@@ -113,7 +113,8 @@ export const commonConfigBrowser = {
     querystring: 'querystring-es3',
     assert: 'assert',
     zlib: 'browserify-zlib',
-    timers: 'timers-browserify'
+    timers: 'timers-browserify',
+    'node:timers': 'timers-browserify'
   },
   plugins: [
     jszipNodestreamTransformPlugin(),

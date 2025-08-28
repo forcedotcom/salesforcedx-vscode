@@ -14,6 +14,7 @@ import { ConnectionService, ConnectionServiceLive } from './core/connectionServi
 import { MetadataDescribeService, MetadataDescribeServiceLive } from './core/metadataDescribeService';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
+import { webAppInsightsReporter } from './observability/applicationInsightsWebExporter';
 import { SdkLayer } from './observability/spans';
 import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
@@ -81,6 +82,7 @@ export const activate = async (
   if (Global.isWeb) {
     const config = vscode.workspace.getConfiguration();
     await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
+    context.subscriptions.push(webAppInsightsReporter);
   }
   // Create persistent scope for the extension
   extensionScope = await Effect.runPromise(Scope.make());

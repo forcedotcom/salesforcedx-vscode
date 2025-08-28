@@ -7,17 +7,12 @@
 import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter';
 import { NodeSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { ConsoleSpanExporter, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core';
 import { join } from 'node:path';
-import { workspace } from 'vscode';
-import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
+import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
 import { getLocalTracesEnabled } from './localTracing';
-
-const isTelemetryExtensionConfigurationEnabled = (): boolean =>
-  // TODO: should we consult the CLI's telemetry preference?
-  workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
-  workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.enabled', true);
+import { SpanTransformProcessor } from './spanTransformProcessor';
 
 export const NodeSdkLayer = NodeSdk.layer(() => ({
   resource: {
@@ -27,10 +22,10 @@ export const NodeSdkLayer = NodeSdk.layer(() => ({
     attributes: {}
   },
   spanProcessor: [
-    new BatchSpanProcessor(new ConsoleSpanExporter()),
+    new SpanTransformProcessor(new ConsoleSpanExporter()),
     ...(isTelemetryExtensionConfigurationEnabled()
       ? [
-          new BatchSpanProcessor(
+          new SpanTransformProcessor(
             new AzureMonitorTraceExporter({
               connectionString: DEFAULT_AI_CONNECTION_STRING,
               storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
@@ -42,6 +37,6 @@ export const NodeSdkLayer = NodeSdk.layer(() => ({
           )
         ]
       : []),
-    ...(getLocalTracesEnabled() ? [new BatchSpanProcessor(new OTLPTraceExporter())] : [])
+    ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : [])
   ]
 }));

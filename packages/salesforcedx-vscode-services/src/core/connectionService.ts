@@ -6,11 +6,12 @@
  */
 
 import { AuthInfo, Connection, Global } from '@salesforce/core';
-import { Context, Duration, Effect, Layer, Cache } from 'effect';
+import { Context, Duration, Effect, Layer, Cache, pipe, SubscriptionRef } from 'effect';
 import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
+import { DefaultOrgInfo, defaultOrgRef } from './defaultOrgService';
 
 export type ConnectionService = {
   /** Get a Connection to the target org */
@@ -35,8 +36,7 @@ const createAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect
     catch: error => new Error('Failed to create AuthInfo', { cause: error })
   }).pipe(
     Effect.tap(authInfo => Effect.annotateCurrentSpan(authInfo.getFields())),
-    Effect.withSpan('createAuthInfo'),
-    Effect.provide(SdkLayer)
+    Effect.withSpan('createAuthInfo')
   );
 
 const createConnection = (authInfo: AuthInfo, apiVersion: string): Effect.Effect<Connection, Error> =>
@@ -91,7 +91,7 @@ export const ConnectionServiceLive = Layer.effect(
         } else {
           return yield* ConfigService.pipe(
             Effect.flatMap(cfgSvc => cfgSvc.getConfigAggregator),
-            Effect.flatMap(agg => Effect.succeed(agg.getPropertyValue<string>('target-org'))),
+            Effect.map(agg => agg.getPropertyValue<string>('target-org')),
             Effect.flatMap(username =>
               Effect.tryPromise({
                 try: () => AuthInfo.create({ username }),
@@ -106,7 +106,44 @@ export const ConnectionServiceLive = Layer.effect(
             )
           );
         }
-      }).pipe(Effect.provide(SdkLayer), Effect.withSpan('getConnection'))
+      }).pipe(
+        Effect.tap(conn => updateDefaultOrgRef(conn)),
+        Effect.provide(SdkLayer),
+        Effect.withSpan('getConnection')
+      )
     };
   })
 );
+
+//** this info is used for quite a bit (ex: telemetry) so one we make the conenction, we capture the info and store it in a ref */
+const updateDefaultOrgRef = (conn: Connection): Effect.Effect<DefaultOrgInfo, Error> =>
+  Effect.gen(function* () {
+    const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
+    const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+    const devHubOrgId = yield* yield* Effect.cached(getDevHubId(devHubUsername));
+
+    const updated = Object.fromEntries(
+      Object.entries({
+        ...existingOrgInfo,
+        orgId,
+        devHubUsername,
+        tracksSource,
+        isScratch,
+        isSandbox,
+        devHubOrgId
+      }).filter(([, v]) => v !== undefined)
+    );
+    yield* Effect.all([Effect.annotateCurrentSpan(updated), SubscriptionRef.set(defaultOrgRef, updated)], {
+      concurrency: 'unbounded'
+    });
+    return updated;
+  }).pipe(Effect.withSpan('updateDefaultOrgRef'));
+
+/** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
+const getDevHubId = (scratchOrgUsername?: string): Effect.Effect<string | undefined, Error> =>
+  scratchOrgUsername
+    ? pipe(
+        Effect.promise(() => AuthInfo.create({ username: scratchOrgUsername })),
+        Effect.map(authInfo => authInfo.getFields().orgId)
+      )
+    : Effect.succeed(undefined);

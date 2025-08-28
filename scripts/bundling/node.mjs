@@ -53,7 +53,7 @@ export const commonConfigNode = {
   // TODO: we need a way to turn this off for debugging and local dev
   minify: true,
   sourcemap: true,
-  keepNames: true,
+  keepNames: false,
   logOverride: {
     'unsupported-dynamic-import': 'error'
   },
