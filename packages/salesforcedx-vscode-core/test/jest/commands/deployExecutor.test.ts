@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ConfigUtil, ContinueResponse, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
@@ -18,8 +18,8 @@ import * as diagnostics from '../../../src/diagnostics';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../../../src/settings';
 
-jest.mock('@salesforce/source-deploy-retrieve-bundle', () => ({
-  ...jest.requireActual('@salesforce/source-deploy-retrieve-bundle'),
+jest.mock('@salesforce/source-deploy-retrieve', () => ({
+  ...jest.requireActual('@salesforce/source-deploy-retrieve'),
   ComponentSet: jest.fn().mockImplementation(() => ({
     deploy: jest.fn().mockImplementation(() => ({ pollStatus: jest.fn() })),
     getSourceComponents: jest.fn().mockReturnValue([

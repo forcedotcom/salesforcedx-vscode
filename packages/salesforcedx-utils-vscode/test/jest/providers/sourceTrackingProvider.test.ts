@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core-bundle';
+import { Connection } from '@salesforce/core';
 import * as path from 'node:path';
 import { SourceTrackingProvider } from '../../../src/providers/sourceTrackingProvider';
 

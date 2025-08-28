@@ -12,15 +12,14 @@ import {
   Table,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve';
 import {
   ComponentStatus,
   FileResponse,
   FileResponseFailure,
   MetadataTransferResult,
   RequestStatus
-} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
-
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';

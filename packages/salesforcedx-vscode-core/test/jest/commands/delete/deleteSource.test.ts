@@ -5,18 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Lifecycle, Org, SfProject } from '@salesforce/core-bundle';
+import { Lifecycle, Org, SfProject } from '@salesforce/core';
 import * as sfdxUtils from '@salesforce/salesforcedx-utils-vscode';
 import { workspaceUtils, fileUtils } from '@salesforce/salesforcedx-utils-vscode';
-import * as sdrBundle from '@salesforce/source-deploy-retrieve-bundle';
+import * as sdrBundle from '@salesforce/source-deploy-retrieve';
 import {
   ComponentSet,
   ComponentSetBuilder,
   ComponentStatus,
   RequestStatus,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve-bundle';
-import { ChangeResult, SourceTracking } from '@salesforce/source-tracking-bundle';
+} from '@salesforce/source-deploy-retrieve';
+import { ChangeResult, SourceTracking } from '@salesforce/source-tracking';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';

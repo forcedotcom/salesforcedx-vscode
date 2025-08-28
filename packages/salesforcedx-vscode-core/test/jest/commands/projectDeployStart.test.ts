@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { workspaceUtils, nls, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { workspaceUtils, SourceTrackingService, nls } from '@salesforce/salesforcedx-utils-vscode';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { channelService } from '../../../src/channels';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { ProjectDeployStartExecutor, projectDeployStart } from '../../../src/commands/projectDeployStart';
