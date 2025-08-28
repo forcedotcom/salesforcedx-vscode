@@ -36300,7 +36300,7 @@ Total metadata types: 758+
   <xsd:element name="AssignmentRule" type="tns:AssignmentRule" />
   <xsd:element name="AutoResponseRule" type="tns:AutoResponseRule" />
   <xsd:element name="EscalationRule" type="tns:EscalationRule" />
-  <xsd:element name="SharingRule" type="tns:SharingRule" />
+
   <xsd:element name="Workflow" type="tns:Workflow" />
   <xsd:element name="WorkflowAlert" type="tns:WorkflowAlert" />
   <xsd:element name="WorkflowFieldUpdate" type="tns:WorkflowFieldUpdate" />
@@ -36332,7 +36332,7 @@ Total metadata types: 758+
   <xsd:element name="InstalledPackage" type="tns:InstalledPackage" />
   <xsd:element name="Package" type="tns:Package" />
   <xsd:element name="PackageVersion" type="tns:PackageVersion" />
-  <xsd:element name="Settings" type="tns:Settings" />
+
   <xsd:element name="BusinessProcess" type="tns:BusinessProcess" />
   <xsd:element name="RecordType" type="tns:RecordType" />
   <xsd:element name="WebLink" type="tns:WebLink" />
@@ -36390,7 +36390,7 @@ Total metadata types: 758+
   <xsd:element name="ManagedContentType" type="tns:ManagedContentType" />
   <xsd:element name="Bot" type="tns:Bot" />
   <xsd:element name="BotVersion" type="tns:BotVersion" />
-  <xsd:element name="ChatbotSettings" type="tns:ChatbotSettings" />
+
   <xsd:element name="ConversationVendorInfo" type="tns:ConversationVendorInfo" />
   <xsd:element name="EmbeddedServiceBranding" type="tns:EmbeddedServiceBranding" />
   <xsd:element name="EmbeddedServiceConfig" type="tns:EmbeddedServiceConfig" />
@@ -36402,7 +36402,7 @@ Total metadata types: 758+
   <xsd:element name="PromptVersion" type="tns:PromptVersion" />
   <xsd:element name="AIApplication" type="tns:AIApplication" />
   <xsd:element name="AIApplicationConfig" type="tns:AIApplicationConfig" />
-  <xsd:element name="MLDomain" type="tns:MLDomain" />
+
   <xsd:element name="MLDataDefinition" type="tns:MLDataDefinition" />
   <xsd:element name="MLPredictionDefinition" type="tns:MLPredictionDefinition" />
   <xsd:element name="MLRecommendationDefinition" type="tns:MLRecommendationDefinition" />
@@ -36421,7 +36421,7 @@ Total metadata types: 758+
   <xsd:element name="LightningOnboardingConfig" type="tns:LightningOnboardingConfig" />
   <xsd:element name="ModerationRule" type="tns:ModerationRule" />
   <xsd:element name="DataCategoryGroup" type="tns:DataCategoryGroup" />
-  <xsd:element name="RemoteSiteSettings" type="tns:RemoteSiteSettings" />
+
   <xsd:element name="CampaignInfluenceModel" type="tns:CampaignInfluenceModel" />
   <xsd:element name="LeadConvertSettings" type="tns:LeadConvertSettings" />
   <xsd:element name="MobileSettings" type="tns:MobileSettings" />
@@ -36436,9 +36436,7 @@ Total metadata types: 758+
   <xsd:element name="SearchSettings" type="tns:SearchSettings" />
   <xsd:element name="SecuritySettings" type="tns:SecuritySettings" />
   <xsd:element name="SharingSettings" type="tns:SharingSettings" />
-  <xsd:element name="Territory2Settings" type="tns:Territory2Settings" />
   <xsd:element name="TrialOrgSettings" type="tns:TrialOrgSettings" />
   <xsd:element name="UserManagementSettings" type="tns:UserManagementSettings" />
-  <xsd:element name="WaveSettings" type="tns:WaveSettings" />
 
   </xsd:schema>
