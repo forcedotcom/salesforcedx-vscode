@@ -9,7 +9,7 @@ import { build } from 'esbuild';
 
 await build({
   ...nodeConfig,
-  external: ['vscode', 'applicationinsights', 'jsonpath'],
-  entryPoints: ['./src/index.ts'],
+  external: ['vscode', 'esprima', '../include/module.js', '../include/action.js'],
+  entryPoints: ['./src/index.ts', '../salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js'],
   outdir: 'dist'
 });
