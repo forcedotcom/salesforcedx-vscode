@@ -27153,7 +27153,7 @@ Total metadata types: 758+
     </xsd:complexContent>
    </xsd:complexType>
    <xsd:complexType name="PromptVersion">
-    <xsd:sequence>
+    <xsd:all>
      <xsd:element name="actionButtonLabel" minOccurs="0" type="xsd:string"/>
      <xsd:element name="actionButtonLink" minOccurs="0" type="xsd:string"/>
      <xsd:element name="body" type="xsd:string"/>
@@ -27201,7 +27201,7 @@ Total metadata types: 758+
      <xsd:element name="userProfileAccess" minOccurs="0" type="tns:PromptUserProfileAccess"/>
      <xsd:element name="versionNumber" type="xsd:int"/>
      <xsd:element name="videoLink" minOccurs="0" type="xsd:string"/>
-    </xsd:sequence>
+    </xsd:all>
    </xsd:complexType>
    <xsd:simpleType name="PromptDisplayPosition">
     <xsd:restriction base="xsd:string">
