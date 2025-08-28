@@ -24,7 +24,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core-bundle": "^8.19.1",
+    "@salesforce/core": "^8.19.1",
     "@salesforce/salesforcedx-apex-debugger": "64.11.1",
     "@salesforce/salesforcedx-utils": "64.11.1",
     "@salesforce/salesforcedx-utils-vscode": "64.11.1",

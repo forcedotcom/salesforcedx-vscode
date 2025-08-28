@@ -29,7 +29,6 @@ export const afterStart = (client: LanguageClient): LanguageClient => {
     try {
       return enabled
         ? {
-            // @ts-expect-error - mismatch in Logger between core and core-bundle
             result: await runQuery(await WorkspaceContextUtil.getInstance().getConnection())(queryText, {
               showErrors: false
             })

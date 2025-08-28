@@ -10,7 +10,7 @@ import {
   PostconditionChecker,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';

@@ -18,7 +18,7 @@ import {
   MetadataApiRetrieve,
   RetrieveResult,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve-bundle';
+} from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';

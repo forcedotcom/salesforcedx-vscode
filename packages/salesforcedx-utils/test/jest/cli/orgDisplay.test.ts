@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core';
 import { OrgDisplay } from '../../../src';
 
 // Mock the Salesforce Core classes
-jest.mock('@salesforce/core-bundle', () => ({
+jest.mock('@salesforce/core', () => ({
   AuthInfo: {
     create: jest.fn()
   },
@@ -76,7 +76,7 @@ describe('OrgDisplay unit tests.', () => {
     mockStateAggregator = {
       aliases: {
         getAll: jest.fn().mockReturnValue([]),
-        getUsername: jest.fn().mockImplementation((usernameOrAlias) => usernameOrAlias)
+        getUsername: jest.fn().mockImplementation(usernameOrAlias => usernameOrAlias)
       }
     };
 

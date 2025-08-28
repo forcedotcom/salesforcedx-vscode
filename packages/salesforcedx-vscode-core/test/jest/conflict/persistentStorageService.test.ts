@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { RequestStatus } from '@salesforce/source-deploy-retrieve-bundle';
+import { RequestStatus } from '@salesforce/source-deploy-retrieve';
 import { PersistentStorageService } from '../../../src/conflict';
 import { MockExtensionContext } from './mockExtensionContext';
 

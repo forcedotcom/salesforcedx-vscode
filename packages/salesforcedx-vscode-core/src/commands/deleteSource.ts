@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Lifecycle, Org, SfError, SfProject } from '@salesforce/core-bundle';
+import { Lifecycle, Org, SfError, SfProject } from '@salesforce/core';
 
 import {
   ContinueResponse,
@@ -27,8 +27,8 @@ import {
   FileResponseSuccess,
   RequestStatus,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve-bundle';
-import { ChangeResult, SourceTracking, deleteCustomLabels } from '@salesforce/source-tracking-bundle';
+} from '@salesforce/source-deploy-retrieve';
+import { ChangeResult, SourceTracking, deleteCustomLabels } from '@salesforce/source-tracking';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';

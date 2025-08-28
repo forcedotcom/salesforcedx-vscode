@@ -10,8 +10,8 @@ import { SourceTrackingProvider } from '../../../../src/providers/sourceTracking
 import { SourceTrackingService } from '../../../../src/services';
 import { testData } from './testData';
 
-jest.mock('@salesforce/core-bundle', () => ({
-  ...jest.requireActual('@salesforce/core-bundle'),
+jest.mock('@salesforce/core', () => ({
+  ...jest.requireActual('@salesforce/core'),
   Org: { create: jest.fn() },
   SfProject: { resolve: jest.fn() }
 }));

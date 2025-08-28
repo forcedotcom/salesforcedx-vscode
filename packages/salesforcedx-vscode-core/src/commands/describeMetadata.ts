@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Connection } from '@salesforce/core-bundle';
+import type { Connection } from '@salesforce/core';
 import { createDirectory, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { WorkspaceContext } from '../context';

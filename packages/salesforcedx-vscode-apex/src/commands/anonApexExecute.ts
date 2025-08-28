@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExecuteAnonymousResponse, ExecuteService } from '@salesforce/apex-node-bundle';
+import { ExecuteAnonymousResponse, ExecuteService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import {
   CancelResponse,
@@ -79,7 +79,6 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     if (this.isDebugging) {
-      // @ts-expect-error - mismatch between core and core-bundle because of Logger
       if (!(await this.setUpTraceFlags(connection))) {
         return false;
       }
@@ -103,7 +102,6 @@ class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecu
   }
 
   private async setUpTraceFlags(connection: Connection): Promise<boolean> {
-    // @ts-expect-error - mismatch between core and core-bundle because of Logger
     const traceFlags = new TraceFlags(connection);
     if (!(await traceFlags.ensureTraceFlags())) {
       return false;

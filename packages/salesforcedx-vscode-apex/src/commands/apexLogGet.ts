@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LogRecord, LogService } from '@salesforce/apex-node-bundle';
+import { LogRecord, LogService } from '@salesforce/apex-node';
 import {
   CancelResponse,
   ContinueResponse,

@@ -14,7 +14,7 @@ import {
   workspaceUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join, parse } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';

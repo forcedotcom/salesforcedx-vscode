@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core-bundle';
+import { Connection } from '@salesforce/core';
 import { getRootWorkspacePath, SourceTrackingService, SourceTrackingType } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
-import { RequestStatus } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
