@@ -13,7 +13,7 @@ import {
   OrgConfigProperties,
   OrgAuthorization,
   Org
-} from '@salesforce/core-bundle';
+} from '@salesforce/core';
 import { SfWorkspaceChecker, Table, Column, Row, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, AuthInfo, ConfigAggregator, Org } from '@salesforce/core-bundle';
+import { AuthRemover, AuthInfo, ConfigAggregator, Org } from '@salesforce/core';
 import { ConfigUtil, notificationService, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../../src/channels';
 import {
@@ -19,7 +19,7 @@ import { nls } from '../../../src/messages';
 import { getAuthFieldsFor } from '../../../src/util/orgUtil';
 
 // Mock the dependencies
-jest.mock('@salesforce/core-bundle', () => ({
+jest.mock('@salesforce/core', () => ({
   AuthRemover: {
     create: jest.fn()
   },
