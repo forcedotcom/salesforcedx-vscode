@@ -57,19 +57,17 @@ export class OrgList implements vscode.Disposable {
   public async isOrgExpired(targetOrgOrAlias: string): Promise<boolean> {
     const username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
     const authFields = await getAuthFieldsFor(username);
-    const now = new Date().getTime();
     let expirationDate;
     if (authFields.expirationDate) {
       expirationDate = new Date(authFields.expirationDate);
     }
-    return expirationDate ? expirationDate.getTime() < now : false;
+    return expirationDate ? expirationDate.getTime() < Date.now() : false;
   }
 
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[], showExpired: boolean = false): Promise<string[]> {
     const targetDevHub = await OrgAuthInfo.getDevHubUsername();
 
     const authList = [];
-    const today = new Date().getTime();
     for (const orgAuth of orgAuthorizations) {
       // When this is called right after logging out of an org, there can
       // still be a cached Org Auth in the list with a "No auth information found"
@@ -90,7 +88,7 @@ export class OrgList implements vscode.Disposable {
       }
       // More precise expiration check: compare exact timestamps, not just dates
       // This accounts for the time of day when the org actually expires
-      const isExpired = authFields?.expirationDate ? new Date(authFields.expirationDate).getTime() < today : false;
+      const isExpired = authFields?.expirationDate ? new Date(authFields.expirationDate).getTime() < Date.now() : false;
 
       // Skip expired orgs unless explicitly requested to show them
       if (isExpired && !showExpired) {

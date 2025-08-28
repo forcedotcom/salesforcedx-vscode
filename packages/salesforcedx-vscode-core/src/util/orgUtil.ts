@@ -38,7 +38,6 @@ export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<voi
 
   try {
     const daysBeforeExpire = 5;
-    const today = new Date().getTime();
     const daysUntilExpiration = new Date();
     daysUntilExpiration.setDate(daysUntilExpiration.getDate() + daysBeforeExpire);
 
@@ -63,7 +62,7 @@ export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<voi
 
       // Filter out the expired orgs.
       const expirationDate = new Date(authFields.expirationDate);
-      if (expirationDate.getTime() < today) {
+      if (expirationDate.getTime() < Date.now()) {
         if (orgAuthorization.username === (await ConfigUtil.getUsername())) {
           void notificationService.showWarningMessage(nls.localize('default_org_expired'));
         }
