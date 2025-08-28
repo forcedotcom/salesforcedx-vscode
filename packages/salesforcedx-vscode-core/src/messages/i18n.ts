@@ -174,8 +174,6 @@ export const messages = {
   org_list_clean_no_orgs_message: 'No expired or deleted orgs found to remove.',
   org_list_clean_skipping_org_with_error: 'Skipping org %s with error: %s',
   org_list_clean_removing_expired_org: 'Removing expired org %s (expired: %s)',
-  org_list_clean_removing_expired_org_detailed: 'Removing expired org %s (expired: %s, %s ago)',
-  org_list_clean_invalid_expiration_date: 'Skipping org %s with invalid expiration date: %s',
   org_list_clean_removing_invalid_org: 'Removing invalid/deleted org %s (error: %s)',
   org_list_clean_failed_to_remove_org: 'Failed to remove org %s: %s',
   org_list_clean_error_checking_org: 'Error checking org %s: %s',

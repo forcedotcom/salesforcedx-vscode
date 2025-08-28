@@ -61,7 +61,7 @@ export class OrgList implements vscode.Disposable {
     if (authFields.expirationDate) {
       expirationDate = new Date(authFields.expirationDate);
     }
-    return expirationDate ? expirationDate.getTime() < Date.now() : false;
+    return expirationDate ? expirationDate < new Date() : false;
   }
 
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[], showExpired: boolean = false): Promise<string[]> {
@@ -86,9 +86,7 @@ export class OrgList implements vscode.Disposable {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      // More precise expiration check: compare exact timestamps, not just dates
-      // This accounts for the time of day when the org actually expires
-      const isExpired = authFields?.expirationDate ? new Date(authFields.expirationDate).getTime() < Date.now() : false;
+      const isExpired = authFields?.expirationDate ? new Date(authFields.expirationDate) < new Date() : false;
 
       // Skip expired orgs unless explicitly requested to show them
       if (isExpired && !showExpired) {

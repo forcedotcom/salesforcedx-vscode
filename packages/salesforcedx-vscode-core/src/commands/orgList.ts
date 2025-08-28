@@ -40,23 +40,6 @@ export const determineConnectedStatusForNonScratchOrg = async (username: string)
   }
 };
 
-/** Helper function to pluralize time units */
-const pluralize = (count: number, unit: string): string => `${count} ${unit}${count !== 1 ? 's' : ''}`;
-
-/** Format time difference into human-readable string */
-export const formatTimeDifference = (timeDiffInMs: number): string => {
-  const days = Math.floor(timeDiffInMs / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((timeDiffInMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((timeDiffInMs % (1000 * 60 * 60)) / (1000 * 60));
-
-  const parts = [];
-  if (days > 0) parts.push(pluralize(days, 'day'));
-  if (hours > 0) parts.push(pluralize(hours, 'hour'));
-  if (minutes > 0) parts.push(pluralize(minutes, 'minute'));
-
-  return parts.length > 0 ? parts.join(', ') : '0 minutes';
-};
-
 /** Process a single org for potential removal */
 const processOrgForRemoval = async (
   orgAuth: OrgAuthorization,
@@ -82,27 +65,10 @@ const processOrgForRemoval = async (
     if (authFields.expirationDate) {
       const expirationDate = new Date(authFields.expirationDate);
 
-      // Validate that we have a valid expiration date
-      if (isNaN(expirationDate.getTime())) {
+      // Check if org has expired
+      if (expirationDate < new Date()) {
         channelService.appendLine(
-          nls.localize('org_list_clean_invalid_expiration_date', orgAuth.username, authFields.expirationDate)
-        );
-        return undefined;
-      }
-
-      // More precise expiration check: compare exact timestamps, not just dates
-      // This accounts for the time of day when the org actually expires
-      if (expirationDate.getTime() < Date.now()) {
-        const timeDiff = Date.now() - expirationDate.getTime();
-        const timeDiffFormatted = formatTimeDifference(timeDiff);
-
-        channelService.appendLine(
-          nls.localize(
-            'org_list_clean_removing_expired_org_detailed',
-            orgAuth.username,
-            authFields.expirationDate,
-            timeDiffFormatted
-          )
+          nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
         );
         await authRemover.removeAuth(orgAuth.username);
         return orgAuth.username;
@@ -250,8 +216,8 @@ const processOrgForDisplay = async (
     // Determine status by actually testing the connection
     let status: string;
     if (authFields.expirationDate) {
-      const expirationDate = new Date(authFields.expirationDate).getTime();
-      if (expirationDate < Date.now()) {
+      const expirationDate = new Date(authFields.expirationDate);
+      if (expirationDate < new Date()) {
         return undefined; // Skip expired orgs (they should have been removed)
       }
       status = 'Active'; // For scratch orgs, we assume they're active if not expired
@@ -355,7 +321,7 @@ export const shouldRemoveOrg = (error: any): boolean => {
     message.includes('invalid_login') ||
     message.includes('no such org') ||
     message.includes('namedorgnotfound') ||
-    message.includes('noauthinfoFound')
+    message.includes('noauthinfofound')
   );
 };
 
